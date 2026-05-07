@@ -1,0 +1,102 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+/**
+ * AI Noise Remover API Route
+ */
+
+export async function POST(req: NextRequest) {
+  try {
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    }
+
+    // 1. Try Local AI Microservice
+    const localApiUrl = "http://localhost:8000/api/noise-remover";
+    
+    try {
+      console.log('Attempting local noise removal at:', localApiUrl);
+      const localResponse = await fetch(localApiUrl, {
+        method: "POST",
+        body: formData,
+        signal: AbortSignal.timeout(2000)
+      });
+
+      if (localResponse.ok) {
+        const result = await localResponse.json();
+        if (result.success) return NextResponse.json(result);
+      }
+    } catch (localError: any) {
+      console.warn('Local service unreachable:', localError.message);
+    }
+
+    // 2. Try Hugging Face
+    const hfToken = process.env.HUGGINGFACE_TOKEN;
+    if (hfToken) {
+      try {
+        const hfSpaceUrl = "https://r3gm-audio-separator.hf.space/api/predict";
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const base64Audio = buffer.toString('base64');
+        
+        console.log('Attempting HF noise removal...');
+        const hfResponse = await fetch(hfSpaceUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${hfToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            data: [
+              { name: file.name, data: `data:${file.type};base64,${base64Audio}` },
+              "UVR-DeNoise", 
+              "Clean", 
+              "v3" 
+            ]
+          }),
+          signal: AbortSignal.timeout(45000)
+        });
+
+        if (hfResponse.ok) {
+          const hfData = await hfResponse.json();
+          if (hfData.data && hfData.data[0]) {
+            return NextResponse.json({
+              success: true,
+              result: {
+                cleaned: hfData.data[0].url || hfData.data[0],
+                fileName: file.name
+              }
+            });
+          }
+        }
+      } catch (hfError: any) {
+        console.error('HF request failed:', hfError.message);
+      }
+    }
+
+    // 3. Fallback for Localhost Development
+    // If we're here, all real services failed. 
+    // We return a 'success' but with isDemo: true and NO external random music.
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('AI services unavailable. Falling back to local audio mock.');
+      return NextResponse.json({
+        success: true,
+        result: {
+          cleaned: null, // Frontend will detect this and use original audio
+          fileName: file.name,
+          isDemo: true
+        }
+      });
+    }
+
+    throw new Error('All noise removal services failed');
+
+  } catch (error: any) {
+    console.error('Noise removal error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to process audio',
+      details: error.message 
+    }, { status: 500 });
+  }
+}

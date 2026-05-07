@@ -1,0 +1,113 @@
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import axios from 'axios';
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth();
+    let sbUser = session?.user;
+
+    // Development bypass
+    if (!sbUser && process.env.NODE_ENV === 'development') {
+      sbUser = { id: "dev-user", email: "dev@lumora.ai", name: "Lumora Creator" };
+    }
+
+    if (!sbUser || !sbUser.email) {
+      return NextResponse.json({ error: "Please sign in to generate code" }, { status: 401 });
+    }
+
+    // Check credits
+    let user = await prisma.user.findUnique({ where: { email: sbUser.email } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          id: sbUser.id,
+          email: sbUser.email,
+          name: sbUser.name || sbUser.email.split('@')[0],
+          credits: 50,
+          plan: 'free'
+        }
+      });
+    }
+
+    // Check credits and Pro plan
+    const cost = 5;
+    if (user.plan !== 'pro' && user.credits < cost) {
+      // If in development mode, automatically upgrade the user to pro so they can test
+      if (process.env.NODE_ENV === 'development') {
+        await prisma.user.update({ where: { id: user.id }, data: { plan: 'pro', credits: 1000 } });
+        user.plan = 'pro';
+      } else {
+        return NextResponse.json({ error: "Insufficient credits. Upgrade to Pro for unlimited coding!" }, { status: 403 });
+      }
+    }
+
+    const { prompt, language, framework } = await req.json();
+
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) throw new Error("GROQ_API_KEY missing");
+
+    const systemPrompt = `You are Lumora Code Genius, an elite AI software engineer. 
+Your goal is to generate clean, modern, and highly efficient code.
+
+RESPONSE STRUCTURE (STRICTLY FOLLOW THIS):
+1. [CODE_START]
+   <Your clean code block here>
+   [CODE_END]
+
+2. [GUIDE_START]
+   <A concise, professional step-by-step implementation guide>
+   [GUIDE_END]
+
+3. [SUGGESTIONS_START]
+   - Suggestion 1 (Plain text only, max 10 words)
+   - Suggestion 2 (Plain text only, max 10 words)
+   - Suggestion 3 (Plain text only, max 10 words)
+   [SUGGESTIONS_END]
+
+Instructions:
+- Target Language: ${language || 'Auto-detect'}
+- Target Framework: ${framework || 'None'}
+- Never include instructions inside the code block.
+- Ensure delimiters are on their own lines.`;
+
+    const response = await axios.post("https://api.groq.com/openai/v1/chat/completions", {
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2, // Lower temperature for more accurate code
+      max_tokens: 2048
+    }, {
+      headers: {
+        "Authorization": `Bearer ${groqKey}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const codeOutput = response.data.choices[0].message.content;
+
+    // Deduct credits
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: user.id }, data: { credits: { decrement: cost } } }),
+      prisma.job.create({
+        data: {
+          userId: user.id,
+          toolType: 'ai-code',
+          status: 'COMPLETED',
+          originalUrl: prompt,
+          resultUrl: codeOutput,
+          metadata: { language, framework, model: "llama-3.3-70b-versatile" }
+        }
+      })
+    ]);
+
+    return NextResponse.json({ code: codeOutput });
+
+  } catch (error: any) {
+    console.error("Code Gen Error:", error.response?.data || error.message);
+    return NextResponse.json({ error: "Failed to generate code. Please try again." }, { status: 500 });
+  }
+}
