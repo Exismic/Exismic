@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/server";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
@@ -83,9 +84,9 @@ export async function POST(req: NextRequest) {
     if (!sbUser && process.env.NODE_ENV === 'development') {
       console.log("No session found for image gen, using development fallback user.");
       sbUser = {
-        id: "dev-user-id",
-        email: "dev@lumora.ai",
-        name: "Lumora Creator"
+        id: "test-user",
+        email: "test@test.test",
+        name: "test"
       };
     }
 
