@@ -1,4 +1,4 @@
-// Build Sync: 2026-05-10T14:30 - Forced 0.0.0.0 & Port 3000
+// Build Sync: 2026-05-10T14:40 - Rapid Response Startup
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -13,26 +13,28 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// 1. Immediate Health Check for Railway
+app.get('/', (req, res) => res.status(200).send('Lumora Engine is LIVE! 🚀'));
+app.get('/health', (req, res) => res.status(200).json({ status: 'active', timestamp: new Date().toISOString() }));
+
+// 2. Delayed Route Registration to prevent health check timeout
 import audioRoutes from './routes/audioRoutes';
 import imageRoutes from './routes/imageRoutes';
-
-// Root Handler for Railway Health Checks
-app.get('/', (req, res) => {
-  res.send('Lumora Engine is Running! 🚀');
-});
-
-// Health Check
-app.get('/health', (req, res) => {
-  res.json({ status: 'active', engine: 'Lumora High-Performance', timestamp: new Date().toISOString() });
-});
-
-// Register Routes
 app.use('/', audioRoutes);
 app.use('/', imageRoutes);
 
-app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`🚀 Lumora Backend Engine is LIVE on port ${PORT}`);
-  console.log(`🔗 Health check available at: http://0.0.0.0:${PORT}/health`);
+// 3. Robust Listener
+const server = app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`🚀 Lumora Backend Engine is LIVE on 0.0.0.0:${PORT}`);
+});
+
+// 4. Graceful Shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });
 
 export { prisma };

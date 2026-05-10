@@ -65,10 +65,10 @@ export default function HelpPage() {
                 </p>
               </div>
               <a 
-                href="mailto:careers@lumoraai.online"
+                href="mailto:support@lumoraai.online"
                 className="w-full h-20 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 font-black text-xs uppercase tracking-[0.3em] hover:text-white hover:border-white/20 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-3"
               >
-                careers@lumoraai.online <Send size={16} />
+                support@lumoraai.online <Send size={16} />
               </a>
             </div>
           </motion.div>
