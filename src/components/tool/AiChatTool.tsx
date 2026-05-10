@@ -239,6 +239,13 @@ export function AiChatTool() {
     }
   };
 
+  const handleShare = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      toast("Link Copied to Clipboard!", "success");
+    }
+  };
+
   const handleSend = async (content: string = input) => {
     console.log("DEBUG: handleSend triggered with:", content);
     if (!content.trim() || isLoading) {
@@ -246,8 +253,14 @@ export function AiChatTool() {
       return;
     }
 
+    console.log("DEBUG: Checking credits/limits...");
     const canSend = await consumeMessage();
-    if (!canSend) return;
+    if (!canSend) {
+      console.log("DEBUG: canSend returned false. Blocked by limits or missing profile.");
+      if (!session) toast("Please sign in to send messages", "warning");
+      else toast("Message limit reached or profile sync required", "warning");
+      return;
+    }
     const userMsg: Message = { 
       role: "user", 
       content: content.trim(),
@@ -657,7 +670,10 @@ export function AiChatTool() {
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{agentStatus}</span>
                </div>
-               <button className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-400 hover:text-white transition-all">
+               <button 
+                 onClick={handleShare}
+                 className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-95"
+               >
                  <Share2 size={18} />
                </button>
             </div>
