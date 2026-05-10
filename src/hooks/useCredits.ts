@@ -101,6 +101,31 @@ export function useCredits() {
           }
         }
         setState(userData);
+      } else {
+        // New User Initialization
+        console.log("DEBUG: New user detected. Initializing with 50 credits...");
+        const { data: newData } = await supabase
+          .from('User')
+          .insert({
+            id: userId,
+            daily_credits: 50,
+            lifetime_credits: 0,
+            plan: 'free',
+            credits_last_reset: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (newData) {
+          setState({
+            dailyCredits: newData.daily_credits,
+            lifetimeCredits: newData.lifetime_credits,
+            creditsLastReset: newData.credits_last_reset,
+            aiMessagesToday: 0,
+            aiMessagesReset: new Date().toISOString(),
+            plan: 'free',
+          });
+        }
       }
     } catch (err) {
       console.warn('Error fetching credits:', err);

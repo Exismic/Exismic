@@ -258,7 +258,8 @@ export function AiChatTool() {
     if (!canSend) {
       console.log("DEBUG: canSend returned false. Blocked by limits or missing profile.");
       if (!session) toast("Please sign in to send messages", "warning");
-      else toast("Message limit reached or profile sync required", "warning");
+      else if (plan === 'pro') toast("System busy. Please try again in a moment.", "warning");
+      else toast("Daily message limit reached. Upgrade to Pro for unlimited!", "warning");
       return;
     }
     const userMsg: Message = { 
