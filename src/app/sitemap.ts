@@ -48,15 +48,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  // 4. Auth & Support (Low Priority)
-  const supportPages = [
+  // 4. Support & Legal (Medium Priority)
+  const legalPages = [
+    '/help', '/privacy', '/terms', '/about', '/changelog', '/blog'
+  ].map(path => ({
+    url: `${baseUrl}${path}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.5,
+  }));
+
+  // 5. Auth (Low Priority)
+  const authPages = [
     {
       url: `${baseUrl}/auth/login`,
       lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
+      changeFrequency: 'monthly' as const,
       priority: 0.3,
     },
   ];
 
-  return [...staticPages, ...categoryPages, ...toolPages, ...supportPages];
+  return [...staticPages, ...categoryPages, ...toolPages, ...legalPages, ...authPages];
 }

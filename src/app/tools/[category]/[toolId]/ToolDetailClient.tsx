@@ -139,8 +139,28 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     'pdf-merger', 'pdf-splitter', 'pdf-compressor', 'pdf-to-img', 'pdf-img-to-pdf', 'pdf-to-word', 'pdf-ocr'
   ].includes(tool.id);
 
+  // Structured Data for Google (JSON-LD)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": tool.name,
+    "description": tool.description,
+    "applicationCategory": category.name,
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": tool.pro ? "9.99" : "0",
+      "priceCurrency": "USD"
+    }
+  };
+
   const PageContent = (
     <div className="p-4 md:p-12 max-w-7xl mx-auto space-y-12 pb-32">
+      <Script
+        id="tool-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {categoryId === 'pdf' && (
         <Script 
           src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
