@@ -177,13 +177,14 @@ export function VocalRemover() {
         });
 
         if (!response.ok) {
-            let errorMsg = 'Separation failed';
+            const errorText = await response.text();
+            let errorMsg = errorText || 'Separation failed';
+            
             try {
-                const error = await response.json();
-                errorMsg = error.error || error.detail || errorMsg;
+                const errorJson = JSON.parse(errorText);
+                errorMsg = errorJson.error || errorJson.detail || errorMsg;
             } catch (e) {
-                const text = await response.text();
-                errorMsg = text || errorMsg;
+                // Not JSON, use the raw text
             }
             
             if (response.status === 503) {
