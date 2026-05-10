@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
     
     // Determine the most helpful error message
     let userMessage = 'The AI service is currently unavailable.';
+    if (error.message.includes('401') || error.message.includes('403')) userMessage = 'System Error: Invalid AI Token.';
     if (error.message.includes('HUGGINGFACE_TOKEN')) userMessage = 'System Error: AI Token Missing.';
     if (error.message.includes('fetch failed')) userMessage = 'Connection Error: AI Engine Unreachable.';
     if (error.message.includes('timeout')) userMessage = 'The AI is taking too long. Try a shorter clip.';
