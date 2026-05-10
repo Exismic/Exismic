@@ -12,14 +12,17 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
+import audioRoutes from './routes/audioRoutes';
+import imageRoutes from './routes/imageRoutes';
+
 // Health Check
 app.get('/health', (req, res) => {
   res.json({ status: 'active', engine: 'Lumora High-Performance', timestamp: new Date().toISOString() });
 });
 
-// Import Routes (Placeholder for actual tool routes)
-// app.use('/api/video', videoRoutes);
-// app.use('/api/audio', audioRoutes);
+// Register Routes
+app.use('/', audioRoutes);
+app.use('/', imageRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Lumora Backend Engine running on port ${PORT}`);
