@@ -25,6 +25,9 @@ export function constructMetadata({
   return {
     title,
     description,
+    verification: {
+      google: "8BBWHS5KOph0mfoJRgzFXCePJogKxSd33dFUFhdRi4w",
+    },
     keywords: [
       "AI tools", "free background remover", "AI image generator", 
       "vocal remover", "AI writer", "photo restorer", "PDF tools", 
