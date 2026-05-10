@@ -167,7 +167,10 @@ export function VocalRemover() {
         setProgress(15);
 
         // Call the engine directly if possible to bypass Vercel timeouts
-        const engineBaseUrl = process.env.NEXT_PUBLIC_ENGINE_URL || '';
+        let engineBaseUrl = process.env.NEXT_PUBLIC_ENGINE_URL || '';
+        if (engineBaseUrl && !engineBaseUrl.startsWith('http')) {
+            engineBaseUrl = `https://${engineBaseUrl}`;
+        }
         const apiUrl = engineBaseUrl ? `${engineBaseUrl.endsWith('/') ? engineBaseUrl.slice(0, -1) : engineBaseUrl}/separate` : '/api/tools/vocal-remover';
         
         console.log('Sending request to:', apiUrl);
