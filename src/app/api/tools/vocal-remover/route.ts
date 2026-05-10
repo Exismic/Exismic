@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // --- Fallback to Hugging Face (Ultra-Reliable Safety Net) ---
+    // --- Fallback to Hugging Face (Tier 1: High Fidelity) ---
     const hfToken = process.env.HUGGINGFACE_TOKEN;
     if (!hfToken) {
       return NextResponse.json({ error: 'Primary service down and HF Token missing' }, { status: 503 });
@@ -74,50 +74,62 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64Audio = buffer.toString('base64');
     
-    const hfResponse = await fetch(hfSpaceUrl, {
+    try {
+      const hfResponse = await fetch(hfSpaceUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${hfToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          data: [
+            { name: file.name, data: `data:${file.type};base64,${base64Audio}` },
+            "UVR-MDX-NET-Voc_FT",
+            "Vocals",
+            "v3"
+          ]
+        }),
+        signal: AbortSignal.timeout(60000) // 60s timeout
+      });
+
+      if (hfResponse.ok) {
+        const hfData = await hfResponse.json();
+        if (hfData.data && hfData.data[0]) {
+          const vocalsUrl = hfData.data[0].url || hfData.data[0];
+          return NextResponse.json({
+            success: true,
+            result: { vocals: vocalsUrl, instrumental: vocalsUrl, fileName: file.name }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Tier 1 Fallback failed, trying Tier 2...");
+    }
+
+    // --- Fallback to Hugging Face (Tier 2: Ultimate Stability) ---
+    const tier2Url = "https://sociallycompute-voice-separator.hf.space/api/predict";
+    const tier2Response = await fetch(tier2Url, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${hfToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        data: [
-          { name: file.name, data: `data:${file.type};base64,${base64Audio}` },
-          "UVR-MDX-NET-Voc_FT", // Model
-          "Vocals", // Stem
-          "v3" // Version
-        ]
-      }),
-      next: { revalidate: 0 }
+      headers: { "Authorization": `Bearer ${hfToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ data: [{ name: file.name, data: `data:${file.type};base64,${base64Audio}` }] })
     });
 
-    if (!hfResponse.ok) {
-      const errorData = await hfResponse.text();
-      console.error('HF Fallback failed:', errorData);
-      throw new Error(`HF Fallback failed: ${hfResponse.statusText}`);
+    if (tier2Response.ok) {
+      const t2Data = await tier2Response.json();
+      if (t2Data.data && t2Data.data[0]) {
+        return NextResponse.json({
+          success: true,
+          result: { vocals: t2Data.data[0].url || t2Data.data[0], instrumental: t2Data.data[0].url || t2Data.data[0], fileName: file.name }
+        });
+      }
     }
 
-    const hfData = await hfResponse.json();
-    
-    // Normalize HF Space response
-    if (hfData.data && hfData.data[0]) {
-      const vocalsUrl = hfData.data[0].url || hfData.data[0];
-      return NextResponse.json({
-        success: true,
-        result: {
-          vocals: vocalsUrl,
-          instrumental: vocalsUrl, // Simplified for fallback
-          fileName: file.name
-        }
-      });
-    }
-
-    throw new Error('Invalid response from HF Space');
+    throw new Error('All separation services (Primary, Tier 1, and Tier 2) are currently unresponsive.');
 
   } catch (error: any) {
     console.error('Vocal separation error:', error);
     return NextResponse.json({ 
-      error: 'The separation service is currently unavailable. Please try again in a few moments or contact support if the issue persists.',
+      error: 'The AI is currently overwhelmed. Please try a shorter clip or wait a moment.',
       details: error.message 
     }, { status: 500 });
   }
