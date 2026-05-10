@@ -1,6 +1,9 @@
 # Build Stage
 FROM node:20-alpine AS builder
 
+# Add necessary libraries for Prisma
+RUN apk add --no-cache libc6-compat openssl
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -15,6 +18,8 @@ RUN npm run prisma:generate
 
 # Production Stage
 FROM node:20-alpine
+
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
