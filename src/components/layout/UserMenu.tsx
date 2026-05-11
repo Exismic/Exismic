@@ -300,7 +300,7 @@ export function UserMenu() {
                  <button 
                    onClick={async () => {
                       await supabase.auth.signOut();
-                      router.refresh();
+                      window.location.href = "/";
                    }}
                    className="w-full flex items-center gap-3.5 px-5 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
                  >

@@ -117,8 +117,7 @@ export default function AuthPage() {
         if (result?.error) {
           setError(result.error);
         } else {
-          router.push(returnUrl);
-          router.refresh();
+          window.location.href = returnUrl;
         }
       } else if (state === 'signup') {
         const password = formData.get('password') as string;
