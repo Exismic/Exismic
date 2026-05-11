@@ -48,14 +48,15 @@ export function CreditBadge() {
           )}
         </div>
         
-        {!isPro && (
-          <div className="flex items-center gap-1.5 px-2">
-            <div className="w-1 h-1 rounded-full bg-zinc-500 animate-pulse" />
-            <span className="text-[9px] font-medium text-zinc-500 uppercase tracking-wider">
-              Refill in <span className="text-zinc-400 font-bold tabular-nums">{countdown}</span>
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 px-2">
+          <div className={cn(
+            "w-1 h-1 rounded-full animate-pulse",
+            isPro ? "bg-accent-purple" : "bg-zinc-500"
+          )} />
+          <span className="text-[9px] font-medium text-zinc-500 uppercase tracking-wider">
+            {isPro ? "Next Grant" : "Refill"} in <span className="text-zinc-400 font-bold tabular-nums">{countdown}</span>
+          </span>
+        </div>
       </div>
 
       <CreditModal 

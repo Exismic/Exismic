@@ -22,7 +22,7 @@ async function rescuePro(email) {
       where: { email },
       data: {
         plan: 'pro',
-        credits: 1500,
+        dailyCredits: 1000,
         aiGenerationsLimit: 1000
       }
     });
@@ -38,7 +38,7 @@ async function rescuePro(email) {
         plan: 'pro',
         planType: 'pro',
         plan_type: 'pro',
-        daily_credits: 1500,
+        daily_credits: 1000,
         ai_generations_limit: 1000,
         updated_at: new Date().toISOString()
       }, { onConflict: 'email' });

@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 async function main() {
   const result = await prisma.user.updateMany({
     data: {
-      credits: 1000,
+      dailyCredits: 1000,
     },
   });
   console.log(`Updated ${result.count} users with 1000 credits.`);

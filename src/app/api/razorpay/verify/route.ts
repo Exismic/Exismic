@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
             email: user.email!,
             name: user.user_metadata?.full_name || user.email?.split('@')[0],
             lifetimeCredits: creditsToAdd,
-            credits: 50,
+            dailyCredits: 50,
             plan: 'free'
           }
         });
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
             subscriptionId: razorpay_order_id,
             subscriptionStatus: 'active',
             aiGenerationsLimit: 1000,
-            credits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS // Also sync Prisma credits
+            dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS // Also sync Prisma dailyCredits
           },
           create: {
             email: user.email!,
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
             subscriptionId: razorpay_order_id,
             subscriptionStatus: 'active',
             aiGenerationsLimit: 1000,
-            credits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
+            dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
           }
         });
 

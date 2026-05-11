@@ -34,21 +34,26 @@ export function useCredits() {
 
   useEffect(() => {
     const updateCountdown = () => {
-      const now = new Date();
-      // IST is UTC + 5:30
-      const istOffset = 5.5 * 60 * 60 * 1000;
-      const nowIST = new Date(now.getTime() + istOffset);
-      
-      const nextResetIST = new Date(nowIST);
-      nextResetIST.setUTCHours(24, 0, 0, 0); // Next day 00:00 IST
-      
-      const diff = nextResetIST.getTime() - nowIST.getTime();
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+      try {
+        const now = new Date();
+        // Get current time in IST
+        const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+        const nowIST = new Date(istString);
+        
+        // Calculate next 12 AM IST
+        const nextResetIST = new Date(nowIST);
+        nextResetIST.setHours(24, 0, 0, 0); 
+        
+        const diff = nextResetIST.getTime() - nowIST.getTime();
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+      } catch (err) {
+        console.error("Countdown error:", err);
+      }
     };
 
     updateCountdown();
@@ -86,26 +91,29 @@ export function useCredits() {
         .single();
 
       if (data) {
+        const plan = (data.plan as 'free' | 'pro') ?? 'free';
+        const limits = plan === 'pro' ? PRO_LIMITS : FREE_LIMITS;
+
         const userData: CreditState = {
-          dailyCredits: data.daily_credits ?? 50,
+          dailyCredits: data.daily_credits ?? limits.credits,
           lifetimeCredits: data.lifetime_credits ?? 0,
           creditsLastReset: data.credits_last_reset || new Date().toISOString(),
           aiMessagesToday: data.ai_messages_today ?? 0,
           aiMessagesReset: data.ai_messages_reset || new Date().toISOString(),
-          plan: (data.plan as 'free' | 'pro') ?? 'free',
+          plan: plan,
         };
 
         const now = new Date();
-        const istOffset = 5.5 * 60 * 60 * 1000;
-        const nowIST = new Date(now.getTime() + istOffset);
         const lastReset = new Date(userData.creditsLastReset);
-        const lastResetIST = new Date(lastReset.getTime() + istOffset);
         
-        const isNewDay = nowIST.getUTCDate() !== lastResetIST.getUTCDate() || 
-                        nowIST.getUTCMonth() !== lastResetIST.getUTCMonth() ||
-                        nowIST.getUTCFullYear() !== lastResetIST.getUTCFullYear();
+        // Check if it's a new day in IST
+        const nowISTDate = now.toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" });
+        const lastResetISTDate = lastReset.toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" });
+        
+        const isNewDay = nowISTDate !== lastResetISTDate;
 
         if (isNewDay) {
+          console.log("DEBUG: New day detected in IST. Resetting credits...");
           const resetLimits = userData.plan === 'pro' ? PRO_LIMITS : FREE_LIMITS;
           const { data: updatedData } = await supabase
             .from('User')
