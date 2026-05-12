@@ -83,95 +83,38 @@ export function useCredits() {
   const fetchCredits = useCallback(async () => {
     if (!userId) return;
 
-    try {
-      let { data, error } = await supabase
-        .from('User')
-        .select('daily_credits, lifetime_credits, credits_last_reset, ai_messages_today, ai_messages_reset, plan')
-        .eq('id', userId)
-        .single();
+      const resetResponse = await fetch('/api/user/reset-if-needed', { method: 'POST' });
+      if (resetResponse.ok) {
+        const resetResult = await resetResponse.json();
+        if (resetResult.resetPerformed) {
+          console.log("DEBUG: Credits reset via API");
+        }
+      }
+
+      const response = await fetch('/api/user/me');
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      
+      const result = await response.json();
+      const data = result.user;
 
       if (data) {
         const plan = (data.plan as 'free' | 'pro') ?? 'free';
-        const limits = plan === 'pro' ? PRO_LIMITS : FREE_LIMITS;
-
-        const userData: CreditState = {
-          dailyCredits: data.daily_credits ?? limits.credits,
+        
+        setState({
+          dailyCredits: data.daily_credits ?? 50,
           lifetimeCredits: data.lifetime_credits ?? 0,
           creditsLastReset: data.credits_last_reset || new Date().toISOString(),
           aiMessagesToday: data.ai_messages_today ?? 0,
           aiMessagesReset: data.ai_messages_reset || new Date().toISOString(),
           plan: plan,
-        };
-
-        const now = new Date();
-        const lastReset = new Date(userData.creditsLastReset);
-        
-        // Check if it's a new day in IST
-        const nowISTDate = now.toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" });
-        const lastResetISTDate = lastReset.toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" });
-        
-        const isNewDay = nowISTDate !== lastResetISTDate;
-
-        if (isNewDay) {
-          console.log("DEBUG: New day detected in IST. Resetting credits...");
-          const resetLimits = userData.plan === 'pro' ? PRO_LIMITS : FREE_LIMITS;
-          const { data: updatedData } = await supabase
-            .from('User')
-            .update({
-              daily_credits: resetLimits.credits,
-              credits_last_reset: now.toISOString(),
-              ai_messages_today: 0,
-              ai_messages_reset: now.toISOString(),
-            })
-            .eq('id', userId)
-            .select()
-            .single();
-
-          if (updatedData) {
-            setState({
-              dailyCredits: updatedData.daily_credits,
-              lifetimeCredits: updatedData.lifetime_credits,
-              creditsLastReset: updatedData.credits_last_reset,
-              aiMessagesToday: updatedData.ai_messages_today,
-              aiMessagesReset: updatedData.ai_messages_reset,
-              plan: updatedData.plan,
-            });
-            return;
-          }
-        }
-        setState(userData);
-      } else {
-        // New User Initialization
-        console.log("DEBUG: New user detected. Initializing with 50 credits...");
-        const { data: newData } = await supabase
-          .from('User')
-          .insert({
-            id: userId,
-            daily_credits: 50,
-            lifetime_credits: 0,
-            plan: 'free',
-            credits_last_reset: new Date().toISOString()
-          })
-          .select()
-          .single();
-        
-        if (newData) {
-          setState({
-            dailyCredits: newData.daily_credits,
-            lifetimeCredits: newData.lifetime_credits,
-            creditsLastReset: newData.credits_last_reset,
-            aiMessagesToday: 0,
-            aiMessagesReset: new Date().toISOString(),
-            plan: 'free',
-          });
-        }
+        });
       }
     } catch (err) {
-      console.warn('Error fetching credits:', err);
+      console.warn('Error fetching credits via API:', err);
     } finally {
       setLoading(false);
     }
-  }, [userId, supabase]);
+  }, [userId]);
 
   // Real-time listener
   useEffect(() => {
@@ -216,35 +159,29 @@ export function useCredits() {
   const deductCredits = async (amount: number) => {
     if (!userId || !state) return false;
 
-    const totalAvailable = state.lifetimeCredits + state.dailyCredits;
-    if (totalAvailable < amount) {
-      setShowUpsell(true);
-      return false;
-    }
-
-    let newLifetime = state.lifetimeCredits;
-    let newDaily = state.dailyCredits;
-
-    // Priority: Deduct from Lifetime first
-    if (newLifetime >= amount) {
-      newLifetime -= amount;
-    } else {
-      const remaining = amount - newLifetime;
-      newLifetime = 0;
-      newDaily -= remaining;
-    }
-
     try {
-      const { error } = await supabase
-        .from('User')
-        .update({ 
-          lifetime_credits: newLifetime,
-          daily_credits: newDaily 
-        })
-        .eq('id', userId);
+      const response = await fetch('/api/user/deduct-credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
 
-      if (error) throw error;
+      if (response.status === 403) {
+        setShowUpsell(true);
+        return false;
+      }
+
+      if (!response.ok) throw new Error('Deduction failed');
       
+      const result = await response.json();
+      
+      // Update local state immediately
+      setState(prev => prev ? {
+        ...prev,
+        dailyCredits: result.daily,
+        lifetimeCredits: result.lifetime
+      } : null);
+
       showNotification(`${amount} credits deducted`, 'info');
       return true;
     } catch (err) {

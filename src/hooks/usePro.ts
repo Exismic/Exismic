@@ -21,29 +21,34 @@ export function usePro() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('User')
-        .select('*')
-        .eq('email', session.user.email)
-        .single();
+      try {
+        const response = await fetch('/api/user/me');
+        if (!response.ok) throw new Error('Failed to fetch user data');
+        
+        const result = await response.json();
+        const data = result.user;
 
-      if (data) {
-        setUser(data);
-        const plan = (data.plan || data.planType || "free").toLowerCase();
-        const rawExpiry = data.plan_expires_at || data.planExpiresAt;
-        const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-        const now = new Date();
-        
-        let isUserPro = plan === "pro";
-        
-        // If plan is pro but it has an expiry date in the past, they are no longer pro
-        if (isUserPro && expiresAt && expiresAt < now) {
-          isUserPro = false;
+        if (data) {
+          setUser(data);
+          const plan = (data.plan || data.planType || "free").toLowerCase();
+          const rawExpiry = data.plan_expires_at || data.planExpiresAt;
+          const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
+          const now = new Date();
+          
+          let isUserPro = plan === "pro";
+          
+          // If plan is pro but it has an expiry date in the past, they are no longer pro
+          if (isUserPro && expiresAt && expiresAt < now) {
+            isUserPro = false;
+          }
+          
+          setIsPro(isUserPro);
         }
-        
-        setIsPro(isUserPro);
+      } catch (err) {
+        console.error('Error fetching pro status via API:', err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
 
     getProStatus();
@@ -87,28 +92,28 @@ export function usePro() {
 
   const refresh = async () => {
     setIsLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.email) {
-      setIsPro(false);
+    try {
+      const response = await fetch('/api/user/me');
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      
+      const result = await response.json();
+      const data = result.user;
+
+      if (data) {
+        setUser(data);
+        const plan = (data.plan || data.planType || "free").toLowerCase();
+        const rawExpiry = data.plan_expires_at || data.planExpiresAt;
+        const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
+        const now = new Date();
+        let isUserPro = plan === "pro";
+        if (isUserPro && expiresAt && expiresAt < now) isUserPro = false;
+        setIsPro(isUserPro);
+      }
+    } catch (err) {
+      console.error('Error refreshing pro status:', err);
+    } finally {
       setIsLoading(false);
-      return;
     }
-    const { data } = await supabase
-      .from('User')
-      .select('*')
-      .eq('email', session.user.email)
-      .single();
-    if (data) {
-      setUser(data);
-      const plan = (data.plan || data.planType || "free").toLowerCase();
-      const rawExpiry = data.plan_expires_at || data.planExpiresAt;
-      const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-      const now = new Date();
-      let isUserPro = plan === "pro";
-      if (isUserPro && expiresAt && expiresAt < now) isUserPro = false;
-      setIsPro(isUserPro);
-    }
-    setIsLoading(false);
   };
 
   return { isPro, isLoading, user, authUser, refresh };
