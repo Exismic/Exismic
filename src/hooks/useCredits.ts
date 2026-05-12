@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { PRICING_CONFIG } from '@/config/pricing';
+import { useSession } from 'next-auth/react';
 
 export interface CreditState {
   dailyCredits: number;
@@ -25,7 +26,8 @@ const PRO_LIMITS = {
 
 export function useCredits() {
   const supabase = createClient();
-  const [userId, setUserId] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [state, setState] = useState<CreditState | null>(null);
   const [loading, setLoading] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -61,19 +63,8 @@ export function useCredits() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id || null);
-    };
-    getUser();
+  // Removed Supabase auth listener as we use next-auth session above
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
 
   const showNotification = (message: string, type: 'success' | 'info' | 'warning' = 'info') => {
     setNotification({ message, type });

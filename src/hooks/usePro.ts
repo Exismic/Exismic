@@ -2,20 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useSession } from "next-auth/react";
 
 export function usePro() {
   const [isPro, setIsPro] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [authUser, setAuthUser] = useState<any>(null);
+  const { data: session } = useSession();
+  const authUser = session?.user;
   const supabase = createClient();
 
   useEffect(() => {
     async function getProStatus() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setAuthUser(session?.user || null);
-      
-      if (!session?.user?.email) {
+      if (!authUser?.email) {
         setIsPro(false);
         setIsLoading(false);
         return;
