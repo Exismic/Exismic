@@ -56,11 +56,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async createUser({ user }) {
       if (user.email) {
         try {
+          const { prisma } = await import("@/lib/prisma");
+          // Force set daily credits to 50 for new users
+          await prisma.user.update({
+            where: { email: user.email },
+            data: {
+              dailyCredits: 50,
+              creditsLastReset: new Date(),
+            }
+          });
+          
           const { sendWelcomeEmail } = await import("@/lib/emails");
           await sendWelcomeEmail(user.email);
-          console.log(`Welcome email sent to ${user.email}`);
+          console.log(`User ${user.email} initialized with 50 credits and welcome email sent.`);
         } catch (error) {
-          console.error("Failed to send welcome email:", error);
+          console.error("Failed to initialize new user:", error);
         }
       }
     }
