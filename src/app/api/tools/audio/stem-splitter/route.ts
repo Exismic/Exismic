@@ -18,7 +18,35 @@ export async function POST(req: NextRequest) {
     // Add stems parameter for 4-stem separation
     formData.append('stems', '4');
 
-    // 1. Local AI Microservice
+    // 1. Modal.com (Highest Priority for Heavy Tasks)
+    const modalUrl = process.env.MODAL_VOCAL_REMOVER_URL?.replace("-separate.modal.run", "-process.modal.run");
+    if (modalUrl) {
+      try {
+        console.log('Attempting Modal stem splitting...');
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const base64Audio = buffer.toString('base64');
+        
+        const modalResponse = await fetch(modalUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_name: file.name,
+            file_data_base64: base64Audio,
+            stems: 4,
+            task: "separate"
+          })
+        });
+
+        if (modalResponse.ok) {
+          const result = await modalResponse.json();
+          if (result.success) return NextResponse.json(result);
+        }
+      } catch (modalError: any) {
+        console.warn('Modal stem splitter unreachable:', modalError.message);
+      }
+    }
+
+    // 2. Local AI Microservice (Railway Fallback)
     const localApiUrl = getEngineRoute("/separate?stems=4");
     
     try {
@@ -35,33 +63,6 @@ export async function POST(req: NextRequest) {
       }
     } catch (localError: any) {
       console.warn('Local stem splitter unreachable:', localError.message);
-    }
-
-    // 2. Modal.com (Cloud Fallback)
-    const modalUrl = process.env.MODAL_VOCAL_REMOVER_URL;
-    if (modalUrl) {
-      try {
-        console.log('Attempting Modal stem splitting...');
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const base64Audio = buffer.toString('base64');
-        
-        const modalResponse = await fetch(modalUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            file_name: file.name,
-            file_data_base64: base64Audio,
-            stems: 4
-          })
-        });
-
-        if (modalResponse.ok) {
-          const result = await modalResponse.json();
-          if (result.success) return NextResponse.json(result);
-        }
-      } catch (modalError: any) {
-        console.warn('Modal stem splitter unreachable:', modalError.message);
-      }
     }
 
     return NextResponse.json({ 

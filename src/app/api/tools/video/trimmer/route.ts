@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const duration = endTime - startTime;
 
     // Check if we should use Modal
-    const MODAL_URL = process.env.MODAL_VIDEO_TRIMMER_URL;
+    const MODAL_URL = process.env.MODAL_VIDEO_TRIMMER_URL?.replace("-trim-video.modal.run", "-fastapi-app.modal.run/trim");
 
     if (MODAL_URL) {
       console.log(`[VideoTrimmer] Using Modal backend: ${MODAL_URL}`);

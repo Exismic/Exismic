@@ -14,7 +14,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    // 1. Try Local AI Microservice
+    // 1. Try Modal.com (Highest Priority for Heavy Tasks)
+    const modalUrl = process.env.MODAL_VOCAL_REMOVER_URL?.replace("-separate.modal.run", "-process.modal.run");
+    if (modalUrl) {
+      try {
+        console.log('Attempting Modal noise removal...');
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const base64Audio = buffer.toString('base64');
+        
+        const modalResponse = await fetch(modalUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_name: file.name,
+            file_data_base64: base64Audio,
+            task: "denoise"
+          })
+        });
+
+        if (modalResponse.ok) {
+          const result = await modalResponse.json();
+          if (result.success) return NextResponse.json(result);
+        }
+      } catch (modalError: any) {
+        console.warn('Modal noise removal failed:', modalError.message);
+      }
+    }
+
+    // 2. Try Local AI Microservice (Railway Fallback)
     const localApiUrl = getEngineRoute("/api/noise-remover");
     
     try {

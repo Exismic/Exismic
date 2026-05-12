@@ -23,17 +23,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No video file provided" }, { status: 400 });
     }
 
-    // 1. Create temp directories
+    // 1. Modal.com (Highest Priority for Heavy Video Tasks)
+    const modalUrl = process.env.MODAL_SUBTITLE_GENERATOR_URL?.replace("-generate-subtitles.modal.run", "-fastapi-app.modal.run/remove-bg");
+    if (modalUrl) {
+      try {
+        console.log('Attempting Modal video background removal...');
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const base64Audio = buffer.toString('base64');
+        
+        const modalResponse = await fetch(modalUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_name: file.name,
+            file_data_base64: base64Video
+          })
+        });
+
+        if (modalResponse.ok) {
+          const result = await modalResponse.json();
+          if (result.success && result.file_data_base64) {
+            const resultBuffer = Buffer.from(result.file_data_base64.split(',')[1], 'base64');
+            return new Response(resultBuffer, {
+              headers: {
+                "Content-Type": "video/mp4",
+                "Content-Disposition": `attachment; filename="no-bg-${file.name}"`,
+              },
+            });
+          }
+        }
+      } catch (modalError: any) {
+        console.warn('Modal video processing failed:', modalError.message);
+      }
+    }
+
+    // 2. Local Fallback (Limited to first 30 frames for safety)
+    // Create temp directories
     await mkdir(tempDir, { recursive: true });
     await mkdir(framesInDir, { recursive: true });
     await mkdir(framesOutDir, { recursive: true });
 
-    // 2. Save uploaded video
+    // Save uploaded video
     const videoBuffer = Buffer.from(await file.arrayBuffer());
     const inputPath = path.join(tempDir, `input-${file.name}`);
     await writeFile(inputPath, videoBuffer);
 
-    // 3. Extract frames using FFmpeg
+    // Extract frames using FFmpeg
     console.log("Extracting frames...");
     await new Promise((resolve, reject) => {
       ffmpeg(inputPath)
@@ -46,7 +81,7 @@ export async function POST(req: NextRequest) {
         });
     });
 
-    // 4. Process each frame with rembg microservice
+    // Process each frame with rembg microservice
     const frames = await readdir(framesInDir);
     console.log(`Processing ${frames.length} frames...`);
 
@@ -72,7 +107,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Reassemble frames into video
+    // Reassemble frames into video
     const outputPath = path.join(tempDir, "output.mp4");
     console.log("Reassembling video...");
     
@@ -87,16 +122,13 @@ export async function POST(req: NextRequest) {
         .save(outputPath);
     });
 
-    // 6. Read the final video and return
+    // Read the final video and return
     const resultBuffer = await fs.promises.readFile(outputPath);
     
-    // Cleanup
-    // await rm(tempDir, { recursive: true, force: true });
-
     return new Response(resultBuffer, {
       headers: {
         "Content-Type": "video/mp4",
-        "Content-Disposition": 'attachment; filename="background-removed.mp4"',
+        "Content-Disposition": `attachment; filename="background-removed.mp4"`,
       },
     });
 

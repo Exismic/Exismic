@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No video file provided" }, { status: 400 });
     }
 
-    const MODAL_URL = process.env.MODAL_VIDEO_COMPRESSOR_URL;
+    const MODAL_URL = process.env.MODAL_VIDEO_COMPRESSOR_URL?.replace("-compress-video.modal.run", "-fastapi-app.modal.run/compress");
 
     if (!MODAL_URL) {
       // In a real app, you might fall back to local FFmpeg here

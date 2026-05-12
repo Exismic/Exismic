@@ -16,7 +16,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    // 1. Local AI Microservice (Highest Priority for Local Dev)
+    // 1. Modal.com (Highest Priority for Heavy Tasks)
+    const modalUrl = process.env.MODAL_VOCAL_REMOVER_URL?.replace("-separate.modal.run", "-process.modal.run");
+    if (modalUrl) {
+      try {
+        console.log('Attempting Modal.com separation...');
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const base64Audio = buffer.toString('base64');
+        
+        const modalResponse = await fetch(modalUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_name: file.name,
+            file_data_base64: base64Audio,
+            task: "separate"
+          })
+        });
+
+        if (modalResponse.ok) {
+          const result = await modalResponse.json();
+          if (result.success) return NextResponse.json(result);
+        }
+      } catch (modalError: any) {
+        console.warn('Modal unreachable:', modalError.message);
+      }
+    }
+
+    // 2. Local AI Microservice (Railway Fallback)
     const localApiUrl = getEngineRoute("/separate");
     
     try {
@@ -36,32 +63,6 @@ export async function POST(req: NextRequest) {
       console.warn('Local separation failed or returned error:', errorText);
     } catch (localError: any) {
       console.warn('Local service unreachable, trying cloud...', localError.message);
-    }
-
-    // 2. Modal.com (Cloud Fallback)
-    const modalUrl = process.env.MODAL_VOCAL_REMOVER_URL;
-    if (modalUrl) {
-      try {
-        console.log('Attempting Modal.com separation...');
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const base64Audio = buffer.toString('base64');
-        
-        const modalResponse = await fetch(modalUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            file_name: file.name,
-            file_data_base64: base64Audio
-          })
-        });
-
-        if (modalResponse.ok) {
-          const result = await modalResponse.json();
-          if (result.success) return NextResponse.json(result);
-        }
-      } catch (modalError: any) {
-        console.warn('Modal unreachable:', modalError.message);
-      }
     }
 
     // --- Fallback to Hugging Face (Tier 1: High Fidelity) ---
