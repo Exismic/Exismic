@@ -78,9 +78,17 @@ export async function initializeUserCredits(userId: string) {
   try {
     const now = new Date()
     
-    const user = await prisma.user.update({
+    const user = await prisma.user.upsert({
       where: { id: userId },
-      data: {
+      update: {
+        dailyCredits: FREE_DAILY_CREDITS,
+        creditsLastReset: now,
+        aiMessagesToday: 0,
+        aiMessagesReset: now,
+        plan: 'free',
+      },
+      create: {
+        id: userId,
         dailyCredits: FREE_DAILY_CREDITS,
         lifetimeCredits: 0,
         creditsLastReset: now,
@@ -188,11 +196,8 @@ export async function addCredits(userId: string, amount: number, reason?: string
  */
 export async function getUserCredits(userId: string) {
   try {
-    // First, check if credits need resetting
-    await resetCreditsIfNewDay(userId)
-
-    // Then fetch current credits
-    const user = await prisma.user.findUnique({
+    // First, try to fetch the user
+    let user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         dailyCredits: true,
@@ -203,7 +208,36 @@ export async function getUserCredits(userId: string) {
       }
     })
 
-    return user
+    // If user doesn't exist, initialize them
+    if (!user) {
+      console.log(`[CREDITS] User ${userId} not found, initializing...`)
+      const initialized = await initializeUserCredits(userId)
+      // Return the newly created user data
+      return {
+        dailyCredits: initialized.dailyCredits,
+        lifetimeCredits: initialized.lifetimeCredits,
+        creditsLastReset: new Date(),
+        aiMessagesToday: 0,
+        plan: initialized.plan,
+      }
+    }
+
+    // If they exist, check if credits need resetting for the new day
+    await resetCreditsIfNewDay(userId)
+
+    // Fetch again to get updated values after potential reset
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        dailyCredits: true,
+        lifetimeCredits: true,
+        creditsLastReset: true,
+        aiMessagesToday: true,
+        plan: true,
+      }
+    })
+
+    return updatedUser
   } catch (err) {
     console.error(`[CREDITS] Error getting credits for ${userId}:`, err)
     return null

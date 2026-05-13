@@ -77,9 +77,19 @@ export async function POST(request: NextRequest) {
       result = await deductCredits(userId, amount)
     } else if (action === 'add') {
       result = await addCredits(userId, amount, reason)
+    } else if (action === 'consume-message') {
+      // Logic for incrementing AI message count
+      const updated = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          aiMessagesToday: { increment: 1 }
+        },
+        select: { aiMessagesToday: true }
+      })
+      result = { success: true, data: updated }
     } else {
       return NextResponse.json(
-        { error: 'Invalid action. Use "deduct" or "add"' },
+        { error: 'Invalid action. Use "deduct", "add", or "consume-message"' },
         { status: 400 }
       )
     }

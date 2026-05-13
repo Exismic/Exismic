@@ -214,12 +214,15 @@ export function useCredits() {
       // Update local state immediately for snappy UI
       setState(prev => prev ? { ...prev, aiMessagesToday: prev.aiMessagesToday + 1 } : null);
 
-      const { error } = await supabase
-        .from('User')
-        .update({ ai_messages_today: state.aiMessagesToday + 1 })
-        .eq('id', userId);
-      
-      if (error) throw error;
+      const response = await fetch('/api/user/credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'consume-message', amount: 1 })
+      });
+
+      const json = await response.json();
+      if (!json.success) throw new Error(json.error || 'Failed to update message count');
+
       return true;
     } catch (err) {
       console.error("Error consuming message:", err);
