@@ -81,22 +81,11 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = createAdminClient();
 
-    // Credit system (Sync with Supabase)
-    const { data: creditData } = await supabaseAdmin
-      .from('User')
-      .select('daily_credits, lifetime_credits, plan')
-      .eq('id', sbUser.id)
-      .single();
-
-    const dailyCredits = creditData?.daily_credits ?? 0;
-    const lifetimeCredits = creditData?.lifetime_credits ?? 0;
-    const totalCreditsAvailable = dailyCredits + lifetimeCredits;
-    const userPlan = (creditData?.plan || "free").toLowerCase();
-
-    const cost = 5;
-    if (userPlan !== 'pro' && totalCreditsAvailable < cost) {
-       return NextResponse.json({ error: "Insufficient credits" }, { status: 403 });
-    }
+    // Credit system removed for Unlimited Chat
+    const userPlan = "free";
+    const dailyCredits = 50;
+    const lifetimeCredits = 0;
+    const cost = 0;
 
     const body = await req.json();
     const { messages, sessionId, attachments = [] } = body;
@@ -188,22 +177,7 @@ export async function POST(req: Request) {
       activeSessionId = newSession?.id;
     }
 
-    // Deduct credits (Sync with Supabase)
-    if (userPlan !== 'pro') {
-      let newLifetime = lifetimeCredits;
-      let newDaily = dailyCredits;
-      if (newLifetime >= cost) newLifetime -= cost;
-      else {
-        const remaining = cost - newLifetime;
-        newLifetime = 0;
-        newDaily = Math.max(0, newDaily - remaining);
-      }
-
-      await supabaseAdmin
-        .from('User')
-        .update({ lifetime_credits: newLifetime, daily_credits: newDaily })
-        .eq('id', sbUser.id);
-    }
+    // Credit deduction removed for Unlimited Chat
 
     return NextResponse.json({ message: finalAiContent, id: activeSessionId });
   } catch (err: any) {
