@@ -788,10 +788,26 @@ export function AiChatTool() {
                              {/* Interaction Toolbar (AI Only) */}
                              {msg.role === 'assistant' && (
                                <div className="absolute -bottom-10 left-4 opacity-0 group-hover/message:opacity-100 transition-opacity flex items-center gap-3">
-                                  <button onClick={() => { navigator.clipboard.writeText(msg.content); toast.success("Copied to clipboard"); }} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-500 hover:text-white transition-all">
+                                  <button 
+                                     onClick={() => { 
+                                       navigator.clipboard.writeText(msg.content); 
+                                       toast("Copied to clipboard", "success"); 
+                                     }} 
+                                     className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-500 hover:text-white transition-all"
+                                  >
                                     <Copy size={12} />
                                   </button>
-                                  <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-500 hover:text-white transition-all">
+                                  <button 
+                                     onClick={() => {
+                                       const userMessages = messages.filter(m => m.role === 'user');
+                                       if (userMessages.length > 0) {
+                                         const lastUserMsg = userMessages[userMessages.length - 1].content;
+                                         setMessages(prev => prev.slice(0, i));
+                                         handleSend(lastUserMsg);
+                                       }
+                                     }}
+                                     className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-500 hover:text-white transition-all"
+                                  >
                                     <RefreshCw size={12} />
                                   </button>
                                </div>
