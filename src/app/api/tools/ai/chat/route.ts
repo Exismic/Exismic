@@ -212,9 +212,10 @@ export async function POST(req: Request) {
     } catch (e) {}
 
     return NextResponse.json({ message: finalAiContent, id: activeSessionId });
-  } catch (err: any) {
-    console.error("POST Chat Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+    } catch (err: any) {
+      console.error("[Chat] CRITICAL ERROR:", err.response?.data || err.message);
+      const errorMsg = err.response?.data?.error?.message || err.message || "AI model failed to respond";
+      return NextResponse.json({ error: errorMsg }, { status: 500 });
+    }
 }
 

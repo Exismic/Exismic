@@ -291,8 +291,10 @@ export function AiChatTool() {
       setSessionId(res.data.id);
       fetchSessions();
     } catch (e: any) {
-      console.error("DEBUG: API Error:", e.response?.data || e.message);
-      setError("Connection lost. Please try again.");
+      const msg = e.response?.data?.error || e.message || "Connection lost";
+      console.error("DEBUG: API Error:", msg);
+      setError(msg);
+      toast(msg, "warning");
     } finally {
       setIsLoading(false);
     }
