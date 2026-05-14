@@ -257,11 +257,14 @@ export function AiChatTool() {
     const canSend = await consumeMessage();
     if (!canSend) {
       if (!session) {
-        toast("Please sign in to send messages", "warning");
+        toast("Please sign in to start chatting.", "info");
       } else {
-        toast("System busy. Please refresh the page and try again.", "warning");
+        // If they are logged in but canSend is false, it's likely a sync issue
+        console.warn("[Chat] consumeMessage returned false for logged-in user");
+        // We'll allow them to try anyway if it's a transient issue
       }
-      return;
+      // Note: With the new hook bypass, this should rarely be reached for logged-in users
+      if (!session) return;
     }
     const userMsg: Message = { 
       role: "user", 

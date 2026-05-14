@@ -201,13 +201,18 @@ export function useCredits() {
     }
 
     // Re-check state after potential fetch
-    if (!state) return false;
+    if (!state) {
+      console.warn("[Credits] State missing after fetch, but bypassing to allow chat for user:", userId);
+      return true; // SAFETY BYPASS: Let them chat anyway
+    }
 
     const limit = state.plan === 'pro' ? PRO_LIMITS.messages : FREE_LIMITS.messages;
     
     if (state.plan === 'free' && state.aiMessagesToday >= limit) {
+      // Even if over limit, we allow it for now as per "Unlimited" request
+      // But we show the upsell
       setShowUpsell(true);
-      return false;
+      return true; // UNLIMITED BYPASS
     }
 
     try {
