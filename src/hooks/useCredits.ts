@@ -68,15 +68,21 @@ export function useCredits() {
   const supabase = createClient();
   const store = useCreditStore();
   const { 
-    userId, state, loading, showUpsell, notification, countdown, isInitialized,
-    setUserId, setState, updateState, setLoading, setShowUpsell, setNotification, setCountdown, setIsInitialized
+    userId, state, loading, showUpsell, notification, countdown,
+    setUserId, setState, updateState, setLoading, setShowUpsell, setNotification, setCountdown
   } = store;
 
-  // Single global initialization for user, countdown, and real-time listener
-  useEffect(() => {
-    if (isInitialized) return;
-    setIsInitialized(true);
+  console.log('[useCredits Hook] Instance state:', {
+    userId,
+    hasState: !!state,
+    dailyCredits: state?.dailyCredits,
+    lifetimeCredits: state?.lifetimeCredits,
+    credits: (state?.lifetimeCredits ?? 0) + (state?.dailyCredits ?? 0),
+    loading
+  });
 
+  // Robust session and countdown initialization for every hook instance
+  useEffect(() => {
     const updateCountdown = () => {
       try {
         const now = new Date();
@@ -120,9 +126,8 @@ export function useCredits() {
     return () => {
       clearInterval(timer);
       subscription.unsubscribe();
-      // Do not reset isInitialized so global state persists across remounts
     };
-  }, [supabase, isInitialized, setCountdown, setUserId, setIsInitialized]);
+  }, [supabase, setCountdown, setUserId]);
 
   const showNotification = useCallback((message: string, type: 'success' | 'info' | 'warning' = 'info') => {
     setNotification({ message, type });

@@ -69,6 +69,7 @@ export function ImageGeneratorTool() {
     }
 
     const cost = 10;
+    console.log('[ImageGeneratorTool onSubmit] checking credits:', { credits, cost });
     if (credits < cost) {
       setError(
         <div className="flex flex-col gap-3">
