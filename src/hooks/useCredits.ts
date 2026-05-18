@@ -173,7 +173,7 @@ export function useCredits() {
   useEffect(() => {
     if (!userId) return;
 
-    const channelId = `credits-${userId}`;
+    const channelId = `credits-${userId}-${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
       .channel(channelId)
       .on(
