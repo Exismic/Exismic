@@ -41,7 +41,7 @@ export default function LumoraStudio() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#050505] text-zinc-300 font-sans selection:bg-accent-blue/30 overflow-hidden relative">
+    <div className="flex flex-col h-[100dvh] w-full bg-[#050505] text-zinc-300 font-sans selection:bg-accent-blue/30 overflow-hidden relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUser } from '@/lib/user-access';
 
 export async function GET(req: Request, props: { params: Promise<{ sessionId: string }> }) {
   try {
@@ -13,8 +14,7 @@ export async function GET(req: Request, props: { params: Promise<{ sessionId: st
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let user = await prisma.user.findUnique({ where: { id: sbUser.id } });
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const user = await getOrCreateUser(sbUser);
 
     const chatSession = await prisma.chatSession.findUnique({
       where: { id: params.sessionId }
@@ -56,8 +56,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ sessionId:
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: sbUser.id } });
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const user = await getOrCreateUser(sbUser);
 
     const chatSession = await prisma.chatSession.findUnique({
       where: { id: params.sessionId }

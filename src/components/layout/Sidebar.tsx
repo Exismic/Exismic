@@ -7,24 +7,26 @@ import { CATEGORIES, ICON_MAP } from "@/data/tools";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { 
   LayoutDashboard, 
-  History, 
   Settings, 
   Star, 
-  HelpCircle,
   Menu,
   X,
   Sparkles,
   ChevronRight,
   Clock,
-  Crown
+  Crown,
+  Zap
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import GradientText from "../ui/GradientText";
 import PremiumButton from "../ui/PremiumButton";
 import { usePro } from "@/hooks/usePro";
+import { useCredits } from "@/hooks/useCredits";
 import { useTranslation } from "react-i18next";
+import { UserProfile } from "../ui/UserProfile";
 import { VerifiedTick } from "../ui/VerifiedTick";
+import { LumoraLogo } from "../ui/LumoraLogo";
 
 interface SidebarItemProps {
   name: string;
@@ -120,9 +122,9 @@ export function Sidebar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(true);
-  const { isPro, isLoading: isProLoading } = usePro();
+  const { isPro, user: dbUser, loading: isProLoading } = usePro();
+  const { credits, loading: isCreditsLoading } = useCredits();
   const [session, setSession] = useState<any>(null);
-  const [dbUser, setDbUser] = useState<any>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -170,15 +172,44 @@ export function Sidebar() {
     visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
   };
 
+  const [localFrameId, setLocalFrameId] = useState<string | null>(null);
+  const [localGradientId, setLocalGradientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const frame = session?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
+    const gradient = session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
+    setLocalFrameId(frame);
+    setLocalGradientId(gradient);
+  }, [session, dbUser]);
+
+  useEffect(() => {
+    const handleFrameUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setLocalFrameId(customEvent.detail);
+    };
+    const handleGradientUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setLocalGradientId(customEvent.detail);
+    };
+    window.addEventListener('avatar-frame-updated', handleFrameUpdate);
+    window.addEventListener('name-gradient-updated', handleGradientUpdate);
+    return () => {
+      window.removeEventListener('avatar-frame-updated', handleFrameUpdate);
+      window.removeEventListener('name-gradient-updated', handleGradientUpdate);
+    };
+  }, []);
+
   const fullName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Explorer";
+  const frameId = localFrameId;
+  const gradientId = localGradientId;
 
   return (
     <>
       {/* Mobile Trigger */}
       <button 
         className={cn(
-          "fixed top-6 z-[150] p-3 lg:hidden glass-dark rounded-[1.25rem] shadow-2xl border-white/10 text-white transition-all duration-500",
-          isOpen ? "left-[224px]" : "left-6"
+          "fixed top-4 z-[150] min-h-11 min-w-11 lg:hidden glass-dark rounded-[1.1rem] shadow-2xl border-white/10 text-white transition-all duration-500 flex items-center justify-center",
+          isOpen ? "left-[232px]" : "left-4"
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -204,7 +235,7 @@ export function Sidebar() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -280, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 left-0 z-[140] w-[280px] bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:inset-0"
+              className="fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[280px] bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:inset-0 lg:w-[280px]"
             >
               <div suppressHydrationWarning className="flex flex-col h-full relative overflow-hidden">
                 {/* Background Noise/Gradient - Lux Style */}
@@ -214,36 +245,15 @@ export function Sidebar() {
                 <div suppressHydrationWarning className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-purple/10 blur-[120px] rounded-full pointer-events-none" />
 
                 {/* Logo / Branding Section - High-Octane Branding */}
-                <div className="px-6 pt-12 pb-8 relative z-50">
-                  <Link href="/" className="flex flex-row items-center gap-4 group">
-                    {/* The Main "L" Terminal */}
-                    <div className="relative shrink-0 w-14 h-14 rounded-2xl bg-linear-to-br from-accent-purple via-accent-cyan to-accent-purple p-[1.5px] shadow-[0_0_40px_rgba(168,85,247,0.3)]">
-                      <div className="w-full h-full bg-[#050505] rounded-[14px] flex items-center justify-center relative overflow-hidden">
-                        <span className="text-white font-black text-2xl font-mono relative z-10">L</span>
-                      </div>
+                <div className="px-6 pt-12 pb-8 relative z-50 flex items-center justify-between">
+                  <LumoraLogo size={42} showText={true} />
+                  
+                  {!isProLoading && isPro && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
+                       <Crown size={8} className="text-accent-purple" fill="currentColor" />
+                       <span className="text-[6.5px] font-black tracking-widest uppercase text-accent-purple">PRO ACTIVE</span>
                     </div>
-                    
-                    <div className="flex flex-col justify-center min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-black tracking-tighter text-white leading-none m-0 p-0" style={{ color: '#ffffff', display: 'block' }}>
-                          Lumora<span className="text-accent-cyan">.</span>
-                        </h1>
-                      </div>
-                      
-                      {!isProLoading && (
-                        isPro ? (
-                          <div className="flex mt-1.5">
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30">
-                               <Crown size={8} className="text-accent-purple" fill="currentColor" />
-                               <span className="text-[7px] font-black tracking-widest uppercase text-accent-purple">PRO ACTIVE</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1.5 opacity-80">AI STUDIO</span>
-                        )
-                      )}
-                    </div>
-                  </Link>
+                  )}
                 </div>
 
                 {/* Nav Groups */}
@@ -261,11 +271,7 @@ export function Sidebar() {
                        {topItems.map((item) => {
                          if (item.name === t('common.pro')) {
                            if (isPro) return null;
-                           return (
-                             <Link href="/pro" key={item.href} className="block px-2 py-2">
-                               <PremiumButton variant="gopro" size="sm" className="w-full" />
-                             </Link>
-                           );
+                           return null; // Skip Pro rendering in list to focus on bottom banner upgrade button
                          }
                          return (
                            <SidebarItem 
@@ -314,50 +320,59 @@ export function Sidebar() {
                   </LayoutGroup>
                 </nav>
 
-                {/* Footer Section - Premium Profile */}
-                <div className="p-6 mt-auto border-t border-white/5 bg-black/40 backdrop-blur-3xl">
-                   <div className="relative group rounded-[2rem] p-[1px] transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
-                      {/* Premium Breathing Border Glow */}
-                      <div className="absolute inset-0 bg-linear-to-r from-accent-purple/20 via-accent-cyan/20 to-accent-purple/20 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-[2px]" />
-                      
-                      <div className="relative bg-[#050505] rounded-[2rem] p-4 flex items-center gap-4 border border-white/10 group-hover:border-accent-purple/40 transition-colors duration-500">
-                         <div className="absolute inset-0 bg-linear-to-br from-white/[0.02] to-transparent pointer-events-none" />
-                         
-                         <div className="relative shrink-0">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl relative z-10">
-                               {session?.user?.user_metadata?.avatar_url ? (
-                                  <img src={session.user.user_metadata.avatar_url} alt={fullName} className="w-full h-full object-cover" />
-                               ) : (
-                                  <div className="w-full h-full bg-linear-to-br from-accent-purple to-accent-cyan flex items-center justify-center">
-                                    <span className="text-lg font-black text-white">{fullName[0].toUpperCase()}</span>
-                                  </div>
-                               )}
-                            </div>
-                            {/* Cinematic Ring */}
-                            <div className="absolute -inset-1 border border-accent-purple/30 rounded-[1.2rem] opacity-0 group-hover:opacity-100 transition-opacity animate-pulse-glow" />
-                            
-                            <VerifiedTick className="absolute -bottom-1 -right-1 z-20" size="sm" />
-                         </div>
-                         
-                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                               <div className="text-sm font-black text-white truncate tracking-tight leading-none italic">
-                                  {isPro ? <GradientText className="font-black italic" animate={false}>{fullName}</GradientText> : fullName}
-                                </div>
-                            </div>
-                            <p className="text-[10px] font-bold text-zinc-600 truncate leading-none mt-1.5 uppercase tracking-widest group-hover:text-zinc-400 transition-colors">
-                               {session?.user?.email?.split('@')[0] || "Explorer"}
-                            </p>
-                         </div>
- 
-                         <Link 
-                            href="/account/settings" 
-                            className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/10 transition-all border border-white/5 group/settings"
-                         >
-                            <Settings size={16} className="group-hover/settings:rotate-90 transition-transform duration-500" />
-                         </Link>
+                {/* Footer Section: Credits, Upgrades & User Info */}
+                <div suppressHydrationWarning className="p-5 mt-auto border-t border-white/5 bg-[#050506]/95 backdrop-blur-3xl space-y-4 relative z-50">
+                  {/* Real-time Credits Display Badge */}
+                  <div className="p-4 rounded-2xl bg-zinc-900/40 border border-white/5 flex items-center justify-between relative overflow-hidden group/credits">
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/[0.01] to-transparent pointer-events-none" />
+                    <div className="flex items-center gap-3 relative z-10">
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover/credits:scale-105 transition-transform duration-300">
+                        <Zap size={14} className="fill-cyan-400/20" />
                       </div>
-                   </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 leading-none">Balance</p>
+                        <h4 className="text-sm font-bold text-white leading-none mt-1">
+                          {isCreditsLoading ? "..." : `${credits} Credits`}
+                        </h4>
+                      </div>
+                    </div>
+                    {!isProLoading && !isPro && (
+                      <Link href="/pro" className="relative z-10 shrink-0">
+                        <div className="px-2 py-1 rounded border border-amber-400/30 text-[8px] font-black text-amber-400 uppercase tracking-widest hover:bg-amber-400/10 transition-colors">
+                          TOP UP
+                        </div>
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* Premium Capsule Upgrade Button */}
+                  {!isProLoading && !isPro && (
+                    <Link href="/pro" className="block w-full">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full py-3.5 rounded-full bg-gradient-to-r from-purple-500 via-[#d946ef] to-cyan-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.35)] text-white text-xs font-black uppercase tracking-widest relative overflow-hidden shadow-lg transition-all duration-300"
+                      >
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          <Crown size={12} className="fill-white/20" />
+                          UPGRADE TO PRO
+                        </span>
+                        {/* Shimmer Shading Layer */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-150%] hover:translate-x-[150%] transition-transform duration-1000" />
+                      </motion.button>
+                    </Link>
+                  )}
+
+                  {/* Elegant User Account Footer */}
+                  <UserProfile 
+                    fullName={fullName} 
+                    email={session?.user?.email} 
+                    avatarUrl={session?.user?.user_metadata?.avatar_url} 
+                    isPro={isPro} 
+                    frameId={frameId}
+                    gradientId={gradientId}
+                    variant="sidebar" 
+                  />
                 </div>
               </div>
             </motion.aside>

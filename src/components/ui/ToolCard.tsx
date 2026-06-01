@@ -9,6 +9,7 @@ import { toggleFavorite } from "@/app/actions/favorites";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import GradientText from "./GradientText";
+import { ProBadge } from "./ProBadge";
 
 interface ToolCardProps {
   id: string;
@@ -116,10 +117,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
                 </div>
               )}
               {isPro && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-600/20 backdrop-blur-md border border-purple-500/30 text-[8px] font-black uppercase tracking-widest text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                  <Crown size={8} className="fill-purple-400" />
-                  PRO
-                </div>
+                <ProBadge size="sm" type={id === "ai-code" ? "studio" : "default"} />
               )}
             </div>
             

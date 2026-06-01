@@ -1,0 +1,6 @@
+ALTER TABLE "User"
+ADD COLUMN IF NOT EXISTS "avatar_frame" TEXT,
+ADD COLUMN IF NOT EXISTS "name_gradient" TEXT,
+ADD COLUMN IF NOT EXISTS "discord_user_id" TEXT,
+ADD COLUMN IF NOT EXISTS "discord_username" TEXT,
+ADD COLUMN IF NOT EXISTS "discord_dm_enabled" BOOLEAN NOT NULL DEFAULT false;

@@ -48,6 +48,18 @@ export async function GET(request: Request) {
     const userName = session.user.user_metadata?.full_name || 
                      session.user.user_metadata?.name || 
                      email?.split('@')[0] || 'User'
+    const providerAvatar =
+      session.user.user_metadata?.avatar_url ||
+      session.user.user_metadata?.picture ||
+      session.user.user_metadata?.user_avatar ||
+      null
+    const discordIdentity = session.user.identities?.find(identity => identity.provider === 'discord')
+    const discordUserId = discordIdentity?.identity_data?.sub || discordIdentity?.id || null
+    const discordUsername =
+      discordIdentity?.identity_data?.preferred_username ||
+      discordIdentity?.identity_data?.name ||
+      session.user.user_metadata?.preferred_username ||
+      null
 
     const now = new Date()
 
@@ -58,7 +70,13 @@ export async function GET(request: Request) {
       // Check if user exists
       const existingUser = await prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, dailyCredits: true }
+        select: {
+          id: true,
+          email: true,
+          dailyCredits: true,
+          image: true,
+          customAvatarUrl: true
+        }
       })
 
       if (!existingUser) {
@@ -70,6 +88,9 @@ export async function GET(request: Request) {
             id: userId,
             email: email || '',
             name: userName,
+            image: providerAvatar,
+            discordUserId: discordUserId ? String(discordUserId) : null,
+            discordUsername: discordUsername ? String(discordUsername) : null,
             dailyCredits: 50,
             lifetimeCredits: 0,
             plan: 'free',
@@ -89,6 +110,39 @@ export async function GET(request: Request) {
         // EXISTING USER - Just log
         console.log(`[AUTH] 🔄 Existing user login: ${userId}`)
         console.log(`[AUTH] Current credits: ${existingUser.dailyCredits}`)
+
+        if (existingUser.customAvatarUrl) {
+          await supabase.auth.updateUser({
+            data: {
+              avatar_url: existingUser.customAvatarUrl,
+              picture: existingUser.customAvatarUrl,
+              custom_avatar_url: existingUser.customAvatarUrl,
+            }
+          })
+        } else if (providerAvatar && providerAvatar !== existingUser.image) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              image: providerAvatar,
+              ...(discordUserId ? { discordUserId: String(discordUserId) } : {}),
+              ...(discordUsername ? { discordUsername: String(discordUsername) } : {}),
+            }
+          })
+          await supabase.auth.updateUser({
+            data: {
+              avatar_url: providerAvatar,
+              picture: providerAvatar,
+            }
+          })
+        } else if (discordUserId || discordUsername) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              ...(discordUserId ? { discordUserId: String(discordUserId) } : {}),
+              ...(discordUsername ? { discordUsername: String(discordUsername) } : {}),
+            }
+          })
+        }
       }
     } catch (dbError) {
       console.error('[AUTH] Database error:', dbError)

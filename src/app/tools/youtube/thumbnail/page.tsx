@@ -1,341 +1,613 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useDropzone } from "react-dropzone";
-import { 
-  Play, 
-  Type, 
-  Image as ImageIcon, 
-  Palette, 
-  Download, 
-  Sparkles, 
-  Layout, 
-  Smile, 
-  RotateCcw,
-  Plus,
-  Trash2,
-  ChevronRight,
-  Monitor,
-  Smartphone,
+import {
+  Download,
   Eye,
-  X
+  Image as ImageIcon,
+  Layout,
+  Monitor,
+  Palette,
+  Play,
+  RotateCcw,
+  Sparkles,
+  Type,
+  X,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function YouTubeThumbnailMaker() {
-  const [title, setTitle] = useState("HOW TO BUILD A STARTUP");
-  const [subtitle, setSubtitle] = useState("IN 30 DAYS");
-  const [bgColor, setBgColor] = useState("#6366f1");
-  const [textColor, setTextColor] = useState("#ffffff");
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [fontFamily, setFontFamily] = useState("Inter");
-  const [overlayOpacity, setOverlayOpacity] = useState(0.4);
-  const [accentColor, setAccentColor] = useState("#06b6d4");
-  
-  const previewRef = useRef<HTMLDivElement>(null);
+type TemplateId = "impact" | "neon" | "studio";
 
-  const onDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setBgImage(URL.createObjectURL(file));
+const templates: Record<
+  TemplateId,
+  {
+    label: string;
+    bg: string;
+    accent: string;
+    text: string;
+    subtitle: string;
+    title: string;
+    badge: string;
+  }
+> = {
+  impact: {
+    label: "Impact",
+    bg: "#15151c",
+    accent: "#ff2d55",
+    text: "#ffffff",
+    subtitle: "#ffea00",
+    title: "I BUILT THIS IN 24 HOURS",
+    badge: "FULL BUILD",
+  },
+  neon: {
+    label: "Neon",
+    bg: "#0b1020",
+    accent: "#22d3ee",
+    text: "#ffffff",
+    subtitle: "#a78bfa",
+    title: "AI TOOLS THAT FEEL ILLEGAL",
+    badge: "2026 GUIDE",
+  },
+  studio: {
+    label: "Studio",
+    bg: "#101014",
+    accent: "#8b5cf6",
+    text: "#f8fafc",
+    subtitle: "#34d399",
+    title: "MAKE THUMBNAILS THAT GET CLICKS",
+    badge: "CREATOR MODE",
+  },
+};
+
+const CANVAS_WIDTH = 1280;
+const CANVAS_HEIGHT = 720;
+
+function hexToRgba(hex: string, alpha: number) {
+  const cleaned = hex.replace("#", "");
+  const bigint = Number.parseInt(cleaned, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Could not load the background image."));
+    image.src = src;
+  });
+}
+
+function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function drawCoverImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
+  const scale = Math.max(CANVAS_WIDTH / image.width, CANVAS_HEIGHT / image.height);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  const x = (CANVAS_WIDTH - width) / 2;
+  const y = (CANVAS_HEIGHT - height) / 2;
+  ctx.drawImage(image, x, y, width, height);
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width <= maxWidth || !current) {
+      current = test;
+    } else {
+      lines.push(current);
+      current = word;
     }
+  }
+
+  if (current) lines.push(current);
+  return lines.slice(0, 4);
+}
+
+export default function YouTubeThumbnailMaker() {
+  const [template, setTemplate] = useState<TemplateId>("impact");
+  const [title, setTitle] = useState(templates.impact.title);
+  const [subtitle, setSubtitle] = useState("IN 30 DAYS");
+  const [badge, setBadge] = useState(templates.impact.badge);
+  const [bgColor, setBgColor] = useState(templates.impact.bg);
+  const [textColor, setTextColor] = useState(templates.impact.text);
+  const [subtitleColor, setSubtitleColor] = useState(templates.impact.subtitle);
+  const [accentColor, setAccentColor] = useState(templates.impact.accent);
+  const [overlayOpacity, setOverlayOpacity] = useState(0.44);
+  const [titleSize, setTitleSize] = useState(92);
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
+  const objectUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
+
+  const applyTemplate = (id: TemplateId) => {
+    const next = templates[id];
+    setTemplate(id);
+    setTitle(next.title);
+    setBadge(next.badge);
+    setBgColor(next.bg);
+    setTextColor(next.text);
+    setSubtitleColor(next.subtitle);
+    setAccentColor(next.accent);
+    setError("");
   };
+
+  const clearImage = () => {
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    objectUrlRef.current = null;
+    setBgImage(null);
+  };
+
+  const resetDesign = () => {
+    clearImage();
+    applyTemplate("impact");
+    setSubtitle("IN 30 DAYS");
+    setOverlayOpacity(0.44);
+    setTitleSize(92);
+  };
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a JPG, PNG, or WebP image.");
+      return;
+    }
+
+    clearImage();
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    setBgImage(url);
+    setError("");
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
-    multiple: false
+    accept: { "image/*": [] },
+    multiple: false,
   });
 
+  const renderThumbnail = async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas export is not available in this browser.");
+
+    if ("fonts" in document) {
+      await document.fonts.ready;
+    }
+
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    if (bgImage) {
+      const image = await loadImage(bgImage);
+      drawCoverImage(ctx, image);
+    }
+
+    const baseGradient = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    baseGradient.addColorStop(0, hexToRgba(bgColor, bgImage ? overlayOpacity : 0.95));
+    baseGradient.addColorStop(0.55, hexToRgba("#000000", bgImage ? Math.max(overlayOpacity - 0.08, 0.15) : 0.22));
+    baseGradient.addColorStop(1, hexToRgba("#000000", 0.8));
+    ctx.fillStyle = baseGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const glow = ctx.createRadialGradient(1040, 120, 20, 1040, 120, 620);
+    glow.addColorStop(0, hexToRgba(accentColor, 0.58));
+    glow.addColorStop(1, hexToRgba(accentColor, 0));
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const lowerGlow = ctx.createRadialGradient(220, 640, 20, 220, 640, 520);
+    lowerGlow.addColorStop(0, hexToRgba(subtitleColor, 0.28));
+    lowerGlow.addColorStop(1, hexToRgba(subtitleColor, 0));
+    ctx.fillStyle = lowerGlow;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    for (let x = 0; x < CANVAS_WIDTH; x += 44) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 210, CANVAS_HEIGHT);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.fillStyle = hexToRgba("#000000", 0.28);
+    roundedRect(ctx, 64, 58, 1152, 604, 46);
+    ctx.fill();
+    ctx.strokeStyle = hexToRgba("#ffffff", 0.18);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const badgeText = badge.trim().toUpperCase() || "NEW VIDEO";
+    ctx.font = "900 30px Arial, Helvetica, sans-serif";
+    const badgeWidth = Math.min(ctx.measureText(badgeText).width + 54, 460);
+    roundedRect(ctx, 100, 100, badgeWidth, 58, 20);
+    ctx.fillStyle = accentColor;
+    ctx.shadowColor = hexToRgba(accentColor, 0.45);
+    ctx.shadowBlur = 28;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(badgeText, 127, 139);
+
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.font = `900 ${titleSize}px Arial Black, Impact, Arial, sans-serif`;
+    ctx.lineJoin = "round";
+
+    const titleLines = wrapText(ctx, title.toUpperCase() || "YOUR TITLE HERE", 930);
+    const lineHeight = titleSize * 0.92;
+    let titleY = 192;
+
+    for (const line of titleLines) {
+      ctx.strokeStyle = hexToRgba("#000000", 0.58);
+      ctx.lineWidth = 18;
+      ctx.strokeText(line, 96, titleY);
+      ctx.fillStyle = textColor;
+      ctx.shadowColor = hexToRgba("#000000", 0.42);
+      ctx.shadowBlur = 18;
+      ctx.fillText(line, 96, titleY);
+      ctx.shadowBlur = 0;
+      titleY += lineHeight;
+    }
+
+    const sub = subtitle.trim().toUpperCase();
+    if (sub) {
+      ctx.font = "900 48px Arial Black, Impact, Arial, sans-serif";
+      ctx.strokeStyle = hexToRgba("#000000", 0.62);
+      ctx.lineWidth = 10;
+      ctx.strokeText(sub, 100, 542);
+      ctx.fillStyle = subtitleColor;
+      ctx.fillText(sub, 100, 542);
+    }
+
+    ctx.fillStyle = accentColor;
+    roundedRect(ctx, 100, 626, 190, 14, 7);
+    ctx.fill();
+    ctx.fillStyle = subtitleColor;
+    roundedRect(ctx, 306, 626, 92, 14, 7);
+    ctx.fill();
+
+    ctx.font = "900 24px Arial, Helvetica, sans-serif";
+    ctx.fillStyle = hexToRgba("#ffffff", 0.9);
+    ctx.textAlign = "right";
+    ctx.fillText("1280 x 720", 1168, 620);
+
+    return canvas;
+  };
+
   const handleDownload = async () => {
-    // For a real production app, we would use html-to-image or dom-to-image
-    // For this MVP, we show a satisfying notification
-    alert("Thumbnail ready for download! (Implementation typically uses html-to-image library)");
+    try {
+      setIsExporting(true);
+      setError("");
+      const canvas = await renderThumbnail();
+      const link = document.createElement("a");
+      link.download = `lumora-youtube-thumbnail-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not export the thumbnail.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-cyan-500/30" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#050505] text-white p-4 md:p-8 xl:p-12 font-sans selection:bg-cyan-500/30" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="text-center md:text-left">
+        <header className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-center md:justify-start gap-3 mb-4"
+              className="flex items-center gap-3 mb-3"
             >
-              <div className="p-2 bg-red-600/20 rounded-xl">
+              <div className="p-2.5 bg-red-600/15 border border-red-400/20 rounded-2xl shadow-[0_0_32px_rgba(239,68,68,0.16)]">
                 <Play className="w-8 h-8 text-red-500 fill-red-500" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-cyan-400">
-                Thumbnail Maker
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-cyan-300">
+                YouTube Thumbnail Maker
               </h1>
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
-            >
-              Design high-conversion thumbnails that stop the scroll.
-            </motion.p>
+            <p className="text-gray-400 text-base md:text-lg max-w-2xl font-medium">
+              Build a sharp 1280x720 thumbnail with real PNG export.
+            </p>
           </div>
-          
-          <div className="flex gap-3 justify-center">
-             <button className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all">
-                <RotateCcw className="w-4 h-4" /> Reset
-             </button>
-             <button 
-               onClick={handleDownload}
-               className="flex items-center gap-2 px-8 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-cyan-600/20 transition-all"
-             >
-                <Download className="w-4 h-4" /> Download PNG
-             </button>
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={resetDesign}
+              className="flex items-center gap-2 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+            >
+              <RotateCcw className="w-4 h-4" /> Reset
+            </button>
+            <button
+              onClick={handleDownload}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 rounded-2xl text-xs font-black uppercase tracking-[0.18em] shadow-lg shadow-cyan-600/20 transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
+            >
+              <Download className="w-4 h-4" /> {isExporting ? "Exporting..." : "Download PNG"}
+            </button>
           </div>
         </header>
 
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Left Column: Controls (4 cols) */}
-          <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-3xl shadow-2xl">
-              <div className="flex items-center gap-3 mb-10 pb-6 border-b border-white/5">
+        {error && (
+          <div className="mb-6 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-100">
+            {error}
+          </div>
+        )}
+
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <aside className="lg:col-span-4 space-y-5 order-2 lg:order-1">
+            <section className="bg-white/[0.055] border border-white/10 rounded-[2rem] p-6 backdrop-blur-3xl shadow-2xl">
+              <div className="flex items-center gap-3 mb-6 pb-5 border-b border-white/10">
                 <Layout className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-sm font-black uppercase tracking-[0.3em] italic">Editor Console</h3>
+                <h2 className="text-xs font-black uppercase tracking-[0.28em]">Editor</h2>
               </div>
 
-              <div className="space-y-8">
-                {/* Text Content */}
-                <div className="space-y-6">
-                   <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3">Main Title</label>
-                      <input 
-                        type="text" 
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value.toUpperCase())}
-                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-cyan-500 outline-none transition-all shadow-inner"
-                        placeholder="CATCHY TITLE..."
-                      />
-                   </div>
-                   <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3">Subtitle / Accent</label>
-                      <input 
-                        type="text" 
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3">Template</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(Object.keys(templates) as TemplateId[]).map((id) => (
+                      <button
+                        key={id}
+                        onClick={() => applyTemplate(id)}
+                        className={cn(
+                          "rounded-2xl border px-3 py-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                          template === id
+                            ? "border-cyan-300/60 bg-cyan-400/15 text-white shadow-[0_0_28px_rgba(34,211,238,0.16)]"
+                            : "border-white/10 bg-black/20 text-gray-400 hover:bg-white/5"
+                        )}
+                      >
+                        {templates[id].label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Main Title</label>
+                    <textarea
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value.toUpperCase())}
+                      className="min-h-24 w-full resize-none bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-black leading-relaxed focus:border-cyan-400 outline-none transition-all"
+                      placeholder="CATCHY TITLE"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Subtitle</label>
+                      <input
                         value={subtitle}
                         onChange={(e) => setSubtitle(e.target.value.toUpperCase())}
-                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-cyan-500 outline-none transition-all shadow-inner"
-                        placeholder="SUBTITLE OR CHANNEL..."
+                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-xs font-bold focus:border-cyan-400 outline-none transition-all"
+                        placeholder="IN 30 DAYS"
                       />
-                   </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Badge</label>
+                      <input
+                        value={badge}
+                        onChange={(e) => setBadge(e.target.value.toUpperCase())}
+                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-xs font-bold focus:border-cyan-400 outline-none transition-all"
+                        placeholder="NEW VIDEO"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Appearance */}
-                <div className="pt-6 border-t border-white/5 space-y-6">
-                   <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3 text-center">Background</label>
-                        <div className="flex justify-center">
-                          <input 
-                            type="color" 
-                            value={bgColor}
-                            onChange={(e) => setBgColor(e.target.value)}
-                            className="w-12 h-12 rounded-xl bg-transparent cursor-pointer border-none"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3 text-center">Accent</label>
-                        <div className="flex justify-center">
-                          <input 
-                            type="color" 
-                            value={accentColor}
-                            onChange={(e) => setAccentColor(e.target.value)}
-                            className="w-12 h-12 rounded-xl bg-transparent cursor-pointer border-none"
-                          />
-                        </div>
-                      </div>
-                   </div>
-
-                   <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3">Font Style</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {["Inter", "Bebas Neue", "Oswald", "Outfit"].map(font => (
-                          <button 
-                            key={font}
-                            onClick={() => setFontFamily(font)}
-                            className={cn(
-                              "py-2 rounded-xl border text-[10px] font-bold transition-all",
-                              fontFamily === font ? "bg-white text-black border-white" : "border-white/5 text-gray-400 hover:bg-white/5"
-                            )}
-                          >
-                            {font}
-                          </button>
-                        ))}
-                      </div>
-                   </div>
+                <div className="grid grid-cols-2 gap-3 pt-5 border-t border-white/10">
+                  {[
+                    ["Background", bgColor, setBgColor],
+                    ["Accent", accentColor, setAccentColor],
+                    ["Title", textColor, setTextColor],
+                    ["Subtitle", subtitleColor, setSubtitleColor],
+                  ].map(([label, value, setter]) => (
+                    <label key={label as string} className="rounded-2xl bg-black/25 border border-white/10 p-3">
+                      <span className="mb-3 flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                        <Palette className="h-3.5 w-3.5" /> {label as string}
+                      </span>
+                      <input
+                        type="color"
+                        value={value as string}
+                        onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
+                        className="h-10 w-full cursor-pointer rounded-xl border-0 bg-transparent"
+                      />
+                    </label>
+                  ))}
                 </div>
 
-                {/* Background Image Upload */}
-                <div 
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="mb-3 flex items-center justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                      <span className="flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Title Size</span>
+                      <span className="text-white">{titleSize}px</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="64"
+                      max="118"
+                      value={titleSize}
+                      onChange={(e) => setTitleSize(Number(e.target.value))}
+                      className="w-full accent-cyan-400"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-3 flex items-center justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                      <span>Image Overlay</span>
+                      <span className="text-white">{Math.round(overlayOpacity * 100)}%</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="0.12"
+                      max="0.72"
+                      step="0.01"
+                      value={overlayOpacity}
+                      onChange={(e) => setOverlayOpacity(Number(e.target.value))}
+                      className="w-full accent-violet-400"
+                    />
+                  </label>
+                </div>
+
+                <div
                   {...getRootProps()}
                   className={cn(
-                    "relative border-2 border-dashed rounded-[1.5rem] p-6 text-center transition-all cursor-pointer",
-                    isDragActive ? "border-cyan-500 bg-cyan-500/5" : "border-white/5 hover:border-white/20"
+                    "relative border-2 border-dashed rounded-[1.5rem] p-6 text-center transition-all cursor-pointer bg-black/20",
+                    isDragActive ? "border-cyan-400 bg-cyan-500/10" : "border-white/10 hover:border-white/25"
                   )}
                 >
                   <input {...getInputProps()} />
-                  <ImageIcon className="w-6 h-6 text-gray-500 mx-auto mb-2" />
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    {bgImage ? "Change Image" : "Drop Background Image"}
+                  <ImageIcon className="w-7 h-7 text-gray-500 mx-auto mb-3" />
+                  <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                    {bgImage ? "Change Background Image" : "Drop Background Image"}
                   </p>
+                  <p className="mt-2 text-[11px] text-gray-600">JPG, PNG, or WebP</p>
                   {bgImage && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setBgImage(null); }}
-                      className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:text-red-400"
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        clearImage();
+                      }}
+                      className="absolute top-3 right-3 p-2 bg-black/60 border border-white/10 rounded-full hover:text-red-300 transition-colors"
+                      aria-label="Remove background image"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
+              </div>
+            </section>
+          </aside>
 
-                {/* AI Generator Button */}
-                <button className="w-full py-5 bg-gradient-to-r from-cyan-600 to-purple-600 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 group relative overflow-hidden transition-all hover:scale-[1.02]">
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <Sparkles className="w-4 h-4 animate-pulse" />
-                  Generate with AI
-                </button>
+          <section className="lg:col-span-8 order-1 lg:order-2 space-y-5">
+            <div className="flex items-center justify-between px-2 md:px-5">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">Live 16:9 Preview</span>
+              </div>
+              <div className="flex items-center gap-4 text-gray-500">
+                <Monitor className="w-4 h-4" />
+                <Eye className="w-4 h-4" />
+                <Play className="w-4 h-4 text-red-500" />
               </div>
             </div>
-          </div>
 
-          {/* Right Column: Live Preview (8 cols) */}
-          <div className="lg:col-span-8 order-1 lg:order-2 space-y-6">
-            <div className="flex items-center justify-between px-6">
-               <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 italic">Live Render Engine</span>
-               </div>
-               <div className="flex items-center gap-4 text-gray-500">
-                  <Monitor className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
-                  <Smartphone className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
-                  <Eye className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
-               </div>
-            </div>
-
-            <div className="relative group perspective-[2000px]">
-              {/* The actual 1280x720 (16:9) canvas div */}
+            <div className="relative group">
               <motion.div
-                ref={previewRef}
                 layout
                 style={{ backgroundColor: bgColor }}
-                className="relative aspect-video w-full rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/5"
+                className="relative aspect-video w-full overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.75)]"
               >
-                {/* Background Image with Overlay */}
                 {bgImage && (
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${bgImage})` }}
-                  >
-                    <div 
-                      className="absolute inset-0 bg-black/40"
-                      style={{ opacity: overlayOpacity }}
-                    />
+                  <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}>
+                    <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }} />
                   </div>
                 )}
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-black/10 to-black/80" />
+                <div className="absolute -top-1/3 -right-1/4 h-full w-full rounded-full blur-[90px] opacity-40" style={{ backgroundColor: accentColor }} />
+                <div className="absolute -bottom-1/3 -left-1/4 h-2/3 w-2/3 rounded-full blur-[90px] opacity-25" style={{ backgroundColor: subtitleColor }} />
 
-                {/* Gradient Mesh Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/60 pointer-events-none" />
-                <div 
-                   className="absolute -top-1/2 -right-1/4 w-full h-full rounded-full blur-[120px] opacity-20 pointer-events-none"
-                   style={{ backgroundColor: accentColor }}
-                />
-
-                {/* Content Layer */}
-                <div className="absolute inset-0 p-12 flex flex-col justify-center items-start text-left">
-                  <motion.div 
-                    layout
-                    className="space-y-4 max-w-[80%]"
-                  >
-                    {/* Subtitle / Label */}
-                    <motion.div
-                      key={subtitle}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                <div className="absolute inset-[5%] rounded-[2rem] border border-white/15 bg-black/20" />
+                <div className="absolute inset-0 flex flex-col justify-center p-[7%]">
+                  <div className="max-w-[82%]">
+                    <div
+                      className="mb-[3%] inline-flex max-w-full rounded-xl px-4 py-2 text-[clamp(0.55rem,1.6vw,1.3rem)] font-black uppercase tracking-[0.14em] text-white shadow-[0_0_34px_rgba(0,0,0,0.35)]"
                       style={{ backgroundColor: accentColor }}
-                      className="inline-block px-4 py-2 rounded-lg"
                     >
-                      <span className="text-white text-xl font-black uppercase tracking-widest drop-shadow-lg">
-                        {subtitle}
-                      </span>
-                    </motion.div>
-
-                    {/* Main Title */}
-                    <motion.div
-                      key={title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+                      <span className="truncate">{badge || "NEW VIDEO"}</span>
+                    </div>
+                    <h2
+                      className="max-w-full break-words font-black uppercase leading-[0.88] tracking-normal drop-shadow-[0_12px_16px_rgba(0,0,0,0.5)]"
+                      style={{
+                        color: textColor,
+                        fontSize: `clamp(2rem, ${titleSize / 13}vw, ${titleSize}px)`,
+                        fontFamily: "Arial Black, Impact, Arial, sans-serif",
+                        WebkitTextStroke: "0.03em rgba(0,0,0,0.36)",
+                      }}
                     >
-                      <h2 
-                        style={{ fontFamily: fontFamily, color: textColor }}
-                        className="text-6xl md:text-7xl font-black italic tracking-tighter leading-[0.9] uppercase"
+                      {title || "YOUR TITLE HERE"}
+                    </h2>
+                    {subtitle && (
+                      <p
+                        className="mt-[3%] font-black uppercase leading-none tracking-normal drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)]"
+                        style={{
+                          color: subtitleColor,
+                          fontSize: "clamp(1rem, 3.3vw, 3rem)",
+                          fontFamily: "Arial Black, Impact, Arial, sans-serif",
+                          WebkitTextStroke: "0.04em rgba(0,0,0,0.35)",
+                        }}
                       >
-                        {title}
-                      </h2>
-                    </motion.div>
-                  </motion.div>
-
-                  {/* Decorative bar */}
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: 120 }}
-                    transition={{ delay: 0.3 }}
-                    style={{ backgroundColor: accentColor }}
-                    className="h-3 rounded-full mt-10 shadow-[0_0_30px_rgba(0,0,0,0.3)]"
-                  />
+                        {subtitle}
+                      </p>
+                    )}
+                    <div className="mt-[4%] flex items-center gap-3">
+                      <span className="h-2.5 w-28 rounded-full" style={{ backgroundColor: accentColor }} />
+                      <span className="h-2.5 w-14 rounded-full" style={{ backgroundColor: subtitleColor }} />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-[7%] right-[7%] text-xs md:text-sm font-black text-white/80">1280 x 720</div>
                 </div>
-
-                {/* Scanline effect */}
-                <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
               </motion.div>
-
-              {/* Float Effect Shadow */}
-              <div className="absolute -inset-4 bg-cyan-500/5 blur-[100px] -z-10 rounded-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+              <div className="absolute -inset-4 bg-cyan-500/5 blur-[90px] -z-10 rounded-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             </div>
 
-            {/* Design Tips */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-              <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="p-2 bg-yellow-500/20 rounded-lg text-yellow-500">
-                      <Sparkles className="w-4 h-4" />
-                   </div>
-                   <h4 className="text-xs font-black uppercase tracking-widest">CTR Optimization</h4>
-                </div>
-                <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-medium">
-                  Use contrasting colors for text and background. **Yellow, Cyan, and White** perform best on YouTube's dark and light modes.
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
+                <Sparkles className="mb-3 h-5 w-5 text-yellow-300" />
+                <h3 className="text-xs font-black uppercase tracking-widest">Readable Text</h3>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">Large, bold title treatment stays visible on small YouTube cards.</p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="p-2 bg-cyan-500/20 rounded-lg text-cyan-500">
-                      <Monitor className="w-4 h-4" />
-                   </div>
-                   <h4 className="text-xs font-black uppercase tracking-widest">Visual Hierarchy</h4>
-                </div>
-                <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-medium">
-                  Keep text large and readable. At least **50% of the thumbnail** should be dedicated to the core value proposition.
-                </p>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
+                <Zap className="mb-3 h-5 w-5 text-cyan-300" />
+                <h3 className="text-xs font-black uppercase tracking-widest">Instant Export</h3>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">Downloads a real 1280x720 transparent-safe PNG from canvas.</p>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
+                <Palette className="mb-3 h-5 w-5 text-violet-300" />
+                <h3 className="text-xs font-black uppercase tracking-widest">Custom Style</h3>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">Templates, color controls, title scale, image upload, and overlay strength all work live.</p>
               </div>
             </div>
-          </div>
+          </section>
         </main>
       </div>
 
-      {/* Atmospheric Background */}
-      <div className="fixed top-0 right-0 -z-10 w-[800px] h-[800px] bg-cyan-600/[0.04] blur-[160px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 -z-10 w-[700px] h-[700px] bg-purple-600/[0.04] blur-[160px] rounded-full pointer-events-none animate-pulse" />
+      <div className="fixed top-0 right-0 -z-10 w-[760px] h-[760px] bg-cyan-600/[0.05] blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-0 left-0 -z-10 w-[680px] h-[680px] bg-purple-600/[0.05] blur-[150px] rounded-full pointer-events-none" />
     </div>
   );
 }

@@ -3,7 +3,7 @@ export const PRICING_CONFIG = {
     USD: 6.99,
     INR: 499,
     DAILY_CREDITS: 1000,
-    IS_PRO_LIVE: false,
+    IS_PRO_LIVE: true,
   },
   CREDIT_PACKAGES: [
     {

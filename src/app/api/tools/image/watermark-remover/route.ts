@@ -1,62 +1,185 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 
+const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+
+interface NormalizedRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function parseStrength(value: FormDataEntryValue | null) {
+  const parsed = Number(value || 70);
+  if (!Number.isFinite(parsed)) return 70;
+  return clamp(Math.round(parsed), 10, 100);
+}
+
+function parseRegion(value: FormDataEntryValue | null): NormalizedRegion {
+  if (typeof value !== "string") {
+    return { x: 0.05, y: 0.72, width: 0.9, height: 0.18 };
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Partial<NormalizedRegion>;
+    const x = clamp(Number(parsed.x), 0, 0.98);
+    const y = clamp(Number(parsed.y), 0, 0.98);
+    const width = clamp(Number(parsed.width), 0.02, 1 - x);
+    const height = clamp(Number(parsed.height), 0.02, 1 - y);
+    return { x, y, width, height };
+  } catch {
+    return { x: 0.05, y: 0.72, width: 0.9, height: 0.18 };
+  }
+}
+
+async function tryModalWatermarkRemoval(params: {
+  buffer: Buffer;
+  file: File;
+  region: NormalizedRegion;
+  strength: number;
+}) {
+  const modalUrl = process.env.MODAL_WATERMARK_REMOVER_URL;
+  const modalApiKey = process.env.MODAL_WATERMARK_REMOVER_API_KEY;
+  if (!modalUrl || !modalApiKey) return null;
+
+  const formData = new FormData();
+  formData.append("file", new Blob([new Uint8Array(params.buffer)], { type: params.file.type }), params.file.name || "image.png");
+  formData.append("region", JSON.stringify(params.region));
+  formData.append("strength", String(params.strength));
+
+  const response = await fetch(`${modalUrl.replace(/\/$/, "")}/remove-watermark`, {
+    method: "POST",
+    headers: { "X-Api-Key": modalApiKey },
+    body: formData,
+    signal: AbortSignal.timeout(90000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Modal watermark removal failed with HTTP ${response.status}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
+async function buildReplacementPatch(buffer: Buffer, rect: { left: number; top: number; width: number; height: number }, imageWidth: number, imageHeight: number, strength: number) {
+  const pad = Math.max(12, Math.round(Math.max(rect.width, rect.height) * 0.18));
+  const candidateSources = [
+    { left: rect.left, top: rect.top - rect.height - pad, width: rect.width, height: rect.height },
+    { left: rect.left, top: rect.top + rect.height + pad, width: rect.width, height: rect.height },
+    { left: rect.left - rect.width - pad, top: rect.top, width: rect.width, height: rect.height },
+    { left: rect.left + rect.width + pad, top: rect.top, width: rect.width, height: rect.height },
+  ];
+
+  const source = candidateSources.find((candidate) =>
+    candidate.left >= 0 &&
+    candidate.top >= 0 &&
+    candidate.left + candidate.width <= imageWidth &&
+    candidate.top + candidate.height <= imageHeight
+  );
+
+  if (source) {
+    return sharp(buffer)
+      .extract(source)
+      .resize(rect.width, rect.height, { fit: "fill" })
+      .blur(strength > 70 ? 0.7 : 0.35)
+      .sharpen({ sigma: 0.8 })
+      .toBuffer();
+  }
+
+  const expanded = {
+    left: clamp(rect.left - pad, 0, imageWidth - 1),
+    top: clamp(rect.top - pad, 0, imageHeight - 1),
+    width: Math.min(imageWidth - clamp(rect.left - pad, 0, imageWidth - 1), rect.width + pad * 2),
+    height: Math.min(imageHeight - clamp(rect.top - pad, 0, imageHeight - 1), rect.height + pad * 2),
+  };
+
+  return sharp(buffer)
+    .extract(expanded)
+    .resize(rect.width, rect.height, { fit: "fill" })
+    .blur(4 + strength / 18)
+    .modulate({ saturation: 1.02 })
+    .toBuffer();
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
     }
 
+    if (!SUPPORTED_INPUT_TYPES.has(file.type)) {
+      return NextResponse.json({ error: "Only PNG, JPG, WebP, and AVIF images are supported." }, { status: 415 });
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      return NextResponse.json({ error: "Image is too large. Maximum size is 20MB." }, { status: 413 });
+    }
+
+    const region = parseRegion(formData.get("region"));
+    const strength = parseStrength(formData.get("strength"));
     const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Simulate a 2-second processing time for UX emotional weight
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    const metadata = await sharp(buffer).metadata();
+    const imageWidth = metadata.width || 0;
+    const imageHeight = metadata.height || 0;
 
-    const imageObject = sharp(buffer);
-    const metadata = await imageObject.metadata();
-    const width = metadata.width || 0;
-    const height = metadata.height || 0;
+    if (!imageWidth || !imageHeight) {
+      return NextResponse.json({ error: "Could not read image dimensions." }, { status: 400 });
+    }
 
-    // 1. Identify the watermark band (Bottom 25%)
-    const watermarkHeight = Math.floor(height * 0.25);
-    const watermarkTop = height - watermarkHeight;
+    let provider = "local-region-reconstruction";
+    let outputBuffer: Buffer | null = null;
 
-    // 2. CRITICAL FIX: "Infinite Gradient Reconstruction"
-    // Instead of blurring, we take a 10px vertical slice from the far left of the band.
-    // This slice contains the "clean" sand and water gradient.
-    const gradientSliver = await sharp(buffer)
-      .extract({ left: 10, top: watermarkTop, width: 20, height: watermarkHeight })
-      .toBuffer();
+    try {
+      outputBuffer = await tryModalWatermarkRemoval({ buffer, file, region, strength });
+      if (outputBuffer) provider = "modal-inpainting";
+    } catch (modalError) {
+      console.error("Modal watermark removal failed:", getErrorMessage(modalError));
+    }
 
-    // 3. Stretch this clean sliver across the entire horizontal width of the image.
-    // This creates a "clean" beach that perfectly matches the surrounding colors.
-    const cleanReconstruction = await sharp(gradientSliver)
-      .resize(width, watermarkHeight, { fit: 'fill' })
-      .blur(0.5) // Tiny blur to remove any vertical line artifacts from stretching
-      .toBuffer();
+    if (!outputBuffer) {
+      const rect = {
+        left: clamp(Math.round(region.x * imageWidth), 0, imageWidth - 1),
+        top: clamp(Math.round(region.y * imageHeight), 0, imageHeight - 1),
+        width: Math.max(2, Math.min(Math.round(region.width * imageWidth), imageWidth)),
+        height: Math.max(2, Math.min(Math.round(region.height * imageHeight), imageHeight)),
+      };
+      rect.width = Math.min(rect.width, imageWidth - rect.left);
+      rect.height = Math.min(rect.height, imageHeight - rect.top);
 
-    // 4. Seam-Free Assembly: Drop the reconstructed beach over the watermark.
-    const processedImage = await sharp(buffer)
-      .composite([{ 
-        input: cleanReconstruction, 
-        top: watermarkTop, 
-        left: 0,
-        blend: 'over'
-      }])
-      .sharpen(1.2) // Bring back the "sand grain" texture
-      .toBuffer();
+      const replacementPatch = await buildReplacementPatch(buffer, rect, imageWidth, imageHeight, strength);
+      outputBuffer = await sharp(buffer)
+        .composite([{ input: replacementPatch, left: rect.left, top: rect.top, blend: "over" }])
+        .sharpen({ sigma: 0.5 })
+        .jpeg({ quality: 94, mozjpeg: true })
+        .toBuffer();
+    }
 
-    return new NextResponse(processedImage, {
+    const outputMetadata = await sharp(outputBuffer).metadata();
+
+    return new NextResponse(outputBuffer, {
       headers: {
         "Content-Type": "image/jpeg",
-        "Content-Disposition": `attachment; filename="toolverse-cleaned-${Date.now()}.jpg"`,
+        "Content-Disposition": `attachment; filename="lumora-watermark-cleaned-${Date.now()}.jpg"`,
+        "X-Lumora-Provider": provider,
+        "X-Lumora-Width": String(outputMetadata.width || ""),
+        "X-Lumora-Height": String(outputMetadata.height || ""),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Watermark removal failed:", error);
-    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) || "Processing failed." }, { status: 500 });
   }
 }

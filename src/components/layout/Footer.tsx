@@ -15,7 +15,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 
-// --- Custom Social Icons for Outdated Lucide Versions ---
+// --- Custom Social Icons for Premium Aesthetics ---
 const GithubIcon = ({ size = 20 }: { size?: number }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
@@ -76,126 +76,121 @@ export function Footer() {
   }, [supabase]);
 
   return (
-    <footer className="relative bg-[#030303] pt-32 pb-12 overflow-hidden" suppressHydrationWarning>
-      {/* 1. Cinematic Background Elements */}
+    <footer className="relative bg-[#020204] pt-32 pb-14 overflow-hidden border-t border-white/[0.03]" suppressHydrationWarning>
+      
+      {/* 1. Luxurious Atmospheric Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-white/10 to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-linear-to-r from-transparent via-accent-purple/40 to-transparent" />
+        {/* Soft, colorful horizontal gradient splits */}
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[70%] h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 via-cyan-400/50 to-transparent blur-[1px]" />
         
-        {/* Large Decorative Text */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full text-center select-none opacity-[0.03]">
-          <h2 className="text-[16vw] font-black tracking-[0.05em] uppercase italic leading-none text-white whitespace-nowrap">
+        {/* Large Cinematic Decorative Typography */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full text-center select-none opacity-[0.025] z-0">
+          <h2 className="text-[15vw] font-sans font-black tracking-[0.08em] uppercase italic leading-none text-white whitespace-nowrap">
             LUMORA
           </h2>
         </div>
 
-        {/* Ambient Glows */}
-        <div className="absolute -bottom-48 -left-48 w-[600px] h-[600px] bg-accent-purple/10 blur-[150px] rounded-full" />
-        <div className="absolute -top-48 -right-48 w-[600px] h-[600px] bg-accent-cyan/10 blur-[150px] rounded-full" />
+        {/* Ambient atmosphere gradients */}
+        <div className="absolute -bottom-64 left-1/3 w-[800px] h-[500px] bg-purple-600/10 blur-[160px] rounded-full" />
+        <div className="absolute -top-32 right-1/4 w-[600px] h-[400px] bg-cyan-500/8 blur-[150px] rounded-full" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        {/* 2. Pre-Footer CTA */}
-        <div className="mb-32 p-12 md:p-24 rounded-[4rem] glass-dark border border-white/5 relative overflow-hidden group">
-            {/* CTA Background Pattern */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-            <div className="absolute inset-0 bg-linear-to-br from-accent-purple/15 via-transparent to-accent-cyan/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent-purple/10 blur-[100px] rounded-full group-hover:scale-150 transition-transform duration-1000" />
+        
+        {/* 2. Pre-Footer Action Capsule */}
+        <div className="mb-32 p-12 md:p-20 rounded-[3.5rem] bg-zinc-950/40 backdrop-blur-3xl border border-white/[0.05] relative overflow-hidden group shadow-[0_30px_100px_-30px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.02)]">
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.08] via-transparent to-cyan-500/[0.05] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500/5 blur-[120px] rounded-full group-hover:scale-150 transition-transform duration-1000" />
             
-            <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1fr_auto] items-center gap-16 xl:gap-32">
-                <div className="space-y-10">
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-accent-cyan text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl"
-                    >
-                        <Sparkles size={14} className="animate-pulse" /> The Future is Simple
-                    </motion.div>
+            <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1fr_auto] items-center gap-12 xl:gap-24">
+                <div className="space-y-8 text-center xl:text-left">
+                    <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-cyan-400 text-[9px] font-black uppercase tracking-[0.3em] shadow-lg">
+                        <Sparkles size={11} className="animate-pulse" /> The Future is Simple
+                    </div>
                     
-                    <div className="space-y-8">
-                        <div className="space-y-2">
-                           <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase italic leading-none select-none">
-                               Ready to
-                           </h2>
-                           <h2 className="text-5xl md:text-8xl font-black gradient-text tracking-tighter uppercase italic leading-none select-none drop-shadow-[0_0_50px_rgba(168,85,247,0.4)] px-4 -mx-4">
-                               transcend?
-                           </h2>
-                        </div>
-                        <p className="text-zinc-500 font-medium max-w-md text-lg leading-relaxed">
+                    <div className="space-y-4">
+                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic leading-none select-none">
+                            Ready to <span className="bg-gradient-to-r from-purple-400 via-pink-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_20px_rgba(168,85,247,0.35)]">transcend?</span>
+                        </h2>
+                        <p className="text-zinc-500 font-semibold max-w-md text-base leading-relaxed mx-auto xl:mx-0">
                             Join 50,000+ creators who have already simplified their creative process with Lumora.
                         </p>
                     </div>
                 </div>
                 
-                <div className="relative group/btn w-fit">
-                    <div className="absolute -inset-2 bg-linear-to-r from-accent-purple to-accent-cyan rounded-[2rem] blur-xl opacity-20 group-hover/btn:opacity-60 transition duration-700" />
+                <div className="relative group/btn w-fit mx-auto xl:mx-0">
+                    <div className="absolute -inset-2 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full blur-xl opacity-20 group-hover/btn:opacity-50 transition duration-700" />
                     <Link 
                         href={mounted && session ? "/" : "/auth/login"} 
-                        className="relative flex items-center gap-6 h-24 px-12 rounded-[1.8rem] bg-zinc-950 border border-white/10 text-white font-black text-xl md:text-2xl tracking-tighter uppercase italic hover:bg-black transition-all shadow-4xl overflow-hidden group/link"
+                        className="relative flex items-center gap-5 h-20 px-10 rounded-full bg-zinc-950 border border-white/10 text-white font-black text-lg tracking-tight uppercase italic hover:bg-black transition-all shadow-3xl overflow-hidden group/link"
                     >
                         <div className="absolute inset-0 shimmer opacity-10 group-hover/link:opacity-20 transition-opacity" />
-                        <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
                         
                         <span className="relative z-10 whitespace-nowrap">
                           {mounted && session ? "Open Dashboard" : "Get Started"}
                         </span>
                         
-                        <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover/link:bg-white group-hover/link:text-black transition-all duration-500">
-                          <ArrowRight size={20} className="group-hover/link:translate-x-1 transition-transform" />
+                        <div className="relative z-10 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover/link:bg-white group-hover/link:text-black transition-all duration-500">
+                          <ArrowRight size={16} className="group-hover/link:translate-x-0.5 transition-transform" />
                         </div>
                     </Link>
                 </div>
             </div>
 
             {/* Decorative Background Icon */}
-            <div className="absolute -bottom-20 -right-20 opacity-[0.03] pointer-events-none rotate-12">
-               <Zap size={400} strokeWidth={1} />
+            <div className="absolute -bottom-20 -right-20 opacity-[0.02] pointer-events-none rotate-12">
+               <Zap size={350} strokeWidth={1} />
             </div>
         </div>
 
-        {/* 3. Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-8 mb-32">
+        {/* 3. Main Footer Links & Branding */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-8 mb-24">
           
-          {/* Brand Identity */}
-          <div className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left space-y-10">
-            <div className="space-y-6">
-              <Link href="/" className="flex flex-col lg:flex-row items-center gap-4 group w-fit mx-auto lg:mx-0">
-                <div className="w-14 h-14 rounded-2xl premium-gradient p-[1.5px] group-hover:rotate-6 transition-transform duration-500">
-                  <div className="w-full h-full bg-black rounded-[14px] flex items-center justify-center">
-                    <Shield className="text-white fill-white/10" size={24} />
+          {/* Brand Column */}
+          <div className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
+            <div className="space-y-5">
+              <Link href="/" className="flex items-center gap-3.5 group w-fit mx-auto lg:mx-0">
+                <div className="w-12 h-12 rounded-[14px] bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] group-hover:rotate-6 transition-transform duration-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                  <div className="w-full h-full bg-black rounded-[13px] flex items-center justify-center">
+                    <Shield className="text-white fill-white/10" size={20} />
                   </div>
                 </div>
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
-                  <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">Lumora</h2>
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-accent-purple mt-2">All-in-one Creative Hub</p>
+                <div className="flex flex-col items-start leading-none">
+                  <h2 className="text-2xl font-black text-white tracking-tight uppercase italic">Lumora</h2>
+                  <p className="text-[8px] font-black uppercase tracking-[0.35em] text-purple-400 mt-1">Creative Hub</p>
                 </div>
               </Link>
-              <p className="text-zinc-500 font-medium leading-relaxed max-w-sm text-base mx-auto lg:mx-0">
-                Making professional creative tools simple for everyone. The best way to use AI for your daily tasks.
+              <p className="text-zinc-500 font-medium leading-relaxed max-w-sm text-sm mx-auto lg:mx-0">
+                Making professional creative tools simple for everyone. Elevate your daily tasks with state-of-the-art AI.
               </p>
             </div>
 
+            {/* Premium Social Icons */}
             <div className="flex items-center gap-3 justify-center lg:justify-start">
-              <SocialLink href="#" icon={<TwitterIcon size={20} />} label="Twitter" />
-              <SocialLink href="#" icon={<GithubIcon size={20} />} label="GitHub" />
-              <SocialLink href="#" icon={<DiscordIcon size={20} />} label="Discord" />
+              <SocialLink href="#" icon={<TwitterIcon size={18} />} label="Twitter" hoverStyles="hover:text-cyan-400 hover:border-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:bg-cyan-500/[0.02]" />
+              <SocialLink href="#" icon={<GithubIcon size={18} />} label="GitHub" hoverStyles="hover:text-white hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-white/[0.02]" />
+              <SocialLink href="#" icon={<DiscordIcon size={18} />} label="Discord" hoverStyles="hover:text-indigo-400 hover:border-indigo-500/30 hover:shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:bg-indigo-500/[0.02]" />
             </div>
           </div>
 
           {/* Links Grid */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 lg:pl-12 text-center lg:text-left">
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-12 lg:pl-12 text-center lg:text-left">
             {FOOTER_LINKS.map((section) => (
-              <div key={section.title} className="space-y-8 flex flex-col items-center lg:items-start">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-white/30">{section.title}</h3>
-                <ul className="space-y-5">
+              <div key={section.title} className="space-y-6 flex flex-col items-center lg:items-start">
+                <h3 className="text-[9.5px] font-black uppercase tracking-[0.4em] text-zinc-500/80">{section.title}</h3>
+                <ul className="space-y-4">
                   {section.links.map((link) => (
                     <li key={link.name} className="flex justify-center lg:justify-start">
                       <Link 
                         href={link.href}
-                        className="text-zinc-500 hover:text-white transition-all font-semibold text-sm flex items-center gap-2 group w-fit hover:translate-x-1"
+                        className="text-zinc-400 hover:text-white transition-all font-semibold text-xs flex items-center gap-2 group w-fit hover:translate-x-1"
                       >
-                        <span className="w-1.5 h-px bg-accent-purple/0 group-hover:bg-accent-purple/100 transition-all group-hover:w-3" />
+                        <span className="w-1.5 h-px bg-purple-500/0 group-hover:bg-purple-500/100 transition-all group-hover:w-3" />
                         {link.name}
-                        <ArrowUpRight size={12} className="opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all text-accent-purple" />
+                        <ArrowUpRight size={10} className="opacity-0 -translate-y-0.5 translate-x-0.5 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all text-purple-400" />
                       </Link>
                     </li>
                   ))}
@@ -205,66 +200,73 @@ export function Footer() {
           </div>
         </div>
 
-        {/* 4. Tech Status Bar (Bottom) */}
-        <div className="pt-12 border-t border-white/5">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-10 text-center lg:text-left">
+        {/* 4. Luxury Tech Status Bar (Bottom) */}
+        <div className="pt-10 border-t border-white/[0.04]">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 text-center lg:text-left">
+            
             {/* Copyright & Info */}
-            <div className="flex flex-col md:flex-row items-center gap-8 text-[11px] font-black uppercase tracking-[0.3em] text-zinc-600">
-              <span>© 2026 LUMORA PLATFORM</span>
-              <div className="hidden md:block w-px h-4 bg-white/5" />
-              <span className="text-zinc-500">Made for Creators Worldwide</span>
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-[9.5px] font-black uppercase tracking-[0.25em] text-zinc-600">
+              <span className="hover:text-zinc-400 transition-colors">© 2026 Raxstdioz LLC. All Rights Reserved.</span>
+              <div className="hidden md:block w-px h-3 bg-white/10" />
+              <span className="text-zinc-500/60 leading-none">Global • Fast • Reliable</span>
             </div>
 
-            {/* Live Stats Bar */}
-            <div className="flex flex-wrap justify-center items-center gap-6">
-                <StatusItem icon={<Globe size={14} />} label="Global Reach" value="24+ Countries" color="cyan" />
-                <StatusItem icon={<Activity size={14} />} label="Processing" value="Instant" color="purple" />
-                <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl glass-dark border border-emerald-500/20 bg-emerald-500/5">
-                    <div className="relative flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <div className="absolute w-2 h-2 rounded-full bg-emerald-500 animate-ping opacity-75" />
+            {/* Live Stats Indicators */}
+            <div className="flex flex-wrap justify-center items-center gap-4">
+                <StatusItem icon={<Globe size={13} />} label="Global Reach" value="24+ Countries" color="cyan" />
+                <StatusItem icon={<Activity size={13} />} label="Processing" value="Instant" color="purple" />
+                
+                {/* Glowing Pulse Status Badge */}
+                <div className="flex items-center gap-2.5 px-4.5 py-2 rounded-xl bg-emerald-500/[0.03] border border-emerald-500/15 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+                    <div className="relative flex items-center justify-center shrink-0">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <div className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-60" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500/80">Status: Perfect</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Online</span>
                 </div>
             </div>
+
           </div>
         </div>
+
       </div>
     </footer>
   );
 }
 
-function SocialLink({ icon, href, label }: { icon: React.ReactNode; href: string; label: string }) {
+function SocialLink({ icon, href, label, hoverStyles }: { icon: React.ReactNode; href: string; label: string; hoverStyles: string }) {
   return (
     <motion.a 
       href={href}
-      whileHover={{ y: -5, scale: 1.1 }}
+      whileHover={{ y: -4, scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="w-14 h-14 rounded-2xl glass-dark border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white hover:border-accent-purple/30 transition-all group relative"
+      className={cn(
+        "w-12 h-12 rounded-[14px] bg-zinc-950/40 backdrop-blur-2xl border border-white/[0.05] flex items-center justify-center text-zinc-500 hover:text-white transition-all duration-300 group relative shadow-md",
+        hoverStyles
+      )}
       title={label}
     >
-      <div className="absolute inset-0 bg-accent-purple/10 opacity-0 group-hover:opacity-100 rounded-2xl blur-lg transition-opacity" />
-      <div className="group-hover:text-accent-purple transition-colors relative z-10">
+      <div className="absolute inset-0 bg-purple-500/[0.04] opacity-0 group-hover:opacity-100 rounded-[14px] blur-sm transition-opacity pointer-events-none" />
+      <span className="relative z-10 transition-transform duration-300 group-hover:scale-105">
         {icon}
-      </div>
+      </span>
     </motion.a>
   );
 }
 
 function StatusItem({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: "cyan" | "purple" }) {
     return (
-        <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl glass-dark border border-white/5 group hover:border-white/10 transition-colors">
+        <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-zinc-950/40 border border-white/[0.04] group hover:border-white/[0.08] transition-colors shadow-sm">
             <div className={cn(
                 "text-zinc-500 transition-colors duration-300",
-                color === "cyan" ? "group-hover:text-accent-cyan" : "group-hover:text-accent-purple"
+                color === "cyan" ? "group-hover:text-cyan-400" : "group-hover:text-purple-400"
             )}>
                 {icon}
             </div>
-            <div className="flex flex-col leading-none">
-                <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">{label}</span>
-                <span className="text-[11px] font-black text-white tracking-tighter tabular-nums mt-1">{value}</span>
+            <div className="flex flex-col leading-none text-left">
+                <span className="text-[7.5px] font-bold uppercase tracking-wider text-zinc-600">{label}</span>
+                <span className="text-[10px] font-black text-white tracking-tighter tabular-nums mt-0.5">{value}</span>
             </div>
         </div>
     );
 }
-

@@ -25,6 +25,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { saveFileHistory } from "@/lib/history";
+import { useCredits } from "@/hooks/useCredits";
 
 type Mode = "bg-remove" | "object-erase";
 
@@ -33,6 +34,7 @@ interface HistoryState {
 }
 
 export function BackgroundRemover() {
+  const { isPro } = useCredits();
   const [mode, setMode] = useState<Mode>("bg-remove");
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -498,8 +500,14 @@ export function BackgroundRemover() {
                       <div className="absolute inset-0 rounded-full border-4 border-t-accent-purple animate-spin" />
                    </div>
                    <div className="space-y-2">
+                      {isPro && (
+                        <div className="mx-auto mb-4 w-fit px-4 py-2 rounded-full bg-amber-400/10 border border-amber-300/30 shadow-[0_0_24px_rgba(251,191,36,0.12)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
+                          <Zap size={13} className="fill-amber-200" />
+                          Priority Processing
+                        </div>
+                      )}
                       <h3 className="text-xl font-black text-white uppercase tracking-widest animate-pulse">
-                        {mode === "bg-remove" ? "Removing background..." : "Erasing object..."}
+                        {isPro ? "Processing with Priority..." : mode === "bg-remove" ? "Removing background..." : "Erasing object..."}
                       </h3>
                       <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
                         {mode === "bg-remove" ? "Generating high-quality cutout" : "Synthesizing realistic background"}

@@ -57,52 +57,8 @@ export async function POST(req: NextRequest) {
     
     const newExpiry = currentExpiry || (dbExpiry ? dbExpiry.toISOString() : null);
 
-    // 3. Sync to Supabase via Admin Client
-    const supabaseAdmin = createAdminClient();
-    
-    // Build a safe payload based on columns we know exist from usePro/useCredits hooks
-    const syncPayload: any = {
-      id: user.id,
-      email: user.email!,
-      name: dbUser.name,
-      plan: dbUser.plan,
-      daily_credits: dbUser.plan === 'pro' ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50,
-      ai_messages_today: 0,
-      // Use camelCase to match Prisma schema which likely created the Supabase table
-      subscriptionId: dbUser.subscriptionId,
-      subscriptionStatus: newStatus,
-      aiGenerationsLimit: dbUser.aiGenerationsLimit
-    };
-
-    const { error: supabaseError } = await supabaseAdmin
-      .from('User')
-      .upsert(syncPayload, { onConflict: 'id' });
-
-    if (supabaseError) {
-      console.error('Sync to Supabase failed (Initial):', supabaseError);
-      
-      // Fallback: If camelCase fails, try a minimal update with just the essentials
-      if (supabaseError.message.includes("column")) {
-          const minimalPayload = {
-              id: user.id,
-              email: user.email!,
-              plan: dbUser.plan,
-              daily_credits: dbUser.plan === 'pro' ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50
-          };
-          const { error: fallbackError } = await supabaseAdmin
-            .from('User')
-            .upsert(minimalPayload, { onConflict: 'id' });
-            
-          if (fallbackError) throw new Error(`Cloud sync failed: ${fallbackError.message}`);
-      } else {
-          throw new Error(`Cloud sync failed: ${supabaseError.message}`);
-      }
-    }
-
-    if (supabaseError) {
-      console.error('Sync to Supabase failed:', supabaseError);
-      throw new Error(`Cloud sync failed: ${supabaseError.message}`);
-    }
+    // No need to sync to Supabase via Admin Client because Prisma and Supabase point to the same database.
+    // The issue was caused by service_role lacking explicit grants to tables created by postgres role.
 
     return NextResponse.json({ 
       success: true, 

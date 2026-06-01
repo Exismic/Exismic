@@ -3,30 +3,24 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { 
-  Upload, 
   X, 
   Plus, 
   Download, 
   RefreshCw, 
   CheckCircle2, 
-  Image as ImageIcon,
   Layout,
   Grid,
   Columns,
   Settings2,
-  Palette,
   Sparkles,
   Loader2,
-  ChevronRight,
-  Trash2,
-  Move,
   Maximize2,
   RotateCw,
   Layers,
   Square,
   LayoutGrid
 } from "lucide-react";
-import { motion, AnimatePresence, Reorder, useMotionValue } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type CollageLayout = 'duo' | 'classic' | 'grid-4' | 'grid-9' | 'pinterest' | 'auto' | 'custom';
@@ -54,11 +48,30 @@ export function CollageMaker() {
   const [borderColor, setBorderColor] = useState('#ffffff');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [resultFormat, setResultFormat] = useState<"jpg" | "png">("jpg");
+  const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<CollageItem[]>([]);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    return () => {
+      itemsRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
+    };
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newItems = acceptedFiles.map((file, index) => ({
+    const imageFiles = acceptedFiles.filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      setError("Please upload image files only.");
+      return;
+    }
+
+    const newItems = imageFiles.map((file, index) => ({
       id: Math.random().toString(36).substr(2, 9),
       preview: URL.createObjectURL(file),
       x: 0,
@@ -73,6 +86,8 @@ export function CollageMaker() {
         const updated = [...prev, ...newItems].slice(0, 9);
         return applyLayoutPresets(updated, activeLayout);
     });
+    setResult(null);
+    setError(null);
   }, [items.length, activeLayout]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -85,7 +100,7 @@ export function CollageMaker() {
     const count = currentItems.length;
     if (count === 0) return [];
     
-    const updated = [...currentItems];
+    const updated = currentItems.map((item) => ({ ...item }));
 
     if (layout === 'duo' && count >= 2) {
       updated[0] = { ...updated[0], x: 0, y: 0, w: 50, h: 100 };
@@ -113,15 +128,15 @@ export function CollageMaker() {
           }
        });
     } else if (layout === 'pinterest') {
-       // Masonry simulation
-       const leftCol = [0, 2, 4];
-       const rightCol = [1, 3, 5];
+       const colHeights = [0, 0];
        updated.forEach((item, i) => {
-          const isLeft = leftCol.includes(i);
-          item.x = isLeft ? 0 : 50;
+          const col = colHeights[0] <= colHeights[1] ? 0 : 1;
+          const itemHeight = i % 3 === 0 ? 48 : 34;
+          item.x = col * 50;
+          item.y = Math.min(100 - itemHeight, colHeights[col]);
           item.w = 50;
-          item.h = i % 3 === 0 ? 60 : 40; // Variable height
-          item.y = (i < 2) ? 0 : (i < 4 ? 60 : 100); // Rough stack
+          item.h = itemHeight;
+          colHeights[col] += itemHeight;
        });
     } else if (layout === 'auto') {
       const cols = Math.ceil(Math.sqrt(count));
@@ -147,23 +162,42 @@ export function CollageMaker() {
   };
 
   const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    setItems(prev => {
+      const found = prev.find(item => item.id === id);
+      if (found) URL.revokeObjectURL(found.preview);
+      return prev.filter(item => item.id !== id);
+    });
+    setResult(null);
   };
 
   const updateItem = (id: string, updates: Partial<CollageItem>) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+    setItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const next = { ...item, ...updates };
+      next.w = Math.max(8, Math.min(100, next.w));
+      next.h = Math.max(8, Math.min(100, next.h));
+      next.x = Math.max(0, Math.min(100 - next.w, next.x));
+      next.y = Math.max(0, Math.min(100 - next.h, next.y));
+      return next;
+    }));
     setActiveLayout('custom'); // Any manual move makes it custom
+    setResult(null);
   };
 
   const generateCollage = async () => {
     if (items.length === 0) return;
     setIsGenerating(true);
+    setError(null);
     
     // Neural feel
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      setIsGenerating(false);
+      setError("Could not create export canvas.");
+      return;
+    }
 
     const getDimensions = () => {
         const base = 2000;
@@ -181,21 +215,30 @@ export function CollageMaker() {
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      setIsGenerating(false);
+      setError("Could not create export context.");
+      return;
+    }
 
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, width, height);
+    if (bgColor !== 'transparent') {
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      ctx.clearRect(0, 0, width, height);
+    }
 
-    for (const item of [...items].sort((a,b) => a.zIndex - b.zIndex)) {
-        await new Promise<void>((resolve) => {
+    try {
+      for (const item of [...items].sort((a,b) => a.zIndex - b.zIndex)) {
+        await new Promise<void>((resolve, reject) => {
             const img = new Image();
             img.onload = () => {
                 ctx.save();
                 
                 const drawX = (item.x / 100) * width + spacing;
                 const drawY = (item.y / 100) * height + spacing;
-                const drawW = (item.w / 100) * width - (spacing * 2);
-                const drawH = (item.h / 100) * height - (spacing * 2);
+                const drawW = Math.max(1, (item.w / 100) * width - (spacing * 2));
+                const drawH = Math.max(1, (item.h / 100) * height - (spacing * 2));
 
                 if (borderRadius > 0) {
                     const br = (borderRadius / 100) * Math.min(drawW, drawH);
@@ -246,12 +289,19 @@ export function CollageMaker() {
                 ctx.restore();
                 resolve();
             };
+            img.onerror = () => reject(new Error("Could not load one of the collage images."));
             img.src = item.preview;
         });
-    }
+      }
 
-    setResult(canvas.toDataURL('image/jpeg', 0.95));
-    setIsGenerating(false);
+      const exportFormat = bgColor === 'transparent' ? 'png' : 'jpg';
+      setResultFormat(exportFormat);
+      setResult(exportFormat === 'png' ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.95));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to generate collage.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -308,9 +358,9 @@ export function CollageMaker() {
                          <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{items.length}/9 ACTIVE</span>
                       </div>
                       <div className="grid grid-cols-5 gap-3">
-                         {items.map((item, i) => (
+                         {items.map((item) => (
                            <div key={item.id} className="relative group aspect-square">
-                              <img src={item.preview} className="w-full h-full object-cover rounded-xl border border-white/10" />
+                              <img src={item.preview} className="w-full h-full object-cover rounded-xl border border-white/10" alt="Collage item thumbnail" />
                               <button 
                                 onClick={() => removeItem(item.id)}
                                 className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
@@ -438,6 +488,11 @@ export function CollageMaker() {
                      {isGenerating ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
                      {isGenerating ? "Synthesizing Layers..." : "Generate Masterpiece"}
                    </button>
+                   {error && (
+                     <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-bold leading-relaxed">
+                       {error}
+                     </div>
+                   )}
                 </div>
              </motion.aside>
 
@@ -494,7 +549,7 @@ export function CollageMaker() {
                              border: borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : 'none'
                            }}
                          >
-                            <img src={item.preview} className="w-full h-full object-cover select-none pointer-events-none" />
+                            <img src={item.preview} className="w-full h-full object-cover select-none pointer-events-none" alt="Collage layer" />
                             
                             {/* Resize Handles */}
                             <div className="absolute inset-0 bg-accent-purple/20 opacity-0 group-hover/item:opacity-100 transition-opacity border-2 border-accent-purple pointer-events-none" />
@@ -580,7 +635,7 @@ export function CollageMaker() {
                               </button>
                            </div>
                             <div className="relative rounded-[3rem] overflow-hidden border-2 border-white/10 shadow-4xl group bg-zinc-950 flex items-center justify-center">
-                               <img src={result} className="max-w-full max-h-[70vh] object-contain" />
+                               <img src={result} className="max-w-full max-h-[70vh] object-contain" alt="Generated collage result" />
                                <div className="absolute top-6 left-6 px-4 py-2 rounded-full bg-emerald-500/80 backdrop-blur-md border border-emerald-400/20 text-xs font-black uppercase tracking-widest text-white flex items-center gap-2">
                                   <CheckCircle2 size={16} /> 
                                   {collageRatio === '1:1' ? '2000x2000' : 
@@ -593,15 +648,17 @@ export function CollageMaker() {
                            <div className="flex flex-col md:flex-row gap-4">
                               <a 
                                 href={result}
-                                download={`toolverse-collage-${Date.now()}.jpg`}
+                                download={`toolverse-collage-${Date.now()}.${resultFormat}`}
                                 className="flex-[2] py-8 rounded-3xl bg-emerald-500 text-white font-black text-lg uppercase tracking-widest shadow-4xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
                               >
-                                <Download size={28} /> Export as High-Res JPEG
+                                <Download size={28} /> Export as High-Res {resultFormat.toUpperCase()}
                               </a>
                               <button 
                                 onClick={() => {
+                                  items.forEach((item) => URL.revokeObjectURL(item.preview));
                                   setItems([]);
                                   setResult(null);
+                                  setError(null);
                                 }}
                                 className="flex-1 py-8 rounded-3xl glass-dark border border-white/10 text-zinc-400 font-black text-lg uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-4"
                               >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { 
   Upload, 
   Download, 
@@ -11,12 +11,6 @@ import {
   Zap,
   Check,
   Loader2,
-  FileImage,
-  Layers,
-  FileDigit,
-  X,
-  FileQuestion,
-  ChevronDown,
   ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,21 +27,40 @@ interface ConvFile {
   progress: number;
   resultUrl?: string;
   resultFormat?: string;
+  error?: string;
   status: "idle" | "processing" | "done" | "error";
 }
 
-const FORMATS = ["JPG", "PNG", "WEBP", "GIF", "BMP"];
+type TargetFormat = "JPG" | "PNG" | "WEBP" | "GIF";
+
+const FORMATS: TargetFormat[] = ["JPG", "PNG", "WEBP", "GIF"];
 
 export function ImageFormatConverter() {
   const [files, setFiles] = useState<ConvFile[]>([]);
-  const [targetFormat, setTargetFormat] = useState("WEBP");
+  const [targetFormat, setTargetFormat] = useState<TargetFormat>("WEBP");
   const [quality, setQuality] = useState(90);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  useEffect(() => {
+    setFiles(prev => prev.map(file => {
+      if (file.status === "idle" || file.status === "processing") return file;
+      return {
+        ...file,
+        compressedSize: undefined,
+        progress: 0,
+        resultUrl: undefined,
+        resultFormat: undefined,
+        error: undefined,
+        status: "idle",
+      };
+    }));
+  }, [targetFormat, quality]);
 
   const handleUpload = (newFiles: FileList | null) => {
     if (!newFiles) return;
 
-    const newEntries: ConvFile[] = Array.from(newFiles).map(file => ({
+    const imageFiles = Array.from(newFiles).filter(file => file.type.startsWith("image/"));
+    const newEntries: ConvFile[] = imageFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       file,
       preview: URL.createObjectURL(file),
@@ -57,7 +70,9 @@ export function ImageFormatConverter() {
       status: "idle"
     }));
 
-    setFiles(prev => [...prev, ...newEntries]);
+    if (newEntries.length > 0) {
+      setFiles(prev => [...prev, ...newEntries]);
+    }
   };
 
   const removeFile = (id: string) => {
@@ -70,7 +85,7 @@ export function ImageFormatConverter() {
   };
 
   const convertFile = async (item: ConvFile) => {
-    setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "processing", progress: 20 } : f));
+    setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "processing", progress: 20, error: undefined } : f));
     
     try {
       const formData = new FormData();
@@ -92,20 +107,22 @@ export function ImageFormatConverter() {
           progress: 100, 
           resultUrl: data.result,
           compressedSize: data.size,
-          resultFormat: targetFormat
+          resultFormat: data.format?.toUpperCase() || targetFormat,
+          error: undefined,
         } : f));
       } else {
         throw new Error(data.error || "Conversion failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
        console.error("Conversion failed:", error);
-       setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "error" } : f));
+       const message = error instanceof Error ? error.message : "Conversion failed";
+       setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "error", progress: 0, error: message } : f));
     }
   };
 
   const convertAll = async () => {
     setIsBulkProcessing(true);
-    const idleFiles = files.filter(f => f.status === "idle");
+    const idleFiles = files.filter(f => f.status === "idle" || f.status === "error");
     for (const file of idleFiles) {
       await convertFile(file);
     }
@@ -119,7 +136,7 @@ export function ImageFormatConverter() {
     for (const f of readyFiles) {
       const response = await fetch(f.resultUrl!);
       const blob = await response.blob();
-      zip.file(`converted_${f.file.name.split('.')[0]}.${targetFormat.toLowerCase()}`, blob);
+      zip.file(`converted_${f.file.name.split('.')[0]}.${(f.resultFormat || targetFormat).toLowerCase()}`, blob);
     }
 
     const content = await zip.generateAsync({ type: "blob" });
@@ -263,12 +280,17 @@ export function ImageFormatConverter() {
                                   )}
                                </div>
 
-                               {item.status === "processing" && (
+                          {item.status === "processing" && (
                                  <div className="w-full h-1.5 bg-white/5 rounded-full mt-5 overflow-hidden">
                                     <motion.div 
                                       className="h-full bg-accent-purple" 
                                       initial={{ width: 0 }} animate={{ width: `${item.progress}%` }} 
                                     />
+                                 </div>
+                               )}
+                               {item.status === "error" && (
+                                 <div className="mt-4 rounded-2xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-[10px] font-bold text-red-300 leading-relaxed">
+                                   {item.error || "Conversion failed"}
                                  </div>
                                )}
                             </div>
@@ -278,7 +300,7 @@ export function ImageFormatConverter() {
                                  <button onClick={() => {
                                    const a = document.createElement("a");
                                    a.href = item.resultUrl!;
-                                   a.download = `converted_${item.file.name.split('.')[0]}.${targetFormat.toLowerCase()}`;
+                                   a.download = `converted_${item.file.name.split('.')[0]}.${(item.resultFormat || targetFormat).toLowerCase()}`;
                                    a.click();
                                  }} className="p-4 rounded-2xl bg-white text-black hover:bg-zinc-200 transition-all shadow-xl">
                                     <Download size={18} />

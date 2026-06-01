@@ -26,50 +26,79 @@ import { ManageSubscriptionModal } from '@/components/tool/ManageSubscriptionMod
 import { PaymentSuccessModal } from '@/components/modals/PaymentSuccessModal';
 import { PaymentFailureModal } from '@/components/modals/PaymentFailureModal';
 import { PRICING_CONFIG, getIsIndia } from '@/config/pricing';
-import { ProComingSoon } from '@/components/pro/ProComingSoon';
 
 const PRO_FEATURES = [
-  { 
-    title: "Unlimited Generations & Messages", 
-    desc: "Experience total creative freedom with zero limits on AI generations and message volume.", 
-    icon: Infinity, 
-    color: "text-purple-400",
-    glow: "rgba(168, 85, 247, 0.12)"
-  },
   { 
     title: `${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS} Daily Credits + Permanent Credits`, 
     desc: "A massive daily allowance plus a vault for non-expiring credits that stay with you.", 
     icon: Zap, 
     color: "text-cyan-400",
-    glow: "rgba(34, 211, 238, 0.12)"
+    glow: "rgba(34, 211, 238, 0.12)",
+    colSpan: false
   },
   { 
-    title: "Priority 20x Faster Processing", 
+    title: "Unlimited AI Generations & Messages", 
+    desc: "Experience total creative freedom with zero limits on AI generations and message volume.", 
+    icon: Infinity, 
+    color: "text-purple-400",
+    glow: "rgba(168, 85, 247, 0.12)",
+    colSpan: false
+  },
+  { 
+    title: "Priority Processing (20x faster)", 
     desc: "Skip the queue entirely. Your tasks are handled by our most powerful dedicated neural nodes.", 
     icon: Cpu, 
     color: "text-indigo-400",
-    glow: "rgba(99, 102, 241, 0.12)"
+    glow: "rgba(99, 102, 241, 0.12)",
+    colSpan: false
   },
   { 
-    title: "4K Exports with No Watermarks", 
+    title: "4K Exports + No Watermarks", 
     desc: "Download your creations in stunning ultra-high resolution, perfectly clean for any use.", 
     icon: Sparkles, 
     color: "text-blue-400",
-    glow: "rgba(59, 130, 246, 0.12)"
+    glow: "rgba(59, 130, 246, 0.12)",
+    colSpan: false
   },
   { 
-    title: "Commercial Rights", 
+    title: "Commercial Usage Rights", 
     desc: "Full legal ownership of everything you create. Perfect for professional and agency work.", 
     icon: ShieldCheck, 
     color: "text-emerald-400",
-    glow: "rgba(16, 185, 129, 0.12)"
+    glow: "rgba(16, 185, 129, 0.12)",
+    colSpan: false
   },
   { 
-    title: "Early Access + VIP Support", 
-    desc: "Test new models before anyone else and enjoy 24/7 priority assistance from our team.", 
+    title: "Early Access to New Tools", 
+    desc: "Test new AI models, features, and generators before anyone else on the platform.", 
+    icon: Star, 
+    color: "text-amber-400",
+    glow: "rgba(251, 191, 36, 0.12)",
+    colSpan: false
+  },
+  {
+    title: "Custom Avatar Frames & Animated Name Styles",
+    desc: "Unlock premium profile identity effects that stay visible across your Lumora account.",
+    icon: Crown,
+    color: "text-fuchsia-400",
+    glow: "rgba(217, 70, 239, 0.12)",
+    colSpan: false
+  },
+  {
+    title: "Exclusive Profile Themes",
+    desc: "Personalize Lumora with private Pro themes, refined accents, and premium interface glow.",
+    icon: Shield,
+    color: "text-violet-400",
+    glow: "rgba(139, 92, 246, 0.12)",
+    colSpan: false
+  },
+  { 
+    title: "VIP Support", 
+    desc: "Get 24/7 priority assistance from our core team for any technical or account needs.", 
     icon: Headset, 
     color: "text-rose-400",
-    glow: "rgba(244, 63, 94, 0.12)"
+    glow: "rgba(244, 63, 94, 0.12)",
+    colSpan: true
   }
 ];
 
@@ -135,6 +164,9 @@ export function ProClient() {
           
           const result = await verifyRes.json();
           if (result.success) {
+            if (typeof window !== 'undefined' && (user?.email || authUser?.email)) {
+              localStorage.removeItem(`cancelled_${user?.email || authUser?.email}`);
+            }
             // Force an immediate refresh of the Pro status in the UI
             await refresh();
             setShowSuccess(true);
@@ -202,10 +234,6 @@ export function ProClient() {
     );
   }
 
-  if (!isPro && !PRICING_CONFIG.PRO_PLAN.IS_PRO_LIVE) {
-    return <ProComingSoon />;
-  }
-
   return (
     <div className="min-h-screen bg-[#020202] text-zinc-100 selection:bg-purple-500/30 overflow-x-hidden font-sans">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
@@ -216,9 +244,9 @@ export function ProClient() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] mix-blend-overlay" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-24 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24 relative z-10">
         
-        <div className="flex flex-col items-center mb-24">
+        <div className="flex flex-col items-center mb-14 md:mb-24">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -240,13 +268,13 @@ export function ProClient() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="mt-4 text-zinc-500 text-sm md:text-base font-medium"
+            className="mt-4 text-center text-zinc-500 text-sm md:text-base font-medium"
           >
             Elevate your creative workflow with elite-grade AI tools.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-20 items-start">
           <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
             {PRO_FEATURES.map((feature, i) => (
               <motion.div
@@ -254,7 +282,7 @@ export function ProClient() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="group relative p-6 rounded-3xl bg-white/[0.01] border border-white/[0.04] backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.02] hover:border-white/[0.08]"
+                className={cn("group relative p-6 rounded-3xl bg-white/[0.01] border border-white/[0.04] backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.02] hover:border-white/[0.08]", feature.colSpan && "md:col-span-2")}
               >
                 <div 
                   className="absolute inset-0 blur-[40px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
@@ -277,7 +305,7 @@ export function ProClient() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
-              className="relative p-10 md:p-12 rounded-[2.5rem] bg-[#050505] border border-white/[0.06] shadow-2xl overflow-hidden"
+              className="relative p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] bg-[#050505] border border-white/[0.06] shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full -mr-16 -mt-16" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/5 blur-[60px] rounded-full -ml-16 -mb-16" />
@@ -294,8 +322,8 @@ export function ProClient() {
                 </div>
 
                 <div className="mb-10">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-6xl font-black tracking-tighter text-white">{currencySymbol}{priceDisplay}</span>
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="text-5xl sm:text-6xl font-black tracking-tighter text-white">{currencySymbol}{priceDisplay}</span>
                     <span className="text-zinc-500 font-bold text-sm tracking-wide">/ month</span>
                   </div>
                   {isIndia && (
@@ -312,14 +340,21 @@ export function ProClient() {
 
                 <div className="space-y-4">
                   {isPro ? (
-                    <button onClick={() => setIsModalOpen(true)} className="w-full py-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] transition-all flex items-center justify-center gap-3 group">
-                       <span className="text-xs font-bold uppercase tracking-[0.2em] text-white">Manage Membership</span>
-                       <RefreshCcw size={16} className="text-purple-400 group-hover:rotate-180 transition-transform duration-700" />
-                    </button>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center gap-2 py-2">
+                        <CheckCircle2 size={20} className="text-emerald-400" />
+                        <span className="text-sm font-black uppercase tracking-widest text-emerald-400">You're Pro</span>
+                      </div>
+                      <button onClick={() => setIsModalOpen(true)} className="w-full py-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] transition-all flex items-center justify-center gap-3 group">
+                         <span className="text-xs font-bold uppercase tracking-[0.2em] text-white">Manage Subscription</span>
+                         <RefreshCcw size={16} className="text-purple-400 group-hover:rotate-180 transition-transform duration-700" />
+                      </button>
+                    </div>
                   ) : (
                     <div className="space-y-6">
-                      <button onClick={handleUpgrade} disabled={loading} className="w-full py-5 rounded-2xl relative overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] group shadow-[0_20px_40px_-10px_rgba(124,58,237,0.2)]">
+                      <button onClick={handleUpgrade} disabled={loading} className="w-full py-5 rounded-2xl relative overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] group shadow-[0_20px_40px_-10px_rgba(124,58,237,0.4)]">
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500" />
+                        <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] group-hover:left-[200%] transition-all duration-1000 ease-out" />
                         <div className="relative flex items-center justify-center gap-2">
                           {loading ? <Loader2 size={20} className="animate-spin text-white" /> : <span className="text-xs font-black uppercase tracking-[0.2em] text-white">UPGRADE TO PRO →</span>}
                         </div>
@@ -350,9 +385,9 @@ export function ProClient() {
                   )}
 
                   <div className="pt-6 space-y-4 border-t border-white/[0.04]">
-                     <TrustItem icon={<Lock size={12} className="text-zinc-500" />} text="Secure SSL Checkout" />
-                     <TrustItem icon={<RefreshCcw size={12} className="text-zinc-500" />} text="Cancel anytime" />
-                     <TrustItem icon={<Shield size={12} className="text-zinc-500" />} text="Happiness Guarantee" />
+                     <TrustItem icon={<Lock size={12} className="text-zinc-500" />} text="Secure Checkout" />
+                     <TrustItem icon={<RefreshCcw size={12} className="text-zinc-500" />} text="Cancel Anytime" />
+                     <TrustItem icon={<Shield size={12} className="text-zinc-500" />} text="30-Day Guarantee" />
                   </div>
                 </div>
               </div>

@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   ArrowLeft,
   Lock,
-  Loader2
+  Loader2,
+  Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
@@ -87,6 +88,20 @@ export default function ProBenefitsPage() {
       icon: Star, 
       color: "text-pink-400",
       bg: "bg-pink-400/10"
+    },
+    {
+      title: "Custom Avatar Frames & Animated Name Styles",
+      desc: "Make your identity feel elite with premium frames and profile-wide animated name styles.",
+      icon: Crown,
+      color: "text-fuchsia-400",
+      bg: "bg-fuchsia-400/10"
+    },
+    {
+      title: "Exclusive Profile Themes",
+      desc: "Own the look of Lumora with private Pro themes, accents, and polished interface glows.",
+      icon: Sparkles,
+      color: "text-violet-400",
+      bg: "bg-violet-400/10"
     }
   ];
 
@@ -99,12 +114,12 @@ export default function ProBenefitsPage() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02]" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pt-32 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 md:pt-32 relative z-10">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row items-center justify-between gap-8 mb-20"
+          className="flex flex-col md:flex-row items-center justify-between gap-8 mb-14 md:mb-20"
         >
           <div className="space-y-4 text-center md:text-left">
             <Link href="/" className="inline-flex items-center gap-3 text-zinc-500 hover:text-white transition-all mb-4 group">
@@ -127,7 +142,7 @@ export default function ProBenefitsPage() {
             </div>
           </div>
 
-          <div className="px-8 py-4 rounded-3xl glass-dark border border-white/5 flex items-center gap-6">
+          <div className="w-full sm:w-auto px-5 sm:px-8 py-4 rounded-3xl glass-dark border border-white/5 flex items-center justify-between sm:justify-start gap-6">
              <div className="text-right">
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Plan Status</p>
                 <p className="text-sm font-black italic uppercase text-white">Elite Member</p>
@@ -140,7 +155,7 @@ export default function ProBenefitsPage() {
         </motion.div>
 
         {/* Benefits Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 lg:gap-10 mb-20 md:mb-32">
            {benefits.map((benefit, i) => (
              <motion.div 
                key={i}
@@ -148,7 +163,7 @@ export default function ProBenefitsPage() {
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true }}
                transition={{ delay: i * 0.1 }}
-               className="group relative p-10 rounded-[3.5rem] bg-zinc-950/40 border border-white/5 hover:border-white/20 transition-all duration-700 overflow-hidden"
+               className="group relative p-6 sm:p-8 lg:p-10 rounded-[2rem] md:rounded-[3.5rem] bg-zinc-950/40 border border-white/5 hover:border-white/20 transition-all duration-700 overflow-hidden"
              >
                 {/* 🌈 Dynamic Background Glow */}
                 <div className={cn(
@@ -169,12 +184,12 @@ export default function ProBenefitsPage() {
                 <div className="space-y-10 relative z-10">
                    <div className="flex items-center justify-between">
                       <div className={cn(
-                        "w-20 h-20 rounded-3xl flex items-center justify-center shrink-0 transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 shadow-2xl",
+                        "w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center shrink-0 transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 shadow-2xl",
                         benefit.bg, 
                         benefit.color,
                         "border border-white/5 group-hover:border-white/20"
                       )}>
-                         <benefit.icon size={36} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+                         <benefit.icon size={30} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
                       </div>
                       
                       <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
@@ -208,7 +223,7 @@ export default function ProBenefitsPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="relative p-12 md:p-20 rounded-[4rem] bg-linear-to-br from-zinc-900 to-black border border-white/5 overflow-hidden text-center space-y-10"
+          className="relative p-6 sm:p-10 md:p-20 rounded-[2rem] md:rounded-[4rem] bg-linear-to-br from-zinc-900 to-black border border-white/5 overflow-hidden text-center space-y-8 md:space-y-10"
         >
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.1)_0%,transparent_70%)]" />
            <div className="relative z-10 space-y-6">

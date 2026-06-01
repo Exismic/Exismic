@@ -14,6 +14,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { ManageSubscriptionModal } from "../tool/ManageSubscriptionModal";
 import { CreditModal } from "../ui/CreditModal";
 import { Zap } from "lucide-react";
+import { UserProfile } from "../ui/UserProfile";
 import { VerifiedTick } from "../ui/VerifiedTick";
 
 export function UserMenu() {
@@ -27,6 +28,32 @@ export function UserMenu() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const router = useRouter();
+  const [localFrameId, setLocalFrameId] = useState<string | null>(null);
+  const [localGradientId, setLocalGradientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const frame = session?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
+    const gradient = session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
+    setLocalFrameId(frame);
+    setLocalGradientId(gradient);
+  }, [session, dbUser]);
+
+  useEffect(() => {
+    const handleFrameUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setLocalFrameId(customEvent.detail);
+    };
+    const handleGradientUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setLocalGradientId(customEvent.detail);
+    };
+    window.addEventListener('avatar-frame-updated', handleFrameUpdate);
+    window.addEventListener('name-gradient-updated', handleGradientUpdate);
+    return () => {
+      window.removeEventListener('avatar-frame-updated', handleFrameUpdate);
+      window.removeEventListener('name-gradient-updated', handleGradientUpdate);
+    };
+  }, []);
 
   const isLoading = isProLoading || isCreditsLoading;
 
@@ -100,6 +127,8 @@ export function UserMenu() {
   const user = session.user;
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Explorer";
   const avatarUrl = user?.user_metadata?.avatar_url;
+  const frameId = localFrameId;
+  const gradientId = localGradientId;
   
   const usageCount = dbUser?.aiGenerationsUsed ?? 0;
   const totalLimit = dbUser?.aiGenerationsLimit ?? 50;
@@ -148,164 +177,116 @@ export function UserMenu() {
           <div className="h-8 w-px bg-white/10 mx-1" />
 
           {/* 2. USER & PRO SECTION */}
-          <div className="flex items-center gap-4 pr-1 pl-3">
-            <div className="hidden md:flex items-center gap-3">
-              <div suppressHydrationWarning className={cn(
-                "text-sm font-black tracking-tighter transition-colors",
-                isPro ? "text-white" : "text-zinc-400 group-hover:text-white"
-              )}>
-                {isPro ? (
-                  <GradientText className="text-sm font-black tracking-tighter">{fullName.split(' ')[0]}</GradientText>
-                ) : (
-                  fullName.split(' ')[0]
-                )}
-              </div>
-              
-              {isPro && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-purple/10 border border-accent-purple/30 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
-                   <Crown size={10} className="text-accent-purple fill-accent-purple/50" />
-                   <span className="text-[9px] font-black tracking-[0.1em] text-accent-purple uppercase">PRO</span>
-                </div>
-              )}
-            </div>
-
-            <div className="relative p-0.5">
-              <div className={cn(
-                "w-10 h-10 rounded-full overflow-hidden border-2 transition-all duration-500 z-10 relative",
-                isPro ? "border-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.4)]" : "border-white/10"
-              )}>
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-linear-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
-                    <span className="text-xs font-black text-white">{fullName[0].toUpperCase()}</span>
-                  </div>
-                )}
-              </div>
-              {isPro && (
-                 <div className="absolute -inset-1 bg-accent-purple/30 rounded-full blur-lg animate-pulse" />
-              )}
-            </div>
-          </div>
+          <UserProfile 
+            fullName={fullName} 
+            isPro={isPro} 
+            avatarUrl={avatarUrl} 
+            frameId={frameId}
+            gradientId={gradientId}
+            variant="menu-trigger" 
+          />
         </button>
 
         <AnimatePresence>
           {isOpen && (
             <motion.div 
-              initial={{ opacity: 0, y: 10, scale: 0.98, filter: "blur(10px)" }}
+              initial={{ opacity: 0, y: 15, scale: 0.96, filter: "blur(12px)" }}
               animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: 10, scale: 0.98, filter: "blur(10px)" }}
-              className="absolute right-0 mt-4 w-[320px] bg-zinc-950/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_40px_80px_rgba(0,0,0,0.8)] z-50 overflow-hidden"
+              exit={{ opacity: 0, y: 15, scale: 0.96, filter: "blur(12px)" }}
+              transition={{ type: "spring", stiffness: 380, damping: 26 }}
+              className="absolute right-0 mt-4 w-[340px] bg-zinc-950/85 backdrop-blur-3xl border border-white/[0.08] rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.05)] z-50 overflow-hidden"
             >
-              <div suppressHydrationWarning className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-accent-purple/15 blur-[60px] rounded-full -z-10" />
-
-              {/* Profile Header */}
-              <div className="p-8 pb-6 text-center space-y-4">
-                 <div className="relative inline-block">
-                    <div className={cn(
-                      "absolute -inset-1.5 bg-linear-to-tr from-accent-purple to-accent-blue rounded-full blur-lg opacity-30 transition-opacity duration-1000",
-                      isPro ? "opacity-40 animate-pulse" : "opacity-0"
-                    )} />
-                    <div className={cn(
-                      "relative w-24 h-24 rounded-full border-2 p-1 bg-zinc-950 shadow-2xl transition-all duration-500",
-                      isPro ? "border-accent-purple" : "border-white/10"
-                    )}>
-                      <div className="w-full h-full rounded-full overflow-hidden">
-                         {avatarUrl ? (
-                           <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-                         ) : (
-                           <div className="w-full h-full bg-linear-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
-                             <span className="text-3xl font-black text-white">{fullName[0].toUpperCase()}</span>
-                           </div>
-                         )}
-                      </div>
-                      <VerifiedTick className="absolute -bottom-1 -right-1 z-20" size="md" />
-                    </div>
-                 </div>
-                 
-                 <div className="space-y-0.5">
-                    <h3 suppressHydrationWarning className="text-xl font-black text-white tracking-tighter italic uppercase">
-                      {isPro ? <GradientText className="text-xl font-black">{fullName}</GradientText> : fullName}
-                    </h3>
-                    <p className="text-[10px] font-bold text-zinc-500 tracking-tight uppercase opacity-60">{user?.email}</p>
-                 </div>
-
-                 {isPro && (
-                   <div className="pt-2">
-                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-purple/10 border border-accent-purple/20">
-                        <Sparkles size={10} className="text-accent-purple" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-accent-purple">Elite Pro Plan</span>
-                     </div>
-                   </div>
-                 )}
+              {/* Animated Cinematic Background Glow Orbs */}
+              <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                <div className="absolute -top-[30%] -left-[30%] w-[160%] h-[160%] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06)_0%,transparent_60%)] animate-pulse duration-[8000ms]" />
+                <div className="absolute top-[20%] right-[-40%] w-[100%] h-[100%] bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.05)_0%,transparent_60%)] animate-pulse duration-[6000ms]" />
               </div>
 
+              {/* Profile Header */}
+              <UserProfile 
+                fullName={fullName} 
+                email={user?.email} 
+                avatarUrl={avatarUrl} 
+                isPro={isPro} 
+                frameId={frameId}
+                gradientId={gradientId}
+                variant="menu-header" 
+              />
+
               {/* Stats Block */}
-              <div className="px-6 py-6 border-t border-white/5 bg-white/[0.01] space-y-5">
+              <div className="px-6 py-6 border-t border-white/[0.05] bg-white/[0.01] space-y-5 relative z-10">
                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                       <Zap size={14} className="text-accent-purple" />
-                       <span className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400">Credits Available</span>
+                    <div className="flex items-center gap-2.5">
+                       <div className="w-6 h-6 rounded-lg bg-accent-purple/10 flex items-center justify-center border border-accent-purple/20">
+                          <Zap size={11} className="text-accent-purple animate-pulse" />
+                       </div>
+                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">Credits Available</span>
                     </div>
-                    <span className="text-[13px] font-black text-white italic tracking-tight">{credits.toLocaleString()}</span>
+                    <span className="text-xs font-black text-white italic tracking-tight bg-zinc-900 border border-white/5 px-2.5 py-1 rounded-md shadow-inner">{credits.toLocaleString()}</span>
                  </div>
 
                  <div className="space-y-3">
                     <div className="flex justify-between items-end">
-                       <div className="flex items-center gap-2">
-                          <RefreshCw size={12} className="text-zinc-600" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400">Generations</span>
+                       <div className="flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center border border-white/5">
+                             <RefreshCw size={11} className="text-zinc-500" />
+                          </div>
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">AI Generations</span>
                        </div>
-                       <div className="text-[11px] font-black text-white">
+                       <div className="text-[10px] font-bold text-white">
                          {usageCount}
                          <span className="text-zinc-600 font-bold ml-1">/ {totalLimit}</span>
                        </div>
                     </div>
-                    <div className="h-1.5 w-full bg-white/[0.03] rounded-full overflow-hidden relative border border-white/5">
+                    <div className="h-2 w-full bg-zinc-900/50 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">
                        <motion.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${progressPercent}%` }}
-                          className="h-full rounded-full bg-linear-to-r from-accent-purple to-accent-blue"
+                          className="h-full rounded-full bg-gradient-to-r from-accent-purple via-pink-500 to-accent-cyan shadow-[0_0_12px_rgba(168,85,247,0.3)]"
                        />
                     </div>
                  </div>
               </div>
 
               {/* Menu Actions */}
-              <div className="p-3 space-y-1 bg-zinc-950/40">
+              <div className="p-3 space-y-1.5 bg-[#050508]/40 border-t border-white/[0.05] relative z-10">
                  <button 
                     onClick={() => {
                       setIsOpen(false);
                       if (isPro) setIsManageModalOpen(true);
                       else router.push('/pro');
                     }}
-                    className="w-full group flex items-center gap-3.5 px-5 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all"
+                    className="w-full group flex items-center gap-3.5 px-5 py-4 text-[9.5px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent hover:border-white/[0.04] rounded-[1.25rem] transition-all duration-300 relative overflow-hidden"
                  >
-                    <CreditCard size={16} className="text-zinc-600 group-hover:text-accent-purple transition-colors" />
+                    <div className="absolute left-0 w-[3px] h-4 rounded-r-full bg-accent-purple opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
+                    <CreditCard size={15} className="text-zinc-500 group-hover:text-accent-purple group-hover:scale-110 transition-all duration-300" />
                     {isPro ? "Manage Subscription" : "Upgrade to Pro"}
-                    <ChevronRight size={14} className="ml-auto opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
+                    <ChevronRight size={12} className="ml-auto opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-zinc-400" />
                  </button>
                  
                  <Link 
                     href="/account/settings"
                     onClick={() => setIsOpen(false)}
-                    className="w-full group flex items-center gap-3.5 px-5 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all"
+                    className="w-full group flex items-center gap-3.5 px-5 py-4 text-[9.5px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent hover:border-white/[0.04] rounded-[1.25rem] transition-all duration-300 relative overflow-hidden"
                  >
-                    <Settings size={16} className="text-zinc-600 group-hover:text-accent-blue transition-colors" />
+                    <div className="absolute left-0 w-[3px] h-4 rounded-r-full bg-accent-cyan opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
+                    <Settings size={15} className="text-zinc-500 group-hover:text-accent-cyan group-hover:rotate-45 transition-all duration-500" />
                     Settings & Security
+                    <ChevronRight size={12} className="ml-auto opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-zinc-400" />
                  </Link>
 
-                 <div className="h-px bg-white/5 my-2 mx-4" />
+                 <div className="h-px bg-white/[0.04] my-2 mx-4" />
 
                  <button 
                    onClick={async () => {
                       await supabase.auth.signOut();
                       window.location.href = "/";
                    }}
-                   className="w-full flex items-center gap-3.5 px-5 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
+                   className="w-full group flex items-center gap-3.5 px-5 py-4 text-[9.5px] font-black uppercase tracking-[0.2em] text-red-500/60 hover:text-red-400 hover:bg-red-500/5 border border-transparent hover:border-red-500/10 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden"
                  >
-                   <LogOut size={16} />
-                   Sign Out
+                    <div className="absolute left-0 w-[3px] h-4 rounded-r-full bg-red-500 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
+                    <LogOut size={15} className="text-red-500/40 group-hover:text-red-500 group-hover:translate-x-0.5 transition-all duration-300" />
+                    Sign Out
                  </button>
               </div>
             </motion.div>

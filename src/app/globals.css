@@ -66,6 +66,9 @@
   --animate-pro-gradient: pro-gradient 3s linear infinite;
   --animate-scanline: scanline 8s linear infinite;
   --animate-gradient-x: gradient-x 3s ease infinite;
+
+  --font-sans: var(--font-inter), sans-serif;
+  --font-outfit: var(--font-outfit), sans-serif;
 }
 
 :root {
@@ -91,11 +94,28 @@
 @layer base {
   * {
     border-color: var(--border);
+    box-sizing: border-box;
+  }
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
   }
   body {
     background-color: var(--background);
     color: var(--foreground);
     @apply antialiased;
+  }
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+  input,
+  textarea,
+  select {
+    min-width: 0;
   }
 }
 
@@ -293,4 +313,382 @@
   }
 }
 
+/* --- Immersive AI Chat Overrides --- */
+html.ai-chat-active,
+html.code-studio-active {
+  overflow: hidden !important;
+}
 
+html.ai-chat-active body,
+html.code-studio-active body {
+  overflow: hidden !important;
+}
+
+html.ai-chat-active aside:not(.chat-tool-sidebar),
+html.ai-chat-active .global-sidebar,
+html.ai-chat-active [class*="Sidebar_"],
+html.code-studio-active aside:not(.chat-tool-sidebar),
+html.code-studio-active .global-sidebar,
+html.code-studio-active [class*="Sidebar_"] {
+  display: none !important;
+}
+
+html.ai-chat-active main,
+html.code-studio-active main {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  max-width: 100vw !important;
+  width: 100vw !important;
+  flex: 1 1 100% !important;
+}
+
+html.ai-chat-active main > nav,
+html.ai-chat-active [class*="Navbar_"],
+html.ai-chat-active main > header,
+html.ai-chat-active header,
+html.code-studio-active main > nav,
+html.code-studio-active [class*="Navbar_"],
+html.code-studio-active main > header,
+html.code-studio-active header {
+  display: none !important;
+}
+
+html.ai-chat-active footer,
+html.ai-chat-active [class*="Footer_"],
+html.code-studio-active footer,
+html.code-studio-active [class*="Footer_"] {
+  display: none !important;
+}
+
+/* Custom Scrollbar Styles for Immersive Chat */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile responsiveness safety net.
+   Keeps desktop utilities intact while taming oversized premium layouts on phones. */
+@media (max-width: 640px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden !important;
+  }
+
+  main,
+  section,
+  article,
+  aside,
+  nav,
+  header,
+  footer,
+  div {
+    min-width: 0;
+  }
+
+  [class*="w-screen"] {
+    width: 100% !important;
+  }
+
+  [class*="max-w-7xl"],
+  [class*="max-w-6xl"],
+  [class*="max-w-5xl"],
+  [class*="max-w-4xl"] {
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  [class*="p-24"],
+  [class*="p-20"],
+  [class*="p-16"],
+  [class*="p-12"],
+  [class*="p-10"] {
+    padding: 1.25rem !important;
+  }
+
+  [class*="px-24"],
+  [class*="px-20"],
+  [class*="px-16"],
+  [class*="px-12"],
+  [class*="px-10"] {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  [class*="py-32"],
+  [class*="py-28"],
+  [class*="py-24"],
+  [class*="py-20"],
+  [class*="py-16"] {
+    padding-top: 3.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+
+  [class*="gap-20"],
+  [class*="gap-16"],
+  [class*="gap-12"],
+  [class*="space-y-16"],
+  [class*="space-y-12"],
+  [class*="space-y-10"] {
+    gap: 1.5rem !important;
+  }
+
+  [class*="rounded-[4"],
+  [class*="rounded-[3"] {
+    border-radius: 1.5rem !important;
+  }
+
+  [class*="text-9xl"],
+  [class*="text-8xl"],
+  [class*="text-7xl"],
+  [class*="text-6xl"] {
+    font-size: clamp(2.25rem, 12vw, 3.75rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  [class*="text-5xl"] {
+    font-size: clamp(2rem, 10vw, 3rem) !important;
+    line-height: 1 !important;
+  }
+
+  [class*="tracking-[0.4em]"],
+  [class*="tracking-[0.3em]"],
+  [class*="tracking-[0.25em]"] {
+    letter-spacing: 0.16em !important;
+  }
+
+  button,
+  a[role="button"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .glass-dark {
+    backdrop-filter: blur(18px);
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  animation: gradient 8s linear infinite;
+}
+
+/* Animated Gradient Text with Italic Clip Protection */
+.animated-gradient-text {
+  background-image: linear-gradient(to right, #a855f7, #06b6d4, #6366f1, #a855f7);
+  background-size: 300% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: text-gradient 6s linear infinite;
+  display: inline-block;
+  padding-right: 0.15em; /* Protect italic characters like Y from clipping */
+}
+
+.elite-gradient-text {
+  background-image: linear-gradient(110deg, #a855f7 0%, #00ffff 25%, #d946ef 45%, #ffffff 55%, #d946ef 65%, #00ffff 80%, #a855f7 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: text-gradient 4s linear infinite;
+  display: inline-block;
+  padding-right: 0.15em;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 0 1px rgba(0, 255, 255, 0.15));
+}
+
+@keyframes text-gradient {
+  0% { background-position: 0% center; }
+  100% { background-position: 300% center; }
+}
+
+/* Custom Profile Themes for Pro users */
+.theme-cyber-pulse {
+  --theme-bg: #040209;
+  --theme-card: rgba(12, 8, 24, 0.82);
+  --theme-card-soft: rgba(168, 85, 247, 0.08);
+  --theme-border: rgba(168, 85, 247, 0.20);
+  --theme-accent: #a855f7;
+  --theme-accent-2: #06b6d4;
+  --theme-glow: rgba(168, 85, 247, 0.22);
+  --background: #040209 !important;
+  --card: #0c0818 !important;
+  --border: rgba(168, 85, 247, 0.15) !important;
+  --primary: #a855f7 !important;
+  --color-accent-purple: #a855f7 !important;
+  --color-accent-cyan: #06b6d4 !important;
+  --color-brand-500: #a855f7 !important;
+  --color-brand-600: #9333ea !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.15) 0%, transparent 60%), radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.08) 0%, transparent 40%) !important;
+}
+
+.theme-luxury-void {
+  --theme-bg: #020202;
+  --theme-card: rgba(10, 10, 10, 0.88);
+  --theme-card-soft: rgba(245, 158, 11, 0.075);
+  --theme-border: rgba(245, 158, 11, 0.20);
+  --theme-accent: #f59e0b;
+  --theme-accent-2: #fbbf24;
+  --theme-glow: rgba(245, 158, 11, 0.18);
+  --background: #020202 !important;
+  --card: #0a0a0a !important;
+  --border: rgba(245, 158, 11, 0.15) !important;
+  --primary: #f59e0b !important;
+  --color-accent-purple: #f59e0b !important;
+  --color-accent-cyan: #fbbf24 !important;
+  --color-brand-500: #f59e0b !important;
+  --color-brand-600: #d97706 !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 70%) !important;
+}
+
+.theme-cosmic-nebula {
+  --theme-bg: #04010a;
+  --theme-card: rgba(12, 4, 29, 0.84);
+  --theme-card-soft: rgba(217, 70, 239, 0.08);
+  --theme-border: rgba(217, 70, 239, 0.20);
+  --theme-accent: #d946ef;
+  --theme-accent-2: #f43f5e;
+  --theme-glow: rgba(217, 70, 239, 0.20);
+  --background: #04010a !important;
+  --card: #0c041d !important;
+  --border: rgba(217, 70, 239, 0.15) !important;
+  --primary: #d946ef !important;
+  --color-accent-purple: #d946ef !important;
+  --color-accent-cyan: #f43f5e !important;
+  --color-brand-500: #d946ef !important;
+  --color-brand-600: #c084fc !important;
+  background-image: radial-gradient(circle at 0% 0%, rgba(217, 70, 239, 0.12) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.1) 0%, transparent 50%) !important;
+}
+
+.theme-neon-shadow {
+  --theme-bg: #010402;
+  --theme-card: rgba(4, 13, 6, 0.86);
+  --theme-card-soft: rgba(34, 197, 94, 0.08);
+  --theme-border: rgba(34, 197, 94, 0.22);
+  --theme-accent: #22c55e;
+  --theme-accent-2: #84cc16;
+  --theme-glow: rgba(34, 197, 94, 0.18);
+  --background: #010402 !important;
+  --card: #040d06 !important;
+  --border: rgba(34, 197, 94, 0.15) !important;
+  --primary: #22c55e !important;
+  --color-accent-purple: #10b981 !important;
+  --color-accent-cyan: #84cc16 !important;
+  --color-brand-500: #22c55e !important;
+  --color-brand-600: #15803d !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.15) 0%, transparent 60%) !important;
+}
+
+.theme-royal-eclipse {
+  --theme-bg: #040103;
+  --theme-card: rgba(13, 3, 9, 0.86);
+  --theme-card-soft: rgba(220, 38, 38, 0.075);
+  --theme-border: rgba(220, 38, 38, 0.20);
+  --theme-accent: #dc2626;
+  --theme-accent-2: #701a75;
+  --theme-glow: rgba(220, 38, 38, 0.18);
+  --background: #040103 !important;
+  --card: #0d0309 !important;
+  --border: rgba(220, 38, 38, 0.15) !important;
+  --primary: #dc2626 !important;
+  --color-accent-purple: #be123c !important;
+  --color-accent-cyan: #701a75 !important;
+  --color-brand-500: #dc2626 !important;
+  --color-brand-600: #991b1b !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(220, 38, 38, 0.15) 0%, transparent 60%), radial-gradient(circle at 100% 100%, rgba(112, 26, 117, 0.08) 0%, transparent 40%) !important;
+}
+
+.theme-minimal-frost {
+  --theme-bg: #03060c;
+  --theme-card: rgba(8, 15, 30, 0.86);
+  --theme-card-soft: rgba(59, 130, 246, 0.075);
+  --theme-border: rgba(147, 197, 253, 0.22);
+  --theme-accent: #60a5fa;
+  --theme-accent-2: #e0f2fe;
+  --theme-glow: rgba(59, 130, 246, 0.18);
+  --background: #03060c !important;
+  --card: #080f1e !important;
+  --border: rgba(59, 130, 246, 0.15) !important;
+  --primary: #3b82f6 !important;
+  --color-accent-purple: #60a5fa !important;
+  --color-accent-cyan: #93c5fd !important;
+  --color-brand-500: #3b82f6 !important;
+  --color-brand-600: #1d4ed8 !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 60%) !important;
+}
+
+html[class*="theme-"] body {
+  background:
+    radial-gradient(circle at 18% 0%, var(--theme-glow), transparent 34%),
+    radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--theme-accent-2) 14%, transparent), transparent 30%),
+    var(--theme-bg) !important;
+}
+
+html[class*="theme-"] main,
+html[class*="theme-"] main > div,
+html[class*="theme-"] .chat-tool-sidebar,
+html[class*="theme-"] .global-sidebar,
+html[class*="theme-"] aside,
+html[class*="theme-"] nav,
+html[class*="theme-"] header {
+  background-color: color-mix(in srgb, var(--theme-bg) 92%, black) !important;
+}
+
+html[class*="theme-"] .glass-dark,
+html[class*="theme-"] .chat-tool-sidebar,
+html[class*="theme-"] main > div > section {
+  background: linear-gradient(135deg, var(--theme-card), color-mix(in srgb, var(--theme-card-soft) 74%, black)) !important;
+  border-color: var(--theme-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 22px 70px color-mix(in srgb, var(--theme-glow) 72%, transparent) !important;
+}
+
+html[class*="theme-"] .premium-gradient,
+html[class*="theme-"] button[class*="premium-gradient"] {
+  background-image: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-2)) !important;
+}
+
+html[class*="theme-"] .text-accent-purple,
+html[class*="theme-"] .text-accent-cyan {
+  color: var(--theme-accent) !important;
+}
+
+html.theme-cosmic-nebula body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.14;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.8) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 18%, rgba(255,255,255,0.65) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 72%, rgba(255,255,255,0.6) 0 1px, transparent 2px),
+    radial-gradient(circle at 36% 82%, rgba(255,255,255,0.65) 0 1px, transparent 2px);
+}

@@ -43,7 +43,7 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] pointer-events-auto"
+            className="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-1.5rem)] pointer-events-auto"
           >
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent-purple via-accent-cyan to-accent-purple z-20" />
@@ -172,6 +172,5 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
 
   return createPortal(modalContent, document.body);
 }
-
 
 

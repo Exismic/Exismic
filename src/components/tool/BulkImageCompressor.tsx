@@ -1,30 +1,20 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { 
   Upload, 
-  Download, 
   FileArchive, 
   Trash2, 
   Settings2, 
   Zap,
   Check,
   Loader2,
-  FileImage,
-  Percent,
   Layers,
-  FileDigit,
   X,
-  Maximize,
-  Minimize,
-  Save,
   RotateCcw,
   Sparkles,
   Info,
-  ChevronRight,
   Database,
-  Search,
-  CheckCircle2,
   AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,25 +30,48 @@ interface CompressedFile {
   compressedSize?: number;
   progress: number;
   resultUrl?: string;
+  outputFormat?: string;
+  error?: string;
   status: "idle" | "processing" | "done" | "error";
 }
+
+type OutputFormat = "original" | "jpg" | "png" | "webp";
 
 export function BulkImageCompressor() {
   const [files, setFiles] = useState<CompressedFile[]>([]);
   const [quality, setQuality] = useState(80);
-  const [toWebp, setToWebp] = useState(false);
   const [maxWidth, setMaxWidth] = useState<number | "">("");
   const [maxHeight, setMaxHeight] = useState<number | "">("");
-  const [format, setFormat] = useState<"original" | "jpg" | "png" | "webp">("original");
+  const [format, setFormat] = useState<OutputFormat>("original");
   const [removeMetadata, setRemoveMetadata] = useState(true);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setFiles(prev => prev.map(file => {
+      if (file.status === "processing" || file.status === "idle") return file;
+      return {
+        ...file,
+        compressedSize: undefined,
+        progress: 0,
+        resultUrl: undefined,
+        outputFormat: undefined,
+        error: undefined,
+        status: "idle"
+      };
+    }));
+  }, [quality, format, maxWidth, maxHeight, removeMetadata]);
+
+  const setOutputFormat = (nextFormat: OutputFormat) => {
+    setFormat(nextFormat);
+  };
+
   const handleUpload = (newFiles: FileList | null) => {
     if (!newFiles) return;
 
-    const newEntries: CompressedFile[] = Array.from(newFiles).map(file => ({
+    const validFiles = Array.from(newFiles).filter(file => file.type.startsWith("image/"));
+    const newEntries: CompressedFile[] = validFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       file,
       preview: URL.createObjectURL(file),
@@ -67,7 +80,9 @@ export function BulkImageCompressor() {
       status: "idle"
     }));
 
-    setFiles(prev => [...prev, ...newEntries]);
+    if (newEntries.length > 0) {
+      setFiles(prev => [...prev, ...newEntries]);
+    }
   };
 
   const removeFile = (id: string) => {
@@ -79,13 +94,13 @@ export function BulkImageCompressor() {
   };
 
   const compressFile = async (item: CompressedFile) => {
-    setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "processing", progress: 20 } : f));
+    setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "processing", progress: 20, error: undefined } : f));
     
     try {
       const formData = new FormData();
       formData.append("file", item.file);
       formData.append("quality", quality.toString());
-      formData.append("toWebp", (toWebp || format === "webp").toString());
+      formData.append("toWebp", (format === "webp").toString());
       if (format !== "original") formData.append("format", format);
       if (maxWidth) formData.append("maxWidth", maxWidth.toString());
       if (maxHeight) formData.append("maxHeight", maxHeight.toString());
@@ -104,7 +119,9 @@ export function BulkImageCompressor() {
           status: "done", 
           progress: 100, 
           resultUrl: data.result,
-          compressedSize: data.size 
+          compressedSize: data.size,
+          outputFormat: data.format,
+          error: undefined,
         } : f));
         
         await saveFileHistory({
@@ -115,16 +132,17 @@ export function BulkImageCompressor() {
           status: "completed"
         });
       } else {
-        throw new Error(data.error);
+        throw new Error(data.error || "Compression failed");
       }
     } catch (error) {
-       setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "error" } : f));
+       const message = error instanceof Error ? error.message : "Compression failed";
+       setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: "error", progress: 0, error: message } : f));
     }
   };
 
   const compressAll = async () => {
     setIsBulkProcessing(true);
-    const idleFiles = files.filter(f => f.status === "idle");
+    const idleFiles = files.filter(f => f.status === "idle" || f.status === "error");
     for (const file of idleFiles) {
       await compressFile(file);
     }
@@ -138,7 +156,7 @@ export function BulkImageCompressor() {
     for (const f of readyFiles) {
       const response = await fetch(f.resultUrl!);
       const blob = await response.blob();
-      const targetExt = (toWebp || format === "webp") ? "webp" : (format === "original" ? f.file.name.split('.').pop() : format);
+      const targetExt = f.outputFormat || (format === "original" ? f.file.name.split('.').pop() : format);
       zip.file(`optimized_${f.file.name.split('.')[0]}.${targetExt}`, blob);
     }
 
@@ -222,7 +240,7 @@ export function BulkImageCompressor() {
                  <h3 className="text-[11px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
                     <Settings2 size={16} className="text-accent-purple" /> Optimization Engine
                  </h3>
-                 <button onClick={() => { setQuality(80); setFormat("original"); setToWebp(false); }} className="text-zinc-600 hover:text-white transition-colors">
+                 <button onClick={() => { setQuality(80); setOutputFormat("original"); setMaxWidth(""); setMaxHeight(""); setRemoveMetadata(true); }} className="text-zinc-600 hover:text-white transition-colors">
                     <RotateCcw size={16} />
                  </button>
               </div>
@@ -257,14 +275,15 @@ export function BulkImageCompressor() {
                        <p className="text-[8px] text-zinc-500 font-bold uppercase">Modern next-gen format</p>
                     </div>
                     <button 
-                       onClick={() => setToWebp(!toWebp)}
+                       onClick={() => setOutputFormat(format === "webp" ? "original" : "webp")}
                        className={cn(
                           "w-12 h-6 rounded-full transition-all relative p-1 flex items-center",
-                          toWebp ? "bg-accent-purple" : "bg-zinc-800"
+                          format === "webp" ? "bg-accent-purple" : "bg-zinc-800"
                        )}
+                       aria-pressed={format === "webp"}
                     >
                        <motion.div 
-                          animate={{ x: toWebp ? 24 : 0 }}
+                          animate={{ x: format === "webp" ? 24 : 0 }}
                           className="w-4 h-4 bg-white rounded-full shadow-lg" 
                        />
                     </button>
@@ -278,6 +297,7 @@ export function BulkImageCompressor() {
                           <input 
                             type="number" value={maxWidth} onChange={(e) => setMaxWidth(e.target.value ? parseInt(e.target.value) : "")}
                             placeholder="Auto"
+                            min={1}
                             className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:border-accent-purple/50 outline-none transition-all"
                           />
                        </div>
@@ -286,6 +306,7 @@ export function BulkImageCompressor() {
                           <input 
                             type="number" value={maxHeight} onChange={(e) => setMaxHeight(e.target.value ? parseInt(e.target.value) : "")}
                             placeholder="Auto"
+                            min={1}
                             className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:border-accent-purple/50 outline-none transition-all"
                           />
                        </div>
@@ -298,7 +319,7 @@ export function BulkImageCompressor() {
                        {["original", "jpg", "png", "webp"].map((f) => (
                           <button 
                              key={f}
-                             onClick={() => setFormat(f as any)}
+                             onClick={() => setOutputFormat(f as OutputFormat)}
                              className={cn(
                                 "px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all",
                                 format === f ? "bg-accent-purple border-accent-purple text-white shadow-lg shadow-accent-purple/20" : "bg-black/20 border-white/5 text-zinc-500 hover:text-white"
@@ -448,6 +469,12 @@ export function BulkImageCompressor() {
                                          <span className="text-[10px] font-black text-white">{formatSize(item.compressedSize)}</span>
                                          <span className="text-[10px] font-black text-emerald-400">-{Math.round((1 - item.compressedSize/item.originalSize) * 100)}%</span>
                                       </div>
+                                   </div>
+                                 )}
+                                 {item.status === "error" && (
+                                   <div className="flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/15 px-3 py-2 text-[9px] font-bold text-red-300 leading-relaxed">
+                                      <AlertCircle size={12} className="mt-0.5 shrink-0" />
+                                      <span className="line-clamp-2">{item.error || "Compression failed"}</span>
                                    </div>
                                  )}
                               </div>

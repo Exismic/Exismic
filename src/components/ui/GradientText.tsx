@@ -26,7 +26,7 @@ const GradientText: React.FC<GradientTextProps> = ({
     )}>
       <motion.span
         className={cn(
-          "bg-clip-text text-transparent relative z-10"
+          "bg-clip-text text-transparent relative z-10 pr-1.5"
         )}
         style={{
           backgroundImage: "linear-gradient(to right, #A855F7, #6366F1, #22D3EE, #A855F7)",

@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction } from "@/app/actions/auth";
+import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction, sendMagicLinkAction } from "@/app/actions/auth";
 import { useAuth } from "@/hooks/useAuth";
 
 // --- Premium Custom Icons ---
@@ -37,12 +37,18 @@ const GitHubIcon = () => (
   </svg>
 );
 
-type AuthState = 'signin' | 'signup' | 'forgot' | 'verify' | 'success';
+const DiscordIcon = () => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.094 13.094 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z" />
+  </svg>
+);
+
+type AuthState = 'signin' | 'signup' | 'magic' | 'forgot' | 'verify' | 'success';
 
 export default function AuthPage() {
   const [state, setState] = useState<AuthState>('signin');
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<'google' | 'github' | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'github' | 'discord' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -87,7 +93,7 @@ export default function AuthPage() {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
+  const handleSocialLogin = async (provider: 'google' | 'github' | 'discord') => {
     setSocialLoading(provider);
     setError(null);
     try {
@@ -190,8 +196,31 @@ export default function AuthPage() {
     }
   };
 
+  const handleMagicLinkSubmit = async (formData: FormData) => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    formData.set('returnUrl', returnUrl);
+
+    const formEmail = String(formData.get('email') || '').trim();
+    if (formEmail) setEmail(formEmail);
+
+    try {
+      const result = await sendMagicLinkAction(formData);
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setSuccess(result?.message || "Magic link sent. Check your inbox.");
+      }
+    } catch {
+      setError("Could not send the magic link. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden selection:bg-purple-500/30 font-sans">
+    <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-x-hidden selection:bg-purple-500/30 font-sans">
       {/* Background Refinement */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(124,58,237,0.12)_0%,transparent_50%)]" />
@@ -230,7 +259,7 @@ export default function AuthPage() {
         className="w-full max-w-[440px] z-10"
       >
         {/* Brand Header */}
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center mb-8 sm:mb-10">
           <Link href="/" className="group flex flex-col items-center">
             <div className="relative mb-6">
               <div className="absolute -inset-6 bg-purple-600/30 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -248,7 +277,7 @@ export default function AuthPage() {
         {/* Central Auth Container */}
         <div className="relative">
           <div className="absolute -inset-[1px] bg-gradient-to-b from-white/10 to-transparent rounded-[2rem] pointer-events-none" />
-          <div className="bg-[#0A0A0B]/80 backdrop-blur-2xl border border-white/5 rounded-[2rem] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)] overflow-hidden relative">
+          <div className="bg-[#0A0A0B]/80 backdrop-blur-2xl border border-white/5 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)] overflow-hidden relative">
             
             {/* Floating Toast Notification */}
             <AnimatePresence>
@@ -291,6 +320,57 @@ export default function AuthPage() {
                     <p className="text-zinc-500 text-sm mt-2">Welcome to the elite tier creators.</p>
                   </div>
                   <Loader2 className="animate-spin text-zinc-700" size={24} />
+                </motion.div>
+              ) : state === 'magic' ? (
+                <motion.div
+                  key="magic"
+                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8"
+                >
+                  <div className="space-y-2">
+                    <button onClick={() => setState('signin')} className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4">
+                      <ArrowLeft size={14} /> Back
+                    </button>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 text-[10px] font-black uppercase tracking-widest">
+                      <KeyRound size={13} /> Passwordless
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight">Continue with Magic Link</h2>
+                    <p className="text-zinc-500 text-sm">We will email you a secure one-time login link that expires in 15 minutes.</p>
+                  </div>
+
+                  <form action={handleMagicLinkSubmit} className="space-y-4">
+                    <input type="hidden" name="returnUrl" value={returnUrl} />
+                    <div className="relative group">
+                      <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity blur-sm pointer-events-none" />
+                      <div className="relative">
+                        <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-cyan-300 transition-colors" size={18} />
+                        <input
+                          name="email"
+                          type="email"
+                          required
+                          defaultValue={email}
+                          placeholder="Email address"
+                          className="w-full bg-black/40 border border-white/[0.05] rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-400/40 focus:bg-cyan-400/[0.02] transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-5 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-cyan-500 text-white font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(124,58,237,0.22)]"
+                    >
+                      {isLoading ? <Loader2 className="animate-spin" size={18} /> : (
+                        <>Send Magic Link <ArrowRight size={18} className="opacity-70" /></>
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                    <p className="text-[11px] leading-relaxed text-zinc-500">
+                      Magic links are one-time use. If you request a new one, use the latest email in your inbox.
+                    </p>
+                  </div>
                 </motion.div>
               ) : state === 'forgot' ? (
                 <motion.div 
@@ -390,7 +470,12 @@ export default function AuthPage() {
                       onClick={async () => {
                         setIsLoading(true);
                         try {
-                          await resendOtpAction(email);
+                          const result = await resendOtpAction(email);
+                          if (result?.error) {
+                            setError(result.error);
+                            setSuccess(null);
+                            return;
+                          }
                           setSuccess("New code sent to your email!");
                           setError(null);
                         } catch (err) {
@@ -451,24 +536,58 @@ export default function AuthPage() {
 
                   {/* Identity Providers */}
                   {(state === 'signin' || state === 'signup') && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-3">
                       <button 
                         onClick={() => handleSocialLogin('google')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[11px] font-bold uppercase tracking-widest text-white/80 hover:bg-white/[0.05] hover:border-white/10 hover:text-white transition-all disabled:opacity-50 group"
+                        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/80 hover:bg-white/[0.05] hover:border-white/10 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all duration-350 disabled:opacity-50 group shadow-md"
                       >
-                        {socialLoading === 'google' ? <Loader2 size={18} className="animate-spin text-zinc-600" /> : <GoogleIcon />}
+                        {socialLoading === 'google' ? <Loader2 size={16} className="animate-spin text-zinc-600" /> : <GoogleIcon />}
                         Google
                       </button>
                       <button 
                         onClick={() => handleSocialLogin('github')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[11px] font-bold uppercase tracking-widest text-white/80 hover:bg-white/[0.05] hover:border-white/10 hover:text-white transition-all disabled:opacity-50 group"
+                        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/80 hover:bg-white/[0.05] hover:border-white/10 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all duration-350 disabled:opacity-50 group shadow-md"
                       >
-                        {socialLoading === 'github' ? <Loader2 size={18} className="animate-spin text-zinc-600" /> : <GitHubIcon />}
+                        {socialLoading === 'github' ? <Loader2 size={16} className="animate-spin text-zinc-600" /> : <GitHubIcon />}
                         GitHub
                       </button>
+                      <button 
+                        onClick={() => handleSocialLogin('discord')}
+                        disabled={!!socialLoading}
+                        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/80 hover:bg-[#5865F2]/10 hover:border-[#5865F2]/40 hover:text-white hover:shadow-[0_0_20px_rgba(88,101,242,0.2)] transition-all duration-350 disabled:opacity-50 group shadow-md"
+                      >
+                        {socialLoading === 'discord' ? (
+                          <Loader2 size={16} className="animate-spin text-zinc-650" />
+                        ) : (
+                          <span className="text-white/85 group-hover:text-[#5865F2] transition-colors duration-350">
+                            <DiscordIcon />
+                          </span>
+                        )}
+                        Discord
+                      </button>
                     </div>
+                  )}
+
+                  {state === 'signin' && (
+                    <button
+                      type="button"
+                      onClick={() => { setState('magic'); setError(null); setSuccess(null); }}
+                      className="w-full group relative overflow-hidden rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.055] p-[1px] text-left transition-all hover:border-cyan-300/35 hover:bg-cyan-400/[0.085]"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-cyan-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative flex items-center gap-4 rounded-2xl px-4 py-4">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/20 bg-black/30 text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
+                          <KeyRound size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-black uppercase tracking-[0.18em] text-white">Continue with Magic Link</div>
+                          <div className="mt-1 text-[11px] font-medium text-zinc-500">No password needed. One-time secure email login.</div>
+                        </div>
+                        <ArrowRight size={17} className="text-cyan-200 opacity-70 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </button>
                   )}
 
                   {/* Separator */}

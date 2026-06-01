@@ -1,23 +1,35 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { 
-  Upload, 
-  X, 
-  Sparkles, 
-  Download, 
-  RefreshCw, 
-  CheckCircle2, 
-  Image as ImageIcon,
-  ArrowRight,
+import {
+  CheckCircle2,
+  Download,
+  Eraser,
   Loader2,
+  LocateFixed,
+  RefreshCw,
   ShieldCheck,
-  Zap
+  Sparkles,
+  Upload,
+  Zap,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import axios from "axios";
+
+interface Region {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const PRESETS: Array<{ label: string; region: Region }> = [
+  { label: "Bottom Bar", region: { x: 0.08, y: 0.74, width: 0.84, height: 0.16 } },
+  { label: "Center Logo", region: { x: 0.32, y: 0.38, width: 0.36, height: 0.2 } },
+  { label: "Top Right", region: { x: 0.62, y: 0.06, width: 0.3, height: 0.14 } },
+  { label: "Date Stamp", region: { x: 0.58, y: 0.76, width: 0.34, height: 0.14 } },
+];
 
 export function WatermarkRemover() {
   const [file, setFile] = useState<File | null>(null);
@@ -26,62 +38,97 @@ export function WatermarkRemover() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [region, setRegion] = useState<Region>(PRESETS[0].region);
+  const [strength, setStrength] = useState(74);
+  const [sliderPos, setSliderPos] = useState(50);
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
+
+  const loadFile = useCallback((selectedFile?: File) => {
+    if (!selectedFile) return;
+    if (!selectedFile.type.startsWith("image/")) {
+      setError("Please upload a valid image file.");
+      return;
+    }
+    setFile(selectedFile);
+    setPreview(URL.createObjectURL(selectedFile));
+    setResult(null);
+    setError(null);
+    setProgress(0);
+    setSliderPos(50);
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const selectedFile = acceptedFiles[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
-      setResult(null);
-    }
-  }, []);
+    loadFile(acceptedFiles[0]);
+  }, [loadFile]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [] },
+    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".avif"] },
     multiple: false,
   });
 
+  const updateRegionCenter = (clientX: number, clientY: number) => {
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const centerX = (clientX - rect.left) / rect.width;
+    const centerY = (clientY - rect.top) / rect.height;
+    setRegion((current) => ({
+      ...current,
+      x: Math.max(0, Math.min(1 - current.width, centerX - current.width / 2)),
+      y: Math.max(0, Math.min(1 - current.height, centerY - current.height / 2)),
+    }));
+    setResult(null);
+  };
+
   const handleProcess = async () => {
     if (!file) return;
-
     setIsProcessing(true);
-    setProgress(0);
-    setStatusMessage("Analyzing watermark...");
+    setProgress(8);
+    setStatusMessage("Preparing selected removal zone...");
+    setError(null);
+
+    const interval = window.setInterval(() => {
+      setProgress((prev) => {
+        if (prev > 88) return prev;
+        if (prev > 68) setStatusMessage("Blending reconstructed pixels...");
+        else if (prev > 38) setStatusMessage("Rebuilding texture around the watermark...");
+        return prev + 6;
+      });
+    }, 350);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("region", JSON.stringify(region));
+      formData.append("strength", strength.toString());
 
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          if (prev > 70) setStatusMessage("Removing watermark artifacts...");
-          else if (prev > 40) setStatusMessage("Neural inpainting in progress...");
-          return prev + 5;
-        });
-      }, 300);
-
-      const response = await axios.post("/api/tools/image/watermark-remover", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        responseType: "blob"
+      const response = await fetch("/api/tools/image/watermark-remover", {
+        method: "POST",
+        body: formData,
       });
 
-      clearInterval(progressInterval);
-      setProgress(100);
-      setStatusMessage("Perfectly cleaned!");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Watermark removal failed.");
+      }
 
-      const resultUrl = URL.createObjectURL(response.data);
-      setResult(resultUrl);
-    } catch (error) {
-      console.error("Processing failed:", error);
-      setStatusMessage("Processing failed. Please try again.");
+      const blob = await response.blob();
+      setResult(URL.createObjectURL(blob));
+      setProgress(100);
+      setStatusMessage("Clean image ready.");
+    } catch (err: unknown) {
+      console.error("Processing failed:", err);
+      setError(err instanceof Error ? err.message : "Processing failed. Please try again.");
+      setStatusMessage("Processing failed.");
     } finally {
-      setIsProcessing(false);
+      window.clearInterval(interval);
+      window.setTimeout(() => setIsProcessing(false), 250);
     }
   };
 
@@ -91,167 +138,218 @@ export function WatermarkRemover() {
     setResult(null);
     setProgress(0);
     setStatusMessage("");
+    setError(null);
+    setRegion(PRESETS[0].region);
+  };
+
+  const updateSlider = (clientX: number) => {
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setSliderPos(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
   };
 
   return (
-    <div className="space-y-12">
-      <AnimatePresence mode="wait">
-        {!preview ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full"
+    <div className="max-w-7xl mx-auto px-4 pb-24 space-y-8">
+      {!preview ? (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+          <div
+            {...getRootProps()}
+            className={cn(
+              "min-h-[500px] rounded-[3.5rem] border-2 border-dashed transition-all duration-700 flex flex-col items-center justify-center p-12 text-center group cursor-pointer glass-dark",
+              isDragActive ? "border-accent-purple bg-accent-purple/5 shadow-2xl" : "border-zinc-800 hover:border-white/20"
+            )}
           >
+            <input {...getInputProps()} />
+            <div className="w-28 h-28 rounded-[2.5rem] bg-zinc-800/50 flex items-center justify-center text-zinc-500 group-hover:text-accent-purple group-hover:scale-110 transition-all duration-700 shadow-3xl border border-white/5 mb-8">
+              <Upload size={48} />
+            </div>
+            <h3 className="text-3xl font-black text-white tracking-tight">Select An Image</h3>
+            <p className="text-zinc-500 font-medium text-lg leading-relaxed max-w-md mx-auto mt-3">
+              Upload your own image and mark the exact logo, date stamp, or watermark area to clean.
+            </p>
+            <div className="mt-8 px-10 py-4 rounded-2xl premium-gradient text-white font-black text-xs uppercase tracking-widest shadow-2xl group-hover:scale-105 transition-all">
+              Upload Photo
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+          <section className="xl:col-span-8 space-y-6">
             <div
-              {...getRootProps()}
-              className={cn(
-                "min-h-[400px] rounded-[3.5rem] border-2 border-dashed transition-all duration-700 flex flex-col items-center justify-center p-12 text-center group cursor-pointer",
-                isDragActive ? "border-accent-purple bg-accent-purple/5 shadow-2xl" : "border-zinc-800 glass-dark hover:border-white/20"
-              )}
+              ref={stageRef}
+              className="relative min-h-[620px] rounded-[3rem] glass-dark border border-white/10 overflow-hidden bg-zinc-950 shadow-4xl select-none"
+              onClick={(event) => !result && updateRegionCenter(event.clientX, event.clientY)}
+              onMouseDown={(event) => result && updateSlider(event.clientX)}
+              onMouseMove={(event) => result && event.buttons === 1 && updateSlider(event.clientX)}
+              onTouchMove={(event) => result && updateSlider(event.touches[0].clientX)}
             >
-              <input {...getInputProps()} />
-              <div className="w-28 h-28 rounded-[2.5rem] bg-zinc-800/50 flex items-center justify-center text-zinc-500 group-hover:text-accent-purple group-hover:scale-110 transition-all duration-700 shadow-3xl border border-white/5 mb-8">
-                <Upload size={48} />
-              </div>
-              <div className="space-y-3">
-                <h3 className="text-3xl font-black text-white tracking-tight">Drop your image here</h3>
-                <p className="text-zinc-500 font-medium text-lg leading-relaxed max-w-md mx-auto">
-                  Upload photos with watermarks, logos, or dates you want to vanish.
-                </p>
-              </div>
-              <div className="mt-8 px-10 py-4 rounded-2xl premium-gradient text-white font-black text-xs uppercase tracking-widest shadow-2xl group-hover:scale-105 transition-all">
-                Select Photo
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-10"
-          >
-            {/* Side-by-Side Comparison */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               {/* Before */}
-               <div className="space-y-4">
-                  <div className="flex items-center justify-between px-2">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Original (With Watermark)</span>
-                     <button onClick={reset} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors flex items-center gap-2">
-                        <X size={12} /> Remove
-                     </button>
-                  </div>
-                  <div className="rounded-[2.5rem] overflow-hidden border border-white/5 glass-dark shadow-2xl aspect-video relative group">
-                     <img src={preview} alt="Original" className="w-full h-full object-contain" />
-                     <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-black uppercase tracking-widest text-white">Before</div>
-                  </div>
-               </div>
-
-               {/* After */}
-               <div className="space-y-4">
-                  <div className="flex items-center justify-between px-2">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Result (Cleaned)</span>
-                     {result && <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1.5"><CheckCircle2 size={12}/> Ready to Download</span>}
-                  </div>
-                  <div className={cn(
-                    "rounded-[2.5rem] overflow-hidden border border-white/5 glass-dark shadow-2xl aspect-video relative flex items-center justify-center",
-                    !result && "bg-zinc-900/50"
-                  )}>
-                     {result ? (
-                        <>
-                          <img src={result} alt="Result" className="w-full h-full object-contain" />
-                          <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-accent-purple/60 backdrop-blur-md border border-accent-purple/20 text-[9px] font-black uppercase tracking-widest text-white">After</div>
-                        </>
-                     ) : (
-                        <div className="text-center space-y-6">
-                           <div className="w-20 h-20 rounded-3xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-zinc-700 mx-auto">
-                              <ImageIcon size={32} />
-                           </div>
-                           <p className="text-sm font-bold text-zinc-600 uppercase tracking-widest">Awaiting Neural Processing</p>
-                        </div>
-                     )}
-
-                     {/* Progress Overlay */}
-                     <AnimatePresence>
-                        {isProcessing && (
-                          <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center p-12 space-y-8"
-                          >
-                             <div className="relative w-32 h-32">
-                                <svg className="w-full h-full transform -rotate-90">
-                                   <circle cx="64" cy="64" r="60" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-zinc-800" />
-                                   <motion.circle 
-                                      cx="64" cy="64" r="60" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-accent-purple"
-                                      style={{ strokeDasharray: 377, strokeDashoffset: 377 - (377 * progress) / 100 }}
-                                   />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                   <span className="text-2xl font-black text-white">{progress}%</span>
-                                </div>
-                             </div>
-                             <div className="space-y-2 text-center">
-                                <div className="flex items-center justify-center gap-2 text-accent-purple">
-                                   <Loader2 size={16} className="animate-spin" />
-                                   <span className="text-[10px] font-black uppercase tracking-widest">Processing...</span>
-                                </div>
-                                <p className="text-lg font-black text-white italic uppercase tracking-tight">{statusMessage}</p>
-                             </div>
-                          </motion.div>
-                        )}
-                     </AnimatePresence>
-                  </div>
-               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4">
-               {!result ? (
-                  <button 
-                    onClick={handleProcess}
-                    disabled={isProcessing}
-                    className="w-full md:w-auto px-16 py-6 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-3xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:scale-100"
+              {!result ? (
+                <>
+                  <img src={preview} alt="Source" className="absolute inset-0 w-full h-full object-contain" />
+                  <div
+                    className="absolute border-2 border-accent-purple bg-accent-purple/15 shadow-[0_0_30px_rgba(168,85,247,0.4)] rounded-xl pointer-events-none"
+                    style={{
+                      left: `${region.x * 100}%`,
+                      top: `${region.y * 100}%`,
+                      width: `${region.width * 100}%`,
+                      height: `${region.height * 100}%`,
+                    }}
                   >
-                    <Sparkles size={20} />
-                    {isProcessing ? "Neural Engine Active..." : "Remove Watermark"}
-                  </button>
-               ) : (
-                  <>
-                    <a 
-                      href={result} 
-                      download={`toolverse-no-watermark-${Date.now()}.jpg`}
-                      className="w-full md:w-auto px-16 py-6 rounded-2xl bg-emerald-500 text-white font-black text-sm uppercase tracking-widest shadow-3xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
-                    >
-                      <Download size={20} /> Download Result
-                    </a>
-                    <button 
-                      onClick={reset}
-                      className="w-full md:w-auto px-10 py-6 rounded-2xl glass-dark border border-white/10 text-zinc-400 font-black text-sm uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-3"
-                    >
-                      <RefreshCw size={18} /> Process Another
-                    </button>
-                  </>
-               )}
+                    <div className="absolute -top-9 left-0 px-3 py-1.5 rounded-full bg-accent-purple text-white text-[9px] font-black uppercase tracking-widest">
+                      Removal zone
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <img src={preview} alt="Before" className="absolute inset-0 w-full h-full object-contain" />
+                  <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
+                    <img src={result} alt="After" className="absolute inset-0 w-full h-full object-contain" />
+                  </div>
+                  <div className="absolute top-5 left-5 px-4 py-2 rounded-full bg-black/70 border border-white/10 text-[10px] font-black text-white uppercase tracking-widest">
+                    Cleaned
+                  </div>
+                  <div className="absolute top-5 right-5 px-4 py-2 rounded-full bg-black/70 border border-white/10 text-[10px] font-black text-white uppercase tracking-widest">
+                    Original
+                  </div>
+                  <div className="absolute top-0 bottom-0 w-px bg-white shadow-[0_0_24px_rgba(255,255,255,0.8)]" style={{ left: `${sliderPos}%` }}>
+                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-3xl">
+                      <Eraser size={22} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <AnimatePresence>
+                {isProcessing && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-xl z-50 flex flex-col items-center justify-center p-12 space-y-8">
+                    <Loader2 className="w-20 h-20 text-accent-purple animate-spin" />
+                    <div className="w-full max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div className="h-full premium-gradient" animate={{ width: `${progress}%` }} />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-black text-white uppercase tracking-tight">{statusMessage}</p>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{progress}% complete</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Info Footer */}
-            {!isProcessing && !result && (
-              <div className="flex items-center justify-center gap-10 py-8 border-t border-white/5 opacity-40">
-                 <div className="flex items-center gap-3">
-                    <ShieldCheck size={18} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Private Processing</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                    <Zap size={18} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">AI Ultra Precision</span>
-                 </div>
+            {error && (
+              <div className="rounded-2xl bg-red-500/10 border border-red-500/20 px-5 py-4 text-sm font-bold text-red-300">
+                {error}
               </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </section>
+
+          <aside className="xl:col-span-4 space-y-6">
+            <div className="rounded-[3rem] glass-dark border border-white/10 p-8 space-y-8">
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-widest">Removal Studio</h3>
+                <p className="mt-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                  Click the image to move the removal zone.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => {
+                      setRegion(preset.region);
+                      setResult(null);
+                    }}
+                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-accent-purple/30 text-left transition-all"
+                  >
+                    <LocateFixed size={16} className="text-accent-purple mb-3" />
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Zone Size</p>
+                  <p className="text-[10px] font-black text-white">{Math.round(region.width * 100)}%</p>
+                </div>
+                <input
+                  type="range"
+                  min="8"
+                  max="80"
+                  value={Math.round(region.width * 100)}
+                  onChange={(event) => {
+                    const width = Number(event.target.value) / 100;
+                    setRegion((current) => ({ ...current, width, height: Math.max(0.06, width * 0.33) }));
+                    setResult(null);
+                  }}
+                  className="w-full accent-accent-purple h-1 bg-white/5 rounded-full"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Blend Strength</p>
+                  <p className="text-[10px] font-black text-white">{strength}%</p>
+                </div>
+                <input
+                  type="range"
+                  min="20"
+                  max="100"
+                  value={strength}
+                  onChange={(event) => setStrength(Number(event.target.value))}
+                  className="w-full accent-accent-purple h-1 bg-white/5 rounded-full"
+                />
+              </div>
+
+              <button
+                onClick={handleProcess}
+                disabled={isProcessing}
+                className="w-full px-8 py-5 rounded-2xl premium-gradient text-white font-black text-[11px] uppercase tracking-[0.25em] shadow-3xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {isProcessing ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
+                {isProcessing ? "Cleaning..." : "Remove Watermark"}
+              </button>
+
+              {result && (
+                <a
+                  href={result}
+                  download={`lumora-no-watermark-${Date.now()}.jpg`}
+                  className="w-full px-8 py-5 rounded-2xl bg-white text-black font-black text-[11px] uppercase tracking-[0.25em] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3"
+                >
+                  <Download size={20} />
+                  Download Result
+                </a>
+              )}
+
+              <button
+                onClick={reset}
+                className="w-full px-6 py-4 rounded-2xl bg-white/[0.03] border border-white/10 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/[0.06] transition-all flex items-center justify-center gap-3"
+              >
+                <RefreshCw size={16} />
+                New Image
+              </button>
+            </div>
+
+            <div className="rounded-[2.5rem] bg-accent-cyan/5 border border-accent-cyan/10 p-6 grid grid-cols-2 gap-4 text-zinc-400">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={18} className="text-accent-cyan" />
+                <span className="text-[9px] font-black uppercase tracking-widest">Private</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Zap size={18} className="text-accent-purple" />
+                <span className="text-[9px] font-black uppercase tracking-widest">Region Based</span>
+              </div>
+              {result && (
+                <div className="col-span-2 flex items-center gap-3 text-emerald-400">
+                  <CheckCircle2 size={18} />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Clean image ready</span>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }

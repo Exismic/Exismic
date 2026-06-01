@@ -42,20 +42,32 @@ export function ManageSubscriptionModal({
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    console.log("[ManageSubscriptionModal] Mounted. User object:", user);
+  }, [user]);
 
   const [localCancelled, setLocalCancelled] = useState(false);
 
   // Check local storage for persistent cancellation state if DB is slow
   const isStorageCancelled = typeof window !== 'undefined' && user?.email && localStorage.getItem(`cancelled_${user.email}`) === 'true';
 
-  // Determine if already cancelled (Check both snake_case and camelCase for safety)
+  // Determine if already cancelled (Check both snake_case and camelCase for safety).
+  // planExpiresAt can also mean the next billing/end date, so it must not imply cancellation by itself.
   const isCancelled = localCancelled || 
                       isStorageCancelled ||
                       user?.subscription_status === 'cancelled' || 
-                      user?.subscriptionStatus === 'cancelled' || 
-                      (user?.plan === 'pro' && !!user?.plan_expires_at) ||
-                      (user?.plan === 'pro' && !!user?.planExpiresAt);
+                      user?.subscriptionStatus === 'cancelled';
+  
+  console.log("[ManageSubscriptionModal] isCancelled evaluation:", {
+    isCancelled,
+    localCancelled,
+    isStorageCancelled,
+    plan: user?.plan,
+    subscriptionStatus: user?.subscriptionStatus,
+    subscription_status: user?.subscription_status,
+    planExpiresAt: user?.planExpiresAt,
+    plan_expires_at: user?.plan_expires_at
+  });
+
   const expiresAt = (user?.plan_expires_at || user?.planExpiresAt) ? new Date(user?.plan_expires_at || user?.planExpiresAt) : null;
   
   // Billing date calculation
@@ -92,7 +104,7 @@ export function ManageSubscriptionModal({
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -105,19 +117,19 @@ export function ManageSubscriptionModal({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.9)] max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[2rem] md:rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.9)] max-h-[calc(100dvh-1.5rem)] flex flex-col"
           >
             {/* Top Shine */}
             <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-accent-purple/10 to-transparent pointer-events-none" />
 
-            <div className="p-10 border-b border-white/5 flex items-center justify-between relative bg-white/[0.01] shrink-0">
-              <div className="flex items-center gap-5">
+            <div className="p-5 sm:p-8 md:p-10 border-b border-white/5 flex items-start justify-between gap-4 relative bg-white/[0.01] shrink-0">
+              <div className="flex min-w-0 items-center gap-4 sm:gap-5">
                 <div className="w-14 h-14 rounded-[1.25rem] bg-zinc-900 flex items-center justify-center text-accent-purple border border-white/10 shadow-2xl relative group overflow-hidden">
                   <div className="absolute inset-0 bg-accent-purple/5 group-hover:bg-accent-purple/10 transition-colors" />
                   <Crown size={28} className="relative z-10" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-2">
                     {isCancelled ? "Canceled" : "Elite Membership"}
                     {!isCancelled && <Check size={18} className="text-emerald-500" />}
                   </h3>
@@ -128,16 +140,16 @@ export function ManageSubscriptionModal({
               </div>
               <button 
                 onClick={onClose}
-                className="p-3 hover:bg-white/5 rounded-full transition-all text-zinc-500 hover:text-white shrink-0"
+                className="min-h-11 min-w-11 hover:bg-white/5 rounded-full transition-all text-zinc-500 hover:text-white shrink-0 flex items-center justify-center"
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-10 space-y-10 overflow-y-auto no-scrollbar relative z-10">
+            <div className="p-5 sm:p-8 md:p-10 space-y-6 sm:space-y-10 overflow-y-auto no-scrollbar relative z-10">
               {/* Plan Overview Card */}
               <div className={cn(
-                "p-10 rounded-[2.75rem] relative overflow-hidden group transition-all duration-700",
+                "p-6 sm:p-10 rounded-[2rem] sm:rounded-[2.75rem] relative overflow-hidden group transition-all duration-700",
                 isCancelled ? "bg-zinc-950 border border-white/5" : "bg-[#050505] border border-accent-purple/30 shadow-[0_0_40px_rgba(168,85,247,0.1)]"
               )}>
                 <div className="absolute top-0 right-0 p-6 opacity-5">
@@ -159,8 +171,8 @@ export function ManageSubscriptionModal({
                     )}
                   </div>
                   
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-6xl font-black italic text-white tracking-tighter">${PRICING_CONFIG.PRO_PLAN.USD}</span>
+                  <div className="flex flex-wrap items-baseline gap-3">
+                    <span className="text-5xl sm:text-6xl font-black italic text-white tracking-tighter">${PRICING_CONFIG.PRO_PLAN.USD}</span>
                     <span className="text-zinc-500 text-sm font-bold uppercase tracking-[0.15em]">/ Month</span>
                   </div>
                   
@@ -292,4 +304,3 @@ export function ManageSubscriptionModal({
 
   return createPortal(modalContent, document.body);
 }
-

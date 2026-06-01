@@ -1,64 +1,186 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 
+const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+const MAX_OUTPUT_EDGE = 3200;
+
+function clampNumber(value: FormDataEntryValue | null, fallback: number, min: number, max: number) {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+}
+
+function getBoolean(formData: FormData, key: string, fallback = true) {
+  const value = formData.get(key);
+  if (value === null) return fallback;
+  return value === "true";
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function tryModalRestore(params: {
+  buffer: Buffer;
+  file: File;
+  strength: number;
+  faces: boolean;
+  color: boolean;
+  sharpen: boolean;
+  denoise: boolean;
+  upscale: number;
+}) {
+  const modalUrl = process.env.MODAL_PHOTO_RESTORER_URL;
+  const modalApiKey = process.env.MODAL_PHOTO_RESTORER_API_KEY;
+
+  if (!modalUrl || !modalApiKey) return null;
+
+  const formData = new FormData();
+  formData.append("file", new Blob([new Uint8Array(params.buffer)], { type: params.file.type }), params.file.name || "photo.png");
+  formData.append("strength", String(params.strength));
+  formData.append("faces", String(params.faces));
+  formData.append("color", String(params.color));
+  formData.append("sharpen", String(params.sharpen));
+  formData.append("denoise", String(params.denoise));
+  formData.append("upscale", String(params.upscale));
+
+  const response = await fetch(`${modalUrl.replace(/\/$/, "")}/restore`, {
+    method: "POST",
+    headers: {
+      "X-Api-Key": modalApiKey,
+    },
+    body: formData,
+    signal: AbortSignal.timeout(120000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Modal restoration failed with HTTP ${response.status}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
+async function restoreWithSharp(params: {
+  buffer: Buffer;
+  strength: number;
+  faces: boolean;
+  color: boolean;
+  sharpen: boolean;
+  denoise: boolean;
+  upscale: number;
+}) {
+  const metadata = await sharp(params.buffer).metadata();
+  const sourceWidth = metadata.width || 0;
+  const sourceHeight = metadata.height || 0;
+
+  if (!sourceWidth || !sourceHeight) {
+    throw new Error("Could not read image dimensions.");
+  }
+
+  const scale = params.upscale > 1 ? params.upscale : 1;
+  const targetWidth = Math.min(MAX_OUTPUT_EDGE, Math.round(sourceWidth * scale));
+  const targetHeight = Math.min(MAX_OUTPUT_EDGE, Math.round(sourceHeight * scale));
+  const strengthFactor = params.strength / 100;
+
+  let pipeline = sharp(params.buffer, { failOn: "none" })
+    .rotate()
+    .resize({
+      width: targetWidth,
+      height: targetHeight,
+      fit: "inside",
+      withoutEnlargement: scale === 1,
+      kernel: sharp.kernel.lanczos3,
+    });
+
+  if (params.denoise) {
+    pipeline = pipeline.median(params.strength > 65 ? 2 : 1);
+  }
+
+  if (params.color) {
+    pipeline = pipeline
+      .normalise()
+      .modulate({
+        brightness: 1.02 + strengthFactor * 0.06,
+        saturation: 1.04 + strengthFactor * 0.22,
+      })
+      .linear(1.04 + strengthFactor * 0.12, -(4 + strengthFactor * 8));
+  } else {
+    pipeline = pipeline.linear(1.03 + strengthFactor * 0.08, -3);
+  }
+
+  if (params.faces) {
+    pipeline = pipeline.gamma(1.02).tint({ r: 255, g: 248, b: 240 });
+  }
+
+  if (params.sharpen) {
+    pipeline = pipeline.sharpen({
+      sigma: 0.8 + strengthFactor * 1.1,
+      m1: 0.5,
+      m2: 2.5 + strengthFactor * 6,
+      x1: 2,
+      y2: 8 + strengthFactor * 8,
+      y3: 14 + strengthFactor * 8,
+    });
+  }
+
+  return pipeline.png({ quality: 100, compressionLevel: 9 }).toBuffer();
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const strength = parseInt(formData.get("strength") as string || "70");
-    const faces = formData.get("faces") === "true";
-    const color = formData.get("color") === "true";
-    const sharpen = formData.get("sharpen") === "true";
+    const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "File is required" }, { status: 400 });
+      return NextResponse.json({ error: "File is required." }, { status: 400 });
     }
 
+    if (!SUPPORTED_INPUT_TYPES.has(file.type)) {
+      return NextResponse.json({ error: "Only PNG, JPG, WebP, and AVIF images are supported." }, { status: 415 });
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      return NextResponse.json({ error: "Image is too large. Maximum size is 20MB." }, { status: 413 });
+    }
+
+    const strength = clampNumber(formData.get("strength"), 70, 10, 100);
+    const faces = getBoolean(formData, "faces", true);
+    const color = getBoolean(formData, "color", true);
+    const sharpen = getBoolean(formData, "sharpen", true);
+    const denoise = getBoolean(formData, "denoise", true);
+    const upscale = clampNumber(formData.get("upscale"), 1, 1, 2);
     const buffer = Buffer.from(await file.arrayBuffer());
-    let pipeline = sharp(buffer);
 
-    // 1. Core Correction: Fighting Fade & Age
-    // Modulate exposure and contrast
-    pipeline = pipeline.modulate({
-      brightness: 1.05,
-      saturation: color ? 1.2 : 1.0,
-    }).linear(1.1, -0.05); // Boost contrast slightly
+    let provider = "sharp-local-restorer";
+    let resultBuffer: Buffer | null = null;
 
-    // 2. Grain Mitigation (Multi-pass logic)
-    if (strength > 50) {
-      // Gentle blur to kill noise, followed by re-sharpening
-      pipeline = pipeline.blur(0.4).sharpen({ sigma: 1.5 });
+    try {
+      resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale });
+      if (resultBuffer) provider = "modal-gfpgan-codeformer";
+    } catch (modalError) {
+      console.error("Modal Photo Restore Failed:", getErrorMessage(modalError));
     }
 
-    // 3. Detail Reclamation
-    if (sharpen) {
-      pipeline = pipeline.sharpen({
-        sigma: 2,
-        m1: 0,
-        m2: 10,
-        x1: 2,
-        y2: 10,
-        y3: 20
-      });
+    if (!resultBuffer) {
+      resultBuffer = await restoreWithSharp({ buffer, strength, faces, color, sharpen, denoise, upscale });
     }
 
-    // 4. Face Enhancement Simulation
-    // Since we don't have GFPGAN here, we focus on high-fidelity sharpening 
-    // and contrast in center to mimic clarity
-    if (faces) {
-      pipeline = pipeline.gamma(1.1); // Brighten midtones
-    }
-
-    const resultBuffer = await pipeline.png({ quality: 100 }).toBuffer();
+    const outputMetadata = await sharp(resultBuffer).metadata();
 
     return NextResponse.json({
       success: true,
       result: `data:image/png;base64,${resultBuffer.toString("base64")}`,
-      size: resultBuffer.length
+      size: resultBuffer.length,
+      width: outputMetadata.width,
+      height: outputMetadata.height,
+      format: "png",
+      provider,
+      options: { strength, faces, color, sharpen, denoise, upscale },
     });
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Restorer API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) || "Restoration failed." }, { status: 500 });
   }
 }

@@ -21,27 +21,29 @@ export function usePro() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('User')
-        .select('*')
-        .eq('email', session.user.email)
-        .single();
-
-      if (data) {
-        setUser(data);
-        const plan = (data.plan || data.planType || "free").toLowerCase();
-        const rawExpiry = data.plan_expires_at || data.planExpiresAt;
-        const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-        const now = new Date();
+      try {
+        const response = await fetch(`/api/user/profile?t=${Date.now()}`, { cache: 'no-store' });
+        const json = await response.json();
         
-        let isUserPro = plan === "pro";
-        
-        // If plan is pro but it has an expiry date in the past, they are no longer pro
-        if (isUserPro && expiresAt && expiresAt < now) {
-          isUserPro = false;
+        if (json.success && json.user) {
+          const data = json.user;
+          setUser(data);
+          const plan = (data.plan || data.planType || "free").toLowerCase();
+          const rawExpiry = data.planExpiresAt || data.plan_expires_at;
+          const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
+          const now = new Date();
+          
+          let isUserPro = plan === "pro";
+          if (isUserPro && expiresAt && expiresAt < now) {
+            isUserPro = false;
+          }
+          setIsPro(isUserPro);
+        } else {
+          setIsPro(false);
         }
-        
-        setIsPro(isUserPro);
+      } catch (err) {
+        console.error("usePro initial fetch error:", err);
+        setIsPro(false);
       }
       setIsLoading(false);
     }
@@ -93,20 +95,29 @@ export function usePro() {
       setIsLoading(false);
       return;
     }
-    const { data } = await supabase
-      .from('User')
-      .select('*')
-      .eq('email', session.user.email)
-      .single();
-    if (data) {
-      setUser(data);
-      const plan = (data.plan || data.planType || "free").toLowerCase();
-      const rawExpiry = data.plan_expires_at || data.planExpiresAt;
-      const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-      const now = new Date();
-      let isUserPro = plan === "pro";
-      if (isUserPro && expiresAt && expiresAt < now) isUserPro = false;
-      setIsPro(isUserPro);
+    try {
+      const response = await fetch(`/api/user/profile?t=${Date.now()}`, { cache: 'no-store' });
+      const json = await response.json();
+      
+      if (json.success && json.user) {
+        const data = json.user;
+        setUser(data);
+        const plan = (data.plan || data.planType || "free").toLowerCase();
+        const rawExpiry = data.planExpiresAt || data.plan_expires_at;
+        const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
+        const now = new Date();
+        
+        let isUserPro = plan === "pro";
+        if (isUserPro && expiresAt && expiresAt < now) {
+          isUserPro = false;
+        }
+        setIsPro(isUserPro);
+      } else {
+        setIsPro(false);
+      }
+    } catch (err) {
+      console.error("usePro refresh error:", err);
+      setIsPro(false);
     }
     setIsLoading(false);
   };

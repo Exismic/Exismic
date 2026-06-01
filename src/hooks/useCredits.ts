@@ -145,7 +145,7 @@ export function useCredits() {
 
     try {
       // Use no-store to avoid Next.js caching across users or sessions
-      const response = await fetch('/api/user/credits', { cache: 'no-store' });
+      const response = await fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' });
       const json = await response.json();
 
       if (json.success && json.data) {
@@ -307,7 +307,7 @@ export function useCredits() {
       // Force fetch by skipping state check
       if (userId) {
         setLoading(true);
-        fetch('/api/user/credits', { cache: 'no-store' })
+        fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' })
           .then(res => res.json())
           .then(json => {
             if (json.success && json.data) {

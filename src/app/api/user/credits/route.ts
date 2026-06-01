@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server'
 import { getUserCredits, deductCredits, addCredits } from '@/lib/credits'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/user/credits
  * Fetch current user's credits (with automatic daily reset check)
@@ -32,6 +34,12 @@ export async function GET(request: NextRequest) {
         aiMessagesToday: credits.aiMessagesToday,
         plan: credits.plan,
         lastReset: credits.creditsLastReset,
+      }
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       }
     })
   } catch (err) {

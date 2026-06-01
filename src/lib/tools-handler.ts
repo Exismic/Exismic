@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
@@ -10,10 +11,22 @@ export interface ToolOptions {
   optionalFile?: boolean;
 }
 
+export interface ToolProcessorContext {
+  user: {
+    id: string;
+    plan?: string | null;
+    subscriptionStatus?: string | null;
+  };
+  isPro: boolean;
+  priority: boolean;
+  queue: "priority" | "normal";
+  processingLabel: string;
+}
+
 export async function withToolHandler(
   req: NextRequest, 
   options: ToolOptions,
-  processor: (file: Buffer, jobId: string, formData: FormData) => Promise<{ resultUrl: string, metadata?: any }>
+  processor: (file: Buffer, jobId: string, formData: FormData, context: ToolProcessorContext) => Promise<{ resultUrl: string, metadata?: Record<string, unknown> }>
 ) {
   try {
     const supabase = await createClient();
@@ -45,6 +58,10 @@ export async function withToolHandler(
     }
     */
     
+    const isPro = user.plan === "pro" || user.subscriptionStatus === "active";
+    const queue = isPro ? "priority" : "normal";
+    const processingLabel = isPro ? "Processing with Priority..." : "Processing...";
+
     // We'll use the prisma user object for the rest of the logic
     const session = { user }; // Mock session for compatibility
 
@@ -74,6 +91,11 @@ export async function withToolHandler(
         toolType: options.toolId,
         status: "PROCESSING",
         progress: 10,
+        metadata: {
+          priority: isPro,
+          queue,
+          processingLabel,
+        } satisfies Prisma.InputJsonObject,
       }
     });
 
@@ -85,7 +107,17 @@ export async function withToolHandler(
     }
 
     // Call actual AI/Tool logic
-    const result = await processor(buffer, job.id, formData);
+    const result = await processor(buffer, job.id, formData, {
+      user: {
+        id: user.id,
+        plan: user.plan,
+        subscriptionStatus: user.subscriptionStatus,
+      },
+      isPro,
+      priority: isPro,
+      queue,
+      processingLabel,
+    });
 
     // 6. Update Job & Deduct Credits
     await prisma.$transaction([
@@ -95,6 +127,12 @@ export async function withToolHandler(
           status: "COMPLETED",
           progress: 100,
           resultUrl: result.resultUrl,
+          metadata: {
+            ...(result.metadata ?? {}),
+            priority: isPro,
+            queue,
+            processingLabel,
+          } as Prisma.InputJsonObject,
         }
       }),
       prisma.user.update({
@@ -106,11 +144,15 @@ export async function withToolHandler(
     return NextResponse.json({ 
       success: true, 
       jobId: job.id, 
-      result: result.resultUrl 
+      result: result.resultUrl,
+      priority: isPro,
+      queue,
+      processingLabel,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Tool Processing Error [${options.toolId}]:`, error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

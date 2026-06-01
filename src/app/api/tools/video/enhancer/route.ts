@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@/utils/supabase/server";
 
 export const maxDuration = 300; // 5 minutes
 export const dynamic = 'force-dynamic';
@@ -14,9 +16,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No video file provided" }, { status: 400 });
     }
 
-    const MODAL_URL = process.env.MODAL_VIDEO_ENHANCER_URL || "https://syedrayangames--lumora-video-tools-enhance-video.modal.run";
+    const supabase = await createClient();
+    const { data: { user: sbUser } } = await supabase.auth.getUser();
+    let priority = false;
+
+    if (sbUser) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: sbUser.id },
+        select: { plan: true, subscriptionStatus: true },
+      });
+      priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
+    }
+
+    const queue = priority ? "priority" : "normal";
+    const MODAL_URL = priority
+      ? process.env.MODAL_VIDEO_ENHANCER_PRIORITY_URL || process.env.MODAL_VIDEO_PRIORITY_URL || process.env.MODAL_VIDEO_ENHANCER_URL || "https://syedrayangames--lumora-video-tools-enhance-video.modal.run"
+      : process.env.MODAL_VIDEO_ENHANCER_NORMAL_URL || process.env.MODAL_VIDEO_ENHANCER_URL || "https://syedrayangames--lumora-video-tools-enhance-video.modal.run";
 
     console.log(`[VideoEnhancer] Processing: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+    console.log(`[VideoEnhancer] Queue: ${queue}`);
     console.log(`[VideoEnhancer] Modal URL: ${MODAL_URL}`);
 
     // Convert file to base64
@@ -31,6 +49,8 @@ export async function POST(req: NextRequest) {
         file_data_base64: base64Data,
         level: level,
         features: features,
+        priority,
+        queue,
       }),
     });
 
@@ -60,6 +80,8 @@ export async function POST(req: NextRequest) {
         "Content-Type": "video/mp4",
         "Content-Disposition": `attachment; filename="${result.file_name}"`,
         "Content-Length": resultBuffer.length.toString(),
+        "X-Lumora-Priority": priority ? "true" : "false",
+        "X-Lumora-Queue": queue,
       },
     });
 

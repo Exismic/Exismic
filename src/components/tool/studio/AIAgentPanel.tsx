@@ -175,14 +175,22 @@ export function AIAgentPanel() {
               )}
             </div>
             
-            <div className={cn(
-              "max-w-[95%] px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm",
-              msg.role === 'assistant' 
-                ? "bg-white/[0.03] border border-white/5 text-zinc-300" 
-                : "bg-accent-blue/10 border border-accent-blue/20 text-white"
-            )}>
-              {renderMessageContent(msg.content)}
-            </div>
+            {msg.role === 'user' ? (
+              <div className="relative p-[1.5px] bg-gradient-to-r from-accent-blue/15 to-purple-500/15 group-hover:from-accent-blue/35 group-hover:to-purple-500/35 rounded-2xl rounded-tr-sm transition-all duration-500 max-w-[95%] shadow-md">
+                <div className="relative px-4 py-3 bg-[#0c0c0e]/95 text-[13px] leading-relaxed rounded-[calc(1rem-1px)] rounded-tr-[calc(0.25rem-1px)] text-white pl-6 pr-4">
+                  {/* Accent bar */}
+                  <div className="absolute left-0 top-2.5 bottom-2.5 w-[2px] rounded-r-full bg-accent-blue shadow-[0_0_8px_rgba(59,130,246,0.5)] z-20" />
+                  {renderMessageContent(msg.content)}
+                </div>
+              </div>
+            ) : (
+              <div className={cn(
+                "max-w-[95%] px-4 py-3 rounded-2xl rounded-tl-sm text-[13px] leading-relaxed shadow-sm",
+                "bg-white/[0.03] border border-white/5 text-zinc-300"
+              )}>
+                {renderMessageContent(msg.content)}
+              </div>
+            )}
           </div>
         ))}
         {isGenerating && (

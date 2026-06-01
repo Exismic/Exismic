@@ -14,7 +14,8 @@ import {
   Maximize2,
   Wand2,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
@@ -36,20 +37,67 @@ const ASPECT_RATIOS = [
   { name: "4:3 Classic", width: 1024, height: 768 },
 ];
 
+const STYLE_PRESETS = [
+  { id: "none", name: "Default (None)", suffix: "" },
+  { id: "realistic", name: "Photorealistic", suffix: ", photorealistic raw portrait, cinematic lighting, 8k, extremely detailed, real photography" },
+  { id: "anime", name: "Anime", suffix: ", gorgeous anime illustration, clean vectors, colorful line art, studio ghibli aesthetic" },
+  { id: "cinematic", name: "Cinematic Still", suffix: ", cinematic movie shot, heavy contrast, dramatic lens flare, unreal engine 5 render, epic depth of field" },
+  { id: "cyberpunk", name: "Cyberpunk", suffix: ", futuristic cyberpunk theme, neon glows, wet metropolitan city streets, hyper-detailed sci-fi concept art" },
+  { id: "fantasy", name: "Fantasy Land", suffix: ", dreamy magical fantasy setting, whimsical glow, bright colors, starry sky background, highly detailed" },
+  { id: "3d-render", name: "3D Render", suffix: ", gorgeous 3d model render, stylized smooth clay render, blender render, vibrant neon colors" }
+];
+
 const EXAMPLE_PROMPTS = [
   "A futuristic cyberpunk city with neon lights and flying cars, cinematic lighting, 8k resolution.",
   "An ethereal forest with glowing mushrooms and a crystal clear lake, studio ghibli style.",
   "Portrait of a mechanical owl with emerald eyes, extremely detailed, macro photography.",
   "Minimalist abstract landscape of a red desert on a distant planet, flat design style.",
+  "A gorgeous glass greenhouse floating in a starry space nebulae, celestial hyper-detailed art.",
+  "Sleek hypercar speeding down a neon Japanese highway at midnight, motion blur, unreal engine 5 render.",
+  "A cute baby dragon sleeping inside a golden teacup, extremely cozy cinematic render."
 ];
 
 export function ImageGeneratorTool() {
-  const { deductCredits, credits, plan, notification } = useCredits();
+  const { deductCredits, credits, plan, notification, isPro } = useCredits();
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<string[]>([]);
   const [history, setHistory] = useState<{url: string, prompt: string, width: number, height: number}[]>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'history'>('generate');
   const [error, setError] = useState<React.ReactNode | null>(null);
+  
+  const [selectedStyle, setSelectedStyle] = useState("none");
+  const [estimatedTime, setEstimatedTime] = useState(5.0);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("lumora_image_history");
+    if (stored) {
+      try {
+        setHistory(JSON.parse(stored));
+      } catch (e) {}
+    }
+  }, []);
+
+  const [enhancedPrompt, setEnhancedPrompt] = useState<string | null>(null);
+
+  // Decimal countdown timer for estimated inference time
+  useEffect(() => {
+    let timer: any;
+    const startEstimate = isPro ? 2.5 : 5.0;
+    const floorEstimate = isPro ? 0.3 : 0.5;
+    if (isGenerating) {
+      setEstimatedTime(startEstimate);
+      timer = setInterval(() => {
+        setEstimatedTime(prev => {
+          if (prev <= floorEstimate + 0.1) return floorEstimate; // decelerate close to zero rather than hitting negative values
+          return Number((prev - 0.1).toFixed(1));
+        });
+      }, 100);
+    } else {
+      setEstimatedTime(startEstimate);
+    }
+    return () => clearInterval(timer);
+  }, [isGenerating, isPro]);
 
   const { register, handleSubmit, setValue, watch } = useForm<GeneratorOptions>({
     defaultValues: {
@@ -87,17 +135,33 @@ export function ImageGeneratorTool() {
 
     setIsGenerating(true);
     setError(null);
+    setEnhancedPrompt(null);
     try {
-      const resp = await axios.post("/api/tools/ai/image-generate", data);
+      const preset = STYLE_PRESETS.find(p => p.id === selectedStyle);
+      const finalPrompt = preset && preset.suffix ? `${data.prompt.trim()}${preset.suffix}` : data.prompt.trim();
+
+      const resp = await axios.post("/api/tools/ai/image-generate", {
+        ...data,
+        prompt: finalPrompt
+      });
+      
       if (resp.data.success) {
         const newUrl = resp.data.imageUrl;
         setResults([newUrl]);
-        setHistory(prev => [{ 
+        setEnhancedPrompt(resp.data.enhancedPrompt || null);
+        
+        const newHistoryItem = { 
           url: newUrl, 
           prompt: data.prompt,
           width: data.width,
           height: data.height 
-        }, ...prev]);
+        };
+
+        setHistory(prev => {
+          const updated = [newHistoryItem, ...prev];
+          localStorage.setItem("lumora_image_history", JSON.stringify(updated));
+          return updated;
+        });
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || "Failed to generate image. Please try again.";
@@ -184,6 +248,29 @@ export function ImageGeneratorTool() {
                     )}
                   >
                     {ratio.name}
+                  </button>
+                ))}
+             </div>
+          </div>
+
+          {/* Style Presets */}
+          <div className="space-y-3">
+             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Style Preset</label>
+             <div className="grid grid-cols-2 gap-2">
+                {STYLE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setSelectedStyle(preset.id)}
+                    className={cn(
+                      "p-2.5 rounded-xl border text-[9px] font-bold transition-all text-center leading-tight truncate",
+                      selectedStyle === preset.id 
+                        ? "bg-purple-500/20 border-accent-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]" 
+                        : "bg-white/5 border-white/5 text-zinc-500 hover:text-zinc-200"
+                    )}
+                    title={preset.name}
+                  >
+                    {preset.name}
                   </button>
                 ))}
              </div>
@@ -291,7 +378,7 @@ export function ImageGeneratorTool() {
                  {isGenerating ? (
                    <>
                     <RefreshCw size={20} className="animate-spin" />
-                    Generating...
+                    {isPro ? "Priority Generating..." : "Generating..."}
                    </>
                  ) : (
                   <>
@@ -344,11 +431,25 @@ export function ImageGeneratorTool() {
                               <Sparkles size={40} className="text-white animate-pulse" />
                            </div>
                         </div>
-                        <div className="space-y-3">
-                           <p className="text-2xl font-black text-white tracking-tight animate-pulse">Generating your masterpiece...</p>
-                           <div className="flex flex-col gap-1">
-                              <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.3em]">Invoking Groq LPU Flux Engines</p>
-                              <p className="text-accent-purple/60 font-medium text-[9px] uppercase tracking-widest">Optimized for Near-Instant Inference</p>
+                        <div className="space-y-4">
+                           {isPro && (
+                              <div className="mx-auto w-fit px-4 py-2 rounded-full bg-amber-400/10 border border-amber-300/30 shadow-[0_0_24px_rgba(251,191,36,0.12)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
+                                 <Zap size={13} className="fill-amber-200" />
+                                 Priority Processing
+                              </div>
+                           )}
+                           <p className="text-2xl font-black text-white tracking-tight animate-pulse">
+                              {isPro ? "Processing with Priority..." : "Generating your masterpiece..."}
+                           </p>
+                           <div className="flex flex-col items-center gap-2">
+                              <div className="px-4 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] flex items-center gap-2 text-xs font-black tracking-widest uppercase italic text-accent-purple">
+                                 <span className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-ping shrink-0" />
+                                 <span>Estimated Time: ~{estimatedTime}s</span>
+                              </div>
+                              <div className="flex flex-col gap-1 mt-1">
+                                 <p className="text-zinc-500 font-bold text-[9px] uppercase tracking-[0.3em]">Invoking Flux.1 Schnell engines</p>
+                                 <p className="text-accent-cyan/60 font-medium text-[8px] uppercase tracking-widest">Optimized for Ultra Fast 2-6s Inference</p>
+                              </div>
                            </div>
                         </div>
                      </div>
@@ -377,6 +478,19 @@ export function ImageGeneratorTool() {
                               </button>
                            </div>
                         </div>
+
+                        {enhancedPrompt && (
+                           <div className="p-5 rounded-[1.5rem] bg-accent-purple/5 border border-accent-purple/15 text-left space-y-2 relative overflow-hidden group">
+                              <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/10 to-transparent pointer-events-none" />
+                              <div className="flex items-center gap-2 text-accent-purple relative z-10">
+                                 <Sparkles size={14} className="animate-pulse" />
+                                 <span className="text-[10px] font-black uppercase tracking-[0.25em]">Lumora AI Prompt Enhancement</span>
+                              </div>
+                              <p className="text-xs text-zinc-400 font-medium leading-relaxed italic relative z-10">
+                                 "{enhancedPrompt}"
+                              </p>
+                           </div>
+                        )}
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap items-center justify-center gap-4 pb-4">

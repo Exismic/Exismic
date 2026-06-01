@@ -1,7 +1,7 @@
 import { TOOLS, CATEGORIES } from "@/data/tools";
 import { ToolDetailClient } from "./ToolDetailClient";
 import { getToolMetadata } from "@/lib/seo";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -17,6 +17,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ToolDetailPage({ params }: PageProps) {
   const { category: categoryId, toolId } = await params;
+  
+  if (categoryId === "ai" && (toolId === "chat" || toolId === "ai-chat")) {
+    redirect("/chat");
+  }
   
   const tool = TOOLS.find(t => t.id === toolId || t.id === `${categoryId}-${toolId}`);
   const category = CATEGORIES.find(c => c.id === categoryId);

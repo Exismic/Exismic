@@ -177,11 +177,12 @@ const PREMIUM_DARK_THEME = (content: string) => `
         </div>
         <div class="footer">
             <div class="footer-links">
-                <a href="${SITE_URL}" class="footer-link">Website</a>
+                <a href="${SITE_URL}/terms-of-service" class="footer-link">Terms</a>
                 <a href="${SITE_URL}/dashboard" class="footer-link">Dashboard</a>
                 <a href="${SITE_URL}/support" class="footer-link">Support</a>
+                <a href="${SITE_URL}/privacy-policy" class="footer-link">Privacy</a>
             </div>
-            <p>&copy; 2026 Lumora AI</p>
+            <p>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</p>
         </div>
     </div>
 </body>
@@ -194,7 +195,125 @@ export async function sendProWelcomeEmail(email: string, details: {
   date: string;
 }) {
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
+      from: SENDER_PAYMENT,
+      to: email,
+      subject: 'Welcome to Lumora Pro - Your Membership is Active',
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>Welcome to Lumora Pro</title>
+</head>
+<body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Your Lumora Pro membership is active. Open the dashboard and start creating with premium power.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 20% 0%, rgba(124,58,237,0.22), transparent 34%), radial-gradient(circle at 86% 18%, rgba(6,182,212,0.16), transparent 30%);">
+    <tr>
+      <td align="center" style="padding:46px 18px 34px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:680px;">
+          <tr>
+            <td style="padding:0 0 18px; text-align:center;">
+              <div style="display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.75), rgba(34,211,238,0.5), rgba(255,255,255,0.12)); box-shadow:0 0 60px rgba(124,58,237,0.26);">
+                <div style="border-radius:27px; background:rgba(8,8,14,0.92); padding:18px 28px;">
+                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#a78bfa;">.</span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="border-radius:34px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:rgba(7,7,12,0.88); box-shadow:0 34px 120px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.28), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
+                    <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,0.36); background:rgba(124,58,237,0.16); color:#c4b5fd; font-size:11px; line-height:1; font-weight:800; letter-spacing:1.7px; text-transform:uppercase;">Membership Activated</div>
+                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.02; letter-spacing:-2.2px; font-weight:900;">Welcome to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora Pro</span></h1>
+                    <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">Your membership is live. Premium credits, faster generation, advanced AI models, and studio-grade tools are now unlocked for your account.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 42px 34px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:24px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.045); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);">
+                      <tr>
+                        <td style="padding:24px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr><td style="padding:0 0 16px; color:#ffffff; font-size:15px; font-weight:850;">Plan details</td><td align="right" style="padding:0 0 16px; color:#a78bfa; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.4px;">Active</td></tr>
+                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Plan</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">Lumora Pro ($6.99/mo)</td></tr>
+                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Invoice ID</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.invoiceId}</td></tr>
+                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Amount Paid</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.amount}</td></tr>
+                            <tr><td style="padding:12px 0 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Next Billing</td><td align="right" style="padding:12px 0 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.date}</td></tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 42px 34px;">
+                    <div style="margin:0 0 16px; color:#ffffff; font-size:16px; font-weight:850;">Key benefits unlocked</div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="50%" style="padding:0 8px 12px 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(124,58,237,0.28);">&#10022;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">1,000 daily credits</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Premium generation capacity every day.</div></div></td>
+                        <td width="50%" style="padding:0 0 12px 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(6,182,212,0.24);">&#9889;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Priority speed</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Faster processing for creative workflows.</div></div></td>
+                      </tr>
+                      <tr>
+                        <td width="50%" style="padding:0 8px 0 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#a855f7,#ec4899); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(236,72,153,0.22);">&#9673;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Elite AI models</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Access GPT-4o and Claude 3.5 Sonnet.</div></div></td>
+                        <td width="50%" style="padding:0 0 0 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#f59e0b,#8b5cf6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(245,158,11,0.20);">&#9733;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Commercial license</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Use generated assets in real projects.</div></div></td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding:0 42px 42px;">
+                    <a href="${SITE_URL}/dashboard" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Go to Dashboard</a>
+                    <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">Your invoice is attached to your account history. You can manage your subscription anytime from Settings.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 12px 0;">
+              <div style="color:#6b7280; font-size:12px; line-height:1.7;">
+                <a href="${SITE_URL}/terms-of-service" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Terms</a>
+                <a href="${SITE_URL}/dashboard" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Dashboard</a>
+                <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
+                <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
+              </div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>You are receiving this email because your Lumora Pro membership was activated.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Email failed:', error);
+    return false;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function sendProWelcomeEmailLegacy(email: string, details: {
+  invoiceId: string;
+  amount: string;
+  date: string;
+}) {
+  try {
+    const { error } = await resend.emails.send({
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Welcome to Lumora Pro! 🎉 Your subscription is active',
@@ -259,7 +378,7 @@ export async function sendProWelcomeEmail(email: string, details: {
 
 export async function sendPaymentFailedEmail(email: string) {
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Lumora - Payment Failed',
@@ -295,7 +414,7 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
   invoiceId: string;
 }) {
   try {
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Credits Refueled ⚡',
@@ -326,6 +445,10 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
         <a href="${SITE_URL}/dashboard" class="cta-button">Resume Creation</a>
       `),
     });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
     return true;
   } catch (error) {
     console.error('Email failed:', error);
@@ -333,35 +456,285 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
   }
 }
 
+function renderTransactionalEmail({
+  preheader,
+  badge,
+  title,
+  body,
+  content,
+  footerNote,
+}: {
+  preheader: string;
+  badge: string;
+  title: string;
+  body: string;
+  content: string;
+  footerNote: string;
+}) {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>Lumora</title>
+</head>
+<body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">${preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 18% 0%, rgba(124,58,237,0.24), transparent 34%), radial-gradient(circle at 86% 10%, rgba(6,182,212,0.18), transparent 30%), radial-gradient(circle at 50% 100%, rgba(168,85,247,0.10), transparent 36%);">
+    <tr>
+      <td align="center" style="padding:48px 18px 38px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:660px;">
+          <tr>
+            <td align="center" style="padding-bottom:20px;">
+              <div style="display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.82), rgba(34,211,238,0.56), rgba(255,255,255,0.12)); box-shadow:0 0 64px rgba(124,58,237,0.30), 0 0 34px rgba(6,182,212,0.12);">
+                <div style="border-radius:27px; background:rgba(8,8,14,0.94); padding:18px 28px;">
+                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#a78bfa;">.</span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="border-radius:34px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:rgba(7,7,12,0.91); box-shadow:0 34px 120px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:48px 42px 30px; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.30), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.06));">
+                    <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(103,232,249,0.32); background:rgba(6,182,212,0.12); color:#67e8f9; font-size:11px; line-height:1; font-weight:850; letter-spacing:1.7px; text-transform:uppercase;">${badge}</div>
+                    <h1 style="margin:0; color:#ffffff; font-size:42px; line-height:1.05; letter-spacing:-2px; font-weight:900;">${title}</h1>
+                    <p style="max-width:510px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">${body}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding:10px 42px 42px;">
+                    ${content}
+                    <p style="margin:22px 0 0; color:#737f94; font-size:12px; line-height:1.6;">${footerNote}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 12px 0;">
+              <div style="color:#6b7280; font-size:12px; line-height:1.7;">
+                <a href="${SITE_URL}/dashboard" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Dashboard</a>
+                <a href="${SITE_URL}/terms-of-service" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Terms</a>
+                <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
+                <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
+              </div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>Trusted account security for your creative workspace.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+}
+
 export async function sendAuthOTP(email: string, otp: string) {
   try {
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Verification Code',
-      html: PREMIUM_DARK_THEME(`
-        <div class="hero-section">
-            <h1>Verify <span class="accent-text">Your Identity.</span></h1>
-            <p>Enter the code below to complete your registration. This code will expire in 10 minutes.</p>
-        </div>
-        
-        <div style="margin: 40px 0; text-align: center;">
-            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 24px; display: inline-block;">
-                <div style="font-size: 48px; font-weight: 800; letter-spacing: 8px; color: #ffffff; font-family: 'Courier New', Courier, monospace;">${otp}</div>
+      subject: 'Your Lumora Verification Code',
+      html: renderTransactionalEmail({
+        preheader: 'Your Lumora verification code expires in 10 minutes.',
+        badge: 'Verification Code',
+        title: 'Verify your <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora account</span>',
+        body: 'Enter this code to finish securing your account and open your Lumora studio.',
+        content: `
+          <div style="margin:4px auto 24px; display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.80), rgba(34,211,238,0.55)); box-shadow:0 0 54px rgba(124,58,237,0.28), 0 0 28px rgba(6,182,212,0.14);">
+            <div style="border-radius:27px; background:rgba(255,255,255,0.045); padding:26px 32px; border:1px solid rgba(255,255,255,0.10);">
+              <div style="font-size:48px; line-height:1; font-weight:900; letter-spacing:9px; color:#ffffff; font-family:'SFMono-Regular','Consolas','Courier New',monospace; text-shadow:0 0 24px rgba(167,139,250,0.46);">${otp}</div>
             </div>
-        </div>
-
-        <p style="font-size: 13px; text-align: center; color: #64748b;">If you didn't request this, you can safely ignore this email.</p>
-      `),
+          </div>
+          <div style="max-width:440px; margin:0 auto; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;">
+            <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">This code expires in 10 minutes. For your security, never share it with anyone.</p>
+          </div>
+        `,
+        footerNote: "Didn't request this? You can safely ignore this email.",
+      }),
     });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
     return true;
   } catch (error) {
     console.error('Email failed:', error);
+    return false;
+  }
+}
+
+export async function sendMagicLinkEmail(email: string, magicLink: string) {
+  try {
+    const { error } = await resend.emails.send({
+      from: SENDER_NOREPLY,
+      to: email,
+      subject: 'Your Lumora Magic Login Link',
+      html: renderTransactionalEmail({
+        preheader: 'Use your one-click Lumora magic link within 15 minutes.',
+        badge: 'One-Click Login',
+        title: 'Login to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora</span>',
+        body: 'Use the secure button below to sign in without a password. This link is one-time use and expires soon.',
+        content: `
+          <a href="${magicLink}" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Login to Lumora</a>
+          <div style="margin-top:24px; padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035);">
+            <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">This magic link expires in 15 minutes. If the button does not work, paste this secure link into your browser:</p>
+            <p style="margin:10px 0 0; word-break:break-all; color:#67e8f9; font-size:12px; line-height:1.6;">${magicLink}</p>
+          </div>
+        `,
+        footerNote: `If you did not request this sign-in link for ${email}, you can safely ignore this email.`,
+      }),
+    });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Magic link email failed:', error);
     return false;
   }
 }
 
 export async function sendWelcomeEmail(email: string) {
+  try {
+    const { error } = await resend.emails.send({
+      from: SENDER_WELCOME,
+      to: email,
+      subject: "Welcome to Lumora - Let's Create Something Amazing",
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>Welcome to Lumora</title>
+</head>
+<body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Welcome to Lumora. Your creative studio is ready.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 18% 0%, rgba(124,58,237,0.24), transparent 36%), radial-gradient(circle at 84% 12%, rgba(6,182,212,0.17), transparent 32%);">
+    <tr>
+      <td align="center" style="padding:46px 18px 34px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:680px;">
+          <tr>
+            <td style="padding:0 0 18px; text-align:center;">
+              <div style="display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.78), rgba(34,211,238,0.52), rgba(255,255,255,0.12)); box-shadow:0 0 60px rgba(124,58,237,0.26);">
+                <div style="border-radius:27px; background:rgba(8,8,14,0.92); padding:18px 28px;">
+                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#a78bfa;">.</span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="border-radius:34px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:rgba(7,7,12,0.90); box-shadow:0 34px 120px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.27), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
+                    <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,0.36); background:rgba(124,58,237,0.16); color:#c4b5fd; font-size:11px; line-height:1; font-weight:800; letter-spacing:1.7px; text-transform:uppercase;">Welcome to the Studio</div>
+                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.04; letter-spacing:-2.2px; font-weight:900;">Your creative workspace is <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">ready</span></h1>
+                    <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">We are thrilled to have you here. Lumora gives you a polished set of AI tools for visuals, writing, productivity, and everyday creative work.</p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:0 42px 34px;">
+                    <div style="margin:0 0 16px; color:#ffffff; font-size:16px; font-weight:850;">Start creating right away</div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="50%" style="padding:0 8px 12px 0;">
+                          <div style="min-height:118px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+                            <div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900;">&#10022;</div>
+                            <div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Try AI Image Generator</div>
+                            <div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Turn prompts into polished images in seconds.</div>
+                          </div>
+                        </td>
+                        <td width="50%" style="padding:0 0 12px 8px;">
+                          <div style="min-height:118px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+                            <div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900;">&#9673;</div>
+                            <div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Remove backgrounds</div>
+                            <div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Clean up product shots and profile images instantly.</div>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td width="50%" style="padding:0 8px 12px 0;">
+                          <div style="min-height:118px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+                            <div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#a855f7,#ec4899); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900;">&#9998;</div>
+                            <div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Chat with Lumora AI</div>
+                            <div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Brainstorm, write, plan, and solve problems faster.</div>
+                          </div>
+                        </td>
+                        <td width="50%" style="padding:0 0 12px 8px;">
+                          <div style="min-height:118px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+                            <div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#14b8a6,#8b5cf6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900;">&#9889;</div>
+                            <div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Use productivity tools</div>
+                            <div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Summarize, convert, organize, and ship daily work.</div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px; border-radius:22px; border:1px solid rgba(167,139,250,0.25); background:linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.055)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.07);">
+                      <tr>
+                        <td style="padding:22px;">
+                          <div style="color:#c4b5fd; font-size:13px; font-weight:850; letter-spacing:0.2px;">Want more power later?</div>
+                          <p style="margin:8px 0 14px; color:#cbd5e1; font-size:13px; line-height:1.65;">Lumora Pro unlocks 1,000 daily premium credits, faster generation, advanced AI models, and commercial-ready workflows.</p>
+                          <a href="${SITE_URL}/pro" style="color:#67e8f9; font-size:13px; font-weight:850; text-decoration:none;">Explore Pro benefits &rarr;</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td align="center" style="padding:0 42px 42px;">
+                    <a href="${SITE_URL}/dashboard" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Go to Dashboard</a>
+                    <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">Your free Lumora account is ready. Start with any tool and build from there.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 12px 0;">
+              <div style="color:#6b7280; font-size:12px; line-height:1.7;">
+                <a href="${SITE_URL}/terms-of-service" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Terms</a>
+                <a href="${SITE_URL}/dashboard" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Dashboard</a>
+                <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
+                <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
+              </div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>You are receiving this email because you created a Lumora account.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Email failed:', error);
+    return false;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function sendWelcomeEmailLegacy(email: string) {
   try {
     await resend.emails.send({
       from: SENDER_NOREPLY,
@@ -408,26 +781,32 @@ export async function sendResetPasswordEmail(email: string, token: string) {
   try {
     const resetLink = `${SITE_URL}/auth/reset-password?token=${token}&email=${email}`;
     
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Reset Your Password',
-      html: PREMIUM_DARK_THEME(`
-        <div class="hero-section">
-            <div class="status-badge" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); color: #f59e0b;">SECURITY ALERT</div>
-            <h1>Password <span class="accent-text" style="color: #f59e0b;">Recovery.</span></h1>
-            <p>We received a request to reset your Lumora password. If this was you, click the button below to choose a new one.</p>
-        </div>
-        
-        <div style="text-align: center; margin: 40px 0;">
-            <a href="${resetLink}" class="cta-button" style="background: #f59e0b; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: bold; display: inline-block;">Reset Password</a>
-        </div>
-
-        <div class="info-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 16px;">
-            <p style="font-size: 13px; margin-bottom: 0; color: #64748b;">This link will expire in 10 minutes. If you didn't request this, you can safely ignore this email and your password will remain unchanged.</p>
-        </div>
-      `),
+      subject: 'Reset Your Lumora Password',
+      html: renderTransactionalEmail({
+        preheader: 'Reset your Lumora password within 10 minutes.',
+        badge: 'Security Request',
+        title: 'Password <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Recovery</span>',
+        body: 'We received a request to reset your Lumora password. If this was you, use the secure button below to choose a new password.',
+        content: `
+          <a href="${resetLink}" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Reset Password</a>
+          <div style="margin-top:24px; padding:18px; border-radius:20px; border:1px solid rgba(245,158,11,0.22); background:rgba(245,158,11,0.075);">
+            <p style="margin:0; color:#f8d294; font-size:12px; line-height:1.65;">This reset link expires in 10 minutes. For your security, only use this link in the browser where you requested it.</p>
+          </div>
+          <div style="margin-top:14px; padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035);">
+            <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">If the button does not work, paste this secure link into your browser:</p>
+            <p style="margin:10px 0 0; word-break:break-all; color:#67e8f9; font-size:12px; line-height:1.6;">${resetLink}</p>
+          </div>
+        `,
+        footerNote: "If you did not request a password reset, ignore this email and your password will stay unchanged.",
+      }),
     });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
     return true;
   } catch (error) {
     console.error('Email failed:', error);

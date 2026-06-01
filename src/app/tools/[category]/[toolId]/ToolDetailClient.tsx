@@ -5,6 +5,7 @@ import { Tool, Category, ICON_MAP } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import { useToolProcessor } from "@/hooks/useToolProcessor";
 import { ImageGeneratorTool } from "@/components/tool/ImageGeneratorTool";
+import { LogoGeneratorTool } from "@/components/tool/LogoGeneratorTool";
 import { PasswordGenerator } from "@/components/tool/PasswordGenerator";
 import { UnitConverter } from "@/components/tool/UnitConverter";
 import { PaletteGenerator } from "@/components/tool/PaletteGenerator";
@@ -155,7 +156,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   };
 
   const PageContent = (
-    <div className="p-4 md:p-12 max-w-7xl mx-auto space-y-12 pb-32">
+    <div className="p-4 md:p-12 max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 md:pb-32 overflow-x-hidden">
       <Script
         id="tool-schema"
         type="application/ld+json"
@@ -173,21 +174,21 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
         />
       )}
        {tool.id !== 'image-eraser' && tool.id !== 'ai-chat' && (
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12 border-b border-zinc-800/50">
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 md:pb-12 border-b border-zinc-800/50">
 
           <div className="space-y-6">
             <Link href={`/category/${categoryId}`} className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all group">
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               {category.name}
             </Link>
-            <div className="flex items-center gap-6">
-               <div className="w-24 h-24 rounded-[2.5rem] glass-dark border border-white/10 flex items-center justify-center shadow-2xl relative group overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
+               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[2rem] sm:rounded-[2.5rem] glass-dark border border-white/10 flex items-center justify-center shadow-2xl relative group overflow-hidden shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
                   <Icon size={48} className={cn("relative z-10", tool.pro ? "text-accent-purple" : "text-white")} />
                </div>
-               <div className="space-y-2 text-left">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic px-8 -mx-8">
+               <div className="space-y-2 text-left min-w-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic break-words">
                       {tool.name}
                     </h1>
                     {tool.pro && (
@@ -196,7 +197,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                       </span>
                     )}
                   </div>
-                  <p className="text-zinc-500 font-medium max-w-2xl text-lg leading-relaxed">{tool.description}</p>
+                  <p className="text-zinc-500 font-medium max-w-2xl text-sm sm:text-base md:text-lg leading-relaxed">{tool.description}</p>
                </div>
             </div>
           </div>
@@ -218,7 +219,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
              <button 
                 onClick={handleShare}
                 title="Share tool"
-                className="p-5 rounded-2xl glass-dark border border-white/5 text-zinc-400 hover:text-white transition-all hover:scale-110 active:scale-95 group relative"
+                className="min-h-12 min-w-12 rounded-2xl glass-dark border border-white/5 text-zinc-400 hover:text-white transition-all hover:scale-110 active:scale-95 group relative flex items-center justify-center"
              >
                 <Share2 size={24} />
              </button>
@@ -227,7 +228,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                 onClick={handleFavorite}
                 title="Save to favorites"
                 className={cn(
-                    "p-5 rounded-2xl glass-dark border border-white/5 transition-all hover:scale-110 active:scale-95 group relative",
+                    "min-h-12 min-w-12 rounded-2xl glass-dark border border-white/5 transition-all hover:scale-110 active:scale-95 group relative flex items-center justify-center",
                     isFavorited ? "text-accent-purple border-accent-purple/30 bg-accent-purple/5" : "text-zinc-400 hover:text-white"
                 )}
              >
@@ -238,10 +239,12 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
        )}
 
 
-       <div className="grid grid-cols-1 xl:grid-cols-3 gap-16">
-          <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "space-y-10")}>
-             {tool.id === 'ai-img-gen' || tool.id === 'ai-logo' ? (
+       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 xl:gap-16">
+          <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "space-y-8 md:space-y-10 min-w-0")}>
+             {tool.id === 'ai-img-gen' ? (
                 <ImageGeneratorTool />
+             ) : tool.id === 'ai-logo' ? (
+                <LogoGeneratorTool />
              ) : tool.id === 'ai-chat' ? (
                 <AiChatTool />
              ) : tool.id === 'ai-writer' ? (
@@ -294,7 +297,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                 <div className="space-y-10">
                    <div className="relative group">
                       <div className={cn(
-                        "min-h-[450px] rounded-[3.5rem] glass-dark border-2 border-zinc-800 p-8 md:p-12 transition-all duration-700",
+                        "min-h-[380px] sm:min-h-[450px] rounded-[2rem] md:rounded-[3.5rem] glass-dark border-2 border-zinc-800 p-5 sm:p-8 md:p-12 transition-all duration-700",
                         "group-hover:border-white/10",
                         tool.requiresFileUpload && "border-dashed"
                       )}>
@@ -325,13 +328,13 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                    <div className="w-full space-y-8 text-left">
                                      <div className="relative">
                                        <textarea 
-                                         className="w-full min-h-[300px] bg-zinc-900/50 rounded-[2.5rem] p-10 text-xl md:text-2xl text-white placeholder-zinc-700 border border-white/10 focus:border-accent-purple/50 focus:ring-4 focus:ring-accent-purple/5 outline-none transition-all resize-none shadow-inner"
+                                         className="w-full min-h-[260px] md:min-h-[300px] bg-zinc-900/50 rounded-[2rem] md:rounded-[2.5rem] p-5 sm:p-8 md:p-10 text-base sm:text-xl md:text-2xl text-white placeholder-zinc-700 border border-white/10 focus:border-accent-purple/50 focus:ring-4 focus:ring-accent-purple/5 outline-none transition-all resize-none shadow-inner"
                                          placeholder={tool.placeholderPrompt || "Enter your instructions here..."}
                                          value={textInput}
                                          onChange={(e) => setTextInput(e.target.value)}
                                        />
-                                       <div className="absolute bottom-8 right-8">
-                                         <button onClick={handleGenerate} className="flex items-center gap-3 px-10 py-5 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-3xl hover:scale-105 active:scale-95 transition-all">
+                                       <div className="static mt-4 sm:absolute sm:bottom-8 sm:right-8">
+                                         <button onClick={handleGenerate} className="flex min-h-12 w-full sm:w-auto items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl premium-gradient text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-3xl hover:scale-105 active:scale-95 transition-all">
                                            <Sparkles size={20} /> Generate magic
                                          </button>
                                        </div>
@@ -373,7 +376,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
           </div>
 
           {!isSpecialTool && (
-            <div className="space-y-12 text-left">
+            <div className="space-y-8 md:space-y-12 text-left min-w-0">
                <div className="space-y-8">
                   <div className="flex items-center justify-between px-2">
                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Related Tools</h3>
@@ -386,7 +389,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                   </div>
                </div>
 
-               <div className="p-10 rounded-[3rem] bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-violet-500/20 relative overflow-hidden group">
+               <div className="p-6 sm:p-10 rounded-[2rem] md:rounded-[3rem] bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-violet-500/20 relative overflow-hidden group">
                   <div className="relative z-10 space-y-6">
                      <div className="w-16 h-16 rounded-[1.5rem] bg-accent-purple/20 flex items-center justify-center text-accent-purple">
                         <Sparkles size={32} className="animate-pulse" />

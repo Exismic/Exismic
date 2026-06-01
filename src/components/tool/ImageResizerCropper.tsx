@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { 
   Crop as CropIcon, 
   Upload, 
@@ -20,7 +20,6 @@ import {
   Move
 } from "lucide-react";
 import Cropper, { Area } from "react-easy-crop";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface Asset {
@@ -30,6 +29,8 @@ interface Asset {
   name: string;
   size: number;
 }
+
+type OutputFormat = "jpg" | "png" | "webp";
 
 const PRESETS = [
   { id: "ig", label: "Instagram", icon: Camera, w: 1080, h: 1080, ratio: 1/1 },
@@ -41,8 +42,9 @@ const PRESETS = [
 
 export function ImageResizerCropper() {
   const [asset, setAsset] = useState<Asset | null>(null);
-  const [result, setResult] = useState<{ url: string, size: number } | null>(null);
+  const [result, setResult] = useState<{ url: string, size: number, width: number, height: number, format: OutputFormat } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Cropper State
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -53,7 +55,7 @@ export function ImageResizerCropper() {
   // Settings
   const [width, setWidth] = useState(1080);
   const [height, setHeight] = useState(1080);
-  const [format, setFormat] = useState<"jpg" | "png" | "webp">("jpg");
+  const [format, setFormat] = useState<OutputFormat>("jpg");
   const [quality, setQuality] = useState(90);
   const [lockRatio, setLockRatio] = useState(true);
 
@@ -61,9 +63,12 @@ export function ImageResizerCropper() {
     setCroppedAreaPixels(pixels);
   }, []);
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const loadFile = (file?: File) => {
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload a valid image file.");
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => {
         setAsset({
@@ -74,10 +79,21 @@ export function ImageResizerCropper() {
           size: file.size
         });
         setResult(null);
+        setError(null);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
       };
       reader.readAsDataURL(file);
     }
   };
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    loadFile(e.target.files?.[0]);
+  };
+
+  useEffect(() => {
+    setResult(null);
+  }, [crop, zoom, croppedAreaPixels, width, height, format, quality]);
 
   // Live Preview Logic
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -112,7 +128,7 @@ export function ImageResizerCropper() {
     const safeVal = isNaN(val) ? 0 : val;
     setWidth(safeVal);
     if (lockRatio && aspect) {
-      setHeight(Math.round(safeVal / aspect));
+      setHeight(Math.max(1, Math.round(safeVal / aspect)));
     } else if (safeVal > 0 && height > 0) {
       // In custom/unlocked mode, update the crop box to reflecttyped dimensions
       setAspect(safeVal / height);
@@ -123,7 +139,7 @@ export function ImageResizerCropper() {
     const safeVal = isNaN(val) ? 0 : val;
     setHeight(safeVal);
     if (lockRatio && aspect) {
-      setWidth(Math.round(safeVal * aspect));
+      setWidth(Math.max(1, Math.round(safeVal * aspect)));
     } else if (safeVal > 0 && width > 0) {
       // In custom/unlocked mode, update the crop box to reflect typed dimensions
       setAspect(width / safeVal);
@@ -146,7 +162,12 @@ export function ImageResizerCropper() {
 
   const processImage = async () => {
     if (!asset || !croppedAreaPixels) return;
+    if (width < 1 || height < 1) {
+      setError("Width and height must be at least 1px.");
+      return;
+    }
     setIsProcessing(true);
+    setError(null);
 
     try {
       const formData = new FormData();
@@ -165,16 +186,20 @@ export function ImageResizerCropper() {
 
       const data = await response.json();
       if (data.success) {
-        setResult({ url: data.result, size: data.size });
+        setResult({ url: data.result, size: data.size, width: data.width, height: data.height, format: data.format });
+      } else {
+        throw new Error(data.error || "Resize failed");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Resize failed:", err);
+      setError(err instanceof Error ? err.message : "Resize failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const formatSize = (bytes: number) => {
+    if (bytes <= 0) return "0 B";
     const k = 1024;
     const sizes = ["B", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -187,7 +212,13 @@ export function ImageResizerCropper() {
         
         {/* LEFT: WORKSPACE */}
         <div className="lg:col-span-8 flex flex-col gap-8">
-           <div className={cn(
+           <div
+             onDragOver={(e) => e.preventDefault()}
+             onDrop={(e) => {
+               e.preventDefault();
+               loadFile(e.dataTransfer.files?.[0]);
+             }}
+             className={cn(
              "relative rounded-[3.5rem] glass-dark border-2 border-white/5 overflow-hidden transition-all duration-500 min-h-[500px] group flex items-center justify-center",
              !asset && "border-dashed hover:border-accent-purple/30 group-hover:scale-[1.01]"
            )}>
@@ -215,6 +246,21 @@ export function ImageResizerCropper() {
                      classes={{ containerClassName: "bg-zinc-950" }}
                    />
                 </div>
+              )}
+
+              {asset && (
+                <button
+                  onClick={() => {
+                    setAsset(null);
+                    setResult(null);
+                    setCroppedAreaPixels(null);
+                    setError(null);
+                  }}
+                  className="absolute top-6 right-6 z-40 p-3 rounded-2xl bg-black/60 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                  title="Start over"
+                >
+                  <RefreshCw size={16} />
+                </button>
               )}
 
               {isProcessing && (
@@ -245,6 +291,8 @@ export function ImageResizerCropper() {
                        <label className="text-[9px] font-bold text-zinc-600 uppercase ml-2">Width</label>
                        <input 
                          type="number" value={width} onChange={(e) => handleWidthChange(parseInt(e.target.value))}
+                         min={1}
+                         max={8000}
                          className="w-full h-14 bg-white/5 border border-white/5 rounded-xl px-4 text-white font-bold focus:outline-none focus:border-accent-purple/50"
                        />
                     </div>
@@ -252,6 +300,8 @@ export function ImageResizerCropper() {
                        <label className="text-[9px] font-bold text-zinc-600 uppercase ml-2">Height</label>
                        <input 
                          type="number" value={height} onChange={(e) => handleHeightChange(parseInt(e.target.value))}
+                         min={1}
+                         max={8000}
                          className="w-full h-14 bg-white/5 border border-white/5 rounded-xl px-4 text-white font-bold focus:outline-none focus:border-accent-purple/50"
                        />
                     </div>
@@ -287,6 +337,21 @@ export function ImageResizerCropper() {
                      className="w-full accent-accent-cyan h-1 bg-white/5 rounded-full"
                    />
                  </div>
+                 <div className="space-y-2 pt-2">
+                   <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-zinc-500">
+                      <span className="flex items-center gap-2"><Minimize2 size={12} /> Zoom</span>
+                      <span>{zoom.toFixed(1)}x</span>
+                   </div>
+                   <input
+                     type="range"
+                     min="1"
+                     max="3"
+                     step="0.1"
+                     value={zoom}
+                     onChange={(e) => setZoom(Number(e.target.value))}
+                     className="w-full accent-accent-cyan h-1 bg-white/5 rounded-full"
+                   />
+                 </div>
               </div>
            </div>
         </div>
@@ -315,7 +380,7 @@ export function ImageResizerCropper() {
                            <Icon size={20} className={Active ? "text-white" : "group-hover:text-accent-purple"} />
                            <div className="text-left">
                               <p className="text-[10px] font-black uppercase tracking-widest">{p.label}</p>
-                              {p.w > 0 && <p className="text-[9px] font-bold opacity-60">{p.w} × {p.h}</p>}
+                              {p.w > 0 && <p className="text-[9px] font-bold opacity-60">{p.w} x {p.h}</p>}
                            </div>
                         </div>
                         {Active && <Check size={16} />}
@@ -325,6 +390,11 @@ export function ImageResizerCropper() {
               </div>
 
               <div className="space-y-4 pt-6">
+                 {error && (
+                   <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-bold leading-relaxed">
+                     {error}
+                   </div>
+                 )}
                  <button 
                    disabled={!asset || isProcessing}
                    onClick={processImage}
@@ -338,13 +408,13 @@ export function ImageResizerCropper() {
                      onClick={() => {
                        const a = document.createElement("a");
                        a.href = result.url;
-                       a.download = `toolverse_${asset?.name || "image"}.${format}`;
+                       a.download = `toolverse_${asset?.name?.replace(/\.[^.]+$/, "") || "image"}.${result.format}`;
                        a.click();
                      }}
                      className="w-full py-6 rounded-3xl bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] shadow-3xl hover:bg-zinc-200 transition-all flex items-center justify-center gap-4"
                    >
                       <Download size={24} />
-                      Export {formatSize(result.size)}
+                      Export {result.width}x{result.height} {result.format.toUpperCase()} / {formatSize(result.size)}
                    </button>
                  )}
                  {/* LIVE PREVIEW / RESULT DISPLAY */}

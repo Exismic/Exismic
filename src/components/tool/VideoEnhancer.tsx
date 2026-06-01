@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useCredits } from "@/hooks/useCredits";
 import { 
   Upload, 
   Download, 
@@ -23,6 +24,7 @@ import {
 type EnhancementLevel = "light" | "medium" | "strong";
 
 export default function VideoEnhancer() {
+  const { isPro } = useCredits();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [level, setLevel] = useState<EnhancementLevel>("medium");
@@ -258,7 +260,15 @@ export default function VideoEnhancer() {
                 {isProcessing && (
                   <div className="absolute inset-0 z-50 bg-[#050505]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-12 text-center">
                     <Loader2 className="w-16 h-16 text-purple-500 animate-spin mb-8" />
-                    <h4 className="text-3xl font-black text-white uppercase italic tracking-tightest mb-6">{status}</h4>
+                    {isPro && (
+                      <div className="mb-5 px-4 py-2 rounded-full bg-amber-400/10 border border-amber-300/30 shadow-[0_0_24px_rgba(251,191,36,0.12)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
+                        <Zap size={13} className="fill-amber-200" />
+                        Priority Processing
+                      </div>
+                    )}
+                    <h4 className="text-3xl font-black text-white uppercase italic tracking-tightest mb-6">
+                      {isPro ? "Processing with Priority..." : status}
+                    </h4>
                     <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
                        <motion.div 
                          className="h-full bg-purple-50"
