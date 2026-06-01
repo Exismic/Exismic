@@ -59,9 +59,9 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
   };
 
   return (
-    <div className="p-4 md:p-12 max-w-7xl mx-auto space-y-16 pb-32">
-      <div className="space-y-8">
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all group">
+    <div className="p-4 sm:p-6 md:p-12 max-w-7xl mx-auto space-y-10 sm:space-y-12 md:space-y-16 pb-28 md:pb-32 overflow-x-hidden">
+      <div className="space-y-6 sm:space-y-8">
+        <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] text-zinc-500 hover:text-white transition-all group touch-manipulation">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Back to all tools
         </Link>
@@ -79,7 +79,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8"
       >
         {categoryTools.map((tool, idx) => (
           <ToolCard 
@@ -95,7 +95,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="py-32 text-center glass-dark border border-dashed border-white/10 rounded-[3rem]"
+          className="py-20 sm:py-28 md:py-32 px-5 text-center glass-dark border border-dashed border-white/10 rounded-[2rem] md:rounded-[3rem]"
         >
           <p className="text-zinc-600 font-bold uppercase tracking-widest">No tools found for this category yet.</p>
         </motion.div>

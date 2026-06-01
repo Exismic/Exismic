@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { 
   Sparkles, 
@@ -24,7 +24,8 @@ import {
   Monitor,
   RefreshCw,
   Layers,
-  Scale
+  Scale,
+  type LucideIcon
 } from "lucide-react";
 import { TOOLS } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
@@ -39,7 +40,27 @@ import { usePro } from "@/hooks/usePro";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { ProBackground } from "@/components/pro/ProBackground";
 
-const CREATIVE_SUITE = [
+type DashboardAction = {
+  label: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  glow: string;
+  accent: string;
+  isPremium?: boolean;
+};
+
+type StatCardProps = {
+  label: string;
+  value: ReactNode;
+  icon: LucideIcon;
+  color: "cyan" | "purple" | "amber" | "gold" | "zinc";
+  progress?: number;
+  loading?: boolean;
+  isPro?: boolean;
+};
+
+const CREATIVE_SUITE: DashboardAction[] = [
   {
     label: "AI Image Generator",
     description: "Generate stunning high-fidelity 4K art and photos from text prompts.",
@@ -92,7 +113,7 @@ const CREATIVE_SUITE = [
   }
 ];
 
-const DEVELOPER_SUITE = [
+const DEVELOPER_SUITE: DashboardAction[] = [
   {
     label: "Code Studio",
     description: "Full stack AI IDE with Monaco editor, live previews, and agentic assistant.",
@@ -130,7 +151,7 @@ const DEVELOPER_SUITE = [
   }
 ];
 
-const PRODUCTIVITY_SUITE = [
+const PRODUCTIVITY_SUITE: DashboardAction[] = [
   {
     label: "Invoice Generator",
     description: "Generate sleek professional custom PDF invoices for clients instantly.",
@@ -157,40 +178,40 @@ const PRODUCTIVITY_SUITE = [
   }
 ];
 
-function SuiteCard({ action, i }: { action: any; i: number }) {
+function SuiteCard({ action, i }: { action: DashboardAction; i: number }) {
   return (
     <Link href={action.href}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.03 * i, duration: 0.6 }}
-        whileHover={{ y: -6, scale: 1.015 }}
+        whileHover={{ y: -4, scale: 1.01 }}
         className={cn(
-          "group relative p-6 rounded-[2.5rem] bg-zinc-900/20 backdrop-blur-2xl border border-white/5 hover:border-white/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all duration-500 overflow-hidden h-full flex flex-col justify-between",
+          "group relative min-h-[190px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] bg-zinc-900/20 backdrop-blur-2xl border border-white/5 hover:border-white/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all duration-500 overflow-hidden h-full flex flex-col justify-between touch-manipulation active:scale-[0.99]",
           action.isPremium && "border-accent-purple/20 bg-linear-to-br from-zinc-900/30 via-zinc-900/30 to-accent-purple/[0.04] shadow-[0_0_30px_rgba(168,85,247,0.05)_inset]"
         )}
       >
         {/* Premium Pro Badge */}
         {action.isPremium && (
-          <div className="absolute top-6 right-6 z-20">
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
             <ProBadge size="sm" type={action.label.includes("Code") || action.label.includes("Screenshot") ? "studio" : "default"} />
           </div>
         )}
 
         {/* Shine Hover Effect Layer */}
-        <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none z-10">
+        <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] overflow-hidden pointer-events-none z-10">
           <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/5 to-transparent" />
         </div>
 
         {/* Ambient Hover Glows */}
         <div className={cn(
-          "absolute -inset-px rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl -z-10 bg-linear-to-br",
+          "absolute -inset-px rounded-[1.75rem] sm:rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl -z-10 bg-linear-to-br",
           action.glow
         )} />
 
         <div className="space-y-4">
           <div className={cn(
-            "w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-2xl",
+            "w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-500 md:group-hover:scale-110 md:group-hover:rotate-3 shadow-2xl",
             "bg-zinc-900/40 border border-white/5"
           )}>
             <div className={cn("absolute inset-0 opacity-10 bg-linear-to-br", action.glow)} />
@@ -198,16 +219,16 @@ function SuiteCard({ action, i }: { action: any; i: number }) {
           </div>
 
           <div className="space-y-1.5">
-            <h3 className="text-base font-bold tracking-tight text-white transition-colors group-hover:text-white">
+            <h3 className="text-base sm:text-lg font-bold tracking-tight leading-snug text-white transition-colors group-hover:text-white break-words pr-10">
               {action.label}
             </h3>
-            <p className="text-zinc-500 text-xs leading-relaxed line-clamp-2 group-hover:text-zinc-400 transition-colors">
+            <p className="text-zinc-500 text-xs sm:text-[13px] leading-relaxed line-clamp-3 sm:line-clamp-2 group-hover:text-zinc-400 transition-colors break-words">
               {action.description}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-white transition-all">
+        <div className="mt-6 flex min-h-11 items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-white transition-all">
           Launch Tool 
           <ArrowUpRight size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-zinc-500 group-hover:text-white" />
         </div>
@@ -225,28 +246,19 @@ export function Dashboard() {
     loading: statsLoading 
   } = useDashboardStats();
   const { user: dbUser, authUser } = usePro();
-  const [mounted, setMounted] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
   const supabase = createClient();
 
-  const [localGradientId, setLocalGradientId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const gradient = authUser?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
-    setLocalGradientId(gradient);
-  }, [authUser, dbUser]);
+  const [gradientOverride, setGradientOverride] = useState<string | null>(null);
+  const localGradientId = gradientOverride ?? authUser?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
 
   useEffect(() => {
     const handleGradientUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
-      setLocalGradientId(customEvent.detail);
+      setGradientOverride(customEvent.detail);
     };
     window.addEventListener('name-gradient-updated', handleGradientUpdate);
     return () => window.removeEventListener('name-gradient-updated', handleGradientUpdate);
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -265,8 +277,6 @@ export function Dashboard() {
 
   const popularTools = TOOLS.filter(t => t.popular).slice(0, 6);
   const userName = (authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || dbUser?.name || dbUser?.username || authUser?.email?.split('@')[0] || 'Explorer').split(' ')[0];
-
-  if (!mounted) return <div className="min-h-screen bg-[#030303]" />;
 
   return (
     <div className="min-h-screen bg-[#030303] selection:bg-purple-500/30 overflow-x-hidden">
@@ -470,14 +480,14 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }: any) {
+function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }: StatCardProps) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className={cn(
-        "relative p-6 rounded-[2rem] bg-zinc-950/40 backdrop-blur-md border border-white/5 group hover:border-white/10 transition-all duration-500 overflow-hidden",
+        "relative min-h-[150px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] bg-zinc-950/40 backdrop-blur-md border border-white/5 group hover:border-white/10 transition-all duration-500 overflow-hidden touch-manipulation",
         isPro && "border-accent-purple/20 shadow-[0_0_30px_rgba(168,85,247,0.1)]"
       )}
     >
@@ -496,7 +506,7 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }:
         <div className="absolute -inset-1 bg-accent-purple/10 blur-2xl animate-pulse pointer-events-none" />
       )}
 
-      <div className="flex items-center justify-between mb-8 relative z-10">
+      <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
          <div className={cn(
            "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110",
            color === "purple" ? "bg-purple-500/10 text-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.2)] border border-purple-500/20" : 
@@ -521,8 +531,8 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }:
       </div>
       
       <div className="space-y-1 relative z-10">
-         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-zinc-400 transition-colors">{label}</p>
-         <h3 className="text-3xl font-bold text-white tracking-tight">
+         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-zinc-400 transition-colors break-words">{label}</p>
+         <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words">
             {isPro && label === "Pro Status" ? (
               <GradientText className="from-accent-purple to-accent-blue cyber-neon-glow">PRO</GradientText>
             ) : value}

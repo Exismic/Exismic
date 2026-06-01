@@ -1,6 +1,6 @@
 "use client";
 
-import { useChat, cleanTitle } from "@/components/providers/ChatProvider";
+import { useChat } from "@/components/providers/ChatProvider";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { 
@@ -8,15 +8,15 @@ import {
   MessageSquare, 
   Trash2, 
   History, 
-  Settings 
+  Settings,
+  X
 } from "lucide-react";
-import { VerifiedTick } from "../ui/VerifiedTick";
-import GradientText from "../ui/GradientText";
 import { UserProfile } from "../ui/UserProfile";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { usePro } from "@/hooks/usePro";
 import { createClient } from "@/utils/supabase/client";
+import type { Session as SupabaseSession } from "@supabase/supabase-js";
 
 // Markdown Stripper Utility to ensure titles and subtitles are clean and elegant
 const stripMarkdown = (text: string): string => {
@@ -76,10 +76,12 @@ export function ChatSidebar() {
   } = useChat();
 
   const { user: dbUser } = usePro();
-  const [supabaseSession, setSupabaseSession] = useState<any>(null);
-  const [localFrameId, setLocalFrameId] = useState<string | null>(null);
-  const [localGradientId, setLocalGradientId] = useState<string | null>(null);
+  const [supabaseSession, setSupabaseSession] = useState<SupabaseSession | null>(null);
+  const [frameOverride, setFrameOverride] = useState<string | null>(null);
+  const [gradientOverride, setGradientOverride] = useState<string | null>(null);
   const supabase = createClient();
+  const localFrameId = frameOverride ?? supabaseSession?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
+  const localGradientId = gradientOverride ?? supabaseSession?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
 
   useEffect(() => {
     async function getSession() {
@@ -96,20 +98,13 @@ export function ChatSidebar() {
   }, [supabase]);
 
   useEffect(() => {
-    const frame = supabaseSession?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
-    const gradient = supabaseSession?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
-    setLocalFrameId(frame);
-    setLocalGradientId(gradient);
-  }, [supabaseSession, dbUser]);
-
-  useEffect(() => {
     const handleFrameUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
-      setLocalFrameId(customEvent.detail);
+      setFrameOverride(customEvent.detail);
     };
     const handleGradientUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
-      setLocalGradientId(customEvent.detail);
+      setGradientOverride(customEvent.detail);
     };
     window.addEventListener('avatar-frame-updated', handleFrameUpdate);
     window.addEventListener('name-gradient-updated', handleGradientUpdate);
@@ -169,8 +164,16 @@ export function ChatSidebar() {
                <LumoraLogo size={28} showText={false} />
             </div>
           ) : (
-            <div className="flex items-center gap-2 mb-6 px-2">
+            <div className="flex items-center justify-between gap-2 mb-6 px-2">
                <LumoraLogo size={28} showText={true} />
+               <button
+                 type="button"
+                 onClick={() => setIsSidebarOpen(false)}
+                 className="md:hidden w-11 h-11 rounded-2xl border border-white/[0.06] bg-white/[0.04] text-zinc-400 flex items-center justify-center active:scale-95 transition-all"
+                 aria-label="Close chat sidebar"
+               >
+                 <X size={17} strokeWidth={2.5} />
+               </button>
             </div>
           )}
 
@@ -178,7 +181,7 @@ export function ChatSidebar() {
           {isSidebarCollapsed ? (
             <button 
               onClick={startNewChat} 
-              className="w-10 h-10 rounded-xl bg-white text-zinc-950 flex items-center justify-center mx-auto mb-6 hover:bg-zinc-200 transition-all active:scale-[0.95] shadow-lg"
+              className="w-11 h-11 rounded-xl bg-white text-zinc-950 flex items-center justify-center mx-auto mb-6 hover:bg-zinc-200 transition-all active:scale-[0.95] shadow-lg"
               title="New Chat"
             >
               <Plus size={16} strokeWidth={3} />
@@ -186,7 +189,7 @@ export function ChatSidebar() {
           ) : (
             <button 
               onClick={startNewChat} 
-              className="w-full py-3.5 rounded-2xl bg-white text-zinc-950 font-black text-[11px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 mb-6 hover:bg-zinc-200 transition-all active:scale-[0.97] shadow-xl"
+              className="w-full min-h-12 px-4 py-3.5 rounded-2xl bg-white text-zinc-950 font-black text-[11px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 mb-6 hover:bg-zinc-200 transition-all active:scale-[0.97] shadow-xl touch-manipulation"
             >
               <Plus size={16} strokeWidth={3} />
               New Chat
@@ -199,7 +202,7 @@ export function ChatSidebar() {
               <div className="flex flex-col items-center gap-3">
                  <button 
                    onClick={(e) => { e.preventDefault(); setIsSidebarCollapsed(false); }}
-                   className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 flex items-center justify-center mx-auto text-zinc-400 hover:text-white transition-all mb-4" 
+                   className="w-11 h-11 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 flex items-center justify-center mx-auto text-zinc-400 hover:text-white transition-all mb-4 touch-manipulation" 
                    title="Expand History"
                  >
                    <History size={15} />
@@ -215,7 +218,7 @@ export function ChatSidebar() {
                        key={s.id}
                        onClick={(e) => { e.preventDefault(); loadSession(s.id); }}
                        className={cn(
-                         "w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-300 relative group/icon",
+                         "w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group/icon touch-manipulation",
                          sessionId === s.id 
                            ? "bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-md" 
                            : "bg-[#0c0c12]/40 border-white/[0.04] text-zinc-500 hover:text-zinc-200 hover:border-white/10"
@@ -261,7 +264,7 @@ export function ChatSidebar() {
                            initial={{ opacity: 0, y: 12, scale: 0.96 }}
                            animate={{ opacity: 1, y: 0, scale: 1 }}
                            exit={{ opacity: 0, scale: 0.92, y: -10, transition: { duration: 0.18, ease: "easeInOut" } }}
-                           className="group/item relative px-1"
+                           className="group/item relative px-0 sm:px-1"
                          >
                            {/* Luxury Glow Ring Backdrop for Active Card */}
                            {sessionId === s.id && (
@@ -271,28 +274,28 @@ export function ChatSidebar() {
                            <button 
                              onClick={(e) => { e.preventDefault(); loadSession(s.id); }} 
                              className={cn(
-                               "w-full text-left p-3.5 rounded-2xl transition-all duration-300 ease-out flex flex-col gap-1.5 border relative overflow-hidden group/card",
+                               "w-full min-h-[72px] text-left p-3.5 sm:p-4 rounded-2xl transition-all duration-300 ease-out flex flex-col gap-1.5 border relative overflow-hidden group/card touch-manipulation",
                                sessionId === s.id 
                                  ? "bg-gradient-to-r from-purple-500/[0.07] to-cyan-500/[0.07] border-purple-500/25 shadow-[0_8px_30px_rgba(168,85,247,0.12),inset_0_1px_1px_rgba(255,255,255,0.06)] backdrop-blur-xl z-10" 
-                                 : "bg-[#0b0b0f]/35 border-white/[0.03] text-zinc-400 hover:border-purple-500/20 hover:bg-white/[0.04] hover:shadow-[0_8px_20px_rgba(168,85,247,0.06),0_0_15px_rgba(6,182,212,0.03),inset_0_1px_1px_rgba(255,255,255,0.02)] hover:-translate-y-0.5 z-10"
+                                 : "bg-[#0b0b0f]/35 border-white/[0.03] text-zinc-400 hover:border-purple-500/20 hover:bg-white/[0.04] hover:shadow-[0_8px_20px_rgba(168,85,247,0.06),0_0_15px_rgba(6,182,212,0.03),inset_0_1px_1px_rgba(255,255,255,0.02)] md:hover:-translate-y-0.5 z-10"
                              )}
                            >
                              <div className="flex items-start justify-between gap-3 w-full relative z-10">
                                <span className={cn(
-                                 "truncate text-[12.5px] tracking-tight flex-1 transition-colors duration-300 mt-[0.5px]",
+                                 "min-w-0 text-[12.5px] tracking-tight flex-1 transition-colors duration-300 mt-[0.5px] line-clamp-1 break-words",
                                  sessionId === s.id 
                                    ? "text-white font-extrabold" 
                                    : "text-zinc-300 group-hover/card:text-zinc-100 font-bold"
                                )}>
                                  {cleanTitleText(s.title)}
                                </span>
-                               <span className="text-[8.5px] font-black text-zinc-500 shrink-0 uppercase tracking-widest group-hover/item:opacity-0 transition-opacity duration-300 mt-1">
+                               <span className="hidden min-[360px]:inline text-[8.5px] font-black text-zinc-500 shrink-0 uppercase tracking-widest md:group-hover/item:opacity-0 transition-opacity duration-300 mt-1">
                                  {formatTimeAgo(s.updatedAt || s.createdAt)}
                                </span>
                              </div>
                              
                              <p className={cn(
-                               "text-[10.5px] font-medium line-clamp-1 leading-relaxed transition-colors duration-300 relative z-10 pr-4",
+                               "text-[10.5px] font-medium line-clamp-1 leading-relaxed transition-colors duration-300 relative z-10 pr-10 break-words",
                                sessionId === s.id 
                                  ? "text-zinc-400 font-semibold" 
                                  : "text-zinc-500 group-hover/card:text-zinc-400"
@@ -309,8 +312,9 @@ export function ChatSidebar() {
                            {/* Sleek Delete button with instant active scaling */}
                            <button 
                              onClick={(e) => { e.stopPropagation(); openDeleteModal(s.id); }} 
-                             className="absolute right-3.5 top-1/2 -translate-y-1/2 p-2 text-zinc-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all duration-300 hover:bg-red-500/15 hover:shadow-[0_0_10px_rgba(239,68,68,0.2)] active:scale-90 rounded-xl z-30 pointer-events-auto cursor-pointer"
+                             className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 text-zinc-500 hover:text-red-400 opacity-100 md:opacity-0 md:group-hover/item:opacity-100 transition-all duration-300 hover:bg-red-500/15 hover:shadow-[0_0_10px_rgba(239,68,68,0.2)] active:scale-90 rounded-xl z-30 pointer-events-auto cursor-pointer flex items-center justify-center touch-manipulation"
                              title="Delete Conversation"
+                             aria-label="Delete conversation"
                            >
                              <Trash2 size={13.5} />
                            </button>
@@ -371,7 +375,7 @@ export function ChatSidebar() {
                  <Link 
                     href="/account/settings" 
                     className={cn(
-                      "w-8.5 h-8.5 rounded-lg flex items-center justify-center text-zinc-400 transition-all duration-500 border border-white/[0.05] bg-white/[0.02]",
+                      "w-11 h-11 rounded-xl flex items-center justify-center text-zinc-400 transition-all duration-500 border border-white/[0.05] bg-white/[0.02]",
                       isPro 
                         ? "hover:text-white hover:bg-purple-500/10 hover:border-purple-500/30 hover:shadow-[0_0_8px_rgba(168,85,247,0.15)]"
                         : "hover:text-white hover:bg-white/10 hover:border-white/20"

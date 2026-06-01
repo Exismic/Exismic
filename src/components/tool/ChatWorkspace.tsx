@@ -5,10 +5,8 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, 
-  Send, 
   Paperclip, 
   X, 
-  MessageSquare, 
   Trash2, 
   Copy, 
   Check, 
@@ -47,8 +45,6 @@ import { useChat, cleanTitle } from "@/components/providers/ChatProvider";
 import { LumoraLogo } from "./ChatSidebar";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import GradientHeading from "../ui/GradientHeading";
-import GradientText from "../ui/GradientText";
 
 const SLASH_COMMANDS = [
   { id: 'new', icon: <Plus size={16} className="text-cyan-400" />, label: 'New Conversation', desc: 'Start a fresh creative session' },
@@ -308,7 +304,7 @@ export function ChatWorkspace() {
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = `lumora-chat-gen-${Date.now()}.png`;
+      link.download = "lumora-chat-generation.png";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -546,7 +542,7 @@ export function ChatWorkspace() {
                 ? "left-0 md:left-16 w-full md:w-[calc(100vw-64px)]" 
                 : "left-0 md:left-[304px] w-full md:w-[calc(100vw-304px)]"
             )
-          : "w-full h-[calc(100dvh-140px)] min-h-[560px] bg-[#0c0c10]/90 backdrop-blur-3xl border border-white/[0.05] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative"
+          : "w-full h-[calc(100dvh-120px)] min-h-[520px] md:min-h-[560px] bg-[#0c0c10]/90 backdrop-blur-3xl border border-white/[0.05] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative"
       )}
     >
       
@@ -586,8 +582,8 @@ export function ChatWorkspace() {
       <div className="flex-1 flex flex-col min-w-0 relative bg-transparent h-full">
         
         {/* Sleek top bar */}
-        <header className="h-14 px-4 md:px-5 border-b border-white/[0.05] flex items-center justify-between bg-[#08080a]/65 backdrop-blur-md shrink-0 z-50">
-          <div className="flex items-center gap-3">
+        <header className="min-h-14 px-2.5 sm:px-4 md:px-5 border-b border-white/[0.05] flex items-center justify-between bg-[#08080a]/65 backdrop-blur-md shrink-0 z-50">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <button 
               onClick={() => {
                 if (window.innerWidth < 768) {
@@ -634,10 +630,10 @@ export function ChatWorkspace() {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button 
               onClick={startNewChat}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+              className="min-h-10 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-95"
               title="New Chat"
             >
               <Plus size={12} strokeWidth={2.5} />
@@ -686,26 +682,26 @@ export function ChatWorkspace() {
         </header>
 
         {/* Message flow container */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-6 custom-scrollbar relative">
-           <div className="max-w-[850px] mx-auto min-h-full flex flex-col pt-8">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-2.5 sm:px-4 md:px-6 custom-scrollbar relative">
+           <div className="max-w-[850px] mx-auto min-h-full flex flex-col pt-5 sm:pt-8">
               {isSessionLoading ? (
                 <ChatSkeleton />
               ) : messages.length === 0 ? (
                 
                 // Welcome Screen
-                <div className="flex-1 flex flex-col items-center justify-center pb-28 text-center px-4">
+                <div className="flex-1 flex flex-col items-center justify-center pb-32 sm:pb-28 text-center px-1 sm:px-4">
                    <motion.div 
                      initial={{ opacity: 0, scale: 0.96, y: 15 }} 
                      animate={{ opacity: 1, scale: 1, y: 0 }} 
                      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} 
-                     className="space-y-6 mb-12"
+                     className="space-y-5 sm:space-y-6 mb-8 sm:mb-12"
                    >
                       <div className="relative inline-block group">
                         <div className="absolute -inset-4 bg-gradient-to-tr from-accent-purple/35 to-accent-cyan/35 blur-xl opacity-80 group-hover:opacity-100 transition-opacity rounded-full animate-pulse-glow" />
                         <LumoraLogo size={88} showText={false} className="mx-auto relative z-10 hover:scale-105 transition-transform duration-500" />
                       </div>
                       <div className="space-y-3 flex flex-col items-center mt-6">
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-[1.1] px-2">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-[1.05] sm:leading-[1.1] px-2">
                           Unlimited <span className="animated-gradient-text">Creativity</span>.
                         </h2>
                         <p className="text-zinc-500 text-sm md:text-base font-medium max-w-md mx-auto drop-shadow-md">
@@ -714,18 +710,18 @@ export function ChatWorkspace() {
                       </div>
                    </motion.div>                    {/* Starter cards suggestions */}
                     <div className="w-full max-w-5xl mt-2 px-1">
-                       <div className="flex items-center justify-between mb-5.5 px-3">
-                          <div className="flex items-center gap-2">
+                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-5.5 px-1 sm:px-3">
+                          <div className="flex items-center gap-2 min-w-0">
                              <div className="relative flex items-center justify-center">
                                <Sparkles size={14} className="text-accent-cyan animate-pulse absolute blur-[3px]" />
                                <Sparkles size={14} className="text-accent-cyan animate-pulse relative z-10" />
                              </div>
-                             <span className="text-[11px] font-extrabold uppercase tracking-[0.25em] bg-clip-text text-transparent bg-gradient-to-r from-zinc-400 via-zinc-100 to-zinc-400">Suggested Workflows</span>
+                             <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-[0.16em] sm:tracking-[0.25em] bg-clip-text text-transparent bg-gradient-to-r from-zinc-400 via-zinc-100 to-zinc-400 truncate">Suggested Workflows</span>
                           </div>
                           <button 
                             onClick={rollSuggestions}
                             disabled={isRerolling}
-                            className="flex items-center gap-1.5 text-[9.5px] font-extrabold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-all duration-300 active:scale-95 bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] rounded-lg px-3 py-1.5"
+                            className="flex min-h-10 w-fit items-center gap-1.5 text-[9.5px] font-extrabold uppercase tracking-[0.16em] sm:tracking-[0.2em] text-zinc-400 hover:text-white transition-all duration-300 active:scale-95 bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] rounded-xl px-3 py-2"
                             title="Show different suggestions"
                           >
                             <RefreshCw size={10} className={cn("text-zinc-400 transition-colors duration-300", isRerolling && "animate-spin text-accent-purple")} />
@@ -747,7 +743,7 @@ export function ChatWorkspace() {
                                      transition={{ delay: 0.02 * i, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                      onClick={() => handleSend(card.prompt)} 
                                      className={cn(
-                                       "group p-4.5 rounded-2xl bg-[#0b0b0f]/45 backdrop-blur-xl border border-white/[0.05] hover:bg-[#0e0e16]/80 hover:border-purple-500/25 transition-all duration-500 text-left flex items-start gap-4 relative overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.15),0_10px_35px_-10px_rgba(6,182,212,0.12)] hover:-translate-y-1 hover:scale-[1.015] active:scale-[0.99]"
+                                       "group min-h-[92px] p-4 sm:p-4.5 rounded-2xl bg-[#0b0b0f]/45 backdrop-blur-xl border border-white/[0.05] hover:bg-[#0e0e16]/80 hover:border-purple-500/25 transition-all duration-500 text-left flex items-start gap-3 sm:gap-4 relative overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.4)] md:hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.15),0_10px_35px_-10px_rgba(6,182,212,0.12)] md:hover:-translate-y-1 md:hover:scale-[1.015] active:scale-[0.99] touch-manipulation"
                                      )}
                                   >
                                      {/* Accent gradient line at top */}
@@ -790,14 +786,14 @@ export function ChatWorkspace() {
               ) : (
                 
                 // Active messages flow
-                <div className="space-y-12 pb-44">
+                <div className="space-y-7 sm:space-y-10 md:space-y-12 pb-44">
                   {messages.map((msg, i) => (
                     <motion.div 
                       key={i} 
                       initial={{ opacity: 0, y: 15, scale: 0.98 }} 
                       animate={{ opacity: 1, y: 0, scale: 1 }} 
                       transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.75 }}
-                      className={cn("flex gap-5 w-full group/message", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}
+                      className={cn("flex gap-2.5 sm:gap-4 md:gap-5 w-full group/message", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}
                     >
                       {/* Avatar */}
                       <div className="flex flex-col items-center mt-1 shrink-0">
@@ -823,13 +819,13 @@ export function ChatWorkspace() {
                       
                       {/* Bubble */}
                       <div className={cn(
-                        "flex flex-col max-w-[85%] md:max-w-[78%] relative", 
+                        "flex flex-col max-w-[calc(100%-3.25rem)] sm:max-w-[85%] md:max-w-[78%] relative min-w-0", 
                         msg.role === 'user' ? "items-end" : "items-start"
                       )}>
                         {msg.role === 'user' ? (
-                          <div className="relative p-[1px] bg-white/[0.04] group-hover/message:bg-white/[0.08] transition-all duration-500 rounded-3xl rounded-tr-md shadow-xl max-w-full">
-                            <div className="relative px-6 py-4 bg-[#0d0d12]/90 backdrop-blur-xl text-zinc-100 rounded-[calc(1.5rem-1px)] rounded-tr-[calc(0.4rem-1px)]">
-                              <div className="relative z-10 text-[15px] md:text-[15.5px] leading-[1.7] font-medium tracking-tight whitespace-pre-wrap">
+                          <div className="relative p-[1px] bg-white/[0.04] group-hover/message:bg-white/[0.08] transition-all duration-500 rounded-2xl sm:rounded-3xl rounded-tr-md shadow-xl max-w-full">
+                            <div className="relative px-4 py-3.5 sm:px-6 sm:py-4 bg-[#0d0d12]/90 backdrop-blur-xl text-zinc-100 rounded-[calc(1rem-1px)] sm:rounded-[calc(1.5rem-1px)] rounded-tr-[calc(0.4rem-1px)]">
+                              <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[15.5px] leading-[1.65] sm:leading-[1.7] font-medium tracking-tight whitespace-pre-wrap break-words">
                                 {renderMessageContent(msg.content)}
                               </div>
 
@@ -868,13 +864,13 @@ export function ChatWorkspace() {
                             </div>
                           </div>
                         ) : (
-                          <div className="relative px-2 py-1 max-w-full">
+                          <div className="relative px-1 sm:px-2 py-1 max-w-full min-w-0">
                             <div className="flex items-center gap-1.5 mb-2.5 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500 select-none">
                               <Sparkles size={10} className="text-accent-purple animate-pulse" />
                               <span>Lumora AI</span>
                             </div>
                             
-                            <div className="relative z-10 text-[15px] md:text-[16px] leading-[1.75] text-zinc-200 font-medium tracking-tight whitespace-pre-wrap">
+                            <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[16px] leading-[1.7] md:leading-[1.75] text-zinc-200 font-medium tracking-tight whitespace-pre-wrap break-words">
                               {renderMessageContent(msg.content)}
                             </div>
 
@@ -910,7 +906,7 @@ export function ChatWorkspace() {
                                       <span className="text-[9px] font-black uppercase tracking-[0.25em]">Enhanced Prompt</span>
                                     </div>
                                     <p className="text-[11px] text-zinc-400 font-medium leading-relaxed italic">
-                                      "{msg.enhancedPrompt}"
+                                      &quot;{msg.enhancedPrompt}&quot;
                                     </p>
                                   </div>
                                 )}
@@ -918,13 +914,13 @@ export function ChatWorkspace() {
                             )}
 
                             {/* Toolbar actions */}
-                            <div className="absolute -bottom-10 left-2 opacity-0 group-hover/message:opacity-100 transition-all duration-300 flex items-center gap-1 bg-[#09090c]/90 backdrop-blur-md border border-white/[0.06] rounded-xl p-1 shadow-lg z-25">
+                            <div className="mt-3 sm:mt-0 sm:absolute sm:-bottom-10 sm:left-2 opacity-100 sm:opacity-0 sm:group-hover/message:opacity-100 transition-all duration-300 flex items-center gap-1 bg-[#09090c]/90 backdrop-blur-md border border-white/[0.06] rounded-xl p-1 shadow-lg z-25">
                                <button 
                                   onClick={() => { 
                                     navigator.clipboard.writeText(msg.content); 
                                     toast("Copied to clipboard", "success"); 
                                   }} 
-                                  className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center"
+                                  className="min-h-9 min-w-9 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center"
                                   title="Copy Response"
                                >
                                   <Copy size={11} />
@@ -938,7 +934,7 @@ export function ChatWorkspace() {
                                       handleSend(lastUserMsg);
                                     }
                                   }} 
-                                  className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center"
+                                  className="min-h-9 min-w-9 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center"
                                   title="Regenerate Response"
                                >
                                   <RefreshCw size={11} />
@@ -1013,18 +1009,18 @@ export function ChatWorkspace() {
 
                   {/* Inner glass content */}
                   <div className={cn(
-                     "bg-[#07070c]/70 backdrop-blur-3xl rounded-[22.5px] p-4 md:p-5 pb-3 md:pb-3.5 flex flex-col gap-4 transition-all duration-500 relative overflow-hidden",
+                     "bg-[#07070c]/70 backdrop-blur-3xl rounded-[20px] sm:rounded-[22.5px] p-3 sm:p-4 md:p-5 pb-3 md:pb-3.5 flex flex-col gap-3 sm:gap-4 transition-all duration-500 relative overflow-hidden",
                      input.trim().length > 0 && "bg-[#090912]/80"
                   )}>
                      {/* Text area and main input section */}
-                     <div className="flex items-start gap-4">
+                     <div className="flex items-start gap-2.5 sm:gap-4">
                         {/* File Attachment Button inside clean squircle container */}
                         <div className="relative z-10 pt-0.5 shrink-0">
                            <motion.button 
                              onClick={() => fileInputRef.current?.click()} 
                              whileHover={{ scale: 1.06 }}
                              whileTap={{ scale: 0.94 }}
-                             className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.06] hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300 active:scale-95 group/attach relative overflow-hidden"
+                             className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.06] hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300 active:scale-95 group/attach relative overflow-hidden touch-manipulation"
                              title="Upload Attachment"
                            >
                              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover/attach:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
@@ -1158,7 +1154,7 @@ export function ChatWorkspace() {
                                    }
                                 }} 
                                 placeholder="Ask anything... or press '/' for commands" 
-                                className="w-full bg-transparent border-0 ring-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent text-[15.5px] md:text-[16px] text-white placeholder-zinc-500/70 focus:placeholder-zinc-500/40 py-2.5 px-0.5 min-h-[48px] max-h-[300px] resize-none overflow-y-auto no-scrollbar font-medium relative z-10 leading-relaxed placeholder:font-medium placeholder:tracking-wide"
+                                className="w-full bg-transparent border-0 ring-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent text-[15px] md:text-[16px] text-white placeholder-zinc-500/70 focus:placeholder-zinc-500/40 py-2 px-0.5 min-h-[44px] max-h-[220px] sm:max-h-[300px] resize-none overflow-y-auto no-scrollbar font-medium relative z-10 leading-relaxed placeholder:font-medium placeholder:tracking-wide"
                                 rows={1}
                              />
                            </div>
@@ -1180,7 +1176,7 @@ export function ChatWorkspace() {
                              whileTap={input.trim() && !isLoading ? { scale: 0.94 } : {}}
                              transition={{ type: "spring", stiffness: 400, damping: 15 }}
                              className={cn(
-                                 "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 border relative overflow-hidden group/send",
+                                 "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 border relative overflow-hidden group/send touch-manipulation",
                                  input.trim() && !isLoading 
                                      ? "bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-500 border-transparent text-white cursor-pointer" 
                                      : "bg-white/[0.02] text-zinc-600 border-white/[0.04] cursor-not-allowed"
@@ -1207,8 +1203,8 @@ export function ChatWorkspace() {
                      )} />
 
                      {/* Micro footer actions panel inside input container */}
-                     <div className="flex items-center justify-between border-t border-white/[0.03] pt-3 px-0.5 relative z-10 select-none">
-                        <div className="flex items-center gap-3">
+                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-white/[0.03] pt-3 px-0.5 relative z-10 select-none">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                            {/* Live active beacon */}
                            <div className="flex items-center gap-2">
                               <span className={cn(

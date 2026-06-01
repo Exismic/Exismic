@@ -6,7 +6,6 @@ import {
   Download, 
   RefreshCw, 
   History, 
-  CheckCircle2, 
   Image as ImageIcon, 
   FileText, 
   Video, 
@@ -53,26 +52,28 @@ const formatTimeAgo = (dateString: string) => {
 };
 
 export function RecentlyProcessed() {
-  const [session, setSession] = useState<any>(null);
   const [items, setItems] = useState<ProcessedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const response = await fetch("/api/files/history?limit=10");
+        if (response.ok) {
+          const data = await response.json();
+          setItems(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch history:", error);
+      }
+    };
+
     const getSession = async () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setSession(currentSession);
       
       if (currentSession?.user) {
-        try {
-          const response = await fetch("/api/files/history?limit=10");
-          if (response.ok) {
-            const data = await response.json();
-            setItems(data);
-          }
-        } catch (error) {
-          console.error("Failed to fetch history:", error);
-        }
+        await loadHistory();
       }
       setLoading(false);
     };
@@ -80,7 +81,14 @@ export function RecentlyProcessed() {
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      if (!session?.user) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      loadHistory().finally(() => setLoading(false));
     });
 
     return () => subscription.unsubscribe();
@@ -105,12 +113,12 @@ export function RecentlyProcessed() {
   if (items.length === 0) {
     return (
       <section className="px-4 py-12">
-        <div className="max-w-4xl mx-auto text-center space-y-8 glass-dark p-16 rounded-[3rem] border border-white/5">
-          <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center mx-auto text-zinc-700">
-             <History size={48} />
+        <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8 glass-dark p-6 sm:p-10 md:p-16 rounded-[2rem] md:rounded-[3rem] border border-white/5">
+          <div className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-full bg-zinc-900 flex items-center justify-center mx-auto text-zinc-700">
+             <History size={40} />
           </div>
           <div className="space-y-4">
-            <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Nothing here yet</h3>
+            <h3 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">Nothing here yet</h3>
             <p className="text-zinc-500 font-medium max-w-sm mx-auto">Try a tool to see your work here. It only takes a second.</p>
           </div>
           <Link 
@@ -125,15 +133,15 @@ export function RecentlyProcessed() {
   }
 
   return (
-    <section className="px-4 space-y-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <section className="px-0 sm:px-4 space-y-8 md:space-y-12 overflow-x-hidden">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 md:gap-6">
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-12 h-12 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue shadow-3xl border border-accent-blue/10">
               <History size={24} />
             </div>
             <div>
-              <h2 className="text-4xl font-black tracking-tighter text-white uppercase italic">Your recent work</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-white uppercase italic leading-none">Your recent work</h2>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Everything you made recently</p>
             </div>
           </div>
@@ -141,7 +149,7 @@ export function RecentlyProcessed() {
         
         <Link 
           href="/history" 
-          className="group flex items-center gap-3 px-6 py-3 rounded-full glass-dark border border-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white/10 transition-all"
+          className="group flex min-h-11 w-fit items-center gap-3 px-5 sm:px-6 py-3 rounded-full glass-dark border border-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white/10 transition-all"
         >
           See all
           <ExternalLink size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -149,8 +157,8 @@ export function RecentlyProcessed() {
       </div>
 
       <div className="relative group/container">
-        <div className="md:overflow-x-auto pb-12 -mx-4 px-4 custom-scrollbar scroll-smooth no-scrollbar md:scrollbar-visible">
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-stretch md:min-w-max">
+        <div className="md:overflow-x-auto pb-8 md:pb-12 -mx-1 sm:-mx-4 px-1 sm:px-4 custom-scrollbar scroll-smooth no-scrollbar md:scrollbar-visible">
+          <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-stretch md:min-w-max">
             <AnimatePresence mode="popLayout">
               {items.map((item, i) => {
                 const toolInfo = getToolInfo(item.toolType);
@@ -167,12 +175,12 @@ export function RecentlyProcessed() {
                       type: "spring",
                       stiffness: 100
                     }}
-                    whileHover={{ y: -10 }}
-                    className="w-full max-w-[400px] md:w-[340px] p-2 rounded-[2.5rem] glass-dark border border-white/5 group hover:border-white/20 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)] transition-all duration-500 relative"
+                    whileHover={{ y: -6 }}
+                    className="w-full md:w-[340px] p-1.5 sm:p-2 rounded-[1.75rem] md:rounded-[2.5rem] glass-dark border border-white/5 group hover:border-white/20 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)] transition-all duration-500 relative touch-manipulation"
                   >
-                    <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-accent-purple/0 to-accent-blue/0 group-hover:from-accent-purple/5 group-hover:to-accent-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-[1.75rem] md:rounded-[2.5rem] bg-gradient-to-br from-accent-purple/0 to-accent-blue/0 group-hover:from-accent-purple/5 group-hover:to-accent-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     
-                    <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden bg-zinc-950/50 flex items-center justify-center transition-transform duration-700 group-hover:scale-[0.98]">
+                    <div className="relative aspect-[16/10] rounded-[1.35rem] md:rounded-[2rem] overflow-hidden bg-zinc-950/50 flex items-center justify-center transition-transform duration-700 group-hover:scale-[0.98]">
                       {(item.fileType?.includes('image') || item.resultUrl?.match(/\.(webp|jpg|jpeg|gif|png)/i)) ? (
                         <>
                           <img 
@@ -216,13 +224,13 @@ export function RecentlyProcessed() {
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                     </div>
 
-                    <div className="p-6 space-y-6">
+                    <div className="p-4 sm:p-5 md:p-6 space-y-5 md:space-y-6">
                       <div className="min-h-[3rem]">
-                        <p className="text-white font-black text-sm truncate uppercase italic tracking-tight mb-1 group-hover:text-accent-purple transition-colors">
+                        <p className="text-white font-black text-sm break-words line-clamp-2 uppercase italic tracking-tight mb-1 group-hover:text-accent-purple transition-colors">
                           {item.originalName}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                        <div className="flex flex-col gap-1 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
                             {toolInfo.name}
                           </p>
                           <div className="flex items-center gap-1 text-[9px] font-medium text-zinc-600 uppercase tracking-tighter">
@@ -232,10 +240,10 @@ export function RecentlyProcessed() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 pt-2">
                          <Link 
                           href={toolInfo.href}
-                          className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-zinc-900/50 border border-white/5 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/10 transition-all active:scale-95"
+                          className="flex min-h-12 items-center justify-center gap-2 py-3.5 px-3 rounded-2xl bg-zinc-900/50 border border-white/5 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/10 transition-all active:scale-95"
                          >
                             <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-700" />
                             Do it again
@@ -245,7 +253,7 @@ export function RecentlyProcessed() {
                           download={item.originalName}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 py-4 rounded-2xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-lg hover:shadow-accent-purple/20 transition-all active:scale-95"
+                          className="flex min-h-12 items-center justify-center gap-2 py-3.5 px-3 rounded-2xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-lg hover:shadow-accent-purple/20 transition-all active:scale-95"
                          >
                             <Download size={14} />
                             Save

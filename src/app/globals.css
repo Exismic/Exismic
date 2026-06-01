@@ -414,7 +414,8 @@ html.code-studio-active [class*="Footer_"] {
   [class*="p-20"],
   [class*="p-16"],
   [class*="p-12"],
-  [class*="p-10"] {
+  [class*="p-10"],
+  [class*="p-8"] {
     padding: 1.25rem !important;
   }
 
@@ -422,7 +423,8 @@ html.code-studio-active [class*="Footer_"] {
   [class*="px-20"],
   [class*="px-16"],
   [class*="px-12"],
-  [class*="px-10"] {
+  [class*="px-10"],
+  [class*="px-8"] {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
@@ -431,7 +433,8 @@ html.code-studio-active [class*="Footer_"] {
   [class*="py-28"],
   [class*="py-24"],
   [class*="py-20"],
-  [class*="py-16"] {
+  [class*="py-16"],
+  [class*="py-12"] {
     padding-top: 3.5rem !important;
     padding-bottom: 3.5rem !important;
   }
@@ -469,12 +472,52 @@ html.code-studio-active [class*="Footer_"] {
     letter-spacing: 0.16em !important;
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  a,
+  button {
+    overflow-wrap: anywhere;
+  }
+
   button,
+  [role="button"],
+  a[href][class*="rounded"],
   a[role="button"],
   input,
   select,
   textarea {
     touch-action: manipulation;
+  }
+
+  button,
+  [role="button"],
+  a[href][class*="rounded"],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+
+  [class*="gap-10"],
+  [class*="gap-8"] {
+    gap: 1.25rem !important;
+  }
+
+  [class*="rounded-[2.5rem]"],
+  [class*="rounded-[3rem]"],
+  [class*="rounded-[3.5rem]"] {
+    border-radius: 1.5rem !important;
+  }
+
+  [class*="max-w-[400px]"],
+  [class*="max-w-[450px]"],
+  [class*="max-w-[500px]"] {
+    max-width: 100% !important;
   }
 
   button,
