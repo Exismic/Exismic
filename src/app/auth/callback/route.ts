@@ -16,24 +16,31 @@ export async function GET(request: Request) {
   try {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
+    const tokenHash = searchParams.get('token_hash')
+    const verificationType = searchParams.get('type')
     const next = searchParams.get('next') || '/'
 
     console.log('[AUTH] Callback triggered')
     console.log('[AUTH] Code:', code ? 'present' : 'missing')
+    console.log('[AUTH] Token hash:', tokenHash ? 'present' : 'missing')
     console.log('[AUTH] Next:', next)
 
-    if (!code) {
-      console.warn('[AUTH] No auth code provided')
+    if (!code && (!tokenHash || verificationType !== 'magiclink')) {
+      console.warn('[AUTH] No valid auth code or magic-link token provided')
       return NextResponse.redirect(`${origin}/auth/auth-code-error`)
     }
 
     const supabase = await createClient()
     
-    // Exchange code for session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = code
+      ? await supabase.auth.exchangeCodeForSession(code)
+      : await supabase.auth.verifyOtp({
+          token_hash: tokenHash!,
+          type: 'magiclink',
+        })
 
     if (error) {
-      console.error('[AUTH] Exchange error:', error.message)
+      console.error('[AUTH] Session exchange error:', error.message)
       return NextResponse.redirect(`${origin}/auth/auth-code-error`)
     }
 

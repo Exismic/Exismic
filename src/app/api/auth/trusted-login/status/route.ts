@@ -52,18 +52,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: "consumed" });
     }
 
-    const redirectTo = `${siteUrl(request)}/auth/callback?next=${encodeURIComponent(
-      challenge.returnUrl,
-    )}`;
     const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email: challenge.loginEmail,
-      options: { redirectTo },
     });
 
-    if (error || !data?.properties?.action_link) {
-      console.error("[Trusted Login Session]", error?.message || "No action link returned");
+    if (error || !data?.properties?.hashed_token) {
+      console.error("[Trusted Login Session]", error?.message || "No login token returned");
       return NextResponse.json(
         { error: "Approval succeeded, but Lumora could not create the session." },
         { status: 500 },
@@ -86,9 +82,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: "consumed" });
     }
 
+    const callbackUrl = new URL("/auth/callback", siteUrl(request));
+    callbackUrl.searchParams.set("token_hash", data.properties.hashed_token);
+    callbackUrl.searchParams.set("type", "magiclink");
+    callbackUrl.searchParams.set("next", challenge.returnUrl);
+
     return NextResponse.json({
       status: "approved",
-      actionLink: data.properties.action_link,
+      actionLink: callbackUrl.toString(),
     });
   } catch (error) {
     console.error("[Trusted Login Status]", error);
