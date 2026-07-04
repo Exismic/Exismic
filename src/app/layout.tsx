@@ -2,22 +2,18 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 import { SessionProvider } from "@/components/providers/SessionProvider";
-import { Navbar } from "@/components/layout/Navbar";
 import { AppLoader } from "@/components/providers/AppLoader";
 import { Suspense } from "react";
 import { createClient } from "@/utils/supabase/server";
-import { Footer } from "@/components/layout/Footer";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 import { CookieConsent } from "@/components/layout/CookieConsent";
-import { MagicCommandPalette } from "@/components/layout/MagicCommandPalette";
 import { ProfileThemeProvider } from "@/components/providers/ProfileThemeProvider";
-import { GlobalToolAssistant } from "@/components/tool/GlobalToolAssistant";
+import { AppShell } from "@/components/layout/AppShell";
 
 import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
 
@@ -63,20 +59,8 @@ export default async function RootLayout({
             <SessionProvider>
               <ProfileThemeProvider>
                 <I18nProvider>
-                  <div className="flex min-h-screen" suppressHydrationWarning>
-                    {session && <Sidebar />}
-                    <main suppressHydrationWarning className="flex-1 flex flex-col min-w-0 bg-[#030303]">
-                      <Navbar />
-                      <div suppressHydrationWarning className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-                        <div className="flex-1">{children}</div>
-                        <Footer />
-                        <div suppressHydrationWarning className="fixed inset-0 grain pointer-events-none z-50 opacity-[0.02]" />
-                      </div>
-                    </main>
-                  </div>
+                  <AppShell hasSession={Boolean(session)}>{children}</AppShell>
                   <CookieConsent />
-                  <MagicCommandPalette />
-                  <GlobalToolAssistant />
                 </I18nProvider>
               </ProfileThemeProvider>
             </SessionProvider>
