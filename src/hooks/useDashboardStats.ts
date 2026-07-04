@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { useCredits } from "./useCredits";
 
 export interface DashboardStats {
@@ -22,39 +21,28 @@ export function useDashboardStats() {
     totalGenerations: 0,
     loading: true
   });
-  const supabase = createClient();
-
   const fetchUsageStats = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // 1. Total Generations from User table
-      const { data: userData } = await supabase
-        .from('User')
-        .select('aiGenerationsUsed')
-        .eq('id', userId)
-        .single();
-
-      // 2. Tools used today from UserFile table
-      const { count: todayCount } = await supabase
-        .from('UserFile')
-        .select('*', { count: 'exact', head: true })
-        .eq('userId', userId)
-        .gte('createdAt', today.toISOString());
+      const response = await fetch("/api/files/history?summary=1", {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error(`Usage summary failed with ${response.status}`);
+      }
+      const summary = await response.json();
 
       setStats({
-        toolsUsedToday: todayCount || 0,
-        totalGenerations: userData?.aiGenerationsUsed || 0,
+        toolsUsedToday: summary.toolsUsedToday || 0,
+        totalGenerations: summary.totalGenerations || 0,
         loading: false
       });
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       setStats(prev => ({ ...prev, loading: false }));
     }
-  }, [userId, supabase]);
+  }, [userId]);
 
   useEffect(() => {
     if (userId) {
@@ -62,49 +50,11 @@ export function useDashboardStats() {
     }
   }, [userId, fetchUsageStats]);
 
-  // Realtime listeners for usage
   useEffect(() => {
     if (!userId) return;
-
-    const channelId = `dashboard-stats-${userId}-${Math.random().toString(36).substring(7)}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'User', 
-          filter: `id=eq.${userId}` 
-        },
-        (payload) => {
-          setStats(prev => ({
-            ...prev,
-            totalGenerations: payload.new.aiGenerationsUsed ?? prev.totalGenerations
-          }));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'UserFile', 
-          filter: `userId=eq.${userId}` 
-        },
-        () => {
-          setStats(prev => ({
-            ...prev,
-            toolsUsedToday: prev.toolsUsedToday + 1
-          }));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, supabase]);
+    const refreshTimer = window.setInterval(fetchUsageStats, 30_000);
+    return () => window.clearInterval(refreshTimer);
+  }, [userId, fetchUsageStats]);
 
   return {
     creditsRemaining: credits,

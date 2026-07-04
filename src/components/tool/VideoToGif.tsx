@@ -4,18 +4,14 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { readVideoResponse } from "@/lib/video-client";
 import { 
-  Upload, 
   Download, 
   Loader2, 
-  Play, 
   Settings2, 
   ArrowRight,
   Image as ImageIcon,
-  Clock,
-  Film,
   Zap,
-  CheckCircle2,
   AlertCircle,
   Scissors
 } from "lucide-react";
@@ -24,9 +20,9 @@ export default function VideoToGif() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("lumora-animation.gif");
   const [error, setError] = useState<string | null>(null);
 
   // Settings
@@ -38,14 +34,25 @@ export default function VideoToGif() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  useEffect(() => () => {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [resultUrl]);
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
     if (selectedFile) {
+      if (selectedFile.size > 180 * 1024 * 1024) {
+        setError("File is too large. Maximum size is 180 MB.");
+        return;
+      }
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResultUrl(null);
       setError(null);
-      setProgress(0);
     }
   }, []);
 
@@ -64,8 +71,7 @@ export default function VideoToGif() {
   const handleConvert = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setProgress(5);
-    setStatus("Analyzing...");
+    setStatus("Rendering a palette-optimized GIF...");
     setError(null);
 
     const gifDuration = endTime - startTime;
@@ -78,33 +84,17 @@ export default function VideoToGif() {
     formData.append("width", width.toString());
 
     try {
-      const interval = setInterval(() => {
-        setProgress(prev => (prev < 90 ? prev + 0.5 : prev));
-        setStatus(prev => {
-          if (progress < 30) return "Generating Palette...";
-          if (progress < 70) return "Processing Frames...";
-          return "Optimizing GIF...";
-        });
-      }, 1000);
-
       const response = await fetch("/api/tools/video/to-gif", {
         method: "POST",
         body: formData,
       });
-      clearInterval(interval);
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Conversion failed");
-      }
-
-      const result = await response.json();
-      setResultUrl(result.file_data_base64);
-      setProgress(100);
-      setStatus("Conversion Complete!");
-    } catch (err: any) {
+      const artifact = await readVideoResponse(response, "lumora-animation.gif");
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+      setStatus("GIF ready");
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to create GIF");
+      setError(err instanceof Error ? err.message : "Failed to create GIF");
       setStatus("Error");
     } finally {
       setIsProcessing(false);
@@ -115,9 +105,9 @@ export default function VideoToGif() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
+    setResultFileName("lumora-animation.gif");
     setError(null);
     setIsProcessing(false);
-    setProgress(0);
   };
 
   return (
@@ -195,7 +185,9 @@ export default function VideoToGif() {
                   ) : (
                     <div className="flex flex-col items-center justify-center space-y-10 py-10">
                        <div className="relative group">
-                          <img 
+                          {/* Blob-backed GIF previews cannot use Next Image optimization. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
                             src={resultUrl} 
                             alt="Generated GIF" 
                             className="max-w-full rounded-3xl border border-white/10 shadow-2xl"
@@ -225,10 +217,10 @@ export default function VideoToGif() {
                       <Loader2 className="w-16 h-16 text-purple-500 animate-spin mb-8" />
                       <h4 className="text-3xl font-black text-white uppercase italic tracking-tightest mb-6">{status}</h4>
                       <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
-                         <motion.div 
-                           className="h-full bg-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.5)]"
-                           initial={{ width: 0 }}
-                           animate={{ width: `${progress}%` }}
+                         <motion.div
+                           className="h-full w-2/5 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                           animate={{ x: ["-110%", "250%"] }}
+                           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                          />
                       </div>
                     </motion.div>
@@ -304,7 +296,7 @@ export default function VideoToGif() {
                       <div className="space-y-6">
                         <a
                           href={resultUrl}
-                          download={`${file.name.split('.')[0]}.gif`}
+                          download={resultFileName}
                           className="w-full flex items-center justify-center gap-4 py-7 bg-purple-600 text-white font-black rounded-[2.5rem] hover:bg-purple-500 transition-all shadow-2xl shadow-purple-600/30 uppercase tracking-widest"
                         >
                           <Download className="w-6 h-6" />

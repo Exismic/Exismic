@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isAdminConfigured, isAdminEmail } from '@/lib/admin'
 
 /**
  * DEBUG ENDPOINT - Check user credits and auth
@@ -13,17 +14,25 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    if (process.env.NODE_ENV === 'production' && !isAdminConfigured()) {
+      return NextResponse.json({ error: 'Debug endpoint disabled' }, { status: 404 })
+    }
 
-    if (!session?.user?.id) {
+    const supabase = await createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+
+    if (!authUser?.id || !authUser.email) {
       return NextResponse.json({
         error: 'Not authenticated',
         message: 'You need to be logged in'
       }, { status: 401 })
     }
 
-    const userId = session.user.id
+    if (!isAdminEmail(authUser.email)) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
+    const userId = authUser.id
     console.log(`[DEBUG] Checking credits for user: ${userId}`)
 
     // Get user from database
@@ -44,9 +53,9 @@ export async function GET(request: NextRequest) {
     if (!user) {
       console.log(`[DEBUG] 🛠️ User not found in database. Initializing user record for: ${userId}`)
       
-      const email = session.user.email
-      const userName = session.user.user_metadata?.full_name || 
-                       session.user.user_metadata?.name || 
+      const email = authUser.email
+      const userName = authUser.user_metadata?.full_name ||
+                       authUser.user_metadata?.name ||
                        email?.split('@')[0] || 'User'
       
       const newUser = await prisma.user.upsert({
@@ -73,8 +82,8 @@ export async function GET(request: NextRequest) {
         message: 'User record was missing and has been initialized with 50 credits',
         data: {
           auth: {
-            userId: session.user.id,
-            email: session.user.email,
+            userId: authUser.id,
+            email: authUser.email,
           },
           database: {
             ...newUser,
@@ -84,12 +93,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Existing User - Auto-reset message count if they visit this page (for testing)
-    const updatedUser = await prisma.user.update({
+    const currentUser = await prisma.user.findUnique({
       where: { id: userId },
-      data: {
-        aiMessagesToday: 0 // Reset message count for testing
-      },
       select: {
         id: true,
         email: true,
@@ -103,28 +108,28 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log(`[DEBUG] User found and message count reset:`, updatedUser)
+    console.log(`[DEBUG] User found:`, currentUser)
 
     return NextResponse.json({
       success: true,
-      message: 'User found and AI message count has been reset to 0 for testing',
+      message: 'User found',
       data: {
         auth: {
-          userId: session.user.id,
-          email: session.user.email,
-          authProvider: session.user.user_metadata?.provider || 'unknown'
+          userId: authUser.id,
+          email: authUser.email,
+          authProvider: authUser.user_metadata?.provider || 'unknown'
         },
         database: {
-          id: updatedUser.id,
-          email: updatedUser.email,
-          name: updatedUser.name,
-          dailyCredits: updatedUser.dailyCredits,
-          lifetimeCredits: updatedUser.lifetimeCredits,
-          aiMessagesToday: updatedUser.aiMessagesToday,
-          totalCredits: updatedUser.dailyCredits + updatedUser.lifetimeCredits,
-          plan: updatedUser.plan,
-          creditsLastReset: updatedUser.creditsLastReset,
-          createdAt: updatedUser.createdAt,
+          id: currentUser?.id,
+          email: currentUser?.email,
+          name: currentUser?.name,
+          dailyCredits: currentUser?.dailyCredits,
+          lifetimeCredits: currentUser?.lifetimeCredits,
+          aiMessagesToday: currentUser?.aiMessagesToday,
+          totalCredits: (currentUser?.dailyCredits || 0) + (currentUser?.lifetimeCredits || 0),
+          plan: currentUser?.plan,
+          creditsLastReset: currentUser?.creditsLastReset,
+          createdAt: currentUser?.createdAt,
         }
       }
     })

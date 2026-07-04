@@ -6,9 +6,9 @@ import { getOrCreateUser } from '@/lib/user-access';
 export async function POST(req: Request) {
   try {
     const supabaseServer = await createClient();
-    const { data: { session } } = await supabaseServer.auth.getSession();
+    const { data: { user } } = await supabaseServer.auth.getUser();
 
-    if (!session?.user?.id || !session.user.email) {
+    if (!user?.id || !user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'enabled must be a boolean.' }, { status: 400 });
     }
 
-    const dbUser = await getOrCreateUser(session.user);
+    const dbUser = await getOrCreateUser(user);
     if (enabled && !dbUser.discordUserId) {
       return NextResponse.json({ error: 'Connect Discord before enabling Discord DMs.' }, { status: 400 });
     }

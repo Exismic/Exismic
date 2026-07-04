@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { readVideoResponse } from "@/lib/video-client";
 import { 
   Scissors, 
   Upload, 
@@ -13,7 +14,6 @@ import {
   Download, 
   Clock, 
   CheckCircle2,
-  ChevronRight,
   Loader2,
   Timer,
   AlertCircle,
@@ -40,13 +40,21 @@ export default function VideoTrimmer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("lumora-trimmed.mp4");
   const [resultMetadata, setResultMetadata] = useState<{ duration: number; size: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  useEffect(() => () => {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
@@ -64,7 +72,6 @@ export default function VideoTrimmer() {
       setResultMetadata(null);
       setStartTime(0);
       setEndTime(0);
-      setProgress(0);
     }
   }, []);
 
@@ -123,7 +130,6 @@ export default function VideoTrimmer() {
     if (!file) return;
 
     setIsProcessing(true);
-    setProgress(10); // Initial progress
     setError(null);
 
     const formData = new FormData();
@@ -132,34 +138,20 @@ export default function VideoTrimmer() {
     formData.append("end", endTime.toFixed(2));
 
     try {
-      // Simulate progress since fetch doesn't give upload progress easily without XHR
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 5, 90));
-      }, 500);
-
       const response = await fetch("/api/tools/video/trimmer", {
         method: "POST",
         body: formData,
       });
-
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Trim failed");
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setResultUrl(url);
+      const artifact = await readVideoResponse(response, "lumora-trimmed.mp4");
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
       setResultMetadata({
         duration: endTime - startTime,
-        size: blob.size
+        size: artifact.size
       });
-      setProgress(100);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Trim error:", error);
-      setError(error.message || "Failed to trim video. Please try a different file.");
+      setError(error instanceof Error ? error.message : "Failed to trim video.");
     } finally {
       setIsProcessing(false);
     }
@@ -169,12 +161,12 @@ export default function VideoTrimmer() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
+    setResultFileName("lumora-trimmed.mp4");
     setResultMetadata(null);
     setStartTime(0);
     setEndTime(0);
     setMetadata(null);
     setError(null);
-    setProgress(0);
   };
 
   const formatTime = (time: number) => {
@@ -233,7 +225,7 @@ export default function VideoTrimmer() {
 
             <h3 className="text-3xl font-bold mb-4 tracking-tight">Drop your video here</h3>
             <p className="text-gray-400 text-lg mb-8 max-w-md text-center">
-              MP4, MOV, or WebM. We'll handle the trimming with high precision.
+              MP4, MOV, or WebM. We&apos;ll handle the trimming with high precision.
             </p>
             
             <div className="flex gap-4">
@@ -480,7 +472,7 @@ export default function VideoTrimmer() {
                         {isProcessing ? (
                           <>
                             <Loader2 className="w-6 h-6 animate-spin" />
-                            <span>Processing... {progress}%</span>
+                            <span>Rendering selected range...</span>
                           </>
                         ) : (
                           <>
@@ -492,10 +484,10 @@ export default function VideoTrimmer() {
                       
                       {/* Animated Progress Background */}
                       {isProcessing && (
-                        <motion.div 
-                          className="absolute bottom-0 left-0 h-1 bg-white/30 z-20"
-                          initial={{ width: "0%" }}
-                          animate={{ width: `${progress}%` }}
+                        <motion.div
+                          className="absolute bottom-0 left-0 z-20 h-1 w-2/5 bg-white/40"
+                          animate={{ x: ["-110%", "250%"] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                         />
                       )}
                     </button>
@@ -549,7 +541,7 @@ export default function VideoTrimmer() {
 
                       <a
                         href={resultUrl}
-                        download={`trimmed_${file.name}`}
+                        download={resultFileName}
                         className="w-full flex items-center justify-center gap-3 py-5 bg-white text-black font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-lg"
                       >
                         <Download className="w-5 h-5" />
@@ -596,7 +588,7 @@ export default function VideoTrimmer() {
                         <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 text-sm font-bold">3</div>
                         <div>
                           <p className="font-semibold text-white text-sm mb-1">Export</p>
-                          <p className="text-gray-400 text-xs leading-relaxed">Click Trim & Save. We'll re-encode your video for perfect quality.</p>
+                          <p className="text-gray-400 text-xs leading-relaxed">Click Trim &amp; Save. We&apos;ll re-encode your video for reliable playback.</p>
                         </div>
                       </div>
                     </div>

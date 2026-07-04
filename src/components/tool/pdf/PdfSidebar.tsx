@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { CheckCircle2, Zap, Shield, Info } from "lucide-react";
+import { CheckCircle2, Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Step {
@@ -16,70 +14,79 @@ interface PdfSidebarProps {
   accentColor?: string;
 }
 
-export function PdfSidebar({ steps, stats, accentColor = "text-emerald-400" }: PdfSidebarProps) {
+export function PdfSidebar({
+  steps,
+  stats,
+  accentColor = "text-emerald-400",
+}: PdfSidebarProps) {
   return (
-    <aside className="space-y-8 h-fit">
-      {/* Configuration & Stats */}
+    <aside className="space-y-4">
       {stats && stats.length > 0 && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-10 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-10">
-            <h3 className="text-2xl font-black uppercase tracking-tight italic">Studio Setup</h3>
-            <CheckCircle2 className={cn("w-6 h-6", accentColor)} />
-          </div>
-          
-          <div className="space-y-6">
-            <label className="text-[11px] font-black text-zinc-500 uppercase tracking-[0.4em]">Live Stats</label>
-            <div className="grid grid-cols-1 gap-3">
-              {stats.map((stat, i) => (
-                <div key={i} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 flex justify-between items-center group hover:bg-white/[0.05] transition-all">
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest group-hover:text-zinc-400 transition-colors">{stat.label}</span>
-                  <span className="text-sm font-black text-white">{stat.value}</span>
-                </div>
-              ))}
+        <section className="rounded-lg border border-white/10 bg-white/[0.025] p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.25em] text-zinc-600">
+                Current job
+              </p>
+              <h3 className="mt-1 text-lg font-black text-white">Document setup</h3>
             </div>
+            <CheckCircle2 className={cn("size-5", accentColor)} />
           </div>
-        </div>
+          <dl className="divide-y divide-white/7 border-y border-white/7">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="flex min-h-12 items-center justify-between gap-4 py-3"
+              >
+                <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                  {stat.label}
+                </dt>
+                <dd className="max-w-[58%] truncate text-right text-xs font-bold text-zinc-200">
+                  {stat.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       )}
 
-      {/* How it works */}
-      <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-10 backdrop-blur-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl rounded-full" />
-        
-        <div className="flex items-center gap-4 mb-10">
-           <div className="p-3 bg-white/5 rounded-2xl">
-              <Info className={cn("w-6 h-6", accentColor)} />
-           </div>
-           <h3 className="text-xl font-black uppercase italic tracking-tight">How it works</h3>
+      <section className="rounded-lg border border-white/10 bg-white/[0.025] p-5 sm:p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="flex size-9 items-center justify-center rounded-lg border border-white/8 bg-white/[0.035]">
+            <Info className={cn("size-4", accentColor)} />
+          </span>
+          <h3 className="text-base font-black text-white">How it works</h3>
         </div>
-
-        <div className="space-y-10">
-          {steps.map((step, i) => (
-            <div key={i} className="flex gap-6 group">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center shrink-0 text-white font-black italic group-hover:border-emerald-500/50 group-hover:text-emerald-400 transition-all">
-                  {i + 1}
-                </div>
-                {i < steps.length - 1 && <div className="w-px flex-1 bg-zinc-800" />}
+        <ol className="space-y-5">
+          {steps.map((step, index) => (
+            <li key={step.title} className="grid grid-cols-[32px_1fr] gap-3">
+              <span className="flex size-8 items-center justify-center rounded-lg border border-white/8 bg-black/25 text-[10px] font-black text-white">
+                {index + 1}
+              </span>
+              <div className="min-w-0 pt-0.5">
+                <h4 className="text-xs font-black uppercase tracking-[0.08em] text-zinc-200">
+                  {step.title}
+                </h4>
+                <p className="mt-1 text-xs leading-5 text-zinc-600">{step.desc}</p>
               </div>
-              <div className="space-y-2 pb-8">
-                <h4 className="text-sm font-black text-white uppercase italic tracking-tight group-hover:translate-x-1 transition-transform">{step.title}</h4>
-                <p className="text-xs text-zinc-500 font-medium leading-relaxed">{step.desc}</p>
-              </div>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
+        </ol>
+      </section>
 
-      {/* Security Badge */}
-      <div className="p-8 rounded-[3rem] bg-emerald-500/5 border border-emerald-500/10 flex gap-5 items-center">
-         <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
-            <Shield className="w-6 h-6" />
-         </div>
-         <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-widest">Secure Cloud</h4>
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mt-1">Files deleted after 1hr</p>
-         </div>
-      </div>
+      <section className="flex items-center gap-4 rounded-lg border border-emerald-300/12 bg-emerald-300/[0.035] p-4">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-emerald-300/15 bg-emerald-300/[0.06] text-emerald-300">
+          <ShieldCheck className="size-5" />
+        </span>
+        <div>
+          <h4 className="text-xs font-black uppercase tracking-[0.12em] text-white">
+            Request-scoped processing
+          </h4>
+          <p className="mt-1 text-[10px] leading-4 text-zinc-600">
+            Generated files are returned directly without persistent result storage.
+          </p>
+        </div>
+      </section>
     </aside>
   );
 }

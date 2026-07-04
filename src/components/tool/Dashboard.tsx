@@ -219,10 +219,10 @@ function SuiteCard({ action, i }: { action: DashboardAction; i: number }) {
           </div>
 
           <div className="space-y-1.5">
-            <h3 className="text-base sm:text-lg font-bold tracking-tight leading-snug text-white transition-colors group-hover:text-white break-words pr-10">
+            <h3 className="pr-10 text-base font-bold leading-snug tracking-tight text-white transition-colors [overflow-wrap:normal] [word-break:normal] group-hover:text-white sm:text-lg">
               {action.label}
             </h3>
-            <p className="text-zinc-500 text-xs sm:text-[13px] leading-relaxed line-clamp-3 sm:line-clamp-2 group-hover:text-zinc-400 transition-colors break-words">
+            <p className="line-clamp-3 text-xs leading-relaxed text-zinc-500 transition-colors [overflow-wrap:normal] [word-break:normal] group-hover:text-zinc-400 sm:line-clamp-2 sm:text-[13px]">
               {action.description}
             </p>
           </div>
@@ -311,7 +311,7 @@ export function Dashboard() {
         </section>
 
         {/* 2. STATS ROW (REFINED GLASS CARDS) */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))]">
            <StatCard 
               label="Credits Remaining" 
               value={creditsRemaining.toLocaleString()} 
@@ -355,7 +355,7 @@ export function Dashboard() {
               </h2>
               <p className="text-zinc-500 text-xs font-semibold">Transform and generate art, backgrounds, media, and writing instantly</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
               {CREATIVE_SUITE.map((action, idx) => (
                 <SuiteCard key={action.label} action={action} i={idx} />
               ))}
@@ -371,7 +371,7 @@ export function Dashboard() {
               </h2>
               <p className="text-zinc-500 text-xs font-semibold">Design, preview, test, and convert high-performance clean application code</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
               {DEVELOPER_SUITE.map((action, idx) => (
                 <SuiteCard key={action.label} action={action} i={idx} />
               ))}
@@ -387,7 +387,7 @@ export function Dashboard() {
               </h2>
               <p className="text-zinc-500 text-xs font-semibold">Build professional business invoices, compress data, and convert metrics</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
               {PRODUCTIVITY_SUITE.map((action, idx) => (
                 <SuiteCard key={action.label} action={action} i={idx} />
               ))}
@@ -411,7 +411,7 @@ export function Dashboard() {
              </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
              {popularTools.map((tool, idx) => (
                 <ToolCard 
                   key={tool.id} 

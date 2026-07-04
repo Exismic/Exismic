@@ -49,19 +49,48 @@ export default function HashtagGenerator() {
     setIsGenerating(true);
     setResults(null);
 
-    // Simulate AI generation delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const baseTags = keywords.split(/\s+/).filter(t => t.length > 0);
-    const mockTrending = baseTags.flatMap(t => [`${t}life`, `${t}community`, `trending${t}`, `viral${t}`]);
-    const mockNiche = baseTags.flatMap(t => [`${t}tips`, `${t}hacks`, `${t}expert`, `learn${t}`]);
-    const mockLongTail = baseTags.flatMap(t => [`best${t}for2026`, `${t}motivationdaily`, `${t}inspirationtoday`]);
+    const baseTags = keywords
+      .toLowerCase()
+      .split(/[\s,]+/)
+      .map((tag) => tag.replace(/[^a-z0-9]/g, ""))
+      .filter(Boolean)
+      .slice(0, 8);
+    const phrase = baseTags.join("");
+    const platformTags: Record<Platform, string[]> = {
+      all: ["discover", "creator", "community", "newcontent"],
+      instagram: ["instagramreels", "reels", "explorepage", "instacreator"],
+      youtube: ["youtube", "youtubeshorts", "videocreator", "watchnow"],
+      tiktok: ["tiktok", "tiktokcreator", "fyp", "shortformvideo"],
+      twitter: ["twittercommunity", "thread", "buildinpublic", "conversation"],
+    };
+    const reachTags = mixTrending ? platformTags[platform] : [];
+    const nicheTags = baseTags.flatMap((tag) => [
+      tag,
+      `${tag}tips`,
+      `${tag}guide`,
+      `${tag}community`,
+      `learn${tag}`,
+    ]);
+    const longTailTags = [
+      `best${phrase}`,
+      `${phrase}ideas`,
+      `${phrase}forbeginners`,
+      `${phrase}${platform === "all" ? "content" : platform}`,
+      ...baseTags.flatMap((tag) => [`daily${tag}`, `${tag}inspiration`]),
+    ];
+    const unique = (tags: string[]) => Array.from(new Set(tags)).filter(Boolean);
+    const reachCount = mixTrending ? Math.ceil(count * 0.25) : 0;
+    const nicheCount = Math.ceil(count * 0.5);
+    const longTailCount = Math.max(0, count - reachCount - nicheCount);
+    await Promise.resolve();
 
     setResults([
-      { category: "Trending", icon: <TrendingUp className="w-4 h-4" />, tags: mockTrending.slice(0, Math.ceil(count * 0.4)) },
-      { category: "Niche", icon: <Target className="w-4 h-4" />, tags: mockNiche.slice(0, Math.ceil(count * 0.4)) },
-      { category: "Long-tail", icon: <Layers className="w-4 h-4" />, tags: mockLongTail.slice(0, Math.ceil(count * 0.2)) },
-    ]);
+      ...(mixTrending
+        ? [{ category: "Reach", icon: <TrendingUp className="w-4 h-4" />, tags: unique(reachTags).slice(0, reachCount) }]
+        : []),
+      { category: "Niche", icon: <Target className="w-4 h-4" />, tags: unique(nicheTags).slice(0, nicheCount) },
+      { category: "Long-tail", icon: <Layers className="w-4 h-4" />, tags: unique(longTailTags).slice(0, longTailCount) },
+    ].filter((group) => group.tags.length > 0));
 
     setIsGenerating(false);
   };
@@ -104,7 +133,7 @@ export default function HashtagGenerator() {
               transition={{ delay: 0.2 }}
               className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
             >
-              Boost your reach with AI-optimized hashtags tailored for every platform.
+              Build focused, platform-aware hashtag sets for your content.
             </motion.p>
           </div>
 
@@ -187,8 +216,8 @@ export default function HashtagGenerator() {
                 {/* Trending Toggle */}
                 <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Viral Mix</span>
-                      <span className="text-[9px] font-medium text-zinc-600 uppercase">Include trending tags</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Reach Mix</span>
+                      <span className="text-[9px] font-medium text-zinc-600 uppercase">Include broad discovery tags</span>
                    </div>
                    <button 
                      onClick={() => setMixTrending(!mixTrending)}
@@ -236,8 +265,8 @@ export default function HashtagGenerator() {
                          />
                          <Hash className="absolute inset-0 m-auto w-8 h-8 text-cyan-400 animate-pulse" />
                       </div>
-                      <h4 className="text-2xl font-bold mb-2">Analyzing Social Trends...</h4>
-                      <p className="text-gray-500 uppercase text-[10px] tracking-widest font-black">Scanning {platform} meta-tags</p>
+                      <h4 className="text-2xl font-bold mb-2">Building your hashtag set...</h4>
+                      <p className="text-gray-500 uppercase text-[10px] tracking-widest font-black">Optimizing for {platform}</p>
                    </motion.div>
                 ) : results ? (
                    <motion.div

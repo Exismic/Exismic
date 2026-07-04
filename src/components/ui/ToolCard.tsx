@@ -4,10 +4,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ICON_MAP, type IconName } from "@/data/tools";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Crown, Star, Zap } from "lucide-react";
 import { toggleFavorite } from "@/app/actions/favorites";
 import { useState } from "react";
-import { ProBadge } from "./ProBadge";
+import { ToolReliabilityBadge } from "@/components/tool/ToolReliability";
+import { isToolUnavailable } from "@/lib/tool-reliability";
 
 interface ToolCardProps {
   id: string;
@@ -21,6 +22,8 @@ interface ToolCardProps {
   index?: number;
   initialFavorited?: boolean;
   isProTool?: boolean;
+  proPowerPack?: boolean;
+  className?: string;
 }
 
 const CATEGORY_STYLES: Record<string, { accent: string, glow: string, bg: string }> = {
@@ -56,8 +59,9 @@ const CATEGORY_STYLES: Record<string, { accent: string, glow: string, bg: string
   },
 };
 
-export function ToolCard({ id, name, description, icon, href, popular, pro, isProTool, category, index = 0, initialFavorited = false }: ToolCardProps) {
+export function ToolCard({ id, name, description, icon, href, popular, pro, isProTool, proPowerPack, category, index = 0, initialFavorited = false, className }: ToolCardProps) {
   const isPro = pro || isProTool;
+  const unavailable = isToolUnavailable(id);
   const Icon = ICON_MAP[icon] || ICON_MAP.Wand2;
   const style = CATEGORY_STYLES[category] || CATEGORY_STYLES.pdf;
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
@@ -78,12 +82,13 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.05 }}
-      className="group relative h-full min-w-0"
+      className={cn("group relative h-full min-w-0", className)}
     >
       <Link href={href} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
         <div className={cn(
           "relative h-full min-h-[260px] flex flex-col p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
           "border border-white/5",
+          unavailable && "opacity-85",
           isPro 
             ? "bg-zinc-950/60 border-purple-500/10 shadow-[inset_0_1px_2px_rgba(168,85,247,0.05)] hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]" 
             : "bg-zinc-950/40 hover:bg-zinc-900/60 hover:border-white/20 hover:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]",
@@ -112,9 +117,19 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
                   Popular
                 </div>
               )}
-              {isPro && (
-                <ProBadge size="sm" type={id === "ai-code" ? "studio" : "default"} />
+              {proPowerPack && !isPro && (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400/10 backdrop-blur-md border border-cyan-300/20 text-[8px] font-black uppercase tracking-widest text-cyan-200">
+                  <Zap size={9} className="fill-cyan-200" />
+                  Pro Boost
+                </div>
               )}
+              {isPro && (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 backdrop-blur-md border border-purple-300/20 text-[8px] font-black uppercase tracking-widest text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.12)]">
+                  <Crown size={9} className="fill-purple-200" />
+                  Pro Only
+                </div>
+              )}
+              <ToolReliabilityBadge toolId={id} />
             </div>
             
             <button 
@@ -174,7 +189,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
                 ? "bg-linear-to-r from-purple-600 to-cyan-500 text-white shadow-[0_20px_40px_-10px_rgba(168,85,247,0.3)] group-hover:scale-[1.02] group-hover:shadow-[0_25px_50px_-12px_rgba(168,85,247,0.5)]" 
                 : "bg-white/5 border border-white/5 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.3)]"
             )}>
-              Try it now
+              {unavailable ? "View status" : "Try it now"}
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5" />
             </div>
           </div>
@@ -189,6 +204,3 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
     </motion.div>
   );
 }
-
-
-

@@ -12,8 +12,6 @@ import {
   Check,
   Receipt
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import GradientText from './GradientText';
 
 interface InvoiceModalProps {
   isOpen: boolean;
@@ -35,14 +33,14 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
     date: "May 7, 2026",
     amount: "$6.99",
     plan: "Lumora Elite Pro - Monthly",
-    method: "Razorpay (Visa •••• 4242)",
+    method: "Secure card payment",
     status: "Paid"
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -55,40 +53,44 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-xl bg-zinc-950 border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.9)]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Invoice details"
+            className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_50px_100px_rgba(0,0,0,0.9)] sm:rounded-[3rem]"
           >
             {/* Header */}
-            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-accent-purple shadow-xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/5 bg-zinc-950/95 p-4 backdrop-blur-xl sm:p-8">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-zinc-900 text-accent-purple shadow-xl sm:h-12 sm:w-12 sm:rounded-2xl">
                   <Receipt size={24} />
                 </div>
-                <div>
-                  <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">Invoice Details</h3>
-                  <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{data.id}</p>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-black italic uppercase tracking-tighter text-white sm:text-xl">Invoice Details</h3>
+                  <p className="truncate text-[9px] font-black uppercase tracking-wider text-zinc-600 sm:tracking-widest">{data.id}</p>
                 </div>
               </div>
               <button 
                 onClick={onClose}
-                className="p-3 hover:bg-white/5 rounded-full transition-all text-zinc-500 hover:text-white"
+                aria-label="Close invoice"
+                className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-all hover:bg-white/5 hover:text-white"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-10 space-y-10">
+            <div className="space-y-6 p-4 sm:space-y-10 sm:p-10">
               {/* Status Banner */}
-              <div className="flex items-center justify-between p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/20">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6 sm:rounded-3xl">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Check size={20} strokeWidth={3} />
                   </div>
                   <div>
                     <p className="text-xs font-black text-white uppercase tracking-tight">Payment Successful</p>
-                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-tight">Transaction processed via Razorpay Secure</p>
+                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-tight">Transaction securely processed</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-2xl font-black italic text-white tracking-tighter">{data.amount}</p>
                   <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Amount Paid</p>
                 </div>

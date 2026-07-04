@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { inferResultFileType, normalizeHistoryToolType } from "@/lib/results";
+import { deductCredits, getUserCredits } from "@/lib/credits";
 
 export interface ToolOptions {
   toolId: string;
@@ -28,6 +30,7 @@ export async function withToolHandler(
   options: ToolOptions,
   processor: (file: Buffer, jobId: string, formData: FormData, context: ToolProcessorContext) => Promise<{ resultUrl: string, metadata?: Record<string, unknown> }>
 ) {
+  let activeJobId: string | null = null;
   try {
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
@@ -52,18 +55,9 @@ export async function withToolHandler(
         });
     }
 
-    /*
-    if (user.credits < options.creditCost) {
-      return NextResponse.json({ error: "Insufficient credits" }, { status: 403 });
-    }
-    */
-    
     const isPro = user.plan === "pro" || user.subscriptionStatus === "active";
     const queue = isPro ? "priority" : "normal";
     const processingLabel = isPro ? "Processing with Priority..." : "Processing...";
-
-    // We'll use the prisma user object for the rest of the logic
-    const session = { user }; // Mock session for compatibility
 
     // 2. Parse Multipart Data
     const formData = await req.formData();
@@ -84,10 +78,26 @@ export async function withToolHandler(
       }
     }
 
+    if (options.creditCost > 0) {
+      const credits = await getUserCredits(user.id);
+      const availableCredits = (credits?.dailyCredits || 0) + (credits?.lifetimeCredits || 0);
+
+      if (!credits || availableCredits < options.creditCost) {
+        return NextResponse.json(
+          {
+            error: "Insufficient credits",
+            available: availableCredits,
+            required: options.creditCost,
+          },
+          { status: 402 }
+        );
+      }
+    }
+
     // 4. Create Job in DB
     const job = await prisma.job.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         toolType: options.toolId,
         status: "PROCESSING",
         progress: 10,
@@ -98,6 +108,7 @@ export async function withToolHandler(
         } satisfies Prisma.InputJsonObject,
       }
     });
+    activeJobId = job.id;
 
     // 5. Process File (Buffer conversion if file exists)
     let buffer = Buffer.alloc(0);
@@ -120,6 +131,40 @@ export async function withToolHandler(
     });
 
     // 6. Update Job & Deduct Credits
+    const normalizedToolType = normalizeHistoryToolType(options.toolId);
+    const fileType = inferResultFileType({
+      mimeType: file?.type,
+      toolType: normalizedToolType,
+      resultUrl: result.resultUrl,
+    });
+    const historyMetadata = {
+      ...(result.metadata ?? {}),
+      jobId: job.id,
+      priority: isPro,
+      queue,
+      processingLabel,
+    } satisfies Prisma.InputJsonObject;
+
+    const debitResult = options.creditCost > 0
+      ? await deductCredits(user.id, options.creditCost)
+      : { success: true };
+
+    if (!debitResult.success) {
+      await prisma.job.update({
+        where: { id: job.id },
+        data: {
+          status: "FAILED",
+          progress: 100,
+          error: debitResult.error || "Insufficient credits",
+        },
+      });
+
+      return NextResponse.json(
+        { error: debitResult.error || "Insufficient credits" },
+        { status: 402 }
+      );
+    }
+
     await prisma.$transaction([
       prisma.job.update({
         where: { id: job.id },
@@ -135,9 +180,16 @@ export async function withToolHandler(
           } as Prisma.InputJsonObject,
         }
       }),
-      prisma.user.update({
-        where: { id: session.user.id },
-        data: { dailyCredits: { decrement: options.creditCost } }
+      prisma.userFile.create({
+        data: {
+          userId: user.id,
+          toolType: normalizedToolType,
+          originalName: file?.name || `${normalizedToolType} result`,
+          resultUrl: result.resultUrl,
+          fileType,
+          status: "completed",
+          metadata: historyMetadata,
+        }
       })
     ]);
 
@@ -152,6 +204,16 @@ export async function withToolHandler(
 
   } catch (error: unknown) {
     console.error(`Tool Processing Error [${options.toolId}]:`, error);
+    if (activeJobId) {
+      await prisma.job.update({
+        where: { id: activeJobId },
+        data: {
+          status: "FAILED",
+          progress: 100,
+          error: error instanceof Error ? error.message : "Internal Server Error",
+        },
+      }).catch(() => undefined);
+    }
     const message = error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

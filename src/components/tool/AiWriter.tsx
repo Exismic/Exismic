@@ -54,6 +54,16 @@ export default function AiWriter() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleExport = () => {
+    if (!result) return;
+    const url = URL.createObjectURL(new Blob([result], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `lumora-writing-${Date.now()}.txt`;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim() || isGenerating) return;
 
@@ -280,7 +290,12 @@ export default function AiWriter() {
                        </div>
                     </div>
                     
-                    <button className="w-full py-6 flex items-center justify-center gap-3 bg-white/5 rounded-[2rem] text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
+                    <button
+                      type="button"
+                      onClick={handleExport}
+                      disabled={!result}
+                      className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-white/5 py-6 text-[11px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                    >
                        <Share2 size={18} />
                        Export Project
                     </button>

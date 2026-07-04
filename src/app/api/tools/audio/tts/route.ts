@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getRequestIp, rateLimitResponse, requireApiUser } from '@/lib/api-security';
 
 /**
  * ElevenLabs Text-to-Speech API Route
@@ -6,10 +7,20 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
+    const authUser = await requireApiUser();
+    if (authUser instanceof NextResponse) return authUser;
+    const limit = checkRateLimit(`tts:${authUser.id}:${getRequestIp(req)}`, 20, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+
     const { text, voice_id, settings } = await req.json();
 
     if (!text) {
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
+    }
+
+    const cleanText = String(text).trim();
+    if (cleanText.length > 5000) {
+      return NextResponse.json({ error: 'Text is too long. Maximum length is 5,000 characters.' }, { status: 413 });
     }
 
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -19,12 +30,12 @@ export async function POST(req: NextRequest) {
       }, { status: 503 });
     }
 
-    const voiceId = voice_id || '21m00Tcm4TlvDq8ikWAM'; // Default: Rachel
+    const voiceId = voice_id || 'JBFqnCBsd6RMkjVDRZzb';
 
     console.log(`Generating TTS with ElevenLabs for voice: ${voiceId}`);
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
       {
         method: 'POST',
         headers: {
@@ -33,7 +44,7 @@ export async function POST(req: NextRequest) {
           'accept': 'audio/mpeg',
         },
         body: JSON.stringify({
-          text: text,
+          text: cleanText,
           model_id: 'eleven_multilingual_v2',
           voice_settings: settings || {
             stability: 0.5,
@@ -64,6 +75,13 @@ export async function POST(req: NextRequest) {
       if (response.status === 429) {
         return NextResponse.json({ error: 'ElevenLabs quota exceeded' }, { status: 429 });
       }
+
+      if (response.status === 402) {
+        return NextResponse.json(
+          { error: 'The selected speech voice is not available on the current provider plan.' },
+          { status: 503 },
+        );
+      }
       
       throw new Error(errorMessage);
     }
@@ -78,11 +96,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('TTS Error:', error);
     return NextResponse.json({ 
       error: 'Failed to generate speech',
-      details: error.message 
     }, { status: 500 });
   }
 }

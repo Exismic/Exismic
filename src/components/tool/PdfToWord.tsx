@@ -1,43 +1,45 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Upload, 
   Download, 
-  Loader2, 
   X, 
-  ArrowRight,
-  FileText,
   FileEdit,
   CheckCircle2,
   AlertCircle,
   Zap,
   AlignLeft,
-  Settings2,
   Type
 } from "lucide-react";
 import { PdfThumbnail } from "./pdf/PdfThumbnail";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import { readDownloadResponse } from "@/lib/pdf-client";
 
 const TO_WORD_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to reconstruct into an editable Word file." },
-  { title: "Select Precision", desc: "Choose between Standard Flow or Precise Layout for the best result." },
-  { title: "Scribe Parsing", desc: "Our engine maps paragraph coordinates and font styles into a .docx structure." },
-  { title: "Download", desc: "Save your fully editable Word document instantly." }
+  { title: "Select Flow", desc: "Choose flowing paragraphs or preserve each extracted line." },
+  { title: "Extract Text", desc: "Lumora reads embedded PDF text and builds a valid editable DOCX file." },
+  { title: "Download", desc: "Download the editable Word document directly." }
 ];
 
 export default function PdfToWord() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("editable-document.docx");
   const [error, setError] = useState<string | null>(null);
   const [layoutMode, setLayoutMode] = useState<"standard" | "precise">("precise");
+
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles[0]) {
@@ -56,7 +58,6 @@ export default function PdfToWord() {
   const handleConvert = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setProgress(5);
     setStatus("Analyzing document structure...");
     setError(null);
 
@@ -70,27 +71,18 @@ export default function PdfToWord() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Conversion failed.");
-      }
+      const artifact = await readDownloadResponse(
+        response,
+        "editable-document.docx",
+      );
+      setStatus("Reconstruction Complete!");
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+      setIsProcessing(false);
 
-      const data = await response.json();
-      
-      // Simulate reconstruction phases for better UX
-      setTimeout(() => { setStatus("Extracting vector text layers..."); setProgress(30); }, 1500);
-      setTimeout(() => { setStatus("Reconstructing layout tables..."); setProgress(60); }, 3000);
-      setTimeout(() => { setStatus("Mapping font styles..."); setProgress(85); }, 4500);
-      setTimeout(() => {
-        setResultUrl(data.resultUrl);
-        setProgress(100);
-        setStatus("Reconstruction Complete!");
-        setIsProcessing(false);
-      }, 6000);
-
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to convert PDF");
+      setError(err instanceof Error ? err.message : "Failed to convert PDF");
       setIsProcessing(false);
     }
   };
@@ -154,7 +146,7 @@ export default function PdfToWord() {
                          <div className="flex flex-col sm:flex-row items-center gap-6">
                             <a 
                               href={resultUrl} 
-                              download="reconstructed_document.docx"
+                              download={resultFileName}
                               className="px-14 py-7 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-4 shadow-3xl"
                             >
                               <Download className="w-5 h-5" />
@@ -176,7 +168,7 @@ export default function PdfToWord() {
                                  <div className="p-2 bg-emerald-500/10 rounded-xl"><AlignLeft className="w-5 h-5 text-emerald-500" /></div>
                                  Text Reconstruction
                               </h3>
-                              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-14">Scribe parsing engine online</p>
+                              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-14">Embedded text extraction ready</p>
                            </div>
                            <button 
                              onClick={() => setFile(null)}
@@ -203,7 +195,7 @@ export default function PdfToWord() {
                         </div>
 
                         <div className="space-y-8">
-                           <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Engine Precision</h4>
+                           <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Text Flow</h4>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <button 
                                 onClick={() => setLayoutMode("standard")}
@@ -232,8 +224,8 @@ export default function PdfToWord() {
                                     <Type size={28} />
                                  </div>
                                  <div className="space-y-2">
-                                    <h5 className={cn("text-xl font-black uppercase tracking-tight italic", layoutMode === "precise" ? "text-white" : "text-zinc-500")}>Precise Layout</h5>
-                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">Preserves tables, complex styling and embedded graphics</p>
+                                    <h5 className={cn("text-xl font-black uppercase tracking-tight italic", layoutMode === "precise" ? "text-white" : "text-zinc-500")}>Line Preserving</h5>
+                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">Keeps extracted line breaks for invoices, forms, and structured text</p>
                                  </div>
                               </button>
                            </div>
@@ -255,12 +247,13 @@ export default function PdfToWord() {
                           </div>
                           <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 pr-4 px-4 -mx-4">{status}</h4>
                           <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
-                             <div 
-                               className="h-full bg-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all duration-300"
-                               style={{ width: `${progress}%` }}
+                             <motion.div
+                               className="h-full w-1/3 bg-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.5)]"
+                               animate={{ x: ["-120%", "320%"] }}
+                               transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
                              />
                           </div>
-                          <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.5em]">Mapping Paragraph Coordinates</p>
+                          <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.4em]">Extracting embedded document text</p>
                         </motion.div>
                      )}
                    </AnimatePresence>
@@ -288,8 +281,8 @@ export default function PdfToWord() {
              steps={TO_WORD_STEPS}
              stats={file ? [
                { label: "Target Format", value: ".DOCX (Word)" },
-               { label: "OCR Mode", value: "Auto-Detect" },
-               { label: "Engine", value: "Scribe v2.4" }
+               { label: "Source", value: "Embedded Text" },
+               { label: "Layout", value: layoutMode === "precise" ? "Line Preserving" : "Paragraph Flow" }
              ] : []}
            />
 
@@ -297,7 +290,7 @@ export default function PdfToWord() {
              <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4">
                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
                <div className="space-y-1">
-                  <p className="uppercase tracking-[0.2em]">Neural Engine Error</p>
+                  <p className="uppercase tracking-[0.2em]">Conversion Failed</p>
                   <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
                </div>
              </div>

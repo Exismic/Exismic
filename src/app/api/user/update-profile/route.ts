@@ -5,9 +5,9 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: Request) {
   try {
     const supabaseServer = await createClient();
-    const { data: { session } } = await supabaseServer.auth.getSession();
+    const { data: { user } } = await supabaseServer.auth.getUser();
 
-    if (!session?.user?.id || !session.user.email) {
+    if (!user?.id || !user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       const existingUser = await prisma.user.findFirst({
         where: {
           username: cleanUsername,
-          NOT: { id: session.user.id },
+          NOT: { id: user.id },
         },
         select: { id: true },
       });
@@ -46,15 +46,15 @@ export async function POST(req: Request) {
     }
 
     const updatedUser = await prisma.user.upsert({
-      where: { id: session.user.id },
+      where: { id: user.id },
       update: {
         ...(cleanName ? { name: cleanName } : {}),
         ...(cleanUsername ? { username: cleanUsername } : {}),
       },
       create: {
-        id: session.user.id,
-        email: session.user.email.toLowerCase(),
-        name: cleanName || session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+        id: user.id,
+        email: user.email.toLowerCase(),
+        name: cleanName || user.user_metadata?.full_name || user.email.split('@')[0],
         username: cleanUsername,
         dailyCredits: 50,
         lifetimeCredits: 0,
@@ -64,8 +64,8 @@ export async function POST(req: Request) {
 
     const { error: authError } = await supabaseServer.auth.updateUser({
       data: {
-        full_name: cleanName || session.user.user_metadata?.full_name,
-        username: cleanUsername || session.user.user_metadata?.username,
+        full_name: cleanName || user.user_metadata?.full_name,
+        username: cleanUsername || user.user_metadata?.username,
       }
     });
 

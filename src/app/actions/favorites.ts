@@ -7,12 +7,12 @@ import { prisma } from "@/lib/prisma";
 export async function toggleFavorite(toolId: string) {
   const supabase = await createClient();
   
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
     return { error: "You must be logged in to favorite tools." };
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
   try {
     // Ensure the user exists in Prisma db
@@ -24,8 +24,8 @@ export async function toggleFavorite(toolId: string) {
       await prisma.user.create({
         data: {
           id: userId,
-          email: session.user.email!,
-          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+          email: user.email!,
+          name: user.user_metadata?.full_name || user.email?.split('@')[0],
           plan: "free"
         }
       });
@@ -65,12 +65,12 @@ export async function toggleFavorite(toolId: string) {
 export async function getFavorites() {
   const supabase = await createClient();
   
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return [];
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
 
   try {
     const data = await prisma.favorite.findMany({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: { toolId: true }
     });
     return data.map(f => f.toolId);

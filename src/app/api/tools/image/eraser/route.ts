@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import sharp from "sharp";
+import { checkRateLimit, getRequestIp, rateLimitResponse, requireApiUser } from "@/lib/api-security";
 
 export async function POST(req: NextRequest) {
   try {
+    const authUser = await requireApiUser();
+    if (authUser instanceof NextResponse) return authUser;
+    const limit = checkRateLimit(`image-eraser:${authUser.id}:${getRequestIp(req)}`, 30, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+
     const { image, mask } = await req.json();
 
     if (!image || !mask) {
       return NextResponse.json({ error: "Image and mask are required" }, { status: 400 });
+    }
+
+    const imageData = String(image);
+    const maskData = String(mask);
+    if (!imageData.startsWith("data:image/") || !maskData.startsWith("data:image/")) {
+      return NextResponse.json({ error: "Image and mask must be image data URLs." }, { status: 400 });
+    }
+
+    if (imageData.length > 35_000_000 || maskData.length > 35_000_000) {
+      return NextResponse.json({ error: "Image payload is too large." }, { status: 413 });
     }
 
     // Try Hugging Face first (Free)
@@ -17,8 +33,8 @@ export async function POST(req: NextRequest) {
         console.log("Attempting free inpainting via Hugging Face...");
         
         // Convert data URIs to blobs/buffers for HF
-        const imageBase64 = image.split(",")[1];
-        const maskBase64 = mask.split(",")[1];
+        const imageBase64 = imageData.split(",")[1];
+        const maskBase64 = maskData.split(",")[1];
 
         // RunwayML SD Inpainting is the most reliable free model on HF Inference API
         const hfUrl = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting";
@@ -67,8 +83,8 @@ export async function POST(req: NextRequest) {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            image_url: image,
-            mask_url: mask,
+            image_url: imageData,
+            mask_url: maskData,
             prompt: "cleanly remove the masked object, fill naturally, high quality",
             strength: 0.95
           })
@@ -93,8 +109,8 @@ export async function POST(req: NextRequest) {
     // We mix the blurred healed layer with a bit of the original texture to avoid the "painted" look
     try {
       console.log("Using Improved Local Fallback (Zero-Cost)...");
-      const imageBuffer = Buffer.from(image.split(",")[1], "base64");
-      const maskBuffer = Buffer.from(mask.split(",")[1], "base64");
+      const imageBuffer = Buffer.from(imageData.split(",")[1], "base64");
+      const maskBuffer = Buffer.from(maskData.split(",")[1], "base64");
       const metadata = await sharp(imageBuffer).metadata();
       const { width, height } = metadata;
 

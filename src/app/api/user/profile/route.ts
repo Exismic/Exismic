@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
+import { hasActiveProAccess } from '@/lib/user-access';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!session || !session.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: user.id }
     });
     
     if (!dbUser) {
@@ -23,6 +24,7 @@ export async function GET() {
     
     const serializedUser = {
       ...dbUser,
+      is_pro: hasActiveProAccess(dbUser),
       custom_avatar_url: dbUser.customAvatarUrl,
       theme_preference: dbUser.themePreference,
       avatar_frame: dbUser.avatarFrame,

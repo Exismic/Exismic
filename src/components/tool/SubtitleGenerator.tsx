@@ -1,23 +1,17 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Type, 
   Upload, 
-  X, 
-  Play, 
   Download, 
   Sparkles, 
   CheckCircle2,
-  ChevronRight,
   Loader2,
   Globe,
-  Palette,
   FileText,
-  Video,
   AlertCircle,
   FileDown,
   Layers,
@@ -33,11 +27,14 @@ export default function SubtitleGenerator() {
   const [language, setLanguage] = useState("auto");
   const [activeTab, setActiveTab] = useState<Tab>("preview");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [resultSrt, setResultSrt] = useState<string | null>(null);
   const [resultVideoUrl, setResultVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
@@ -51,7 +48,6 @@ export default function SubtitleGenerator() {
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResultSrt(null);
       setResultVideoUrl(null);
-      setProgress(0);
       setActiveTab("preview");
     }
   }, []);
@@ -68,36 +64,19 @@ export default function SubtitleGenerator() {
     if (!file) return;
 
     setIsProcessing(true);
-    setProgress(5);
-    setStatus("Uploading video...");
+    setStatus("Transcribing speech and rendering captions...");
     setError(null);
 
     const formData = new FormData();
     formData.append("video", file);
     formData.append("language", language);
+    formData.append("burn", "true");
 
     try {
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev < 20) return prev + 1;
-          if (prev < 60) {
-            setStatus("AI Transcribing (Whisper)...");
-            return prev + 0.5;
-          }
-          if (prev < 90) {
-            setStatus("Burning subtitles into video...");
-            return prev + 0.3;
-          }
-          return prev;
-        });
-      }, 1000);
-
       const response = await fetch("/api/tools/video/subtitles", {
         method: "POST",
         body: formData,
       });
-
-      clearInterval(progressInterval);
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -110,11 +89,10 @@ export default function SubtitleGenerator() {
       if (data.videoUrl) {
         setResultVideoUrl(data.videoUrl);
       }
-      setProgress(100);
-      setStatus("Subtitles Ready!");
-    } catch (error: any) {
+      setStatus("Subtitles ready");
+    } catch (error: unknown) {
       console.error("Subtitle error:", error);
-      setError(error.message || "Failed to generate subtitles. Try a shorter video.");
+      setError(error instanceof Error ? error.message : "Failed to generate subtitles.");
       setStatus("Error");
     } finally {
       setIsProcessing(false);
@@ -129,6 +107,7 @@ export default function SubtitleGenerator() {
     a.href = url;
     a.download = `${file?.name.split('.')[0] || 'subtitles'}.srt`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   const reset = () => {
@@ -137,7 +116,6 @@ export default function SubtitleGenerator() {
     setResultSrt(null);
     setResultVideoUrl(null);
     setIsProcessing(false);
-    setProgress(0);
     setStatus("");
     setError(null);
     setActiveTab("preview");
@@ -316,10 +294,10 @@ export default function SubtitleGenerator() {
                           </div>
                           <div className="space-y-3">
                              <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                               <motion.div 
-                                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 shadow-[0_0_20px_rgba(168,85,247,0.6)]"
-                                 initial={{ width: 0 }}
-                                 animate={{ width: `${progress}%` }}
+                               <motion.div
+                                 className="h-full w-2/5 bg-gradient-to-r from-purple-500 to-indigo-500 shadow-[0_0_20px_rgba(168,85,247,0.6)]"
+                                 animate={{ x: ["-110%", "250%"] }}
+                                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                                />
                              </div>
                              <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -327,7 +305,7 @@ export default function SubtitleGenerator() {
                                   <Sparkles className="w-3 h-3 text-purple-400" />
                                   Whisper AI Engine
                                </span>
-                               <span className="text-white">{Math.round(progress)}%</span>
+                               <span className="text-white">Model processing</span>
                              </div>
                           </div>
                         </div>

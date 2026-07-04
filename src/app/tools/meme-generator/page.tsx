@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
+import {
   Laugh, 
   Download, 
   Copy, 
@@ -21,6 +21,7 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePro } from "@/hooks/usePro";
 
 interface MemeTemplate {
   id: string;
@@ -42,6 +43,7 @@ const MEME_TEMPLATES: MemeTemplate[] = [
 ];
 
 export default function MemeGenerator() {
+  const { isPro } = usePro();
   const [topText, setTopText] = useState("WHEN THE CODE");
   const [bottomText, setBottomText] = useState("FINALLY WORKS");
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate>(MEME_TEMPLATES[0]);
@@ -303,9 +305,11 @@ export default function MemeGenerator() {
                </div>
 
                {/* Watermark Overlay */}
-               <div className="absolute bottom-12 right-12 opacity-30 pointer-events-none">
-                  <h4 className="text-[10px] font-black italic tracking-tighter text-white">LUMORA STUDIOS</h4>
-               </div>
+               {!isPro && (
+                 <div className="absolute bottom-12 right-12 opacity-30 pointer-events-none">
+                    <h4 className="text-[10px] font-black italic tracking-tighter text-white">LUMORA STUDIOS</h4>
+                 </div>
+               )}
             </div>
 
             {/* Fun Tip */}

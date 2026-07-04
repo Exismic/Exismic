@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { 
   Zap, 
@@ -41,10 +41,19 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ToolCard } from "@/components/ui/ToolCard";
 import GradientText from "@/components/ui/GradientText";
-import { PRICING_CONFIG } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 
 export function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isIndia, setIsIndia] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsIndia(getIsIndia()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const proPrice = isIndia ? `Rs ${PRICING_CONFIG.PRO_PLAN.INR}` : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
+  const launchComparePrice = isIndia ? "Rs 999" : "$14.99";
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -174,6 +183,7 @@ export function LandingPage() {
             category="image" 
             icon="ImageIcon" 
             href="/tools/image/eraser" 
+            proPowerPack
             popular 
           />
           <ToolCard 
@@ -184,6 +194,7 @@ export function LandingPage() {
             icon="Sparkles" 
             href="/tools/ai/img-gen" 
             pro 
+            proPowerPack
             popular
           />
           <ToolCard 
@@ -349,10 +360,12 @@ export function LandingPage() {
               <div className="pt-8 space-y-6">
                  <div className="flex flex-col items-center gap-2">
                     <div className="flex items-center gap-3">
-                       <span className="text-zinc-700 line-through text-xl font-bold">$14.99</span>
-                       <span className="text-white text-6xl font-black tracking-tighter">${PRICING_CONFIG.PRO_PLAN.USD}<span className="text-lg text-zinc-600 font-bold">/mo</span></span>
+                       <span className="text-zinc-700 line-through text-xl font-bold">{launchComparePrice}</span>
+                       <span className="text-white text-6xl font-black tracking-tighter">{proPrice}<span className="text-lg text-zinc-600 font-bold">/mo</span></span>
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600 italic">Limited time launch pricing</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600 italic">
+                      Limited time launch pricing - {isIndia ? "INR checkout" : "USD checkout"}
+                    </p>
                  </div>
                  <Link href="/pro">
                     <button className="h-20 px-16 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_-10px_rgba(124,58,237,0.4)]">

@@ -6,9 +6,9 @@ import { ALLOWED_AVATAR_FRAMES, getOrCreateUser, hasActiveProAccess } from '@/li
 export async function POST(req: Request) {
   try {
     const supabaseServer = await createClient();
-    const { data: { session } } = await supabaseServer.auth.getSession();
+    const { data: { user } } = await supabaseServer.auth.getUser();
 
-    if (!session?.user?.id || !session.user.email) {
+    if (!user?.id || !user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid avatar frame.' }, { status: 400 });
     }
 
-    const dbUser = await getOrCreateUser(session.user);
+    const dbUser = await getOrCreateUser(user);
     if (frameId && !hasActiveProAccess(dbUser)) {
       return NextResponse.json({ error: 'Elite Avatar Frames are exclusive to Pro members.' }, { status: 403 });
     }

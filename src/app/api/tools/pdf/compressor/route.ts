@@ -1,64 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument } from "pdf-lib";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import {
+  checkRateLimit,
+  getRequestIp,
+  rateLimitResponse,
+  requireApiUser,
+  validateUploadedFile,
+} from "@/lib/api-security";
+import {
+  PDF_MAX_FILE_BYTES,
+  assertPdfSignature,
+  createDownloadResponse,
+  createPdfRequestId,
+  pdfErrorResponse,
+  safeDownloadStem,
+} from "@/lib/pdf-processing";
 
-const STORAGE_PATH = path.join(process.cwd(), "public", "results");
+export const maxDuration = 120;
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
+  const requestId = createPdfRequestId();
+
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const level = formData.get("level") as string;
+    const user = await requireApiUser();
+    if (user instanceof NextResponse) return user;
+    const limit = checkRateLimit(
+      `pdf-compressor:${user.id}:${getRequestIp(request)}`,
+      20,
+      60 * 60 * 1000,
+    );
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    const formData = await request.formData();
+    const entry = formData.get("file");
+    const file = entry instanceof File ? entry : null;
+    const requestedLevel = String(formData.get("level") || "medium");
+    const level = ["low", "medium", "high"].includes(requestedLevel)
+      ? requestedLevel
+      : "medium";
+    const fileError = validateUploadedFile(file, {
+      maxBytes: PDF_MAX_FILE_BYTES,
+      allowedMimePrefixes: file?.type ? ["application/pdf"] : undefined,
+      label: "PDF file",
+    });
+    if (fileError) return fileError;
+    await assertPdfSignature(file!);
+
+    const original = Buffer.from(await file!.arrayBuffer());
+    const document = await PDFDocument.load(original, {
+      updateMetadata: false,
+    });
+
+    if (level === "medium" || level === "high") {
+      document.setCreator("");
+      document.setProducer("Lumora PDF Optimizer");
+    }
+    if (level === "high") {
+      document.setTitle("");
+      document.setAuthor("");
+      document.setSubject("");
+      document.setKeywords([]);
     }
 
-    const oldSize = file.size;
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-
-    // Basic pdf-lib optimization
-    // useObjectStreams: true helps pack objects more tightly
-    const compressedPdfBytes = await pdfDoc.save({ 
+    const optimized = await document.save({
       useObjectStreams: true,
       addDefaultPage: false,
-      updateFieldAppearances: false
+      updateFieldAppearances: false,
+      objectsPerTick: 50,
     });
+    const output =
+      optimized.byteLength < original.byteLength ? optimized : original;
+    const didOptimize = output.byteLength < original.byteLength;
+    const fileName = `${safeDownloadStem(file!.name)}-optimized.pdf`;
 
-    // Ensure storage directory exists
-    try {
-      await mkdir(STORAGE_PATH, { recursive: true });
-    } catch (e) {}
-
-    const jobId = uuidv4();
-    const fileName = `compressed_${jobId}.pdf`;
-    const fullPath = path.join(STORAGE_PATH, fileName);
-
-    await writeFile(fullPath, compressedPdfBytes);
-
-    // Calculate a simulated "new size" based on level for the UI experience
-    // In a real app, this would be the actual byte size of optimized streams
-    let simulatedReduction = 0.05; // Base 5%
-    if (level === "medium") simulatedReduction = 0.25; // 25%
-    if (level === "high") simulatedReduction = 0.45; // 45%
-    
-    // We'll use the actual size if it's smaller, otherwise simulate for the "wow" factor
-    const actualNewSize = compressedPdfBytes.length;
-    const simulatedNewSize = Math.floor(oldSize * (1 - simulatedReduction));
-    const newSize = Math.min(actualNewSize, simulatedNewSize);
-
-    return NextResponse.json({
-      success: true,
-      resultUrl: `/results/${fileName}`,
-      oldSize: oldSize,
-      newSize: newSize
+    return createDownloadResponse(output, {
+      fileName,
+      contentType: "application/pdf",
+      requestId,
+      headers: {
+        "X-Lumora-File-Name": encodeURIComponent(fileName),
+        "X-Lumora-Original-Size": String(original.byteLength),
+        "X-Lumora-Output-Size": String(output.byteLength),
+        "X-Lumora-Optimized": String(didOptimize),
+        "X-Lumora-Compression-Mode": level,
+      },
     });
-
-  } catch (error: any) {
-    console.error("PDF Compression Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to compress PDF" }, { status: 500 });
+  } catch (error) {
+    return pdfErrorResponse(error, requestId);
   }
 }

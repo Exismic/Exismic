@@ -1,95 +1,129 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import {
+  checkRateLimit,
+  getRequestIp,
+  rateLimitResponse,
+  validateUploadedFile,
+} from "@/lib/api-security";
+import {
+  VideoProcessingError,
+  assertVideoSignature,
+  callVideoModal,
+  createVideoDownloadResponse,
+  createVideoRequestId,
+  decodeProviderFile,
+  resolveVideoEndpoint,
+  safeVideoStem,
+  videoErrorResponse,
+} from "@/lib/video-processing";
 
-export const maxDuration = 300; // 5 minutes
-export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+
+const enhancementLevels = new Set(["light", "medium", "strong"]);
+const enhancementKeys = new Set([
+  "noiseReduction",
+  "sharpen",
+  "colorCorrection",
+  "stabilize",
+  "naturalLook",
+]);
+
+function parseFeatures(value: FormDataEntryValue | null) {
+  try {
+    const parsed = JSON.parse(String(value || "{}")) as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .filter(([key]) => enhancementKeys.has(key))
+        .map(([key, enabled]) => [key, Boolean(enabled)]),
+    );
+  } catch {
+    throw new VideoProcessingError("Enhancement settings are invalid.", 400, "INVALID_ENHANCEMENT_SETTINGS");
+  }
+}
 
 export async function POST(req: NextRequest) {
+  const requestId = createVideoRequestId();
   try {
+    const supabase = await createClient();
+    const {
+      data: { user: sbUser },
+    } = await supabase.auth.getUser();
+    if (!sbUser) {
+      return NextResponse.json({ error: "Please sign in to use this tool." }, { status: 401 });
+    }
+
+    const limit = checkRateLimit(
+      `video-enhancer:${sbUser.id}:${getRequestIp(req)}`,
+      8,
+      60 * 60 * 1000,
+    );
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+
     const formData = await req.formData();
     const file = formData.get("video") as File;
-    const level = formData.get("level") as string;
-    const features = formData.get("features") as string;
-
-    if (!file) {
-      return NextResponse.json({ error: "No video file provided" }, { status: 400 });
+    const level = String(formData.get("level") || "medium");
+    const features = parseFeatures(formData.get("features"));
+    const fileError = validateUploadedFile(file, {
+      maxBytes: 250 * 1024 * 1024,
+      allowedMimePrefixes: ["video/"],
+      label: "video file",
+    });
+    if (fileError) return fileError;
+    await assertVideoSignature(file);
+    if (!enhancementLevels.has(level)) {
+      throw new VideoProcessingError("Choose a valid enhancement level.", 400, "INVALID_ENHANCEMENT_LEVEL");
     }
 
-    const supabase = await createClient();
-    const { data: { user: sbUser } } = await supabase.auth.getUser();
-    let priority = false;
-
-    if (sbUser) {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: sbUser.id },
-        select: { plan: true, subscriptionStatus: true },
-      });
-      priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
-    }
-
+    const dbUser = await prisma.user.findUnique({
+      where: { id: sbUser.id },
+      select: { plan: true, subscriptionStatus: true },
+    });
+    const priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
     const queue = priority ? "priority" : "normal";
-    const MODAL_URL = priority
-      ? process.env.MODAL_VIDEO_ENHANCER_PRIORITY_URL || process.env.MODAL_VIDEO_PRIORITY_URL || process.env.MODAL_VIDEO_ENHANCER_URL || "https://syedrayangames--lumora-video-tools-enhance-video.modal.run"
-      : process.env.MODAL_VIDEO_ENHANCER_NORMAL_URL || process.env.MODAL_VIDEO_ENHANCER_URL || "https://syedrayangames--lumora-video-tools-enhance-video.modal.run";
+    const baseUrl = priority
+      ? process.env.MODAL_VIDEO_ENHANCER_PRIORITY_URL ||
+        process.env.MODAL_VIDEO_PRIORITY_URL ||
+        process.env.MODAL_VIDEO_ENHANCER_URL ||
+        process.env.MODAL_VIDEO_URL
+      : process.env.MODAL_VIDEO_ENHANCER_NORMAL_URL ||
+        process.env.MODAL_VIDEO_ENHANCER_URL ||
+        process.env.MODAL_VIDEO_URL;
 
-    console.log(`[VideoEnhancer] Processing: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-    console.log(`[VideoEnhancer] Queue: ${queue}`);
-    console.log(`[VideoEnhancer] Modal URL: ${MODAL_URL}`);
+    if (!baseUrl) {
+      throw new VideoProcessingError(
+        "Video enhancement is temporarily unavailable.",
+        503,
+        "VIDEO_BACKEND_UNAVAILABLE",
+        true,
+      );
+    }
 
-    // Convert file to base64
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64Data = buffer.toString("base64");
-
-    const response = await fetch(MODAL_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const result = await callVideoModal(
+      resolveVideoEndpoint(baseUrl, "/enhance"),
+      {
         file_name: file.name,
-        file_data_base64: base64Data,
-        level: level,
-        features: features,
+        file_data_base64: Buffer.from(await file.arrayBuffer()).toString("base64"),
+        level,
+        features: JSON.stringify(features),
         priority,
         queue,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[VideoEnhancer] Modal processing failed:", errorText);
-      
-      let errorMessage = "Cloud processing failed";
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error || errorMessage;
-      } catch (e) {}
-      
-      return NextResponse.json({ error: errorMessage }, { status: response.status });
-    }
-
-    const result = await response.json();
-    if (!result.success) {
-      console.error("[VideoEnhancer] Modal returned success=false:", result.error);
-      return NextResponse.json({ error: result.error || "Enhancement failed" }, { status: 500 });
-    }
-
-    const resultBuffer = Buffer.from(result.file_data_base64.split(",")[1], "base64");
-
-    return new Response(resultBuffer, {
+      },
+      requestId,
+    );
+    const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
+    return createVideoDownloadResponse(bytes, {
+      fileName: `${safeVideoStem(file.name)}-enhanced.mp4`,
+      contentType: mimeType || "video/mp4",
+      requestId,
       headers: {
-        "Content-Type": "video/mp4",
-        "Content-Disposition": `attachment; filename="${result.file_name}"`,
-        "Content-Length": resultBuffer.length.toString(),
-        "X-Lumora-Priority": priority ? "true" : "false",
+        "X-Lumora-Priority": String(priority),
         "X-Lumora-Queue": queue,
       },
     });
-
-  } catch (error: any) {
-    console.error("[VideoEnhancer] API Error:", error);
-    return NextResponse.json(
-      { error: error.message || "An unexpected error occurred" }, 
-      { status: 500 }
-    );
+  } catch (error) {
+    return videoErrorResponse(error, requestId);
   }
 }

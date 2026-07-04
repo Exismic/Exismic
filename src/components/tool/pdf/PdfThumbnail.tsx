@@ -1,12 +1,33 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface PdfThumbnailProps {
   file: File;
   className?: string;
 }
+
+interface PdfViewport {
+  height: number;
+  width: number;
+}
+
+interface PdfPage {
+  getViewport(options: { scale: number }): PdfViewport;
+  render(options: { canvasContext: CanvasRenderingContext2D; viewport: PdfViewport }): { promise: Promise<void> };
+}
+
+interface PdfDocument {
+  getPage(pageNumber: number): Promise<PdfPage>;
+}
+
+interface PdfJsLib {
+  getDocument(options: { data: ArrayBuffer }): { promise: Promise<PdfDocument> };
+}
+
+type WindowWithPdfJs = Window & { pdfjsLib?: PdfJsLib };
 
 export function PdfThumbnail({ file, className }: PdfThumbnailProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,11 +38,13 @@ export function PdfThumbnail({ file, className }: PdfThumbnailProps) {
     let isMounted = true;
 
     async function renderThumbnail() {
-      if (!(window as any).pdfjsLib) {
+      const browserWindow = window as WindowWithPdfJs;
+
+      if (!browserWindow.pdfjsLib) {
         // Wait for script to load if needed, but we expect it to be loaded via page.tsx or similar
         // For safety, we'll wait a bit
         await new Promise(resolve => setTimeout(resolve, 500));
-        if (!(window as any).pdfjsLib) {
+        if (!browserWindow.pdfjsLib) {
           setError(true);
           setLoading(false);
           return;
@@ -29,7 +52,7 @@ export function PdfThumbnail({ file, className }: PdfThumbnailProps) {
       }
 
       try {
-        const pdfjsLib = (window as any).pdfjsLib;
+        const pdfjsLib = browserWindow.pdfjsLib;
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const page = await pdf.getPage(1);
@@ -74,9 +97,7 @@ export function PdfThumbnail({ file, className }: PdfThumbnailProps) {
   return (
     <div className={`relative bg-zinc-900 border border-white/5 rounded-xl overflow-hidden group ${className}`}>
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm z-10">
-          <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
-        </div>
+        <Skeleton className="absolute inset-0 z-10 rounded-xl border-0" />
       )}
       <canvas ref={canvasRef} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

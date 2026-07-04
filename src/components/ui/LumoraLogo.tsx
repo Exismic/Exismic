@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface LumoraLogoProps {
   size?: number;
@@ -12,6 +12,49 @@ interface LumoraLogoProps {
   logoLink?: boolean;
 }
 
+export function LumoraMark({
+  size = 36,
+  className,
+  animated = true,
+}: {
+  size?: number;
+  className?: string;
+  animated?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "group/mark relative isolate inline-flex shrink-0 items-center justify-center transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2",
+        className
+      )}
+      style={{ width: size, height: size }}
+    >
+      <Image
+        src="/lumora-app-icon.png"
+        alt="Lumora"
+        width={512}
+        height={512}
+        priority
+        className="relative z-10 h-full w-full object-contain drop-shadow-[0_10px_24px_rgba(91,109,255,0.22)]"
+      />
+      <span
+        aria-hidden="true"
+        className={cn(
+          "lumora-neon-outline absolute inset-[3%] z-20 opacity-90",
+          animated ? "lumora-neon-outline--animated" : "lumora-neon-outline--static"
+        )}
+      />
+      <span
+        aria-hidden="true"
+        className={cn(
+          "lumora-neon-outline absolute inset-[3%] z-20 opacity-80 blur-[4px]",
+          animated ? "lumora-neon-outline--animated" : "lumora-neon-outline--static"
+        )}
+      />
+    </span>
+  );
+}
+
 export function LumoraLogo({
   size = 36,
   showText = true,
@@ -19,11 +62,6 @@ export function LumoraLogo({
   innerClassName = "",
   logoLink = true,
 }: LumoraLogoProps) {
-  // Proportional sizing calculations
-  const iconRadius = size * 0.32;
-  const letterSize = size * 0.52;
-  
-  // Font sizes scaled according to the icon size
   const titleSizeClass = size <= 32 
     ? "text-[14px]" 
     : size <= 40 
@@ -38,41 +76,7 @@ export function LumoraLogo({
 
   const logoContent = (
     <div className={cn("flex items-center gap-3 group relative cursor-pointer select-none", className)}>
-      {/* Premium Glowing Squircle Icon */}
-      <div className="relative shrink-0">
-        {/* Soft, deep ambient neon glow under the squircle */}
-        <div 
-          className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 to-cyan-400 blur-xl opacity-35 group-hover:opacity-75 transition-opacity duration-500"
-          style={{ borderRadius: iconRadius + 4 }}
-        />
-        
-        {/* The sharp premium gradient outline border */}
-        <div 
-          className="relative bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-[0_0_20px_rgba(168,85,247,0.2)] group-hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all duration-500 group-hover:rotate-[3deg] group-hover:scale-[1.03]"
-          style={{ width: size, height: size, borderRadius: iconRadius }}
-        >
-          {/* Dark luxury core container */}
-          <div 
-            className={cn(
-              "w-full h-full bg-[#07070a] flex items-center justify-center relative overflow-hidden",
-              innerClassName
-            )}
-            style={{ borderRadius: iconRadius - 1.5 }}
-          >
-            {/* Metallic sweep reflection line */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/5 to-cyan-500/5 pointer-events-none" />
-            <div className="absolute inset-y-0 -left-[100%] w-[50%] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent skew-x-12 group-hover:animate-shine pointer-events-none" />
-            
-            {/* Elegant "L" Glyph */}
-            <span 
-              className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent font-black font-mono leading-none select-none drop-shadow-[0_0_8px_rgba(255,255,255,0.25)] group-hover:drop-shadow-[0_0_12px_rgba(34,211,238,0.5)] transition-all duration-500"
-              style={{ fontSize: letterSize }}
-            >
-              L
-            </span>
-          </div>
-        </div>
-      </div>
+      <LumoraMark size={size} className={innerClassName} />
 
       {/* Premium Typography Branding */}
       {showText && (

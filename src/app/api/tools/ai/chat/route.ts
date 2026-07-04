@@ -5,6 +5,192 @@ import axios from 'axios';
 
 export const dynamic = 'force-dynamic';
 
+const DEFAULT_AI_CHAT_SETTINGS = {
+  memoryEnabled: true,
+  responseStyle: "balanced",
+  detailLevel: "standard",
+  customInstructions: "",
+};
+
+const MANUAL_CHAT_MODES = ["default", "coding", "research", "business", "creative", "fast"] as const;
+type EffectiveChatMode = typeof MANUAL_CHAT_MODES[number];
+const MAX_CHAT_MESSAGES = 60;
+const MAX_VISION_IMAGES = 5;
+const MAX_VISION_DATA_CHARACTERS = Math.floor(3.7 * 1024 * 1024);
+const MAX_TEXT_ATTACHMENT_CHARACTERS = 120_000;
+const MAX_TOTAL_TEXT_ATTACHMENT_CHARACTERS = 240_000;
+const DEFAULT_VISION_MODELS = [
+  "meta-llama/llama-4-scout-17b-16e-instruct",
+  "qwen/qwen3.6-27b",
+];
+
+class AttachmentValidationError extends Error {}
+
+function isSupportedImageDataUrl(value: unknown): value is string {
+  return typeof value === "string"
+    && /^data:image\/(?:jpeg|jpg|png|webp|gif);base64,[a-z0-9+/=\r\n]+$/i.test(value);
+}
+
+function prepareMessagesForGroq(messages: any[]) {
+  const selectedImages = new Set<any>();
+  for (let messageIndex = messages.length - 1; messageIndex >= 0 && selectedImages.size < MAX_VISION_IMAGES; messageIndex -= 1) {
+    const attachments = Array.isArray(messages[messageIndex]?.attachments)
+      ? messages[messageIndex].attachments
+      : [];
+    for (let attachmentIndex = attachments.length - 1; attachmentIndex >= 0 && selectedImages.size < MAX_VISION_IMAGES; attachmentIndex -= 1) {
+      const attachment = attachments[attachmentIndex];
+      if (attachment?.type?.startsWith("image/")) selectedImages.add(attachment);
+    }
+  }
+
+  let imageCharacters = 0;
+  let includedImageCount = 0;
+  let textAttachmentCharacters = 0;
+
+  const sanitizedMessages = messages.map((message: any) => {
+    const role = message?.role === "assistant" ? "assistant" : "user";
+    const attachments = Array.isArray(message?.attachments) ? message.attachments.slice(0, 8) : [];
+    const imageAttachments = attachments.filter((attachment: any) => (
+      attachment?.type?.startsWith("image/") && selectedImages.has(attachment)
+    ));
+    const textAttachments = attachments.filter((attachment: any) => !attachment?.type?.startsWith("image/"));
+
+    let textContent = typeof message?.content === "string"
+      ? message.content.slice(0, 50_000)
+      : "";
+
+    for (const file of textAttachments) {
+      if (typeof file?.data !== "string") continue;
+      const remaining = MAX_TOTAL_TEXT_ATTACHMENT_CHARACTERS - textAttachmentCharacters;
+      if (remaining <= 0) break;
+      const content = file.data.slice(0, Math.min(MAX_TEXT_ATTACHMENT_CHARACTERS, remaining));
+      textAttachmentCharacters += content.length;
+      const safeName = typeof file.name === "string" ? file.name.slice(0, 120) : "attachment";
+      textContent += `\n\n--- Attached file: ${safeName} ---\n${content}\n--- End file ---`;
+    }
+
+    if (role === "user" && imageAttachments.length > 0) {
+      const contentArray: any[] = [{
+        type: "text",
+        text: `${textContent.trim() || "Analyze the attached image and explain what you observe."}\n\nUse the attached image as primary evidence. Answer the user's exact question, identify visible details carefully, perform OCR when useful, and clearly state uncertainty instead of inventing details.`,
+      }];
+
+      for (const image of imageAttachments) {
+        if (!isSupportedImageDataUrl(image.data)) {
+          throw new AttachmentValidationError("One of the attached images is not a supported JPEG, PNG, WebP, or GIF.");
+        }
+        imageCharacters += image.data.length;
+        if (imageCharacters > MAX_VISION_DATA_CHARACTERS) {
+          throw new AttachmentValidationError("The attached images are too large together. Remove one image and try again.");
+        }
+        contentArray.push({
+          type: "image_url",
+          image_url: { url: image.data },
+        });
+        includedImageCount += 1;
+      }
+
+      return { role, content: contentArray };
+    }
+
+    return { role, content: textContent || "Continue." };
+  });
+
+  return {
+    sanitizedMessages,
+    hasImages: includedImageCount > 0,
+    imageCount: includedImageCount,
+  };
+}
+
+function isManualChatMode(mode: string): mode is EffectiveChatMode {
+  return MANUAL_CHAT_MODES.includes(mode as EffectiveChatMode);
+}
+
+function countMatches(text: string, terms: string[]) {
+  return terms.reduce((score, term) => score + (text.includes(term) ? 1 : 0), 0);
+}
+
+function inferChatMode(input: string): EffectiveChatMode {
+  const text = input.toLowerCase();
+  const scores: Record<EffectiveChatMode, number> = {
+    default: 0,
+    coding: countMatches(text, [
+      "code", "coding", "debug", "bug", "error", "typescript", "javascript", "python", "react", "next.js", "nextjs",
+      "api", "database", "sql", "prisma", "supabase", "function", "component", "backend", "frontend", "server",
+      "deploy", "repository", "repo", "terminal", "npm", "build", "schema", "endpoint", "stack trace", "exception",
+    ]),
+    research: countMatches(text, [
+      "research", "compare", "comparison", "analyze", "analysis", "study", "evidence", "pros and cons", "tradeoff",
+      "latest", "sources", "facts", "market landscape", "explain the difference", "benchmark", "report",
+    ]),
+    business: countMatches(text, [
+      "business", "pricing", "revenue", "customer", "sales", "marketing", "strategy", "growth", "startup",
+      "plan", "roadmap", "metrics", "kpi", "conversion", "retention", "positioning", "launch", "brand offer",
+    ]),
+    creative: countMatches(text, [
+      "create", "creative", "brainstorm", "ideas", "name", "names", "tagline", "slogan", "story", "script",
+      "caption", "design", "visual", "style", "brand", "hero section", "copywriting", "concept", "make it premium",
+    ]),
+    fast: countMatches(text, [
+      "quick", "fast", "short", "brief", "just tell", "one line", "tl;dr", "tldr", "summarize in", "answer only",
+    ]),
+  };
+
+  if (/```|<\/?[a-z][\s\S]*>|npm\s+run|pnpm|yarn|const\s+|function\s+|class\s+|import\s+/.test(text)) {
+    scores.coding += 4;
+  }
+  if (text.length < 90 && scores.fast > 0) {
+    scores.fast += 2;
+  }
+
+  const ranked = (Object.entries(scores) as [EffectiveChatMode, number][])
+    .filter(([mode]) => mode !== "default")
+    .sort((a, b) => b[1] - a[1]);
+
+  return ranked[0]?.[1] > 0 ? ranked[0][0] : "default";
+}
+
+function parseJsonObject(value?: string | null): Record<string, any> {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function parseMemories(value?: string | null): string[] {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(item => typeof item === "string" && item.trim()).map(item => item.trim()).slice(0, 20);
+    }
+  } catch {
+    // Backward compatibility with earlier plain text memory storage.
+  }
+
+  return value
+    .split(/\n+/)
+    .map(item => item.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
+function readAiChatSettings(preferences?: string | null) {
+  const raw = parseJsonObject(preferences);
+  const aiChat = typeof raw.aiChat === "object" && raw.aiChat !== null ? raw.aiChat as Record<string, any> : {};
+  return {
+    ...DEFAULT_AI_CHAT_SETTINGS,
+    memoryEnabled: typeof aiChat.memoryEnabled === "boolean" ? aiChat.memoryEnabled : DEFAULT_AI_CHAT_SETTINGS.memoryEnabled,
+    responseStyle: typeof aiChat.responseStyle === "string" ? aiChat.responseStyle : DEFAULT_AI_CHAT_SETTINGS.responseStyle,
+    detailLevel: typeof aiChat.detailLevel === "string" ? aiChat.detailLevel : DEFAULT_AI_CHAT_SETTINGS.detailLevel,
+    customInstructions: typeof aiChat.customInstructions === "string" ? aiChat.customInstructions.slice(0, 1600) : "",
+  };
+}
+
 export async function GET(req: Request) {
   try {
     const supabaseServer = await createClient();
@@ -64,7 +250,10 @@ export async function POST(req: Request) {
     if (!sbUser || !sbUser.email) return NextResponse.json({ error: "Please sign in" }, { status: 401 });
 
     const body = await req.json();
-    const { messages, sessionId, safeMode = true } = body;
+    const { messages, sessionId, safeMode = true, studentMode = false, chatMode = "auto", forceImage = false } = body;
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_CHAT_MESSAGES) {
+      return NextResponse.json({ error: "Invalid chat history." }, { status: 400 });
+    }
 
     // Simple but robust smart NSFW Filter (Light Mode compliant)
     const EXTREME_ILLEGAL_KEYWORDS = [
@@ -80,6 +269,12 @@ export async function POST(req: Request) {
 
     const lastMessage = messages[messages.length - 1];
     const userPrompt = (lastMessage?.content || "").toLowerCase();
+    const requestedChatMode = typeof chatMode === "string" ? chatMode : "auto";
+    const effectiveChatMode: EffectiveChatMode = requestedChatMode === "auto"
+      ? inferChatMode(lastMessage?.content || "")
+      : isManualChatMode(requestedChatMode)
+        ? requestedChatMode
+        : "default";
 
     // Check for high-severity illegal content (always blocked in Safe and Creative Mode)
     const hasExtreme = EXTREME_ILLEGAL_KEYWORDS.some(kw => userPrompt.includes(kw));
@@ -129,11 +324,15 @@ export async function POST(req: Request) {
       return false;
     };
 
-    if (isImageRequest(userPrompt)) {
+    if (forceImage || isImageRequest(userPrompt)) {
       // Extract the prompt for the image
       let imagePrompt = lastMessage.content;
       const cleanRegex = /^(generate|create|make|draw|paint|show me|render|visualize|produce|design)\s+(an?|the|some)?\s*(image|picture|photo|pic|artwork|drawing|illustration|visual|painting|render|portrait|graphic)?\s*(of|about)?\s+/i;
       imagePrompt = imagePrompt.replace(cleanRegex, "").trim();
+      if (forceImage) {
+        imagePrompt = lastMessage.content.replace(/^generate\s+a\s+clear\s+educational\s+example\s+image\s+that\s+helps\s+students\s+understand\s+this\s+explanation\.\s*focus\s+on\s+the\s+main\s+concept\s+only:\s*/i, "").trim();
+        imagePrompt = `Educational diagram, clean visual explanation, student-friendly, high contrast, premium dark classroom style: ${imagePrompt}`;
+      }
 
       try {
         console.log(`[Chat Route] Image request detected. Triggering Image Generator for user ${sbUser.id}...`);
@@ -166,7 +365,10 @@ export async function POST(req: Request) {
             message: `Here is the image I generated for you based on your request: "${imagePrompt}"`,
             imageUrl: imageUrl,
             isImage: true,
-            enhancedPrompt: imageGenResponse.data.enhancedPrompt
+            enhancedPrompt: imageGenResponse.data.enhancedPrompt,
+            chatMode: effectiveChatMode,
+            requestedChatMode,
+            studentMode
           });
         } else {
           throw new Error("Failed to generate image from downstream API");
@@ -227,95 +429,87 @@ export async function POST(req: Request) {
       userContext = await prisma.userContext.create({ data: { userId: sbUser.id } });
     }
 
-    const contextStr = `USER CONTEXT: Preferences: ${userContext?.preferences || 'None'}, Memories: ${userContext?.memories || 'None'}`;
-    const systemPrompt = `You are Lumora AI. Be direct, witty, and proactive. Use markdown. ${contextStr}`;
-    // Process vision/text attachments in messages
-    let activeModel = "llama-3.3-70b-versatile";
-    
-    // Check if any message contains image attachments
-    const hasImages = messages.some((m: any) => m.attachments?.some((a: any) => a.type?.startsWith("image/")));
-    if (hasImages) {
-      activeModel = "llama-3.2-11b-vision-preview";
-    }
+    const aiSettings = readAiChatSettings(userContext?.preferences);
+    const memories = aiSettings.memoryEnabled ? parseMemories(userContext?.memories) : [];
+    const styleGuide = [
+      aiSettings.responseStyle !== "balanced" ? `Preferred response style: ${aiSettings.responseStyle}.` : "",
+      aiSettings.detailLevel !== "standard" ? `Preferred detail level: ${aiSettings.detailLevel}.` : "",
+      aiSettings.customInstructions ? `User custom instructions: ${aiSettings.customInstructions}` : "",
+    ].filter(Boolean).join(" ");
+    const memoryGuide = memories.length ? memories.map(memory => `- ${memory}`).join("\n") : "None";
+    const contextStr = `USER CONTEXT:
+Memory is ${aiSettings.memoryEnabled ? "enabled" : "disabled"}.
+Saved memories:
+${memoryGuide}
+${styleGuide ? `\nPersonalization instructions: ${styleGuide}` : ""}`;
+    const modePromptMap: Record<string, string> = {
+      default: "You are Lumora AI. Be direct, witty, and proactive. Use markdown.",
+      coding: "You are Lumora AI in Coding Mode. Prioritize correctness, architecture, security, performance, and maintainable code. Ask for missing context only when necessary. Use concise explanations, code blocks, file-level guidance, edge cases, and testing notes.",
+      research: "You are Lumora AI in Research Mode. Be careful, structured, and evidence-oriented. Separate facts from assumptions, compare options, note uncertainty, and end with concise takeaways or next research steps. Do not invent citations.",
+      business: "You are Lumora AI in Business Mode. Think like a sharp operator. Focus on strategy, execution, positioning, pricing, risks, metrics, and practical next actions. Keep answers executive-friendly and decision-oriented.",
+      creative: "You are Lumora AI in Creative Mode. Be imaginative, high-end, and original. Generate polished concepts, names, hooks, story angles, visual directions, and variations. Keep ideas usable, not vague.",
+      fast: "You are Lumora AI in Fast Answers Mode. Respond with the shortest useful answer. Lead with the answer, skip fluff, use compact bullets only when helpful, and avoid long explanations unless the user asks.",
+    };
+    const selectedModePrompt = modePromptMap[effectiveChatMode] || modePromptMap.default;
+    const defaultSystemPrompt = `${selectedModePrompt} ${contextStr}`;
+    const studentSystemPrompt = `Act as a patient, expert teacher. Explain concepts clearly with examples. Use images when helpful. Keep responses educational and focused. Break down difficult topics step-by-step.
 
-    const sanitizedMessages = messages.map((m: any) => {
-      // Process attachments in user messages
-      const attachments = m.attachments || [];
-      const imageAttachments = attachments.filter((a: any) => a.type?.startsWith("image/"));
-      const textAttachments = attachments.filter((a: any) => !a.type?.startsWith("image/"));
+Student Mode rules:
+- Stay strictly educational and learning-focused.
+- If the user asks for something non-educational, politely redirect them to a learning version of the topic.
+- Use simple language first, then add depth when useful.
+- Always include at least one real-world example when explaining a concept.
+- Break complex topics into clear steps.
+- Include practice questions, a quick quiz, or a mini exercise when appropriate.
+- Use markdown headings, bullet points, numbered steps, tables, and code blocks where they improve clarity.
+- Use #, ##, and ### for headings. Do not underline headings with === or ---.
+- When an example image would help, suggest what visual would be useful. The app can generate it when the user clicks Generate Example Image.
+- Do not claim that you generated an image unless the response includes an actual generated image URL.
 
-      // Append text attachments contents to prompt
-      let textContent = m.content || "";
-      if (textAttachments.length > 0) {
-        textContent += "\n\n[Attached Files]";
-        textAttachments.forEach((file: any) => {
-          textContent += `\n\n--- File: ${file.name} (${file.type}) ---\n${file.data}\n-------------------------`;
-        });
-      }
-
-      if (imageAttachments.length > 0) {
-        // Multi-modal format for vision model
-        const contentArray: any[] = [{ type: "text", text: textContent || "Analyze the uploaded image(s)." }];
-        imageAttachments.forEach((img: any) => {
-          contentArray.push({
-            type: "image_url",
-            image_url: {
-              url: img.data // Base64 data URL
-            }
-          });
-        });
-        return { role: m.role, content: contentArray };
-      }
-
-      return { role: m.role, content: textContent };
-    });
-
-    const groqPayload = { 
-      model: activeModel, 
-      messages: [{ role: "system", content: systemPrompt }, ...sanitizedMessages], 
-      temperature: 0.5 
+${contextStr}`;
+    const systemPrompt = studentMode ? studentSystemPrompt : defaultSystemPrompt;
+    const { sanitizedMessages, hasImages, imageCount } = prepareMessagesForGroq(messages);
+    const temperature = effectiveChatMode === "creative" ? 0.75 : effectiveChatMode === "fast" ? 0.25 : 0.5;
+    const basePayload = {
+      messages: [{ role: "system", content: systemPrompt }, ...sanitizedMessages],
+      temperature,
+      max_completion_tokens: 2048,
     };
 
     let data;
-    try {
-      data = await callGroq(groqPayload);
-    } catch (visionErr) {
-      if (activeModel === "llama-3.2-11b-vision-preview") {
-        console.warn("Vision model call failed, falling back to text-only model...", visionErr);
-        
-        // Strip image urls and use standard text model
-        const textOnlyMessages = messages.map((m: any) => {
-          const attachments = m.attachments || [];
-          const textAttachments = attachments.filter((a: any) => !a.type?.startsWith("image/"));
-          const imageAttachments = attachments.filter((a: any) => a.type?.startsWith("image/"));
-          
-          let textContent = m.content || "";
-          if (textAttachments.length > 0) {
-            textContent += "\n\n[Attached Files]";
-            textAttachments.forEach((file: any) => {
-              textContent += `\n\n--- File: ${file.name} (${file.type}) ---\n${file.data}\n-------------------------`;
-            });
-          }
-          if (imageAttachments.length > 0) {
-            textContent += `\n\n[Attached Image description: User uploaded ${imageAttachments.length} image file(s) named ${imageAttachments.map((i: any) => i.name).join(", ")}]`;
-          }
-          return { role: m.role, content: textContent };
-        });
-        
-        const fallbackPayload = {
-          model: "llama-3.3-70b-versatile",
-          messages: [{ role: "system", content: systemPrompt }, ...textOnlyMessages],
-          temperature: 0.5
-        };
-        data = await callGroq(fallbackPayload);
-      } else {
-        throw visionErr;
+    if (hasImages) {
+      const configuredVisionModels = (process.env.GROQ_VISION_MODELS || "")
+        .split(",")
+        .map(model => model.trim())
+        .filter(Boolean);
+      const visionModels = configuredVisionModels.length > 0 ? configuredVisionModels : DEFAULT_VISION_MODELS;
+      let lastVisionError: any = null;
+
+      for (const model of visionModels) {
+        try {
+          data = await callGroq({ ...basePayload, model });
+          console.info(`[Chat Vision] Analyzed ${imageCount} image(s) with ${model} for user ${sbUser.id}.`);
+          break;
+        } catch (error: any) {
+          lastVisionError = error;
+          console.warn(`[Chat Vision] ${model} failed:`, error.response?.data?.error?.message || error.message);
+        }
       }
+
+      if (!data) {
+        const upstreamMessage = lastVisionError?.response?.data?.error?.message;
+        throw new Error(upstreamMessage || "Lumora Vision is temporarily unavailable. Please try again.");
+      }
+    } else {
+      data = await callGroq({
+        ...basePayload,
+        model: "llama-3.3-70b-versatile",
+      });
     }
     if (!data?.choices?.[0]) throw new Error("AI Service invalid response");
 
     const finalAiContent = data.choices[0].message.content || "";
-    const finalMessages = [...messages, { role: "assistant", content: finalAiContent }];
+    const finalMessages = [...messages, { role: "assistant", content: finalAiContent, chatMode: effectiveChatMode, requestedChatMode, studentMode }];
     let activeSessionId = sessionId;
     let finalTitle: string | undefined = undefined;
 
@@ -420,9 +614,12 @@ export async function POST(req: Request) {
       }).catch(e => console.warn("[Chat] Credits sync failed:", e.message));
     } catch (e) {}
 
-    return NextResponse.json({ message: finalAiContent, id: activeSessionId });
+    return NextResponse.json({ message: finalAiContent, id: activeSessionId, chatMode: effectiveChatMode, requestedChatMode, studentMode });
   } catch (err: any) {
     console.error("[Chat] POST Error:", err.message);
+    if (err instanceof AttachmentValidationError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     const errorMsg = err.response?.data?.error?.message || err.message || "AI failed to respond";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }

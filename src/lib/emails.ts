@@ -1,10 +1,43 @@
 import { resend } from './resend';
+import { recordEmailEvent } from './email-diagnostics';
 
-const SENDER_PAYMENT = '"Lumora" <payments@lumoraai.online>';
-const SENDER_NOREPLY = '"Lumora" <noreply@lumoraai.online>';
-const SENDER_WELCOME = '"Lumora" <welcome@lumoraai.online>';
+const EMAIL_SENDER_DOMAIN = process.env.EMAIL_SENDER_DOMAIN || 'lumoraai.online';
+const SENDER_PAYMENT = `"Lumora" <payments@${EMAIL_SENDER_DOMAIN}>`;
+const SENDER_NOREPLY = `"Lumora" <noreply@${EMAIL_SENDER_DOMAIN}>`;
+const SENDER_WELCOME = `"Lumora" <welcome@${EMAIL_SENDER_DOMAIN}>`;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lumoraai.online';
+
+type EmailPayload = Parameters<typeof resend.emails.send>[0];
+
+async function sendTrackedEmail(channel: string, recipient: string, payload: EmailPayload) {
+  try {
+    const response = await resend.emails.send(payload);
+    const errorMessage = response.error
+      ? typeof response.error === 'string'
+        ? response.error
+        : response.error.message || 'Resend rejected the email'
+      : undefined;
+
+    recordEmailEvent({
+      channel,
+      recipient,
+      success: !response.error,
+      error: errorMessage,
+    });
+
+    return response;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Email provider request failed';
+    recordEmailEvent({
+      channel,
+      recipient,
+      success: false,
+      error: errorMessage,
+    });
+    throw error;
+  }
+}
 
 const PREMIUM_DARK_THEME = (content: string) => `
 <!DOCTYPE html>
@@ -195,7 +228,7 @@ export async function sendProWelcomeEmail(email: string, details: {
   date: string;
 }) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('pro_welcome', email, {
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Welcome to Lumora Pro - Your Membership is Active',
@@ -313,7 +346,7 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
   date: string;
 }) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('payment_failed', email, {
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Welcome to Lumora Pro! 🎉 Your subscription is active',
@@ -378,7 +411,7 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
 
 export async function sendPaymentFailedEmail(email: string) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('credits_purchased', email, {
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Lumora - Payment Failed',
@@ -414,7 +447,7 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
   invoiceId: string;
 }) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('auth_otp', email, {
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Credits Refueled ⚡',
@@ -537,7 +570,7 @@ function renderTransactionalEmail({
 
 export async function sendAuthOTP(email: string, otp: string) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('magic_link', email, {
       from: SENDER_NOREPLY,
       to: email,
       subject: 'Your Lumora Verification Code',
@@ -572,7 +605,7 @@ export async function sendAuthOTP(email: string, otp: string) {
 
 export async function sendMagicLinkEmail(email: string, magicLink: string) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('welcome', email, {
       from: SENDER_NOREPLY,
       to: email,
       subject: 'Your Lumora Magic Login Link',
@@ -604,7 +637,7 @@ export async function sendMagicLinkEmail(email: string, magicLink: string) {
 
 export async function sendWelcomeEmail(email: string) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('welcome', email, {
       from: SENDER_WELCOME,
       to: email,
       subject: "Welcome to Lumora - Let's Create Something Amazing",
@@ -708,7 +741,7 @@ export async function sendWelcomeEmail(email: string) {
               <div style="color:#6b7280; font-size:12px; line-height:1.7;">
                 <a href="${SITE_URL}/terms-of-service" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Terms</a>
                 <a href="${SITE_URL}/dashboard" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Dashboard</a>
-                <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
+                <a href="${SITE_URL}/help" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
               <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>You are receiving this email because you created a Lumora account.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>

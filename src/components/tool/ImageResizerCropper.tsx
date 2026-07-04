@@ -207,11 +207,11 @@ export function ImageResizerCropper() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <div className="mx-auto max-w-7xl space-y-5 pb-10">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
         
         {/* LEFT: WORKSPACE */}
-        <div className="lg:col-span-8 flex flex-col gap-8">
+        <div className="flex flex-col gap-5 lg:col-span-8">
            <div
              onDragOver={(e) => e.preventDefault()}
              onDrop={(e) => {
@@ -219,17 +219,17 @@ export function ImageResizerCropper() {
                loadFile(e.dataTransfer.files?.[0]);
              }}
              className={cn(
-             "relative rounded-[3.5rem] glass-dark border-2 border-white/5 overflow-hidden transition-all duration-500 min-h-[500px] group flex items-center justify-center",
-             !asset && "border-dashed hover:border-accent-purple/30 group-hover:scale-[1.01]"
+             "group relative flex min-h-[420px] items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-950/65 shadow-xl transition-all duration-300 sm:min-h-[500px]",
+             !asset && "border-dashed border-white/15 hover:border-cyan-300/40 hover:bg-cyan-300/[0.03]"
            )}>
               {!asset ? (
-                <label className="cursor-pointer flex flex-col items-center gap-6 p-20 text-center">
-                   <div className="w-24 h-24 rounded-full bg-accent-purple/10 flex items-center justify-center text-accent-purple group-hover:scale-110 transition-transform shadow-3xl">
-                      <Upload size={40} />
+                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-5 p-6 text-center">
+                   <div className="flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-200 shadow-lg transition-all group-hover:border-cyan-300/30">
+                      <Upload size={28} />
                    </div>
                    <div className="space-y-2">
-                      <h3 className="text-xl font-black text-white uppercase tracking-widest">Master Canvas</h3>
-                      <p className="text-zinc-500 text-sm font-medium">Drop high-res base image here</p>
+                      <h3 className="text-lg font-bold text-white">Choose an image to resize</h3>
+                      <p className="text-sm font-medium text-zinc-500">Drop an image here or browse from your device.</p>
                    </div>
                    <input type="file" className="hidden" accept="image/*" onChange={handleUpload} />
                 </label>
@@ -256,7 +256,7 @@ export function ImageResizerCropper() {
                     setCroppedAreaPixels(null);
                     setError(null);
                   }}
-                  className="absolute top-6 right-6 z-40 p-3 rounded-2xl bg-black/60 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                  className="absolute right-4 top-4 z-40 flex size-11 items-center justify-center rounded-md border border-white/10 bg-black/70 text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
                   title="Start over"
                 >
                   <RefreshCw size={16} />
@@ -273,7 +273,7 @@ export function ImageResizerCropper() {
 
            {/* CONTROLS HUD */}
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-8 rounded-[2.5rem] glass-dark border border-white/5 space-y-8">
+              <div className="space-y-6 rounded-lg border border-white/10 bg-zinc-950/65 p-5 shadow-xl sm:p-6">
                  <div className="flex items-center justify-between">
                     <h4 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                        <Maximize2 size={14} className="text-accent-purple" />
@@ -281,7 +281,8 @@ export function ImageResizerCropper() {
                     </h4>
                     <button 
                       onClick={() => setLockRatio(!lockRatio)}
-                      className={cn("p-2 rounded-lg transition-all", lockRatio ? "bg-accent-purple/10 text-accent-purple" : "text-zinc-600")}
+                      className={cn("flex size-11 items-center justify-center rounded-md transition-all", lockRatio ? "bg-cyan-300/10 text-cyan-200" : "text-zinc-600 hover:bg-white/5 hover:text-white")}
+                      title={lockRatio ? "Unlock aspect ratio" : "Lock aspect ratio"}
                     >
                        {lockRatio ? <Lock size={14} /> : <Unlock size={14} />}
                     </button>
@@ -293,7 +294,7 @@ export function ImageResizerCropper() {
                          type="number" value={width} onChange={(e) => handleWidthChange(parseInt(e.target.value))}
                          min={1}
                          max={8000}
-                         className="w-full h-14 bg-white/5 border border-white/5 rounded-xl px-4 text-white font-bold focus:outline-none focus:border-accent-purple/50"
+                         className="h-12 w-full rounded-md border border-white/10 bg-white/5 px-4 font-bold text-white focus:border-cyan-300/50 focus:outline-none"
                        />
                     </div>
                     <div className="space-y-2">
@@ -302,13 +303,13 @@ export function ImageResizerCropper() {
                          type="number" value={height} onChange={(e) => handleHeightChange(parseInt(e.target.value))}
                          min={1}
                          max={8000}
-                         className="w-full h-14 bg-white/5 border border-white/5 rounded-xl px-4 text-white font-bold focus:outline-none focus:border-accent-purple/50"
+                         className="h-12 w-full rounded-md border border-white/10 bg-white/5 px-4 font-bold text-white focus:border-cyan-300/50 focus:outline-none"
                        />
                     </div>
                  </div>
               </div>
 
-              <div className="p-8 rounded-[2.5rem] glass-dark border border-white/5 space-y-6">
+              <div className="space-y-5 rounded-lg border border-white/10 bg-zinc-950/65 p-5 shadow-xl sm:p-6">
                  <h4 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                     <Zap size={14} className="text-accent-cyan" />
                     Encoder Settings
@@ -318,8 +319,8 @@ export function ImageResizerCropper() {
                       <button 
                         key={fmt} onClick={() => setFormat(fmt)}
                         className={cn(
-                          "flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                          format === fmt ? "bg-accent-cyan text-black" : "bg-white/5 text-zinc-500 hover:text-white"
+                          "h-12 flex-1 rounded-md border text-[10px] font-bold uppercase tracking-wider transition-all",
+                          format === fmt ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/[0.03] text-zinc-500 hover:border-white/20 hover:text-white"
                         )}
                       >
                          {fmt}
@@ -357,11 +358,11 @@ export function ImageResizerCropper() {
         </div>
 
         {/* RIGHT: PRESETS & ACTIONS */}
-        <div className="lg:col-span-4 space-y-8">
-           <div className="p-10 rounded-[3rem] glass-dark border border-white/5 space-y-10">
+        <div className="space-y-4 lg:col-span-4">
+           <div className="space-y-7 rounded-lg border border-white/10 bg-zinc-950/65 p-5 shadow-xl sm:p-6">
               <div className="space-y-2">
-                 <h3 className="text-sm font-black text-white uppercase tracking-widest">Platform Presets</h3>
-                 <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest">Optimized for social graphs</p>
+                 <h3 className="text-sm font-black text-white uppercase tracking-widest">Size presets</h3>
+                 <p className="text-xs font-medium text-zinc-500">Common dimensions for social and web images.</p>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -372,12 +373,12 @@ export function ImageResizerCropper() {
                      <button 
                        key={p.id} onClick={() => applyPreset(p)}
                        className={cn(
-                         "p-5 rounded-2xl flex items-center justify-between transition-all group border",
-                         Active ? "bg-accent-purple border-accent-purple text-white shadow-3xl" : "bg-white/5 border-white/5 text-zinc-500 hover:border-white/10"
+                         "group flex min-h-14 items-center justify-between rounded-md border p-4 transition-all",
+                         Active ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100 shadow-sm" : "border-white/10 bg-white/[0.03] text-zinc-500 hover:border-white/20 hover:text-white"
                        )}
                      >
                         <div className="flex items-center gap-4">
-                           <Icon size={20} className={Active ? "text-white" : "group-hover:text-accent-purple"} />
+                         <Icon size={20} className={Active ? "text-cyan-100" : "group-hover:text-cyan-200"} />
                            <div className="text-left">
                               <p className="text-[10px] font-black uppercase tracking-widest">{p.label}</p>
                               {p.w > 0 && <p className="text-[9px] font-bold opacity-60">{p.w} x {p.h}</p>}
@@ -398,7 +399,7 @@ export function ImageResizerCropper() {
                  <button 
                    disabled={!asset || isProcessing}
                    onClick={processImage}
-                   className="w-full py-6 rounded-3xl premium-gradient text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-3xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-4"
+                   className="premium-gradient flex min-h-12 w-full items-center justify-center gap-2 rounded-md px-5 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
                  >
                     <CropIcon size={24} />
                     Crop & Process
@@ -411,15 +412,15 @@ export function ImageResizerCropper() {
                        a.download = `toolverse_${asset?.name?.replace(/\.[^.]+$/, "") || "image"}.${result.format}`;
                        a.click();
                      }}
-                     className="w-full py-6 rounded-3xl bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] shadow-3xl hover:bg-zinc-200 transition-all flex items-center justify-center gap-4"
+                     className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-white px-5 text-xs font-bold text-black shadow-lg transition-all hover:bg-zinc-200"
                    >
                       <Download size={24} />
                       Export {result.width}x{result.height} {result.format.toUpperCase()} / {formatSize(result.size)}
                    </button>
                  )}
                  {/* LIVE PREVIEW / RESULT DISPLAY */}
-                 <div className="relative rounded-[2.5rem] glass-dark border border-white/10 overflow-hidden min-h-[350px] group">
-                    <div className="absolute top-4 left-4 z-10 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+                 <div className="group relative min-h-[320px] overflow-hidden rounded-lg border border-white/10 bg-black/25">
+                    <div className="absolute left-3 top-3 z-10 rounded-md border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
                        <span className="text-[10px] font-black text-white uppercase tracking-widest">
                          {result ? "Export Optimized" : "Live Monitor"}
                        </span>
@@ -427,7 +428,7 @@ export function ImageResizerCropper() {
 
                     <div className="h-full flex flex-col items-center justify-center p-4">
                        {result ? (
-                         <img src={result.url} className="w-full h-auto rounded-3xl" alt="Result" />
+                         <img src={result.url} className="h-auto w-full rounded-md" alt="Result" />
                        ) : asset ? (
                          <div className="w-full h-full flex items-center justify-center">
                             <canvas ref={previewCanvasRef} className="max-w-full max-h-[400px] rounded-2xl shadow-4xl object-contain bg-zinc-950" />
@@ -436,7 +437,7 @@ export function ImageResizerCropper() {
                          <div className="flex flex-col items-center justify-center p-12 text-center">
                           <CropIcon size={48} className="text-zinc-800 mb-6" />
                           <p className="text-zinc-700 text-xs font-bold uppercase tracking-widest leading-loose">
-                             Active Monitor Offline.<br/>Upload to start cropping.
+                             Upload an image to preview the crop.
                           </p>
                          </div>
                        )}
@@ -446,8 +447,8 @@ export function ImageResizerCropper() {
            </div>
 
            {result && asset && (
-             <div className="p-8 rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-6">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+             <div className="flex items-center gap-4 rounded-lg border border-emerald-400/15 bg-emerald-400/[0.04] p-4">
+                <div className="flex size-11 items-center justify-center rounded-md bg-emerald-400/10 text-emerald-300">
                    <Zap size={24} />
                 </div>
                 <div className="space-y-1">

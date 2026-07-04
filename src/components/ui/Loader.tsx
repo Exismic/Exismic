@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { LumoraMark } from "@/components/ui/LumoraLogo";
 
 interface LoaderProps {
   isLoading?: boolean;
@@ -12,17 +13,14 @@ interface LoaderProps {
 
 /**
  * Lumora Premium Loader
- * A smooth, modern loading screen with the Lumora "L" logo and glowing effects.
+ * A smooth, modern loading screen with the Lumora app mark and glowing effects.
  */
 export const Loader = ({ 
   isLoading = true, 
   text = "Preparing your tools...", 
   className 
 }: LoaderProps) => {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
     // Prevent scrolling when loader is active
     if (isLoading) {
       document.body.style.overflow = "hidden";
@@ -33,8 +31,6 @@ export const Loader = ({
       document.body.style.overflow = "unset";
     };
   }, [isLoading]);
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>
@@ -82,14 +78,7 @@ export const Loader = ({
                 className="absolute inset-0 bg-accent-purple/20 blur-2xl rounded-3xl -z-10"
               />
 
-              <div className="w-24 h-24 rounded-[2rem] premium-gradient flex items-center justify-center p-[3px] shadow-[0_0_60px_rgba(124,58,237,0.25)] relative overflow-hidden group">
-                {/* Internal Shimmer */}
-                <div className="absolute inset-0 shimmer opacity-30" />
-                
-                <div className="w-full h-full bg-[#030303] rounded-[1.85rem] flex items-center justify-center relative z-10">
-                  <span className="text-white font-black text-5xl font-mono leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">L</span>
-                </div>
-              </div>
+              <LumoraMark size={96} />
               
               <motion.div 
                 suppressHydrationWarning

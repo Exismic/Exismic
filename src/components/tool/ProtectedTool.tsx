@@ -2,10 +2,11 @@
 
 import React from "react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { Loader2, Lock, ArrowRight } from "lucide-react";
+import { Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
 
 interface ProtectedToolProps {
   children: React.ReactNode;
@@ -19,12 +20,23 @@ export function ProtectedTool({ children }: ProtectedToolProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-purple-500 animate-spin opacity-50" />
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 animate-pulse">
-            Verifying Identity
-          </p>
+      <div className="min-h-[520px] p-4 sm:p-8">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/5 bg-white/[0.025] p-5 sm:p-8">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-14 w-14 rounded-2xl" />
+            <div className="space-y-3">
+              <SkeletonLine className="h-5 w-48" />
+              <SkeletonLine className="w-64 max-w-[65vw]" />
+            </div>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-64 rounded-[1.75rem]" />
+            <div className="space-y-4">
+              <Skeleton className="h-24 rounded-[1.5rem]" />
+              <Skeleton className="h-24 rounded-[1.5rem]" />
+              <Skeleton className="h-14 rounded-2xl" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -60,17 +72,19 @@ export function ProtectedTool({ children }: ProtectedToolProps) {
           </div>
 
           <div className="pt-4">
-            <Link href={`/auth/login?returnUrl=${returnUrl}`}>
-              <button className="w-full h-16 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0.1)] flex items-center justify-center gap-3 group">
-                Login to Continue
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+            <Link
+              href={`/auth/login?returnUrl=${returnUrl}`}
+              className="group flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-white text-xs font-black uppercase tracking-widest text-black shadow-[0_20px_40px_-10px_rgba(255,255,255,0.1)] transition-all hover:bg-zinc-200"
+            >
+              Login to Continue
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </Link>
             
-            <Link href="/">
-              <button className="w-full mt-4 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 hover:text-white transition-colors">
-                Back to Free Tools
-              </button>
+            <Link
+              href="/"
+              className="mt-4 block w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 transition-colors hover:text-white"
+            >
+              Back to Free Tools
             </Link>
           </div>
         </div>

@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
   Upload, 
   Download, 
-  Loader2, 
   Plus, 
   X, 
-  ArrowRight,
   FileText,
   CheckCircle2,
   AlertCircle,
@@ -22,6 +20,7 @@ import {
 import { PdfThumbnail } from "./pdf/PdfThumbnail";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import { readDownloadResponse } from "@/lib/pdf-client";
 
 interface PdfFile {
   id: string;
@@ -31,23 +30,35 @@ interface PdfFile {
 const MERGER_STEPS = [
   { title: "Upload Documents", desc: "Select multiple PDF files you want to combine into one." },
   { title: "Arrange Order", desc: "Drag and drop or use arrows to set the perfect document sequence." },
-  { title: "Neural Merge", desc: "Our engine compiles the layers and metadata into a single high-fidelity file." },
+  { title: "Merge Pages", desc: "Lumora copies every page into one document in your selected order." },
   { title: "Download", desc: "Save your combined document instantly to your local storage." }
 ];
 
 export default function PdfMerger() {
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("merged-document.pdf");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       file
     }));
-    setFiles(prev => [...prev, ...newFiles]);
+    setFiles(prev => {
+      const combined = [...prev, ...newFiles];
+      if (combined.length > 20) {
+        setError("You can merge up to 20 PDFs at once.");
+      }
+      return combined.slice(0, 20);
+    });
     setResultUrl(null);
     setError(null);
   }, []);
@@ -74,7 +85,6 @@ export default function PdfMerger() {
   const handleMerge = async () => {
     if (files.length < 2) return;
     setIsProcessing(true);
-    setStatus("Merging documents...");
     setError(null);
 
     const formData = new FormData();
@@ -93,12 +103,12 @@ export default function PdfMerger() {
         throw new Error(errData.error || "Merge failed. Try using fewer files.");
       }
 
-      const result = await response.json();
-      setResultUrl(result.resultUrl);
-      setStatus("Merge Complete!");
-    } catch (err: any) {
+      const artifact = await readDownloadResponse(response, "merged-document.pdf");
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to merge PDFs");
+      setError(err instanceof Error ? err.message : "Failed to merge PDFs");
     } finally {
       setIsProcessing(false);
     }
@@ -167,7 +177,7 @@ export default function PdfMerger() {
                        <div className="flex flex-col sm:flex-row items-center gap-6">
                           <a 
                             href={resultUrl} 
-                            download="merged_document.pdf"
+                            download={resultFileName}
                             className="px-14 py-7 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-4 shadow-3xl"
                           >
                             <Download className="w-5 h-5" />
@@ -253,7 +263,7 @@ export default function PdfMerger() {
                            <div className="w-24 h-24 border-2 border-accent-cyan/20 border-t-accent-cyan rounded-full animate-spin" />
                            <Zap className="absolute inset-0 m-auto w-8 h-8 text-accent-cyan animate-pulse" />
                         </div>
-                        <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 pr-4 px-4 -mx-4">Neural Merging...</h4>
+                        <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 pr-4 px-4 -mx-4">Merging PDFs...</h4>
                         <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.5em] animate-pulse">Compiling Document Layers</p>
                       </motion.div>
                     )}
@@ -290,7 +300,7 @@ export default function PdfMerger() {
             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
               <div className="space-y-1">
-                 <p className="uppercase tracking-[0.2em]">Neural Engine Error</p>
+                 <p className="uppercase tracking-[0.2em]">Merge Failed</p>
                  <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
               </div>
             </div>

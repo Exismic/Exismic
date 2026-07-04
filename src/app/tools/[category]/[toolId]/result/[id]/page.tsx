@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Sparkles, 
@@ -17,6 +17,13 @@ import Link from "next/link";
 import { TOOLS } from "@/data/tools";
 import { cn } from "@/lib/utils";
 
+const DEFAULT_ANALYSIS = [
+  "Looking at the segments...",
+  "Checking colors and lights...",
+  "Cleaning up the edges...",
+  "Finishing up...",
+];
+
 export default function ResultPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -30,21 +37,26 @@ export default function ResultPage() {
   const isRealAi = searchParams.get("real") === "true";
   const rawAnalysis = searchParams.get("analysis");
   const textResult = searchParams.get("textResult");
+  const tool = TOOLS.find(t => t.id.includes(params.toolId as string));
   
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isHovering, setIsHovering] = useState(false);
   const isPdf = resultUrl.toLowerCase().endsWith('.pdf');
   const isImage = !isPdf && (resultUrl.match(/\.(jpeg|jpg|png|webp)$/i) || tool?.category === 'image');
 
-  const analysisLog = rawAnalysis ? JSON.parse(decodeURIComponent(rawAnalysis)) : [
-    "Looking at the segments...",
-    "Checking colors and lights...",
-    "Cleaning up the edges...",
-    "Finishing up..."
-  ];
+  const analysisLog = useMemo(() => {
+    if (!rawAnalysis) return DEFAULT_ANALYSIS;
+    try {
+      const parsed: unknown = JSON.parse(rawAnalysis);
+      return Array.isArray(parsed) && parsed.every(item => typeof item === "string")
+        ? parsed
+        : DEFAULT_ANALYSIS;
+    } catch {
+      return DEFAULT_ANALYSIS;
+    }
+  }, [rawAnalysis]);
 
   const [mockAnalysis, setMockAnalysis] = useState<string[]>([]);
-  const tool = TOOLS.find(t => t.id.includes(params.toolId as string));
 
   useEffect(() => {
     let currentStage = 0;
@@ -73,7 +85,7 @@ export default function ResultPage() {
       clearInterval(interval);
       clearInterval(progressInterval);
     };
-  }, [rawAnalysis]);
+  }, [analysisLog]);
 
   const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
     const container = e.currentTarget.getBoundingClientRect();

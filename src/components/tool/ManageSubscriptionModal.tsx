@@ -1,82 +1,105 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  CreditCard, 
-  Calendar, 
-  ShieldCheck, 
+import React, { useEffect, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import {
   AlertTriangle,
-  Loader2,
-  ChevronRight,
-  Sparkles,
-  Crown,
+  ArrowRight,
+  Calendar,
   Check,
+  Cpu,
+  ImageDown,
+  Loader2,
+  Lock,
   RefreshCw,
-  Info
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import GradientText from '../ui/GradientText';
-import { PRICING_CONFIG } from '@/config/pricing';
+  ShieldCheck,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
+
+const subscribeToHydration = () => () => {};
 
 interface ManageSubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
+  user: {
+    email?: string | null;
+    plan?: string | null;
+    subscriptionStatus?: string | null;
+    subscription_status?: string | null;
+    planExpiresAt?: string | Date | null;
+    plan_expires_at?: string | Date | null;
+  } | null;
   onCancel: () => Promise<void>;
   isCancelling: boolean;
 }
 
-export function ManageSubscriptionModal({ 
-  isOpen, 
-  onClose, 
-  user, 
+const INCLUDED_BENEFITS = [
+  { icon: null, label: "1,000 daily credits", detail: "Restored every day", custom: true },
+  { icon: Cpu, label: "Priority processing", detail: "Faster eligible jobs" },
+  { icon: ImageDown, label: "Clean Pro exports", detail: "No generated watermark" },
+  { icon: ShieldCheck, label: "Commercial rights", detail: "For client and brand work" },
+];
+
+export function ManageSubscriptionModal({
+  isOpen,
+  onClose,
+  user,
   onCancel,
-  isCancelling 
+  isCancelling,
 }: ManageSubscriptionModalProps) {
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [localCancelled, setLocalCancelled] = useState(false);
+  const [fallbackBillingDate] = useState(
+    () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  );
+  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
+
+  const subscriptionStatus = String(
+    user?.subscription_status || user?.subscriptionStatus || ""
+  ).toLowerCase();
+  const isCancelled = localCancelled || subscriptionStatus === "cancelled";
+  const rawExpiry = user?.plan_expires_at || user?.planExpiresAt;
+  const expiryDate = rawExpiry ? new Date(rawExpiry) : null;
+  const billingDate =
+    expiryDate && !Number.isNaN(expiryDate.getTime())
+      ? expiryDate
+      : fallbackBillingDate;
+  const formattedDate = billingDate.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const isIndia = isHydrated && getIsIndia();
+  const planPrice = isIndia
+    ? `Rs ${PRICING_CONFIG.PRO_PLAN.INR}`
+    : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
 
   useEffect(() => {
-    setMounted(true);
-    console.log("[ManageSubscriptionModal] Mounted. User object:", user);
-  }, [user]);
+    if (!isOpen) return;
 
-  const [localCancelled, setLocalCancelled] = useState(false);
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowConfirmCancel(false);
+        onClose();
+      }
+    };
 
-  // Check local storage for persistent cancellation state if DB is slow
-  const isStorageCancelled = typeof window !== 'undefined' && user?.email && localStorage.getItem(`cancelled_${user.email}`) === 'true';
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
-  // Determine if already cancelled (Check both snake_case and camelCase for safety).
-  // planExpiresAt can also mean the next billing/end date, so it must not imply cancellation by itself.
-  const isCancelled = localCancelled || 
-                      isStorageCancelled ||
-                      user?.subscription_status === 'cancelled' || 
-                      user?.subscriptionStatus === 'cancelled';
-  
-  console.log("[ManageSubscriptionModal] isCancelled evaluation:", {
-    isCancelled,
-    localCancelled,
-    isStorageCancelled,
-    plan: user?.plan,
-    subscriptionStatus: user?.subscriptionStatus,
-    subscription_status: user?.subscription_status,
-    planExpiresAt: user?.planExpiresAt,
-    plan_expires_at: user?.plan_expires_at
-  });
-
-  const expiresAt = (user?.plan_expires_at || user?.planExpiresAt) ? new Date(user?.plan_expires_at || user?.planExpiresAt) : null;
-  
-  // Billing date calculation
-  const billingDate = expiresAt || new Date(new Date().setDate(new Date().getDate() + 30));
-  const formattedDate = billingDate.toLocaleDateString('en-US', { 
-    month: 'long', 
-    day: 'numeric', 
-    year: 'numeric' 
-  });
+  const closeModal = () => {
+    setShowConfirmCancel(false);
+    setIsSuccess(false);
+    onClose();
+  };
 
   const handleCancel = async () => {
     try {
@@ -85,218 +108,280 @@ export function ManageSubscriptionModal({
       setIsSuccess(true);
       setShowConfirmCancel(false);
     } catch (error) {
-      console.error('Cancellation modal error:', error);
-      setShowConfirmCancel(false);
+      console.error("Cancellation modal error:", error);
     }
   };
 
-  useEffect(() => {
-    if (!isOpen) {
-      setTimeout(() => {
-        setShowConfirmCancel(false);
-        setIsSuccess(false);
-      }, 500);
-    }
-  }, [isOpen]);
-
-  if (!mounted) return null;
+  if (!isHydrated) return null;
 
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6">
-          <motion.div 
+        <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6">
+          <motion.button
+            type="button"
+            aria-label="Close membership details"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+            onClick={closeModal}
+            className="pointer-events-auto absolute inset-0 cursor-default bg-black/88 backdrop-blur-xl"
           />
 
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          <motion.section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="membership-modal-title"
+            initial={{ opacity: 0, scale: 0.94, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[2rem] md:rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.9)] max-h-[calc(100dvh-1.5rem)] flex flex-col"
+            exit={{ opacity: 0, scale: 0.96, y: 18 }}
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="pointer-events-auto relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[640px] flex-col overflow-hidden rounded-[26px] border border-white/[0.11] bg-[#07070b]/98 shadow-[0_42px_120px_rgba(0,0,0,0.86),0_0_80px_rgba(124,58,237,0.08)]"
           >
-            {/* Top Shine */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-accent-purple/10 to-transparent pointer-events-none" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:34px_34px] [mask-image:linear-gradient(to_bottom,black,transparent_68%)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[linear-gradient(120deg,rgba(124,58,237,0.15),transparent_44%,rgba(34,211,238,0.08),transparent)]" />
+            <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-purple-400 via-fuchsia-300 to-cyan-300" />
 
-            <div className="p-5 sm:p-8 md:p-10 border-b border-white/5 flex items-start justify-between gap-4 relative bg-white/[0.01] shrink-0">
-              <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-                <div className="w-14 h-14 rounded-[1.25rem] bg-zinc-900 flex items-center justify-center text-accent-purple border border-white/10 shadow-2xl relative group overflow-hidden">
-                  <div className="absolute inset-0 bg-accent-purple/5 group-hover:bg-accent-purple/10 transition-colors" />
-                  <Crown size={28} className="relative z-10" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-2">
-                    {isCancelled ? "Canceled" : "Elite Membership"}
-                    {!isCancelled && <Check size={18} className="text-emerald-500" />}
-                  </h3>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.25em]">
-                    {isCancelled ? "Terminating Soon" : "Active Elite Subscription"}
+            <header className="relative z-10 flex min-h-20 shrink-0 items-center justify-between border-b border-white/[0.07] px-5 sm:px-7">
+              <div className="flex min-w-0 items-center gap-3">
+                <LumoraMark size={42} />
+                <div className="min-w-0">
+                  <h2 id="membership-modal-title" className="truncate text-sm font-black tracking-[-0.01em] text-white">
+                    Lumora Pro
+                  </h2>
+                  <p className="mt-1 text-[8px] font-black uppercase tracking-[0.22em] text-zinc-600">
+                    Membership and billing
                   </p>
                 </div>
-              </div>
-              <button 
-                onClick={onClose}
-                className="min-h-11 min-w-11 hover:bg-white/5 rounded-full transition-all text-zinc-500 hover:text-white shrink-0 flex items-center justify-center"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-5 sm:p-8 md:p-10 space-y-6 sm:space-y-10 overflow-y-auto no-scrollbar relative z-10">
-              {/* Plan Overview Card */}
-              <div className={cn(
-                "p-6 sm:p-10 rounded-[2rem] sm:rounded-[2.75rem] relative overflow-hidden group transition-all duration-700",
-                isCancelled ? "bg-zinc-950 border border-white/5" : "bg-[#050505] border border-accent-purple/30 shadow-[0_0_40px_rgba(168,85,247,0.1)]"
-              )}>
-                <div className="absolute top-0 right-0 p-6 opacity-5">
-                  <Crown size={80} className="text-accent-purple" />
-                </div>
-                
-                <div className="relative z-10 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <span className={cn(
-                      "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl",
-                      isCancelled ? "bg-zinc-800 text-zinc-400" : "bg-accent-purple text-white"
-                    )}>
-                      {isCancelled ? "CANCELED" : "ELITE PRO"}
-                    </span>
-                    {isCancelled && (
-                      <span className="text-[10px] font-bold text-amber-500 flex items-center gap-1">
-                        <AlertTriangle size={12} /> Pending Termination
-                      </span>
+                <span
+                  className={cn(
+                    "ml-1 hidden min-h-6 items-center gap-1.5 rounded-full border px-2.5 text-[8px] font-black uppercase tracking-[0.14em] sm:flex",
+                    isCancelled
+                      ? "border-amber-300/20 bg-amber-300/[0.06] text-amber-200"
+                      : "border-emerald-300/20 bg-emerald-300/[0.06] text-emerald-200"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      isCancelled ? "bg-amber-300" : "bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.8)]"
                     )}
+                  />
+                  {isCancelled ? "Ends soon" : "Active"}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                aria-label="Close"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-zinc-500 transition-all hover:border-white/15 hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-95"
+              >
+                <X size={16} />
+              </button>
+            </header>
+
+            <div className="relative z-10 overflow-y-auto">
+              <section className="px-5 py-6 sm:px-8 sm:py-8">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <div
+                      className={cn(
+                        "mb-3 inline-flex min-h-7 items-center gap-2 rounded-full border px-3 text-[8px] font-black uppercase tracking-[0.2em]",
+                        isCancelled
+                          ? "border-amber-300/20 bg-amber-300/[0.06] text-amber-200"
+                          : "border-purple-300/20 bg-purple-300/[0.07] text-purple-200"
+                      )}
+                    >
+                      {isCancelled ? <AlertTriangle size={11} /> : <Check size={11} strokeWidth={3} />}
+                      {isCancelled ? "Cancellation scheduled" : "Full Pro access"}
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <span className="bg-[linear-gradient(100deg,#fff_0%,#e9d5ff_55%,#a5f3fc_100%)] bg-clip-text text-5xl font-black tracking-[-0.05em] text-transparent sm:text-6xl">
+                        {planPrice}
+                      </span>
+                      <span className="pb-2 text-[9px] font-black uppercase tracking-[0.16em] text-zinc-600">
+                        / month
+                      </span>
+                    </div>
                   </div>
-                  
-                  <div className="flex flex-wrap items-baseline gap-3">
-                    <span className="text-5xl sm:text-6xl font-black italic text-white tracking-tighter">${PRICING_CONFIG.PRO_PLAN.USD}</span>
-                    <span className="text-zinc-500 text-sm font-bold uppercase tracking-[0.15em]">/ Month</span>
+
+                  <div className="sm:text-right">
+                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                      {isCancelled ? "Access available until" : "Next renewal"}
+                    </p>
+                    <p className="mt-1.5 text-sm font-black text-white">{formattedDate}</p>
                   </div>
-                  
-                  <div className="h-px w-full bg-white/5" />
-                  
-                  <p className="text-[11px] font-medium text-zinc-500 leading-relaxed max-w-[260px]">
-                    {isCancelled 
-                      ? `Your subscription will end on ${formattedDate}. You can still use all Pro features until then.`
-                      : "You have full access to all AI models, priority processing, and elite tools."}
+                </div>
+
+                {isCancelled && (
+                  <p className="mt-5 border-t border-white/[0.07] pt-5 text-xs font-medium leading-6 text-zinc-500">
+                    Your Pro tools remain available through {formattedDate}. No further renewal will be charged.
                   </p>
-                </div>
-              </div>
+                )}
+              </section>
 
-              {/* Billing Info */}
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center justify-between p-6 rounded-[1.75rem] bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500">
-                      <Calendar size={18} />
+              <section className="border-y border-white/[0.07] bg-white/[0.016] px-5 py-5 sm:px-8">
+                <p className="mb-4 text-[8px] font-black uppercase tracking-[0.22em] text-zinc-600">
+                  Included with your membership
+                </p>
+                <div className="grid gap-x-7 gap-y-4 sm:grid-cols-2">
+                  {INCLUDED_BENEFITS.map(({ icon: Icon, label, detail, custom }) => (
+                    <div key={label} className="flex items-center gap-3 border-t border-white/[0.07] pt-4">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-cyan-200">
+                        {custom ? <CreditTokenIcon /> : Icon ? <Icon size={15} /> : null}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[11px] font-black text-zinc-200">{label}</span>
+                        <span className="mt-1 block truncate text-[9px] font-medium text-zinc-600">{detail}</span>
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                        {isCancelled ? "Ends On" : "Next Renewal"}
-                      </p>
-                      <p className="text-sm font-bold text-white italic tracking-tight">{formattedDate}</p>
-                    </div>
-                  </div>
-                  <RefreshCw size={16} className={cn("text-zinc-800", !isCancelled && "animate-spin-slow")} />
+                  ))}
                 </div>
+              </section>
 
-                <div className="flex items-center justify-between p-6 rounded-[1.75rem] bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500">
-                      <ShieldCheck size={18} />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Billing Method</p>
-                      <p className="text-sm font-bold text-white italic tracking-tight">Razorpay Secure</p>
-                    </div>
-                  </div>
-                  <div className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">
-                    Verified
+              <section className="grid border-b border-white/[0.07] sm:grid-cols-2">
+                <div className="flex min-h-20 items-center gap-3 border-b border-white/[0.07] px-5 sm:border-b-0 sm:border-r sm:px-8">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-purple-200">
+                    <Calendar size={15} />
+                  </span>
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-600">
+                      {isCancelled ? "Plan ends" : "Billing cycle"}
+                    </p>
+                    <p className="mt-1 text-xs font-black text-zinc-200">
+                      {isCancelled ? formattedDate : "Monthly"}
+                    </p>
                   </div>
                 </div>
-              </div>
-
-              {/* Actions */}
-              <AnimatePresence mode="wait">
-                {isSuccess ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-8 rounded-[2rem] bg-emerald-500/[0.03] border border-emerald-500/20 text-center space-y-4"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mx-auto border border-emerald-500/20">
-                      <Check size={32} strokeWidth={3} />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-lg font-black text-white uppercase tracking-tight">Successfully Canceled</p>
-                      <p className="text-[11px] text-zinc-500 font-medium">Your Elite access continues until <span className="text-white font-bold">{formattedDate}</span>.</p>
-                    </div>
-                  </motion.div>
-                ) : isCancelled ? (
-                  <div className="p-10 rounded-[2.5rem] bg-emerald-500/[0.03] border border-emerald-500/20 text-center space-y-6 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-linear-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                    <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mx-auto border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                      <ShieldCheck size={40} strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-3 relative z-10">
-                      <p className="text-xl font-black text-white uppercase tracking-tight italic">You are all set!</p>
-                      <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
-                        Your subscription has been cancelled. You will retain <span className="text-white font-bold italic">Elite Pro</span> access until <span className="text-white font-bold">{formattedDate}</span>. No further action is required.
-                      </p>
-                    </div>
+                <div className="flex min-h-20 items-center gap-3 px-5 sm:px-8">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-cyan-200">
+                    <Lock size={15} />
+                  </span>
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-600">
+                      Payment security
+                    </p>
+                    <p className="mt-1 flex items-center gap-2 text-xs font-black text-zinc-200">
+                      Secure billing
+                      <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.05] px-2 py-0.5 text-[7px] uppercase tracking-[0.13em] text-emerald-200">
+                        Verified
+                      </span>
+                    </p>
                   </div>
-                ) : !showConfirmCancel ? (
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setShowConfirmCancel(true)}
-                    className="w-full py-6 rounded-3xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-[0.25em] text-zinc-600 hover:text-red-500 hover:bg-red-500/5 transition-all flex items-center justify-center gap-3 group"
-                  >
-                    Cancel Membership
-                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </motion.button>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="p-10 rounded-[2.5rem] bg-red-500/[0.03] border border-red-500/20 space-y-8"
-                  >
-                    <div className="flex items-start gap-5">
-                      <div className="p-4 rounded-2xl bg-red-500/10 text-red-500 shadow-lg">
-                        <AlertTriangle size={24} />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-base font-black text-white uppercase tracking-tight leading-none">Confirm Cancellation</p>
-                        <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
-                          You will keep your Elite status until <span className="text-white font-bold">{formattedDate}</span>. After that, your generations limit will be reduced to 50.
+                </div>
+              </section>
+
+              <section className="px-5 py-5 sm:px-8 sm:py-6">
+                <AnimatePresence mode="wait">
+                  {isSuccess ? (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="flex items-start gap-3 rounded-xl border border-emerald-300/18 bg-emerald-300/[0.045] p-4"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-300/10 text-emerald-200">
+                        <Check size={16} strokeWidth={3} />
+                      </span>
+                      <div>
+                        <p className="text-xs font-black text-white">Cancellation confirmed</p>
+                        <p className="mt-1 text-[10px] font-medium leading-5 text-zinc-500">
+                          Your Pro access continues through {formattedDate}.
                         </p>
                       </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <button 
-                        onClick={() => setShowConfirmCancel(false)}
-                        className="flex-1 py-5 rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-95 transition-all shadow-2xl"
+                    </motion.div>
+                  ) : isCancelled ? (
+                    <motion.div
+                      key="cancelled"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-amber-300/15 bg-amber-300/[0.035] p-4"
+                    >
+                      <div>
+                        <p className="text-xs font-black text-zinc-200">No further action needed</p>
+                        <p className="mt-1 text-[9px] font-medium text-zinc-600">Your cancellation is already scheduled.</p>
+                      </div>
+                      <ShieldCheck size={19} className="shrink-0 text-amber-200" />
+                    </motion.div>
+                  ) : showConfirmCancel ? (
+                    <motion.div
+                      key="confirm"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="rounded-xl border border-red-300/18 bg-red-300/[0.035] p-4 sm:p-5">
+                        <div className="flex items-start gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-300/10 text-red-300">
+                            <AlertTriangle size={16} />
+                          </span>
+                          <div>
+                            <p className="text-xs font-black text-white">Cancel Lumora Pro?</p>
+                            <p className="mt-1.5 text-[10px] font-medium leading-5 text-zinc-500">
+                              You keep all Pro features until {formattedDate}. After that, daily credits return to 50.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmCancel(false)}
+                            className="min-h-11 rounded-xl border border-white/[0.1] bg-white text-[9px] font-black uppercase tracking-[0.16em] text-black transition-all hover:bg-zinc-100 active:scale-[0.99]"
+                          >
+                            Keep Pro
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancel}
+                            disabled={isCancelling}
+                            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-300/20 bg-red-300/[0.07] text-[9px] font-black uppercase tracking-[0.16em] text-red-200 transition-all hover:bg-red-400 hover:text-white disabled:cursor-wait disabled:opacity-60 active:scale-[0.99]"
+                          >
+                            {isCancelling ? <Loader2 size={14} className="animate-spin" /> : "Confirm cancellation"}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="actions"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col gap-3 sm:flex-row"
+                    >
+                      <Link
+                        href="/pro/benefits"
+                        onClick={closeModal}
+                        className="group flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.035] text-[9px] font-black uppercase tracking-[0.16em] text-zinc-300 transition-all hover:border-cyan-300/20 hover:bg-cyan-300/[0.045] hover:text-white"
                       >
-                        Keep Elite
-                      </button>
-                      <button 
-                        onClick={handleCancel}
-                        disabled={isCancelling}
-                        className="flex-1 py-5 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 text-[11px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                        View Pro benefits
+                        <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmCancel(true)}
+                        className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl text-[9px] font-black uppercase tracking-[0.16em] text-zinc-600 transition-colors hover:bg-red-300/[0.035] hover:text-red-300"
                       >
-                        {isCancelling ? <Loader2 size={16} className="animate-spin" /> : "Confirm"}
+                        Cancel membership
                       </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </section>
+
+              <div className="flex items-center justify-between border-t border-white/[0.07] bg-black/20 px-5 py-3.5 sm:px-8">
+                <span className="text-[8px] font-black uppercase tracking-[0.17em] text-zinc-700">
+                  Membership status
+                </span>
+                <span className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.17em] text-zinc-500">
+                  <RefreshCw size={10} />
+                  Synced with your account
+                </span>
+              </div>
             </div>
-          </motion.div>
+          </motion.section>
         </div>
       )}
     </AnimatePresence>

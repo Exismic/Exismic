@@ -5,32 +5,51 @@ import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Upload, 
   Download, 
-  Loader2, 
   X, 
-  ArrowRight,
   FileText,
   ScanText,
   CheckCircle2,
   AlertCircle,
   Zap,
-  Languages,
   Copy,
   ClipboardCheck,
   Search
 } from "lucide-react";
-import { PdfThumbnail } from "./pdf/PdfThumbnail";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import type { LoggerMessage, Worker } from "tesseract.js";
 
-declare const pdfjsLib: any;
-declare const Tesseract: any;
+interface OcrPdfViewport {
+  height: number;
+  width: number;
+}
+
+interface OcrPdfPage {
+  getViewport(options: { scale: number }): OcrPdfViewport;
+  render(options: {
+    canvasContext: CanvasRenderingContext2D;
+    viewport: OcrPdfViewport;
+  }): { promise: Promise<void> };
+}
+
+interface OcrPdfDocument {
+  numPages: number;
+  getPage(pageNumber: number): Promise<OcrPdfPage>;
+}
+
+interface OcrPdfJs {
+  getDocument(options: { data: ArrayBuffer }): {
+    promise: Promise<OcrPdfDocument>;
+  };
+}
+
+declare const pdfjsLib: OcrPdfJs;
 
 const OCR_STEPS = [
   { title: "Upload Source", desc: "Select a PDF document or image file containing text you want to extract." },
   { title: "Select Language", desc: "Choose the primary language for better recognition accuracy." },
-  { title: "Smart Scan", desc: "Our engine uses deep learning to identify characters and layout patterns." },
+  { title: "Recognize Text", desc: "Tesseract OCR identifies characters using your selected language model." },
   { title: "Copy & Export", desc: "Get your extracted text instantly ready for your clipboard." }
 ];
 
@@ -43,20 +62,25 @@ export default function OcrExtractor() {
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState("eng");
   const [isCopied, setIsCopied] = useState(false);
-  const [libsLoaded, setLibsLoaded] = useState({ pdf: false, ocr: false });
+  const [isPdfEngineLoaded, setIsPdfEngineLoaded] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const checkLibs = setInterval(() => {
-      const pdfLoaded = typeof pdfjsLib !== 'undefined';
-      const ocrLoaded = typeof Tesseract !== 'undefined';
-      if (pdfLoaded || ocrLoaded) {
-        setLibsLoaded({ pdf: pdfLoaded, ocr: ocrLoaded });
+      const pdfLoaded = typeof pdfjsLib !== "undefined";
+      if (pdfLoaded) {
+        setIsPdfEngineLoaded(true);
+        clearInterval(checkLibs);
       }
-      if (pdfLoaded && ocrLoaded) clearInterval(checkLibs);
     }, 100);
     return () => clearInterval(checkLibs);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles[0]) {
@@ -89,64 +113,91 @@ export default function OcrExtractor() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleDownload = () => {
+    const blob = new Blob([extractedText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${file?.name.replace(/\.[^/.]+$/, "") || "lumora-ocr"}-text.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+  };
+
   const runOCR = async () => {
-    if (!file || !libsLoaded.ocr) return;
+    if (!file) return;
     setIsProcessing(true);
     setProgress(0);
-    setStatus("Initializing AI Engine...");
+    setStatus("Loading OCR language data...");
     setError(null);
 
+    let worker: Worker | null = null;
     try {
-      let imagesToProcess: string[] = [];
+      const { createWorker } = await import("tesseract.js");
+      let currentPage = 0;
+      let totalPages = 1;
+      worker = await createWorker(language, 1, {
+        logger: (message: LoggerMessage) => {
+          if (message.status === "recognizing text") {
+            const overall =
+              ((currentPage + Math.max(0, Math.min(1, message.progress))) /
+                totalPages) *
+              100;
+            setProgress(Math.round(overall));
+            setStatus(
+              totalPages > 1
+                ? `Reading page ${currentPage + 1} of ${totalPages}`
+                : `Reading text ${Math.round(message.progress * 100)}%`,
+            );
+          }
+        },
+      });
+      let fullText = "";
 
       if (file.type === "application/pdf") {
-        if (!libsLoaded.pdf) throw new Error("PDF Engine not loaded");
+        if (!isPdfEngineLoaded) throw new Error("The PDF renderer is still loading. Try again in a moment.");
         setStatus("Rendering document layers...");
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        
-        const pages = Math.min(pdf.numPages, 1);
-        for (let i = 1; i <= pages; i++) {
-          setStatus(`Converting page ${i} to raster...`);
+        totalPages = pdf.numPages;
+        if (totalPages > 50) {
+          throw new Error("OCR supports up to 50 PDF pages per scan.");
+        }
+
+        for (let i = 1; i <= totalPages; i++) {
+          currentPage = i - 1;
+          setStatus(`Rendering page ${i} of ${totalPages}`);
           const page = await pdf.getPage(i);
           const viewport = page.getViewport({ scale: 2.0 });
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          await page.render({ canvasContext: context!, viewport }).promise;
-          imagesToProcess.push(canvas.toDataURL("image/png"));
+          if (!context) throw new Error("Could not initialize the page renderer.");
+          canvas.height = Math.ceil(viewport.height);
+          canvas.width = Math.ceil(viewport.width);
+          await page.render({ canvasContext: context, viewport }).promise;
+          const result = await worker.recognize(canvas);
+          fullText += `Page ${i}\n${result.data.text.trim()}\n\n`;
+          canvas.width = 1;
+          canvas.height = 1;
         }
       } else {
-        imagesToProcess.push(URL.createObjectURL(file));
+        const result = await worker.recognize(file);
+        fullText = result.data.text;
       }
 
-      setStatus("Loading language models...");
-      let fullText = "";
-
-      for (let i = 0; i < imagesToProcess.length; i++) {
-        const result = await Tesseract.recognize(
-          imagesToProcess[i],
-          language,
-          {
-            logger: (m: any) => {
-              if (m.status === "recognizing text") {
-                setProgress(Math.round(m.progress * 100));
-                setStatus(`Smart Scan: ${Math.round(m.progress * 100)}%`);
-              }
-            }
-          }
-        );
-        fullText += result.data.text + "\n\n";
+      const normalizedText = fullText.trim();
+      if (!normalizedText) {
+        throw new Error("No readable text was detected in this file.");
       }
-
-      setExtractedText(fullText.trim());
+      setExtractedText(normalizedText);
       setStatus("Success!");
       setProgress(100);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("OCR Error:", err);
-      setError("The engine failed to initialize. Please check your connection.");
+      setError(err instanceof Error ? err.message : "Text recognition failed.");
     } finally {
+      await worker?.terminate();
       setIsProcessing(false);
     }
   };
@@ -203,16 +254,25 @@ export default function OcrExtractor() {
                                </div>
                                <div>
                                   <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter pr-4 px-4 -mx-4">TEXT EXTRACTED.</h4>
-                                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">High-confidence recognition complete</p>
+                                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Recognition complete · Review important details before use</p>
                                </div>
                             </div>
-                            <button 
-                              onClick={handleCopy}
-                              className="flex items-center gap-4 px-10 py-6 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-2xl"
-                            >
-                               {isCopied ? <ClipboardCheck size={20} /> : <Copy size={20} />}
-                               {isCopied ? "Copied!" : "Copy Output"}
-                            </button>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                              <button
+                                onClick={handleDownload}
+                                className="flex min-h-12 items-center justify-center gap-3 rounded-lg border border-white/10 bg-white/[0.05] px-5 text-xs font-black uppercase tracking-widest text-white transition hover:bg-white/[0.09]"
+                              >
+                                <Download size={18} />
+                                Download TXT
+                              </button>
+                              <button
+                                onClick={handleCopy}
+                                className="flex min-h-12 items-center justify-center gap-3 rounded-lg bg-white px-6 text-xs font-black uppercase tracking-widest text-black shadow-2xl transition hover:bg-zinc-200"
+                              >
+                                {isCopied ? <ClipboardCheck size={18} /> : <Copy size={18} />}
+                                {isCopied ? "Copied!" : "Copy Output"}
+                              </button>
+                            </div>
                          </div>
 
                          <div className="relative group">
@@ -239,7 +299,7 @@ export default function OcrExtractor() {
                                  <div className="p-2 bg-accent-cyan/10 rounded-xl"><Search className="w-5 h-5 text-accent-cyan" /></div>
                                  Pattern Analysis
                               </h3>
-                              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-14">AI vision engine online</p>
+                              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-14">Local OCR workspace ready</p>
                            </div>
                            <button 
                              onClick={() => setFile(null)}
@@ -299,7 +359,7 @@ export default function OcrExtractor() {
                               <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent flex items-end p-10">
                                  <div className="flex items-center gap-3">
                                     <Zap size={16} className="text-accent-cyan animate-pulse" />
-                                    <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Ready for smart scan</span>
+                                    <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Ready to recognize text</span>
                                  </div>
                               </div>
                            </div>
@@ -326,7 +386,7 @@ export default function OcrExtractor() {
                                style={{ width: `${progress}%` }}
                              />
                           </div>
-                          <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.5em]">AI Text Engine Active</p>
+                          <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.4em]">OCR worker active</p>
                         </motion.div>
                      )}
                    </AnimatePresence>
@@ -343,7 +403,7 @@ export default function OcrExtractor() {
                onClick={runOCR}
                isLoading={isProcessing}
                disabled={!file}
-               label={!file ? "Select Document" : `Start Smart Scan`}
+               label={!file ? "Select Document" : "Recognize Text"}
                subLabel={!file ? "Upload a file to begin" : `${language.toUpperCase()} model active`}
                icon={ScanText}
              />
@@ -353,7 +413,7 @@ export default function OcrExtractor() {
              accentColor="text-accent-cyan"
              steps={OCR_STEPS}
              stats={file ? [
-               { label: "Engine", value: "AI Text Engine" },
+               { label: "Engine", value: "Tesseract OCR" },
                { label: "Language", value: language.toUpperCase() },
                { label: "Confidence", value: "Adaptive" }
              ] : []}

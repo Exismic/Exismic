@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Cropper from "react-easy-crop";
 import { cn } from "@/lib/utils";
@@ -51,6 +51,8 @@ import { AvatarWithFrame, PRO_FRAMES } from "@/components/ui/AvatarWithFrame";
 import { PremiumName, NAME_GRADIENTS } from "@/components/ui/PremiumName";
 import { ThemeSelectorModal, CUSTOM_THEMES } from "@/components/modals/ThemeSelectorModal";
 import { forgotPasswordAction } from "@/app/actions/auth";
+import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
+import { TrustedLoginSetup } from "@/components/auth/TrustedLoginSetup";
 
 async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -75,9 +77,66 @@ async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob> {
 }
 
 type TabType = 'profile' | 'security' | 'billing' | 'credits' | 'preferences';
+type PreferenceKey = 'autoRefreshHistory' | 'emailNotifications' | 'highFidelityPreview';
+
+const DEFAULT_USER_PREFERENCES: Record<PreferenceKey, boolean> = {
+  autoRefreshHistory: true,
+  emailNotifications: true,
+  highFidelityPreview: false,
+};
+
+const PREFERENCE_ITEMS: Array<{ key: PreferenceKey; label: string; desc: string; icon: typeof History }> = [
+  { key: 'autoRefreshHistory', label: "Auto-Refresh History", desc: "Keep recently processed files updated in real-time.", icon: History },
+  { key: 'emailNotifications', label: "Email Notifications", desc: "Receive updates about new AI tools and features.", icon: Bell },
+  { key: 'highFidelityPreview', label: "High Fidelity Preview", desc: "Show higher resolution previews when available.", icon: ImageIcon },
+];
+
+function AccountSettingsSkeleton() {
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-[#030303] px-4 py-10 text-white sm:px-6 lg:py-24">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-12">
+        <aside className="space-y-8 lg:col-span-3">
+          <div className="space-y-3">
+            <SkeletonLine className="h-8 w-40" />
+            <SkeletonLine className="w-48" />
+          </div>
+          <div className="flex gap-2 overflow-hidden lg:block lg:space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={index} className="h-12 w-36 shrink-0 rounded-2xl lg:w-full" />
+            ))}
+          </div>
+        </aside>
+        <main className="space-y-8 lg:col-span-9">
+          <section className="rounded-[2rem] border border-white/5 bg-white/[0.025] p-5 md:rounded-[3rem] md:p-12">
+            <div className="flex flex-col items-center gap-8 md:flex-row md:gap-12">
+              <Skeleton className="h-32 w-32 rounded-[2rem]" />
+              <div className="w-full flex-1 space-y-7">
+                <div className="space-y-3">
+                  <SkeletonLine className="h-8 w-64 max-w-[70vw]" />
+                  <SkeletonLine className="w-56 max-w-[60vw]" />
+                </div>
+                <div className="grid gap-4">
+                  <Skeleton className="h-14 rounded-2xl" />
+                  <Skeleton className="h-14 rounded-2xl" />
+                  <Skeleton className="h-12 w-40 rounded-2xl" />
+                </div>
+              </div>
+            </div>
+          </section>
+          <section className="grid gap-4 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-28 rounded-[1.75rem]" />
+            ))}
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
 
 export default function AccountSettings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [dbUser, setDbUser] = useState<any>(null);
   const [name, setName] = useState("");
@@ -90,6 +149,13 @@ export default function AccountSettings() {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (requestedTab && ["profile", "security", "billing", "credits", "preferences"].includes(requestedTab)) {
+      setActiveTab(requestedTab as TabType);
+    }
+  }, [searchParams]);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
@@ -111,6 +177,9 @@ export default function AccountSettings() {
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [preferences, setPreferences] = useState<Record<PreferenceKey, boolean>>(DEFAULT_USER_PREFERENCES);
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
+  const [savingPreference, setSavingPreference] = useState<PreferenceKey | null>(null);
 
   const displayAvatarUrl = dbUser?.custom_avatar_url || user?.user_metadata?.custom_avatar_url || user?.user_metadata?.avatar_url;
 
@@ -295,6 +364,78 @@ export default function AccountSettings() {
     loadData();
   }, [supabase, router]);
 
+  useEffect(() => {
+    async function loadPreferences() {
+      try {
+        const localPreferences = typeof window !== 'undefined'
+          ? window.localStorage.getItem('lumora:user-preferences')
+          : null;
+        if (localPreferences) {
+          setPreferences({ ...DEFAULT_USER_PREFERENCES, ...JSON.parse(localPreferences) });
+        }
+
+        const response = await fetch('/api/user/preferences', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not load preferences');
+        const nextPreferences = { ...DEFAULT_USER_PREFERENCES, ...data.preferences };
+        setPreferences(nextPreferences);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('lumora:user-preferences', JSON.stringify(nextPreferences));
+          window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: nextPreferences }));
+          document.documentElement.dataset.highFidelityPreview = nextPreferences.highFidelityPreview ? 'true' : 'false';
+        }
+      } catch (error) {
+        console.error('[Settings] Failed to load preferences:', error);
+      } finally {
+        setIsLoadingPreferences(false);
+      }
+    }
+
+    if (user) void loadPreferences();
+  }, [user]);
+
+  const handlePreferenceToggle = async (key: PreferenceKey) => {
+    const previous = preferences;
+    const nextPreferences = { ...preferences, [key]: !preferences[key] };
+    setPreferences(nextPreferences);
+    setSavingPreference(key);
+    setStatus(null);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('lumora:user-preferences', JSON.stringify(nextPreferences));
+      window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: nextPreferences }));
+      document.documentElement.dataset.highFidelityPreview = nextPreferences.highFidelityPreview ? 'true' : 'false';
+    }
+
+    try {
+      const response = await fetch('/api/user/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value: nextPreferences[key] }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save preference');
+      const savedPreferences = { ...DEFAULT_USER_PREFERENCES, ...data.preferences };
+      setPreferences(savedPreferences);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lumora:user-preferences', JSON.stringify(savedPreferences));
+        window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: savedPreferences }));
+        document.documentElement.dataset.highFidelityPreview = savedPreferences.highFidelityPreview ? 'true' : 'false';
+      }
+      setStatus({ type: 'success', message: 'Preferences updated.' });
+    } catch (error: any) {
+      setPreferences(previous);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lumora:user-preferences', JSON.stringify(previous));
+        window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: previous }));
+        document.documentElement.dataset.highFidelityPreview = previous.highFidelityPreview ? 'true' : 'false';
+      }
+      setStatus({ type: 'error', message: error.message || 'Failed to save preference.' });
+    } finally {
+      setSavingPreference(null);
+    }
+  };
+
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const reader = new FileReader();
@@ -388,7 +529,7 @@ export default function AccountSettings() {
     return Math.floor(diff / (1000 * 60 * 60));
   };
 
-  if (!isMounted || !user) return <div className="min-h-screen bg-[#030303]" />;
+  if (!isMounted || !user) return <AccountSettingsSkeleton />;
 
   const navigation = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -416,15 +557,15 @@ export default function AccountSettings() {
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="min-h-11 px-6 py-2.5 rounded-full glass-dark border border-white/5 text-zinc-500 font-black uppercase tracking-widest text-[9px] hover:text-red-500 hover:border-red-500/20 transition-all">Sign Out</button>
            </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
-          <div className="lg:col-span-3 space-y-8">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-10 2xl:gap-12">
+          <div className="space-y-6 xl:col-span-3 xl:space-y-8">
              <div className="space-y-2">
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Settings</h2>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Account Infrastructure</p>
              </div>
-             <nav className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
+             <nav className="flex gap-2 overflow-x-auto pb-2 xl:block xl:space-y-2 xl:overflow-visible xl:pb-0">
                 {navigation.map((item) => (
-                   <button key={item.id} onClick={() => setActiveTab(item.id as TabType)} className={cn("flex min-h-12 shrink-0 items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300 group lg:w-full lg:gap-4 lg:px-6 lg:py-4", activeTab === item.id ? "bg-white/[0.05] border border-white/10 text-white shadow-2xl" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02] border border-transparent")}>
+                   <button key={item.id} onClick={() => setActiveTab(item.id as TabType)} className={cn("group flex min-h-12 shrink-0 items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300 xl:w-full xl:gap-4 xl:px-6 xl:py-4", activeTab === item.id ? "bg-white/[0.05] border border-white/10 text-white shadow-2xl" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02] border border-transparent")}>
                      <item.icon size={18} className={cn("transition-all", activeTab === item.id ? "text-accent-purple" : "group-hover:scale-110")} />
                      <span className="font-black uppercase tracking-widest text-[10px]">{item.label}</span>
                      {activeTab === item.id && <motion.div layoutId="nav-glow" className="ml-auto w-1 h-1 rounded-full bg-accent-purple shadow-[0_0_10px_#7c3aed]" />}
@@ -432,15 +573,15 @@ export default function AccountSettings() {
                 ))}
              </nav>
           </div>
-          <div className="lg:col-span-9 space-y-8">
+          <div className="min-w-0 space-y-8 xl:col-span-9">
              <AnimatePresence>
                 {status && (
-                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={cn("p-5 rounded-2xl border flex items-center justify-between backdrop-blur-2xl mb-8", status.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
-                     <div className="flex items-center gap-4">
-                        {status.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                        <span className="text-[10px] font-black uppercase tracking-widest">{status.message}</span>
+                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={cn("mb-8 flex items-start justify-between gap-3 rounded-2xl border p-4 backdrop-blur-2xl sm:items-center sm:p-5", status.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
+                     <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                        {status.type === 'success' ? <CheckCircle2 size={18} className="shrink-0" /> : <AlertCircle size={18} className="shrink-0" />}
+                        <span className="break-words text-[10px] font-black uppercase leading-5 tracking-wider sm:tracking-widest">{status.message}</span>
                      </div>
-                     <button onClick={() => setStatus(null)}><X size={16} /></button>
+                     <button onClick={() => setStatus(null)} aria-label="Dismiss message" className="flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-xl hover:bg-white/5"><X size={16} /></button>
                    </motion.div>
                 )}
              </AnimatePresence>
@@ -740,7 +881,8 @@ export default function AccountSettings() {
                 )}
                 {activeTab === 'security' && (
                    <div className="space-y-8">
-                      <section className="glass-dark border border-white/5 rounded-[3rem] p-12 space-y-12 relative overflow-hidden">
+                      <TrustedLoginSetup />
+                      <section className="glass-dark relative space-y-8 overflow-hidden rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:space-y-12 lg:rounded-[3rem] lg:p-12">
                          <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[80px] pointer-events-none" /><div className="space-y-4"><h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Security Infrastructure</h3><p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Protect your creative assets and identity</p></div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-6"><div className="w-16 h-16 rounded-[1.5rem] bg-white/5 flex items-center justify-center text-white"><Lock size={32} /></div><div className="space-y-4"><h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Update Password</h4><p className="text-[11px] font-medium text-zinc-500 leading-relaxed uppercase tracking-tight">We will send a secure reset link to your registered email address.</p><button onClick={handleResetPassword} disabled={isResetting} className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[9px] hover:bg-white hover:text-black transition-all flex items-center gap-3">{isResetting ? <Loader2 size={14} className="animate-spin" /> : "Request Reset Link"}<ArrowRight size={14} /></button></div></div>
@@ -751,7 +893,7 @@ export default function AccountSettings() {
                 )}
                 {activeTab === 'billing' && (
                      <div className="space-y-8">
-                        <section className="glass-dark border border-white/5 rounded-[3rem] p-12 space-y-12 relative overflow-hidden">
+                        <section className="glass-dark relative space-y-8 overflow-hidden rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:space-y-12 lg:rounded-[3rem] lg:p-12">
                            <div className="absolute top-0 right-0 w-64 h-64 bg-accent-purple/5 blur-[80px] pointer-events-none" />
                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                              <div className="space-y-4">
@@ -768,10 +910,10 @@ export default function AccountSettings() {
                              </div>
                            </div>
 
-                           <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-10">
+                           <div className="space-y-7 rounded-[1.75rem] border border-white/5 bg-white/[0.02] p-5 sm:p-8 lg:space-y-10 lg:rounded-[2.5rem] lg:p-10">
                               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                                  <div className="flex items-center gap-6">
-                                    <div className="w-20 h-20 rounded-[2rem] bg-zinc-900 border border-white/5 flex items-center justify-center text-accent-purple shadow-2xl relative overflow-hidden group">
+                                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/5 bg-zinc-900 text-accent-purple shadow-2xl group sm:h-20 sm:w-20 sm:rounded-[2rem]">
                                       <div className="absolute inset-0 bg-accent-purple/5 group-hover:bg-accent-purple/10 transition-colors" />
                                       <Crown size={40} className={cn("relative z-10", isPro && "fill-accent-purple/20")} />
                                     </div>
@@ -814,7 +956,7 @@ export default function AccountSettings() {
                            </div>
 
                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              {[{ icon: Wallet, label: "Payment Method", value: "Razorpay" }, { icon: Calendar, label: "Cycle", value: "Monthly" }, { icon: Activity, label: "Status", value: isPro ? "Active" : "Standard" }].map((item, i) => (
+                              {[{ icon: Wallet, label: "Billing", value: "Secure checkout" }, { icon: Calendar, label: "Cycle", value: "Monthly" }, { icon: Activity, label: "Status", value: isPro ? "Active" : "Standard" }].map((item, i) => (
                                 <div key={i} className="p-6 rounded-[1.75rem] bg-white/[0.01] border border-white/5 flex items-center gap-4">
                                    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-600">
                                       <item.icon size={18} />
@@ -831,28 +973,80 @@ export default function AccountSettings() {
                   )}
                 {activeTab === 'preferences' && (
                     <div className="space-y-8">
-                       <section className="glass-dark border border-white/5 rounded-[3rem] p-12 space-y-12">
+                       <section className="glass-dark space-y-8 rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:space-y-12 lg:rounded-[3rem] lg:p-12">
                           <div className="space-y-4">
                              <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Preferences</h3>
                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Customize your Lumora experience</p>
                           </div>
                           <div className="space-y-6">
-                            {[{ label: "Auto-Refresh History", desc: "Keep recently processed files updated in real-time.", icon: History }, { label: "Email Notifications", desc: "Receive updates about new AI tools and features.", icon: Bell }, { label: "High Fidelity Preview", desc: "Show higher resolution previews (higher bandwidth).", icon: ImageIcon }].map((pref, i) => (
-                               <div key={i} className="flex items-center justify-between p-8 rounded-3xl bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all">
+                            {isLoadingPreferences ? (
+                              Array.from({ length: 3 }).map((_, index) => (
+                                <div key={index} className="flex flex-col gap-5 rounded-3xl border border-white/5 bg-white/[0.02] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
                                   <div className="flex items-center gap-4">
-                                     <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500 group-hover:text-white transition-colors">
+                                    <Skeleton className="h-12 w-12 rounded-2xl" />
+                                    <div className="space-y-3">
+                                      <SkeletonLine className="h-4 w-48 max-w-[55vw]" />
+                                      <SkeletonLine className="w-64 max-w-[65vw]" />
+                                      <SkeletonLine className="w-20" />
+                                    </div>
+                                  </div>
+                                  <Skeleton className="h-8 w-16 rounded-full" />
+                                </div>
+                              ))
+                            ) : PREFERENCE_ITEMS.map((pref) => {
+                              const enabled = preferences[pref.key];
+                              const isSavingThis = savingPreference === pref.key;
+                              return (
+                               <div key={pref.key} className={cn(
+                                 "flex flex-col gap-5 p-6 sm:p-8 rounded-3xl border transition-all sm:flex-row sm:items-center sm:justify-between",
+                                 enabled ? "bg-cyan-300/[0.035] border-cyan-300/15" : "bg-white/[0.02] border-white/5",
+                                 "group hover:bg-white/[0.04]"
+                               )}>
+                                  <div className="flex items-center gap-4">
+                                     <div className={cn(
+                                       "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                                       enabled ? "bg-cyan-300/10 text-cyan-200 border border-cyan-300/15" : "bg-white/5 text-zinc-500 group-hover:text-white"
+                                     )}>
                                         <pref.icon size={22} />
                                      </div>
                                      <div className="space-y-1">
                                         <h4 className="text-[11px] font-black uppercase tracking-widest text-white">{pref.label}</h4>
                                         <p className="text-[9px] font-medium text-zinc-600 uppercase tracking-tight">{pref.desc}</p>
+                                        <p className={cn(
+                                          "text-[8px] font-black uppercase tracking-[0.2em]",
+                                          enabled ? "text-cyan-200/80" : "text-zinc-700"
+                                        )}>
+                                          {isSavingThis ? "Saving..." : enabled ? "Enabled" : "Disabled"}
+                                        </p>
                                      </div>
                                   </div>
-                                  <div className="w-12 h-6 rounded-full bg-zinc-800 relative cursor-pointer">
-                                     <div className="absolute top-1 left-1 w-4 h-4 rounded-full bg-zinc-600" />
-                                  </div>
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={enabled}
+                                    disabled={isLoadingPreferences || Boolean(savingPreference)}
+                                    onClick={() => void handlePreferenceToggle(pref.key)}
+                                    className={cn(
+                                      "relative h-8 w-16 shrink-0 rounded-full border p-1 transition-all duration-300 disabled:cursor-wait disabled:opacity-60",
+                                      enabled
+                                        ? "border-cyan-300/30 bg-linear-to-r from-accent-purple to-accent-cyan shadow-[0_0_22px_rgba(34,211,238,0.18)]"
+                                        : "border-white/5 bg-zinc-800"
+                                    )}
+                                  >
+                                    <span className={cn(
+                                      "absolute inset-0 rounded-full bg-white/10 opacity-0 transition-opacity",
+                                      enabled && "opacity-100"
+                                    )} />
+                                    <span className={cn(
+                                      "relative block h-6 w-6 rounded-full bg-white shadow-lg transition-transform duration-300",
+                                      enabled ? "translate-x-8" : "translate-x-0 bg-zinc-500"
+                                    )}>
+                                      {isSavingThis && <span className="absolute inset-1 animate-spin rounded-full border border-zinc-400 border-t-transparent" />}
+                                    </span>
+                                  </button>
                                </div>
-                            ))}
+                              );
+                            })}
                           </div>
                        </section>
                     </div>
@@ -869,7 +1063,7 @@ export default function AccountSettings() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
           >
             <div className="relative w-full max-w-4xl max-h-[calc(100dvh-2rem)] h-[85dvh] flex flex-col bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl">
                {/* Ambient Glows */}
@@ -995,7 +1189,7 @@ export default function AccountSettings() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
           >
             <div className="relative w-full max-w-4xl max-h-[calc(100dvh-2rem)] h-[85dvh] flex flex-col bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl">
                {/* Ambient Glows */}
@@ -1105,7 +1299,7 @@ export default function AccountSettings() {
 
       <AnimatePresence>
         {imageToCrop && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10">
             <div className="relative w-full max-w-2xl max-h-[calc(100dvh-2rem)] h-[80dvh] flex flex-col items-center justify-center bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl">
                <div className="absolute top-0 inset-x-0 p-8 flex items-center justify-between z-10 bg-linear-to-b from-black to-transparent"><div className="flex items-center gap-4"><div className="p-3 rounded-2xl bg-accent-purple/20 text-accent-purple"><CropIcon size={24} /></div><div><h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Perfect Your Look</h2><p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Crop and align your digital identity</p></div></div><button onClick={() => setImageToCrop(null)} className="p-4 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors"><X size={24} /></button></div>
                <div className="relative w-full flex-1 mt-10"><Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} cropShape="round" showGrid={false} style={{ containerStyle: { background: 'transparent' }, cropAreaStyle: { border: '2px solid rgba(168, 85, 247, 0.5)' } }} /></div>

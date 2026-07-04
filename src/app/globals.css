@@ -101,9 +101,14 @@
     max-width: 100%;
     overflow-x: hidden;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     background-color: var(--background);
     color: var(--foreground);
+    overscroll-behavior-x: none;
     @apply antialiased;
   }
   img,
@@ -111,6 +116,10 @@
   canvas,
   svg {
     max-width: 100%;
+  }
+  img,
+  video {
+    height: auto;
   }
   input,
   textarea,
@@ -448,8 +457,11 @@ html.code-studio-active [class*="Footer_"] {
     gap: 1.5rem !important;
   }
 
-  [class*="rounded-[4"],
-  [class*="rounded-[3"] {
+  [class*="rounded-[5rem]"],
+  [class*="rounded-[4.5rem]"],
+  [class*="rounded-[4rem]"],
+  [class*="rounded-[3.5rem]"],
+  [class*="rounded-[3rem]"] {
     border-radius: 1.5rem !important;
   }
 
@@ -494,13 +506,17 @@ html.code-studio-active [class*="Footer_"] {
     touch-action: manipulation;
   }
 
-  button,
-  [role="button"],
-  a[href][class*="rounded"],
-  input,
+  input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
   select,
   textarea {
     min-height: 44px;
+  }
+
+  input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+  select,
+  textarea {
+    /* Prevent iOS form focus zoom without inflating compact button labels. */
+    font-size: 16px;
   }
 
   [class*="gap-10"],
@@ -525,8 +541,28 @@ html.code-studio-active [class*="Footer_"] {
     -webkit-tap-highlight-color: transparent;
   }
 
+  pre,
+  code,
+  table {
+    max-width: 100%;
+  }
+
+  pre {
+    overflow-x: auto;
+  }
+
+  .mobile-safe-area {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
   .glass-dark {
     backdrop-filter: blur(18px);
+  }
+
+  img,
+  video,
+  canvas {
+    max-width: 100%;
   }
 }
 
@@ -734,4 +770,88 @@ html.theme-cosmic-nebula body::before {
     radial-gradient(circle at 70% 18%, rgba(255,255,255,0.65) 0 1px, transparent 2px),
     radial-gradient(circle at 82% 72%, rgba(255,255,255,0.6) 0 1px, transparent 2px),
     radial-gradient(circle at 36% 82%, rgba(255,255,255,0.65) 0 1px, transparent 2px);
+}
+@property --lumora-neon-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes lumora-neon-trace {
+  to {
+    --lumora-neon-angle: 360deg;
+  }
+}
+
+.lumora-neon-outline {
+  padding: 2px;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  background: conic-gradient(
+    from var(--lumora-neon-angle),
+    transparent 0deg 205deg,
+    #7c3aed 235deg,
+    #d946ef 262deg,
+    #22d3ee 300deg,
+    #60a5fa 326deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.lumora-neon-outline--animated {
+  animation: lumora-neon-trace 2.4s linear infinite;
+}
+
+.lumora-neon-outline--static {
+  --lumora-neon-angle: 280deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lumora-neon-outline--animated {
+    animation: none;
+    --lumora-neon-angle: 280deg;
+  }
+}
+
+@keyframes lumora-gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+:where(
+  .gradient-text,
+  .animated-gradient-text,
+  .elite-gradient-text,
+  .cyber-gradient-text,
+  .pro-gradient-text,
+  .animate-gradient-x,
+  [class*="bg-clip-text"][class*="text-transparent"]
+) {
+  background-size: 260% 100% !important;
+  animation: lumora-gradient-drift 12s cubic-bezier(0.45, 0, 0.55, 1) infinite !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    .gradient-text,
+    .animated-gradient-text,
+    .elite-gradient-text,
+    .cyber-gradient-text,
+    .pro-gradient-text,
+    .animate-gradient-x,
+    [class*="bg-clip-text"][class*="text-transparent"]
+  ) {
+    animation: none !important;
+    background-position: 50% 50% !important;
+  }
 }

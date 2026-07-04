@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { readVideoResponse } from "@/lib/video-client";
 import { 
-  Upload, 
   Download, 
   Loader2, 
   Plus, 
@@ -33,15 +33,29 @@ interface Clip {
 export default function VideoMerger() {
   const [clips, setClips] = useState<Clip[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("lumora-merged-video.mp4");
   const [error, setError] = useState<string | null>(null);
   const [activePreview, setActivePreview] = useState<string | null>(null);
+  const clipsRef = useRef<Clip[]>([]);
+
+  useEffect(() => {
+    clipsRef.current = clips;
+  }, [clips]);
+
+  useEffect(() => () => {
+    clipsRef.current.forEach((clip) => URL.revokeObjectURL(clip.preview));
+  }, []);
+
+  useEffect(() => () => {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newClips = acceptedFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
+    const availableSlots = Math.max(0, 8 - clipsRef.current.length);
+    const newClips = acceptedFiles.slice(0, availableSlots).map(file => ({
+      id: crypto.randomUUID(),
       file,
       preview: URL.createObjectURL(file),
       duration: 0
@@ -58,7 +72,11 @@ export default function VideoMerger() {
   });
 
   const removeClip = (id: string) => {
-    setClips(prev => prev.filter(c => c.id !== id));
+    setClips(prev => {
+      const removed = prev.find((clip) => clip.id === id);
+      if (removed) URL.revokeObjectURL(removed.preview);
+      return prev.filter(c => c.id !== id);
+    });
     setResultUrl(null);
   };
 
@@ -73,8 +91,7 @@ export default function VideoMerger() {
   const handleMerge = async () => {
     if (clips.length < 2) return;
     setIsProcessing(true);
-    setProgress(5);
-    setStatus("Preparing clips...");
+    setStatus("Normalizing and joining clips...");
     setError(null);
 
     const formData = new FormData();
@@ -83,24 +100,17 @@ export default function VideoMerger() {
     });
 
     try {
-      setStatus("Uploading to Studio...");
       const response = await fetch("/api/tools/video/merger", {
         method: "POST",
-        body: formData, // No headers! Browser will set multipart boundary correctly
+        body: formData,
       });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Merge failed. Try using smaller video clips.");
-      }
-
-      const result = await response.json();
-      setResultUrl(result.file_data_base64);
-      setProgress(100);
-      setStatus("Merge Complete!");
-    } catch (err: any) {
+      const artifact = await readVideoResponse(response, "lumora-merged-video.mp4");
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+      setStatus("Merge complete");
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to merge videos");
+      setError(err instanceof Error ? err.message : "Failed to merge videos");
       setStatus("Error");
     } finally {
       setIsProcessing(false);
@@ -111,7 +121,7 @@ export default function VideoMerger() {
   const totalSize = clips.reduce((acc, curr) => acc + curr.file.size, 0);
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-12 pb-24">
+    <div className="mx-auto w-full max-w-7xl space-y-7 p-3 pb-24 sm:p-4 md:space-y-12 md:p-8">
       {/* Clip Preview Modal */}
       <AnimatePresence>
         {activePreview && (
@@ -119,14 +129,15 @@ export default function VideoMerger() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-8"
+            className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 p-3 backdrop-blur-2xl sm:p-8"
             onClick={() => setActivePreview(null)}
           >
-             <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
+             <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-xl border border-white/10 bg-black shadow-2xl sm:rounded-3xl" onClick={e => e.stopPropagation()}>
                 <video src={activePreview} controls autoPlay className="w-full h-full object-contain" />
                 <button 
                   onClick={() => setActivePreview(null)}
-                  className="absolute top-6 right-6 p-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+                  aria-label="Close video preview"
+                  className="absolute right-3 top-3 flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-black/60 text-white transition-all hover:bg-black/80 sm:right-6 sm:top-6"
                 >
                    <X className="w-6 h-6" />
                 </button>
@@ -142,13 +153,13 @@ export default function VideoMerger() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "h-[500px] rounded-[4rem] border-2 border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.03] transition-all group overflow-hidden relative",
+              "group relative flex min-h-[360px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[2rem] border-2 border-dashed border-white/10 bg-white/[0.01] px-5 text-center transition-all hover:bg-white/[0.03] sm:h-[500px] sm:rounded-[4rem]",
               isDragActive && "border-purple-500 bg-purple-500/5"
             )}
           >
             <input {...getInputProps()} />
-            <div className="p-10 rounded-full bg-white/5 mb-8 border border-white/5">
-              <Film className="w-16 h-16 text-gray-500 group-hover:text-purple-400 transition-colors" />
+            <div className="mb-6 rounded-full border border-white/5 bg-white/5 p-6 sm:mb-8 sm:p-10">
+              <Film className="h-11 w-11 text-gray-500 transition-colors group-hover:text-purple-400 sm:h-16 sm:w-16" />
             </div>
             <h3 className="text-3xl font-black text-white tracking-tightest text-center">Video Merger Studio</h3>
             <p className="text-gray-500 text-lg mt-4 max-w-md text-center font-medium uppercase tracking-[0.2em] text-[10px]">Concatenate multiple clips with seamless transitions</p>
@@ -157,7 +168,7 @@ export default function VideoMerger() {
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
             {/* Storyboard Area */}
             <div className="xl:col-span-8 space-y-8">
-              <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-8 md:p-12 backdrop-blur-xl shadow-2xl relative min-h-[500px]">
+              <div className="relative min-h-[500px] rounded-[2rem] border border-white/10 bg-white/[0.03] p-4 shadow-2xl backdrop-blur-xl sm:p-8 md:rounded-[3rem] md:p-12">
                 {resultUrl ? (
                    <div className="space-y-10 py-10 flex flex-col items-center">
                       <div className="relative aspect-video rounded-[2.5rem] overflow-hidden bg-black border border-white/5 w-full max-w-2xl shadow-2xl">
@@ -165,13 +176,13 @@ export default function VideoMerger() {
                       </div>
                       <div className="text-center space-y-4">
                          <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter">Production Ready</h4>
-                         <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Successfully merged {clips.length} clips into 1080p Master</p>
+                         <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Successfully normalized and joined {clips.length} clips</p>
                       </div>
                    </div>
                 ) : (
                   <div className="space-y-8">
-                    <div className="flex items-center justify-between mb-8">
-                       <h3 className="text-2xl font-black uppercase tracking-tight italic flex items-center gap-3">
+                    <div className="mb-6 flex flex-col gap-3 min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between sm:mb-8">
+                       <h3 className="flex items-center gap-3 text-xl font-black uppercase italic tracking-tight sm:text-2xl">
                           <Layout className="w-6 h-6 text-purple-400" />
                           Storyboard
                        </h3>
@@ -192,7 +203,7 @@ export default function VideoMerger() {
                           layout
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="flex items-center gap-6 p-6 bg-white/[0.02] border border-white/5 rounded-3xl group hover:bg-white/[0.04] transition-all relative overflow-hidden"
+                          className="group relative flex flex-wrap items-center gap-3 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-3 transition-all hover:bg-white/[0.04] sm:flex-nowrap sm:gap-6 sm:rounded-3xl sm:p-6"
                         >
                           <div className="flex flex-col gap-1 z-10">
                              <button onClick={() => moveClip(index, 'up')} disabled={index === 0} className="p-1 text-gray-600 hover:text-white disabled:opacity-0 transition-colors"><ChevronUp className="w-4 h-4" /></button>
@@ -200,7 +211,7 @@ export default function VideoMerger() {
                           </div>
 
                           <div 
-                            className="w-36 aspect-video rounded-xl overflow-hidden bg-black border border-white/10 shrink-0 relative cursor-pointer group/clip"
+                            className="group/clip relative aspect-video w-24 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-black sm:w-36"
                             onClick={() => setActivePreview(clip.preview)}
                           >
                              <video 
@@ -229,7 +240,8 @@ export default function VideoMerger() {
 
                           <button 
                             onClick={() => removeClip(clip.id)}
-                            className="p-3 bg-red-500/10 text-red-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20"
+                            aria-label={`Remove ${clip.file.name}`}
+                            className="ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-red-500/10 text-red-500 opacity-100 transition-opacity hover:bg-red-500/20 sm:rounded-2xl sm:opacity-0 sm:group-hover:opacity-100"
                           >
                              <X className="w-5 h-5" />
                           </button>
@@ -267,7 +279,7 @@ export default function VideoMerger() {
 
             {/* Sidebar Controls */}
             <div className="xl:col-span-4 space-y-8">
-              <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-10 backdrop-blur-xl">
+              <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-8 md:rounded-[3.5rem] md:p-10">
                  <div className="flex items-center justify-between mb-10">
                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Mastering</h3>
                    <CheckCircle2 className="w-6 h-6 text-purple-400" />
@@ -308,14 +320,19 @@ export default function VideoMerger() {
                       <div className="space-y-6">
                         <a
                           href={resultUrl}
-                          download="merged_production.mp4"
+                          download={resultFileName}
                           className="w-full flex items-center justify-center gap-4 py-7 bg-purple-600 text-white font-black rounded-[2.5rem] hover:bg-purple-500 transition-all shadow-2xl shadow-purple-600/20 uppercase tracking-widest"
                         >
                           <Download className="w-6 h-6" />
                           Download Master
                         </a>
                         <button
-                          onClick={() => { setClips([]); setResultUrl(null); }}
+                          onClick={() => {
+                            clips.forEach((clip) => URL.revokeObjectURL(clip.preview));
+                            setClips([]);
+                            setResultUrl(null);
+                            setResultFileName("lumora-merged-video.mp4");
+                          }}
                           className="w-full py-4 text-zinc-600 font-black text-[11px] uppercase tracking-[0.4em] hover:text-white transition-colors"
                         >
                           New Production

@@ -4,10 +4,16 @@ import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { createNotification } from '@/lib/notifications';
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret',
-});
+function getRazorpayClient() {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!key_id || !key_secret) {
+    throw new Error('Payment provider is not configured.');
+  }
+
+  return new Razorpay({ key_id, key_secret });
+}
 
 function fallbackExpiryDate() {
   const expiryDate = new Date();
@@ -69,6 +75,7 @@ export async function POST() {
 
     if (dbUser.subscriptionId?.startsWith('sub_')) {
       try {
+        const razorpay = getRazorpayClient();
         const subscription = await razorpay.subscriptions.cancel(dbUser.subscriptionId, false);
         expiryDate = resolveRazorpayExpiry(subscription);
         razorpayCancelled = true;

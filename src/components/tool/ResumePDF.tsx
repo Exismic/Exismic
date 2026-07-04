@@ -1,240 +1,422 @@
-import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import React from "react";
+import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import type { ResumeData, ResumeTemplateId } from "@/lib/resume";
 
-// Register fonts for professional look
 Font.register({
-  family: 'Inter',
+  family: "Inter",
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGkyAZ9hiA.woff2', fontWeight: 700 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2', fontWeight: 900 },
+    { src: "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2", fontWeight: 400 },
+    { src: "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGkyAZ9hiA.woff2", fontWeight: 700 },
+    { src: "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2", fontWeight: 900 },
   ],
 });
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
-    backgroundColor: '#ffffff',
-    fontFamily: 'Inter',
+    padding: 38,
+    backgroundColor: "#ffffff",
+    fontFamily: "Inter",
+    color: "#111827",
   },
-  header: {
-    marginBottom: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: '#f3f4f6',
-    paddingBottom: 20,
+  pageExecutive: {
+    backgroundColor: "#fbfaf7",
   },
-  name: {
-    fontSize: 28,
-    fontWeight: 900,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: '#000000',
-    marginBottom: 5,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    gap: 15,
-    marginTop: 5,
-  },
-  contactItem: {
-    fontSize: 9,
-    color: '#6b7280',
-  },
-  section: {
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: 900,
-    textTransform: 'uppercase',
-    letterSpacing: 3,
-    color: '#000000',
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    paddingBottom: 5,
-  },
-  summary: {
-    fontSize: 10,
-    lineHeight: 1.6,
-    color: '#374151',
-  },
-  entry: {
-    marginBottom: 15,
-  },
-  entryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  entryTitle: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: '#111827',
-  },
-  entrySubtitle: {
-    fontSize: 10,
-    color: '#4b5563',
-    marginBottom: 4,
-  },
-  entryDate: {
-    fontSize: 9,
-    color: '#9ca3af',
-  },
-  entryDescription: {
-    fontSize: 9,
-    lineHeight: 1.5,
-    color: '#4b5563',
-  },
-  bulletPoint: {
-    flexDirection: 'row',
-    marginBottom: 2,
-    paddingLeft: 10,
-  },
-  bullet: {
-    width: 10,
-    fontSize: 9,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: 9,
-    lineHeight: 1.5,
-    color: '#4b5563',
-  },
-  skillsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  skillBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 4,
-    fontSize: 8,
-    fontWeight: 700,
-    color: '#374151',
-    textTransform: 'uppercase',
+  pageCreative: {
+    backgroundColor: "#fffafb",
   },
   accentBar: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 4,
-  }
+    height: 5,
+  },
+  header: {
+    marginBottom: 18,
+    borderBottomWidth: 1.5,
+    borderBottomColor: "#eef2f7",
+    paddingBottom: 18,
+  },
+  modernHeader: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 18,
+    padding: 22,
+    marginBottom: 18,
+  },
+  executiveHeader: {
+    backgroundColor: "#10131a",
+    borderRadius: 18,
+    padding: 24,
+    marginBottom: 18,
+  },
+  creativeHeader: {
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 18,
+  },
+  classicHeader: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#111827",
+    paddingBottom: 16,
+    marginBottom: 18,
+    alignItems: "center",
+  },
+  headerTopline: {
+    fontSize: 7,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 3,
+    marginBottom: 8,
+  },
+  name: {
+    fontSize: 27,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 1.8,
+    marginBottom: 7,
+  },
+  headerNameLarge: {
+    fontSize: 31,
+    lineHeight: 1.05,
+  },
+  nameLight: {
+    color: "#ffffff",
+  },
+  roleLabel: {
+    fontSize: 8,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 2.2,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  monogram: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  monogramInline: {
+    marginBottom: 0,
+    marginRight: 16,
+  },
+  avatarImage: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    marginBottom: 12,
+    objectFit: "cover",
+  },
+  avatarImageInline: {
+    marginBottom: 0,
+    marginRight: 16,
+  },
+  avatarClassic: {
+    borderRadius: 21,
+    alignSelf: "center",
+  },
+  monogramText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: 900,
+  },
+  contactRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  contactItem: {
+    fontSize: 8.5,
+    color: "#64748b",
+  },
+  contactLight: {
+    color: "#e5e7eb",
+  },
+  section: {
+    marginTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 9.5,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 2.4,
+    marginBottom: 8,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  sectionTitleClassic: {
+    borderBottomColor: "#d4d4d8",
+    color: "#111827",
+  },
+  sectionTitleExecutive: {
+    color: "#9a762d",
+  },
+  summary: {
+    fontSize: 9.5,
+    lineHeight: 1.55,
+    color: "#334155",
+  },
+  entry: {
+    marginBottom: 12,
+  },
+  entryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 2,
+  },
+  entryTitle: {
+    flex: 1,
+    fontSize: 10.5,
+    fontWeight: 800,
+    color: "#111827",
+  },
+  entrySubtitle: {
+    fontSize: 9.2,
+    color: "#475569",
+    marginBottom: 4,
+  },
+  entryDate: {
+    fontSize: 8.2,
+    color: "#94a3b8",
+  },
+  bulletPoint: {
+    flexDirection: "row",
+    marginBottom: 2.5,
+    paddingLeft: 4,
+  },
+  bullet: {
+    width: 10,
+    fontSize: 8.8,
+    color: "#64748b",
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 8.8,
+    lineHeight: 1.48,
+    color: "#475569",
+  },
+  skillsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 5,
+  },
+  skillBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 4,
+    fontSize: 7.5,
+    fontWeight: 800,
+    color: "#334155",
+    textTransform: "uppercase",
+  },
+  skillBadgeExecutive: {
+    backgroundColor: "#10131a",
+    color: "#ffffff",
+    borderRadius: 12,
+  },
+  skillBadgeCreative: {
+    color: "#ffffff",
+    borderRadius: 12,
+  },
 });
 
 interface ResumePDFProps {
-  data: any;
+  data: ResumeData;
   accentColor: string;
+  template: ResumeTemplateId;
 }
 
-const ResumePDF = ({ data, accentColor }: ResumePDFProps) => {
-  const formatBullets = (text: string) => {
-    if (!text) return null;
-    return text.split('\n').map((line, i) => {
-      const cleanLine = line.replace(/^\*|\-|\d+\./, '').trim();
-      if (!cleanLine) return null;
-      return (
-        <View key={i} style={styles.bulletPoint}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.bulletText}>{cleanLine}</Text>
-        </View>
-      );
-    });
-  };
+function formatBullets(text: string) {
+  if (!text) return null;
+
+  return text.split("\n").map((line, index) => {
+    const cleanLine = line.replace(/^\s*(?:[-*]|\d+\.)\s*/, "").trim();
+    if (!cleanLine) return null;
+
+    return (
+      <View key={`${cleanLine}-${index}`} style={styles.bulletPoint}>
+        <Text style={styles.bullet}>{"-"}</Text>
+        <Text style={styles.bulletText}>{cleanLine}</Text>
+      </View>
+    );
+  });
+}
+
+export default function ResumePDF({ data, accentColor, template }: ResumePDFProps) {
+  const title = data.personalInfo.fullName || "Resume";
+  const isClassic = template === "classic";
+  const isExecutive = template === "executive";
+  const isCreative = template === "creative";
+  const role = data.experience[0]?.role || "Professional Resume";
+  const profileImage = data.personalInfo.profileImage;
+  const initials = title
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const pageStyle = [
+    styles.page,
+    ...(isExecutive ? [styles.pageExecutive] : []),
+    ...(isCreative ? [styles.pageCreative] : []),
+  ];
+  const sectionTitleStyle = [
+    styles.sectionTitle,
+    ...(isClassic ? [styles.sectionTitleClassic] : []),
+    ...(isExecutive ? [styles.sectionTitleExecutive] : []),
+    ...(!isClassic && !isExecutive ? [{ color: accentColor }] : []),
+  ];
+  const skillStyle = [
+    styles.skillBadge,
+    ...(isExecutive ? [styles.skillBadgeExecutive] : []),
+    ...(isCreative ? [styles.skillBadgeCreative, { backgroundColor: accentColor }] : []),
+  ];
 
   return (
-    <Document title={`${data.personalInfo.fullName || 'Resume'} - Toolverse`}>
-      <Page size="A4" style={styles.page}>
-        {/* Accent Top Bar */}
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+    <Document title={`${title} - Lumora Resume`}>
+      <Page size="A4" style={pageStyle}>
+        <View style={[styles.accentBar, { backgroundColor: isClassic ? "#111827" : accentColor }]} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
-          <View style={styles.contactRow}>
-            {data.personalInfo.email && <Text style={styles.contactItem}>{data.personalInfo.email}</Text>}
-            {data.personalInfo.phone && <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>}
-            {data.personalInfo.location && <Text style={styles.contactItem}>{data.personalInfo.location}</Text>}
+        {isExecutive ? (
+          <View style={styles.executiveHeader}>
+            <Text style={[styles.headerTopline, { color: "#d7b56d" }]}>Executive Profile</Text>
+            <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+              {profileImage ? (
+                <Image src={profileImage} style={[styles.avatarImage, styles.avatarImageInline]} alt="Profile" />
+              ) : (
+                <View style={[styles.monogram, styles.monogramInline, { backgroundColor: "#d7b56d" }]}>
+                  <Text style={styles.monogramText}>{initials || "CV"}</Text>
+                </View>
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.name, styles.headerNameLarge, styles.nameLight]}>{title}</Text>
+                <Text style={[styles.roleLabel, { color: "#d7b56d" }]}>{role}</Text>
+              </View>
+            </View>
+            <View style={styles.contactRow}>
+              {data.personalInfo.email && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.email}</Text>}
+              {data.personalInfo.phone && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.phone}</Text>}
+              {data.personalInfo.location && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.location}</Text>}
+              {data.personalInfo.website && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.website}</Text>}
+            </View>
           </View>
-        </View>
+        ) : isCreative ? (
+          <View style={[styles.creativeHeader, { backgroundColor: accentColor }]}>
+            {profileImage ? (
+              <Image src={profileImage} style={styles.avatarImage} alt="Profile" />
+            ) : (
+              <View style={[styles.monogram, { backgroundColor: "rgba(255,255,255,0.18)" }]}>
+                <Text style={styles.monogramText}>{initials || "CV"}</Text>
+              </View>
+            )}
+            <Text style={[styles.headerTopline, { color: "#ffffff" }]}>Portfolio Resume</Text>
+            <Text style={[styles.name, styles.headerNameLarge, styles.nameLight]}>{title}</Text>
+            <Text style={[styles.roleLabel, { color: "#ffffff" }]}>{role}</Text>
+            <View style={styles.contactRow}>
+              {data.personalInfo.email && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.email}</Text>}
+              {data.personalInfo.phone && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.phone}</Text>}
+              {data.personalInfo.location && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.location}</Text>}
+              {data.personalInfo.website && <Text style={[styles.contactItem, styles.contactLight]}>{data.personalInfo.website}</Text>}
+            </View>
+          </View>
+        ) : isClassic ? (
+          <View style={styles.classicHeader}>
+            {profileImage && <Image src={profileImage} style={[styles.avatarImage, styles.avatarClassic]} alt="Profile" />}
+            <Text style={[styles.name, { color: "#111827" }]}>{title}</Text>
+            <Text style={[styles.roleLabel, { color: "#52525b" }]}>{role}</Text>
+            <View style={styles.contactRow}>
+              {data.personalInfo.email && <Text style={styles.contactItem}>{data.personalInfo.email}</Text>}
+              {data.personalInfo.phone && <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>}
+              {data.personalInfo.location && <Text style={styles.contactItem}>{data.personalInfo.location}</Text>}
+              {data.personalInfo.website && <Text style={styles.contactItem}>{data.personalInfo.website}</Text>}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.modernHeader}>
+            {profileImage ? (
+              <Image src={profileImage} style={styles.avatarImage} alt="Profile" />
+            ) : (
+              <View style={[styles.monogram, { backgroundColor: accentColor }]}>
+                <Text style={styles.monogramText}>{initials || "CV"}</Text>
+              </View>
+            )}
+            <Text style={[styles.headerTopline, { color: "#94a3b8" }]}>Professional Resume</Text>
+            <Text style={[styles.name, styles.headerNameLarge, { color: accentColor }]}>{title}</Text>
+            <Text style={[styles.roleLabel, { color: "#64748b" }]}>{role}</Text>
+            <View style={styles.contactRow}>
+              {data.personalInfo.email && <Text style={styles.contactItem}>{data.personalInfo.email}</Text>}
+              {data.personalInfo.phone && <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>}
+              {data.personalInfo.location && <Text style={styles.contactItem}>{data.personalInfo.location}</Text>}
+              {data.personalInfo.website && <Text style={styles.contactItem}>{data.personalInfo.website}</Text>}
+            </View>
+          </View>
+        )}
 
-        {/* Summary */}
         {data.personalInfo.summary && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: accentColor }]}>Professional Profile</Text>
+            <Text style={sectionTitleStyle}>Professional Profile</Text>
             <Text style={styles.summary}>{data.personalInfo.summary}</Text>
           </View>
         )}
 
-        {/* Experience */}
         {data.experience.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: accentColor }]}>Experience</Text>
-            {data.experience.map((exp: any) => (
+            <Text style={sectionTitleStyle}>Experience</Text>
+            {data.experience.map((exp) => (
               <View key={exp.id} style={styles.entry}>
                 <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle}>{exp.company}</Text>
+                  <Text style={styles.entryTitle}>{exp.company || "Company"}</Text>
                   <Text style={styles.entryDate}>{exp.period}</Text>
                 </View>
-                <Text style={styles.entrySubtitle}>{exp.role}</Text>
-                {exp.description && (
-                  <View style={{ marginTop: 4 }}>
-                    {formatBullets(exp.description)}
-                  </View>
-                )}
+                <Text style={styles.entrySubtitle}>{exp.role || "Role"}</Text>
+                {exp.description && <View>{formatBullets(exp.description)}</View>}
               </View>
             ))}
           </View>
         )}
 
-        {/* Education */}
         {data.education.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: accentColor }]}>Education</Text>
-            {data.education.map((edu: any) => (
+            <Text style={sectionTitleStyle}>Education</Text>
+            {data.education.map((edu) => (
               <View key={edu.id} style={styles.entry}>
                 <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle}>{edu.school}</Text>
+                  <Text style={styles.entryTitle}>{edu.school || "School"}</Text>
                   <Text style={styles.entryDate}>{edu.period}</Text>
                 </View>
-                <Text style={styles.entrySubtitle}>{edu.degree}</Text>
+                <Text style={styles.entrySubtitle}>{edu.degree || "Degree"}</Text>
               </View>
             ))}
           </View>
         )}
 
-        {/* Projects */}
         {data.projects.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: accentColor }]}>Projects</Text>
-            {data.projects.map((proj: any) => (
-              <View key={proj.id} style={styles.entry}>
+            <Text style={sectionTitleStyle}>Projects</Text>
+            {data.projects.map((project) => (
+              <View key={project.id} style={styles.entry}>
                 <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle}>{proj.name}</Text>
-                  {proj.link && <Text style={styles.entryDate}>{proj.link}</Text>}
+                  <Text style={styles.entryTitle}>{project.name || "Project"}</Text>
+                  {project.link && <Text style={styles.entryDate}>{project.link}</Text>}
                 </View>
-                <Text style={styles.entrySubtitle}>{proj.role}</Text>
-                {proj.description && (
-                  <View style={{ marginTop: 4 }}>
-                    {formatBullets(proj.description)}
-                  </View>
-                )}
+                {project.role && <Text style={styles.entrySubtitle}>{project.role}</Text>}
+                {project.description && <View>{formatBullets(project.description)}</View>}
               </View>
             ))}
           </View>
         )}
 
-        {/* Skills */}
         {data.skills.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: accentColor }]}>Core Competencies</Text>
+            <Text style={sectionTitleStyle}>Core Competencies</Text>
             <View style={styles.skillsContainer}>
-              {data.skills.map((skill: string, i: number) => (
-                <Text key={i} style={styles.skillBadge}>{skill}</Text>
+              {data.skills.map((skill) => (
+                <Text key={skill} style={skillStyle}>{skill}</Text>
               ))}
             </View>
           </View>
@@ -242,6 +424,4 @@ const ResumePDF = ({ data, accentColor }: ResumePDFProps) => {
       </Page>
     </Document>
   );
-};
-
-export default ResumePDF;
+}

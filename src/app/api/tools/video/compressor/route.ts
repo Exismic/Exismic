@@ -1,67 +1,87 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+import {
+  checkRateLimit,
+  getRequestIp,
+  rateLimitResponse,
+  requireApiUser,
+  validateUploadedFile,
+} from "@/lib/api-security";
+import {
+  VIDEO_MAX_BYTES,
+  VideoProcessingError,
+  assertVideoSignature,
+  callVideoModal,
+  createVideoDownloadResponse,
+  createVideoRequestId,
+  decodeProviderFile,
+  resolveVideoEndpoint,
+  safeVideoStem,
+  videoErrorResponse,
+} from "@/lib/video-processing";
+
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
+  const requestId = createVideoRequestId();
   try {
+    const authUser = await requireApiUser();
+    if (authUser instanceof NextResponse) return authUser;
+    const limit = checkRateLimit(
+      `video-compressor:${authUser.id}:${getRequestIp(req)}`,
+      8,
+      60 * 60 * 1000,
+    );
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+
     const formData = await req.formData();
     const file = formData.get("video") as File;
-    const quality = formData.get("quality") as string;
-    const format = formData.get("format") as string;
+    const quality = String(formData.get("quality") || "medium");
+    const format = String(formData.get("format") || "mp4");
 
-    if (!file) {
-      return NextResponse.json({ error: "No video file provided" }, { status: 400 });
+    const fileError = validateUploadedFile(file, {
+      maxBytes: VIDEO_MAX_BYTES,
+      allowedMimePrefixes: ["video/"],
+      label: "video file",
+    });
+    if (fileError) return fileError;
+    await assertVideoSignature(file);
+
+    if (!["low", "medium", "high", "ultra"].includes(quality)) {
+      throw new VideoProcessingError("Choose a valid compression quality.", 400, "INVALID_QUALITY");
+    }
+    if (!["mp4", "webm"].includes(format)) {
+      throw new VideoProcessingError("Choose MP4 or WebM output.", 400, "INVALID_FORMAT");
     }
 
-    const MODAL_URL = process.env.MODAL_VIDEO_URL ? `${process.env.MODAL_VIDEO_URL}/compress` : null;
-
-    if (!MODAL_URL) {
-      // In a real app, you might fall back to local FFmpeg here
-      return NextResponse.json({ error: "Cloud backend not configured" }, { status: 500 });
+    const baseUrl = process.env.MODAL_VIDEO_URL;
+    if (!baseUrl) {
+      throw new VideoProcessingError(
+        "Video compression is temporarily unavailable.",
+        503,
+        "VIDEO_BACKEND_UNAVAILABLE",
+        true,
+      );
     }
 
-    console.log(`[VideoCompressor] Calling Modal: ${MODAL_URL} (Quality: ${quality}, Format: ${format})`);
-
-    // Convert file to base64
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64Data = buffer.toString("base64");
-
-    const response = await fetch(MODAL_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const result = await callVideoModal(
+      resolveVideoEndpoint(baseUrl, "/compress"),
+      {
         file_name: file.name,
-        file_data_base64: base64Data,
-        quality: quality,
-        format: format,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[VideoCompressor] Modal error:", errorText);
-      throw new Error(`Cloud processing failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.error || "Compression failed");
-    }
-
-    const resultBuffer = Buffer.from(result.file_data_base64.split(",")[1], "base64");
-
-    return new Response(resultBuffer, {
-      headers: {
-        "Content-Type": `video/${format}`,
-        "Content-Disposition": `attachment; filename="${result.file_name}"`,
-        "Content-Length": resultBuffer.length.toString(),
+        file_data_base64: Buffer.from(await file.arrayBuffer()).toString("base64"),
+        quality,
+        format,
       },
-    });
-
-  } catch (error: any) {
-    console.error("[VideoCompressor] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "An unexpected error occurred" }, 
-      { status: 500 }
+      requestId,
     );
+    const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
+    const fileName = `${safeVideoStem(file.name)}-compressed.${format}`;
+
+    return createVideoDownloadResponse(bytes, {
+      fileName,
+      contentType: mimeType || (format === "webm" ? "video/webm" : "video/mp4"),
+      requestId,
+    });
+  } catch (error) {
+    return videoErrorResponse(error, requestId);
   }
 }

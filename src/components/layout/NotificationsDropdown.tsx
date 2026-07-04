@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Bell, Check, Trash2, Clock, Sparkles, Wand2, Zap, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useMemo, useId } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -18,9 +19,10 @@ interface Notification {
 export function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+  const instanceId = useId().replace(/:/g, "");
 
   const hasUnread = notifications.some(n => !n.read);
 
@@ -58,7 +60,7 @@ export function NotificationsDropdown() {
 
     // Subscribe to real-time notifications
     const channel = supabase
-      .channel(`user-notifications-${session.user.id}`)
+      .channel(`user-notifications-${session.user.id}-${instanceId}`)
       .on(
         'postgres_changes',
         {
@@ -82,7 +84,7 @@ export function NotificationsDropdown() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session, supabase]);
+  }, [instanceId, session, supabase]);
 
   // Close on outside click
   useEffect(() => {
@@ -146,18 +148,28 @@ export function NotificationsDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button 
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        aria-label={hasUnread ? "Open notifications, unread items available" : "Open notifications"}
         className={cn(
-          "p-2.5 rounded-xl transition-all relative group",
-          isOpen ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5"
+          "group relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border backdrop-blur-2xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-95",
+          isOpen
+            ? "border-cyan-300/25 bg-cyan-300/[0.08] text-cyan-100 shadow-[0_0_28px_rgba(34,211,238,0.11),inset_0_1px_0_rgba(255,255,255,0.08)]"
+            : "border-white/[0.09] bg-[#08080d]/84 text-zinc-400 shadow-[0_16px_45px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.055)] hover:border-purple-300/20 hover:bg-[#0a0a11] hover:text-white"
         )}
       >
-        <Bell size={20} className={cn(isOpen ? "" : "group-hover:rotate-12 transition-transform")} />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,rgba(168,85,247,0.16),transparent_45%),radial-gradient(circle_at_80%_85%,rgba(34,211,238,0.1),transparent_42%)]"
+        />
+        <Bell size={17} strokeWidth={2.2} className={cn("relative z-10 transition-transform duration-300", !isOpen && "group-hover:-rotate-12")} />
         
         {hasUnread && (
           <>
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent-blue rounded-full border-2 border-[#030303] z-10"></span>
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent-blue rounded-full blur-[2px] animate-ping opacity-75"></span>
+            <span className="absolute right-2.5 top-2.5 z-10 h-2 w-2 rounded-full border-2 border-[#08080d] bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 animate-ping rounded-full bg-cyan-300 opacity-60" />
           </>
         )}
       </button>
@@ -168,10 +180,10 @@ export function NotificationsDropdown() {
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
-            className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-[#0c0c0e]/90 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-3xl z-50 overflow-hidden"
+            className="absolute right-0 top-full z-50 mt-3 w-[min(24rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0e]/95 shadow-3xl backdrop-blur-2xl sm:rounded-3xl"
           >
             {/* Header */}
-            <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div className="flex items-center justify-between gap-3 border-b border-white/5 bg-white/[0.02] p-4 sm:p-5">
                <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-accent-blue/10 flex items-center justify-center text-accent-blue">
                      <Sparkles size={16} />
@@ -181,7 +193,7 @@ export function NotificationsDropdown() {
                {notifications.length > 0 && (
                  <button 
                   onClick={markAllRead}
-                  className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+                  className="shrink-0 text-[9px] font-black uppercase tracking-wider text-zinc-500 transition-colors hover:text-white sm:text-[10px] sm:tracking-widest"
                  >
                    Mark all as read
                  </button>
@@ -189,7 +201,7 @@ export function NotificationsDropdown() {
             </div>
 
             {/* List */}
-            <div className="max-h-[400px] overflow-y-auto no-scrollbar py-2">
+            <div className="max-h-[min(400px,calc(100dvh-10rem))] overflow-y-auto no-scrollbar py-2">
               {!session ? (
                 <div className="p-12 text-center text-zinc-500 text-xs font-medium uppercase tracking-widest">
                   Sign in to see notifications

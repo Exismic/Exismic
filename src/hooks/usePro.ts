@@ -1,56 +1,90 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
+
+export interface ProUserRecord {
+  id?: string;
+  name?: string | null;
+  full_name?: string | null;
+  username?: string | null;
+  email?: string | null;
+  plan?: string | null;
+  planType?: string | null;
+  is_pro?: boolean;
+  subscriptionStatus?: string | null;
+  subscription_status?: string | null;
+  planExpiresAt?: string | Date | null;
+  plan_expires_at?: string | Date | null;
+  avatar_frame?: string | null;
+  name_gradient?: string | null;
+  custom_avatar_url?: string | null;
+  theme_preference?: string | null;
+  profile_theme?: string | null;
+  discord_user_id?: string | null;
+  aiGenerationsUsed?: number;
+  aiGenerationsLimit?: number;
+  nextResetDate?: string | Date | null;
+}
+
+function resolveProStatus(data: ProUserRecord | null) {
+  if (typeof data?.is_pro === "boolean") return data.is_pro;
+
+  const plan = (data?.plan || data?.planType || "free").toLowerCase();
+  const subscriptionStatus = (data?.subscriptionStatus || data?.subscription_status || "none").toLowerCase();
+  const rawExpiry = data?.planExpiresAt || data?.plan_expires_at;
+  const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
+  const hasEntitlement = plan === "pro" || subscriptionStatus === "active";
+
+  return hasEntitlement && (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt > new Date());
+}
 
 export function usePro() {
   const [isPro, setIsPro] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [authUser, setAuthUser] = useState<any>(null);
-  const supabase = createClient();
+  const [user, setUser] = useState<ProUserRecord | null>(null);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const supabase = useMemo(() => createClient(), []);
 
-  useEffect(() => {
-    async function getProStatus() {
+  const loadProStatus = useCallback(async (showLoading = false) => {
+    if (showLoading) setIsLoading(true);
+
+    try {
       const { data: { session } } = await supabase.auth.getSession();
       setAuthUser(session?.user || null);
-      
+
       if (!session?.user?.email) {
+        setUser(null);
         setIsPro(false);
-        setIsLoading(false);
         return;
       }
 
-      try {
-        const response = await fetch(`/api/user/profile?t=${Date.now()}`, { cache: 'no-store' });
-        const json = await response.json();
-        
-        if (json.success && json.user) {
-          const data = json.user;
-          setUser(data);
-          const plan = (data.plan || data.planType || "free").toLowerCase();
-          const rawExpiry = data.planExpiresAt || data.plan_expires_at;
-          const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-          const now = new Date();
-          
-          let isUserPro = plan === "pro";
-          if (isUserPro && expiresAt && expiresAt < now) {
-            isUserPro = false;
-          }
-          setIsPro(isUserPro);
-        } else {
-          setIsPro(false);
-        }
-      } catch (err) {
-        console.error("usePro initial fetch error:", err);
-        setIsPro(false);
+      const response = await fetch(`/api/user/profile?t=${Date.now()}`, {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const json = await response.json();
+
+      if (!response.ok || !json.success || !json.user) {
+        throw new Error(json.error || "Could not verify membership");
       }
+
+      const data = json.user as ProUserRecord;
+      setUser(data);
+      setIsPro(resolveProStatus(data));
+    } catch (err) {
+      // Keep the last verified entitlement during a transient request failure.
+      // A failed refresh must never make an active member look like a Free user.
+      console.error("usePro status refresh error:", err);
+    } finally {
       setIsLoading(false);
     }
+  }, [supabase]);
 
-    getProStatus();
+  useEffect(() => {
+    void loadProStatus(true);
 
-    // Set up realtime listener with unique name to avoid subscription conflicts
     const channelId = `pro_updates_${Math.random().toString(36).substring(7)}`;
     const channel = supabase
       .channel(channelId)
@@ -63,64 +97,49 @@ export function usePro() {
         },
         async (payload) => {
           const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user?.email && (payload.new as any).email === session.user.email) {
-            const newUser = payload.new as any;
-            setUser(newUser);
-            const plan = (newUser.plan || newUser.planType || "free").toLowerCase();
-            const rawExpiry = newUser.plan_expires_at || newUser.planExpiresAt;
-            const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-            const now = new Date();
-            
-            let isUserPro = plan === "pro";
-            if (isUserPro && expiresAt && expiresAt < now) {
-              isUserPro = false;
-            }
-            
-            setIsPro(isUserPro);
+          const changedUser = {
+            ...(payload.old as ProUserRecord),
+            ...(payload.new as ProUserRecord),
+          };
+
+          if (
+            session?.user?.id &&
+            (changedUser.id === session.user.id ||
+              (session.user.email && changedUser.email === session.user.email))
+          ) {
+            // Re-read the canonical server result instead of trusting a partial
+            // realtime payload with database column naming.
+            void loadProStatus(false);
           }
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void loadProStatus(false);
     };
-  }, [supabase]);
+    const refreshAfterAccountChange = () => void loadProStatus(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      void loadProStatus(true);
+    });
 
-  const refresh = async () => {
-    setIsLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.email) {
-      setIsPro(false);
-      setIsLoading(false);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/user/profile?t=${Date.now()}`, { cache: 'no-store' });
-      const json = await response.json();
-      
-      if (json.success && json.user) {
-        const data = json.user;
-        setUser(data);
-        const plan = (data.plan || data.planType || "free").toLowerCase();
-        const rawExpiry = data.planExpiresAt || data.plan_expires_at;
-        const expiresAt = rawExpiry ? new Date(rawExpiry) : null;
-        const now = new Date();
-        
-        let isUserPro = plan === "pro";
-        if (isUserPro && expiresAt && expiresAt < now) {
-          isUserPro = false;
-        }
-        setIsPro(isUserPro);
-      } else {
-        setIsPro(false);
-      }
-    } catch (err) {
-      console.error("usePro refresh error:", err);
-      setIsPro(false);
-    }
-    setIsLoading(false);
-  };
+    window.addEventListener("focus", refreshAfterAccountChange);
+    window.addEventListener("lumora:pro-status-changed", refreshAfterAccountChange);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      void supabase.removeChannel(channel);
+      subscription.unsubscribe();
+      window.removeEventListener("focus", refreshAfterAccountChange);
+      window.removeEventListener("lumora:pro-status-changed", refreshAfterAccountChange);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [loadProStatus, supabase]);
+
+  const refresh = useCallback(
+    () => loadProStatus(true),
+    [loadProStatus]
+  );
 
   return { isPro, isLoading, user, authUser, refresh };
 }

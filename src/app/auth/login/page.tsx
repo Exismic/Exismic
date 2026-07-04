@@ -7,19 +7,21 @@ import {
   Lock, 
   ArrowRight, 
   Loader2, 
-  Wand2, 
   AlertCircle,
   ChevronRight,
   ShieldCheck,
   CheckCircle2,
   KeyRound,
-  ArrowLeft
+  ArrowLeft,
+  Smartphone,
+  Radio
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction, sendMagicLinkAction } from "@/app/actions/auth";
+import { useSearchParams } from "next/navigation";
+import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction } from "@/app/actions/auth";
 import { useAuth } from "@/hooks/useAuth";
+import { LumoraMark } from "@/components/ui/LumoraLogo";
 
 // --- Premium Custom Icons ---
 const GoogleIcon = () => (
@@ -54,7 +56,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isRedirectingState, setIsRedirectingState] = useState(false);
-  const router = useRouter();
+  const [trustedChallengeId, setTrustedChallengeId] = useState("");
+  const [trustedBrowserToken, setTrustedBrowserToken] = useState("");
+  const [trustedDeviceName, setTrustedDeviceName] = useState("");
+  const [trustedExpiresAt, setTrustedExpiresAt] = useState("");
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   
@@ -71,6 +76,69 @@ export default function AuthPage() {
       return () => clearTimeout(timer);
     }
   }, [success, error]);
+
+  useEffect(() => {
+    if (!trustedChallengeId || !trustedBrowserToken) return;
+
+    let cancelled = false;
+    let polling = false;
+
+    const checkApproval = async () => {
+      if (polling || cancelled) return;
+      polling = true;
+
+      try {
+        const response = await fetch("/api/auth/trusted-login/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            challengeId: trustedChallengeId,
+            browserToken: trustedBrowserToken,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not check phone approval.");
+        if (cancelled) return;
+
+        if (data.status === "approved" && data.actionLink) {
+          setIsRedirectingState(true);
+          window.location.assign(data.actionLink);
+          return;
+        }
+
+        if (data.status === "denied") {
+          setTrustedChallengeId("");
+          setTrustedBrowserToken("");
+          setError("The registered phone blocked this login request.");
+        } else if (data.status === "expired") {
+          setTrustedChallengeId("");
+          setTrustedBrowserToken("");
+          setError("The phone approval request expired. Send a new request.");
+        } else if (data.status === "delivery_failed") {
+          setTrustedChallengeId("");
+          setTrustedBrowserToken("");
+          setError("Lumora could not reach the registered phone.");
+        }
+      } catch (pollError) {
+        if (!cancelled) {
+          setError(
+            pollError instanceof Error
+              ? pollError.message
+              : "Could not check phone approval.",
+          );
+        }
+      } finally {
+        polling = false;
+      }
+    };
+
+    void checkApproval();
+    const interval = window.setInterval(checkApproval, 2000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [trustedBrowserToken, trustedChallengeId]);
 
   // Handle OTP input
   const handleOtpChange = (index: number, value: string) => {
@@ -105,8 +173,8 @@ export default function AuthPage() {
         },
       });
       if (error) throw error;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Social login failed.");
       setSocialLoading(null);
     }
   };
@@ -160,7 +228,7 @@ export default function AuthPage() {
           setSuccess("If an account exists, a reset link has been sent.");
         }
       }
-    } catch (err: any) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -189,7 +257,7 @@ export default function AuthPage() {
           window.location.href = returnUrl;
         }, 1500);
       }
-    } catch (err) {
+    } catch {
       setError("Verification failed.");
     } finally {
       setIsLoading(false);
@@ -200,20 +268,40 @@ export default function AuthPage() {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
-    formData.set('returnUrl', returnUrl);
-
     const formEmail = String(formData.get('email') || '').trim();
     if (formEmail) setEmail(formEmail);
 
     try {
-      const result = await sendMagicLinkAction(formData);
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        setSuccess(result?.message || "Magic link sent. Check your inbox.");
-      }
-    } catch {
-      setError("Could not send the magic link. Please try again.");
+      const bytes = new Uint8Array(32);
+      window.crypto.getRandomValues(bytes);
+      const browserToken = btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+
+      const response = await fetch("/api/auth/trusted-login/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formEmail,
+          browserToken,
+          returnUrl,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not contact your phone.");
+
+      setTrustedBrowserToken(browserToken);
+      setTrustedChallengeId(result.challengeId);
+      setTrustedDeviceName(result.deviceName || "your registered phone");
+      setTrustedExpiresAt(result.expiresAt || "");
+      setSuccess(result.message || "Approval sent to your registered phone.");
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "Could not start phone approval. Please try again.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -263,10 +351,7 @@ export default function AuthPage() {
           <Link href="/" className="group flex flex-col items-center">
             <div className="relative mb-6">
               <div className="absolute -inset-6 bg-purple-600/30 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-              <div className="w-20 h-20 rounded-[2.5rem] bg-[#0A0A0B] border border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden group-hover:border-purple-500/50 transition-colors duration-500">
-                <Wand2 size={32} className="text-white group-hover:scale-110 group-hover:rotate-12 transition-all duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-transparent to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              </div>
+              <LumoraMark size={80} />
             </div>
             <h1 className="text-4xl font-black tracking-tighter text-white bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40 italic uppercase">
               Lumora<span className="text-purple-500">.</span>
@@ -332,43 +417,87 @@ export default function AuthPage() {
                       <ArrowLeft size={14} /> Back
                     </button>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 text-[10px] font-black uppercase tracking-widest">
-                      <KeyRound size={13} /> Passwordless
+                      <Radio size={13} /> Background phone approval
                     </div>
-                    <h2 className="text-2xl font-bold tracking-tight">Continue with Magic Link</h2>
-                    <p className="text-zinc-500 text-sm">We will email you a secure one-time login link that expires in 15 minutes.</p>
+                    <h2 className="text-2xl font-bold tracking-tight">Continue with Lumora Confirm</h2>
+                    <p className="text-zinc-500 text-sm">Enter your registered email. Lumora will send a secure approval prompt to your phone, even when the mobile app is closed.</p>
                   </div>
 
-                  <form action={handleMagicLinkSubmit} className="space-y-4">
-                    <input type="hidden" name="returnUrl" value={returnUrl} />
-                    <div className="relative group">
-                      <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity blur-sm pointer-events-none" />
-                      <div className="relative">
-                        <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-cyan-300 transition-colors" size={18} />
-                        <input
-                          name="email"
-                          type="email"
-                          required
-                          defaultValue={email}
-                          placeholder="Email address"
-                          className="w-full bg-black/40 border border-white/[0.05] rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-400/40 focus:bg-cyan-400/[0.02] transition-all"
+                  {trustedChallengeId ? (
+                    <div className="space-y-5">
+                      <div className="relative overflow-hidden rounded-3xl border border-cyan-300/20 bg-cyan-300/[0.045] p-6 text-center">
+                        <motion.div
+                          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.13),transparent_55%)]"
+                          animate={{ opacity: [0.35, 0.8, 0.35] }}
+                          transition={{ repeat: Infinity, duration: 2.4 }}
                         />
+                        <div className="relative">
+                          <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-[1.7rem] border border-cyan-300/20 bg-black/35 text-cyan-100">
+                            <Smartphone size={30} />
+                            <motion.span
+                              className="absolute inset-[-8px] rounded-[2rem] border border-cyan-300/20"
+                              animate={{ scale: [0.9, 1.18], opacity: [0.8, 0] }}
+                              transition={{ repeat: Infinity, duration: 1.8 }}
+                            />
+                          </div>
+                          <h3 className="mt-5 text-base font-black text-white">Check your phone</h3>
+                          <p className="mt-2 text-xs leading-relaxed text-zinc-400">
+                            Approval sent to <span className="font-bold text-cyan-100">{trustedDeviceName}</span>.
+                            Tap “Yes, it&apos;s me” to continue automatically.
+                          </p>
+                          {trustedExpiresAt ? (
+                            <p className="mt-4 text-[9px] font-black uppercase tracking-widest text-zinc-600">
+                              Request expires in five minutes
+                            </p>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
 
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full py-5 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-cyan-500 text-white font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(124,58,237,0.22)]"
-                    >
-                      {isLoading ? <Loader2 className="animate-spin" size={18} /> : (
-                        <>Send Magic Link <ArrowRight size={18} className="opacity-70" /></>
-                      )}
-                    </button>
-                  </form>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTrustedChallengeId("");
+                          setTrustedBrowserToken("");
+                          setSuccess(null);
+                        }}
+                        className="min-h-12 w-full rounded-2xl border border-white/10 bg-white/[0.035] text-[10px] font-black uppercase tracking-widest text-zinc-300 transition hover:bg-white/[0.06]"
+                      >
+                        Cancel request
+                      </button>
+                    </div>
+                  ) : (
+                    <form action={handleMagicLinkSubmit} className="space-y-4">
+                      <div className="relative group">
+                        <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity blur-sm pointer-events-none" />
+                        <div className="relative">
+                          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-cyan-300 transition-colors" size={18} />
+                          <input
+                            name="email"
+                            type="email"
+                            required
+                            defaultValue={email}
+                            placeholder="Registered email address"
+                            className="w-full bg-black/40 border border-white/[0.05] rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-400/40 focus:bg-cyan-400/[0.02] transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-5 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-cyan-500 text-white font-black text-xs uppercase tracking-[0.2em] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(124,58,237,0.22)]"
+                      >
+                        {isLoading ? <Loader2 className="animate-spin" size={18} /> : (
+                          <>Send Phone Approval <ArrowRight size={18} className="opacity-70" /></>
+                        )}
+                      </button>
+                    </form>
+                  )}
 
                   <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                     <p className="text-[11px] leading-relaxed text-zinc-500">
-                      Magic links are one-time use. If you request a new one, use the latest email in your inbox.
+                      Android can receive this as a background browser notification. On iPhone,
+                      install Lumora to the Home Screen before registering the phone.
                     </p>
                   </div>
                 </motion.div>
@@ -383,7 +512,7 @@ export default function AuthPage() {
                       <ArrowLeft size={14} /> Back
                     </button>
                     <h2 className="text-2xl font-bold tracking-tight">Recover Account</h2>
-                    <p className="text-zinc-500 text-sm">Enter your email and we'll send you a recovery link.</p>
+                    <p className="text-zinc-500 text-sm">Enter your email and we&apos;ll send you a recovery link.</p>
                   </div>
 
                   <form action={async (formData) => {
@@ -464,7 +593,7 @@ export default function AuthPage() {
                   </button>
 
                   <p className="text-center text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
-                    Didn't get the code? <button 
+                    Didn&apos;t get the code? <button
                       type="button"
                       disabled={isLoading}
                       onClick={async () => {
@@ -478,7 +607,7 @@ export default function AuthPage() {
                           }
                           setSuccess("New code sent to your email!");
                           setError(null);
-                        } catch (err) {
+                        } catch {
                           setError("Failed to resend code.");
                         } finally {
                           setIsLoading(false);
@@ -582,8 +711,8 @@ export default function AuthPage() {
                           <KeyRound size={18} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-xs font-black uppercase tracking-[0.18em] text-white">Continue with Magic Link</div>
-                          <div className="mt-1 text-[11px] font-medium text-zinc-500">No password needed. One-time secure email login.</div>
+                          <div className="text-xs font-black uppercase tracking-[0.18em] text-white">Continue with Lumora Confirm</div>
+                          <div className="mt-1 text-[11px] font-medium text-zinc-500">Approve sign-in from your registered phone.</div>
                         </div>
                         <ArrowRight size={17} className="text-cyan-200 opacity-70 transition-transform group-hover:translate-x-1" />
                       </div>

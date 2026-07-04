@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useCredits } from "@/hooks/useCredits";
 
 interface Region {
   x: number;
@@ -32,6 +33,7 @@ const PRESETS: Array<{ label: string; region: Region }> = [
 ];
 
 export function WatermarkRemover() {
+  const { isPro } = useCredits();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export function WatermarkRemover() {
       formData.append("file", file);
       formData.append("region", JSON.stringify(region));
       formData.append("strength", strength.toString());
+      formData.append("priority", String(isPro));
 
       const response = await fetch("/api/tools/image/watermark-remover", {
         method: "POST",
@@ -224,6 +227,11 @@ export function WatermarkRemover() {
                 {isProcessing && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-xl z-50 flex flex-col items-center justify-center p-12 space-y-8">
                     <Loader2 className="w-20 h-20 text-accent-purple animate-spin" />
+                    {isPro && (
+                      <div className="px-4 py-2 rounded-full bg-amber-300/10 border border-amber-300/30 text-[10px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_24px_rgba(251,191,36,0.12)]">
+                        ⚡ Priority Mode
+                      </div>
+                    )}
                     <div className="w-full max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
                       <motion.div className="h-full premium-gradient" animate={{ width: `${progress}%` }} />
                     </div>

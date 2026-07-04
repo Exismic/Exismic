@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { PRICING_CONFIG } from '@/config/pricing';
 import { create } from 'zustand';
@@ -50,7 +50,16 @@ const useCreditStore = create<CreditStore>((set) => ({
   notification: null,
   countdown: "",
   isInitialized: false,
-  setUserId: (id) => set({ userId: id }),
+  setUserId: (id) => set((current) => {
+    if (current.userId === id) return {};
+
+    return {
+      userId: id,
+      state: null,
+      loading: Boolean(id),
+      isInitialized: false,
+    };
+  }),
   setState: (updater) => set((prev) => ({
     state: typeof updater === 'function' ? updater(prev.state) : updater
   })),
@@ -65,21 +74,12 @@ const useCreditStore = create<CreditStore>((set) => ({
 }));
 
 export function useCredits() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const store = useCreditStore();
   const { 
     userId, state, loading, showUpsell, notification, countdown,
     setUserId, setState, updateState, setLoading, setShowUpsell, setNotification, setCountdown
   } = store;
-
-  console.log('[useCredits Hook] Instance state:', {
-    userId,
-    hasState: !!state,
-    dailyCredits: state?.dailyCredits,
-    lifetimeCredits: state?.lifetimeCredits,
-    credits: (state?.lifetimeCredits ?? 0) + (state?.dailyCredits ?? 0),
-    loading
-  });
 
   // Robust session and countdown initialization for every hook instance
   useEffect(() => {
@@ -171,8 +171,10 @@ export function useCredits() {
   useEffect(() => {
     if (userId) {
       fetchCredits();
+    } else {
+      setLoading(false);
     }
-  }, [userId, fetchCredits]);
+  }, [userId, fetchCredits, setLoading]);
 
   // Real-time listener specifically for the current user
   useEffect(() => {
@@ -235,20 +237,9 @@ export function useCredits() {
   };
 
   const addCredits = async (amount: number) => {
-    if (!userId || !state) return false;
-    try {
-      const newLifetime = state.lifetimeCredits + amount;
-      const { error } = await supabase
-        .from('User')
-        .update({ lifetime_credits: newLifetime })
-        .eq('id', userId);
-      
-      if (error) throw error;
-      showNotification(`Success! ${amount} permanent credits added.`, 'success');
-      return true;
-    } catch (err) {
-      return false;
-    }
+    void amount;
+    showNotification('Credits can only be added after verified payment.', 'warning');
+    return false;
   };
 
   const consumeMessage = async () => {

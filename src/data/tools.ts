@@ -55,7 +55,9 @@ import {
   Crown,
   Users,
   MousePointer2,
-  Lock
+  Lock,
+  Bot,
+  Box
 } from 'lucide-react';
 
 export const ICON_MAP = {
@@ -117,7 +119,9 @@ export const ICON_MAP = {
   Crown,
   Users,
   MousePointer2,
-  Lock
+  Lock,
+  Bot,
+  Box
 };
 
 export type IconName = keyof typeof ICON_MAP;
@@ -131,6 +135,7 @@ export interface Tool {
   href: string;
   pro?: boolean;
   isProTool?: boolean;
+  proPowerPack?: boolean;
   popular?: boolean;
   requiresFileUpload?: boolean;
   acceptedFileTypes?: string[];
@@ -168,6 +173,7 @@ export const TOOLS: Tool[] = [
     icon: 'ImageIcon' as IconName, 
     href: '/tools/image/eraser', 
     popular: true, 
+    proPowerPack: true,
     requiresFileUpload: true, 
     acceptedFileTypes: ['image/*'],
     seoTitle: "Free Magic Eraser Online - Remove Objects & People from Photos Instantly",
@@ -187,9 +193,10 @@ export const TOOLS: Tool[] = [
   },
   { id: 'image-resizer', name: 'Resizer & Cropper', description: 'Change the size and shape of your photos.', category: 'image', icon: 'Maximize' as IconName, href: '/tools/image/resizer', requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Image Resizer & Cropper - Resize Photos for Social Media Online" },
   { id: 'image-converter', name: 'Format Converter', description: 'Change your photos into different types like JPG or PNG.', category: 'image', icon: 'RefreshCw' as IconName, href: '/tools/image/converter', requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Online Image Format Converter - Convert JPG, PNG, WEBP & More" },
-  { id: 'image-restorer', name: 'Photo Restorer', description: 'Fix old or broken photos using smart AI.', category: 'image', icon: 'History' as IconName, href: '/tools/image/restorer', requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "AI Photo Restorer Online - Fix Old, Blurry or Damaged Photos Free" },
-  { id: 'watermark-remover', name: 'Watermark Remover', description: "Remove watermarks from your photos easily.", category: 'image', icon: 'Wand2' as IconName, href: '/tools/image/watermark-remover', requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Watermark Remover Online - Remove Text & Logos from Images" },
+  { id: 'image-restorer', name: 'Photo Restorer', description: 'Fix old or broken photos using smart AI.', category: 'image', icon: 'History' as IconName, href: '/tools/image/restorer', proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "AI Photo Restorer Online - Fix Old, Blurry or Damaged Photos Free" },
+  { id: 'watermark-remover', name: 'Watermark Remover', description: "Remove watermarks from your photos easily.", category: 'image', icon: 'Wand2' as IconName, href: '/tools/image/watermark-remover', proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Watermark Remover Online - Remove Text & Logos from Images" },
   { id: 'image-collage', name: 'Collage Maker', description: 'Put your photos together into pretty layouts.', category: 'image', icon: 'LayoutGrid' as IconName, href: '/tools/image/collage', requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Online Collage Maker - Create Photo Grids & Layouts Instantly" },
+  { id: 'image-minecraft-skin', name: 'AI Minecraft Skin Maker', description: 'Design valid 64x64 Minecraft skins with AI and preview them in 3D.', category: 'image', icon: 'Box' as IconName, href: '/tools/image/minecraft-skin', popular: true, proPowerPack: true, seoTitle: "AI Minecraft Skin Maker - Create Game-Ready 64x64 Skins", seoDescription: "Create original Minecraft-compatible skins from a prompt or reference image. Preview in 3D, regenerate body parts, and download a valid 64x64 PNG." },
   { id: 'face-swap', name: 'Face Swap', description: 'Swap faces in photos so they look real.', category: 'image', icon: 'UserCircle2' as IconName, href: '/tools/image/face-swap', pro: true, isProTool: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "AI Face Swap Online - Realistic Face Swapping Tool Free" },
   { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: 'Create beautiful YouTube thumbnails quickly.', category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail', popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design High-CTR Thumbnails Fast" },
   { id: 'meme-generator', name: 'Meme Generator', description: 'Create funny memes in seconds.', category: 'image', icon: 'Laugh' as IconName, href: '/tools/meme-generator', popular: true, seoTitle: "Online Meme Generator - Create Funny Memes with AI Instantly" },
@@ -199,7 +206,7 @@ export const TOOLS: Tool[] = [
   { id: 'video-trimmer', name: 'Video Trimmer', description: 'Cut and trim parts of your videos.', category: 'video', icon: 'Scissors' as IconName, href: '/tools/video/trimmer', requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Online Video Trimmer - Cut & Trim Video Clips Free" },
   { id: 'video-compressor', name: 'Video Compressor', description: 'Make videos smaller while keeping them clear.', category: 'video', icon: 'FileArchive' as IconName, href: '/tools/video/compressor', requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Free Video Compressor Online - Reduce Video Size Fast" },
   { id: 'video-subtitles', name: 'Subtitle Generator', description: 'Add subtitles to your videos automatically.', category: 'video', icon: 'Type' as IconName, href: '/tools/video/subtitles', requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Auto Subtitle Generator Online - Add Subtitles to Video Free" },
-  { id: 'video-enhancer', name: 'Video Enhancer', description: 'Make your videos look better and clearer.', category: 'video', icon: 'Maximize' as IconName, href: '/tools/video/enhancer', popular: true, requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "AI Video Enhancer Online - Upscale & Improve Video Quality Free" },
+  { id: 'video-enhancer', name: 'Video Enhancer', description: 'Make your videos look better and clearer.', category: 'video', icon: 'Maximize' as IconName, href: '/tools/video/enhancer', popular: true, proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "AI Video Enhancer Online - Upscale & Improve Video Quality Free" },
   { id: 'video-gif', name: 'Video to GIF', description: "Change parts of your video into a moving photo.", category: 'video', icon: 'ImageIcon' as IconName, href: '/tools/video/to-gif', requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Video to GIF Converter - Create Moving GIFS from Video Online" },
   { id: 'video-merger', name: 'Video Merger', description: 'Join multiple video clips into one.', category: 'video', icon: 'Layers' as IconName, href: '/tools/video/merger', requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Online Video Merger - Join & Combine Video Clips Free" },
 
@@ -257,11 +264,24 @@ export const TOOLS: Tool[] = [
     popular: true, 
     pro: true, 
     isProTool: true, 
+    proPowerPack: true,
     requiresFileUpload: false,
     seoTitle: "Free AI Image Generator - Create Stunning Art & Photos from Text",
     seoDescription: "The most powerful free AI image generator. Create professional art, photos, and designs simply by typing what you want to see."
   },
   { id: 'ai-chat', name: 'AI Chat', description: "Talk to a smart AI that knows everything.", category: 'ai', icon: 'MessageSquare' as IconName, href: '/tools/ai/chat', pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Chat Assistant - Smart Conversational AI with GPT Power" },
+  {
+    id: 'support-agent',
+    name: 'Lumora Support Agent',
+    description: 'Create an AI customer-support chatbot for your website and manage it from Lumora.',
+    category: 'ai',
+    icon: 'Bot' as IconName,
+    href: '/tools/support-agent',
+    popular: true,
+    requiresFileUpload: false,
+    seoTitle: "Lumora Support Agent - AI Customer Support Chatbot Builder",
+    seoDescription: "Build a premium AI support agent for your business website. Train Lumora with FAQs, documents, policies, and product details, then embed a chatbot in minutes."
+  },
   { id: 'ai-code', name: 'Lumora Code Studio', description: 'Next-gen AI code editor and autonomous agent.', category: 'ai', icon: 'Code2' as IconName, href: '/tools/ai/code', popular: true, pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Code Generator - Write & Debug Code with AI Assistant" },
   { id: 'ai-logo', name: 'AI Logo Generator', description: 'Design professional logos in seconds.', category: 'ai', icon: 'Palette' as IconName, href: '/tools/ai/logo', pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "Free AI Logo Generator - Create Professional Logos in Seconds" },
   { 
@@ -281,12 +301,36 @@ export const TOOLS: Tool[] = [
   },
 
   // Productivity Tools
+  {
+    id: 'discord-card',
+    name: 'Discord Profile Card',
+    description: 'Create and export a live Discord profile website from any Discord user ID.',
+    category: 'productivity',
+    icon: 'UserCircle2' as IconName,
+    href: '/tools/discord-card',
+    popular: true,
+    requiresFileUpload: false,
+    seoTitle: "Discord Profile Card Generator - Create a Live Discord Profile Website",
+    seoDescription: "Build and export a responsive Discord profile card with live presence, activities, avatar decorations, profile effects, badges, bio, and connections."
+  },
   { id: 'productivity-qr', name: 'QR Code Generator', description: 'Make QR codes for any link or text.', category: 'productivity', icon: 'QrCode' as IconName, href: '/tools/qr-code', requiresFileUpload: false, seoTitle: "Free QR Code Generator - Create Custom QR Codes for Links & Text" },
   { id: 'productivity-passgen', name: 'Password Generator', description: 'Make strong passwords to keep you safe.', category: 'productivity', icon: 'ShieldCheck' as IconName, href: '/tools/productivity/passgen', requiresFileUpload: false, seoTitle: "Secure Password Generator - Create Strong & Unique Passwords Free" },
   { id: 'productivity-units', name: 'Unit Converter', description: 'Change between many different units easily.', category: 'productivity', icon: 'Scale' as IconName, href: '/tools/productivity/units', requiresFileUpload: false, seoTitle: "Online Unit Converter - Convert Length, Weight, Temp & More Free" },
   { id: 'productivity-palette', name: 'Palette Generator', description: 'Make pretty color sets for your designs.', category: 'productivity', icon: 'Palette' as IconName, href: '/tools/productivity/palette', requiresFileUpload: false, seoTitle: "AI Color Palette Generator - Create Beautiful Color Schemes Online" },
   { id: 'productivity-json', name: 'JSON Formatter', description: 'Fix and make your JSON data look good.', category: 'productivity', icon: 'Code2' as IconName, href: '/tools/productivity/json', requiresFileUpload: false, seoTitle: "Online JSON Formatter & Validator - Pretty Print JSON Free" },
   { id: 'hashtag-generator', name: 'Hashtag Generator', description: 'Generate trending and relevant hashtags for your content.', category: 'productivity', icon: 'Hash' as IconName, href: '/tools/hashtag-generator', popular: true, seoTitle: "Free Hashtag Generator - Find Trending Hashtags for Social Media" },
+  {
+    id: 'typing-test',
+    name: 'Typing Speed Tester',
+    description: 'Measure WPM, accuracy, consistency, and typing weaknesses with premium AI-style drills.',
+    category: 'productivity',
+    icon: 'Type' as IconName,
+    href: '/tools/typing-test',
+    popular: true,
+    requiresFileUpload: false,
+    seoTitle: "Typing Speed Tester - Premium WPM, Accuracy & Typing Heatmap",
+    seoDescription: "Test typing speed with real-time WPM, accuracy, consistency, themed AI-style paragraphs, ghost mode, heatmaps, daily challenges, and leaderboards."
+  },
   {
     id: 'resume-builder',
     name: 'Resume / CV Builder',

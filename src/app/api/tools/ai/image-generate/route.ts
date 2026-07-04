@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 // Forced Launch Update - Production Fix
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
-import { createAdminClient } from "@/utils/supabase/admin";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { writeFile, mkdir } from "fs/promises";
@@ -137,6 +136,8 @@ export async function POST(req: NextRequest) {
     const priority = isPro || user.subscriptionStatus === "active";
     const queue = priority ? "priority" : "normal";
     const processingLabel = priority ? "Processing with Priority..." : "Processing...";
+    const noWatermark = priority;
+    const commercialLicense = priority;
 
     // --- STEP A: Try Together.ai (Ultra Fast Flux Schnell) ---
     if (togetherKey) {
@@ -241,7 +242,7 @@ export async function POST(req: NextRequest) {
       try {
         console.log("Using Pollinations Flux Schnell (Free)...");
         const seed = Math.floor(Math.random() * 2147483647);
-        const cloudUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true`;
+        const cloudUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=${noWatermark ? "true" : "false"}`;
         
         const response = await fetch(cloudUrl, {
           headers: {
@@ -268,7 +269,7 @@ export async function POST(req: NextRequest) {
         console.warn("Pollinations Flux Failed or timed out, trying fast Pollinations Turbo...", pollError.message);
         try {
           const seed = Math.floor(Math.random() * 2147483647);
-          const turboUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=turbo&nologo=true`;
+          const turboUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=turbo&nologo=${noWatermark ? "true" : "false"}`;
           
           const response = await fetch(turboUrl, {
             headers: {
@@ -357,11 +358,8 @@ export async function POST(req: NextRequest) {
       newDaily = Math.max(0, newDaily - remaining);
     }
 
-    const supabaseAdmin = createAdminClient();
-
-    const { error: sbFileError } = await supabaseAdmin
-      .from('UserFile')
-      .insert({
+    await prisma.userFile.create({
+      data: {
         userId: sbUser.id,
         toolType: 'ai-img-gen',
         originalName: prompt.substring(0, 50),
@@ -376,11 +374,12 @@ export async function POST(req: NextRequest) {
           priority,
           queue,
           processingLabel,
+          noWatermark,
+          commercialLicense,
           timestamp: new Date().toISOString()
         }
-      });
-
-    if (sbFileError) console.error("[Image Gen] Supabase history save failed:", sbFileError);
+      },
+    });
 
     try {
       await prisma.user.update({
@@ -401,6 +400,8 @@ export async function POST(req: NextRequest) {
       priority,
       queue,
       processingLabel,
+      noWatermark,
+      commercialLicense,
       creditsRemaining: totalCreditsAvailable - totalCost,
       enhancedPrompt: enhancedUsed
     });

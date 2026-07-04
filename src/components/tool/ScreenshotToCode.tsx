@@ -22,6 +22,7 @@ import {
   Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { usePro } from "@/hooks/usePro";
 import { ToolUploader } from "./ToolUploader";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -403,6 +404,7 @@ export function ScreenshotToCode() {
                          <button
                            key={fw.id}
                            onClick={() => setFramework(fw.id)}
+                           disabled={fw.pro && !isPro}
                            className={cn(
                              "group flex items-center justify-between p-5 rounded-2xl border transition-all relative overflow-hidden",
                              framework === fw.id ? "bg-violet-600 border-violet-500 text-white shadow-xl" : "bg-white/5 border-white/5 text-zinc-500 hover:bg-white/10",
@@ -461,9 +463,12 @@ export function ScreenshotToCode() {
                                <h5 className="text-lg font-black italic tracking-tight text-white">Unlock Ultra Precision</h5>
                                <p className="text-[9px] font-medium text-zinc-500 uppercase tracking-widest">Multiple frameworks & 99% layout accuracy</p>
                             </div>
-                            <button className="w-full py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all shadow-xl">
-                               Upgrade to Pro
-                            </button>
+                            <Link
+                              href="/pro"
+                              className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-white px-5 text-[10px] font-black uppercase tracking-widest text-black shadow-xl transition-all hover:bg-zinc-200"
+                            >
+                              Upgrade to Pro
+                            </Link>
                          </div>
                       </div>
                     )}

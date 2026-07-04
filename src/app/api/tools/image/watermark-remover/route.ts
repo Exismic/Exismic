@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@/utils/supabase/server";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
@@ -47,21 +49,28 @@ async function tryModalWatermarkRemoval(params: {
   file: File;
   region: NormalizedRegion;
   strength: number;
+  priority: boolean;
 }) {
-  const modalUrl = process.env.MODAL_WATERMARK_REMOVER_URL;
-  const modalApiKey = process.env.MODAL_WATERMARK_REMOVER_API_KEY;
+  const modalUrl = params.priority
+    ? process.env.MODAL_WATERMARK_REMOVER_PRIORITY_URL || process.env.MODAL_WATERMARK_REMOVER_URL
+    : process.env.MODAL_WATERMARK_REMOVER_NORMAL_URL || process.env.MODAL_WATERMARK_REMOVER_URL;
+  const modalApiKey = params.priority
+    ? process.env.MODAL_WATERMARK_REMOVER_PRIORITY_API_KEY || process.env.MODAL_WATERMARK_REMOVER_API_KEY
+    : process.env.MODAL_WATERMARK_REMOVER_NORMAL_API_KEY || process.env.MODAL_WATERMARK_REMOVER_API_KEY;
   if (!modalUrl || !modalApiKey) return null;
 
   const formData = new FormData();
   formData.append("file", new Blob([new Uint8Array(params.buffer)], { type: params.file.type }), params.file.name || "image.png");
   formData.append("region", JSON.stringify(params.region));
   formData.append("strength", String(params.strength));
+  formData.append("priority", String(params.priority));
+  formData.append("queue", params.priority ? "priority" : "normal");
 
   const response = await fetch(`${modalUrl.replace(/\/$/, "")}/remove-watermark`, {
     method: "POST",
     headers: { "X-Api-Key": modalApiKey },
     body: formData,
-    signal: AbortSignal.timeout(90000),
+    signal: AbortSignal.timeout(params.priority ? 60000 : 90000),
   });
 
   if (!response.ok) {
@@ -69,6 +78,25 @@ async function tryModalWatermarkRemoval(params: {
   }
 
   return Buffer.from(await response.arrayBuffer());
+}
+
+async function getPriorityContext() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { priority: false, queue: "normal" as const };
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { plan: true, subscriptionStatus: true },
+    });
+
+    const priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
+    return { priority, queue: priority ? "priority" as const : "normal" as const };
+  } catch (error) {
+    console.warn("Could not resolve watermark priority context:", getErrorMessage(error));
+    return { priority: false, queue: "normal" as const };
+  }
 }
 
 async function buildReplacementPatch(buffer: Buffer, rect: { left: number; top: number; width: number; height: number }, imageWidth: number, imageHeight: number, strength: number) {
@@ -130,6 +158,7 @@ export async function POST(req: NextRequest) {
 
     const region = parseRegion(formData.get("region"));
     const strength = parseStrength(formData.get("strength"));
+    const context = await getPriorityContext();
     const buffer = Buffer.from(await file.arrayBuffer());
     const metadata = await sharp(buffer).metadata();
     const imageWidth = metadata.width || 0;
@@ -143,8 +172,8 @@ export async function POST(req: NextRequest) {
     let outputBuffer: Buffer | null = null;
 
     try {
-      outputBuffer = await tryModalWatermarkRemoval({ buffer, file, region, strength });
-      if (outputBuffer) provider = "modal-inpainting";
+      outputBuffer = await tryModalWatermarkRemoval({ buffer, file, region, strength, priority: context.priority });
+      if (outputBuffer) provider = context.priority ? "modal-priority-inpainting" : "modal-inpainting";
     } catch (modalError) {
       console.error("Modal watermark removal failed:", getErrorMessage(modalError));
     }
@@ -176,6 +205,8 @@ export async function POST(req: NextRequest) {
         "X-Lumora-Provider": provider,
         "X-Lumora-Width": String(outputMetadata.width || ""),
         "X-Lumora-Height": String(outputMetadata.height || ""),
+        "X-Lumora-Priority": context.priority ? "true" : "false",
+        "X-Lumora-Queue": context.queue,
       },
     });
   } catch (error: unknown) {

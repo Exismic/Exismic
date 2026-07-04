@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToolCard } from "@/components/ui/ToolCard";
 import { TOOLS } from "@/data/tools";
-import { LayoutGrid, Search, AlertCircle, TrendingUp, LogIn } from "lucide-react";
+import { LayoutGrid, Search, AlertCircle, TrendingUp, LogIn, Cloud, Laptop, Wrench } from "lucide-react";
 import { CategorySection } from "@/components/tool/CategorySection";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
@@ -67,6 +67,30 @@ export default function ToolsLibraryPage() {
              <div className="max-w-md text-zinc-500 font-medium text-sm leading-relaxed md:text-right">
                 Browse our complete suite of AI-powered creative tools. From cinematic video editing to advanced image manipulation, everything you need is right here.
              </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-cyan-300/15 bg-cyan-400/[0.04] p-4">
+              <div className="flex items-center gap-3">
+                <Cloud size={16} className="text-cyan-200" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100">Service-backed</p>
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Uses Lumora backend, Modal, or AI providers for the core result.</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-center gap-3">
+                <Laptop size={16} className="text-zinc-200" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-200">Local tools</p>
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Runs mostly in your browser, with faster startup and fewer service dependencies.</p>
+            </div>
+            <div className="rounded-2xl border border-amber-300/20 bg-amber-400/[0.05] p-4">
+              <div className="flex items-center gap-3">
+                <Wrench size={16} className="text-amber-200" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-100">Beta or setup</p>
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Some advanced tools need provider setup before production-quality output.</p>
+            </div>
           </div>
 
           {/* Search Bar */}

@@ -1,18 +1,20 @@
 "use client";
 
 import React from "react";
-import { Zap, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 import { useCredits } from "@/hooks/useCredits";
 import { cn } from "@/lib/utils";
 import { CreditModal } from "./CreditModal";
+import { CreditTokenIcon } from "./CreditTokenIcon";
+import { Skeleton } from "./Skeleton";
+import { usePro } from "@/hooks/usePro";
 
 export function CreditBadge() {
   const { credits, plan, loading, showUpsell, setShowUpsell, countdown } = useCredits();
-  const isPro = plan === 'pro';
+  const { isPro: verifiedIsPro, isLoading: isProLoading } = usePro();
+  const isPro = verifiedIsPro || plan === 'pro';
 
-  if (loading) return (
-    <div className="w-24 h-9 bg-white/5 animate-pulse rounded-full" />
-  );
+  if (loading || isProLoading) return <Skeleton className="h-11 w-36 rounded-full" />;
 
   return (
     <>
@@ -21,21 +23,19 @@ export function CreditBadge() {
           <button
             onClick={() => setShowUpsell(true)}
             className={cn(
-              "group flex items-center gap-2.5 px-4 py-2 rounded-full border transition-all duration-500",
-              "bg-zinc-950/40 backdrop-blur-xl border-white/5 hover:border-white/20 hover:bg-zinc-900/60 hover:scale-[1.02]",
-              isPro ? "shadow-[0_0_20px_rgba(168,85,247,0.1)]" : "shadow-2xl"
+              "group/vault relative flex h-10 items-center gap-2.5 overflow-hidden rounded-full border pl-2.5 pr-4 transition-all duration-500",
+              "border-white/10 bg-[#07070c]/80 shadow-[0_12px_30px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl hover:-translate-y-0.5 hover:border-cyan-300/35 hover:bg-[#0a0a12]",
+              isPro && "shadow-[0_15px_40px_rgba(168,85,247,0.12)] hover:border-purple-500/30"
             )}
           >
-            <div className={cn(
-              "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-500 group-hover:scale-110",
-              isPro ? "bg-accent-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.5)]" : "bg-zinc-800 text-zinc-400"
-            )}>
-              <Zap size={11} fill="currentColor" className={isPro ? "animate-pulse" : ""} />
-            </div>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_80%_50%,rgba(34,211,238,0.15),transparent_30%)] opacity-70" />
+            <div className="pointer-events-none absolute inset-y-0 -left-10 w-10 skew-x-[-18deg] bg-white/10 blur-sm transition-transform duration-1000 group-hover/vault:translate-x-44" />
+            <CreditTokenIcon />
             
-            <div className="flex items-center gap-2">
-              <span suppressHydrationWarning className="text-[11px] font-black tracking-tight text-white uppercase">
-                {credits.toLocaleString()} <span className="text-zinc-500 font-bold ml-0.5">Credits</span>
+            <div className="relative z-10 flex items-center">
+              <span suppressHydrationWarning className="flex items-center gap-1.5 text-xs font-black tracking-tight text-white uppercase">
+                <span className="animate-gradient-x bg-linear-to-r from-cyan-200 via-white to-purple-300 bg-[length:220%_100%] bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(34,211,238,0.15)]">{credits.toLocaleString()}</span>
+                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500/80">Credits</span>
               </span>
             </div>
           </button>
@@ -62,7 +62,7 @@ export function CreditBadge() {
       <CreditModal 
         isOpen={showUpsell} 
         onClose={() => setShowUpsell(false)} 
-        plan={plan as 'free' | 'pro'} 
+        plan={isPro ? 'pro' : 'free'}
         credits={credits}
       />
     </>

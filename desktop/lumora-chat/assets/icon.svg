@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="rim" x1="86" y1="52" x2="428" y2="458" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E85BFF"/>
+      <stop offset="0.42" stop-color="#744CFF"/>
+      <stop offset="0.72" stop-color="#2A92FF"/>
+      <stop offset="1" stop-color="#00E2DA"/>
+    </linearGradient>
+    <linearGradient id="core" x1="160" y1="138" x2="350" y2="374" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B152C"/>
+      <stop offset="1" stop-color="#080913"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0.5 0 0 0 0.3  0 0.5 0 0 0.2  0 0 0.8 0 1  0 0 0 0.8 0"/>
+    </filter>
+  </defs>
+  <path d="M256 45L413 136V376L256 467L99 376V136L256 45Z" fill="url(#rim)" opacity="0.42" filter="url(#glow)"/>
+  <path d="M256 55L419 149V363L256 457L93 363V149L256 55Z" fill="url(#rim)"/>
+  <path d="M256 91L388 167V345L256 421L124 345V167L256 91Z" fill="url(#core)"/>
+  <path d="M198 158V330H326" stroke="white" stroke-width="45" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="378" cy="126" r="17" fill="#60F5EA"/>
+  <circle cx="135" cy="382" r="12" fill="#F37CFF"/>
+</svg>

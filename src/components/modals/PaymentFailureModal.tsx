@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, AlertCircle, RefreshCcw, ArrowLeft } from "lucide-react";
+import { AlertCircle, RefreshCcw, ArrowLeft } from "lucide-react";
 import GradientText from "@/components/ui/GradientText";
 
 interface PaymentFailureModalProps {
@@ -15,7 +15,7 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
   return (
     <AnimatePresence>
       {isOpen && (
-        <div key="payment-failure-modal" className="fixed inset-0 z-[130] flex items-center justify-center p-6">
+        <div key="payment-failure-modal" className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -28,20 +28,23 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
             initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 30 }}
-            className="relative w-full max-w-lg glass-dark border border-red-500/10 rounded-[3rem] p-12 overflow-hidden shadow-4xl text-center"
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Payment failed"
+            className="glass-dark relative max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-red-500/10 p-5 text-center shadow-4xl sm:rounded-[3rem] sm:p-10 lg:p-12"
           >
             {/* Error Glow */}
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-red-500/5 blur-[120px] pointer-events-none opacity-40" />
 
-            <div className="space-y-10 relative z-10">
+            <div className="relative z-10 space-y-7 sm:space-y-10">
                <div className="flex justify-center">
-                  <div className="w-24 h-24 rounded-[2rem] bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shadow-[0_0_40px_rgba(239,68,68,0.2)]">
-                     <AlertCircle size={48} />
+                  <div className="flex h-20 w-20 items-center justify-center rounded-[1.75rem] border border-red-500/20 bg-red-500/10 text-red-500 shadow-[0_0_40px_rgba(239,68,68,0.2)] sm:h-24 sm:w-24 sm:rounded-[2rem]">
+                     <AlertCircle size={42} />
                   </div>
                </div>
 
                <div className="space-y-4">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white sm:text-4xl">
                      Payment <GradientText className="from-red-500 to-orange-500">Failed.</GradientText>
                   </h2>
                   <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed max-w-xs mx-auto">

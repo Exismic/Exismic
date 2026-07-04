@@ -1,135 +1,175 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id            String    @id
-  name          String?
-  username      String?   @unique
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  customAvatarUrl String? @map("custom_avatar_url")
-  themePreference String? @map("theme_preference")
-  avatarFrame String? @map("avatar_frame")
-  nameGradient String? @map("name_gradient")
-  discordUserId String? @map("discord_user_id")
-  discordUsername String? @map("discord_username")
-  discordDmEnabled Boolean @default(false) @map("discord_dm_enabled")
-  accounts      Account[]
-  sessions      Session[]
-  files         UserFile[]
-  jobs          Job[]
-  notifications Notification[]
-  favorites     Favorite[]
-  chatSessions  ChatSession[]
-  codeProjects  CodeProject[]
-  dailyCredits    Int       @default(50) @map("daily_credits")
-  lifetimeCredits Int       @default(0)  @map("lifetime_credits")
-  
-  // Usage Tracking
-  plan              String    @default("free") // "free" | "pro"
-  subscriptionId    String?
-  subscriptionStatus String   @default("none") @map("subscription_status") // "none" | "active" | "cancelled"
-  planExpiresAt     DateTime? @map("plan_expires_at")
-  
-  aiMessagesToday   Int       @default(0)  @map("ai_messages_today")
-  aiMessagesReset   DateTime? @map("ai_messages_reset")
-  creditsLastReset  DateTime? @map("credits_last_reset")
-  
-  aiGenerationsUsed Int       @default(0)
-  aiGenerationsLimit Int      @default(50)
-  nextResetDate     DateTime?
-  
-  context       UserContext?
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                     String                  @id
+  name                   String?
+  username               String?                 @unique
+  email                  String?                 @unique
+  emailVerified          DateTime?
+  image                  String?
+  plan                   String                  @default("free")
+  subscriptionId         String?
+  aiGenerationsUsed      Int                     @default(0)
+  aiGenerationsLimit     Int                     @default(50)
+  nextResetDate          DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  aiMessagesReset        DateTime?               @map("ai_messages_reset")
+  aiMessagesToday        Int                     @default(0) @map("ai_messages_today")
+  creditsLastReset       DateTime?               @map("credits_last_reset")
+  dailyCredits           Int                     @default(50) @map("daily_credits")
+  lifetimeCredits        Int                     @default(0) @map("lifetime_credits")
+  planExpiresAt          DateTime?               @map("plan_expires_at")
+  subscriptionStatus     String                  @default("none") @map("subscription_status")
+  customAvatarUrl        String?                 @map("custom_avatar_url")
+  themePreference        String?                 @map("theme_preference")
+  avatarFrame            String?                 @map("avatar_frame")
+  nameGradient           String?                 @map("name_gradient")
+  discordUserId          String?                 @map("discord_user_id")
+  discordUsername        String?                 @map("discord_username")
+  discordDmEnabled       Boolean                 @default(false) @map("discord_dm_enabled")
+  accounts               Account[]
+  chatSessions           ChatSession[]
+  codeProjects           CodeProject[]
+  favorites              Favorite[]
+  jobs                   Job[]
+  notifications          Notification[]
+  sessions               Session[]
+  context                UserContext?
+  files                  UserFile[]
+  trustedLoginDevices    TrustedLoginDevice[]
+  trustedLoginChallenges TrustedLoginChallenge[]
+}
+
+model TrustedLoginDevice {
+  id                     String                  @id @default(cuid())
+  userId                 String                  @unique @map("user_id")
+  loginEmail             String                  @unique @map("login_email")
+  deviceTokenHash        String                  @unique @map("device_token_hash")
+  deviceName             String                  @map("device_name")
+  deviceType             String                  @default("phone") @map("device_type")
+  platform               String?
+  browserName            String?                 @map("browser_name")
+  osVersion              String?                 @map("os_version")
+  deviceModel            String?                 @map("device_model")
+  notificationPermission String?                 @map("notification_permission")
+  pushEndpoint           String?                 @unique @map("push_endpoint") @db.Text
+  pushP256dh             String?                 @map("push_p256dh") @db.Text
+  pushAuth               String?                 @map("push_auth") @db.Text
+  status                 String                  @default("active")
+  lastIp                 String?                 @map("last_ip")
+  userAgent              String?                 @map("user_agent")
+  setupCompletedAt       DateTime                @default(now()) @map("setup_completed_at")
+  lastSeenAt             DateTime                @default(now()) @map("last_seen_at")
+  expiresAt              DateTime                @map("expires_at")
+  revokedAt              DateTime?               @map("revoked_at")
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenges             TrustedLoginChallenge[]
+
+  @@index([userId, status, expiresAt])
+  @@map("trusted_login_devices")
+}
+
+model TrustedLoginChallenge {
+  id                String             @id @default(cuid())
+  userId            String             @map("user_id")
+  deviceId          String             @map("device_id")
+  loginEmail        String             @map("login_email")
+  browserTokenHash  String             @map("browser_token_hash")
+  approvalTokenHash String             @map("approval_token_hash")
+  status            String             @default("pending")
+  requestIp         String?            @map("request_ip")
+  requestDevice     String?            @map("request_device")
+  requestUserAgent  String?            @map("request_user_agent") @db.Text
+  returnUrl         String             @default("/dashboard") @map("return_url")
+  expiresAt         DateTime           @map("expires_at")
+  respondedAt       DateTime?          @map("responded_at")
+  consumedAt        DateTime?          @map("consumed_at")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device            TrustedLoginDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([loginEmail, status, expiresAt])
+  @@index([deviceId, status])
+  @@map("trusted_login_challenges")
 }
 
 model UserContext {
   id            String   @id @default(cuid())
   userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activeProject String?  // e.g. "Discord Bot"
-  recentFiles   String?  // JSON string
-  preferences   String?  // JSON string
-  memories      String?  // Long term context/notes
+  activeProject String?
+  recentFiles   String?
+  preferences   String?
+  memories      String?
   lastUpdated   DateTime @default(now()) @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   message   String
-  type      String   // success, info, warning
+  type      String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserFile {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toolType      String   // e.g. "magic-eraser", "vocal-remover", "ai-image-generator"
-  originalName  String
-  originalUrl   String?
-  resultUrl     String?
-  fileType      String   // image, audio, video, pdf, etc.
-  status        String   // "completed", "failed", "processing"
-  createdAt     DateTime @default(now())
-  metadata      Json?    // extra info like prompt, size, etc.
+  id           String   @id @default(cuid())
+  userId       String
+  toolType     String
+  originalName String
+  originalUrl  String?
+  resultUrl    String?
+  fileType     String
+  status       String
+  createdAt    DateTime @default(now())
+  metadata     Json?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Job {
-  id           String    @id @default(cuid())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toolType     String    // bg-remove, pdf-merge, etc.
-  status       JobStatus @default(PENDING)
-  progress     Int       @default(0)
-  originalUrl  String?
-  resultUrl    String?
-  error        String?
-  metadata     Json?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  userId      String
+  toolType    String
+  status      JobStatus @default(PENDING)
+  progress    Int       @default(0)
+  originalUrl String?
+  resultUrl   String?
+  error       String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum JobStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-// NextAuth models
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -150,12 +190,25 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model AuthRateLimit {
+  id              BigInt   @id @default(autoincrement())
+  email           String
+  type            String
+  lastRequestedAt DateTime @default(now()) @map("last_requested_at") @db.Timestamptz(6)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([email, type])
+  @@index([email, type])
+  @@map("auth_rate_limits")
+}
+
 model Favorite {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toolId    String   // The ID or slug of the tool
+  toolId    String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, toolId])
 }
@@ -163,19 +216,146 @@ model Favorite {
 model ChatSession {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String   @default("New Chat")
-  messages  String   // JSON string of messages to avoid Prisma Json type issues with complex objects in SQLite
+  messages  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CodeProject {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
-  files     String   // JSON string of file structure and contents
+  files     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_agents {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String                  @db.Uuid
+  name                  String
+  business_name         String
+  website_url           String?
+  description           String?
+  tone                  String                  @default("friendly")
+  welcome_message       String
+  fallback_message      String
+  primary_color         String                  @default("#8B5CF6")
+  widget_position       String                  @default("bottom-right")
+  theme                 String                  @default("midnight")
+  lead_capture_enabled  Boolean                 @default(true)
+  created_at            DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                @default(now()) @db.Timestamptz(6)
+  widget_icon_url       String?
+  support_conversations support_conversations[]
+  support_documents     support_documents[]
+  support_leads         support_leads[]
+  support_messages      support_messages[]
+  support_usage_logs    support_usage_logs[]
+
+  @@index([user_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_conversations {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agent_id         String             @db.Uuid
+  visitor_id       String?
+  lead_id          String?            @db.Uuid
+  status           String             @default("open")
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @default(now()) @db.Timestamptz(6)
+  support_agents   support_agents     @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  support_messages support_messages[]
+
+  @@index([agent_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_documents {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agent_id       String         @db.Uuid
+  user_id        String         @db.Uuid
+  title          String
+  source_type    String         @default("document")
+  source_url     String?
+  content        String?
+  metadata       Json           @default("{}")
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime       @default(now()) @db.Timestamptz(6)
+  support_agents support_agents @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([agent_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_leads {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agent_id       String         @db.Uuid
+  name           String?
+  email          String?
+  phone          String?
+  message        String?
+  metadata       Json           @default("{}")
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  support_agents support_agents @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([agent_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_messages {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id       String                @db.Uuid
+  agent_id              String                @db.Uuid
+  role                  String
+  content               String
+  metadata              Json                  @default("{}")
+  created_at            DateTime              @default(now()) @db.Timestamptz(6)
+  support_agents        support_agents        @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  support_conversations support_conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([agent_id])
+  @@index([conversation_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_usage_logs {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agent_id       String         @db.Uuid
+  user_id        String         @db.Uuid
+  event_type     String
+  units          Int            @default(1)
+  metadata       Json           @default("{}")
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  support_agents support_agents @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([agent_id, user_id], map: "support_usage_logs_agent_user_idx")
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model PaymentTransaction {
+  id                String   @id @default(cuid())
+  provider          String   @default("razorpay")
+  providerPaymentId String   @unique @map("provider_payment_id")
+  providerOrderId   String?  @map("provider_order_id")
+  userId            String   @map("user_id")
+  kind              String
+  amount            Int
+  currency          String
+  metadata          Json?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("payment_transactions")
 }

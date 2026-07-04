@@ -3,6 +3,14 @@
 import { useState } from "react";
 import axios from "axios";
 
+function getProcessingErrorMessage(error: unknown) {
+  if (axios.isAxiosError<{ error?: string }>(error)) {
+    return error.response?.data?.error || "Processing failed. Please try again.";
+  }
+
+  return error instanceof Error ? error.message : "Processing failed. Please try again.";
+}
+
 export function useToolProcessor(toolEndpoint: string) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -18,14 +26,14 @@ export function useToolProcessor(toolEndpoint: string) {
     const formData = new FormData();
     formData.append("file", file);
 
+    const progressInterval = setInterval(() => {
+      setProgress(prev => (prev < 90 ? prev + 5 : prev));
+    }, 500);
+
     try {
       // Phase 2: Simple POST request
       // In a real prod setup, we'd use SSE or WebSockets for real progress
       // Here we simulate progress while waiting for the response
-      const progressInterval = setInterval(() => {
-        setProgress(prev => (prev < 90 ? prev + 5 : prev));
-      }, 500);
-
       const response = await axios.post(toolEndpoint, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -36,9 +44,10 @@ export function useToolProcessor(toolEndpoint: string) {
       setIsProcessing(false);
       
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      clearInterval(progressInterval);
       setIsProcessing(false);
-      setError(err.response?.data?.error || "Processing failed. Please try again.");
+      setError(getProcessingErrorMessage(err));
       console.error("Processing Error:", err);
     }
   };

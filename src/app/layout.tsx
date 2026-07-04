@@ -3,26 +3,21 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { Search, Bell, Sparkles } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
-import { cn } from "@/lib/utils";
-
 import { SessionProvider } from "@/components/providers/SessionProvider";
-import { UserMenu } from "@/components/layout/UserMenu";
-import { SearchBar } from "@/components/layout/SearchBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { AppLoader } from "@/components/providers/AppLoader";
 import { Suspense } from "react";
 import { createClient } from "@/utils/supabase/server";
 import { Footer } from "@/components/layout/Footer";
 import { I18nProvider } from "@/components/providers/I18nProvider";
-import { CreditBadge } from "@/components/ui/CreditBadge";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { MagicCommandPalette } from "@/components/layout/MagicCommandPalette";
 import { ProfileThemeProvider } from "@/components/providers/ProfileThemeProvider";
+import { GlobalToolAssistant } from "@/components/tool/GlobalToolAssistant";
 
 import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
 
@@ -42,6 +37,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#07070a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://mgirjaamphcgnispdofo.supabase.co" />
@@ -77,6 +76,7 @@ export default async function RootLayout({
                   </div>
                   <CookieConsent />
                   <MagicCommandPalette />
+                  <GlobalToolAssistant />
                 </I18nProvider>
               </ProfileThemeProvider>
             </SessionProvider>

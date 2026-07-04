@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Session } from "@supabase/supabase-js";
 import { 
   Sparkles, 
   Search, 
@@ -20,27 +21,24 @@ import {
   LogOut,
   ChevronDown,
   BookOpen,
-  Star,
-  Activity,
-  History,
   CreditCard
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
-import GradientText from "../ui/GradientText";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
 import { ManageSubscriptionModal } from "../tool/ManageSubscriptionModal";
 import { CreditModal } from "../ui/CreditModal";
-import { VerifiedTick } from "../ui/VerifiedTick";
-import { ProBadge, GradientProText } from "../ui/ProBadge";
+import { ProBadge } from "../ui/ProBadge";
 import { UserProfile } from "../ui/UserProfile";
 import { AvatarWithFrame } from "../ui/AvatarWithFrame";
+import { CreditTokenIcon } from "../ui/CreditTokenIcon";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
@@ -51,8 +49,8 @@ export function Navbar() {
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
-  const { isPro, user: dbUser, refresh: refreshPro } = usePro();
-  const { credits, showUpsell, setShowUpsell, refreshCredits } = useCredits();
+  const { isPro, isLoading: isProLoading, user: dbUser, refresh: refreshPro } = usePro();
+  const { credits, showUpsell, setShowUpsell } = useCredits();
   const supabase = createClient();
 
   const [localFrameId, setLocalFrameId] = useState<string | null>(null);
@@ -181,6 +179,55 @@ export function Navbar() {
   const totalLimit = dbUser?.aiGenerationsLimit ?? 50;
   const progressPercent = Math.min((usageCount / totalLimit) * 100, 100);
 
+  const getNavIcon = (name: string) => {
+    switch (name) {
+      case "Dashboard":
+        return LayoutDashboard;
+      case "Tools":
+        return FolderOpen;
+      case "AI Chat":
+        return MessageSquare;
+      case "Code Studio":
+        return Code2;
+      case "Explore":
+        return Sparkles;
+      case "Pricing":
+        return CreditCard;
+      case "Blog":
+        return BookOpen;
+      default:
+        return Sparkles;
+    }
+  };
+
+  const isNavLinkActive = (link: (typeof loggedInLinks)[number] | (typeof loggedOutLinks)[number]) => {
+    if (link.name === "Tools" && link.isDropdown) {
+      const isSpecializedWorkspace =
+        pathname.startsWith("/tools/ai/chat") ||
+        pathname.startsWith("/tools/ai/code") ||
+        pathname.startsWith("/chat");
+
+      return toolsDropdownOpen ||
+        pathname.startsWith("/category/") ||
+        (pathname.startsWith("/tools/") && !isSpecializedWorkspace);
+    }
+
+    if (link.name === "AI Chat") {
+      return pathname.startsWith("/chat") || pathname.startsWith("/tools/ai/chat");
+    }
+
+    if (link.name === "Code Studio") {
+      return pathname.startsWith("/tools/ai/code");
+    }
+
+    if (link.name === "Explore") {
+      return pathname === "/tools";
+    }
+
+    return pathname === link.href ||
+      (link.href !== "/" && link.href !== "#" && pathname.startsWith(link.href));
+  };
+
   return (
     <>
       <header 
@@ -197,24 +244,91 @@ export function Navbar() {
       >
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between relative">
           
-          {/* Left Side: Desktop Navigation Links (Logo removed completely) */}
-          <div className="flex items-center gap-6 relative z-50">
-            <nav className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-md relative">
+          {/* Desktop search and notifications */}
+          <div className="relative z-50 hidden items-center gap-2 md:flex">
+            <button
+              type="button"
+              onClick={handleSearchClick}
+              className="group/search relative flex h-12 w-[clamp(260px,31vw,430px)] items-center gap-3 overflow-hidden rounded-2xl border border-white/[0.09] bg-[#08080d]/84 px-3.5 text-left shadow-[0_16px_45px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all duration-300 hover:border-cyan-300/20 hover:bg-[#0a0a11] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-[0.99]"
+              title="Global AI Search & Commands (Ctrl+K)"
+              aria-label="Open global search"
+            >
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(168,85,247,0.12),transparent_37%),radial-gradient(circle_at_92%_100%,rgba(34,211,238,0.08),transparent_36%)] opacity-80"
+              />
+              <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-zinc-400 transition-all duration-300 group-hover/search:border-cyan-300/20 group-hover/search:text-cyan-200 group-hover/search:shadow-[0_0_18px_rgba(34,211,238,0.1)]">
+                <Search size={15} strokeWidth={2.2} />
+              </span>
+              <span className="relative min-w-0 flex-1 truncate text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500 transition-colors group-hover/search:text-zinc-300">
+                Search tools, commands, and creations
+              </span>
+              <kbd className="relative hidden h-7 shrink-0 items-center gap-1 rounded-lg border border-white/[0.08] bg-black/35 px-2 text-[8px] font-black uppercase tracking-[0.12em] text-zinc-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] group-hover/search:text-zinc-400 lg:flex">
+                Ctrl <span className="text-zinc-700">+</span> K
+              </kbd>
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-8 bottom-0 h-px origin-center scale-x-0 bg-linear-to-r from-transparent via-purple-400 to-cyan-300 opacity-0 transition-all duration-500 group-hover/search:scale-x-100 group-hover/search:opacity-80"
+              />
+            </button>
+
+            <NotificationsDropdown />
+          </div>
+
+          {/* Navigation remains available in the mobile drawer. */}
+          <div className="hidden">
+            <nav className="group/nav relative hidden h-14 items-center gap-1 overflow-visible rounded-[18px] border border-white/[0.09] bg-[#07070c]/88 p-1.5 shadow-[0_18px_55px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl md:flex">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-[18px] bg-[radial-gradient(circle_at_18%_-35%,rgba(168,85,247,0.18),transparent_43%),radial-gradient(circle_at_82%_135%,rgba(34,211,238,0.11),transparent_42%)]"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-5 top-0 h-px overflow-hidden"
+              >
+                <motion.span
+                  className="absolute inset-y-0 w-20 bg-linear-to-r from-transparent via-fuchsia-400 to-cyan-300 shadow-[0_0_12px_rgba(103,232,249,0.72)]"
+                  animate={{ x: ["-120%", "560%"] }}
+                  transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.4 }}
+                />
+              </span>
+
               {navLinks.map((link) => {
-                const isActive = pathname === link.href || (link.href !== "/" && link.href !== "#" && pathname.startsWith(link.href));
+                const isActive = isNavLinkActive(link);
+                const NavIcon = getNavIcon(link.name);
                 
                 if (link.isDropdown) {
                   return (
                     <div key={link.name} className="relative" ref={toolsDropdownRef}>
                       <button 
                         onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
+                        aria-expanded={toolsDropdownOpen}
+                        aria-haspopup="menu"
                         className={cn(
-                          "relative px-5 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 rounded-full flex items-center gap-1 hover:text-white",
-                          toolsDropdownOpen ? "text-white" : "text-zinc-400"
+                          "group/item relative flex h-11 min-w-11 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.13em] transition-all duration-300 xl:px-4",
+                          isActive ? "text-white" : "text-zinc-400 hover:bg-white/[0.045] hover:text-white"
                         )}
                       >
-                        <span>{link.name}</span>
-                        <ChevronDown size={12} className={cn("transition-transform duration-300", toolsDropdownOpen && "rotate-180")} />
+                        {isActive && (
+                          <motion.span
+                            layoutId="activeNavIndicator"
+                            className="absolute inset-0 rounded-xl border border-white/[0.13] bg-[linear-gradient(135deg,rgba(168,85,247,0.17),rgba(10,10,16,0.88)_54%,rgba(34,211,238,0.12))] shadow-[0_7px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                          />
+                        )}
+                        <span className={cn(
+                          "relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-all duration-300",
+                          isActive
+                            ? "border-cyan-300/25 bg-cyan-300/[0.08] text-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.12)]"
+                            : "border-white/[0.07] bg-white/[0.025] text-zinc-500 group-hover/item:border-purple-400/20 group-hover/item:text-purple-200"
+                        )}>
+                          <NavIcon size={14} strokeWidth={2.2} />
+                        </span>
+                        <span className="relative z-10 whitespace-nowrap">{link.name}</span>
+                        <ChevronDown
+                          size={12}
+                          className={cn("relative z-10 text-zinc-600 transition-all duration-300 group-hover/item:text-zinc-300", toolsDropdownOpen && "rotate-180 text-cyan-200")}
+                        />
                       </button>
 
                       {/* Tools Dropdown Menu */}
@@ -286,18 +400,29 @@ export function Navbar() {
                     key={link.href} 
                     href={link.href}
                     className={cn(
-                      "relative px-5 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 rounded-full",
-                      isActive ? "text-white" : "text-zinc-400 hover:text-zinc-100"
+                      "group/item relative flex h-11 min-w-11 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.13em] transition-all duration-300 xl:px-4",
+                      isActive ? "text-white" : "text-zinc-400 hover:bg-white/[0.045] hover:text-white"
                     )}
                   >
                     {isActive && (
-                      <motion.div 
+                      <motion.span
                         layoutId="activeNavIndicator"
-                        className="absolute inset-0 bg-white/[0.04] backdrop-blur-md rounded-full border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        className="absolute inset-0 rounded-xl border border-white/[0.13] bg-[linear-gradient(135deg,rgba(168,85,247,0.17),rgba(10,10,16,0.88)_54%,rgba(34,211,238,0.12))] shadow-[0_7px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
                       />
                     )}
-                    <span className="relative z-10">{link.name}</span>
+                    <span className={cn(
+                      "relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-all duration-300",
+                      isActive
+                        ? "border-purple-300/25 bg-purple-300/[0.08] text-purple-200 shadow-[0_0_16px_rgba(168,85,247,0.13)]"
+                        : "border-white/[0.07] bg-white/[0.025] text-zinc-500 group-hover/item:border-cyan-300/20 group-hover/item:text-cyan-200"
+                    )}>
+                      <NavIcon size={14} strokeWidth={2.2} />
+                    </span>
+                    <span className="relative z-10 whitespace-nowrap">{link.name}</span>
+                    {isActive && (
+                      <span className="relative z-10 h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_9px_rgba(103,232,249,0.9)]" />
+                    )}
                   </Link>
                 );
               })}
@@ -306,10 +431,10 @@ export function Navbar() {
 
           {/* Right Side: Search, Credits, Pro Badge, Profile */}
           <div className="hidden md:flex items-center gap-4 relative z-50">
-            {/* Prominent Search Bar (Desktop) */}
+            {/* Search lives on the left side of the desktop header. */}
             <div 
               onClick={handleSearchClick}
-              className="hidden lg:flex items-center gap-3 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/12 rounded-2xl text-zinc-500 hover:text-zinc-400 cursor-pointer transition-all duration-300 w-[240px] shadow-sm select-none active:scale-[0.98]"
+              className="hidden"
               title="Global AI Search & Commands (Ctrl+K)"
             >
               <Search size={14} className="text-zinc-500 shrink-0" />
@@ -322,10 +447,10 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* Tiny Search Button (Mobile/Tablet/Medium screens) */}
+            {/* Search lives on the left side of the desktop header. */}
             <button 
               onClick={handleSearchClick}
-              className="flex lg:hidden w-10 h-10 rounded-full bg-zinc-900/40 hover:bg-zinc-900/80 border border-white/5 hover:border-white/15 items-center justify-center text-zinc-400 hover:text-white transition-all duration-300 relative group active:scale-95 shadow-md"
+              className="hidden"
               title="Global AI Search (Ctrl+K)"
             >
               <Search size={16} className="transition-transform duration-300 group-hover:scale-110" />
@@ -336,17 +461,14 @@ export function Navbar() {
                 {/* 1. Credits Pill */}
                 <div 
                   onClick={() => setShowUpsell(true)}
-                  className="h-10 pl-3.5 pr-4 rounded-full bg-zinc-950/40 hover:bg-zinc-950/80 border border-white/5 hover:border-accent-purple/30 flex items-center gap-2.5 transition-all duration-300 cursor-pointer shadow-md group active:scale-95"
+                  className="group/vault relative flex h-10 cursor-pointer items-center gap-2.5 overflow-hidden rounded-full border border-white/10 bg-[#07070c]/80 pl-2.5 pr-4 shadow-[0_12px_30px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-300/35 hover:bg-[#0a0a12] hover:shadow-[0_15px_40px_rgba(34,211,238,0.14)] active:scale-95"
                 >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500",
-                    isPro ? "bg-accent-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.4)] animate-pulse" : "bg-zinc-800 text-zinc-400"
-                  )}>
-                    <Zap size={10} fill="currentColor" />
-                  </div>
-                  <span className="text-xs font-black tracking-tight text-white flex items-center gap-1">
-                    <span className="bg-linear-to-r from-accent-purple to-accent-cyan bg-clip-text text-transparent">{credits.toLocaleString()}</span>
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest pl-0.5">Credits</span>
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_80%_50%,rgba(34,211,238,0.15),transparent_30%)] opacity-70" />
+                  <div className="pointer-events-none absolute inset-y-0 -left-10 w-10 skew-x-[-18deg] bg-white/10 blur-sm transition-transform duration-1000 group-hover/vault:translate-x-44" />
+                  <CreditTokenIcon />
+                  <span className="relative z-10 flex items-center gap-1.5 text-xs font-black tracking-tight text-white uppercase">
+                    <span suppressHydrationWarning className="animate-gradient-x bg-linear-to-r from-cyan-200 via-white to-purple-300 bg-[length:220%_100%] bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(34,211,238,0.15)]">{credits.toLocaleString()}</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500/80">Credits</span>
                   </span>
                 </div>
 
@@ -469,13 +591,20 @@ export function Navbar() {
           <div className="flex md:hidden items-center gap-3 relative z-50">
             <button 
               onClick={handleSearchClick}
+              aria-label="Open global search"
               className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition-all"
             >
               <Search size={16} />
             </button>
+
+            <div className="[&_button]:h-11 [&_button]:w-11 [&_button]:rounded-xl">
+              <NotificationsDropdown />
+            </div>
             
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
               className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white transition-all"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -506,13 +635,15 @@ export function Navbar() {
                 <div className="flex flex-col gap-1.5">
                   <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2 px-3">Navigation</p>
                   {navLinks.map((link) => {
-                    const isActive = pathname === link.href;
-                    if (link.isDropdown) return null; // Avoid rendering full columns on small screens
+                    const mobileHref = link.isDropdown ? "/tools" : link.href;
+                    const isActive = link.isDropdown
+                      ? pathname === "/tools" || pathname.startsWith("/category/")
+                      : pathname === link.href;
                     
                     return (
                       <Link 
-                        key={link.href} 
-                        href={link.href}
+                        key={`${link.name}-${mobileHref}`}
+                        href={mobileHref}
                         className={cn(
                           "flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all",
                           isActive 
@@ -530,6 +661,14 @@ export function Navbar() {
 
                 {session ? (
                   <div className="flex flex-col gap-4">
+                    <Link
+                      href="/account/settings"
+                      className="flex min-h-12 items-center gap-3 rounded-xl border border-white/5 bg-white/[0.025] px-4 text-xs font-black uppercase tracking-wider text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
+                    >
+                      <Settings size={15} />
+                      Account Settings
+                    </Link>
+
                     <div className="flex justify-between items-center px-4">
                       <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Credits available</span>
                       <span className="text-xs text-white font-bold">{credits.toLocaleString()} Credits</span>
@@ -544,6 +683,16 @@ export function Navbar() {
                     >
                       <Zap size={14} fill="currentColor" /> Buy Credits
                     </button>
+
+                    {!isPro && (
+                      <Link
+                        href="/pro"
+                        className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-purple-300/20 bg-purple-300/[0.07] text-xs font-black uppercase tracking-widest text-purple-100"
+                      >
+                        <Crown size={14} />
+                        Explore Pro
+                      </Link>
+                    )}
                     
                     <button 
                       onClick={async () => {
@@ -589,7 +738,7 @@ export function Navbar() {
 
       {/* Credit Upsell Checkout Modal */}
       <CreditModal 
-        isOpen={showUpsell}
+        isOpen={showUpsell && !isProLoading}
         onClose={() => setShowUpsell(false)}
         plan={isPro ? 'pro' : 'free'}
         credits={credits}

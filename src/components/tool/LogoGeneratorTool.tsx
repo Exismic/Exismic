@@ -22,7 +22,8 @@ import {
   Check,
   Layout as LayoutIcon,
   Sliders,
-  FileText
+  FileText,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
@@ -76,7 +77,7 @@ const COLOR_PALETTES = [
 ];
 
 export function LogoGeneratorTool() {
-  const { deductCredits, credits, plan, notification } = useCredits();
+  const { deductCredits, credits, plan, notification, isPro } = useCredits();
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<string[]>([]);
   const [history, setHistory] = useState<{url: string, brandName: string, prompt: string}[]>([]);
@@ -674,6 +675,12 @@ export function LogoGeneratorTool() {
                           <div className="space-y-3">
                              <h3 className="text-xl font-black text-white tracking-tight animate-pulse uppercase italic">Compiling Logo Vector...</h3>
                              <div className="flex flex-col items-center gap-1.5">
+                                {isPro && (
+                                  <div className="px-3.5 py-1 rounded-full bg-amber-300/10 border border-amber-300/30 flex items-center gap-2 text-[9px] font-black tracking-widest uppercase text-amber-200 shadow-[0_0_22px_rgba(251,191,36,0.12)]">
+                                    <Zap size={11} className="fill-amber-200" />
+                                    Priority Mode
+                                  </div>
+                                )}
                                 <div className="px-3.5 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/30 flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-cyan-400">
                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
                                    <span>Inference Remaining: ~{estimatedTime}s</span>
@@ -819,7 +826,7 @@ export function LogoGeneratorTool() {
                           <button
                             type="button"
                             onClick={() => {
-                              // Simulate vector SVG container wrapped representation
+                              // Package the generated raster mark inside a reusable SVG layout.
                               const svgContent = `
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
                                   <defs>

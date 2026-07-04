@@ -16,6 +16,7 @@ import {
   PanelLeftClose, 
   PanelLeftOpen, 
   ArrowUp, 
+  Send,
   FileText, 
   RefreshCw, 
   Minimize2, 
@@ -33,16 +34,26 @@ import {
   Brain,
   Search,
   Palette,
+  Orbit,
+  BriefcaseBusiness,
   Rocket,
   Flame,
+  Zap,
   Layout,
   Layers,
   Code,
-  Terminal
+  Terminal,
+  GraduationCap,
+  BookOpen,
+  ImagePlus,
+  Pencil,
+  GitBranch,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useChat, cleanTitle } from "@/components/providers/ChatProvider";
+import { useChat, cleanTitle, type ChatMode, type Message } from "@/components/providers/ChatProvider";
 import { LumoraLogo } from "./ChatSidebar";
+import { LumoraMark } from "@/components/ui/LumoraLogo";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -51,7 +62,102 @@ const SLASH_COMMANDS = [
   { id: 'clear', icon: <Trash2 size={16} className="text-red-400" />, label: 'Clear Chat', desc: 'Remove all messages from this view' },
   { id: 'summarize', icon: <FileText size={16} className="text-emerald-400" />, label: 'Summarize Chat', desc: 'Generate a brief summary of the conversation' },
   { id: 'export', icon: <Share2 size={16} className="text-orange-400" />, label: 'Export Chat', desc: 'Save this conversation as a document' },
+  { id: 'remove-bg', icon: <Layers size={16} className="text-fuchsia-300" />, label: 'Remove Background', desc: 'Make an attached image transparent' },
+  { id: 'compress-image', icon: <Minimize2 size={16} className="text-cyan-300" />, label: 'Compress Image', desc: 'Reduce image size while preserving quality' },
+  { id: 'convert-image', icon: <RefreshCw size={16} className="text-violet-300" />, label: 'Convert Image', desc: 'Convert an image to WebP' },
+  { id: 'resize-image', icon: <Maximize2 size={16} className="text-blue-300" />, label: 'Resize Image', desc: 'Resize an image to exact dimensions' },
 ];
+
+const CHAT_MODES: { id: ChatMode; label: string; short: string; description: string }[] = [
+  { id: "auto", label: "Auto Mode", short: "Auto", description: "Detects the best mode per request" },
+  { id: "default", label: "Default", short: "Default", description: "Balanced Lumora replies" },
+  { id: "coding", label: "Coding Mode", short: "Coding", description: "Code, architecture, debugging" },
+  { id: "research", label: "Research Mode", short: "Research", description: "Careful analysis and tradeoffs" },
+  { id: "business", label: "Business Mode", short: "Business", description: "Strategy, execution, metrics" },
+  { id: "creative", label: "Creative Mode", short: "Creative", description: "Original concepts and polish" },
+  { id: "fast", label: "Fast Answers", short: "Fast", description: "Short, direct responses" },
+];
+
+function formatArtifactSize(bytes?: number) {
+  if (!bytes || bytes < 1) return null;
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const getChatModeVisual = (modeId?: ChatMode) => {
+  switch (modeId) {
+    case "auto":
+      return {
+        icon: Orbit,
+        text: "text-cyan-200",
+        border: "border-cyan-300/25",
+        bg: "bg-cyan-300/10",
+        glow: "shadow-[0_0_20px_rgba(34,211,238,0.18)]",
+        gradient: "from-cyan-400/18 via-purple-500/14 to-fuchsia-400/12",
+        dot: "bg-cyan-300",
+      };
+    case "coding":
+      return {
+        icon: Terminal,
+        text: "text-emerald-200",
+        border: "border-emerald-300/25",
+        bg: "bg-emerald-300/10",
+        glow: "shadow-[0_0_20px_rgba(52,211,153,0.16)]",
+        gradient: "from-emerald-400/16 via-cyan-400/10 to-blue-400/10",
+        dot: "bg-emerald-300",
+      };
+    case "research":
+      return {
+        icon: Search,
+        text: "text-sky-200",
+        border: "border-sky-300/25",
+        bg: "bg-sky-300/10",
+        glow: "shadow-[0_0_20px_rgba(56,189,248,0.15)]",
+        gradient: "from-sky-400/16 via-blue-500/12 to-violet-400/10",
+        dot: "bg-sky-300",
+      };
+    case "business":
+      return {
+        icon: BriefcaseBusiness,
+        text: "text-amber-200",
+        border: "border-amber-300/25",
+        bg: "bg-amber-300/10",
+        glow: "shadow-[0_0_20px_rgba(251,191,36,0.14)]",
+        gradient: "from-amber-400/15 via-orange-400/10 to-purple-400/10",
+        dot: "bg-amber-300",
+      };
+    case "creative":
+      return {
+        icon: Palette,
+        text: "text-fuchsia-200",
+        border: "border-fuchsia-300/25",
+        bg: "bg-fuchsia-300/10",
+        glow: "shadow-[0_0_20px_rgba(217,70,239,0.16)]",
+        gradient: "from-fuchsia-400/16 via-pink-400/12 to-cyan-400/10",
+        dot: "bg-fuchsia-300",
+      };
+    case "fast":
+      return {
+        icon: Zap,
+        text: "text-yellow-200",
+        border: "border-yellow-300/25",
+        bg: "bg-yellow-300/10",
+        glow: "shadow-[0_0_20px_rgba(250,204,21,0.14)]",
+        gradient: "from-yellow-300/15 via-cyan-300/10 to-purple-400/10",
+        dot: "bg-yellow-300",
+      };
+    default:
+      return {
+        icon: Brain,
+        text: "text-purple-200",
+        border: "border-purple-300/25",
+        bg: "bg-purple-300/10",
+        glow: "shadow-[0_0_20px_rgba(168,85,247,0.15)]",
+        gradient: "from-purple-400/15 via-cyan-400/10 to-white/5",
+        dot: "bg-purple-300",
+      };
+  }
+};
 
 const ChatSkeleton = () => (
   <div className="flex flex-col gap-8 py-8 px-4 md:px-8 max-w-[850px] mx-auto w-full">
@@ -217,6 +323,7 @@ export function ChatWorkspace() {
     setDeleteModal,
     attachments,
     setAttachments,
+    isUploading,
     copiedId,
     setCopiedId,
     agentStatus,
@@ -232,6 +339,11 @@ export function ChatWorkspace() {
     setIsDragging,
     safeMode,
     toggleSafeMode,
+    studentMode,
+    toggleStudentMode,
+    chatMode,
+    updateChatMode,
+    chatSettings,
     isSettingsOpen,
     setIsSettingsOpen,
     isGeneratingImage,
@@ -246,6 +358,10 @@ export function ChatWorkspace() {
     loadSession,
     startNewChat,
     handleSend,
+    editAndResendMessage,
+    branchConversation,
+    rememberMessage,
+    stopGeneration,
     confirmDeleteSession,
     rollSuggestions,
     processFiles,
@@ -253,6 +369,12 @@ export function ChatWorkspace() {
   } = useChat();
 
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
+  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
+  const [editingDraft, setEditingDraft] = useState("");
+  const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
+  const firstAttachment = attachments[0];
+  const attachedImageCount = attachments.filter(item => item.type.startsWith("image/")).length;
+  const canSubmit = (input.trim().length > 0 || attachments.length > 0) && !isUploading;
 
   // --- Keyboard Shortcuts & Commands ---
   const executeCommand = (cmdId: string) => {
@@ -287,6 +409,21 @@ export function ChatWorkspace() {
       a.download = `lumora-chat-${new Date().getTime()}.txt`;
       a.click();
       toast("Chat Exported Successfully", "success");
+    } else if (['remove-bg', 'compress-image', 'convert-image', 'resize-image'].includes(cmdId)) {
+      const prompts: Record<string, string> = {
+        'remove-bg': 'Remove the background from this image.',
+        'compress-image': 'Compress this image to 80% quality.',
+        'convert-image': 'Convert this image into WebP.',
+        'resize-image': 'Resize this image to 1080 x 1080.',
+      };
+      setInput(prompts[cmdId]);
+      window.setTimeout(() => textareaRef.current?.focus(), 0);
+
+      const hasImage = attachments.some(item => item.type.startsWith('image/'))
+        || messages.some(message => message.attachments?.some(item => item.type.startsWith('image/')));
+      if (!hasImage) {
+        window.setTimeout(() => fileInputRef.current?.click(), 80);
+      }
     }
   };
 
@@ -297,14 +434,14 @@ export function ChatWorkspace() {
     }
   };
 
-  const handleDownload = async (url: string) => {
+  const handleDownload = async (url: string, filename = "lumora-chat-generation.png") => {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = "lumora-chat-generation.png";
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -316,10 +453,71 @@ export function ChatWorkspace() {
     }
   };
 
+  const handleGenerateExampleImage = (content: string) => {
+    const concept = content.replace(/\s+/g, " ").slice(0, 700);
+    handleSend(
+      `Generate a clear educational example image that helps students understand this explanation. Focus on the main concept only: ${concept}`,
+      { forceImage: true }
+    );
+  };
+
+  const startEditingMessage = (index: number, content: string) => {
+    setEditingMessageIndex(index);
+    setEditingDraft(content);
+  };
+
+  const cancelEditingMessage = () => {
+    setEditingMessageIndex(null);
+    setEditingDraft("");
+  };
+
+  const saveEditedMessage = async () => {
+    if (editingMessageIndex === null || !editingDraft.trim()) return;
+    const index = editingMessageIndex;
+    const content = editingDraft;
+    cancelEditingMessage();
+    await editAndResendMessage(index, content);
+  };
+
+  const runResponseAction = (action: "shorter" | "deeper" | "steps" | "image", content: string) => {
+    const excerpt = content.replace(/\s+/g, " ").slice(0, 1000);
+
+    if (action === "image") {
+      handleSend(
+        `Generate a clear visual image that explains the main idea from this response: ${excerpt}`,
+        { forceImage: true }
+      );
+      return;
+    }
+
+    const prompts = {
+      shorter: `Rewrite your last answer in a shorter, sharper version. Keep only the most important points:\n\n${excerpt}`,
+      deeper: `Explain your last answer in more depth with a practical example and important caveats:\n\n${excerpt}`,
+      steps: `Turn your last answer into a clean step-by-step checklist with clear action items:\n\n${excerpt}`,
+    };
+
+    handleSend(prompts[action]);
+  };
+
+  const getFollowUpChips = (message: Message) => {
+    if (message.isImage) return ["Create a variation", "Explain the prompt", "Make it more premium"];
+    if (message.studentMode) return ["Give me a quiz", "Explain like I am new", "Show a real example"];
+
+    const text = message.content.toLowerCase();
+    if (text.includes("code") || text.includes("api") || text.includes("function")) {
+      return ["Show code example", "Find edge cases", "Make it production-ready"];
+    }
+    if (text.includes("plan") || text.includes("strategy") || text.includes("steps")) {
+      return ["Make a checklist", "Prioritize this", "What can go wrong?"];
+    }
+    return ["Summarize this", "Go deeper", "Turn into steps"];
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setInput(val);
     if (val.startsWith('/')) {
+      setSelectedCommandIndex(0);
       setShowCommands(true);
     } else {
       setShowCommands(false);
@@ -356,14 +554,15 @@ export function ChatWorkspace() {
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files || []);
     if (files.length > 0) {
-      processFiles(files);
+      void processFiles(files);
     }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    e.target.value = "";
     if (files.length > 0) {
-      processFiles(files);
+      void processFiles(files);
     }
   };
 
@@ -403,6 +602,12 @@ export function ChatWorkspace() {
       
       return part.split('\n').map((line, li) => {
         if (!line.trim()) return <div key={li} className="h-4" />;
+
+        if (/^\s*(={4,}|-{4,})\s*$/.test(line)) {
+          return (
+            <div key={li} className="my-5 h-px w-full bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent" />
+          );
+        }
         
         if (line.startsWith('###### ')) {
           return <h6 key={li} className="text-sm font-black text-white mt-4 mb-2 uppercase tracking-widest">{line.slice(7)}</h6>;
@@ -527,6 +732,11 @@ export function ChatWorkspace() {
     });
   };
 
+  const isAssistantTyping = messages.some(message => message.role === "assistant" && message.isTyping);
+  const activeChatMode = CHAT_MODES.find(mode => mode.id === chatMode) || CHAT_MODES[0];
+  const activeModeVisual = getChatModeVisual(activeChatMode.id);
+  const ActiveModeIcon = activeModeVisual.icon;
+
   return (
     <div 
       onDragEnter={handleDragEnter}
@@ -582,10 +792,11 @@ export function ChatWorkspace() {
       <div className="flex-1 flex flex-col min-w-0 relative bg-transparent h-full">
         
         {/* Sleek top bar */}
-        <header className="min-h-14 px-2.5 sm:px-4 md:px-5 border-b border-white/[0.05] flex items-center justify-between bg-[#08080a]/65 backdrop-blur-md shrink-0 z-50">
+        <div className="min-h-14 px-2.5 sm:px-4 md:px-5 border-b border-white/[0.05] flex items-center justify-between bg-[#08080a]/65 backdrop-blur-md shrink-0 z-50">
           <div className="flex items-center gap-1.5 sm:gap-3">
             <button 
               onClick={() => {
+                setIsModeMenuOpen(false);
                 if (window.innerWidth < 768) {
                   setIsSidebarOpen(!isSidebarOpen);
                 } else {
@@ -619,6 +830,13 @@ export function ChatWorkspace() {
                 <ShieldCheck size={8.5} className={cn(safeMode ? "text-emerald-400" : "text-purple-400")} />
                 <span>{safeMode ? "Safe Mode • Light" : "Creative Mode"}</span>
               </div>
+
+              {studentMode && (
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-cyan-400/25 bg-cyan-400/10 text-[8px] font-black uppercase tracking-widest text-cyan-200 shadow-[0_0_18px_rgba(34,211,238,0.12)] shrink-0">
+                  <BookOpen size={8.5} className="text-cyan-300" />
+                  <span>Student Mode</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -631,8 +849,110 @@ export function ChatWorkspace() {
 
           {/* Right actions */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="relative hidden sm:block">
+              <button
+                onClick={() => setIsModeMenuOpen((open) => !open)}
+                className={cn(
+                  "group/mode flex min-h-10 min-w-[132px] items-center justify-between gap-2 overflow-hidden rounded-xl border px-3 text-zinc-300 shadow-[0_10px_30px_rgba(0,0,0,0.24)] transition-all active:scale-95",
+                  isModeMenuOpen
+                    ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
+                    : "border-white/5 bg-white/[0.035] hover:border-cyan-300/15 hover:bg-white/[0.06] hover:text-white"
+                )}
+                title="Select Chat Mode"
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <span className={cn("relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border", activeModeVisual.border, activeModeVisual.bg)}>
+                    <ActiveModeIcon size={13} className={activeModeVisual.text} />
+                    <span className={cn("absolute inset-0 rounded-lg blur-md opacity-0 transition-opacity group-hover/mode:opacity-60", activeModeVisual.bg)} />
+                  </span>
+                  <span className="truncate text-[10px] font-black uppercase tracking-[0.14em]">
+                    {activeChatMode.short}
+                  </span>
+                </span>
+                <ChevronDown size={13} className={cn("text-zinc-500 transition-transform", isModeMenuOpen && "rotate-180 text-cyan-200")} />
+              </button>
+
+              <AnimatePresence>
+                {isModeMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute right-0 top-[calc(100%+0.6rem)] z-[200] w-[270px] overflow-hidden rounded-2xl border border-white/10 bg-[#08080d]/95 p-1.5 shadow-[0_24px_80px_rgba(0,0,0,0.72),0_0_45px_rgba(34,211,238,0.08)] backdrop-blur-2xl"
+                  >
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
+                    {CHAT_MODES.map((mode) => {
+                      const visual = getChatModeVisual(mode.id);
+                      const ModeIcon = visual.icon;
+                      const selected = chatMode === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          onClick={() => {
+                            updateChatMode(mode.id);
+                            setIsModeMenuOpen(false);
+                          }}
+                          className={cn(
+                            "group/item relative flex w-full items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-left transition-all",
+                            selected
+                              ? cn("bg-gradient-to-r text-white", visual.gradient)
+                              : "text-zinc-400 hover:bg-white/[0.045] hover:text-white"
+                          )}
+                        >
+                          {selected && (
+                            <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
+                          )}
+                          <span className={cn(
+                            "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition-all",
+                            selected
+                              ? cn(visual.border, visual.bg, visual.text, visual.glow)
+                              : "border-white/5 bg-white/[0.025] text-zinc-500 group-hover/item:text-cyan-200"
+                          )}>
+                            <ModeIcon size={13} />
+                            {selected && <span className={cn("absolute inset-0 rounded-xl blur-lg", visual.bg)} />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[10px] font-black uppercase tracking-[0.16em]">
+                              {mode.short}
+                            </span>
+                            <span className="mt-0.5 block truncate text-[10px] font-semibold text-zinc-500 group-hover/item:text-zinc-400">
+                              {mode.description}
+                            </span>
+                          </span>
+                          {selected && (
+                            <span className={cn("h-1.5 w-1.5 rounded-full shadow-[0_0_10px_currentColor]", visual.dot, visual.text)} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <button
+              onClick={() => {
+                setIsModeMenuOpen(false);
+                toggleStudentMode(!studentMode);
+              }}
+              className={cn(
+                "min-h-10 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-[0.14em] transition-all active:scale-95",
+                studentMode
+                  ? "bg-gradient-to-r from-cyan-500/18 to-purple-500/18 border-cyan-400/25 text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.14)]"
+                  : "bg-white/5 border-white/5 text-zinc-400 hover:text-white hover:bg-white/10"
+              )}
+              title="Toggle Student Mode"
+            >
+              <GraduationCap size={13} strokeWidth={2.5} />
+              <span className="hidden lg:inline">Student Mode</span>
+            </button>
+
             <button 
-              onClick={startNewChat}
+              onClick={() => {
+                setIsModeMenuOpen(false);
+                startNewChat();
+              }}
               className="min-h-10 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-95"
               title="New Chat"
             >
@@ -641,7 +961,10 @@ export function ChatWorkspace() {
             </button>
 
             <button 
-              onClick={handleShare}
+              onClick={() => {
+                setIsModeMenuOpen(false);
+                handleShare();
+              }}
               className="min-h-10 min-w-10 rounded-lg bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center"
               title="Share Chat Link"
             >
@@ -651,7 +974,10 @@ export function ChatWorkspace() {
             <div className="h-3 w-px bg-white/10 mx-0.5" />
 
             <button 
-              onClick={() => setIsImmersive(!isImmersive)} 
+              onClick={() => {
+                setIsModeMenuOpen(false);
+                setIsImmersive(!isImmersive);
+              }}
               className={cn(
                 "min-h-10 min-w-10 rounded-lg transition-all active:scale-95 flex items-center justify-center",
                 isImmersive 
@@ -664,7 +990,10 @@ export function ChatWorkspace() {
             </button>
 
             <button 
-              onClick={() => setIsSettingsOpen(true)}
+              onClick={() => {
+                setIsModeMenuOpen(false);
+                setIsSettingsOpen(true);
+              }}
               className="min-h-10 min-w-10 rounded-lg bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center"
               title="Settings"
             >
@@ -679,7 +1008,7 @@ export function ChatWorkspace() {
               <X size={13} />
             </Link>
           </div>
-        </header>
+        </div>
 
         {/* Message flow container */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-2.5 sm:px-4 md:px-6 custom-scrollbar relative">
@@ -689,7 +1018,7 @@ export function ChatWorkspace() {
               ) : messages.length === 0 ? (
                 
                 // Welcome Screen
-                <div className="flex-1 flex flex-col items-center justify-center pb-32 sm:pb-28 text-center px-1 sm:px-4">
+                <div className="flex-1 flex flex-col items-center justify-start 2xl:justify-center pt-6 sm:pt-8 pb-56 sm:pb-60 md:pb-64 text-center px-1 sm:px-4">
                    <motion.div 
                      initial={{ opacity: 0, scale: 0.96, y: 15 }} 
                      animate={{ opacity: 1, scale: 1, y: 0 }} 
@@ -702,14 +1031,20 @@ export function ChatWorkspace() {
                       </div>
                       <div className="space-y-3 flex flex-col items-center mt-6">
                         <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-[1.05] sm:leading-[1.1] px-2">
-                          Unlimited <span className="animated-gradient-text">Creativity</span>.
+                          {studentMode ? (
+                            <>Learn Anything <span className="animated-gradient-text">Clearly</span>.</>
+                          ) : (
+                            <>Unlimited <span className="animated-gradient-text">Creativity</span>.</>
+                          )}
                         </h2>
                         <p className="text-zinc-500 text-sm md:text-base font-medium max-w-md mx-auto drop-shadow-md">
-                          Define the Future. What shall we build today?
+                          {studentMode
+                            ? "Ask a topic, upload a reference, or request a step-by-step lesson with examples and practice."
+                            : "Define the Future. What shall we build today?"}
                         </p>
                       </div>
                    </motion.div>                    {/* Starter cards suggestions */}
-                    <div className="w-full max-w-5xl mt-2 px-1">
+                    <div className="w-full max-w-5xl mt-2 mb-4 sm:mb-6 px-1">
                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-5.5 px-1 sm:px-3">
                           <div className="flex items-center gap-2 min-w-0">
                              <div className="relative flex items-center justify-center">
@@ -730,7 +1065,7 @@ export function ChatWorkspace() {
                        </div>
                        
                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <AnimatePresence mode="wait">
+                          <AnimatePresence mode="sync">
                              {!isRerolling && currentSuggestions.map((card, i) => {
                                const details = getWorkflowDetails(card.title);
                                const CardIcon = details.icon;
@@ -799,10 +1134,7 @@ export function ChatWorkspace() {
                       <div className="flex flex-col items-center mt-1 shrink-0">
                         {msg.role === 'assistant' ? (
                           <div className="relative shrink-0">
-                             <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center shadow-md relative z-10 group-hover/message:border-accent-purple/30 transition-colors duration-500">
-                                <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-zinc-200 to-zinc-400 font-black text-xs">L</span>
-                             </div>
-                             <div className="absolute -inset-1 bg-accent-purple/10 blur-sm opacity-0 group-hover/message:opacity-100 transition-opacity duration-500 rounded-xl" />
+                             <LumoraMark size={40} />
                           </div>
                         ) : (
                           <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 overflow-hidden shadow-md shrink-0 flex items-center justify-center">
@@ -825,9 +1157,45 @@ export function ChatWorkspace() {
                         {msg.role === 'user' ? (
                           <div className="relative p-[1px] bg-white/[0.04] group-hover/message:bg-white/[0.08] transition-all duration-500 rounded-2xl sm:rounded-3xl rounded-tr-md shadow-xl max-w-full">
                             <div className="relative px-4 py-3.5 sm:px-6 sm:py-4 bg-[#0d0d12]/90 backdrop-blur-xl text-zinc-100 rounded-[calc(1rem-1px)] sm:rounded-[calc(1.5rem-1px)] rounded-tr-[calc(0.4rem-1px)]">
-                              <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[15.5px] leading-[1.65] sm:leading-[1.7] font-medium tracking-tight whitespace-pre-wrap break-words">
-                                {renderMessageContent(msg.content)}
-                              </div>
+                              {editingMessageIndex === i ? (
+                                <div className="relative z-10 min-w-[min(70vw,520px)] space-y-3">
+                                  <textarea
+                                    value={editingDraft}
+                                    onChange={(event) => setEditingDraft(event.target.value)}
+                                    onKeyDown={(event) => {
+                                      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                                        event.preventDefault();
+                                        saveEditedMessage();
+                                      }
+                                      if (event.key === "Escape") {
+                                        event.preventDefault();
+                                        cancelEditingMessage();
+                                      }
+                                    }}
+                                    className="min-h-[110px] w-full resize-y rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-[14.5px] font-medium leading-relaxed text-white outline-none transition focus:border-cyan-300/30 focus:ring-2 focus:ring-cyan-300/10"
+                                    autoFocus
+                                  />
+                                  <div className="flex flex-wrap items-center justify-end gap-2">
+                                    <button
+                                      onClick={cancelEditingMessage}
+                                      className="min-h-9 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 transition hover:bg-white/[0.06] hover:text-white"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={saveEditedMessage}
+                                      disabled={!editingDraft.trim() || isLoading}
+                                      className="min-h-9 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-400 px-4 text-[9px] font-black uppercase tracking-widest text-white shadow-[0_0_24px_rgba(34,211,238,0.18)] transition hover:brightness-110 active:scale-95 disabled:opacity-50"
+                                    >
+                                      Save & Retry
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[15.5px] leading-[1.65] sm:leading-[1.7] font-medium tracking-tight whitespace-pre-wrap break-words">
+                                  {renderMessageContent(msg.content)}
+                                </div>
+                              )}
 
                               {/* Render Image Previews */}
                               {msg.attachments && msg.attachments.some(a => a.type.startsWith('image/')) && (
@@ -862,17 +1230,182 @@ export function ChatWorkspace() {
                                 </div>
                               )}
                             </div>
+
+                            {editingMessageIndex !== i && (
+                              <div className="mt-2 flex flex-wrap justify-end gap-2">
+                                <button
+                                  onClick={() => branchConversation(i)}
+                                  disabled={isLoading}
+                                  className="flex min-h-9 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-[#09090c]/90 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 opacity-100 shadow-lg backdrop-blur-md transition-all hover:bg-cyan-300/10 hover:text-cyan-100 active:scale-95 disabled:opacity-45 sm:opacity-0 sm:group-hover/message:opacity-100"
+                                  title="Branch from here"
+                                >
+                                  <GitBranch size={11} />
+                                  Branch
+                                </button>
+                                <button
+                                  onClick={() => rememberMessage(msg.content)}
+                                  disabled={isLoading}
+                                  className="flex min-h-9 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-[#09090c]/90 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 opacity-100 shadow-lg backdrop-blur-md transition-all hover:bg-purple-300/10 hover:text-purple-100 active:scale-95 disabled:opacity-45 sm:opacity-0 sm:group-hover/message:opacity-100"
+                                  title="Save this to AI memory"
+                                >
+                                  <Brain size={11} />
+                                  Remember
+                                </button>
+                                <button
+                                  onClick={() => startEditingMessage(i, msg.content)}
+                                  disabled={isLoading}
+                                  className="flex min-h-9 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-[#09090c]/90 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 opacity-100 shadow-lg backdrop-blur-md transition-all hover:bg-white/[0.06] hover:text-white active:scale-95 disabled:opacity-45 sm:opacity-0 sm:group-hover/message:opacity-100"
+                                  title="Edit and retry from here"
+                                >
+                                  <Pencil size={11} />
+                                  Edit
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        ) : (
-                          <div className="relative px-1 sm:px-2 py-1 max-w-full min-w-0">
-                            <div className="flex items-center gap-1.5 mb-2.5 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500 select-none">
+                        ) : (() => {
+                            const messageMode = msg.chatMode ? (CHAT_MODES.find(mode => mode.id === msg.chatMode) || CHAT_MODES[1]) : null;
+                            const messageVisual = getChatModeVisual(msg.chatMode);
+                            const MessageModeIcon = messageVisual.icon;
+                            const showDetectedMode = !msg.studentMode && messageMode && msg.chatMode !== "default";
+
+                            return (
+                          <div className={cn(
+                            "relative max-w-full min-w-0 rounded-3xl border px-4 py-3.5 sm:px-5 sm:py-4 transition-all duration-500",
+                            msg.isTyping
+                              ? "border-cyan-300/15 bg-cyan-300/[0.035] shadow-[0_0_32px_rgba(34,211,238,0.08)]"
+                              : "border-white/[0.04] bg-white/[0.018] shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
+                          )}>
+                            {showDetectedMode && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -5, scale: 0.96 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                className={cn(
+                                  "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[8px] font-black uppercase tracking-[0.2em]",
+                                  messageVisual.border,
+                                  messageVisual.bg,
+                                  messageVisual.text,
+                                  messageVisual.glow
+                                )}
+                              >
+                                <MessageModeIcon size={10.5} />
+                                <span>Auto detected {messageMode.short}</span>
+                              </motion.div>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-1.5 mb-2.5 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500 select-none">
                               <Sparkles size={10} className="text-accent-purple animate-pulse" />
-                              <span>Lumora AI</span>
+                              <span>{msg.studentMode ? "Lumora Tutor" : "Lumora AI"}</span>
+                              {msg.studentMode && (
+                                <span className="ml-1 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2 py-0.5 text-[8px] tracking-[0.2em] text-cyan-200">
+                                  Student Mode
+                                </span>
+                              )}
+                              {showDetectedMode && (
+                                <span className={cn("ml-1 rounded-full border px-2 py-0.5 text-[8px] tracking-[0.2em]", messageVisual.border, messageVisual.bg, messageVisual.text)}>
+                                  {messageMode.short}
+                                </span>
+                              )}
                             </div>
                             
-                            <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[16px] leading-[1.7] md:leading-[1.75] text-zinc-200 font-medium tracking-tight whitespace-pre-wrap break-words">
-                              {renderMessageContent(msg.content)}
+                            <div className={cn(
+                              "relative z-10 text-[14.5px] sm:text-[15px] md:text-[16px] leading-[1.7] md:leading-[1.75] font-medium tracking-tight whitespace-pre-wrap break-words transition-all duration-300",
+                              msg.isTyping ? "text-zinc-100" : "text-zinc-200"
+                            )}>
+                              {msg.isTyping && !msg.content.trim() ? (
+                                <span className="inline-flex items-center gap-2 text-zinc-400">
+                                  <span>Lumora is typing</span>
+                                  <span className="flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-bounce" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-purple-300 animate-bounce [animation-delay:140ms]" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-bounce [animation-delay:280ms]" />
+                                  </span>
+                                </span>
+                              ) : (
+                                <>
+                                  {renderMessageContent(msg.content)}
+                                  {msg.isTyping && (
+                                    <span className="ml-1 inline-block h-5 w-[2px] translate-y-1 rounded-full bg-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.75)] animate-pulse" />
+                                  )}
+                                </>
+                              )}
                             </div>
+
+                            {msg.toolRun && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-4 overflow-hidden rounded-lg border border-cyan-300/15 bg-[#080a10] shadow-[0_22px_55px_rgba(0,0,0,0.38),0_0_30px_rgba(34,211,238,0.06)]"
+                              >
+                                <div className="h-px bg-gradient-to-r from-fuchsia-400/70 via-violet-400/70 to-cyan-300/70" />
+                                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.07] text-cyan-200">
+                                      <Boxes size={18} />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="truncate text-[12px] font-black uppercase tracking-[0.1em] text-white">
+                                        {msg.toolRun.label}
+                                      </p>
+                                      <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                                        {msg.toolRun.priority ? "Priority processing" : msg.toolRun.processingLabel || "Completed"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="inline-flex min-h-8 items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-300/[0.07] px-3 text-[8px] font-black uppercase tracking-[0.16em] text-emerald-200">
+                                    <Check size={11} />
+                                    Completed
+                                  </div>
+                                </div>
+
+                                <div className="relative flex min-h-[220px] items-center justify-center overflow-hidden bg-[linear-gradient(45deg,rgba(255,255,255,0.025)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.025)_75%),linear-gradient(45deg,rgba(255,255,255,0.025)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.025)_75%)] bg-[length:24px_24px] bg-[position:0_0,12px_12px] p-4">
+                                  <img
+                                    src={msg.toolRun.resultUrl}
+                                    alt={`${msg.toolRun.label} result`}
+                                    className="max-h-[360px] max-w-full object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.45)]"
+                                  />
+                                </div>
+
+                                <div className="flex flex-col gap-3 border-t border-white/[0.06] p-3 sm:flex-row sm:items-center sm:justify-between">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {msg.toolRun.format && (
+                                      <span className="rounded-md border border-white/[0.07] bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-zinc-400">
+                                        {msg.toolRun.format}
+                                      </span>
+                                    )}
+                                    {msg.toolRun.width && msg.toolRun.height && (
+                                      <span className="rounded-md border border-white/[0.07] bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-zinc-400">
+                                        {msg.toolRun.width} x {msg.toolRun.height}
+                                      </span>
+                                    )}
+                                    {formatArtifactSize(msg.toolRun.size) && (
+                                      <span className="rounded-md border border-white/[0.07] bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-zinc-400">
+                                        {formatArtifactSize(msg.toolRun.size)}
+                                      </span>
+                                    )}
+                                    <span className="rounded-md border border-white/[0.07] bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-zinc-400">
+                                      {msg.toolRun.credits ? `${msg.toolRun.credits} credit` : "Free"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => window.open(msg.toolRun!.resultUrl, "_blank")}
+                                      className="flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035] text-zinc-400 transition hover:border-white/15 hover:text-white"
+                                      title="Open result"
+                                    >
+                                      <Maximize2 size={15} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownload(msg.toolRun!.resultUrl, msg.toolRun!.downloadName)}
+                                      className="flex min-h-10 items-center gap-2 rounded-lg border border-cyan-300/20 bg-gradient-to-r from-violet-500/90 to-cyan-500/90 px-4 text-[9px] font-black uppercase tracking-[0.14em] text-white shadow-[0_10px_28px_rgba(34,211,238,0.14)] transition hover:brightness-110 active:scale-95"
+                                    >
+                                      <Download size={14} />
+                                      Download
+                                    </button>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
 
                             {msg.isImage && msg.imageUrl && (
                               <div className="mt-4 relative rounded-[2rem] overflow-hidden border border-white/10 group/img max-w-full md:max-w-lg shadow-2xl bg-zinc-950 flex flex-col">
@@ -914,7 +1447,7 @@ export function ChatWorkspace() {
                             )}
 
                             {/* Toolbar actions */}
-                            <div className="mt-3 sm:mt-0 sm:absolute sm:-bottom-10 sm:left-2 opacity-100 sm:opacity-0 sm:group-hover/message:opacity-100 transition-all duration-300 flex items-center gap-1 bg-[#09090c]/90 backdrop-blur-md border border-white/[0.06] rounded-xl p-1 shadow-lg z-25">
+                            <div className="mt-4 flex w-fit max-w-full flex-wrap items-center gap-1 rounded-xl border border-white/[0.06] bg-[#09090c]/90 p-1 opacity-100 shadow-lg backdrop-blur-md transition-all duration-300 sm:opacity-70 sm:group-hover/message:opacity-100">
                                <button 
                                   onClick={() => { 
                                     navigator.clipboard.writeText(msg.content); 
@@ -925,7 +1458,64 @@ export function ChatWorkspace() {
                                >
                                   <Copy size={11} />
                                </button>
-                               <button 
+                               <button
+                                  onClick={() => branchConversation(i)}
+                                  disabled={isLoading}
+                                  className="min-h-9 rounded-lg px-2.5 text-zinc-500 hover:text-cyan-100 hover:bg-cyan-300/10 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                  title="Branch From Here"
+                               >
+                                  <GitBranch size={11} />
+                                  <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest">Branch</span>
+                               </button>
+                               <button
+                                  onClick={() => rememberMessage(msg.content)}
+                                  disabled={isLoading || msg.isTyping}
+                                  className="min-h-9 rounded-lg px-2.5 text-zinc-500 hover:text-purple-100 hover:bg-purple-300/10 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                  title="Save Response To Memory"
+                               >
+                                  <Brain size={11} />
+                                  <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest">Remember</span>
+                               </button>
+                               {!msg.isTyping && !msg.isImage && !msg.toolRun && (
+                                 <>
+                                   <button
+                                      onClick={() => runResponseAction("shorter", msg.content)}
+                                      disabled={isLoading}
+                                      className="min-h-9 rounded-lg px-2.5 text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center disabled:opacity-50"
+                                      title="Make Shorter"
+                                   >
+                                      <span className="text-[9px] font-black uppercase tracking-widest">Shorter</span>
+                                   </button>
+                                   <button
+                                      onClick={() => runResponseAction("deeper", msg.content)}
+                                      disabled={isLoading}
+                                      className="min-h-9 rounded-lg px-2.5 text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center disabled:opacity-50"
+                                      title="Explain More"
+                                   >
+                                      <span className="text-[9px] font-black uppercase tracking-widest">Deeper</span>
+                                   </button>
+                                   <button
+                                      onClick={() => runResponseAction("steps", msg.content)}
+                                      disabled={isLoading}
+                                      className="min-h-9 rounded-lg px-2.5 text-zinc-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center disabled:opacity-50"
+                                      title="Turn Into Steps"
+                                   >
+                                      <span className="text-[9px] font-black uppercase tracking-widest">Steps</span>
+                                   </button>
+                                 </>
+                               )}
+                               {msg.studentMode && !msg.isImage && msg.content.trim().length > 80 && (
+                                 <button
+                                    onClick={() => handleGenerateExampleImage(msg.content)}
+                                    disabled={isLoading}
+                                    className="min-h-9 rounded-lg px-2.5 text-cyan-300 hover:text-white hover:bg-cyan-400/10 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                    title="Generate Example Image"
+                                 >
+                                    <ImagePlus size={11} />
+                                    <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest">Example Image</span>
+                                 </button>
+                               )}
+                               {!msg.toolRun && <button
                                   onClick={() => {
                                     const userMessages = messages.filter(m => m.role === 'user');
                                     if (userMessages.length > 0) {
@@ -938,10 +1528,27 @@ export function ChatWorkspace() {
                                   title="Regenerate Response"
                                >
                                   <RefreshCw size={11} />
-                               </button>
+                               </button>}
                             </div>
+
+                            {chatSettings.smartFollowUps && i === messages.length - 1 && !msg.isTyping && !msg.toolRun && (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {getFollowUpChips(msg).map((chip) => (
+                                  <button
+                                    key={chip}
+                                    onClick={() => handleSend(`${chip}: ${msg.content.slice(0, 900)}`)}
+                                    disabled={isLoading}
+                                    className="min-h-9 rounded-full border border-white/[0.06] bg-white/[0.025] px-3 text-[9px] font-black uppercase tracking-[0.16em] text-zinc-400 transition-all hover:border-cyan-300/25 hover:bg-cyan-300/10 hover:text-cyan-100 active:scale-95 disabled:opacity-50"
+                                  >
+                                    {chip}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
+                            );
+                          })()
+                        }
                         
                         <span className={cn(
                           "text-[8px] text-zinc-600 mt-2 block tracking-wider uppercase font-black px-2 select-none",
@@ -952,7 +1559,7 @@ export function ChatWorkspace() {
                       </div>
                     </motion.div>
                   ))}
-                  {isLoading && (
+                  {isLoading && !isAssistantTyping && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-5">
                        <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center animate-pulse border border-white/5 shadow-md">
                           <Sparkles size={16} className="text-purple-500 animate-pulse" />
@@ -967,10 +1574,16 @@ export function ChatWorkspace() {
                               <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none">Invoking Flux.1 Schnell Engines (~2-6s)</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5">
-                               <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" />
-                               <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce [animation-delay:200ms]" />
-                               <div className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:400ms]" />
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce [animation-delay:200ms]" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:400ms]" />
+                                </div>
+                                <span className="text-[11px] font-black text-white uppercase tracking-widest italic animate-pulse">{agentStatus}</span>
+                              </div>
+                              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none">Preparing a polished response</span>
                             </div>
                           )}
                        </div>
@@ -1009,7 +1622,7 @@ export function ChatWorkspace() {
 
                   {/* Inner glass content */}
                   <div className={cn(
-                     "bg-[#07070c]/70 backdrop-blur-3xl rounded-[20px] sm:rounded-[22.5px] p-3 sm:p-4 md:p-5 pb-3 md:pb-3.5 flex flex-col gap-3 sm:gap-4 transition-all duration-500 relative overflow-hidden",
+                     "bg-[#07070c]/70 backdrop-blur-3xl rounded-[20px] sm:rounded-[22.5px] p-3 sm:p-4 md:p-5 pb-3 md:pb-3.5 flex flex-col gap-3 sm:gap-4 transition-all duration-500 relative overflow-visible",
                      input.trim().length > 0 && "bg-[#090912]/80"
                   )}>
                      {/* Text area and main input section */}
@@ -1018,26 +1631,60 @@ export function ChatWorkspace() {
                         <div className="relative z-10 pt-0.5 shrink-0">
                            <motion.button 
                              onClick={() => fileInputRef.current?.click()} 
+                             disabled={isUploading}
                              whileHover={{ scale: 1.06 }}
                              whileTap={{ scale: 0.94 }}
-                             className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.06] hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300 active:scale-95 group/attach relative overflow-hidden touch-manipulation"
-                             title="Upload Attachment"
+                             className={cn(
+                               "w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] border flex items-center justify-center transition-all duration-300 active:scale-95 group/attach relative overflow-hidden touch-manipulation disabled:cursor-wait disabled:opacity-70",
+                               attachments.length > 0
+                                 ? "border-cyan-300/25 bg-[#080b11] text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.12),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                                 : "border-white/[0.06] bg-white/[0.025] text-zinc-400 hover:border-cyan-400/20 hover:bg-cyan-400/[0.06] hover:text-cyan-100 hover:shadow-[0_0_20px_rgba(34,211,238,0.12)]"
+                             )}
+                             title={attachments.length > 0 ? "Add another file" : "Upload images or text files"}
                            >
-                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover/attach:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
-                             <Paperclip size={19} className="group-hover/attach:rotate-12 group-hover/attach:scale-105 group-hover/attach:text-purple-400 transition-all duration-300" />
+                             {isUploading ? (
+                               <RefreshCw size={18} className="relative z-10 animate-spin text-cyan-300" />
+                             ) : firstAttachment?.preview ? (
+                               <>
+                                 <img
+                                   src={firstAttachment.preview}
+                                   alt=""
+                                   className="absolute inset-0 h-full w-full object-cover"
+                                 />
+                                 <div className="absolute inset-0 bg-black/10 transition-colors duration-300 group-hover/attach:bg-black/55" />
+                                 <Plus
+                                   size={18}
+                                   strokeWidth={2.5}
+                                   className="relative z-10 scale-75 text-white opacity-0 drop-shadow-md transition-all duration-300 group-hover/attach:scale-100 group-hover/attach:opacity-100"
+                                 />
+                               </>
+                             ) : firstAttachment ? (
+                               <FileText size={18} className="relative z-10 text-cyan-200" />
+                             ) : (
+                               <>
+                                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover/attach:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+                                 <ImagePlus size={19} className="relative z-10 transition-all duration-300 group-hover/attach:rotate-3 group-hover/attach:scale-105" />
+                               </>
+                             )}
                              
-                             {/* Attachment count badge */}
                              {attachments.length > 0 && (
                                <motion.div 
                                  initial={{ scale: 0 }}
                                  animate={{ scale: 1 }}
-                                 className="absolute -top-1 -right-1 w-5.5 h-5.5 rounded-full bg-gradient-to-tr from-purple-500 via-indigo-500 to-cyan-500 border-2 border-[#060608] flex items-center justify-center text-[9px] font-black text-white shadow-lg"
+                                 className="absolute right-1 top-1 z-20 flex h-4 min-w-4 items-center justify-center rounded-full border border-white/30 bg-[#080a10]/90 px-1 text-[8px] font-black text-white shadow-[0_2px_8px_rgba(0,0,0,0.55)] backdrop-blur-md"
                                >
                                  {attachments.length}
                                </motion.div>
                              )}
                            </motion.button>
-                           <input type="file" ref={fileInputRef} className="hidden" multiple onChange={handleFileUpload} />
+                           <input
+                             type="file"
+                             ref={fileInputRef}
+                             className="hidden"
+                             multiple
+                             accept="image/jpeg,image/png,image/webp,image/gif,text/plain,text/markdown,text/csv,application/json"
+                             onChange={handleFileUpload}
+                           />
                         </div>
 
                         {/* The text area container */}
@@ -1048,7 +1695,7 @@ export function ChatWorkspace() {
                                 initial={{ opacity: 0, y: 15, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                                className="absolute bottom-full left-0 mb-4 w-full md:w-[350px] bg-[#0c0c10]/98 backdrop-blur-3xl border border-white/[0.08] rounded-2xl p-1.5 shadow-[0_25px_50px_rgba(0,0,0,0.9)] z-[9999] overflow-hidden"
+                                className="absolute bottom-full left-0 z-[9999] mb-4 max-h-[min(420px,55vh)] w-full overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0c0c10]/98 p-1.5 shadow-[0_25px_50px_rgba(0,0,0,0.9)] backdrop-blur-3xl custom-scrollbar md:w-[380px]"
                               >
                                 <div className="px-3 py-1.5 border-b border-white/5 mb-1.5 flex items-center justify-between relative z-10">
                                   <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Smart Commands</p>
@@ -1089,6 +1736,24 @@ export function ChatWorkspace() {
                                    exit={{ opacity: 0, height: 0, y: 5 }} 
                                    className="flex flex-wrap gap-2 pb-3 mb-2 border-b border-white/[0.04] overflow-hidden"
                                  >
+                                    <div className="basis-full flex items-center justify-between gap-3 pb-1">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className="relative flex h-2 w-2 shrink-0">
+                                          <span className="absolute inset-0 rounded-full bg-cyan-300/60 animate-ping" />
+                                          <span className="relative h-2 w-2 rounded-full bg-cyan-300" />
+                                        </span>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-cyan-100/80 truncate">
+                                          {attachments.some(item => item.type.startsWith("image/"))
+                                            ? "Lumora Vision ready"
+                                            : "Files ready for analysis"}
+                                        </span>
+                                      </div>
+                                      <span className="text-[9px] font-bold text-zinc-600 shrink-0">
+                                        {attachedImageCount > 0
+                                          ? `${attachedImageCount}/5 images`
+                                          : `${attachments.length} ${attachments.length === 1 ? "file" : "files"}`}
+                                      </span>
+                                    </div>
                                     {attachments.map(at => (
                                       <motion.div 
                                         key={at.id} 
@@ -1114,7 +1779,7 @@ export function ChatWorkspace() {
                                         </div>
                                         <button 
                                           onClick={() => setAttachments(prev => prev.filter(a => a.id !== at.id))} 
-                                          className="w-4.5 h-4.5 rounded-md bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 flex items-center justify-center ml-2 transition-all opacity-0 group-hover/chip:opacity-100 active:scale-90"
+                                          className="w-6 h-6 rounded-md bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 flex items-center justify-center ml-1 transition-all opacity-100 sm:opacity-0 sm:group-hover/chip:opacity-100 active:scale-90"
                                           title="Remove File"
                                         >
                                           <X size={10} />
@@ -1153,6 +1818,9 @@ export function ChatWorkspace() {
                                      if (e.key === 'Escape') setShowCommands(false);
                                    }
                                 }} 
+                                onFocus={() => {
+                                  if (input.startsWith('/')) setShowCommands(true);
+                                }}
                                 placeholder="Ask anything... or press '/' for commands" 
                                 className="w-full bg-transparent border-0 ring-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent text-[15px] md:text-[16px] text-white placeholder-zinc-500/70 focus:placeholder-zinc-500/40 py-2 px-0.5 min-h-[44px] max-h-[220px] sm:max-h-[300px] resize-none overflow-y-auto no-scrollbar font-medium relative z-10 leading-relaxed placeholder:font-medium placeholder:tracking-wide"
                                 rows={1}
@@ -1162,35 +1830,66 @@ export function ChatWorkspace() {
 
                         {/* Premium Action send button */}
                         <div className="relative z-10 shrink-0 pt-0.5">
+                           <AnimatePresence>
+                             {canSubmit && !isLoading && (
+                               <motion.div
+                                 initial={{ opacity: 0, scale: 0.75 }}
+                                 animate={{ opacity: 1, scale: 1 }}
+                                 exit={{ opacity: 0, scale: 0.75 }}
+                                 className="absolute inset-1 rounded-[16px] bg-gradient-to-br from-fuchsia-500/55 via-violet-500/45 to-cyan-400/55 blur-xl pointer-events-none"
+                               />
+                             )}
+                           </AnimatePresence>
                            <motion.button 
-                             onClick={() => handleSend()} 
-                             disabled={!input.trim() || isLoading} 
+                             onClick={() => isLoading ? stopGeneration() : handleSend()}
+                             disabled={!canSubmit && !isLoading}
                              initial={{ scale: 0.95 }}
                              animate={{ 
-                                scale: input.trim() && !isLoading ? 1 : 0.95,
-                                boxShadow: input.trim() && !isLoading 
-                                  ? "0 0 20px rgba(168,85,247,0.35), 0 0 40px rgba(6,182,212,0.15)" 
-                                  : "none"
+                                scale: (canSubmit || isLoading) ? 1 : 0.95,
+                                boxShadow: isLoading
+                                  ? "0 0 20px rgba(248,113,113,0.25), 0 0 40px rgba(248,113,113,0.12)"
+                                  : canSubmit
+                                    ? "0 0 20px rgba(168,85,247,0.35), 0 0 40px rgba(6,182,212,0.15)"
+                                    : "none"
                              }}
-                             whileHover={input.trim() && !isLoading ? { scale: 1.06, y: -1 } : {}}
-                             whileTap={input.trim() && !isLoading ? { scale: 0.94 } : {}}
+                             whileHover={(canSubmit || isLoading) ? { scale: 1.06, y: -1 } : {}}
+                             whileTap={(canSubmit || isLoading) ? { scale: 0.94 } : {}}
                              transition={{ type: "spring", stiffness: 400, damping: 15 }}
                              className={cn(
-                                 "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 border relative overflow-hidden group/send touch-manipulation",
-                                 input.trim() && !isLoading 
-                                     ? "bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-500 border-transparent text-white cursor-pointer" 
-                                     : "bg-white/[0.02] text-zinc-600 border-white/[0.04] cursor-not-allowed"
+                                 "w-11 h-11 sm:w-12 sm:h-12 rounded-[15px] flex items-center justify-center transition-all duration-500 shrink-0 border relative overflow-hidden group/send touch-manipulation isolate",
+                                 isLoading
+                                     ? "bg-[#160b10] border-red-400/30 text-red-200 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                                     : canSubmit
+                                     ? "bg-[linear-gradient(135deg,#d946ef_0%,#7c3aed_38%,#4f6df5_66%,#13c9e7_100%)] bg-[length:220%_220%] animate-gradient border-white/15 text-white cursor-pointer shadow-[0_12px_32px_rgba(76,70,229,0.32),inset_0_1px_0_rgba(255,255,255,0.35)]"
+                                     : "bg-[#0b0b11]/80 text-zinc-600 border-white/[0.06] cursor-not-allowed shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
                              )}
+                             title={isLoading ? "Stop generation" : isUploading ? "Preparing attachments" : "Send message"}
                            >
-                              {/* Sheen sweep animation overlay */}
-                              {input.trim() && !isLoading && (
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/send:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+                              {canSubmit && !isLoading && (
+                                <>
+                                  <div className="absolute inset-[2px] rounded-[12px] bg-[#080910]/82 pointer-events-none" />
+                                  <div className="absolute inset-[3px] rounded-[11px] bg-[radial-gradient(circle_at_28%_18%,rgba(216,180,254,0.25),transparent_38%),linear-gradient(145deg,rgba(124,58,237,0.28),rgba(8,9,16,0.2)_52%,rgba(6,182,212,0.2))] pointer-events-none" />
+                                  <div className="absolute inset-x-2 top-[3px] h-px bg-gradient-to-r from-transparent via-white/55 to-transparent pointer-events-none" />
+                                </>
+                              )}
+
+                              {canSubmit && !isLoading && (
+                                <div className="absolute inset-0 z-[1] bg-gradient-to-r from-transparent via-white/16 to-transparent -translate-x-full group-hover/send:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
                               )}
                               
                               {isLoading ? (
-                                <div className="w-4.5 h-4.5 border-[2px] border-zinc-400 border-t-black rounded-full animate-spin" />
+                                <X size={18} strokeWidth={2.5} className="relative z-10" />
                               ) : (
-                                <ArrowUp size={20} strokeWidth={3} className={cn("transition-transform duration-300", input.trim() && "group-hover/send:translate-y-[-1px]")} />
+                                <Send
+                                  size={18}
+                                  strokeWidth={2.4}
+                                  className={cn(
+                                    "relative z-10 transition-all duration-300",
+                                    canSubmit
+                                      ? "text-white drop-shadow-[0_0_7px_rgba(165,243,252,0.65)] group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5"
+                                      : "text-zinc-600"
+                                  )}
+                                />
                               )}
                            </motion.button>
                         </div>
@@ -1217,9 +1916,9 @@ export function ChatWorkspace() {
                               </span>
                               <span className={cn(
                                 "text-[9.5px] font-black uppercase tracking-widest leading-none transition-colors duration-300",
-                                input.trim().length > 0 ? "text-cyan-400" : "text-zinc-500"
+                                isAssistantTyping ? "text-purple-300" : input.trim().length > 0 ? "text-cyan-400" : "text-zinc-500"
                               )}>
-                                {input.trim().length > 0 ? "Typing..." : "Ready"}
+                                {isAssistantTyping ? "Lumora Typing..." : input.trim().length > 0 ? "Typing..." : "Ready"}
                               </span>
                            </div>
                            {input.trim().length > 0 && (
@@ -1298,6 +1997,53 @@ export function ChatWorkspace() {
                     )} />
                   </button>
                 </div>
+
+                <div className="h-px bg-white/[0.04]" />
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-black text-white uppercase tracking-wide">Chat Mode</h4>
+                    <p className="text-[10px] text-zinc-400 leading-relaxed font-semibold">
+                      Tune Lumora for code, research, business, creative work, or quick answers.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CHAT_MODES.map((mode) => (
+                      <button
+                        key={mode.id}
+                        onClick={() => updateChatMode(mode.id)}
+                        className={cn(
+                          "min-h-10 rounded-xl border px-3 text-left text-[9px] font-black uppercase tracking-widest transition-all active:scale-95",
+                          chatMode === mode.id
+                            ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.1)]"
+                            : "border-white/5 bg-white/[0.02] text-zinc-500 hover:bg-white/[0.05] hover:text-white"
+                        )}
+                      >
+                        {mode.short}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-px bg-white/[0.04]" />
+
+                <Link
+                  href="/chat/settings"
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.04] p-4 transition-all hover:border-cyan-300/30 hover:bg-cyan-300/[0.08]"
+                >
+                  <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.12)]">
+                      <Brain size={16} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[11px] font-black uppercase tracking-widest text-white">Advanced AI Settings</span>
+                      <span className="mt-1 block text-[10px] font-semibold leading-relaxed text-zinc-400">Memory, default modes, custom instructions, typing animation, and response style.</span>
+                    </span>
+                  </span>
+                  <ArrowUp size={15} className="shrink-0 rotate-45 text-cyan-200 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
 
                 <div className="h-px bg-white/[0.04]" />
 

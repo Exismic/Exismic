@@ -305,7 +305,7 @@ export function CollageMaker() {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-12">
       <AnimatePresence mode="wait">
         {items.length === 0 ? (
           <motion.div
@@ -317,22 +317,22 @@ export function CollageMaker() {
             <div
               {...getRootProps()}
               className={cn(
-                "min-h-[450px] rounded-[4rem] border-2 border-dashed transition-all duration-700 flex flex-col items-center justify-center p-12 text-center group cursor-pointer",
+                "group flex min-h-[360px] cursor-pointer flex-col items-center justify-center rounded-[2rem] border-2 border-dashed p-5 text-center transition-all duration-700 sm:min-h-[450px] sm:rounded-[4rem] sm:p-12",
                 isDragActive ? "border-accent-purple bg-accent-purple/5 shadow-3xl" : "border-zinc-800 glass-dark hover:border-white/20 shadow-xl"
               )}
             >
               <input {...getInputProps()} />
-              <div className="w-32 h-32 rounded-[3rem] bg-zinc-800/50 flex items-center justify-center text-zinc-500 group-hover:text-accent-purple group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 shadow-4xl border border-white/5 mb-10 relative">
+              <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-[1.75rem] border border-white/5 bg-zinc-800/50 text-zinc-500 shadow-4xl transition-all duration-700 group-hover:rotate-6 group-hover:scale-110 group-hover:text-accent-purple sm:mb-10 sm:h-32 sm:w-32 sm:rounded-[3rem]">
                  <div className="absolute inset-0 bg-accent-purple/20 blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
-                 <LayoutGrid size={56} />
+                 <LayoutGrid className="h-9 w-9 sm:h-14 sm:w-14" />
               </div>
               <div className="space-y-4">
-                <h3 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Initialize Collage</h3>
-                <p className="text-zinc-500 font-medium text-xl leading-relaxed max-w-lg mx-auto">
+                <h3 className="text-2xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-4xl">Initialize Collage</h3>
+                <p className="mx-auto max-w-lg text-sm font-medium leading-relaxed text-zinc-500 sm:text-xl">
                    Drop multiple photos to begin high-fidelity layout synthesis.
                 </p>
               </div>
-              <div className="mt-10 px-12 py-5 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-4xl group-hover:scale-105 active:scale-95 transition-all">
+              <div className="premium-gradient mt-7 flex min-h-12 w-full max-w-xs items-center justify-center rounded-2xl px-5 text-xs font-black uppercase tracking-wider text-white shadow-4xl transition-all group-hover:scale-[1.02] active:scale-95 sm:mt-10 sm:px-12 sm:text-sm sm:tracking-widest">
                 Select Workspace Files
               </div>
             </div>
@@ -345,7 +345,7 @@ export function CollageMaker() {
                animate={{ opacity: 1, x: 0 }} 
                className="xl:col-span-4 space-y-8"
              >
-                <div className="glass-dark border border-white/5 rounded-[3rem] p-8 space-y-10 shadow-3xl relative overflow-hidden">
+                <div className="glass-dark relative space-y-7 overflow-hidden rounded-[2rem] border border-white/5 p-5 shadow-3xl sm:space-y-10 sm:rounded-[3rem] sm:p-8">
                    <div className="absolute top-0 right-0 w-40 h-40 bg-accent-purple/5 blur-[80px] pointer-events-none" />
                    
                    {/* Elements List */}
@@ -357,7 +357,7 @@ export function CollageMaker() {
                          </div>
                          <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{items.length}/9 ACTIVE</span>
                       </div>
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-4 gap-2 min-[430px]:grid-cols-5 sm:gap-3">
                          {items.map((item) => (
                            <div key={item.id} className="relative group aspect-square">
                               <img src={item.preview} className="w-full h-full object-cover rounded-xl border border-white/10" alt="Collage item thumbnail" />

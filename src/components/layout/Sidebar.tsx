@@ -7,30 +7,29 @@ import { CATEGORIES, ICON_MAP } from "@/data/tools";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { 
   LayoutDashboard, 
-  Settings, 
   Star, 
   Menu,
   X,
   Sparkles,
   ChevronRight,
   Clock,
-  Crown,
-  Zap
+  Crown
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import type { LucideIcon } from "lucide-react";
+import type { Session } from "@supabase/supabase-js";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import GradientText from "../ui/GradientText";
-import PremiumButton from "../ui/PremiumButton";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
 import { useTranslation } from "react-i18next";
 import { UserProfile } from "../ui/UserProfile";
-import { VerifiedTick } from "../ui/VerifiedTick";
 import { LumoraLogo } from "../ui/LumoraLogo";
+import { CreditTokenIcon } from "../ui/CreditTokenIcon";
 
 interface SidebarItemProps {
   name: string;
-  icon: any;
+  icon: LucideIcon;
   href: string;
   isActive: boolean;
   accentColor?: string;
@@ -122,10 +121,10 @@ export function Sidebar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(true);
-  const { isPro, user: dbUser, loading: isProLoading } = usePro();
+  const { isPro, user: dbUser, isLoading: isProLoading } = usePro();
   const { credits, loading: isCreditsLoading } = useCredits();
-  const [session, setSession] = useState<any>(null);
-  const supabase = createClient();
+  const [session, setSession] = useState<Session | null>(null);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -172,15 +171,8 @@ export function Sidebar() {
     visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
   };
 
-  const [localFrameId, setLocalFrameId] = useState<string | null>(null);
-  const [localGradientId, setLocalGradientId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const frame = session?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
-    const gradient = session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
-    setLocalFrameId(frame);
-    setLocalGradientId(gradient);
-  }, [session, dbUser]);
+  const [localFrameId, setLocalFrameId] = useState<string | null | undefined>(undefined);
+  const [localGradientId, setLocalGradientId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     const handleFrameUpdate = (e: Event) => {
@@ -200,8 +192,12 @@ export function Sidebar() {
   }, []);
 
   const fullName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Explorer";
-  const frameId = localFrameId;
-  const gradientId = localGradientId;
+  const frameId = localFrameId !== undefined
+    ? localFrameId
+    : session?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
+  const gradientId = localGradientId !== undefined
+    ? localGradientId
+    : session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
 
   return (
     <>
@@ -323,26 +319,27 @@ export function Sidebar() {
                 {/* Footer Section: Credits, Upgrades & User Info */}
                 <div suppressHydrationWarning className="p-5 mt-auto border-t border-white/5 bg-[#050506]/95 backdrop-blur-3xl space-y-4 relative z-50">
                   {/* Real-time Credits Display Badge */}
-                  <div className="p-4 rounded-2xl bg-zinc-900/40 border border-white/5 flex items-center justify-between relative overflow-hidden group/credits">
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/[0.01] to-transparent pointer-events-none" />
+                  <div className="group/credits relative overflow-hidden rounded-2xl border border-white/10 bg-[#07070c]/80 p-4 shadow-[0_18px_45px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 hover:border-cyan-300/25 hover:shadow-[0_22px_60px_rgba(34,211,238,0.10)]">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(124,58,237,0.24),transparent_36%),radial-gradient(circle_at_85%_65%,rgba(34,211,238,0.16),transparent_34%)]" />
+                    <div className="pointer-events-none absolute inset-y-0 -left-10 w-10 skew-x-[-18deg] bg-white/10 blur-sm transition-transform duration-1000 group-hover/credits:translate-x-64" />
+                    <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover/credits:scale-105 transition-transform duration-300">
-                        <Zap size={14} className="fill-cyan-400/20" />
-                      </div>
+                      <CreditTokenIcon size="md" />
                       <div className="space-y-0.5">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 leading-none">Balance</p>
-                        <h4 className="text-sm font-bold text-white leading-none mt-1">
-                          {isCreditsLoading ? "..." : `${credits} Credits`}
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 leading-none">Credits</p>
+                        <h4 className="animate-gradient-x mt-1 bg-linear-to-r from-cyan-200 via-white to-purple-300 bg-[length:220%_100%] bg-clip-text text-sm font-black leading-none text-transparent">
+                          {isCreditsLoading ? "..." : credits.toLocaleString()}
                         </h4>
                       </div>
                     </div>
                     {!isProLoading && !isPro && (
                       <Link href="/pro" className="relative z-10 shrink-0">
-                        <div className="px-2 py-1 rounded border border-amber-400/30 text-[8px] font-black text-amber-400 uppercase tracking-widest hover:bg-amber-400/10 transition-colors">
+                        <div className="rounded-xl border border-amber-300/25 bg-amber-300/10 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-widest text-amber-200 transition-colors hover:bg-amber-300/15">
                           TOP UP
                         </div>
                       </Link>
                     )}
+                    </div>
                   </div>
 
                   {/* Premium Capsule Upgrade Button */}

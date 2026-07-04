@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { getUserCredits, deductCredits, addCredits } from '@/lib/credits'
+import { getUserCredits, deductCredits } from '@/lib/credits'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic';
@@ -12,13 +12,13 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { session }, error: authError } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (authError || !session?.user?.id) {
+    if (authError || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userId = session.user.id
+    const userId = user.id
     const credits = await getUserCredits(userId)
 
     if (!credits) {
@@ -53,79 +53,73 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/user/credits
- * Deduct or add credits
+ * Deduct credits or consume AI message usage.
  * 
  * Body:
  * {
- *   action: 'deduct' | 'add',
- *   amount: number,
- *   reason?: string
+ *   action: 'deduct' | 'consume-message',
+ *   amount: number
  * }
  */
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { session }, error: authError } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (authError || !session?.user?.id) {
-      console.error('[API] Auth error or no session:', authError)
+    if (authError || !user?.id) {
+      console.error('[API] Auth error or no user:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userId = session.user.id
-    const { action, amount, reason } = await request.json()
+    const userId = user.id
+    const { action, amount } = await request.json()
 
     if (!action) {
       return NextResponse.json({ error: 'Missing action' }, { status: 400 })
     }
 
+    const normalizedAmount = Number(amount ?? 0)
+    if (action === 'deduct' && (!Number.isInteger(normalizedAmount) || normalizedAmount <= 0 || normalizedAmount > 10000)) {
+      return NextResponse.json({ error: 'Invalid credit amount' }, { status: 400 })
+    }
+
     console.log(`[API] Processing credit action: ${action} for user: ${userId}`)
 
-    let result: any = { success: true }
+    let result: { success: boolean; error?: string; data?: unknown } = { success: true }
     
     try {
       if (action === 'deduct') {
-        result = await deductCredits(userId, amount || 0)
-      } else if (action === 'add') {
-        result = await addCredits(userId, amount || 0, reason)
+        result = await deductCredits(userId, normalizedAmount)
       } else if (action === 'consume-message') {
-        // Logic for incrementing AI message count (Unlimited with Safety Bypass)
         const now = new Date()
-        try {
-          const updated = await prisma.user.upsert({
-            where: { id: userId },
-            update: {
-              aiMessagesToday: { increment: 1 },
-              updatedAt: now
-            },
-            create: {
-              id: userId,
-              dailyCredits: 50,
-              lifetimeCredits: 0,
-              aiMessagesToday: 1,
-              plan: 'free',
-              createdAt: now,
-              updatedAt: now
-            },
-            select: { aiMessagesToday: true }
-          })
-          result = { success: true, data: updated }
-        } catch (dbErr) {
-          console.error('[API] CRITICAL: Database error during message consumption:', dbErr)
-          // SAFETY BYPASS: Return success even if DB update fails so user isn't blocked
-          return NextResponse.json({ success: true, bypass: true })
-        }
+        const updated = await prisma.user.upsert({
+          where: { id: userId },
+          update: {
+            aiMessagesToday: { increment: 1 },
+            updatedAt: now
+          },
+          create: {
+            id: userId,
+            email: user.email || null,
+            name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || null,
+            dailyCredits: 50,
+            lifetimeCredits: 0,
+            aiMessagesToday: 1,
+            plan: 'free',
+            createdAt: now,
+            updatedAt: now
+          },
+          select: { aiMessagesToday: true }
+        })
+        result = { success: true, data: updated }
       } else {
         return NextResponse.json(
-          { error: 'Invalid action. Use "deduct", "add", or "consume-message"' },
+          { error: 'Invalid action. Use "deduct" or "consume-message"' },
           { status: 400 }
         )
       }
     } catch (actionErr) {
       console.error(`[API] Error performing action ${action}:`, actionErr)
-      if (action === 'consume-message') {
-        return NextResponse.json({ success: true, bypass: true })
-      }
       throw actionErr
     }
 
@@ -137,7 +131,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('[API] Global POST error:', err)
     return NextResponse.json(
-      { error: 'Internal server error', details: String(err) },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

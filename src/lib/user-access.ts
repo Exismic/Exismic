@@ -70,9 +70,14 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
 
 export function hasActiveProAccess(user: {
   plan?: string | null;
+  subscriptionStatus?: string | null;
   planExpiresAt?: Date | string | null;
 }) {
-  if ((user.plan || 'free').toLowerCase() !== 'pro') return false;
+  const plan = (user.plan || 'free').toLowerCase();
+  const subscriptionStatus = (user.subscriptionStatus || 'none').toLowerCase();
+  const hasProEntitlement = plan === 'pro' || subscriptionStatus === 'active';
+
+  if (!hasProEntitlement) return false;
 
   if (!user.planExpiresAt) return true;
   const expiresAt = new Date(user.planExpiresAt);

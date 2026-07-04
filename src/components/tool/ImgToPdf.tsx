@@ -1,29 +1,26 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Upload, 
   Download, 
-  Loader2, 
-  X, 
-  ArrowRight,
   FileText,
   ImageIcon,
   CheckCircle2,
   AlertCircle,
-  Zap,
   GripVertical,
   Trash2,
   ChevronUp,
   ChevronDown,
   Layout,
-  Maximize2
+  Maximize2,
+  Plus,
 } from "lucide-react";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import { readDownloadResponse } from "@/lib/pdf-client";
 
 interface ImageFile {
   id: string;
@@ -35,31 +32,63 @@ const TO_PDF_STEPS = [
   { title: "Upload Images", desc: "Select the photos or graphics you want to compile into a PDF." },
   { title: "Arrange Order", desc: "Drag and drop or use arrows to set the perfect page sequence." },
   { title: "Select Layout", desc: "Choose between 'Auto' (matches image size) or 'A4' (standard document)." },
-  { title: "Compile", desc: "Our engine embeds the images into a high-fidelity PDF container." }
+  { title: "Compile", desc: "Lumora normalizes each image and embeds it as a PDF page." }
 ];
 
 export default function ImgToPdf() {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("compiled-images.pdf");
   const [error, setError] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<"auto" | "a4">("auto");
+  const imagesRef = useRef<ImageFile[]>([]);
+
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
+
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.preview));
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newImages = acceptedFiles.map(file => ({
-      id: Math.random().toString(36).substring(7),
+      id: crypto.randomUUID(),
       file,
       preview: URL.createObjectURL(file)
     }));
-    setImages(prev => [...prev, ...newImages]);
+    setImages(prev => {
+      const combined = [...prev, ...newImages];
+      if (combined.length > 40) {
+        newImages
+          .slice(Math.max(0, 40 - prev.length))
+          .forEach((image) => URL.revokeObjectURL(image.preview));
+        setError("You can convert up to 40 images at once.");
+      }
+      return combined.slice(0, 40);
+    });
     setResultUrl(null);
     setError(null);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp"] },
+    accept: {
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/webp": [".webp"],
+      "image/avif": [".avif"],
+      "image/heic": [".heic", ".heif"],
+    },
     multiple: true,
   });
 
@@ -84,7 +113,6 @@ export default function ImgToPdf() {
   const handleConvert = async () => {
     if (images.length === 0) return;
     setIsProcessing(true);
-    setStatus("Preparing image buffers...");
     setError(null);
 
     const formData = new FormData();
@@ -97,17 +125,15 @@ export default function ImgToPdf() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Conversion failed.");
-      }
-
-      const data = await response.json();
-      setResultUrl(data.resultUrl);
-      setStatus("Document Created!");
-    } catch (err: any) {
+      const artifact = await readDownloadResponse(
+        response,
+        "compiled-images.pdf",
+      );
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to create PDF");
+      setError(err instanceof Error ? err.message : "Failed to create PDF");
     } finally {
       setIsProcessing(false);
     }
@@ -172,14 +198,18 @@ export default function ImgToPdf() {
                          <div className="flex flex-col sm:flex-row items-center gap-6">
                             <a 
                               href={resultUrl} 
-                              download="compiled_images.pdf"
+                              download={resultFileName}
                               className="px-14 py-7 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-4 shadow-3xl"
                             >
                               <Download className="w-5 h-5" />
                               Download PDF
                             </a>
                             <button 
-                              onClick={() => { setImages([]); setResultUrl(null); }}
+                              onClick={() => {
+                                images.forEach((image) => URL.revokeObjectURL(image.preview));
+                                setImages([]);
+                                setResultUrl(null);
+                              }}
                               className="px-10 py-7 rounded-2xl glass-dark border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-all"
                             >
                               New Project
@@ -337,22 +367,5 @@ export default function ImgToPdf() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Plus(props: any) {
-  return (
-    <svg 
-      {...props} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="3" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
   );
 }

@@ -64,6 +64,7 @@ export function ImageGeneratorTool() {
   const [history, setHistory] = useState<{url: string, prompt: string, width: number, height: number}[]>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'history'>('generate');
   const [error, setError] = useState<React.ReactNode | null>(null);
+  const [powerPackMeta, setPowerPackMeta] = useState<{ priority?: boolean; noWatermark?: boolean; commercialLicense?: boolean } | null>(null);
   
   const [selectedStyle, setSelectedStyle] = useState("none");
   const [estimatedTime, setEstimatedTime] = useState(5.0);
@@ -136,6 +137,7 @@ export function ImageGeneratorTool() {
     setIsGenerating(true);
     setError(null);
     setEnhancedPrompt(null);
+    setPowerPackMeta(null);
     try {
       const preset = STYLE_PRESETS.find(p => p.id === selectedStyle);
       const finalPrompt = preset && preset.suffix ? `${data.prompt.trim()}${preset.suffix}` : data.prompt.trim();
@@ -149,6 +151,11 @@ export function ImageGeneratorTool() {
         const newUrl = resp.data.imageUrl;
         setResults([newUrl]);
         setEnhancedPrompt(resp.data.enhancedPrompt || null);
+        setPowerPackMeta({
+          priority: resp.data.priority,
+          noWatermark: resp.data.noWatermark,
+          commercialLicense: resp.data.commercialLicense,
+        });
         
         const newHistoryItem = { 
           url: newUrl, 
@@ -435,7 +442,7 @@ export function ImageGeneratorTool() {
                            {isPro && (
                               <div className="mx-auto w-fit px-4 py-2 rounded-full bg-amber-400/10 border border-amber-300/30 shadow-[0_0_24px_rgba(251,191,36,0.12)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
                                  <Zap size={13} className="fill-amber-200" />
-                                 Priority Processing
+                                 ⚡ Priority Mode
                               </div>
                            )}
                            <p className="text-2xl font-black text-white tracking-tight animate-pulse">
@@ -489,6 +496,21 @@ export function ImageGeneratorTool() {
                               <p className="text-xs text-zinc-400 font-medium leading-relaxed italic relative z-10">
                                  "{enhancedPrompt}"
                               </p>
+                           </div>
+                        )}
+
+                        {isPro && (
+                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              {[
+                                { label: "Priority Mode", active: powerPackMeta?.priority ?? true, icon: Zap },
+                                { label: "No Watermark", active: powerPackMeta?.noWatermark ?? true, icon: Sparkles },
+                                { label: "Commercial License", active: powerPackMeta?.commercialLicense ?? true, icon: Wand2 },
+                              ].map((item) => (
+                                <div key={item.label} className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/15 bg-emerald-300/5 px-4 py-3 text-[9px] font-black uppercase tracking-widest text-emerald-200">
+                                  <item.icon size={13} />
+                                  {item.label}
+                                </div>
+                              ))}
                            </div>
                         )}
 

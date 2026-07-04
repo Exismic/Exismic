@@ -156,18 +156,18 @@ export function ImageFormatConverter() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-24 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <div className="mx-auto max-w-7xl space-y-5 pb-10">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
          
          {/* LEFT: SETTINGS */}
-         <div className="lg:col-span-4 space-y-8">
-            <div className="p-10 rounded-[3rem] glass-dark border border-white/5 space-y-10">
+         <div className="space-y-4 lg:col-span-4">
+            <div className="space-y-7 rounded-lg border border-white/10 bg-zinc-950/65 p-5 shadow-xl sm:p-6">
                <div className="space-y-2">
                   <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                      <Settings2 size={16} className="text-accent-purple" />
-                     Conversion Studio
+                     Export settings
                   </h3>
-                  <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest">Master your export profile</p>
+                  <p className="text-xs font-medium text-zinc-500">Choose one format for the entire batch.</p>
                </div>
 
                <div className="space-y-8">
@@ -178,8 +178,8 @@ export function ImageFormatConverter() {
                           <button 
                             key={fmt} onClick={() => setTargetFormat(fmt)}
                             className={cn(
-                              "py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
-                              targetFormat === fmt ? "bg-accent-purple border-accent-purple text-white shadow-3xl" : "bg-white/5 border-white/5 text-zinc-500 hover:border-white/10"
+                              "min-h-11 rounded-md border text-[10px] font-bold uppercase tracking-wider transition-all",
+                              targetFormat === fmt ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100 shadow-sm" : "border-white/10 bg-white/[0.03] text-zinc-500 hover:border-white/20 hover:text-white"
                             )}
                           >
                              {fmt}
@@ -190,13 +190,13 @@ export function ImageFormatConverter() {
 
                   <div className="space-y-4 pt-2">
                      <div className="flex justify-between items-end px-2 text-[10px] font-black uppercase tracking-widest">
-                        <span className="text-zinc-500">Master Quality</span>
-                        <span className="text-accent-purple">{quality}%</span>
+                        <span className="text-zinc-500">Quality</span>
+                        <span className="text-cyan-200">{quality}%</span>
                      </div>
                      <input 
                        type="range" min="10" max="100" value={quality}
                        onChange={(e) => setQuality(parseInt(e.target.value))}
-                       className="w-full accent-accent-purple h-1 bg-white/5 rounded-full"
+                       className="h-1.5 w-full cursor-pointer rounded-full bg-white/5 accent-cyan-300"
                      />
                      <p className="text-[9px] text-zinc-600 font-bold uppercase text-center tracking-widest leading-loose">
                         Higher quality = Larger file size.<br/>WebP & JPG only.
@@ -205,30 +205,30 @@ export function ImageFormatConverter() {
                </div>
             </div>
 
-            <div className="p-8 rounded-[2.5rem] bg-accent-cyan/5 border border-accent-cyan/10 flex items-center gap-6">
-               <div className="w-14 h-14 rounded-2xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan">
+            <div className="flex items-center gap-4 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.04] p-4">
+               <div className="flex size-11 items-center justify-center rounded-md bg-cyan-300/10 text-cyan-200">
                   <RefreshCw size={24} />
                </div>
                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-white uppercase tracking-widest">Streamlined Flow</p>
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Transcode all to {targetFormat}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white">Batch output</p>
+                  <p className="text-xs font-medium text-zinc-500">Every image will export as {targetFormat}.</p>
                </div>
             </div>
          </div>
 
          {/* RIGHT: WORKSPACE */}
-         <div className="lg:col-span-8 space-y-8">
+         <div className="space-y-5 lg:col-span-8">
             <div 
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); handleUpload(e.dataTransfer.files); }}
-              className="relative p-20 rounded-[4rem] glass-dark border-2 border-dashed border-white/5 hover:border-accent-purple/30 transition-all flex flex-col items-center justify-center text-center group min-h-[350px]"
+              className="group relative flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-zinc-950/65 px-5 py-10 text-center shadow-xl transition-all hover:border-cyan-300/40 hover:bg-cyan-300/[0.03]"
             >
                <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e.target.files)} />
-               <div className="w-24 h-24 rounded-full bg-accent-purple/10 flex items-center justify-center text-accent-purple mb-8 group-hover:scale-110 transition-transform shadow-4xl">
-                  <Upload size={40} />
+               <div className="mb-5 flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-200 shadow-lg transition-all group-hover:border-cyan-300/30">
+                  <Upload size={28} />
                </div>
-               <h4 className="text-xl font-black text-white uppercase tracking-[0.2em]">Universal Ingestion</h4>
-               <p className="text-zinc-500 text-xs mt-3 uppercase tracking-widest font-medium">Drop any images to begin transcoding</p>
+               <h4 className="text-lg font-bold text-white">Choose images to convert</h4>
+               <p className="mt-2 text-sm font-medium text-zinc-500">Drop images here or browse from your device.</p>
             </div>
 
             <AnimatePresence>
@@ -237,25 +237,25 @@ export function ImageFormatConverter() {
                    initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
                    className="space-y-6"
                  >
-                    <div className="flex items-center justify-between px-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-1">
                        <h5 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">{files.length} Assets Loaded</h5>
-                       <div className="flex gap-6">
-                          <button onClick={convertAll} disabled={isBulkProcessing || files.every(f => f.status === "done")} className="text-[10px] font-black text-accent-cyan hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2">
+                       <div className="flex gap-2">
+                          <button onClick={convertAll} disabled={isBulkProcessing || files.every(f => f.status === "done")} className="flex min-h-11 items-center gap-2 rounded-md px-3 text-[10px] font-bold uppercase tracking-wider text-cyan-200 transition-colors hover:bg-cyan-300/10 hover:text-white">
                              {isBulkProcessing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
                              Convert Batch
                           </button>
-                          <button onClick={() => setFiles([])} className="text-[10px] font-black text-red-500 hover:text-red-400 uppercase tracking-widest transition-colors">Abort All</button>
+                          <button onClick={() => setFiles([])} className="min-h-11 rounded-md px-3 text-[10px] font-bold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-400/10 hover:text-red-300">Clear all</button>
                        </div>
                     </div>
 
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-3">
+                    <div className="custom-scrollbar max-h-[600px] space-y-3 overflow-y-auto pr-1">
                        {files.map((item) => (
                          <motion.div 
                            key={item.id}
                            layout
-                           className="flex items-center gap-8 p-5 rounded-[2.5rem] glass-dark border border-white/5 group relative overflow-hidden"
+                           className="group relative flex items-center gap-3 overflow-hidden rounded-lg border border-white/10 bg-zinc-950/65 p-3 transition-all hover:border-white/20 sm:gap-4"
                          >
-                            <img src={item.preview} className="w-20 h-20 rounded-3xl object-cover border border-white/10 shadow-2xl" alt="Preview" />
+                            <img src={item.preview} className="size-16 shrink-0 rounded-md border border-white/10 object-cover shadow-lg sm:size-20" alt="Preview" />
                             
                             <div className="flex-1 min-w-0">
                                <div className="flex items-center gap-3">
@@ -302,11 +302,11 @@ export function ImageFormatConverter() {
                                    a.href = item.resultUrl!;
                                    a.download = `converted_${item.file.name.split('.')[0]}.${(item.resultFormat || targetFormat).toLowerCase()}`;
                                    a.click();
-                                 }} className="p-4 rounded-2xl bg-white text-black hover:bg-zinc-200 transition-all shadow-xl">
+                                 }} className="flex size-11 items-center justify-center rounded-md bg-white text-black shadow-lg transition-all hover:bg-zinc-200" title="Download converted image">
                                     <Download size={18} />
                                  </button>
                                )}
-                               <button onClick={() => removeFile(item.id)} className="p-4 rounded-2xl hover:bg-red-500/10 text-zinc-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                               <button onClick={() => removeFile(item.id)} className="flex size-11 items-center justify-center rounded-md text-zinc-600 transition-all hover:bg-red-500/10 hover:text-red-400 focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100" title="Remove image">
                                   <Trash2 size={18} />
                                </button>
                             </div>
@@ -324,18 +324,18 @@ export function ImageFormatConverter() {
                        <button 
                          onClick={downloadZip}
                          disabled={!files.some(f => f.status === "done")}
-                         className="py-7 rounded-[2rem] glass-dark border border-white/5 text-white font-black text-[10px] uppercase tracking-[0.4em] hover:bg-white/5 transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+                         className="flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 px-5 text-xs font-bold text-white transition-all hover:bg-white/10 disabled:opacity-50"
                        >
                           <FileArchive size={20} className="text-accent-purple" />
-                          Bundle as ZIP
+                          Download ZIP
                        </button>
                        <button 
                          onClick={convertAll}
                          disabled={isBulkProcessing || files.every(f => f.status === "done")}
-                         className="py-7 rounded-[2rem] premium-gradient text-white font-black text-[10px] uppercase tracking-[0.4em] shadow-4xl hover:scale-[1.03] transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+                         className="premium-gradient flex min-h-12 items-center justify-center gap-2 rounded-md px-5 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
                        >
                           <Zap size={20} />
-                          Finalize Batch
+                          Convert batch
                        </button>
                     </div>
                  </motion.div>

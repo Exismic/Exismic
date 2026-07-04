@@ -5,11 +5,9 @@ import {
   Palette, 
   RefreshCw, 
   Copy, 
-  Check, 
   Lock, 
   Unlock, 
   Download,
-  Share2,
   Code2,
   Zap,
   Sparkles,
@@ -76,7 +74,8 @@ export function PaletteGenerator() {
   }, []);
 
   useEffect(() => {
-    generatePalette();
+    const timer = window.setTimeout(() => generatePalette(), 0);
+    return () => window.clearTimeout(timer);
   }, [generatePalette]);
 
   const copyColor = (hex: string, index: number) => {
@@ -113,17 +112,52 @@ export function PaletteGenerator() {
     else generatePalette("random");
   };
 
+  const downloadPalettePng = () => {
+    if (colors.length === 0) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600;
+    canvas.height = 900;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const swatchWidth = canvas.width / colors.length;
+    colors.forEach((color, index) => {
+      context.fillStyle = color.hex;
+      context.fillRect(index * swatchWidth, 0, swatchWidth + 1, canvas.height);
+      context.fillStyle = "rgba(0, 0, 0, 0.55)";
+      context.fillRect(index * swatchWidth + 28, canvas.height - 112, swatchWidth - 56, 68);
+      context.fillStyle = "#ffffff";
+      context.font = "700 30px Arial, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(color.hex, index * swatchWidth + swatchWidth / 2, canvas.height - 78);
+    });
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `lumora-palette-${Date.now()}.png`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    }, "image/png");
+  };
+
   return (
-    <div className="max-w-6xl mx-auto space-y-12 pb-24">
+    <div className="mx-auto max-w-6xl space-y-7 pb-24 sm:space-y-12">
       {/* 1. PALETTE DISPLAY */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 h-[400px] md:h-[500px] rounded-[3.5rem] overflow-hidden shadow-4xl border-4 border-zinc-900 bg-zinc-900 group">
+      <div className="group grid min-h-[520px] grid-cols-1 overflow-hidden rounded-[2rem] border-4 border-zinc-900 bg-zinc-900 shadow-4xl sm:h-[400px] sm:min-h-0 sm:grid-cols-5 sm:rounded-[3.5rem] md:h-[500px]">
         {colors.map((color, i) => (
           <motion.div 
             key={i}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="relative group/swatch flex flex-col items-center justify-end pb-12 cursor-pointer transition-all duration-500 overflow-hidden"
+            className="group/swatch relative flex min-h-[104px] cursor-pointer flex-col items-center justify-end overflow-hidden pb-4 transition-all duration-500 sm:min-h-0 sm:pb-12"
             style={{ backgroundColor: color.hex }}
             onClick={() => copyColor(color.hex, i)}
           >
@@ -170,8 +204,8 @@ export function PaletteGenerator() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
          {/* Prompt Input */}
          <div className="lg:col-span-7 space-y-6">
-            <form onSubmit={handlePromptGenerate} className="relative group">
-               <div className="absolute inset-y-0 left-6 flex items-center text-zinc-500 group-focus-within:text-accent-purple transition-colors">
+            <form onSubmit={handlePromptGenerate} className="group relative flex flex-col gap-3 sm:block">
+               <div className="absolute left-5 top-5 flex items-center text-zinc-500 transition-colors group-focus-within:text-accent-purple sm:inset-y-0 sm:left-6 sm:top-auto">
                   <Palette size={20} />
                </div>
                <input 
@@ -179,11 +213,11 @@ export function PaletteGenerator() {
                  value={prompt}
                  onChange={(e) => setPrompt(e.target.value)}
                  placeholder="Describe the mood... (e.g., 'Retro Synthwave')"
-                 className="w-full h-20 pl-16 pr-40 rounded-3xl glass-dark border border-white/5 focus:border-accent-purple/50 focus:outline-none text-sm font-bold text-white placeholder:text-zinc-600 transition-all shadow-xl"
+                 className="glass-dark h-14 w-full rounded-2xl border border-white/5 pl-14 pr-4 text-sm font-bold text-white shadow-xl transition-all placeholder:text-zinc-600 focus:border-accent-purple/50 focus:outline-none sm:h-20 sm:rounded-3xl sm:pl-16 sm:pr-40"
                />
                <button 
                  type="submit"
-                 className="absolute right-3 top-3 bottom-3 px-8 rounded-2xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                 className="premium-gradient flex min-h-12 w-full items-center justify-center rounded-xl px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-2xl transition-all hover:brightness-110 active:scale-[0.99] sm:absolute sm:bottom-3 sm:right-3 sm:top-3 sm:w-auto sm:rounded-2xl sm:px-8"
                >
                   Generate Magic
                </button>
@@ -207,7 +241,7 @@ export function PaletteGenerator() {
          </div>
 
          {/* Export & Tools */}
-         <div className="lg:col-span-5 p-10 rounded-[3rem] glass-dark border border-white/5 space-y-8 relative overflow-hidden">
+         <div className="glass-dark relative space-y-8 overflow-hidden rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:col-span-5 lg:rounded-[3rem] lg:p-10">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent-purple/5 blur-3xl rounded-full" />
             
             <div className="space-y-2">
@@ -256,7 +290,12 @@ export function PaletteGenerator() {
                )}
             </AnimatePresence>
 
-            <button className="w-full py-5 rounded-2xl border border-white/10 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={downloadPalettePng}
+              disabled={colors.length === 0}
+              className="flex min-h-12 w-full items-center justify-center gap-3 rounded-2xl border border-white/10 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
                <Download size={16} />
                Download PNG Palette
             </button>
@@ -264,14 +303,14 @@ export function PaletteGenerator() {
       </div>
 
       {/* 3. PRO TIP */}
-      <div className="p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-6">
-         <div className="p-4 rounded-2xl bg-indigo-500/10 text-indigo-400">
+      <div className="flex items-start gap-4 rounded-[1.75rem] border border-indigo-500/10 bg-indigo-500/5 p-5 sm:gap-6 sm:rounded-[2.5rem] sm:p-8">
+         <div className="shrink-0 rounded-xl bg-indigo-500/10 p-3 text-indigo-400 sm:rounded-2xl sm:p-4">
             <Zap size={24} />
          </div>
          <div className="space-y-2">
             <h4 className="text-sm font-black text-zinc-100 uppercase tracking-widest">Workflow Mastery</h4>
             <p className="text-zinc-500 text-sm leading-relaxed">
-              Use the **Lock** icon to freeze specific colors while shuffling the rest. This is perfect for building around a brand-defined primary color. Pro designers use our **HSL-Randomizer** to ensure high-contrast harmony in every click.
+              Use the <strong className="font-bold text-zinc-300">Lock</strong> icon to freeze specific colors while shuffling the rest. This is perfect for building around a brand-defined primary color. The HSL randomizer keeps contrast balanced with every shuffle.
             </p>
          </div>
       </div>

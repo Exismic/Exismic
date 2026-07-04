@@ -82,6 +82,7 @@ export function JsonFormatter() {
     a.href = url;
     a.download = "data.json";
     a.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
   };
 
   const clearAll = () => {

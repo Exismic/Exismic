@@ -1,4 +1,6 @@
 export const PRICING_CONFIG = {
+  PAYMENTS_ENABLED: process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === 'true',
+  PAYMENT_UNAVAILABLE_MESSAGE: 'Purchases are currently unavailable. Please check back soon.',
   PRO_PLAN: {
     USD: 6.99,
     INR: 499,
@@ -52,7 +54,7 @@ export function getIsIndia() {
 
 export function formatPrice(amount: number, currency: 'USD' | 'INR') {
   if (currency === 'INR') {
-    return `₹${amount}`;
+    return `Rs ${amount}`;
   }
   return `$${amount}`;
 }

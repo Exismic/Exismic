@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { 
-  ImageIcon, 
   Upload, 
   Download, 
   RefreshCw, 
@@ -14,13 +13,12 @@ import {
   Zap, 
   ShieldCheck, 
   History,
-  Eraser,
   Minus,
   Plus,
   Undo2,
   Redo2,
   LayoutGrid,
-  Maximize
+  Archive
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -33,13 +31,25 @@ interface HistoryState {
   mask: string;
 }
 
+interface BatchResult {
+  name: string;
+  url: string;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+}
+
 export function BackgroundRemover() {
   const { isPro } = useCredits();
   const [mode, setMode] = useState<Mode>("bg-remove");
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
   const [fileName, setFileName] = useState<string>("image.png");
   const [result, setResult] = useState<string | null>(null);
+  const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
+  const [batchProgress, setBatchProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [comparisonValue, setComparisonValue] = useState(50);
   const [showComparison, setShowComparison] = useState(false);
@@ -48,7 +58,7 @@ export function BackgroundRemover() {
   
   // Object Erase specific state
   const [brushSize, setBrushSize] = useState(40);
-  const [brushHardness, setBrushHardness] = useState(80);
+  const brushHardness = 80;
   const [isDrawing, setIsDrawing] = useState(false);
   const [maskHistory, setMaskHistory] = useState<HistoryState[]>([]);
   const [maskHistoryIndex, setMaskHistoryIndex] = useState(-1);
@@ -101,10 +111,21 @@ export function BackgroundRemover() {
   }, [mode, image, initCanvas]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const selectedFiles = Array.from(e.target.files ?? []).filter(file => file.type.startsWith("image/"));
+    if (selectedFiles.length > 1 && !isPro) {
+      setErrorMessage("Batch uploads are exclusive to Pro members.");
+      setTimeout(() => setErrorMessage(null), 5000);
+      return;
+    }
+
+    const files = isPro && mode === "bg-remove" ? selectedFiles.slice(0, 10) : selectedFiles.slice(0, 1);
+    const file = files[0];
     if (file) {
+      setBatchFiles(files);
+      setBatchResults([]);
+      setBatchProgress(0);
       setImageFile(file);
-      setFileName(file.name);
+      setFileName(files.length > 1 ? `${files.length} images` : file.name);
       const reader = new FileReader();
       reader.onload = (ev) => {
         const src = ev.target?.result as string;
@@ -124,36 +145,46 @@ export function BackgroundRemover() {
   const processBgRemoval = async () => {
     if (!imageFile) return;
     setIsProcessing(true);
-
-    const formData = new FormData();
-    formData.append("file", imageFile);
+    setBatchResults([]);
+    setBatchProgress(0);
 
     try {
-      const response = await fetch("/api/tools/image/bg-remove", {
-        method: "POST",
-        body: formData
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setResult(data.result);
-        setShowComparison(true);
-        setSuccessMessage("Background removed successfully!");
-        setTimeout(() => setSuccessMessage(null), 3000);
-        
-        await saveFileHistory({
-          toolType: "bg-remove",
-          originalName: fileName,
-          resultUrl: data.result,
-          fileType: "image",
-          status: "completed",
+      const filesToProcess = isPro && batchFiles.length > 1 ? batchFiles : [imageFile];
+      const completed: BatchResult[] = [];
+
+      for (let index = 0; index < filesToProcess.length; index += 1) {
+        const currentFile = filesToProcess[index];
+        const formData = new FormData();
+        formData.append("file", currentFile);
+        formData.append("priority", String(isPro));
+        formData.append("batch", String(filesToProcess.length > 1));
+
+        const response = await fetch("/api/tools/image/bg-remove", {
+          method: "POST",
+          body: formData
         });
-      } else {
-        throw new Error(data.error || "Processing failed");
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || "Processing failed");
+        }
+
+        completed.push({ name: currentFile.name, url: data.result });
+        setBatchResults([...completed]);
+        setBatchProgress(Math.round(((index + 1) / filesToProcess.length) * 100));
+
+        if (index === 0) {
+          setResult(data.result);
+          setShowComparison(true);
+        }
+
       }
-    } catch (error: any) {
+
+      setSuccessMessage(filesToProcess.length > 1 ? `${filesToProcess.length} backgrounds removed!` : "Background removed successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error: unknown) {
       console.error("Background removal failed:", error);
-      setErrorMessage(error.message || "Something went wrong. Please try again.");
+      setErrorMessage(getErrorMessage(error));
       setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setIsProcessing(false);
@@ -214,9 +245,9 @@ export function BackgroundRemover() {
       } else {
         throw new Error(data.error || "Erasure failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Eraser failed:", error);
-      setErrorMessage(error.message || "Something went wrong. Please try again.");
+      setErrorMessage(getErrorMessage(error));
       setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setIsProcessing(false);
@@ -304,14 +335,38 @@ export function BackgroundRemover() {
   const resetAll = () => {
     setImage(null);
     setImageFile(null);
+    setBatchFiles([]);
+    setBatchResults([]);
+    setBatchProgress(0);
     setResult(null);
     setMaskHistory([]);
     setMaskHistoryIndex(-1);
     setShowComparison(false);
   };
 
+  const downloadBatchZip = async () => {
+    if (batchResults.length === 0) return;
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+
+    await Promise.all(batchResults.map(async (item, index) => {
+      const response = await fetch(item.url);
+      const blob = await response.blob();
+      const baseName = item.name.replace(/\.[^.]+$/, "") || `image-${index + 1}`;
+      zip.file(`${baseName}-cutout.png`, blob);
+    }));
+
+    const content = await zip.generateAsync({ type: "blob" });
+    const blobUrl = URL.createObjectURL(content);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = "lumora-pro-background-cutouts.zip";
+    a.click();
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  };
+
   return (
-    <div className="w-full space-y-8 animate-in fade-in duration-700">
+    <div className="w-full space-y-5 animate-in fade-in duration-500">
       
       {/* ERROR MESSAGE */}
       <AnimatePresence>
@@ -320,9 +375,9 @@ export function BackgroundRemover() {
             initial={{ opacity: 0, scale: 0.9, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: -20 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 rounded-2xl bg-red-500/90 backdrop-blur-md text-white font-black text-xs uppercase tracking-widest shadow-3xl border border-red-400/50 flex items-center gap-4"
+            className="fixed left-1/2 top-20 z-[100] flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 items-center gap-3 rounded-lg border border-red-400/40 bg-red-950/95 px-4 py-3 text-sm font-semibold text-white shadow-2xl backdrop-blur-md"
           >
-             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+             <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-red-400/15">
                 <X size={16} />
              </div>
              {errorMessage}
@@ -330,28 +385,14 @@ export function BackgroundRemover() {
         )}
       </AnimatePresence>
 
-      {/* TOP TOOL BAR */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-6 p-6 rounded-[2.5rem] glass-dark border border-white/5 shadow-2xl relative overflow-hidden">
-        <div className="flex items-center gap-6">
-           <div className="w-16 h-16 rounded-2xl bg-accent-purple/10 flex items-center justify-center text-accent-purple shadow-inner">
-              {mode === "bg-remove" ? <ImageIcon size={32} /> : <Eraser size={32} />}
-           </div>
-           <div className="space-y-1">
-              <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">
-                {mode === "bg-remove" ? "Background Remover" : "Object Eraser"}
-              </h2>
-              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                {mode === "bg-remove" ? "Professional AI Cutouts" : "Studio-Grade Retouching"}
-              </p>
-           </div>
-        </div>
-
-        <div className="flex items-center gap-4 bg-black/40 p-1.5 rounded-2xl border border-white/5">
+      {/* MODE AND DOCUMENT ACTIONS */}
+      <div className="flex flex-col gap-3 rounded-lg border border-white/10 bg-zinc-950/65 p-3 shadow-xl sm:flex-row sm:items-center sm:justify-between">
+        <div className="grid grid-cols-2 gap-1 rounded-md border border-white/10 bg-black/40 p-1">
            <button 
              onClick={() => { setMode("bg-remove"); setResult(null); }}
              className={cn(
-               "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-               mode === "bg-remove" ? "bg-white/10 text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"
+               "flex min-h-11 items-center justify-center gap-2 rounded px-4 text-xs font-bold transition-all",
+               mode === "bg-remove" ? "bg-white/10 text-white shadow-sm" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
              )}
            >
               <LayoutGrid size={14} /> Background
@@ -359,19 +400,19 @@ export function BackgroundRemover() {
            <button 
              onClick={() => { setMode("object-erase"); setResult(null); }}
              className={cn(
-               "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-               mode === "object-erase" ? "bg-white/10 text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"
+               "flex min-h-11 items-center justify-center gap-2 rounded px-4 text-xs font-bold transition-all",
+               mode === "object-erase" ? "bg-white/10 text-white shadow-sm" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
              )}
            >
               <Sparkles size={14} /> Objects
            </button>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-2">
            {image && (
              <button 
                onClick={resetAll}
-               className="group flex items-center gap-2 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-all font-black text-[10px] uppercase tracking-widest"
+               className="group flex min-h-11 items-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 text-xs font-bold text-zinc-300 transition-all hover:bg-white/10 hover:text-white"
              >
                 <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" /> 
                 New
@@ -379,49 +420,54 @@ export function BackgroundRemover() {
            )}
            {result && (
               <button 
-                onClick={() => {
+                onClick={batchResults.length > 1 ? downloadBatchZip : () => {
                   const a = document.createElement("a");
                   a.href = result;
                   a.download = `${mode === 'bg-remove' ? 'cutout' : 'retouched'}-${fileName}`;
                   a.click();
                 }}
-                className="flex items-center gap-2 px-10 py-4 rounded-2xl premium-gradient text-white shadow-3xl hover:scale-105 active:scale-95 transition-all font-black text-[10px] uppercase tracking-[0.2em]"
+                className="premium-gradient flex min-h-11 items-center gap-2 rounded-md px-5 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98]"
               >
-                 <Download size={18} /> Download Result
+                 {batchResults.length > 1 ? <Archive size={18} /> : <Download size={18} />}
+                 {batchResults.length > 1 ? "Download ZIP" : "Download Result"}
               </button>
            )}
         </div>
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[650px]">
+      <div className="grid min-h-[540px] grid-cols-1 gap-5 lg:grid-cols-2">
         
         {/* LEFT SIDE: SOURCE / UPLOAD */}
-        <div className="relative rounded-[3rem] glass-dark border border-white/10 overflow-hidden flex flex-col shadow-4xl group/workspace">
-           <div className="absolute top-6 left-6 z-20 flex items-center gap-3 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+        <div className="group/workspace relative flex min-h-[480px] flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-950/70 shadow-xl">
+           <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-md border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
               <div className="w-2 h-2 rounded-full bg-accent-purple animate-pulse" />
               <span className="text-[9px] font-black text-white uppercase tracking-widest">
                 {mode === "bg-remove" ? "Image Source" : "Workspace"}
               </span>
            </div>
 
-           <div className="flex-1 flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+           <div className="flex flex-1 items-center justify-center bg-black/20 p-4 sm:p-6">
               {!image ? (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-full border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center gap-8 cursor-pointer hover:border-accent-purple/30 hover:bg-accent-purple/5 transition-all duration-700"
+                  className="flex h-full min-h-[390px] w-full cursor-pointer flex-col items-center justify-center gap-6 rounded-md border border-dashed border-white/15 px-5 text-center transition-all duration-300 hover:border-cyan-300/40 hover:bg-cyan-300/[0.03]"
                 >
-                   <div className="relative">
-                      <div className="absolute inset-0 bg-accent-purple/20 blur-3xl rounded-full" />
-                      <div className="relative w-24 h-24 rounded-3xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500">
-                         <Upload size={40} />
-                      </div>
+                   <div className="flex size-16 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-200 shadow-[0_12px_35px_rgba(34,211,238,0.08)]">
+                      <Upload size={28} />
                    </div>
                    <div className="text-center space-y-2">
-                      <h3 className="text-xl font-black text-white uppercase tracking-widest">Upload Image</h3>
-                      <p className="text-zinc-500 text-sm font-medium">Drag & drop or click to browse</p>
+                      <h3 className="text-lg font-bold text-white">Choose an image</h3>
+                      <p className="text-zinc-500 text-sm font-medium">
+                        {isPro && mode === "bg-remove" ? "Upload up to 10 images for Pro batch cutouts" : "Drag & drop or click to browse"}
+                      </p>
+                      {mode === "bg-remove" && (
+                        <div className="mx-auto mt-3 w-fit rounded-md border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-cyan-200">
+                          Pro batch processing available
+                        </div>
+                      )}
                    </div>
-                   <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleUpload} />
+                   <input ref={fileInputRef} type="file" className="hidden" accept="image/*" multiple={isPro && mode === "bg-remove"} onChange={handleUpload} />
                 </div>
               ) : (
                 <div className="relative max-w-full">
@@ -452,20 +498,20 @@ export function BackgroundRemover() {
 
            {/* WORKSPACE TOOLBAR */}
            {image && !result && (
-             <div className="p-4 md:p-6 border-t border-white/5 flex flex-wrap items-center justify-between bg-black/40 gap-4">
+             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/40 p-3 sm:p-4">
                 {mode === "object-erase" && (
                    <div className="flex flex-wrap items-center gap-3 md:gap-6">
-                      <div className="flex items-center gap-2 md:gap-3 bg-zinc-900/80 p-2 rounded-xl border border-white/5 shadow-inner">
-                         <button onClick={() => setBrushSize(Math.max(5, brushSize - 5))} className="p-1.5 md:p-2 text-zinc-500 hover:text-white transition-colors"><Minus size={14}/></button>
+                      <div className="flex items-center gap-2 rounded-md border border-white/10 bg-zinc-900/80 p-1 shadow-inner">
+                         <button onClick={() => setBrushSize(Math.max(5, brushSize - 5))} className="flex size-10 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-white/5 hover:text-white"><Minus size={14}/></button>
                          <div className="flex flex-col items-center min-w-[45px]">
                             <span className="text-[10px] font-black text-white">{brushSize}px</span>
                             <span className="text-[8px] text-zinc-600 font-bold uppercase">Size</span>
                          </div>
-                         <button onClick={() => setBrushSize(Math.min(150, brushSize + 5))} className="p-1.5 md:p-2 text-zinc-500 hover:text-white transition-colors"><Plus size={14}/></button>
+                         <button onClick={() => setBrushSize(Math.min(150, brushSize + 5))} className="flex size-10 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-white/5 hover:text-white"><Plus size={14}/></button>
                       </div>
                       <div className="flex items-center gap-1.5">
-                         <button onClick={undo} disabled={maskHistoryIndex <= 0} className="p-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white disabled:opacity-20 transition-all border border-white/5"><Undo2 size={16} /></button>
-                         <button onClick={redo} disabled={maskHistoryIndex >= maskHistory.length - 1} className="p-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white disabled:opacity-20 transition-all border border-white/5"><Redo2 size={16} /></button>
+                         <button onClick={undo} disabled={maskHistoryIndex <= 0} className="flex size-11 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-400 transition-all hover:text-white disabled:opacity-20"><Undo2 size={16} /></button>
+                         <button onClick={redo} disabled={maskHistoryIndex >= maskHistory.length - 1} className="flex size-11 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-400 transition-all hover:text-white disabled:opacity-20"><Redo2 size={16} /></button>
                       </div>
                    </div>
                 )}
@@ -474,7 +520,7 @@ export function BackgroundRemover() {
                    onClick={processAction} 
                    disabled={isProcessing} 
                    className={cn(
-                     "flex items-center gap-2 px-10 py-4 rounded-xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap",
+                     "premium-gradient flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-5 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50",
                      mode === "bg-remove" && "mx-auto"
                    )}
                 >
@@ -486,13 +532,13 @@ export function BackgroundRemover() {
         </div>
 
         {/* RIGHT SIDE: RESULT / BEFORE-AFTER */}
-        <div className="relative rounded-[3rem] glass-dark border border-white/10 overflow-hidden flex flex-col shadow-4xl group/result">
-           <div className="absolute top-6 left-6 z-20 flex items-center gap-3 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+        <div className="group/result relative flex min-h-[480px] flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-950/70 shadow-xl">
+           <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-md border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-[9px] font-black text-white uppercase tracking-widest">Result</span>
            </div>
 
-           <div className="flex-1 flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] relative">
+           <div className="relative flex flex-1 items-center justify-center bg-[linear-gradient(45deg,rgba(255,255,255,.025)_25%,transparent_25%,transparent_75%,rgba(255,255,255,.025)_75%),linear-gradient(45deg,rgba(255,255,255,.025)_25%,transparent_25%,transparent_75%,rgba(255,255,255,.025)_75%)] bg-[length:20px_20px] bg-[position:0_0,10px_10px] p-4 sm:p-6">
               {isProcessing ? (
                 <div className="flex flex-col items-center gap-8 text-center">
                    <div className="relative w-24 h-24">
@@ -502,15 +548,17 @@ export function BackgroundRemover() {
                    <div className="space-y-2">
                       {isPro && (
                         <div className="mx-auto mb-4 w-fit px-4 py-2 rounded-full bg-amber-400/10 border border-amber-300/30 shadow-[0_0_24px_rgba(251,191,36,0.12)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
-                          <Zap size={13} className="fill-amber-200" />
-                          Priority Processing
+                         <Zap size={13} className="fill-amber-200" />
+                          Priority Mode
                         </div>
                       )}
                       <h3 className="text-xl font-black text-white uppercase tracking-widest animate-pulse">
-                        {isPro ? "Processing with Priority..." : mode === "bg-remove" ? "Removing background..." : "Erasing object..."}
+                        {batchFiles.length > 1 && isPro
+                          ? `Processing batch ${batchResults.length + 1}/${batchFiles.length}`
+                          : isPro ? "Processing with Priority..." : mode === "bg-remove" ? "Removing background..." : "Erasing object..."}
                       </h3>
                       <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                        {mode === "bg-remove" ? "Generating high-quality cutout" : "Synthesizing realistic background"}
+                        {batchFiles.length > 1 && isPro ? `${batchProgress}% complete - ZIP export ready after processing` : mode === "bg-remove" ? "Generating high-quality cutout" : "Synthesizing realistic background"}
                       </p>
                    </div>
                 </div>
@@ -595,21 +643,22 @@ export function BackgroundRemover() {
 
            {/* RESULT ACTIONS */}
            {result && !isProcessing && (
-              <div className="p-6 border-t border-white/5 flex items-center justify-center bg-black/20 gap-4">
+              <div className="flex flex-col items-stretch justify-center gap-2 border-t border-white/10 bg-black/20 p-3 sm:flex-row sm:p-4">
                  <button 
-                   onClick={() => {
-                      const a = document.createElement("a");
-                      a.href = result;
-                      a.download = `${mode === 'bg-remove' ? 'cutout' : 'retouched'}-${fileName}`;
-                      a.click();
+                   onClick={batchResults.length > 1 ? downloadBatchZip : () => {
+                     const a = document.createElement("a");
+                     a.href = result;
+                     a.download = `${mode === 'bg-remove' ? 'cutout' : 'retouched'}-${fileName}`;
+                     a.click();
                    }}
-                   className="flex-1 flex items-center justify-center gap-3 py-5 rounded-2xl premium-gradient text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all"
+                   className="premium-gradient flex min-h-12 flex-1 items-center justify-center gap-2 rounded-md px-5 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98]"
                  >
-                    <Download size={20} /> Download Result
+                    {batchResults.length > 1 ? <Archive size={20} /> : <Download size={20} />}
+                    {batchResults.length > 1 ? `Download ${batchResults.length} as ZIP` : "Download Result"}
                  </button>
                  <button 
                    onClick={resetAll}
-                   className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-all font-black text-xs uppercase tracking-widest"
+                   className="flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 px-5 text-xs font-bold text-zinc-300 transition-all hover:bg-white/10 hover:text-white"
                  >
                     <RefreshCw size={20} /> New
                  </button>
@@ -620,14 +669,14 @@ export function BackgroundRemover() {
       </div>
 
       {/* BOTTOM INFO PANEL */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
          {[
            { icon: Zap, label: "AI Precision", value: mode === 'bg-remove' ? "Bria-AI RMBG" : "Flux Inpainting", color: "text-amber-500" },
            { icon: ShieldCheck, label: "Quality", value: "Lossless export", color: "text-emerald-500" },
            { icon: History, label: "Cloud Sync", value: "History enabled", color: "text-accent-blue" }
          ].map((stat, i) => (
-           <div key={i} className="p-6 rounded-3xl glass-dark border border-white/5 flex items-center gap-4 group hover:border-white/10 transition-all">
-              <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center", stat.color)}>
+           <div key={i} className="group flex items-center gap-3 rounded-lg border border-white/10 bg-zinc-950/55 p-4 transition-all hover:border-white/20">
+              <div className={cn("flex size-11 items-center justify-center rounded-md bg-white/5", stat.color)}>
                  <stat.icon size={20} />
               </div>
               <div className="text-left">

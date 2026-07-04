@@ -82,6 +82,27 @@ export async function sendMagicLinkAction(formData: FormData) {
     return { error: "Enter a valid email address." };
   }
 
+  const trustedDevice = await prisma.trustedLoginDevice.findUnique({
+    where: { loginEmail: email },
+    select: {
+      status: true,
+      revokedAt: true,
+      expiresAt: true,
+    },
+  });
+
+  if (
+    !trustedDevice ||
+    trustedDevice.status !== "active" ||
+    trustedDevice.revokedAt ||
+    trustedDevice.expiresAt <= new Date()
+  ) {
+    return {
+      error:
+        "Trusted login is not registered for this email. Sign in normally, then set it up in Account Settings > Security.",
+    };
+  }
+
   const limit = await checkRateLimit(email, "magic_link");
   if (!limit.allowed) {
     return { error: limit.error || AUTH_EMAIL_RATE_LIMIT_MESSAGE };
@@ -114,7 +135,7 @@ export async function sendMagicLinkAction(formData: FormData) {
 
     return {
       success: true,
-      message: "Magic link sent. Check your inbox and use it within 15 minutes.",
+      message: "Trusted login link sent. Check your inbox and use it within 15 minutes.",
     };
   } catch (error) {
     console.error("[Auth] Magic link request failed:", error);

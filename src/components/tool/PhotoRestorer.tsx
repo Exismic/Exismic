@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  Archive,
   Camera,
   Check,
   Contrast,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useCredits } from "@/hooks/useCredits";
 
 interface RestoredAsset {
   original: string;
@@ -30,6 +32,10 @@ interface RestoredAsset {
   provider?: string;
 }
 
+interface BatchRestoredAsset extends RestoredAsset {
+  name: string;
+}
+
 const progressMessages = [
   "Scanning damage and grain...",
   "Rebuilding facial detail...",
@@ -39,9 +45,13 @@ const progressMessages = [
 ];
 
 export function PhotoRestorer() {
+  const { isPro } = useCredits();
   const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
   const [result, setResult] = useState<RestoredAsset | null>(null);
+  const [batchResults, setBatchResults] = useState<BatchRestoredAsset[]>([]);
+  const [batchProgress, setBatchProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -69,7 +79,20 @@ export function PhotoRestorer() {
     return () => window.clearInterval(timer);
   }, [isProcessing]);
 
-  const loadFile = (uploadedFile?: File) => {
+  const loadFiles = (uploadedFiles?: FileList | File[]) => {
+    const files = Array.from(uploadedFiles ?? []).filter((item) => item.type.startsWith("image/"));
+    if (files.length === 0) return;
+
+    if (files.length > 1 && !isPro) {
+      setError("Batch restoration is exclusive to Pro members.");
+      return;
+    }
+
+    const nextFiles = isPro ? files.slice(0, 10) : files.slice(0, 1);
+    loadFile(nextFiles[0], nextFiles);
+  };
+
+  const loadFile = (uploadedFile?: File, selectedBatch: File[] = uploadedFile ? [uploadedFile] : []) => {
     if (!uploadedFile) return;
     if (!uploadedFile.type.startsWith("image/")) {
       setError("Please upload a valid image file.");
@@ -77,6 +100,9 @@ export function PhotoRestorer() {
     }
 
     setFile(uploadedFile);
+    setBatchFiles(selectedBatch);
+    setBatchResults([]);
+    setBatchProgress(0);
     setResult(null);
     setError(null);
     setSliderPos(50);
@@ -87,7 +113,31 @@ export function PhotoRestorer() {
   };
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    loadFile(event.target.files?.[0]);
+    loadFiles(event.target.files ?? undefined);
+  };
+
+  const restoreFile = async (currentFile: File) => {
+    const formData = new FormData();
+    formData.append("file", currentFile);
+    formData.append("strength", strength.toString());
+    formData.append("faces", enhanceFaces.toString());
+    formData.append("color", colorCorrect.toString());
+    formData.append("sharpen", sharpenDetails.toString());
+    formData.append("denoise", denoise.toString());
+    formData.append("upscale", upscale.toString());
+    formData.append("priority", String(isPro));
+
+    const response = await fetch("/api/tools/image/restorer", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Restoration failed");
+    }
+
+    return data;
   };
 
   const processRestoration = async () => {
@@ -96,37 +146,38 @@ export function PhotoRestorer() {
     setIsProcessing(true);
     setError(null);
     setResult(null);
+    setBatchResults([]);
+    setBatchProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("strength", strength.toString());
-      formData.append("faces", enhanceFaces.toString());
-      formData.append("color", colorCorrect.toString());
-      formData.append("sharpen", sharpenDetails.toString());
-      formData.append("denoise", denoise.toString());
-      formData.append("upscale", upscale.toString());
+      const filesToProcess = isPro && batchFiles.length > 1 ? batchFiles : [file];
+      const completed: BatchRestoredAsset[] = [];
 
-      const response = await fetch("/api/tools/image/restorer", {
-        method: "POST",
-        body: formData,
-      });
+      for (let index = 0; index < filesToProcess.length; index += 1) {
+        const currentFile = filesToProcess[index];
+        const data = await restoreFile(currentFile);
+        const originalPreview = index === 0 ? image : URL.createObjectURL(currentFile);
+        const restoredAsset: BatchRestoredAsset = {
+          name: currentFile.name,
+          original: originalPreview,
+          restored: data.result,
+          originalSize: currentFile.size,
+          restoredSize: data.size,
+          width: data.width,
+          height: data.height,
+          provider: data.provider,
+        };
 
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Restoration failed");
+        completed.push(restoredAsset);
+        setBatchResults([...completed]);
+        setBatchProgress(Math.round(((index + 1) / filesToProcess.length) * 100));
+
+        if (index === 0) {
+          setResult(restoredAsset);
+        }
       }
 
       setProgress(100);
-      setResult({
-        original: image,
-        restored: data.result,
-        originalSize: file.size,
-        restoredSize: data.size,
-        width: data.width,
-        height: data.height,
-        provider: data.provider,
-      });
     } catch (err: unknown) {
       console.error("Restoration failed:", err);
       setError(err instanceof Error ? err.message : "Restoration failed. Please try again.");
@@ -152,6 +203,9 @@ export function PhotoRestorer() {
   const resetAll = () => {
     setImage(null);
     setFile(null);
+    setBatchFiles([]);
+    setBatchResults([]);
+    setBatchProgress(0);
     setResult(null);
     setError(null);
     setProgress(0);
@@ -165,6 +219,24 @@ export function PhotoRestorer() {
     anchor.click();
   };
 
+  const downloadBatchZip = async () => {
+    if (batchResults.length === 0) return;
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+
+    await Promise.all(batchResults.map(async (item, index) => {
+      const response = await fetch(item.restored);
+      const blob = await response.blob();
+      const baseName = item.name.replace(/\.[^.]+$/, "") || `photo-${index + 1}`;
+      zip.file(`${baseName}-restored.png`, blob);
+    }));
+
+    const content = await zip.generateAsync({ type: "blob" });
+    const blobUrl = URL.createObjectURL(content);
+    downloadUrl(blobUrl, "lumora-pro-restored-photos.zip");
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 pb-24 space-y-8">
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
@@ -173,7 +245,7 @@ export function PhotoRestorer() {
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => {
               event.preventDefault();
-              loadFile(event.dataTransfer.files?.[0]);
+              loadFiles(event.dataTransfer.files);
             }}
             className="relative min-h-[520px] rounded-[3rem] glass-dark border border-white/10 overflow-hidden shadow-4xl"
           >
@@ -184,9 +256,12 @@ export function PhotoRestorer() {
                 </div>
                 <h3 className="text-2xl font-black text-white uppercase tracking-tight italic">Restore A Photo</h3>
                 <p className="mt-3 max-w-sm text-sm text-zinc-500 font-medium">
-                  Upload old, faded, blurry, or damaged family photos for restoration.
+                  {isPro ? "Upload up to 10 old, faded, blurry, or damaged photos for Pro batch restoration." : "Upload old, faded, blurry, or damaged family photos for restoration."}
                 </p>
-                <input type="file" className="hidden" accept="image/*" onChange={handleUpload} />
+                <div className="mt-5 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-cyan-200">
+                  Pro batch processing + ZIP export
+                </div>
+                <input type="file" className="hidden" accept="image/*" multiple={isPro} onChange={handleUpload} />
               </label>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
@@ -285,7 +360,7 @@ export function PhotoRestorer() {
               className="w-full py-5 rounded-2xl premium-gradient text-white font-black text-[11px] uppercase tracking-[0.25em] shadow-3xl hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-3"
             >
               {isProcessing ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
-              {isProcessing ? "Restoring..." : "Restore Photo"}
+              {isProcessing ? (batchFiles.length > 1 && isPro ? `Restoring batch ${batchResults.length + 1}/${batchFiles.length}` : "Restoring...") : (batchFiles.length > 1 && isPro ? `Restore ${batchFiles.length} Photos` : "Restore Photo")}
             </button>
           </div>
         </section>
@@ -339,13 +414,20 @@ export function PhotoRestorer() {
                   <div className="relative mb-8">
                     <div className="absolute inset-0 rounded-full bg-accent-purple/20 blur-3xl" />
                     <Loader2 className="relative w-24 h-24 text-accent-purple animate-spin" />
-                    <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-white animate-pulse" />
+                  <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-white animate-pulse" />
                   </div>
+                  {isPro && (
+                    <div className="mb-5 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_24px_rgba(251,191,36,0.12)]">
+                      ⚡ Priority Mode
+                    </div>
+                  )}
                   <p className="text-sm font-black text-white uppercase tracking-[0.35em] text-center">{progressMessages[messageIndex]}</p>
                   <div className="mt-8 w-full max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
                     <motion.div className="h-full premium-gradient" animate={{ width: `${progress}%` }} />
                   </div>
-                  <p className="mt-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{progress}% complete</p>
+                  <p className="mt-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                    {batchFiles.length > 1 && isPro ? `${batchProgress}% batch complete • ZIP export ready after processing` : `${progress}% complete`}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -380,11 +462,11 @@ export function PhotoRestorer() {
                   Original
                 </button>
                 <button
-                  onClick={() => downloadUrl(result.restored, `restored-${file?.name?.replace(/\.[^.]+$/, "") || "photo"}.png`)}
+                  onClick={batchResults.length > 1 ? downloadBatchZip : () => downloadUrl(result.restored, `restored-${file?.name?.replace(/\.[^.]+$/, "") || "photo"}.png`)}
                   className="px-6 py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center gap-2"
                 >
-                  <Download size={16} />
-                  Restored
+                  {batchResults.length > 1 ? <Archive size={16} /> : <Download size={16} />}
+                  {batchResults.length > 1 ? `ZIP (${batchResults.length})` : "Restored"}
                 </button>
               </div>
             </div>

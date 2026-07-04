@@ -1,0 +1,57 @@
+{
+  "name": "lumora-chat-desktop",
+  "version": "0.1.0",
+  "description": "The dedicated Lumora AI Chat desktop application.",
+  "private": true,
+  "main": "main.cjs",
+  "author": {
+    "name": "Raxstdioz LLC"
+  },
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "electron .",
+    "preview:production": "node scripts/launch.cjs https://lumoraai.online/chat",
+    "verify": "node scripts/verify.cjs",
+    "pack": "electron-builder --dir",
+    "dist:windows": "electron-builder --win nsis portable"
+  },
+  "build": {
+    "appId": "com.raxstdioz.lumora.chat",
+    "productName": "Lumora Chat",
+    "asar": true,
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "offline.html",
+      "assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "artifactName": "Lumora-Chat-Setup-${version}-${arch}.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Lumora Chat",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "Lumora-Chat-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^42.5.0",
+    "electron-builder": "^26.15.3"
+  }
+}

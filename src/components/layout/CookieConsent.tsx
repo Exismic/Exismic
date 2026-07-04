@@ -149,7 +149,7 @@ export function CookieConsent() {
       {/* Customize Modal */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }}

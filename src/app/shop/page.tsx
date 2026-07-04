@@ -5,19 +5,44 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createRazorpayOrder, verifyRazorpayPayment, openLuckyDrop } from "@/app/actions/shop";
 import Script from "next/script";
 import confetti from "canvas-confetti";
-import { Zap, PackageOpen, Star, Diamond, Coins, Loader2, Sparkles, AlertCircle, ShieldCheck, Info } from "lucide-react";
+import { Zap, PackageOpen, Star, Diamond, Coins, Loader2, Sparkles, ShieldCheck, Info } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
+import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 
-const CREDIT_PACKS = [
-  { id: "pack_500", credits: 500, price: 4.99, popular: false, icon: <Coins size={28} className="text-emerald-400" />, color: "from-emerald-500/20 to-emerald-900/20", borderColor: "border-emerald-500/30" },
-  { id: "pack_1500", credits: 1500, price: 9.99, popular: true, icon: <Diamond size={28} className="text-cyan-400" />, color: "from-cyan-500/20 to-blue-900/20", borderColor: "border-cyan-500/50" },
-  { id: "pack_5000", credits: 5000, price: 24.99, popular: false, icon: <Star size={28} className="text-purple-400" />, color: "from-purple-500/20 to-fuchsia-900/20", borderColor: "border-purple-500/30" },
-];
+const CREDIT_PACKS = PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
+  id: pack.id,
+  credits: pack.credits,
+  price: pack.priceUSD,
+  priceINR: pack.priceINR,
+  popular: Boolean(pack.popular),
+  icon: pack.icon === "Crown"
+    ? <Star size={28} className="text-purple-400" />
+    : pack.icon === "Sparkles"
+      ? <Diamond size={28} className="text-cyan-400" />
+      : <Coins size={28} className="text-emerald-400" />,
+  color: pack.color === "purple"
+    ? "from-cyan-500/20 to-blue-900/20"
+    : pack.color === "gold"
+      ? "from-purple-500/20 to-fuchsia-900/20"
+      : "from-emerald-500/20 to-emerald-900/20",
+  borderColor: pack.popular ? "border-cyan-500/50" : pack.color === "gold" ? "border-purple-500/30" : "border-emerald-500/30",
+}));
+
+type RazorpayPaymentResponse = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayConstructor = new (options: Record<string, unknown>) => {
+  open: () => void;
+  on: (event: string, handler: (response: unknown) => void) => void;
+};
 
 export default function ShopPage() {
   const { user } = useAuth();
-  const { credits, dailyCredits, lifetimeCredits, refreshCredits, toast } = useCredits();
+  const { credits, refreshCredits, toast } = useCredits();
   
   const [isProcessingId, setIsProcessingId] = useState<string | null>(null);
   
@@ -25,9 +50,19 @@ export default function ShopPage() {
   const [dropResult, setDropResult] = useState<{ creditsWon: number, rarity: string } | null>(null);
   
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
+  const [isIndia, setIsIndia] = useState(false);
+  const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
+
+  useEffect(() => {
+    setIsIndia(getIsIndia());
+  }, []);
 
   // Initialize Razorpay
   const handlePurchase = async (pack: typeof CREDIT_PACKS[0]) => {
+    if (!paymentsEnabled) {
+      toast(PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE, "info");
+      return;
+    }
     if (!user) {
       toast("Please login to purchase credits", "warning");
       return;
@@ -40,7 +75,8 @@ export default function ShopPage() {
     setIsProcessingId(pack.id);
     
     try {
-      const { success, order, error } = await createRazorpayOrder(pack.price, `${pack.credits} Credits Pack`);
+      const currency = isIndia ? "INR" : "USD";
+      const { success, order, error } = await createRazorpayOrder(pack.id, currency);
       
       if (!success || !order) {
         toast(error || "Failed to initialize payment", "warning");
@@ -55,7 +91,7 @@ export default function ShopPage() {
         name: "Lumora AI",
         description: `${pack.credits} Permanent Credits`,
         order_id: order.id,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayPaymentResponse) {
           const verify = await verifyRazorpayPayment(
             response.razorpay_payment_id,
             response.razorpay_order_id,
@@ -85,8 +121,13 @@ export default function ShopPage() {
         }
       };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
+      const checkoutWindow = window as Window & { Razorpay?: RazorpayConstructor };
+      if (!checkoutWindow.Razorpay) {
+        throw new Error("Payment checkout failed to load. Please refresh and try again.");
+      }
+
+      const rzp = new checkoutWindow.Razorpay(options);
+      rzp.on("payment.failed", function () {
         toast("Payment failed or cancelled", "warning");
         setIsProcessingId(null);
       });
@@ -146,11 +187,13 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20 px-4 md:px-8 font-sans selection:bg-purple-500/30">
-      <Script 
-        src="https://checkout.razorpay.com/v1/checkout.js" 
-        strategy="lazyOnload" 
-        onLoad={() => setIsRazorpayLoaded(true)} 
-      />
+      {paymentsEnabled && (
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+          onLoad={() => setIsRazorpayLoaded(true)}
+        />
+      )}
 
       {/* Background Refinements */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -190,6 +233,18 @@ export default function ShopPage() {
               <h2 className="text-2xl font-bold tracking-tight">Credit Packs</h2>
             </div>
 
+            {!paymentsEnabled && (
+              <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300/20 bg-amber-300/[0.055] p-4 text-left">
+                <Info size={18} className="mt-0.5 shrink-0 text-amber-200" />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-100">Credit purchases unavailable</p>
+                  <p className="mt-1 text-sm font-medium leading-6 text-zinc-400">
+                    New credit purchases are paused right now. Please check back soon.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-4">
               {CREDIT_PACKS.map((pack, idx) => (
                 <motion.div 
@@ -223,14 +278,18 @@ export default function ShopPage() {
 
                     <button 
                       onClick={() => handlePurchase(pack)}
-                      disabled={isProcessingId !== null}
+                      disabled={isProcessingId !== null || !paymentsEnabled}
                       className={`px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-xl flex items-center gap-2
                         ${pack.popular 
                           ? 'bg-white text-black hover:bg-zinc-200' 
                           : 'bg-white/10 text-white hover:bg-white/20'
                         } disabled:opacity-50`}
                     >
-                      {isProcessingId === pack.id ? <Loader2 size={18} className="animate-spin" /> : `$${pack.price}`}
+                      {isProcessingId === pack.id
+                        ? <Loader2 size={18} className="animate-spin" />
+                        : paymentsEnabled
+                          ? (isIndia ? `Rs ${pack.priceINR}` : `$${pack.price}`)
+                          : "Unavailable"}
                     </button>
                   </div>
                 </motion.div>

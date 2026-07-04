@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -11,7 +11,6 @@ import {
   ShieldCheck, 
   ArrowRight,
   Loader2,
-  DollarSign,
   Crown,
   Infinity,
   Cpu,
@@ -20,7 +19,7 @@ import {
 import confetti from "canvas-confetti";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
-import { PRICING_CONFIG } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -31,9 +30,17 @@ type Step = "input" | "processing" | "success" | "failure";
 
 export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const [amount, setAmount] = useState("");
+  const [isIndia, setIsIndia] = useState(false);
   const [step, setStep] = useState<Step>("input");
   const [error, setError] = useState("");
   const supabase = createClient();
+  const minimumAmount = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const currencyLabel = isIndia ? "INR" : "USD";
+  const currencyPrefix = isIndia ? "Rs" : "$";
+
+  useEffect(() => {
+    setIsIndia(getIsIndia());
+  }, []);
 
   const BENEFITS = [
     { icon: Infinity, text: "Unlimited AI Generations" },
@@ -59,7 +66,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    if (val >= 4) {
+    if (val >= minimumAmount) {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user?.id) {
@@ -88,12 +95,12 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             });
 
             setStep("success");
-        } catch (err: any) {
-            setError(err.message || "Connection failed.");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Connection failed.");
             setStep("input");
         }
     } else {
-        setError(`Minimum amount for Pro is $${PRICING_CONFIG.PRO_PLAN.USD}`);
+        setError(`Minimum amount for Pro is ${currencyPrefix} ${minimumAmount}`);
         setStep("failure");
     }
   };
@@ -107,19 +114,23 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#030303]/90 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[150] flex items-end justify-center bg-[#030303]/90 p-3 backdrop-blur-xl sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 30 }}
-            className="w-full max-w-2xl bg-zinc-950 border border-white/10 rounded-[3rem] overflow-hidden relative shadow-[0_50px_100px_rgba(0,0,0,0.9)]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Upgrade to Pro"
+            className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_50px_100px_rgba(0,0,0,0.9)] sm:rounded-[3rem]"
           >
             {/* Header Accent */}
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent-purple via-accent-blue to-accent-purple" />
             
             <button 
                 onClick={onClose}
-                className="absolute top-8 right-8 text-zinc-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full z-20"
+                aria-label="Close upgrade dialog"
+                className="absolute right-4 top-4 z-20 flex min-h-11 min-w-11 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-white/5 hover:text-white sm:right-8 sm:top-8"
             >
                 <X size={20} />
             </button>
@@ -149,25 +160,25 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                 )}
 
                 {/* Right Side: Action Area */}
-                <div className={cn("p-10 flex flex-col justify-center", (step === "processing" || step === "failure") && "md:col-span-2")}>
+                <div className={cn("flex flex-col justify-center p-5 sm:p-8 md:p-10", (step === "processing" || step === "failure") && "md:col-span-2")}>
                     {step === "input" && (
                         <div className="space-y-8">
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Unlock <span className="text-accent-purple">Pro</span></h2>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Test Simulation Payment</p>
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Membership purchase</p>
                             </div>
 
                             <form onSubmit={handleTestPayment} className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-4">Payment Amount (USD)</label>
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-4">Payment Amount ({currencyLabel})</label>
                                     <div className="relative group">
-                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl font-black text-zinc-700 group-focus-within:text-accent-purple transition-colors">$</span>
+                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl font-black text-zinc-700 group-focus-within:text-accent-purple transition-colors">{currencyPrefix}</span>
                                         <input 
                                             type="text"
                                             autoFocus
                                             value={amount}
                                             onChange={(e) => setAmount(e.target.value)}
-                                            placeholder={PRICING_CONFIG.PRO_PLAN.USD.toString()}
+                                            placeholder={minimumAmount.toString()}
                                             className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-5 pl-12 pr-6 text-xl font-black text-white outline-none focus:border-accent-purple/50 focus:ring-4 focus:ring-accent-purple/10 transition-all placeholder:text-zinc-800"
                                         />
                                     </div>
@@ -217,7 +228,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
                             <div className="space-y-3">
                                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Welcome Pro</h2>
-                                <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest leading-relaxed">Payment of ${amount} confirmed.</p>
+                                <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest leading-relaxed">Payment of {currencyPrefix} {amount} confirmed.</p>
                             </div>
 
                             <button 
@@ -236,7 +247,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                             </div>
                             <h2 className="text-2xl font-black italic uppercase tracking-tighter">Failed</h2>
                             <p className="text-zinc-500 font-medium text-xs px-6 italic leading-relaxed">
-                                "${amount}" is below the minimum required for Pro access.
+                                {currencyPrefix} {amount} is below the minimum required for Pro access.
                             </p>
                             <div className="flex flex-col gap-3 pt-4">
                                 <button onClick={reset} className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/10">Try Again</button>

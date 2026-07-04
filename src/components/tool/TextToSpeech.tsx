@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { 
   Play, 
   Pause, 
   Download, 
   RefreshCw, 
-  Volume2, 
   Sparkles, 
   Settings2, 
   ChevronDown,
@@ -19,15 +18,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const VOICES = [
-  { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', accent: 'American', description: 'Soft, professional' },
-  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', accent: 'American', description: 'Deep, narrative' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella', accent: 'American', description: 'Soft, young' },
-  { id: 'VR6AewLTigWG4xSOukaG', name: 'Antoni', accent: 'American', description: 'Friendly, clear' },
-  { id: 'MF3mGyEYCl7XYW7ANnPr', name: 'Marcus', accent: 'American', description: 'Authoritative' },
-  { id: 'Lcf7135a6v7x890abcdef', name: 'Arnold', accent: 'American', description: 'Deep, iconic' }, // Note: IDs might vary, using common ones
-  { id: 'yoZ06aH8qh69mU7AsuYp', name: 'Sam', accent: 'American', description: 'Conversational' },
-  { id: 'AZnzlk1XhxPqc80f07f0', name: 'Nicole', accent: 'British', description: 'Clear, elegant' },
-  { id: '29vD33N1HAb8p0d1f2g3', name: 'Clyde', accent: 'American', description: 'Gritty, mature' },
+  {
+    id: 'JBFqnCBsd6RMkjVDRZzb',
+    name: 'Lumora Narrator',
+    accent: 'Multilingual',
+    description: 'Clear, balanced',
+  },
 ];
 
 export function TextToSpeech() {
@@ -36,6 +32,7 @@ export function TextToSpeech() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackProgress, setPlaybackProgress] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showVoices, setShowVoices] = useState(false);
   
@@ -51,10 +48,10 @@ export function TextToSpeech() {
     setIsProcessing(true);
     setResult(null);
     setProgress(0);
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
 
     try {
-      // Simulation of progress
-      const interval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress(prev => Math.min(95, prev + Math.random() * 10));
       }, 300);
 
@@ -73,7 +70,6 @@ export function TextToSpeech() {
         }),
       });
 
-      clearInterval(interval);
       setProgress(100);
 
       if (!response.ok) {
@@ -84,10 +80,12 @@ export function TextToSpeech() {
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       setResult(url);
-    } catch (e: any) {
-      console.error("TTS generation failed:", e);
-      alert("Failed to generate speech: " + e.message);
+    } catch (error: unknown) {
+      console.error("TTS generation failed:", error);
+      const message = error instanceof Error ? error.message : "Unknown generation error.";
+      alert("Failed to generate speech: " + message);
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
       setIsProcessing(false);
     }
   };
@@ -105,6 +103,7 @@ export function TextToSpeech() {
   const reset = () => {
     setResult(null);
     setIsPlaying(false);
+    setPlaybackProgress(0);
     setText("");
   };
 
@@ -307,7 +306,7 @@ export function TextToSpeech() {
                                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Voice: {selectedVoice.name}</h3>
                                 <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest">{selectedVoice.accent}</span>
                             </div>
-                            <p className="text-zinc-500 italic font-medium text-lg line-clamp-2">"{text}"</p>
+                            <p className="text-zinc-500 italic font-medium text-lg line-clamp-2">&ldquo;{text}&rdquo;</p>
                         </div>
 
                         <div className="flex gap-6 items-center">
@@ -322,8 +321,8 @@ export function TextToSpeech() {
                                 <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                                     <motion.div 
                                         className="h-full bg-accent-purple" 
-                                        animate={{ width: isPlaying ? "100%" : "0%" }}
-                                        transition={{ duration: 10, ease: "linear" }} // Mock progress
+                                        animate={{ width: `${playbackProgress * 100}%` }}
+                                        transition={{ duration: 0.1, ease: "linear" }}
                                     />
                                 </div>
                                 <div className="flex justify-between text-[10px] font-black text-zinc-600 uppercase tracking-widest">
@@ -348,7 +347,14 @@ export function TextToSpeech() {
                 <audio 
                     ref={audioRef} 
                     src={result!} 
-                    onEnded={() => setIsPlaying(false)}
+                    onTimeUpdate={(event) => {
+                      const player = event.currentTarget;
+                      setPlaybackProgress(player.duration ? player.currentTime / player.duration : 0);
+                    }}
+                    onEnded={() => {
+                      setIsPlaying(false);
+                      setPlaybackProgress(0);
+                    }}
                     className="hidden"
                 />
              </div>

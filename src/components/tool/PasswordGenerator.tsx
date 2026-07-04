@@ -135,6 +135,7 @@ export function PasswordGenerator() {
           <div className="absolute top-8 right-10 flex gap-3 z-20">
              <button 
                onClick={generatePassword}
+               aria-label="Generate a new password"
                className="p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-md text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all active:rotate-180 duration-500 border border-white/5"
              >
                 <RefreshCw size={20} />

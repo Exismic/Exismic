@@ -1,21 +1,16 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { readVideoResponse } from "@/lib/video-client";
 import { 
-  FileArchive, 
   Upload, 
-  X, 
-  Play, 
   Download, 
   Zap, 
-  CheckCircle2,
-  ChevronRight,
   Loader2,
   Settings2,
-  BarChart3,
   Monitor,
   AlertCircle,
   TrendingDown,
@@ -30,17 +25,17 @@ export default function VideoCompressor() {
   const [quality, setQuality] = useState<Quality>("medium");
   const [format, setFormat] = useState<"mp4" | "webm">("mp4");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("lumora-compressed.mp4");
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
     if (selectedFile) {
-      if (selectedFile.size > 200 * 1024 * 1024) {
-        setError("File is too large. Maximum size is 200MB.");
+      if (selectedFile.size > 250 * 1024 * 1024) {
+        setError("File is too large. Maximum size is 250 MB.");
         return;
       }
       setError(null);
@@ -48,9 +43,16 @@ export default function VideoCompressor() {
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResultUrl(null);
       setCompressedSize(null);
-      setProgress(0);
     }
   }, []);
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  useEffect(() => () => {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [resultUrl]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -64,8 +66,7 @@ export default function VideoCompressor() {
     if (!file) return;
 
     setIsProcessing(true);
-    setProgress(10);
-    setStatus("Analyzing bitrate...");
+    setStatus("Encoding your video...");
     setError(null);
 
     const formData = new FormData();
@@ -74,32 +75,21 @@ export default function VideoCompressor() {
     formData.append("format", format);
 
     try {
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 5, 90));
-      }, 1000);
-
       const response = await fetch("/api/tools/video/compressor", {
         method: "POST",
         body: formData,
       });
-
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Compression failed");
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      
-      setResultUrl(url);
-      setCompressedSize(blob.size);
-      setProgress(100);
-      setStatus("Compression Complete!");
-    } catch (error: any) {
+      const artifact = await readVideoResponse(
+        response,
+        `${file.name.replace(/\.[^/.]+$/, "")}-compressed.${format}`,
+      );
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+      setCompressedSize(artifact.size);
+      setStatus("Compression complete");
+    } catch (error: unknown) {
       console.error("Compression error:", error);
-      setError(error.message || "Failed to compress video. Try a different quality setting.");
+      setError(error instanceof Error ? error.message : "Failed to compress video.");
       setStatus("Error occurred");
     } finally {
       setIsProcessing(false);
@@ -118,9 +108,9 @@ export default function VideoCompressor() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
+    setResultFileName("lumora-compressed.mp4");
     setCompressedSize(null);
     setIsProcessing(false);
-    setProgress(0);
     setStatus("");
     setError(null);
   };
@@ -160,10 +150,10 @@ export default function VideoCompressor() {
             
             <div className="flex gap-4">
               <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400">
-                Smart Encoding
+                H.264 / VP9
               </div>
               <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400">
-                Max 200MB
+                Max 250 MB
               </div>
             </div>
 
@@ -255,15 +245,15 @@ export default function VideoCompressor() {
                         <div className="space-y-2">
                           <h4 className="text-xl font-bold tracking-tight">{status}</h4>
                           <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                            <motion.div 
-                              className="h-full bg-emerald-500"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${progress}%` }}
+                            <motion.div
+                              className="h-full w-2/5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-300"
+                              animate={{ x: ["-110%", "250%"] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                             />
                           </div>
                           <div className="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest pt-1">
                             <span>Processing</span>
-                            <span>{Math.round(progress)}%</span>
+                            <span>Server encoding</span>
                           </div>
                         </div>
                       </div>
@@ -364,7 +354,7 @@ export default function VideoCompressor() {
                       <div className="grid grid-cols-1 gap-4">
                         <a
                           href={resultUrl}
-                          download={`compressed_${file.name.split('.')[0]}.${format}`}
+                          download={resultFileName}
                           className="w-full flex items-center justify-center gap-3 py-5 bg-white text-black font-bold rounded-[1.5rem] hover:bg-emerald-50 transition-all shadow-xl"
                         >
                           <Download className="w-5 h-5" />
@@ -390,7 +380,7 @@ export default function VideoCompressor() {
                 <div>
                   <h4 className="text-sm font-bold text-white mb-1">Smart VBR Engine</h4>
                   <p className="text-[11px] text-gray-500 leading-relaxed uppercase tracking-tight font-medium">
-                    We use multi-pass encoding to ensure the highest possible quality for your target file size.
+                    Lumora re-encodes with a quality-tuned profile while preserving the original audio track.
                   </p>
                 </div>
               </div>

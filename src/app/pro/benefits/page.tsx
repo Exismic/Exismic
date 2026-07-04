@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Sparkles, 
   Zap, 
   ShieldCheck, 
-  Cloud,
   Globe,
   Star,
   CheckCircle2,
   ArrowLeft,
-  Lock,
   Loader2,
-  Crown
+  Crown,
+  Archive,
+  ImageDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
@@ -24,19 +24,14 @@ import GradientText from "@/components/ui/GradientText";
 export default function ProBenefitsPage() {
   const { isPro, isLoading } = usePro();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading && !isPro && mounted) {
+    if (!isLoading && !isPro) {
       router.push('/pro');
     }
-  }, [isPro, isLoading, mounted, router]);
+  }, [isPro, isLoading, router]);
 
-  if (!mounted || isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#030303] flex items-center justify-center">
         <Loader2 className="w-12 h-12 text-accent-purple animate-spin" />
@@ -62,20 +57,27 @@ export default function ProBenefitsPage() {
       bg: "bg-accent-cyan/10"
     },
     { 
-      title: "Priority Processing", 
-      desc: "Skip the queue. Your tasks get processed 10x faster than free members.", 
+      title: "Priority Mode",
+      desc: "Skip the normal queue with faster routing and premium Modal endpoints where supported.",
       icon: ShieldCheck, 
       color: "text-accent-purple",
       bg: "bg-accent-purple/10"
     },
     { 
-      title: "Cloud Backup", 
-      desc: "Automatically save all your projects to our secure cloud. Access from anywhere.", 
-      icon: Cloud, 
+      title: "Batch Processing",
+      desc: "Upload multiple images in supported tools, process in one go, and download as a ZIP.",
+      icon: Archive,
       color: "text-blue-400",
       bg: "bg-blue-400/10"
     },
     { 
+      title: "No Watermarks + Commercial License",
+      desc: "Export clean generated images with commercial usage rights for client and business work.",
+      icon: ImageDown,
+      color: "text-emerald-400",
+      bg: "bg-emerald-400/10"
+    },
+    {
       title: "Global CDN", 
       desc: "Fast access to your files from anywhere in the world with our global network.", 
       icon: Globe, 

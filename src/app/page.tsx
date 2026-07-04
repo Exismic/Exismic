@@ -5,6 +5,7 @@ import { LandingPage } from "@/components/layout/LandingPage";
 import { createClient } from "@/utils/supabase/server";
 import { CategorySection } from "@/components/tool/CategorySection";
 import { constructMetadata } from "@/lib/seo";
+import { HomeToolConcierge } from "@/components/tool/HomeToolConcierge";
 
 export const metadata: Metadata = constructMetadata({
   title: "Lumora - All-in-One AI Tools | Free Background Remover, Image Generator & More",
@@ -45,7 +46,12 @@ export default async function Home() {
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    return <LandingPage />;
+    return (
+      <>
+        <LandingPage />
+        <HomeToolConcierge />
+      </>
+    );
   }
 
   return (
@@ -70,6 +76,7 @@ export default async function Home() {
         <div className="absolute bottom-[10%] left-[5%] w-[30%] h-[30%] bg-accent-blue/[0.03] blur-[150px] rounded-full" />
         <div className="absolute inset-0 scanline opacity-20" />
       </div>
+      <HomeToolConcierge />
     </div>
   );
 }

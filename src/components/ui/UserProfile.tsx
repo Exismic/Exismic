@@ -2,12 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { Settings, Sparkles } from "lucide-react";
+import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VerifiedTick } from "../ui/VerifiedTick";
 import { AvatarWithFrame } from "./AvatarWithFrame";
 import { PremiumName } from "./PremiumName";
-import { motion } from "framer-motion";
+import { ProBadge } from "./ProBadge";
 
 interface UserProfileProps {
   fullName: string;
@@ -36,7 +36,7 @@ export function UserProfile({
   const displayName = fullName.toUpperCase();
 
   // Determine subtext
-  const subtext = isPro ? "LUMORA ELITE" : "LUMORA EXPLORER";
+  const subtext = isPro ? "LUMORA PRO" : "LUMORA EXPLORER";
 
   if (variant === "sidebar") {
     return (
@@ -110,15 +110,12 @@ export function UserProfile({
             </div>
             <div className="flex items-center gap-1.5">
               {isPro ? (
-                <span className="elite-gradient-text text-[9.5px] font-black tracking-[0.2em] leading-none select-none uppercase drop-shadow-[0_0_8px_rgba(168,85,247,0.3)]">
-                  {subtext}
-                </span>
+                <ProBadge size="sm" />
               ) : (
                 <span className="text-[9px] font-extrabold text-zinc-500 tracking-[0.15em] leading-none uppercase select-none">
                   {subtext}
                 </span>
               )}
-              {isPro && <Sparkles size={9} className="text-pink-400 animate-pulse shrink-0" />}
             </div>
           </div>
 
@@ -162,9 +159,7 @@ export function UserProfile({
             <PremiumName name={displayName.split(" ")[0]} isPro={isPro} gradientId={gradientId} className="font-extrabold text-zinc-100 group-hover:text-white transition-colors duration-300" />
           </span>
           {isPro ? (
-            <span className="elite-gradient-text text-[8.5px] font-black tracking-[0.15em] leading-none uppercase drop-shadow-[0_0_8px_rgba(168,85,247,0.25)]">
-              ELITE
-            </span>
+            <ProBadge size="sm" />
           ) : (
             <span className="text-[8px] font-extrabold text-zinc-500 tracking-wider leading-none uppercase">
               EXPLORER
@@ -222,14 +217,7 @@ export function UserProfile({
 
       <div className="pt-2 relative z-10">
         {isPro ? (
-          <motion.div 
-             whileHover={{ scale: 1.05 }}
-             className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-purple-500/10 border border-purple-500/25 shadow-[0_0_25px_rgba(168,85,247,0.25)] relative overflow-hidden group/badge cursor-default"
-          >
-             <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/badge:translate-x-full transition-transform duration-1000 ease-out" />
-             <Sparkles size={12} className="text-pink-400 animate-pulse" />
-             <span className="elite-gradient-text text-[9.5px] font-black uppercase tracking-[0.2em]">{subtext}</span>
-          </motion.div>
+          <ProBadge size="md" />
         ) : (
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-zinc-900 border border-white/5">
              <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-[0.15em]">{subtext}</span>

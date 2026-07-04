@@ -6,12 +6,12 @@ import {
   X, 
   Check, 
   ShieldCheck, 
-  CreditCard, 
   ArrowRight,
   Sparkles,
   Crown,
   Loader2
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCredits } from "@/hooks/useCredits";
 import GradientText from "@/components/ui/GradientText";
@@ -22,13 +22,22 @@ import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 
 const CREDIT_TIERS = PRICING_CONFIG.CREDIT_PACKAGES;
 
-const ICON_MAP: Record<string, any> = {
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+type RazorpayConstructor = new (options: Record<string, unknown>) => { open: () => void };
+
+const ICON_MAP: Record<string, LucideIcon> = {
   'Zap': Zap,
   'Sparkles': Sparkles,
   'Crown': Crown
 };
 
 export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -40,10 +49,11 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
     setIsIndia(getIsIndia());
   }, []);
   
-  const { addCredits, isPro, refreshCredits } = useCredits();
+  const { refreshCredits } = useCredits();
 
   // Load Razorpay Script
   useEffect(() => {
+    if (!paymentsEnabled) return;
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
@@ -51,9 +61,10 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [paymentsEnabled]);
 
   const handlePurchase = async () => {
+    if (!paymentsEnabled) return;
     if (!selectedTier) return;
     const tier = CREDIT_TIERS.find(t => t.id === selectedTier);
     if (!tier) return;
@@ -62,7 +73,6 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
 
     try {
       // 1. Create order on server
-      const price = isIndia ? tier.priceINR : tier.priceUSD;
       const currency = isIndia ? "INR" : "USD";
 
       const orderRes = await fetch('/api/razorpay/order', {
@@ -70,7 +80,6 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           plan: 'credits',
-          amount: price * 100, // Convert to cents/paise
           currency,
           tierId: tier.id
         }),
@@ -81,14 +90,14 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
 
       // 2. Initialize Razorpay Checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YourKeyHere",
+        key: order.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YourKeyHere",
         amount: order.amount,
         currency: order.currency,
         name: "Lumora Credits",
         description: `Purchase of ${tier.credits} AI Credits`,
         image: "/logo.png",
         order_id: order.id,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           try {
             // 3. Verify on server
             const verifyRes = await fetch('/api/razorpay/verify', {
@@ -104,13 +113,14 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
               }),
             });
 
-            const verifyData = await verifyRes.json();
+            const verifyData = await verifyRes.json().catch(() => ({ error: "Payment verification returned an invalid response." }));
 
-            if (verifyData.success) {
+            if (verifyRes.ok && verifyData.success) {
                setLastCreditsAdded(tier.credits);
                setShowSuccess(true);
                refreshCredits(); // Refresh the local credit state
             } else {
+               console.error("Credit payment verification failed:", verifyData);
                setShowFailure(true);
             }
           } catch (verifyErr) {
@@ -128,7 +138,11 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
         },
       };
 
-      const rzp = (window as any).Razorpay(options);
+      const checkoutWindow = window as Window & { Razorpay?: RazorpayConstructor };
+      if (!checkoutWindow.Razorpay) {
+        throw new Error("Payment checkout failed to load. Please refresh and try again.");
+      }
+      const rzp = new checkoutWindow.Razorpay(options);
       rzp.open();
     } catch (err) {
       console.error("Payment failed:", err);
@@ -140,7 +154,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
   return (
     <AnimatePresence>
       {isOpen && (
-        <div key="buy-credits-modal" className="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div key="buy-credits-modal" className="fixed inset-0 z-[150] flex items-end justify-center p-3 sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -153,25 +167,29 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-4xl glass-dark border border-white/5 rounded-[3rem] p-8 md:p-12 overflow-hidden shadow-4xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Buy credits"
+            className="glass-dark relative max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/5 p-4 shadow-4xl sm:rounded-[3rem] sm:p-8 md:p-12"
           >
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-accent-purple/10 blur-[120px] pointer-events-none" />
             
             <button 
               onClick={onClose}
-              className="absolute top-8 right-8 p-3 rounded-full bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white transition-all z-20"
+              aria-label="Close credit purchase"
+              className="sticky top-0 z-20 ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-zinc-900/90 text-zinc-500 transition-all hover:bg-zinc-800 hover:text-white sm:absolute sm:right-8 sm:top-8"
             >
               <X size={20} />
             </button>
 
-            <div className="space-y-12 relative z-10">
+            <div className="relative z-10 space-y-8 sm:space-y-12">
               <div className="text-center space-y-4">
                  <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 mb-2">
                     <Zap size={14} className="text-accent-purple" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-accent-purple">Power Reserve</span>
                  </div>
-                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-white">
+                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white sm:text-5xl md:text-6xl">
                     Refuel your <GradientText>Permanent Reserve.</GradientText>
                  </h2>
                  <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest max-w-md mx-auto leading-relaxed">
@@ -179,23 +197,23 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                  </p>
               </div>
 
-              {!PRICING_CONFIG.PRO_PLAN.IS_PRO_LIVE ? (
-                <div className="flex flex-col items-center py-12 space-y-8">
-                  <div className="w-20 h-20 rounded-[2rem] bg-white/[0.03] border border-white/10 flex items-center justify-center animate-pulse">
-                    <Sparkles size={32} className="text-accent-purple" />
+              {!paymentsEnabled ? (
+                <div className="flex flex-col items-center space-y-6 py-7 sm:space-y-8 sm:py-12">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] border border-amber-300/20 bg-amber-300/[0.06] text-amber-200 shadow-[0_0_40px_rgba(251,191,36,0.08)]">
+                    <ShieldCheck size={32} />
                   </div>
                   <div className="text-center space-y-3">
-                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Refills Launching Soon</h3>
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] max-w-[280px] leading-relaxed">
-                      We're currently fine-tuning our permanent reserve systems. <br />
-                      <span className="text-accent-purple">Stay tuned for the launch.</span>
+                    <h3 className="text-2xl font-black uppercase tracking-tight text-white">Credit purchases unavailable</h3>
+                    <p className="mx-auto max-w-md text-sm font-medium leading-6 text-zinc-400">
+                      New credit purchases are paused right now. Please check back soon.
                     </p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-200/70">Currently unavailable</p>
                   </div>
                   <button 
                     onClick={onClose}
-                    className="px-10 py-5 rounded-full bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all text-[10px] font-black uppercase tracking-[0.3em] text-white"
+                    className="min-h-12 rounded-xl border border-white/10 bg-white/[0.03] px-8 text-[10px] font-black uppercase tracking-[0.22em] text-white transition-all hover:bg-white/[0.06]"
                   >
-                    Return to Dashboard
+                    Close
                   </button>
                 </div>
               ) : (
@@ -207,7 +225,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                         whileHover={{ y: -10 }}
                         onClick={() => setSelectedTier(tier.id)}
                         className={cn(
-                          "relative p-8 rounded-[2.5rem] border transition-all duration-500 cursor-pointer group",
+                          "group relative cursor-pointer rounded-[1.75rem] border p-5 transition-all duration-500 sm:rounded-[2.5rem] sm:p-8",
                           selectedTier === tier.id 
                             ? "bg-white/[0.05] border-accent-purple shadow-[0_20px_40px_rgba(124,58,237,0.15)]" 
                             : "bg-white/[0.02] border-white/5 hover:border-white/20"
@@ -256,11 +274,9 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                             <div className="text-center pt-4">
                                <div className="flex flex-col items-center">
                                  <span className="text-xl font-black text-white italic">
-                                   {isIndia ? `₹${tier.priceINR}` : `$${tier.priceUSD}`}
+                                   {isIndia ? `Rs ${tier.priceINR}` : `$${tier.priceUSD}`}
                                  </span>
-                                 <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">
-                                   {isIndia ? `$${tier.priceUSD}` : `₹${tier.priceINR}`}
-                                 </span>
+                                 <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{isIndia ? "INR checkout" : "USD checkout"}</span>
                                </div>
                             </div>
                          </div>
@@ -291,7 +307,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                      </button>
                      <div className="flex items-center gap-4 text-zinc-700">
                         <ShieldCheck size={14} />
-                        <span className="text-[8px] font-black uppercase tracking-widest italic">SECURED BY RAZORPAY • 256-BIT ENCRYPTION</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest italic">Secure checkout</span>
                      </div>
                   </div>
                 </>

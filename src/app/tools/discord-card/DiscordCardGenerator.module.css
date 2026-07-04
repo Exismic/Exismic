@@ -1,0 +1,464 @@
+@font-face {
+  font-family: "Discord Modern";
+  src: url("/discord-card/fonts/discord-modern.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discord Sakura";
+  src: url("/discord-card/fonts/discord-sakura.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discord Medieval";
+  src: url("/discord-card/fonts/discord-medieval.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discord 8Bit";
+  src: url("/discord-card/fonts/discord-8bit.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discord Vampyre";
+  src: url("/discord-card/fonts/discord-vampyre.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discord Tempo";
+  src: url("/discord-card/fonts/discord-tempo.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discord Jellybean";
+  src: url("/discord-card/fonts/discord-jellybean.woff2") format("woff2");
+  font-display: swap;
+}
+
+.previewShell {
+  --card-accent: 88, 101, 242;
+  --card-opacity: 0.92;
+  width: min(100%, 610px);
+  margin-inline: auto;
+  position: relative;
+  isolation: isolate;
+}
+
+.profileCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18, 18, 21, var(--card-opacity)) 0%,
+      rgba(28, 28, 32, var(--card-opacity)) 56%,
+      rgba(40, 40, 45, var(--card-opacity)) 100%
+    );
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(var(--card-accent), 0.08),
+    0 0 70px rgba(var(--card-accent), 0.12);
+  color: #f2f3f5;
+  min-height: 620px;
+}
+
+.banner {
+  height: 210px;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(var(--card-accent), 0.38), transparent 34%),
+    linear-gradient(135deg, #15151b, #070709);
+}
+
+.bannerShade {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 250px;
+  background: linear-gradient(180deg, transparent 55%, rgba(18, 18, 21, 0.96));
+  pointer-events: none;
+}
+
+.effectLayer {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.profileBody {
+  position: relative;
+  z-index: 5;
+  padding: 0 40px 40px;
+}
+
+.identityRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-height: 76px;
+  margin-top: -62px;
+}
+
+.avatarWrap {
+  width: 132px;
+  height: 132px;
+  position: relative;
+  flex: none;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #111214;
+  border: 7px solid #17171a;
+}
+
+.avatarDecoration {
+  position: absolute;
+  inset: -17%;
+  width: 134%;
+  height: 134%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.status {
+  position: absolute;
+  right: 2px;
+  bottom: 7px;
+  width: 31px;
+  height: 31px;
+  border: 7px solid #17171a;
+  border-radius: 50%;
+  background: #80848e;
+}
+
+.status[data-status="online"] {
+  background: #23a55a;
+}
+
+.status[data-status="idle"] {
+  background: #f0b232;
+}
+
+.status[data-status="dnd"] {
+  background: #f23f43;
+}
+
+.status[data-status="streaming"] {
+  background: #593695;
+}
+
+.badgeTray {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  max-width: calc(100% - 150px);
+  padding: 8px 11px;
+  margin-bottom: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(10, 10, 12, 0.76);
+  backdrop-filter: blur(16px);
+  overflow-x: auto;
+}
+
+.badge {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+  flex: none;
+}
+
+.nameBlock {
+  padding-top: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.displayName {
+  margin: 0;
+  color: #f2f3f5;
+  font-size: clamp(30px, 5vw, 43px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.styledName {
+  color: transparent;
+  background: linear-gradient(90deg, var(--name-start), var(--name-end));
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-family: var(--name-font);
+  letter-spacing: var(--name-spacing);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--name-start) 35%, transparent);
+}
+
+.username {
+  margin-top: 8px;
+  color: #dbdee1;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.customStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  color: #b5bac1;
+  font-size: 14px;
+}
+
+.activityCard {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 17px;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 17px;
+  background:
+    linear-gradient(135deg, rgba(15, 15, 18, 0.86), rgba(23, 23, 27, 0.72));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.activityImageWrap {
+  width: 92px;
+  height: 92px;
+  position: relative;
+}
+
+.activityImage {
+  width: 100%;
+  height: 100%;
+  border-radius: 13px;
+  object-fit: cover;
+  background: #0b0b0d;
+}
+
+.activitySmallImage {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 34px;
+  height: 34px;
+  border: 5px solid #151519;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.activityCopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  color: #b5bac1;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.activityName {
+  margin-top: 7px;
+  color: white;
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activityLine {
+  color: #b5bac1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activityTime {
+  margin-top: 5px;
+  color: #43f28b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.section {
+  margin-top: 21px;
+}
+
+.sectionTitle {
+  margin-bottom: 10px;
+  color: #f2f3f5;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.about {
+  color: #dbdee1;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.role {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid rgba(var(--role-color), 0.42);
+  border-radius: 7px;
+  background: rgba(var(--role-color), 0.09);
+  color: #f2f3f5;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.roleDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(var(--role-color));
+  box-shadow: 0 0 12px rgba(var(--role-color), 0.42);
+}
+
+.connections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.connection {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  padding: 12px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  color: inherit;
+  text-decoration: none;
+}
+
+.connectionMark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  flex: none;
+  border-radius: 8px;
+  background: rgba(var(--card-accent), 0.2);
+  color: rgb(var(--card-accent));
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.connectionCopy {
+  min-width: 0;
+}
+
+.connectionType {
+  display: block;
+  color: #949ba4;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.connectionName {
+  display: block;
+  overflow: hidden;
+  color: #f2f3f5;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .profileCard {
+    min-height: 540px;
+  }
+
+  .banner {
+    height: 168px;
+  }
+
+  .profileBody {
+    padding: 0 22px 28px;
+  }
+
+  .identityRow {
+    min-height: 69px;
+    margin-top: -52px;
+  }
+
+  .avatarWrap {
+    width: 108px;
+    height: 108px;
+  }
+
+  .badgeTray {
+    max-width: calc(100% - 118px);
+    gap: 6px;
+    padding: 7px 9px;
+  }
+
+  .badge {
+    width: 20px;
+    height: 20px;
+  }
+
+  .displayName {
+    font-size: 31px;
+  }
+
+  .activityCard {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 13px;
+    padding: 14px;
+  }
+
+  .activityImageWrap {
+    width: 72px;
+    height: 72px;
+  }
+
+  .activityName {
+    font-size: 17px;
+  }
+
+  .connections {
+    grid-template-columns: 1fr;
+  }
+}

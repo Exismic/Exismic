@@ -10,8 +10,7 @@ import {
   Cloud,
   Globe,
   Star,
-  CheckCircle2,
-  Lock
+  CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,12 +68,15 @@ export function ProTourModal({ isOpen, onClose }: ProTourModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#030303]/90 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[150] flex items-end justify-center bg-[#030303]/90 p-3 backdrop-blur-xl sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-[3rem] p-6 md:p-12 relative overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Pro membership benefits"
+            className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 p-5 shadow-[0_40px_100px_rgba(0,0,0,0.8)] sm:rounded-[3rem] sm:p-8 md:p-12"
           >
             {/* Background Architecture */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-accent-purple/10 blur-[120px] rounded-full pointer-events-none" />
@@ -83,12 +85,13 @@ export function ProTourModal({ isOpen, onClose }: ProTourModalProps) {
             
             <button 
                 onClick={onClose}
-                className="absolute top-8 right-8 text-zinc-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full z-20"
+                aria-label="Close Pro benefits"
+                className="absolute right-4 top-4 z-20 flex min-h-11 min-w-11 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-white/5 hover:text-white sm:right-8 sm:top-8"
             >
                 <X size={20} />
             </button>
 
-            <div className="relative z-10 space-y-12">
+            <div className="relative z-10 space-y-8 sm:space-y-12">
                <div className="text-center space-y-4">
                   <div className="flex items-center justify-center gap-3 mb-6">
                      <div className="w-12 h-12 rounded-2xl bg-accent-purple/20 border border-accent-purple/30 flex items-center justify-center text-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.3)]">
@@ -96,7 +99,7 @@ export function ProTourModal({ isOpen, onClose }: ProTourModalProps) {
                      </div>
                      <CheckCircle2 size={20} className="text-emerald-500 animate-pulse" />
                   </div>
-                  <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white">
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white sm:text-4xl md:text-6xl">
                      You are a <span className="gradient-text">Pro Member</span>
                   </h2>
                   <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px] max-w-md mx-auto">
@@ -111,10 +114,10 @@ export function ProTourModal({ isOpen, onClose }: ProTourModalProps) {
                        initial={{ opacity: 0, y: 10 }}
                        animate={{ opacity: 1, y: 0 }}
                        transition={{ delay: i * 0.05 }}
-                       className="p-6 md:p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all group"
+                       className="group rounded-[1.75rem] border border-white/5 bg-white/[0.03] p-4 transition-all hover:border-white/10 hover:bg-white/[0.05] sm:rounded-[2.5rem] sm:p-6 md:p-8"
                     >
-                       <div className="flex items-center gap-6">
-                          <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110", benefit.bg, benefit.color)}>
+                       <div className="flex items-center gap-4 sm:gap-6">
+                          <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110 sm:h-16 sm:w-16 sm:rounded-2xl", benefit.bg, benefit.color)}>
                              <benefit.icon size={28} />
                           </div>
                           <div className="space-y-1.5">

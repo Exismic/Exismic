@@ -27,8 +27,8 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
 
     try {
       await onUpload(acceptedFiles);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong during upload.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong during upload.");
     } finally {
       setIsUploading(false);
     }
@@ -48,15 +48,15 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="mx-auto w-full max-w-2xl">
       <div 
         {...getRootProps()} 
         className={cn(
-          "relative group border-2 border-dashed rounded-[2rem] p-12 transition-all duration-300 ease-out flex flex-col items-center justify-center text-center overflow-hidden",
+          "group relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed p-6 text-center shadow-xl transition-all duration-300 ease-out sm:p-10",
           isDragActive 
-            ? "border-violet-500 bg-violet-500/5 scale-[0.99]" 
-            : "border-white/10 hover:border-violet-500/30 hover:bg-white/5",
-          files.length > 0 ? "border-violet-500/50 bg-violet-500/5" : "",
+            ? "scale-[0.99] border-cyan-300/50 bg-cyan-300/[0.05]"
+            : "border-white/15 bg-zinc-950/65 hover:border-cyan-300/35 hover:bg-cyan-300/[0.03]",
+          files.length > 0 ? "border-cyan-300/35 bg-cyan-300/[0.04]" : "",
           isUploading && "pointer-events-none"
         )}
       >
@@ -71,14 +71,14 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-center"
             >
-              <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-violet-500/10 transition-all duration-500">
-                <Upload className="w-10 h-10 text-zinc-400 group-hover:text-violet-400" />
+              <div className="mb-5 flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] transition-all duration-300 group-hover:border-cyan-300/30">
+                <Upload className="h-7 w-7 text-cyan-200" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2 font-outfit">
-                {allowMultiple ? "Drop your files here" : "Drop your file here"}
+              <h3 className="mb-2 text-xl font-bold text-white font-outfit">
+                {allowMultiple ? "Choose files" : "Choose a file"}
               </h3>
-              <p className="text-zinc-500 max-w-xs mx-auto leading-relaxed">
-                Click to browse or drag and drop. 
+              <p className="mx-auto max-w-xs text-sm leading-relaxed text-zinc-500">
+                Drop {allowMultiple ? "them" : "it"} here or browse from your device.
                 Keep it under <span className="text-zinc-300 font-medium">{maxSize}MB</span>.
               </p>
             </motion.div>
@@ -89,11 +89,11 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
               animate={{ opacity: 1, scale: 1 }}
               className="flex flex-col items-center"
             >
-              <div className="w-20 h-20 rounded-2xl bg-violet-500/20 flex items-center justify-center mb-6">
+              <div className="mb-5 flex size-16 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/10">
                 {isUploading ? (
-                  <Loader2 className="w-10 h-10 text-violet-500 animate-spin" />
+                  <Loader2 className="h-7 w-7 animate-spin text-cyan-200" />
                 ) : (
-                  <FileIcon className="w-10 h-10 text-violet-400" />
+                  <FileIcon className="h-7 w-7 text-cyan-200" />
                 )}
               </div>
               <div className="space-y-1">
@@ -108,7 +108,8 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
               {!isUploading && (
                 <button 
                   onClick={clearSelection}
-                  className="mt-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
+                  className="mt-5 flex size-11 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+                  aria-label="Clear selected files"
                 >
                   <X size={18} />
                 </button>
@@ -119,7 +120,7 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
 
         {/* Pulse effect on hover/drag */}
         {isDragActive && (
-          <div className="absolute inset-0 pointer-events-none bg-violet-500/5 animate-pulse" />
+          <div className="pointer-events-none absolute inset-0 animate-pulse bg-cyan-300/[0.04]" />
         )}
       </div>
 
@@ -127,7 +128,7 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-sm"
+          className="mt-4 flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300"
         >
           <AlertCircle size={18} />
           {error}
@@ -138,14 +139,14 @@ export function ToolUploader({ onUpload, acceptedTypes, maxSize, allowMultiple =
         <div className="mt-8 space-y-4">
           <div className="flex justify-between text-sm mb-1">
             <span className="text-zinc-400">Processing file...</span>
-            <span className="text-violet-400 font-medium">Wait a moment</span>
+            <span className="font-medium text-cyan-200">Wait a moment</span>
           </div>
           <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
             <motion.div 
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
               transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-              className="h-full w-1/3 bg-linear-to-r from-transparent via-violet-500 to-transparent"
+              className="h-full w-1/3 bg-linear-to-r from-transparent via-cyan-300 to-transparent"
             />
           </div>
         </div>

@@ -1,44 +1,142 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import JSZip from "jszip";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import {
+  checkRateLimit,
+  getRequestIp,
+  rateLimitResponse,
+  requireApiUser,
+  validateUploadedFile,
+} from "@/lib/api-security";
+import {
+  PDF_MAX_FILE_BYTES,
+  PdfProcessingError,
+  assertPdfSignature,
+  createDownloadResponse,
+  createPdfRequestId,
+  pdfErrorResponse,
+  safeDownloadStem,
+} from "@/lib/pdf-processing";
 
-const STORAGE_PATH = path.join(process.cwd(), "public", "results");
+function escapeXml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
-// Minimal valid empty .docx file (base64)
-const MINIMAL_DOCX = "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";
+function createParagraphXml(text: string) {
+  if (!text.trim()) return "<w:p/>";
+  return `<w:p><w:r><w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r></w:p>`;
+}
+
+async function createEditableDocx(text: string, layout: string) {
+  const zip = new JSZip();
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+  const sections = layout === "precise"
+    ? normalized.split("\n")
+    : normalized.split(/\n{2,}/).map((part) => part.replace(/\n/g, " "));
+  const body = sections.map(createParagraphXml).join("");
+
+  zip.file(
+    "[Content_Types].xml",
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`,
+  );
+  zip.folder("_rels")?.file(
+    ".rels",
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`,
+  );
+  zip.folder("word")?.file(
+    "document.xml",
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body>
+</w:document>`,
+  );
+  zip.folder("word")?.file(
+    "styles.xml",
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:style w:type="paragraph" w:default="1" w:styleId="Normal">
+    <w:name w:val="Normal"/><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="22"/></w:rPr>
+  </w:style>
+</w:styles>`,
+  );
+  zip.folder("word")?.folder("_rels")?.file(
+    "document.xml.rels",
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`,
+  );
+
+  return zip.generateAsync({
+    type: "nodebuffer",
+    compression: "DEFLATE",
+    compressionOptions: { level: 9 },
+  });
+}
 
 export async function POST(req: NextRequest) {
+  const requestId = createPdfRequestId();
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const layout = formData.get("layout") as string;
+    const user = await requireApiUser();
+    if (user instanceof NextResponse) return user;
+    const limit = checkRateLimit(
+      `pdf-to-word:${user.id}:${getRequestIp(req)}`,
+      20,
+      60 * 60 * 1000,
+    );
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    const layout = formData.get("layout") === "standard" ? "standard" : "precise";
+    const fileError = validateUploadedFile(file, {
+      maxBytes: PDF_MAX_FILE_BYTES,
+      allowedMimePrefixes: file?.type ? ["application/pdf"] : undefined,
+      label: "PDF file",
+    });
+    if (fileError) return fileError;
+    await assertPdfSignature(file!);
+
+    const pdfBuffer = Buffer.from(await file!.arrayBuffer());
+    const parsed = await pdfParse(pdfBuffer);
+    const extractedText = parsed.text?.trim();
+    if (!extractedText) {
+      throw new PdfProcessingError(
+        "This PDF has no extractable text. Use OCR for scanned documents.",
+        422,
+        "PDF_TEXT_NOT_FOUND",
+      );
     }
 
-    // Ensure storage directory exists
-    try {
-      await mkdir(STORAGE_PATH, { recursive: true });
-    } catch (e) {}
-
-    const jobId = uuidv4();
-    const fileName = `converted_${jobId}.docx`;
-    const fullPath = path.join(STORAGE_PATH, fileName);
-
-    // In a real production scenario, we'd use a cloud service or 'docx-generator'
-    // For this demonstration, we'll provide a high-fidelity "Reconstructed" result
-    const docxBuffer = Buffer.from(MINIMAL_DOCX, "base64");
-    await writeFile(fullPath, docxBuffer);
-
-    return NextResponse.json({
-      success: true,
-      resultUrl: `/results/${fileName}`
+    const docxBuffer = await createEditableDocx(extractedText, layout);
+    const fileName = `${safeDownloadStem(file!.name)}-editable.docx`;
+    return createDownloadResponse(docxBuffer, {
+      fileName,
+      contentType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      requestId,
+      headers: {
+        "X-Lumora-File-Name": encodeURIComponent(fileName),
+        "X-Lumora-Page-Count": String(parsed.numpages),
+        "X-Lumora-Character-Count": String(extractedText.length),
+        "X-Lumora-Layout": layout,
+      },
     });
-
-  } catch (error: any) {
-    console.error("PDF to Word Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to convert PDF" }, { status: 500 });
+  } catch (error: unknown) {
+    return pdfErrorResponse(error, requestId);
   }
 }

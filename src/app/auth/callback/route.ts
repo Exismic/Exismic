@@ -104,7 +104,10 @@ export async function GET(request: Request) {
         console.log(`[AUTH] User data:`, newUser)
 
         if (email) {
-          sendWelcomeEmail(email).catch(err => console.error('[AUTH] Welcome email failed:', err));
+          const welcomeSent = await sendWelcomeEmail(email);
+          if (!welcomeSent) {
+            console.error(`[AUTH] Welcome email provider rejected delivery for ${email}`);
+          }
         }
       } else {
         // EXISTING USER - Just log

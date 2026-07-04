@@ -79,7 +79,7 @@ export function SocialCaptionGenerator() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const lastFileRef = useRef<File | null>(null);
 
-  const handleUpload = (files: File[]) => {
+  const handleUpload = async (files: File[]) => {
     if (files.length === 0) return;
     const file = files[0];
     lastFileRef.current = file;

@@ -1,170 +1,290 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Zap, Shield, X, ArrowRight, Check, Crown, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
-import GradientText from "./GradientText";
-import { PRICING_CONFIG } from "@/config/pricing";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  Crown,
+  Gauge,
+  MessageSquareText,
+  RefreshCcw,
+  ShieldCheck,
+  Sparkles,
+  X,
+  Zap,
+} from "lucide-react";
+import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { CreditTokenIcon } from "./CreditTokenIcon";
 
 interface CreditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  plan: 'free' | 'pro';
+  plan: "free" | "pro";
   credits: number;
 }
 
+const PRO_BENEFITS = [
+  {
+    icon: Gauge,
+    title: "Priority processing",
+    detail: "Skip the standard queue",
+  },
+  {
+    icon: MessageSquareText,
+    title: "Unlimited AI chat",
+    detail: "No daily conversation cap",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Commercial rights",
+    detail: "Create for client work",
+  },
+  {
+    icon: Sparkles,
+    title: "Pro creative suite",
+    detail: "Themes, identity, and new tools",
+  },
+];
+
 export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps) {
   const [mounted, setMounted] = React.useState(false);
-  const isPro = plan === 'pro';
+  const [isIndia, setIsIndia] = React.useState(false);
+  const isPro = plan === "pro";
   const isOutOfCredits = credits <= 0;
+  const proPrice = isIndia
+    ? `Rs ${PRICING_CONFIG.PRO_PLAN.INR}`
+    : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
 
   React.useEffect(() => {
     setMounted(true);
+    setIsIndia(getIsIndia());
   }, []);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
   if (!mounted) return null;
+
+  const title = isPro
+    ? "Your Pro workspace"
+    : isOutOfCredits
+      ? "Keep creating today"
+      : "Make Lumora yours";
+
+  const description = isPro
+    ? "Your priority access, expanded credits, and commercial toolkit are active."
+    : isOutOfCredits
+      ? "Your free balance is finished for today. Pro keeps your creative flow moving."
+      : "Move from occasional creation to a workspace built for serious daily output.";
 
   const modalContent = (
     <AnimatePresence mode="wait">
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
-          <motion.div
+        <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6">
+          <motion.button
+            type="button"
+            aria-label="Close Pro details"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-md pointer-events-auto"
+            className="pointer-events-auto absolute inset-0 cursor-default bg-black/88 backdrop-blur-xl"
           />
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+
+          <motion.section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="credit-modal-title"
+            initial={{ opacity: 0, scale: 0.94, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-1.5rem)] pointer-events-auto"
+            exit={{ opacity: 0, scale: 0.96, y: 18 }}
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="pointer-events-auto relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[640px] flex-col overflow-hidden rounded-[26px] border border-white/[0.11] bg-[#07070b]/96 shadow-[0_38px_110px_rgba(0,0,0,0.82),0_0_80px_rgba(124,58,237,0.08),inset_0_1px_0_rgba(255,255,255,0.06)]"
           >
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent-purple via-accent-cyan to-accent-purple z-20" />
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-accent-purple/20 blur-[100px] rounded-full" />
-            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent-cyan/20 blur-[100px] rounded-full" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(124,58,237,0.18),transparent_34%),radial-gradient(circle_at_92%_100%,rgba(34,211,238,0.13),transparent_38%)]"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-[0.17] [background-image:linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:34px_34px] [mask-image:linear-gradient(to_bottom,black,transparent_72%)]"
+            />
+            <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-purple-400 to-cyan-300" />
 
-            <button
-              onClick={onClose}
-              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-zinc-500 transition-colors z-30"
-            >
-              <X size={20} />
-            </button>
+            <header className="relative z-10 flex min-h-16 items-center justify-between border-b border-white/[0.07] px-5 sm:px-7">
+              <div className="flex items-center gap-3">
+                <CreditTokenIcon size="md" />
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                    Lumora Pro
+                  </p>
+                  <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-600">
+                    Creative access system
+                  </p>
+                </div>
+              </div>
 
-            <div className="relative z-10 overflow-y-auto no-scrollbar p-8 md:p-12">
-              <div className="space-y-8">
-                <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-accent-purple/10 flex items-center justify-center mx-auto mb-6 border border-accent-purple/20 shadow-4xl">
-                    {isPro ? (
-                      <Crown className="text-accent-purple" size={32} />
-                    ) : isOutOfCredits ? (
-                      <Zap className="text-accent-purple" size={32} />
-                    ) : (
-                      <Sparkles className="text-accent-purple" size={32} />
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-black italic uppercase tracking-tight leading-tight">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-zinc-500 transition-all duration-300 hover:border-white/15 hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-95"
+              >
+                <X size={16} />
+              </button>
+            </header>
+
+            <div className="relative z-10 overflow-y-auto">
+              <section className="px-5 pb-6 pt-7 sm:px-8 sm:pb-7 sm:pt-8">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="max-w-[430px]">
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-purple-300/15 bg-purple-300/[0.06] px-3 py-1.5">
                       {isPro ? (
-                        <>Pro <span className="gradient-text">Member</span></>
-                      ) : isOutOfCredits ? (
-                        <>Out of <span className="gradient-text">Credits</span></>
+                        <Crown size={11} className="text-purple-300" />
                       ) : (
-                        <>Upgrade to <span className="gradient-text">Pro</span></>
+                        <Zap size={11} className="fill-cyan-300/20 text-cyan-300" />
                       )}
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-300">
+                        {isPro ? "Membership active" : "Built for daily creators"}
+                      </span>
+                    </div>
+                    <h2
+                      id="credit-modal-title"
+                      className="text-[clamp(2rem,7vw,3.35rem)] font-black leading-[0.94] tracking-[-0.035em] text-white"
+                    >
+                      {title}
+                      <span className="bg-linear-to-r from-purple-300 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
+                        .
+                      </span>
                     </h2>
-                    <p className="text-zinc-500 font-medium text-sm px-4 leading-relaxed">
-                      {isPro 
-                        ? `You're enjoying the elite benefits of Lumora Pro. Your credits reset daily to ${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS}.`
-                        : isOutOfCredits 
-                          ? `You've used all your daily credits. Upgrade to Pro for 20x more credits and unlimited AI messaging.`
-                          : "Unlock the full potential of Lumora with a Pro membership. More credits, faster processing, and exclusive tools."}
+                    <p className="mt-4 max-w-[410px] text-sm font-medium leading-6 text-zinc-500">
+                      {description}
                     </p>
                   </div>
 
-                  <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full">
-                    <div className={cn("w-2 h-2 rounded-full animate-pulse", isPro ? "bg-accent-purple" : "bg-accent-cyan")} />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      Balance: <span className="text-white">{credits.toLocaleString()} Credits</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-4 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative z-10 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-accent-cyan/10 flex items-center justify-center">
-                          <Shield className="text-accent-cyan" size={16} />
-                        </div>
-                        <span className="text-xs font-black uppercase tracking-widest text-zinc-300">
-                          {isPro ? "Active Benefits" : "Pro Benefits"}
+                  <div className="shrink-0 sm:text-right">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                      {isPro ? "Current plan" : "One simple plan"}
+                    </p>
+                    <div className="mt-1 flex items-end gap-1 sm:justify-end">
+                      <span className="text-2xl font-black tracking-tight text-white">
+                        {isPro ? "PRO" : proPrice}
+                      </span>
+                      {!isPro && (
+                        <span className="pb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                          / month
                         </span>
-                      </div>
-                      {!isPro && <span className="text-sm font-black text-accent-cyan">${PRICING_CONFIG.PRO_PLAN.USD}/mo</span>}
+                      )}
                     </div>
-                    <ul className="relative z-10 space-y-3">
-                      {[
-                        `${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS} Daily Credits (vs 50)`,
-                        "Unlimited AI Messages (vs 30)",
-                        "Priority AI Processing",
-                        "Early access to new tools",
-                        "Commercial usage rights"
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-center gap-3 text-xs font-medium text-zinc-400">
-                          <div className={cn("flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center", isPro ? "bg-accent-purple/10" : "bg-accent-cyan/10")}>
-                            <Check size={10} className={isPro ? "text-accent-purple" : "text-accent-cyan"} strokeWidth={3} />
-                          </div>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 </div>
+              </section>
 
-                <div className="flex flex-col gap-3">
-                  {isPro ? (
-                    <Link
-                      href="/pro"
-                      onClick={onClose}
-                      className="w-full py-4 rounded-2xl bg-white text-black font-black italic uppercase tracking-tight hover:bg-zinc-200 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                    >
-                      <RefreshCcw size={18} />
-                      Manage Subscription
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/pro"
-                      onClick={onClose}
-                      className="w-full py-4 rounded-2xl bg-white text-black font-black italic uppercase tracking-tight hover:bg-zinc-200 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                    >
-                      Upgrade to Pro
-                      <ArrowRight size={18} />
-                    </Link>
-                  )}
-                  <button
-                    onClick={onClose}
-                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 font-black italic uppercase tracking-tight hover:bg-white/10 transition-colors"
-                  >
-                    Close
-                  </button>
+              <section className="border-y border-white/[0.07] bg-white/[0.018] px-5 py-5 sm:px-8">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                      Free capacity
+                    </p>
+                    <p className="mt-1 text-lg font-black text-zinc-400">50 / day</p>
+                  </div>
+
+                  <div className="flex min-w-20 items-center sm:min-w-32">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-700" />
+                    <span className="relative h-px flex-1 overflow-hidden bg-white/10">
+                      <motion.span
+                        className="absolute inset-y-0 w-1/2 bg-linear-to-r from-purple-400 to-cyan-300 shadow-[0_0_9px_rgba(34,211,238,0.7)]"
+                        animate={{ x: ["-100%", "210%"] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }}
+                      />
+                    </span>
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.9)]" />
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300/70">
+                      Pro capacity
+                    </p>
+                    <p className="mt-1 text-lg font-black text-white">
+                      {PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString()} / day
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-4">
+                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-600">
+                    Available now
+                  </span>
+                  <span className="flex items-center gap-2 text-xs font-black text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
+                    {credits.toLocaleString()} credits
+                  </span>
+                </div>
+              </section>
+
+              <section className="px-5 py-6 sm:px-8 sm:py-7">
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-300">
+                    What changes with Pro
+                  </p>
+                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300/70">
+                    20x daily capacity
+                  </span>
                 </div>
 
-                <p className="text-[10px] text-center text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
-                  Credits reset every 24 hours at 00:00 UTC.<br/>
-                  {isPro ? "You are a valued Elite member." : "Upgrade to unlock unlimited creativity."}
+                <div className="grid gap-x-7 gap-y-4 sm:grid-cols-2">
+                  {PRO_BENEFITS.map(({ icon: Icon, title: benefitTitle, detail }) => (
+                    <div
+                      key={benefitTitle}
+                      className="group/benefit flex min-w-0 items-center gap-3 border-t border-white/[0.07] pt-4"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-zinc-500 transition-all duration-300 group-hover/benefit:border-cyan-300/20 group-hover/benefit:text-cyan-200">
+                        <Icon size={15} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1.5 text-xs font-black text-zinc-200">
+                          <Check size={11} className="text-cyan-300" strokeWidth={3} />
+                          {benefitTitle}
+                        </span>
+                        <span className="mt-1 block truncate text-[10px] font-medium text-zinc-600">
+                          {detail}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <footer className="border-t border-white/[0.07] bg-black/20 px-5 py-5 sm:px-8">
+                <Link
+                  href="/pro"
+                  onClick={onClose}
+                  className="group/cta relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(105deg,#7c3aed,#a855f7_36%,#2563eb_68%,#06b6d4)] px-5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_16px_45px_rgba(79,70,229,0.25),inset_0_1px_0_rgba(255,255,255,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(34,211,238,0.22),0_0_28px_rgba(168,85,247,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60 active:translate-y-0 active:scale-[0.99]"
+                >
+                  <span className="absolute -left-20 inset-y-0 w-12 skew-x-[-20deg] bg-white/30 blur-sm transition-transform duration-1000 group-hover/cta:translate-x-[700px]" />
+                  {isPro ? <RefreshCcw size={16} /> : <Crown size={16} />}
+                  <span className="relative">
+                    {isPro ? "Manage Pro membership" : "Unlock Lumora Pro"}
+                  </span>
+                  <ArrowRight size={16} className="relative transition-transform duration-300 group-hover/cta:translate-x-1" />
+                </Link>
+                <p className="mt-3 text-center text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-700">
+                  Daily credits reset at 00:00 UTC
+                  {!isPro && " · Cancel anytime"}
                 </p>
-              </div>
+              </footer>
             </div>
-          </motion.div>
+          </motion.section>
         </div>
       )}
     </AnimatePresence>
@@ -172,5 +292,3 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
 
   return createPortal(modalContent, document.body);
 }
-
-

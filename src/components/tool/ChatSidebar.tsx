@@ -300,7 +300,7 @@ export function ChatSidebar() {
                                  ? "text-zinc-400 font-semibold" 
                                  : "text-zinc-500 group-hover/card:text-zinc-400"
                              )}>
-                               {cleanSubtitleText(s.lastMessage)}
+                               {cleanSubtitleText(s.lastMessage || "")}
                              </p>
 
                              {/* Premium Active Indicator Bar */}

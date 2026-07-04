@@ -23,7 +23,7 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
 
       const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-      const interval: any = setInterval(function() {
+      const interval: ReturnType<typeof setInterval> = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
 
         if (timeLeft <= 0) {
@@ -46,7 +46,7 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
   return (
     <AnimatePresence>
       {isOpen && (
-        <div key="payment-success-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <div key="payment-success-modal" className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -59,7 +59,10 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
             initial={{ opacity: 0, scale: 0.8, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 40 }}
-            className="relative w-full max-w-xl glass-dark border border-white/10 rounded-[3rem] p-12 overflow-hidden shadow-4xl text-center"
+            role="dialog"
+            aria-modal="true"
+            aria-label={type === "pro" ? "Pro membership activated" : "Credits added"}
+            className="glass-dark relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/10 p-5 text-center shadow-4xl sm:rounded-[3rem] sm:p-10 lg:p-12"
           >
             {/* Success Glow */}
             <div className={cn(
@@ -67,23 +70,23 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
               type === 'pro' ? "bg-accent-purple" : "bg-accent-cyan"
             )} />
 
-            <div className="space-y-10 relative z-10">
+            <div className="relative z-10 space-y-7 sm:space-y-10">
                <div className="flex justify-center">
                   <motion.div 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 12, delay: 0.2 }}
                     className={cn(
-                      "w-28 h-28 rounded-[2.5rem] flex items-center justify-center shadow-2xl",
+                      "flex h-20 w-20 items-center justify-center rounded-[1.75rem] shadow-2xl sm:h-28 sm:w-28 sm:rounded-[2.5rem]",
                       type === 'pro' ? "bg-accent-purple text-white shadow-purple-500/30" : "bg-accent-cyan text-black shadow-cyan-500/30"
                     )}
                   >
-                     <Check size={54} strokeWidth={3} />
+                     <Check size={44} strokeWidth={3} />
                   </motion.div>
                </div>
 
                <div className="space-y-4">
-                  <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white">
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white sm:text-4xl md:text-5xl">
                      {type === 'pro' ? (
                        <>Welcome to <GradientText>Lumora Pro.</GradientText></>
                      ) : (
@@ -108,7 +111,7 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
                      {type === 'pro' ? "Explore Pro Features" : "Continue Creating"} <ArrowRight size={18} />
                   </button>
                   
-                  <div className="flex items-center justify-center gap-6 text-zinc-700">
+                  <div className="flex flex-wrap items-center justify-center gap-4 text-zinc-700 sm:gap-6">
                      <div className="flex items-center gap-2">
                         {type === 'pro' ? <Crown size={12} /> : <Zap size={12} />}
                         <span className="text-[8px] font-black uppercase tracking-widest">{type === 'pro' ? "Elite Member" : "Credits Updated"}</span>

@@ -1,3 +1,10 @@
+import {
+  inferResultFileType,
+  normalizeHistoryToolType,
+  type ResultFileType,
+  type ResultStatus,
+} from "@/lib/results";
+
 export async function saveFileHistory({
   toolType,
   originalName,
@@ -11,20 +18,23 @@ export async function saveFileHistory({
   originalName: string;
   originalUrl?: string;
   resultUrl?: string;
-  fileType: "image" | "audio" | "video" | "pdf" | "text";
-  status?: "completed" | "failed" | "processing";
-  metadata?: any;
+  fileType?: ResultFileType;
+  status?: ResultStatus;
+  metadata?: Record<string, unknown>;
 }) {
   try {
+    const normalizedToolType = normalizeHistoryToolType(toolType);
+    const inferredFileType = fileType ?? inferResultFileType({ toolType: normalizedToolType, resultUrl });
+
     const response = await fetch("/api/files/history", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        toolType,
+        toolType: normalizedToolType,
         originalName,
         originalUrl,
         resultUrl,
-        fileType,
+        fileType: inferredFileType,
         status,
         metadata
       })

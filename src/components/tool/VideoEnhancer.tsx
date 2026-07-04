@@ -5,13 +5,13 @@ import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCredits } from "@/hooks/useCredits";
+import { readVideoResponse } from "@/lib/video-client";
 import { 
   Upload, 
   Download, 
   Sparkles, 
   Loader2, 
   Zap, 
-  Sliders, 
   ArrowRight,
   MousePointer2,
   Video,
@@ -36,9 +36,9 @@ export default function VideoEnhancer() {
     naturalLook: true
   });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("lumora-enhanced.mp4");
   const [sliderPos, setSliderPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +46,14 @@ export default function VideoEnhancer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoBeforeRef = useRef<HTMLVideoElement>(null);
   const videoAfterRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  useEffect(() => () => {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
@@ -81,37 +89,37 @@ export default function VideoEnhancer() {
       }
     };
 
-    v1.addEventListener("play", () => v2.play());
-    v1.addEventListener("pause", () => v2.pause());
+    const playAfter = () => void v2.play().catch(() => undefined);
+    const pauseAfter = () => v2.pause();
+    v1.addEventListener("play", playAfter);
+    v1.addEventListener("pause", pauseAfter);
     v1.addEventListener("seeking", sync);
     v1.addEventListener("timeupdate", sync);
 
     return () => {
-      v1.removeEventListener("play", () => v2.play());
-      v1.removeEventListener("pause", () => v2.pause());
+      v1.removeEventListener("play", playAfter);
+      v1.removeEventListener("pause", pauseAfter);
       v1.removeEventListener("seeking", sync);
       v1.removeEventListener("timeupdate", sync);
     };
   }, [resultUrl, previewUrl]);
 
-  // Mouse Move Logic
-  const handleMove = (e: MouseEvent | TouchEvent) => {
-    if (!isDragging || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const percent = ((x - rect.left) / rect.width) * 100;
-    setSliderPos(Math.max(0, Math.min(100, percent)));
-  };
-
   useEffect(() => {
+    const handleMove = (event: MouseEvent | TouchEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = "touches" in event ? event.touches[0].clientX : event.clientX;
+      const percent = ((x - rect.left) / rect.width) * 100;
+      setSliderPos(Math.max(0, Math.min(100, percent)));
+    };
     const stopDragging = () => setIsDragging(false);
-    window.addEventListener("mousemove", handleMove as any);
-    window.addEventListener("touchmove", handleMove as any);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("touchmove", handleMove);
     window.addEventListener("mouseup", stopDragging);
     window.addEventListener("touchend", stopDragging);
     return () => {
-      window.removeEventListener("mousemove", handleMove as any);
-      window.removeEventListener("touchmove", handleMove as any);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("touchmove", handleMove);
       window.removeEventListener("mouseup", stopDragging);
       window.removeEventListener("touchend", stopDragging);
     };
@@ -121,8 +129,7 @@ export default function VideoEnhancer() {
     if (!file) return;
     setIsProcessing(true);
     setError(null);
-    setProgress(5);
-    setStatus("Analyzing...");
+    setStatus("Applying enhancement filters...");
     
     const formData = new FormData();
     formData.append("video", file);
@@ -135,18 +142,13 @@ export default function VideoEnhancer() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Enhancement failed");
-      }
-
-      const blob = await response.blob();
-      setResultUrl(URL.createObjectURL(blob));
-      setProgress(100);
-      setStatus("Enhanced!");
-    } catch (error: any) {
+      const artifact = await readVideoResponse(response, "lumora-enhanced.mp4");
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+      setStatus("Enhancement complete");
+    } catch (error: unknown) {
       console.error(error);
-      setError(error.message || "Failed to enhance video");
+      setError(error instanceof Error ? error.message : "Failed to enhance video");
       setStatus("Error");
     } finally {
       setIsProcessing(false);
@@ -157,9 +159,9 @@ export default function VideoEnhancer() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
+    setResultFileName("lumora-enhanced.mp4");
     setError(null);
     setIsProcessing(false);
-    setProgress(0);
     setSliderPos(50);
   };
 
@@ -263,7 +265,7 @@ export default function VideoEnhancer() {
                     {isPro && (
                       <div className="mb-5 px-4 py-2 rounded-full bg-amber-400/10 border border-amber-300/30 shadow-[0_0_24px_rgba(251,191,36,0.12)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
                         <Zap size={13} className="fill-amber-200" />
-                        Priority Processing
+                        ⚡ Priority Mode
                       </div>
                     )}
                     <h4 className="text-3xl font-black text-white uppercase italic tracking-tightest mb-6">
@@ -286,7 +288,7 @@ export default function VideoEnhancer() {
                 {[
                   { label: "Stability", value: features.stabilize ? "Gimbal Locked" : "Raw Stream", icon: Zap, color: "text-blue-400" },
                   { label: "Signal Purity", value: features.noiseReduction ? "Crystal Clean" : "Standard", icon: Activity, color: "text-emerald-400" },
-                  { label: "Enhanced Detail", value: resultUrl ? (level === "strong" ? "+60% Boost" : level === "medium" ? "+35% Refined" : "+15% Natural") : "Analyzing", icon: Layers, color: "text-purple-400" },
+                  { label: "Enhancement", value: resultUrl ? `${level[0].toUpperCase()}${level.slice(1)} profile applied` : "Ready", icon: Layers, color: "text-purple-400" },
                 ].map((stat, i) => (
                   <div key={i} className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 backdrop-blur-sm group hover:bg-white/[0.04] transition-all">
                     <div className="flex items-center gap-3 mb-4">
@@ -395,7 +397,7 @@ export default function VideoEnhancer() {
                       <div className="space-y-6">
                         <a
                           href={resultUrl}
-                          download={`enhanced_${file.name}`}
+                          download={resultFileName}
                           className="w-full flex items-center justify-center gap-4 py-7 bg-purple-600 text-white font-black rounded-[2.5rem] hover:bg-purple-500 transition-all shadow-[0_20px_60px_-10px_rgba(168,85,247,0.5)] uppercase tracking-widest"
                         >
                           <Download className="w-6 h-6" />

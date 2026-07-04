@@ -17,12 +17,15 @@ import { ImageFormatConverter } from "@/components/tool/ImageFormatConverter";
 import { PhotoRestorer } from "@/components/tool/PhotoRestorer";
 import { WatermarkRemover } from "@/components/tool/WatermarkRemover";
 import { CollageMaker } from "@/components/tool/CollageMaker";
+import { MinecraftSkinMaker } from "@/components/tool/MinecraftSkinMaker";
 import { VocalRemover } from "@/components/tool/VocalRemover";
 import { StemSplitter } from "@/components/tool/StemSplitter";
 import { NoiseRemover } from "@/components/tool/NoiseRemover";
+import { VoiceChanger } from "@/components/tool/VoiceChanger";
 import { TextToSpeech } from "@/components/tool/TextToSpeech";
+import { SpeechToText } from "@/components/tool/SpeechToText";
+import VideoBackgroundRemover from "@/components/tool/VideoBackgroundRemover";
 import { AiChatTool } from "@/components/tool/AiChatTool";
-import { AiCodeGenerator } from "@/components/tool/AiCodeGenerator";
 import AiWriter from "@/components/tool/AiWriter";
 import PdfMerger from "@/components/tool/PdfMerger";
 import PdfSplitter from "@/components/tool/PdfSplitter";
@@ -33,20 +36,20 @@ import PdfToWord from "@/components/tool/PdfToWord";
 import OcrExtractor from "@/components/tool/OcrExtractor";
 import Link from "next/link";
 import { 
-  ArrowLeft, 
   Upload, 
   Play,
   CheckCircle2,
   Sparkles,
-  Download,
-  Share2,
-  Star
+  Download
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Script from "next/script";
 import { ProtectedTool } from "@/components/tool/ProtectedTool";
 import axios from "axios";
+import { ToolReliabilityNotice } from "@/components/tool/ToolReliability";
+import { isToolUnavailable } from "@/lib/tool-reliability";
+import { ToolWorkspaceHeader } from "@/components/tool/ToolWorkspaceFrame";
 
 interface ToolDetailClientProps {
   tool: Tool;
@@ -62,13 +65,10 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   
   const [fileName, setFileName] = useState<string | null>(null);
   const [textInput, setTextInput] = useState("");
-  const [displayResult, setDisplayResult] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
     const fetchFavorites = async () => {
       try {
         const response = await axios.get('/api/user/favorites');
@@ -104,6 +104,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   };
 
   const Icon = ICON_MAP[tool.icon] || Sparkles;
+  const unavailable = isToolUnavailable(tool.id);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,29 +116,22 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   const handleGenerate = async () => {
     if (!textInput.trim()) return;
     reset();
-    setDisplayResult(null);
     const blob = new Blob([textInput], { type: 'text/plain' });
     const file = new File([blob], "prompt.txt", { type: 'text/plain' });
     await processFile(file);
   };
 
-  useEffect(() => {
-    if (result && !tool.requiresFileUpload) {
-      const blob = new Blob([result], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      setDisplayResult(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setDisplayResult(result);
-    }
-  }, [result, tool]);
+  const displayResult = result && !tool.requiresFileUpload
+    ? `data:text/plain;charset=utf-8,${encodeURIComponent(result)}`
+    : result;
 
   const isSpecialTool = [
     'ai-img-gen', 'ai-logo', 'ai-writer', 'ai-chat',
     'productivity-passgen', 'productivity-units', 'productivity-palette', 'productivity-json',
-    'image-eraser', 'image-compressor', 'image-resizer', 'image-converter', 'image-restorer', 'watermark-remover', 'image-collage',
-    'audio-vocal-remover', 'audio-stem-splitter', 'audio-noise-remover', 'audio-tts',
-    'pdf-merger', 'pdf-splitter', 'pdf-compressor', 'pdf-to-img', 'pdf-img-to-pdf', 'pdf-to-word', 'pdf-ocr'
+    'image-eraser', 'image-compressor', 'image-resizer', 'image-converter', 'image-restorer', 'watermark-remover', 'image-collage', 'image-minecraft-skin',
+    'audio-vocal-remover', 'audio-stem-splitter', 'audio-noise-remover', 'audio-voice-changer', 'audio-tts', 'audio-stt',
+    'pdf-merger', 'pdf-splitter', 'pdf-compressor', 'pdf-to-img', 'pdf-img-to-pdf', 'pdf-to-word', 'pdf-ocr',
+    'video-bg-remover'
   ].includes(tool.id);
 
   // Structured Data for Google (JSON-LD)
@@ -156,7 +150,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   };
 
   const PageContent = (
-    <div className="p-4 md:p-12 max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 md:pb-32 overflow-x-hidden">
+    <div className="mx-auto max-w-[1440px] space-y-6 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 md:space-y-8 md:px-8 md:pb-28 md:pt-7">
       <Script
         id="tool-schema"
         type="application/ld+json"
@@ -167,81 +161,51 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
           src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
           strategy="beforeInteractive"
           onLoad={() => {
-            if (typeof window !== 'undefined' && (window as any).pdfjsLib) {
-              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+            if (typeof window !== 'undefined') {
+              const pdfWindow = window as Window & {
+                pdfjsLib?: { GlobalWorkerOptions: { workerSrc: string } };
+              };
+              if (pdfWindow.pdfjsLib) {
+                pdfWindow.pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+              }
             }
           }}
         />
       )}
-       {tool.id !== 'image-eraser' && tool.id !== 'ai-chat' && (
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 md:pb-12 border-b border-zinc-800/50">
+      {tool.id !== "ai-chat" && (
+        <ToolWorkspaceHeader
+          name={tool.name}
+          description={tool.description}
+          categoryName={category.name}
+          categoryId={categoryId}
+          toolId={tool.id}
+          icon={Icon}
+          isPro={Boolean(tool.pro)}
+          isFavorited={isFavorited}
+          showShareToast={showShareToast}
+          onShare={handleShare}
+          onFavorite={handleFavorite}
+        />
+      )}
 
-          <div className="space-y-6">
-            <Link href={`/category/${categoryId}`} className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all group">
-              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-              {category.name}
-            </Link>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
-               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[2rem] sm:rounded-[2.5rem] glass-dark border border-white/10 flex items-center justify-center shadow-2xl relative group overflow-hidden shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-                  <Icon size={48} className={cn("relative z-10", tool.pro ? "text-accent-purple" : "text-white")} />
-               </div>
-               <div className="space-y-2 text-left min-w-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic break-words">
-                      {tool.name}
-                    </h1>
-                    {tool.pro && (
-                      <span className="px-3 py-1 rounded-full bg-accent-purple/20 border border-accent-purple/30 text-accent-purple text-[10px] font-black uppercase tracking-widest">
-                        Pro
-                      </span>
-                    )}
+      <ToolReliabilityNotice toolId={tool.id} />
+
+       <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-8">
+          <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "min-w-0 space-y-5 md:space-y-7")}>
+             {unavailable ? (
+                <div className="rounded-lg border border-red-400/20 bg-red-500/[0.04] p-5 text-left shadow-xl sm:p-7">
+                  <div className="max-w-2xl space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-red-200">Processor unavailable</p>
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">This tool needs its backend connected first.</h2>
+                    <p className="text-sm sm:text-base font-medium leading-relaxed text-zinc-400">
+                      The catalog card now shows the real status, and the upload/generation flow is disabled so users do not waste time on a dead request.
+                    </p>
+                    <Link href="/tools" className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 text-xs font-bold text-black transition-all hover:bg-zinc-200">
+                      Browse live tools
+                    </Link>
                   </div>
-                  <p className="text-zinc-500 font-medium max-w-2xl text-sm sm:text-base md:text-lg leading-relaxed">{tool.description}</p>
-               </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 relative">
-             <AnimatePresence>
-                {showShareToast && (
-                   <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="absolute -top-12 right-0 px-4 py-2 rounded-xl bg-accent-purple text-white text-[10px] font-black uppercase tracking-widest shadow-2xl z-50 whitespace-nowrap"
-                   >
-                      Link Copied!
-                   </motion.div>
-                )}
-             </AnimatePresence>
-
-             <button 
-                onClick={handleShare}
-                title="Share tool"
-                className="min-h-12 min-w-12 rounded-2xl glass-dark border border-white/5 text-zinc-400 hover:text-white transition-all hover:scale-110 active:scale-95 group relative flex items-center justify-center"
-             >
-                <Share2 size={24} />
-             </button>
-
-             <button 
-                onClick={handleFavorite}
-                title="Save to favorites"
-                className={cn(
-                    "min-h-12 min-w-12 rounded-2xl glass-dark border border-white/5 transition-all hover:scale-110 active:scale-95 group relative flex items-center justify-center",
-                    isFavorited ? "text-accent-purple border-accent-purple/30 bg-accent-purple/5" : "text-zinc-400 hover:text-white"
-                )}
-             >
-                <Star size={24} className={cn("relative z-10", isFavorited && "fill-accent-purple")} />
-             </button>
-          </div>
-       </div>
-       )}
-
-
-       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 xl:gap-16">
-          <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "space-y-8 md:space-y-10 min-w-0")}>
-             {tool.id === 'ai-img-gen' ? (
+                </div>
+             ) : tool.id === 'ai-img-gen' ? (
                 <ImageGeneratorTool />
              ) : tool.id === 'ai-logo' ? (
                 <LogoGeneratorTool />
@@ -271,14 +235,22 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                 <WatermarkRemover />
              ) : tool.id === 'image-collage' ? (
                 <CollageMaker />
+             ) : tool.id === 'image-minecraft-skin' ? (
+                <MinecraftSkinMaker />
              ) : tool.id === 'audio-vocal-remover' ? (
                 <VocalRemover />
              ) : tool.id === 'audio-stem-splitter' ? (
                 <StemSplitter />
              ) : tool.id === 'audio-noise-remover' ? (
                 <NoiseRemover />
+             ) : tool.id === 'audio-voice-changer' ? (
+                <VoiceChanger />
              ) : tool.id === 'audio-tts' ? (
                 <TextToSpeech />
+             ) : tool.id === 'audio-stt' ? (
+                <SpeechToText />
+             ) : tool.id === 'video-bg-remover' ? (
+                <VideoBackgroundRemover />
              ) : tool.id === 'pdf-merger' ? (
                 <PdfMerger />
              ) : tool.id === 'pdf-splitter' ? (
@@ -294,31 +266,31 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
              ) : tool.id === 'pdf-ocr' ? (
                 <OcrExtractor />
              ) : (
-                <div className="space-y-10">
+                <div className="space-y-5">
                    <div className="relative group">
                       <div className={cn(
-                        "min-h-[380px] sm:min-h-[450px] rounded-[2rem] md:rounded-[3.5rem] glass-dark border-2 border-zinc-800 p-5 sm:p-8 md:p-12 transition-all duration-700",
-                        "group-hover:border-white/10",
+                        "min-h-[380px] rounded-lg border border-white/10 bg-zinc-950/65 p-5 shadow-xl transition-all duration-300 sm:min-h-[450px] sm:p-8",
+                        "group-hover:border-white/20",
                         tool.requiresFileUpload && "border-dashed"
                       )}>
                          <AnimatePresence mode="wait">
-                            {!isProcessing && !result && (
+                            {!isProcessing && !result && !error && (
                               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="w-full h-full flex flex-col items-center justify-center text-center space-y-8">
                                  {tool.requiresFileUpload ? (
                                    fileName ? (
                                      <div className="space-y-6">
-                                        <div className="w-24 h-24 rounded-3xl bg-accent-purple/10 flex items-center justify-center text-accent-purple mx-auto"><Play size={40} /></div>
-                                        <p className="text-2xl font-black text-white">{fileName}</p>
-                                        <button onClick={() => setFileName(null)} className="text-zinc-500 hover:text-white text-xs font-bold uppercase tracking-widest">Remove file</button>
+                                        <div className="mx-auto flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-200"><Play size={26} /></div>
+                                        <p className="break-all text-xl font-bold text-white">{fileName}</p>
+                                        <button onClick={() => setFileName(null)} className="min-h-11 rounded-md px-4 text-xs font-bold text-zinc-500 transition hover:bg-white/5 hover:text-white">Remove file</button>
                                      </div>
                                    ) : (
                                      <>
-                                       <div className="w-28 h-28 rounded-[2.5rem] bg-zinc-800/50 flex items-center justify-center text-zinc-500 group-hover:text-accent-purple group-hover:scale-110 transition-all duration-700 shadow-3xl border border-white/5"><Upload size={48} /></div>
+                                       <div className="flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-200 shadow-lg transition-all group-hover:border-cyan-300/30"><Upload size={28} /></div>
                                        <div className="space-y-2">
-                                         <p className="text-3xl font-black text-white tracking-tight text-center">Drop your files here</p>
-                                         <p className="text-zinc-500 font-medium text-center">Supported: {tool.acceptedFileTypes?.join(', ') || 'Various formats'}</p>
+                                         <p className="text-center text-xl font-bold text-white">Choose a file</p>
+                                         <p className="text-center text-sm font-medium text-zinc-500">Drop it here or browse. Supported: {tool.acceptedFileTypes?.join(', ') || 'Various formats'}</p>
                                        </div>
-                                       <label className="px-12 py-5 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                                       <label className="premium-gradient flex min-h-12 cursor-pointer items-center justify-center rounded-md px-6 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98]">
                                          Select Files
                                          <input type="file" className="hidden" accept={tool.acceptedFileTypes?.join(',')} onChange={handleFileChange} />
                                        </label>
@@ -328,14 +300,14 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                    <div className="w-full space-y-8 text-left">
                                      <div className="relative">
                                        <textarea 
-                                         className="w-full min-h-[260px] md:min-h-[300px] bg-zinc-900/50 rounded-[2rem] md:rounded-[2.5rem] p-5 sm:p-8 md:p-10 text-base sm:text-xl md:text-2xl text-white placeholder-zinc-700 border border-white/10 focus:border-accent-purple/50 focus:ring-4 focus:ring-accent-purple/5 outline-none transition-all resize-none shadow-inner"
+                                         className="min-h-[260px] w-full resize-none rounded-lg border border-white/10 bg-zinc-900/50 p-5 text-base text-white shadow-inner outline-none transition-all placeholder-zinc-700 focus:border-cyan-300/40 focus:ring-4 focus:ring-cyan-300/5 sm:min-h-[300px] sm:p-7 sm:text-lg"
                                          placeholder={tool.placeholderPrompt || "Enter your instructions here..."}
                                          value={textInput}
                                          onChange={(e) => setTextInput(e.target.value)}
                                        />
                                        <div className="static mt-4 sm:absolute sm:bottom-8 sm:right-8">
-                                         <button onClick={handleGenerate} className="flex min-h-12 w-full sm:w-auto items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl premium-gradient text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-3xl hover:scale-105 active:scale-95 transition-all">
-                                           <Sparkles size={20} /> Generate magic
+                                         <button onClick={handleGenerate} className="premium-gradient flex min-h-12 w-full items-center justify-center gap-2 rounded-md px-6 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98] sm:w-auto">
+                                           <Sparkles size={18} /> Generate
                                          </button>
                                        </div>
                                      </div>
@@ -354,16 +326,35 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                  </div>
                               </div>
                             )}
+                            {error && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-lg border border-red-500/20 bg-red-500/[0.04] p-6 text-center"
+                              >
+                                <div className="flex size-14 items-center justify-center rounded-md border border-red-400/20 bg-red-500/10 text-red-200">
+                                  <Sparkles size={28} />
+                                </div>
+                                <div className="max-w-md space-y-2">
+                                  <p className="text-xl font-black tracking-tight text-white">Processing failed</p>
+                                  <p className="text-sm font-medium leading-relaxed text-zinc-400">{error}</p>
+                                </div>
+                                <button onClick={reset} className="min-h-12 rounded-md bg-white px-6 text-xs font-bold text-black transition-all hover:bg-zinc-200">
+                                  Try again
+                                </button>
+                              </motion.div>
+                            )}
                             {result && (
-                               <div className="flex flex-col md:flex-row items-center justify-between p-10 rounded-[2.5rem] glass border border-emerald-500/20 bg-emerald-500/5 gap-8">
-                                  <div className="flex items-center gap-8 text-left">
-                                     <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.3)]"><CheckCircle2 size={40} /></div>
+                               <div className="flex flex-col items-stretch justify-between gap-5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.04] p-5 sm:flex-row sm:items-center sm:p-6">
+                                  <div className="flex items-center gap-4 text-left">
+                                     <div className="flex size-14 shrink-0 items-center justify-center rounded-md bg-emerald-400/10 text-emerald-300"><CheckCircle2 size={26} /></div>
                                      <div>
-                                        <p className="text-3xl font-black text-white tracking-tight">Success!</p>
+                                        <p className="text-xl font-bold tracking-tight text-white">Ready to download</p>
                                         <p className="text-zinc-500 font-medium">Your content has been processed and is ready.</p>
                                      </div>
                                   </div>
-                                  <a href={displayResult || "#"} download={`toolverse-${tool.id}-result.txt`} className="w-full md:auto px-10 py-5 rounded-2xl bg-emerald-500 text-white font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all">
+                                  <a href={displayResult || "#"} download={`lumora-${tool.id}-result.txt`} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-400 px-6 text-xs font-bold text-black transition-all hover:bg-emerald-300 sm:w-auto">
                                      <Download size={20} /> Download result
                                   </a>
                                </div>
@@ -376,36 +367,37 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
           </div>
 
           {!isSpecialTool && (
-            <div className="space-y-8 md:space-y-12 text-left min-w-0">
-               <div className="space-y-8">
-                  <div className="flex items-center justify-between px-2">
+            <div className="min-w-0 space-y-5 text-left">
+               <div className="space-y-4">
+                  <div className="flex items-center justify-between">
                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Related Tools</h3>
                      <div className="flex-1 h-px bg-zinc-800/50 mx-6" />
                   </div>
-                  <div className="space-y-8">
+                  <div className="space-y-3">
                      {relatedTools.map((t, idx) => (
-                        <ToolCard key={t.id} {...t} index={idx} className="hover:scale-[1.02] transition-transform origin-left" />
+                        <ToolCard key={t.id} {...t} index={idx} className="transition-transform hover:translate-x-0.5" />
                      ))}
                   </div>
                </div>
 
-               <div className="p-6 sm:p-10 rounded-[2rem] md:rounded-[3rem] bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-violet-500/20 relative overflow-hidden group">
-                  <div className="relative z-10 space-y-6">
-                     <div className="w-16 h-16 rounded-[1.5rem] bg-accent-purple/20 flex items-center justify-center text-accent-purple">
-                        <Sparkles size={32} className="animate-pulse" />
+               <div className="group relative overflow-hidden rounded-lg border border-violet-300/15 bg-violet-300/[0.04] p-5 sm:p-6">
+                  <div className="relative z-10 space-y-4">
+                     <div className="flex size-11 items-center justify-center rounded-md bg-violet-300/10 text-violet-200">
+                        <Sparkles size={20} />
                      </div>
-                     <h3 className="text-2xl font-black text-white tracking-tight">Upgrade to Meta Pro</h3>
-                     <button className="w-full py-5 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest shadow-3xl hover:bg-zinc-200 transition-all">
-                        Go Unlimited
-                     </button>
+                     <div>
+                       <h3 className="text-lg font-bold tracking-tight text-white">Lumora Pro</h3>
+                       <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-500">Priority processing, larger batches, and premium creative controls.</p>
+                     </div>
+                     <Link href="/pro" className="flex min-h-12 w-full items-center justify-center rounded-md bg-white px-5 text-xs font-bold text-black transition-all hover:bg-zinc-200">
+                        Explore Pro
+                     </Link>
                   </div>
                </div>
             </div>
           )}
        </div>
 
-      <div className="fixed top-0 right-0 w-[60%] h-[60%] bg-accent-purple/[0.03] blur-[150px] -z-10 rounded-full" />
-      <div className="fixed bottom-0 left-0 w-[60%] h-[60%] bg-accent-blue/[0.03] blur-[150px] -z-10 rounded-full" />
     </div>
   );
 

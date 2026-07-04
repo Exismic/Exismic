@@ -1,16 +1,12 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Upload, 
   Download, 
-  Loader2, 
   X, 
-  ArrowRight,
-  FileText,
   FileArchive,
   CheckCircle2,
   AlertCircle,
@@ -21,21 +17,27 @@ import {
 import { PdfThumbnail } from "./pdf/PdfThumbnail";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import { readDownloadResponse } from "@/lib/pdf-client";
 
 const COMPRESSOR_STEPS = [
   { title: "Upload PDF", desc: "Select the large document you want to optimize for web or email." },
-  { title: "Select Level", desc: "Choose between Recommended, Basic, or Extreme compression." },
-  { title: "Neural Shrink", desc: "Our engine optimizes internal objects and streams without losing readability." },
-  { title: "Download", desc: "Save your lightweight document instantly." }
+  { title: "Select Mode", desc: "Choose how aggressively document metadata should be cleaned." },
+  { title: "Repack Streams", desc: "Lumora rebuilds internal PDF objects without rasterizing your pages." },
+  { title: "Download", desc: "Download the smaller file, or the original when it is already optimized." }
 ];
 
 export default function PdfCompressor() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState("");
-  const [result, setResult] = useState<{ url: string; oldSize: number; newSize: number } | null>(null);
+  const [result, setResult] = useState<{ url: string; fileName: string; oldSize: number; newSize: number; optimized: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [level, setLevel] = useState<"low" | "medium" | "high">("medium");
+
+  useEffect(() => {
+    return () => {
+      if (result?.url) URL.revokeObjectURL(result.url);
+    };
+  }, [result?.url]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles[0]) {
@@ -54,7 +56,6 @@ export default function PdfCompressor() {
   const handleCompress = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setStatus("Scanning document streams...");
     setError(null);
 
     const formData = new FormData();
@@ -67,21 +68,22 @@ export default function PdfCompressor() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Compression failed.");
-      }
-
-      const data = await response.json();
+      const artifact = await readDownloadResponse(
+        response,
+        "optimized-document.pdf",
+      );
+      const oldSize = Number(artifact.headers.get("X-Lumora-Original-Size")) || file.size;
+      const newSize = Number(artifact.headers.get("X-Lumora-Output-Size")) || artifact.size;
       setResult({
-        url: data.resultUrl,
-        oldSize: data.oldSize,
-        newSize: data.newSize
+        url: artifact.url,
+        fileName: artifact.fileName,
+        oldSize,
+        newSize,
+        optimized: artifact.headers.get("X-Lumora-Optimized") === "true",
       });
-      setStatus("Compression Complete!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to compress PDF");
+      setError(err instanceof Error ? err.message : "Failed to compress PDF");
     } finally {
       setIsProcessing(false);
     }
@@ -95,7 +97,9 @@ export default function PdfCompressor() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const savedPercent = result ? Math.round(((result.oldSize - result.newSize) / result.oldSize) * 100) : 0;
+  const savedPercent = result
+    ? Math.max(0, Math.round(((result.oldSize - result.newSize) / result.oldSize) * 100))
+    : 0;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-12">
@@ -158,13 +162,13 @@ export default function PdfCompressor() {
                                >
                                  <CheckCircle2 size={64} />
                                </motion.div>
-                               <motion.div 
+                               <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5 }}
-                                className="absolute -top-4 -right-4 bg-emerald-500 text-black text-[11px] font-black px-4 py-2 rounded-full shadow-2xl italic tracking-tighter"
+                                className="absolute -top-4 -right-4 rounded-full bg-emerald-500 px-4 py-2 text-[11px] font-black tracking-tight text-black shadow-2xl"
                                >
-                                 -{savedPercent}% SAVED
+                                 {result.optimized ? `-${savedPercent}% SAVED` : "ALREADY OPTIMIZED"}
                                </motion.div>
                             </div>
 
@@ -177,14 +181,20 @@ export default function PdfCompressor() {
                          </div>
 
                          <div className="space-y-4">
-                            <h4 className="text-5xl font-black text-white uppercase italic tracking-tighter pr-4 px-4 -mx-4">OPTIMIZATION READY.</h4>
-                            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.4em]">Successfully saved {formatSize(result.oldSize - result.newSize)} of storage space</p>
+                            <h4 className="text-5xl font-black text-white uppercase italic tracking-tighter pr-4 px-4 -mx-4">
+                              {result.optimized ? "OPTIMIZATION READY." : "FILE ALREADY EFFICIENT."}
+                            </h4>
+                            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">
+                              {result.optimized
+                                ? `Saved ${formatSize(result.oldSize - result.newSize)} without rasterizing pages`
+                                : "Lumora kept the original because rebuilding it would make the file larger"}
+                            </p>
                          </div>
 
                          <div className="flex flex-col sm:flex-row items-center gap-6">
                             <a 
                               href={result.url} 
-                              download="compressed_document.pdf"
+                              download={result.fileName}
                               className="px-14 py-7 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-4 shadow-3xl"
                             >
                               <Download className="w-5 h-5" />
@@ -236,13 +246,13 @@ export default function PdfCompressor() {
                            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Compression Intensity</h4>
                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                               {[
-                                { id: "low", label: "Quality", desc: "Low compression", icon: Activity },
-                                { id: "medium", label: "Standard", desc: "Balanced", icon: Zap },
-                                { id: "high", label: "Extreme", desc: "Max savings", icon: Minimize2 }
+                                { id: "low", label: "Preserve", desc: "Keep all metadata", icon: Activity },
+                                { id: "medium", label: "Balanced", desc: "Clean app metadata", icon: Zap },
+                                { id: "high", label: "Metadata", desc: "Remove document details", icon: Minimize2 }
                               ].map((item) => (
                                 <button 
                                     key={item.id}
-                                    onClick={() => setLevel(item.id as any)}
+                                    onClick={() => setLevel(item.id as "low" | "medium" | "high")}
                                     className={cn(
                                         "p-10 rounded-[2.5rem] border transition-all text-left space-y-6 relative overflow-hidden group/opt",
                                         level === item.id ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/5 hover:border-white/10"
@@ -275,7 +285,7 @@ export default function PdfCompressor() {
                              <Zap className="absolute inset-0 m-auto w-8 h-8 text-emerald-500 animate-pulse" />
                           </div>
                           <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 pr-4 px-4 -mx-4">Optimizing Streams...</h4>
-                          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.5em] animate-pulse">Neural weight reduction active</p>
+                          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] animate-pulse">Repacking document objects</p>
                         </motion.div>
                      )}
                    </AnimatePresence>
@@ -292,8 +302,8 @@ export default function PdfCompressor() {
                onClick={handleCompress}
                isLoading={isProcessing}
                disabled={!file}
-               label={!file ? "Upload PDF" : level === 'high' ? "Extreme Compression" : "Optimize PDF"}
-               subLabel={!file ? "Select a document to begin" : level === 'high' ? "Max storage savings" : `${level.toUpperCase()} intensity active`}
+               label={!file ? "Upload PDF" : "Optimize PDF"}
+               subLabel={!file ? "Select a document to begin" : `${level.toUpperCase()} mode active`}
                icon={Minimize2}
              />
            )}
@@ -304,7 +314,7 @@ export default function PdfCompressor() {
              stats={file ? [
                { label: "Selected File", value: file.name.slice(0, 15) + "..." },
                { label: "File Size", value: `${(file.size / 1024 / 1024).toFixed(2)} MB` },
-               { label: "Mode", value: level === 'high' ? 'Extreme' : 'Standard' }
+               { label: "Mode", value: level === 'high' ? 'Metadata Clean' : level === 'medium' ? 'Balanced' : 'Preserve' }
              ] : []}
            />
  
@@ -312,7 +322,7 @@ export default function PdfCompressor() {
              <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4">
                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
                <div className="space-y-1">
-                  <p className="uppercase tracking-[0.2em]">Engine Error</p>
+                  <p className="uppercase tracking-[0.2em]">Optimization Failed</p>
                   <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
                </div>
              </div>

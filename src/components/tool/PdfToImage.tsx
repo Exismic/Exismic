@@ -5,18 +5,13 @@ import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Upload, 
   Download, 
-  Loader2, 
   X, 
-  ArrowRight,
-  FileText,
   ImageIcon,
   CheckCircle2,
   AlertCircle,
   Zap,
   Layers,
-  Settings2,
   Maximize2
 } from "lucide-react";
 import JSZip from "jszip";
@@ -24,12 +19,36 @@ import { PdfThumbnail } from "./pdf/PdfThumbnail";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
 
-declare const pdfjsLib: any;
+interface BrowserPdfViewport {
+  height: number;
+  width: number;
+}
+
+interface BrowserPdfPage {
+  getViewport(options: { scale: number }): BrowserPdfViewport;
+  render(options: {
+    canvasContext: CanvasRenderingContext2D;
+    viewport: BrowserPdfViewport;
+  }): { promise: Promise<void> };
+}
+
+interface BrowserPdfDocument {
+  numPages: number;
+  getPage(pageNumber: number): Promise<BrowserPdfPage>;
+}
+
+interface BrowserPdfJs {
+  getDocument(options: { data: ArrayBuffer }): {
+    promise: Promise<BrowserPdfDocument>;
+  };
+}
+
+declare const pdfjsLib: BrowserPdfJs;
 
 const TO_IMAGE_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to convert into high-quality image assets." },
   { title: "Select Format", desc: "Choose between PNG (lossless) or JPG (optimized) for your output." },
-  { title: "Neural Raster", desc: "Our engine renders vector paths into high-fidelity pixels at 300 DPI." },
+  { title: "Render Pages", desc: "Your browser renders each page at standard or high resolution." },
   { title: "Download", desc: "Get your images as a single file or a clean ZIP archive." }
 ];
 
@@ -43,6 +62,12 @@ export default function PdfToImage() {
   const [format, setFormat] = useState<"png" | "jpg">("png");
   const [quality, setQuality] = useState<"high" | "standard">("high");
   const [isPdfJsLoaded, setIsPdfJsLoaded] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (result?.url) URL.revokeObjectURL(result.url);
+    };
+  }, [result?.url]);
 
   useEffect(() => {
     const checkPdfJs = setInterval(() => {
@@ -79,29 +104,42 @@ export default function PdfToImage() {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const numPages = pdf.numPages;
-      const images: { name: string; data: string }[] = [];
+      if (numPages > 100) {
+        throw new Error("PDF to Image supports up to 100 pages per conversion.");
+      }
+      const images: { name: string; blob: Blob }[] = [];
 
       for (let i = 1; i <= numPages; i++) {
         setStatus(`Rendering Page ${i} of ${numPages}...`);
-        setProgress(Math.round((i / numPages) * 90));
+        setProgress(Math.round(((i - 1) / numPages) * 90));
 
         const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: quality === "high" ? 2.0 : 1.0 });
+        const viewport = page.getViewport({ scale: quality === "high" ? 2.5 : 1.5 });
         
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        canvas.height = Math.ceil(viewport.height);
+        canvas.width = Math.ceil(viewport.width);
 
         if (!context) throw new Error("Could not create canvas context");
 
         await page.render({ canvasContext: context, viewport }).promise;
-        
-        const dataUrl = canvas.toDataURL(`image/${format === "jpg" ? "jpeg" : "png"}`, 0.9);
+
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (value) =>
+              value ? resolve(value) : reject(new Error(`Page ${i} could not be encoded.`)),
+            `image/${format === "jpg" ? "jpeg" : "png"}`,
+            format === "jpg" ? 0.9 : undefined,
+          );
+        });
         images.push({
           name: `page_${i}.${format}`,
-          data: dataUrl.split(",")[1]
+          blob,
         });
+        canvas.width = 1;
+        canvas.height = 1;
+        setProgress(Math.round((i / numPages) * 90));
       }
 
       setStatus("Finalizing assets...");
@@ -110,14 +148,18 @@ export default function PdfToImage() {
       let isZip = false;
 
       if (images.length === 1) {
-        finalUrl = `data:image/${format === "jpg" ? "jpeg" : "png"};base64,${images[0].data}`;
+        finalUrl = URL.createObjectURL(images[0].blob);
         isZip = false;
       } else {
         const zip = new JSZip();
         images.forEach(img => {
-          zip.file(img.name, img.data, { base64: true });
+          zip.file(img.name, img.blob);
         });
-        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const zipBlob = await zip.generateAsync({
+          type: "blob",
+          compression: "DEFLATE",
+          compressionOptions: { level: 6 },
+        });
         finalUrl = URL.createObjectURL(zipBlob);
         isZip = true;
       }
@@ -130,9 +172,9 @@ export default function PdfToImage() {
       });
       setProgress(100);
       setStatus("Conversion Complete!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to convert PDF.");
+      setError(err instanceof Error ? err.message : "Failed to convert PDF.");
     } finally {
       setIsProcessing(false);
     }
@@ -259,10 +301,10 @@ export default function PdfToImage() {
                            <div className="space-y-6">
                               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Target Format</h4>
                               <div className="flex gap-4">
-                                 {["png", "jpg"].map((f) => (
+                                 {(["png", "jpg"] as const).map((f) => (
                                    <button 
                                      key={f}
-                                     onClick={() => setFormat(f as any)}
+                                     onClick={() => setFormat(f)}
                                      className={cn(
                                        "flex-1 py-5 rounded-2xl border font-black uppercase tracking-widest transition-all",
                                        format === f ? "bg-accent-cyan/10 border-accent-cyan/30 text-accent-cyan shadow-lg" : "bg-white/5 border-white/5 text-zinc-600 hover:border-white/10"
@@ -275,12 +317,12 @@ export default function PdfToImage() {
                            </div>
 
                            <div className="space-y-6">
-                              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Neural Quality</h4>
+                              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Render Quality</h4>
                               <div className="flex gap-4">
-                                 {["high", "standard"].map((q) => (
+                                 {(["high", "standard"] as const).map((q) => (
                                    <button 
                                      key={q}
-                                     onClick={() => setQuality(q as any)}
+                                     onClick={() => setQuality(q)}
                                      className={cn(
                                        "flex-1 py-5 rounded-2xl border font-black uppercase tracking-widest transition-all",
                                        quality === q ? "bg-accent-cyan/10 border-accent-cyan/30 text-accent-cyan shadow-lg" : "bg-white/5 border-white/5 text-zinc-600 hover:border-white/10"
@@ -332,7 +374,7 @@ export default function PdfToImage() {
                isLoading={isProcessing}
                disabled={!file}
                label={!file ? "Upload PDF" : `Convert to ${format.toUpperCase()}`}
-               subLabel={!file ? "Select a document to begin" : quality === 'high' ? "High Fidelity (300 DPI)" : "Standard Quality (150 DPI)"}
+               subLabel={!file ? "Select a document to begin" : quality === 'high' ? "High resolution (180 DPI)" : "Standard resolution (108 DPI)"}
                icon={ImageIcon}
              />
            )}
@@ -342,7 +384,7 @@ export default function PdfToImage() {
              steps={TO_IMAGE_STEPS}
              stats={file ? [
                { label: "Target Format", value: format.toUpperCase() },
-               { label: "Resolution", value: quality === 'high' ? '300 DPI' : '150 DPI' },
+               { label: "Resolution", value: quality === 'high' ? '180 DPI' : '108 DPI' },
                { label: "Rendering", value: "Client-Side" }
              ] : []}
            />
@@ -351,7 +393,7 @@ export default function PdfToImage() {
              <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4">
                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
                <div className="space-y-1">
-                  <p className="uppercase tracking-[0.2em]">Neural Engine Error</p>
+                  <p className="uppercase tracking-[0.2em]">Conversion Failed</p>
                   <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
                </div>
              </div>

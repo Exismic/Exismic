@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@/utils/supabase/server";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
@@ -30,9 +32,14 @@ async function tryModalRestore(params: {
   sharpen: boolean;
   denoise: boolean;
   upscale: number;
+  priority: boolean;
 }) {
-  const modalUrl = process.env.MODAL_PHOTO_RESTORER_URL;
-  const modalApiKey = process.env.MODAL_PHOTO_RESTORER_API_KEY;
+  const modalUrl = params.priority
+    ? process.env.MODAL_PHOTO_RESTORER_PRIORITY_URL || process.env.MODAL_PHOTO_RESTORER_URL
+    : process.env.MODAL_PHOTO_RESTORER_NORMAL_URL || process.env.MODAL_PHOTO_RESTORER_URL;
+  const modalApiKey = params.priority
+    ? process.env.MODAL_PHOTO_RESTORER_PRIORITY_API_KEY || process.env.MODAL_PHOTO_RESTORER_API_KEY
+    : process.env.MODAL_PHOTO_RESTORER_NORMAL_API_KEY || process.env.MODAL_PHOTO_RESTORER_API_KEY;
 
   if (!modalUrl || !modalApiKey) return null;
 
@@ -44,6 +51,8 @@ async function tryModalRestore(params: {
   formData.append("sharpen", String(params.sharpen));
   formData.append("denoise", String(params.denoise));
   formData.append("upscale", String(params.upscale));
+  formData.append("priority", String(params.priority));
+  formData.append("queue", params.priority ? "priority" : "normal");
 
   const response = await fetch(`${modalUrl.replace(/\/$/, "")}/restore`, {
     method: "POST",
@@ -51,7 +60,7 @@ async function tryModalRestore(params: {
       "X-Api-Key": modalApiKey,
     },
     body: formData,
-    signal: AbortSignal.timeout(120000),
+    signal: AbortSignal.timeout(params.priority ? 90000 : 120000),
   });
 
   if (!response.ok) {
@@ -60,6 +69,25 @@ async function tryModalRestore(params: {
 
   const arrayBuffer = await response.arrayBuffer();
   return Buffer.from(arrayBuffer);
+}
+
+async function getPriorityContext() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { priority: false, queue: "normal" as const };
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { plan: true, subscriptionStatus: true },
+    });
+
+    const priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
+    return { priority, queue: priority ? "priority" as const : "normal" as const };
+  } catch (error) {
+    console.warn("Could not resolve Pro priority context:", getErrorMessage(error));
+    return { priority: false, queue: "normal" as const };
+  }
 }
 
 async function restoreWithSharp(params: {
@@ -151,14 +179,15 @@ export async function POST(req: NextRequest) {
     const sharpen = getBoolean(formData, "sharpen", true);
     const denoise = getBoolean(formData, "denoise", true);
     const upscale = clampNumber(formData.get("upscale"), 1, 1, 2);
+    const context = await getPriorityContext();
     const buffer = Buffer.from(await file.arrayBuffer());
 
     let provider = "sharp-local-restorer";
     let resultBuffer: Buffer | null = null;
 
     try {
-      resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale });
-      if (resultBuffer) provider = "modal-gfpgan-codeformer";
+      resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale, priority: context.priority });
+      if (resultBuffer) provider = context.priority ? "modal-priority-gfpgan-codeformer" : "modal-gfpgan-codeformer";
     } catch (modalError) {
       console.error("Modal Photo Restore Failed:", getErrorMessage(modalError));
     }
@@ -177,6 +206,9 @@ export async function POST(req: NextRequest) {
       height: outputMetadata.height,
       format: "png",
       provider,
+      priority: context.priority,
+      queue: context.queue,
+      processingLabel: context.priority ? "Processing with Priority..." : "Processing...",
       options: { strength, faces, color, sharpen, denoise, upscale },
     });
   } catch (error: unknown) {

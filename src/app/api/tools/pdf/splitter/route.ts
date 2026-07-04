@@ -1,90 +1,121 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument } from "pdf-lib";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
 import JSZip from "jszip";
+import {
+  checkRateLimit,
+  getRequestIp,
+  rateLimitResponse,
+  requireApiUser,
+  validateUploadedFile,
+} from "@/lib/api-security";
+import {
+  PDF_MAX_FILE_BYTES,
+  PdfProcessingError,
+  assertPdfSignature,
+  createDownloadResponse,
+  createPdfRequestId,
+  parsePageRange,
+  pdfErrorResponse,
+  safeDownloadStem,
+} from "@/lib/pdf-processing";
 
-const STORAGE_PATH = path.join(process.cwd(), "public", "results");
+export const maxDuration = 120;
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
+  const requestId = createPdfRequestId();
+
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const mode = formData.get("mode") as string;
-    const range = formData.get("range") as string;
+    const user = await requireApiUser();
+    if (user instanceof NextResponse) return user;
+    const limit = checkRateLimit(
+      `pdf-splitter:${user.id}:${getRequestIp(request)}`,
+      20,
+      60 * 60 * 1000,
+    );
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
-    }
-
-    // Ensure storage directory exists
-    try {
-      await mkdir(STORAGE_PATH, { recursive: true });
-    } catch (e) {}
-
-    const arrayBuffer = await file.arrayBuffer();
-    const srcDoc = await PDFDocument.load(arrayBuffer);
-    const pageCount = srcDoc.getPageCount();
-
-    const jobId = uuidv4();
-    let fileName = "";
-    let fileContent: Buffer | Uint8Array;
-
-    if (mode === "all") {
-      // Create a ZIP with all pages
-      const zip = new JSZip();
-      
-      for (let i = 0; i < pageCount; i++) {
-        const newDoc = await PDFDocument.create();
-        const [page] = await newDoc.copyPages(srcDoc, [i]);
-        newDoc.addPage(page);
-        const pdfBytes = await newDoc.save();
-        zip.file(`page_${i + 1}.pdf`, pdfBytes);
-      }
-      
-      fileContent = await zip.generateAsync({ type: "nodebuffer" });
-      fileName = `split_${jobId}.zip`;
-    } else {
-      // Extract specific range
-      // Range format: "1-3, 5, 7-10"
-      const pagesToExtract: number[] = [];
-      const parts = range.split(",").map(p => p.trim());
-      
-      for (const part of parts) {
-        if (part.includes("-")) {
-          const [start, end] = part.split("-").map(Number);
-          for (let i = start; i <= end; i++) {
-            if (i > 0 && i <= pageCount) pagesToExtract.push(i - 1);
-          }
-        } else {
-          const p = Number(part);
-          if (p > 0 && p <= pageCount) pagesToExtract.push(p - 1);
-        }
-      }
-
-      if (pagesToExtract.length === 0) {
-        return NextResponse.json({ error: "Invalid page range." }, { status: 400 });
-      }
-
-      const newDoc = await PDFDocument.create();
-      const copiedPages = await newDoc.copyPages(srcDoc, pagesToExtract);
-      copiedPages.forEach(page => newDoc.addPage(page));
-      
-      fileContent = await newDoc.save();
-      fileName = `extracted_${jobId}.pdf`;
-    }
-
-    const fullPath = path.join(STORAGE_PATH, fileName);
-    await writeFile(fullPath, fileContent);
-
-    return NextResponse.json({
-      success: true,
-      resultUrl: `/results/${fileName}`
+    const formData = await request.formData();
+    const entry = formData.get("file");
+    const file = entry instanceof File ? entry : null;
+    const mode = formData.get("mode") === "range" ? "range" : "all";
+    const range = String(formData.get("range") || "");
+    const fileError = validateUploadedFile(file, {
+      maxBytes: PDF_MAX_FILE_BYTES,
+      allowedMimePrefixes: file?.type ? ["application/pdf"] : undefined,
+      label: "PDF file",
     });
+    if (fileError) return fileError;
+    await assertPdfSignature(file!);
 
-  } catch (error: any) {
-    console.error("PDF Split Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to split PDF" }, { status: 500 });
+    const source = await PDFDocument.load(await file!.arrayBuffer(), {
+      updateMetadata: false,
+    });
+    const pageCount = source.getPageCount();
+    if (pageCount === 0) {
+      throw new PdfProcessingError(
+        "This PDF does not contain any pages.",
+        422,
+        "EMPTY_PDF",
+      );
+    }
+
+    const stem = safeDownloadStem(file!.name);
+    if (mode === "all") {
+      if (pageCount > 500) {
+        throw new PdfProcessingError(
+          "Splitting every page is limited to 500 pages per document.",
+          413,
+          "PDF_PAGE_LIMIT",
+        );
+      }
+
+      const zip = new JSZip();
+      const digits = String(pageCount).length;
+      for (let index = 0; index < pageCount; index += 1) {
+        const output = await PDFDocument.create();
+        const [page] = await output.copyPages(source, [index]);
+        output.addPage(page);
+        zip.file(
+          `page-${String(index + 1).padStart(digits, "0")}.pdf`,
+          await output.save({ useObjectStreams: true }),
+        );
+      }
+      const bytes = await zip.generateAsync({
+        type: "nodebuffer",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      });
+      const fileName = `${stem}-split-pages.zip`;
+      return createDownloadResponse(bytes, {
+        fileName,
+        contentType: "application/zip",
+        requestId,
+        headers: {
+          "X-Lumora-File-Name": encodeURIComponent(fileName),
+          "X-Lumora-Page-Count": String(pageCount),
+          "X-Lumora-Output-Type": "zip",
+        },
+      });
+    }
+
+    const indexes = parsePageRange(range, pageCount);
+    const output = await PDFDocument.create();
+    const copiedPages = await output.copyPages(source, indexes);
+    copiedPages.forEach((page) => output.addPage(page));
+    const bytes = await output.save({ useObjectStreams: true });
+    const fileName = `${stem}-pages.pdf`;
+
+    return createDownloadResponse(bytes, {
+      fileName,
+      contentType: "application/pdf",
+      requestId,
+      headers: {
+        "X-Lumora-File-Name": encodeURIComponent(fileName),
+        "X-Lumora-Page-Count": String(indexes.length),
+        "X-Lumora-Output-Type": "pdf",
+      },
+    });
+  } catch (error) {
+    return pdfErrorResponse(error, requestId);
   }
 }

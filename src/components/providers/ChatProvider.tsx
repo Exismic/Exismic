@@ -7,7 +7,26 @@ import { createClient } from "@/utils/supabase/client";
 import { useCredits } from "@/hooks/useCredits";
 
 // --- Types & Interfaces ---
+export type ChatMode = "auto" | "default" | "coding" | "research" | "business" | "creative" | "fast";
+
+export interface ChatToolRun {
+  toolId: "background-remover" | "image-compressor" | "image-converter" | "image-resizer";
+  label: string;
+  status: "completed";
+  resultUrl: string;
+  downloadName: string;
+  format?: string;
+  width?: number;
+  height?: number;
+  size?: number;
+  quality?: number;
+  credits?: number;
+  priority?: boolean;
+  processingLabel?: string;
+}
+
 export interface Message {
+  id?: string;
   role: "user" | "assistant";
   content: string;
   attachments?: { type: string, data: string, name?: string }[];
@@ -15,6 +34,19 @@ export interface Message {
   imageUrl?: string;
   isImage?: boolean;
   enhancedPrompt?: string;
+  isTyping?: boolean;
+  chatMode?: ChatMode;
+  studentMode?: boolean;
+  toolRun?: ChatToolRun;
+}
+
+export interface ChatAttachment {
+  id: string;
+  name: string;
+  type: string;
+  data: string;
+  preview: string;
+  file?: File;
 }
 
 export interface ChatSession {
@@ -24,6 +56,28 @@ export interface ChatSession {
   updatedAt: string;
   lastMessage?: string;
 }
+
+export interface AiChatSettings {
+  defaultChatMode: ChatMode;
+  defaultStudentMode: boolean;
+  memoryEnabled: boolean;
+  typingAnimation: boolean;
+  smartFollowUps: boolean;
+  responseStyle: "balanced" | "concise" | "detailed" | "teacher" | "operator";
+  detailLevel: "short" | "standard" | "deep";
+  customInstructions: string;
+}
+
+export const DEFAULT_AI_CHAT_SETTINGS: AiChatSettings = {
+  defaultChatMode: "auto",
+  defaultStudentMode: false,
+  memoryEnabled: true,
+  typingAnimation: true,
+  smartFollowUps: true,
+  responseStyle: "balanced",
+  detailLevel: "standard",
+  customInstructions: "",
+};
 
 interface ChatContextType {
   // States
@@ -41,8 +95,9 @@ interface ChatContextType {
   setIsSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   deleteModal: { isOpen: boolean, sessionId: string | null };
   setDeleteModal: React.Dispatch<React.SetStateAction<{ isOpen: boolean, sessionId: string | null }>>;
-  attachments: { id: string, name: string, type: string, data: string, preview: string }[];
-  setAttachments: React.Dispatch<React.SetStateAction<{ id: string, name: string, type: string, data: string, preview: string }[]>>;
+  attachments: ChatAttachment[];
+  setAttachments: React.Dispatch<React.SetStateAction<ChatAttachment[]>>;
+  isUploading: boolean;
   copiedId: number | null;
   setCopiedId: React.Dispatch<React.SetStateAction<number | null>>;
   agentStatus: string;
@@ -58,6 +113,12 @@ interface ChatContextType {
   setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
   safeMode: boolean;
   toggleSafeMode: (val: boolean) => void;
+  studentMode: boolean;
+  toggleStudentMode: (val: boolean) => void;
+  chatMode: ChatMode;
+  updateChatMode: (mode: ChatMode) => void;
+  chatSettings: AiChatSettings;
+  saveChatSettings: (settings: Partial<AiChatSettings>) => Promise<void>;
   isSettingsOpen: boolean;
   setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isGeneratingImage: boolean;
@@ -76,15 +137,85 @@ interface ChatContextType {
   fetchSessions: () => Promise<void>;
   loadSession: (id: string) => Promise<void>;
   startNewChat: () => void;
-  handleSend: (content?: string) => Promise<void>;
+  handleSend: (content?: string, options?: { forceImage?: boolean }) => Promise<void>;
+  editAndResendMessage: (messageIndex: number, content: string) => Promise<void>;
+  branchConversation: (messageIndex: number) => Promise<void>;
+  rememberMessage: (content: string) => Promise<void>;
+  stopGeneration: () => void;
   confirmDeleteSession: () => Promise<void>;
   openDeleteModal: (id: string) => void;
   rollSuggestions: () => void;
-  processFiles: (files: File[]) => void;
+  processFiles: (files: File[]) => Promise<void>;
   toast: (msg: string, type?: "success" | "warning" | "info") => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
+
+const MAX_VISION_IMAGES = 5;
+const MAX_IMAGE_SOURCE_BYTES = 20 * 1024 * 1024;
+const MAX_TEXT_FILE_BYTES = 1024 * 1024;
+const TARGET_IMAGE_BYTES = 480 * 1024;
+const SUPPORTED_TEXT_TYPES = new Set([
+  "text/plain",
+  "text/markdown",
+  "text/csv",
+  "application/json",
+]);
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Could not read the optimized image."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function optimizeImageForVision(file: File) {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const maxDimension = 1800;
+    const initialScale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    let width = Math.max(1, Math.round(bitmap.width * initialScale));
+    let height = Math.max(1, Math.round(bitmap.height * initialScale));
+    let quality = 0.9;
+    let output: Blob | null = null;
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { alpha: false });
+      if (!context) throw new Error("Image optimization is unavailable in this browser.");
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+      context.drawImage(bitmap, 0, 0, width, height);
+
+      output = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+      if (!output) throw new Error("Could not optimize this image.");
+      if (output.size <= TARGET_IMAGE_BYTES) break;
+
+      if (quality > 0.62) {
+        quality -= 0.09;
+      } else {
+        width = Math.max(1, Math.round(width * 0.82));
+        height = Math.max(1, Math.round(height * 0.82));
+      }
+    }
+
+    if (!output) throw new Error("Could not optimize this image.");
+    return {
+      data: await blobToDataUrl(output),
+      type: "image/jpeg",
+      width,
+      height,
+      size: output.size,
+    };
+  } finally {
+    bitmap.close();
+  }
+}
 
 export const cleanTitle = (title: string): string => {
   if (!title) return "Untitled Chat";
@@ -129,7 +260,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean, sessionId: string | null }>({ isOpen: false, sessionId: null });
-  const [attachments, setAttachments] = useState<{ id: string, name: string, type: string, data: string, preview: string }[]>([]);
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [agentStatus, setAgentStatus] = useState("Ready to help");
   const [showCommands, setShowCommands] = useState(false);
@@ -139,6 +271,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isImmersive, setIsImmersive] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [safeMode, setSafeMode] = useState(true);
+  const [studentMode, setStudentMode] = useState(false);
+  const [chatMode, setChatMode] = useState<ChatMode>("auto");
+  const [chatSettings, setChatSettings] = useState<AiChatSettings>(DEFAULT_AI_CHAT_SETTINGS);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
@@ -151,6 +286,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const typingStopRef = useRef(false);
+  const requestAbortRef = useRef<AbortController | null>(null);
   const supabase = createClient();
 
   // --- Initialization & Hooks ---
@@ -179,6 +316,32 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     if (stored !== null) {
       setSafeMode(stored === "true");
     }
+
+    const storedStudentMode = localStorage.getItem("lumora_student_mode");
+    if (storedStudentMode !== null) {
+      setStudentMode(storedStudentMode === "true");
+    }
+
+    const storedChatMode = localStorage.getItem("lumora_chat_mode") as ChatMode | null;
+    if (storedChatMode && ["auto", "default", "coding", "research", "business", "creative", "fast"].includes(storedChatMode)) {
+      setChatMode(storedChatMode);
+    }
+
+    axios.get("/api/tools/ai/chat/settings")
+      .then(res => {
+        const nextSettings = { ...DEFAULT_AI_CHAT_SETTINGS, ...(res.data.settings || {}) };
+        setChatSettings(nextSettings);
+
+        if (!localStorage.getItem("lumora_chat_mode")) {
+          setChatMode(nextSettings.defaultChatMode);
+        }
+        if (!localStorage.getItem("lumora_student_mode")) {
+          setStudentMode(nextSettings.defaultStudentMode);
+        }
+      })
+      .catch(() => {
+        // Anonymous or offline sessions still get local chat settings.
+      });
   }, []);
 
   // Sync Immersive State with HTML Tag
@@ -214,14 +377,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setAgentStatus("System Ready");
       return;
     }
-    const statuses = ["Thinking...", "Working...", "Writing...", "Polishing..."];
+    const statuses = studentMode
+      ? ["Teaching...", "Breaking it down...", "Finding examples...", "Preparing practice..."]
+      : ["Thinking...", "Working...", "Writing...", "Polishing..."];
     let i = 0;
     const interval = setInterval(() => {
       setAgentStatus(statuses[i % statuses.length]);
       i++;
     }, 2000);
     return () => clearInterval(interval);
-  }, [isLoading]);
+  }, [isLoading, studentMode]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -239,6 +404,47 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setSafeMode(val);
     localStorage.setItem("lumora_safe_mode", String(val));
     toast(val ? "Safe Mode activated (NSFW Filter active)" : "Creative Mode activated (NSFW Filter relaxed)", "success");
+  };
+
+  const toggleStudentMode = (val: boolean) => {
+    setStudentMode(val);
+    localStorage.setItem("lumora_student_mode", String(val));
+    toast(
+      val
+        ? "Student Mode activated. Lumora will teach step-by-step."
+        : "Student Mode turned off.",
+      "success"
+    );
+  };
+
+  const updateChatMode = (mode: ChatMode) => {
+    setChatMode(mode);
+    localStorage.setItem("lumora_chat_mode", mode);
+    const label = mode === "auto" ? "Auto" : mode === "default" ? "Default" : mode.charAt(0).toUpperCase() + mode.slice(1);
+    toast(`${label} mode selected.`, "success");
+  };
+
+  const saveChatSettings = async (settings: Partial<AiChatSettings>) => {
+    const nextSettings = { ...chatSettings, ...settings };
+    setChatSettings(nextSettings);
+
+    if (settings.defaultChatMode) {
+      localStorage.setItem("lumora_chat_mode", settings.defaultChatMode);
+      setChatMode(settings.defaultChatMode);
+    }
+    if (typeof settings.defaultStudentMode === "boolean") {
+      localStorage.setItem("lumora_student_mode", String(settings.defaultStudentMode));
+      setStudentMode(settings.defaultStudentMode);
+    }
+
+    try {
+      const res = await axios.post("/api/tools/ai/chat/settings", { settings: nextSettings });
+      setChatSettings({ ...DEFAULT_AI_CHAT_SETTINGS, ...(res.data.settings || nextSettings) });
+      toast("AI Chat settings saved.", "success");
+    } catch (e: any) {
+      toast(e.response?.data?.error || "Could not save AI Chat settings.", "warning");
+      throw e;
+    }
   };
 
   const fetchSessions = async () => {
@@ -319,8 +525,133 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     router.push("/chat");
   };
 
-  const handleSend = async (content: string = input) => {
-    if (!content.trim() || isLoading) return;
+  const typeAssistantMessage = (message: Message, activeSessionId: string | null) => {
+    typingStopRef.current = false;
+    const typingId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const fullContent = message.content || "";
+
+    if (!chatSettings.typingAnimation) {
+      const completeMessage: Message = { ...message, id: typingId, isTyping: false };
+      setMessages(prev => {
+        const next = [...prev, completeMessage];
+        if (activeSessionId) {
+          setSessionCache(c => ({ ...c, [activeSessionId]: next }));
+        }
+        return next;
+      });
+      return Promise.resolve();
+    }
+
+    const typingMessage: Message = { ...message, id: typingId, content: "", isTyping: true };
+
+    setMessages(prev => {
+      const next = [...prev, typingMessage];
+      if (activeSessionId) {
+        setSessionCache(c => ({ ...c, [activeSessionId]: next }));
+      }
+      return next;
+    });
+
+    return new Promise<void>((resolve) => {
+      if (!fullContent.trim()) {
+        setMessages(prev => {
+          const next = prev.map(m => m.id === typingId ? { ...message, id: typingId, isTyping: false } : m);
+          if (activeSessionId) {
+            setSessionCache(c => ({ ...c, [activeSessionId]: next }));
+          }
+          return next;
+        });
+        resolve();
+        return;
+      }
+
+      const words = fullContent.match(/\S+\s*/g) || [fullContent];
+      const groupSize = fullContent.length > 2800 ? 5 : fullContent.length > 1600 ? 3 : 1;
+      const chunks: string[] = [];
+
+      for (let i = 0; i < words.length; i += groupSize) {
+        chunks.push(words.slice(i, i + groupSize).join(""));
+      }
+
+      let chunkIndex = 0;
+      let visibleContent = "";
+      const baseDelay = fullContent.length > 2800 ? 14 : fullContent.length > 1600 ? 20 : 34;
+
+      const revealNextChunk = () => {
+        if (typingStopRef.current) {
+          setMessages(prev => {
+            const next = prev.map(m => (
+              m.id === typingId
+                ? { ...message, id: typingId, content: visibleContent || "Response stopped.", isTyping: false }
+                : m
+            ));
+            if (activeSessionId) {
+              setSessionCache(c => ({ ...c, [activeSessionId]: next }));
+            }
+            return next;
+          });
+          resolve();
+          return;
+        }
+
+        visibleContent += chunks[chunkIndex] || "";
+        chunkIndex += 1;
+
+        setMessages(prev => prev.map(m => (
+          m.id === typingId
+            ? { ...m, content: visibleContent, isTyping: chunkIndex < chunks.length }
+            : m
+        )));
+
+        if (chunkIndex < chunks.length) {
+          const punctuationPause = /[.!?:]\s*$/.test(visibleContent) ? 90 : 0;
+          window.setTimeout(revealNextChunk, baseDelay + punctuationPause + Math.random() * 22);
+          return;
+        }
+
+        setMessages(prev => {
+          const next = prev.map(m => (
+            m.id === typingId
+              ? { ...message, id: typingId, content: fullContent, isTyping: false }
+              : m
+          ));
+          if (activeSessionId) {
+            setSessionCache(c => ({ ...c, [activeSessionId]: next }));
+          }
+          return next;
+        });
+        resolve();
+      };
+
+      window.setTimeout(revealNextChunk, 160);
+    });
+  };
+
+  const stopGeneration = () => {
+    typingStopRef.current = true;
+    requestAbortRef.current?.abort();
+    requestAbortRef.current = null;
+    setIsLoading(false);
+    setIsGeneratingImage(false);
+
+    setMessages(prev => {
+      const next = prev.map(message => (
+        message.isTyping
+          ? { ...message, content: message.content || "Response stopped.", isTyping: false }
+          : message
+      ));
+      if (sessionId) {
+        setSessionCache(c => ({ ...c, [sessionId]: next }));
+      }
+      return next;
+    });
+
+    toast("Generation stopped.", "info");
+  };
+
+  const handleSend = async (content: string = input, options?: { forceImage?: boolean }) => {
+    if ((!content.trim() && attachments.length === 0) || isLoading || isUploading) return;
+    const pendingAttachments = [...attachments];
 
     const isImageRequest = (prompt: string) => {
       const p = prompt.toLowerCase();
@@ -340,12 +671,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return false;
     };
 
+    const normalizedContent = content.trim() || "Analyze the attached image and explain what you observe.";
     const userMsg: Message = {
       role: "user",
-      content: content.trim(),
+      content: normalizedContent,
       attachments: attachments.map(a => ({ type: a.type, data: a.data, name: a.name })),
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     };
+    const nextMessages = [...messages, userMsg];
+    const hasImageContext = nextMessages.some(message => (
+      message.attachments?.some(attachment => attachment.type.startsWith("image/"))
+    ));
+    const isExplicitToolRequest = hasImageContext
+      && !/\b(?:how\s+to|explain|teach\s+me|what\s+is)\b/i.test(normalizedContent)
+      && /\b(?:remove|erase|delete|cut\s*out|compress|optimi[sz]e|reduce|smaller|convert|export|format|resize|scale|dimensions?|transparent\s+background)\b/i.test(normalizedContent);
 
     // Instant UI Update
     setMessages(prev => {
@@ -364,22 +703,73 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setAttachments([]);
 
-    if (isImageRequest(content)) {
+    if (options?.forceImage || isImageRequest(normalizedContent)) {
       setIsGeneratingImage(true);
     }
 
-    const canSend = await consumeMessage();
-    if (!canSend && !session) {
-      toast("Please sign in to save your chat history.", "info");
-    }
-
     try {
+      const abortController = new AbortController();
+      requestAbortRef.current = abortController;
+
+      if (isExplicitToolRequest && !options?.forceImage) {
+        setAgentStatus("Running a Lumora tool...");
+        const toolForm = new FormData();
+        toolForm.append("prompt", normalizedContent);
+        toolForm.append("messages", JSON.stringify(nextMessages));
+        if (sessionId) toolForm.append("sessionId", sessionId);
+        const originalImage = pendingAttachments.find(attachment => (
+          attachment.type.startsWith("image/") && attachment.file
+        ));
+        if (originalImage?.file) {
+          toolForm.append("file", originalImage.file, originalImage.name);
+        }
+
+        const toolResponse = await axios.post("/api/tools/ai/orchestrate", toolForm, {
+          signal: abortController.signal,
+        });
+
+        if (toolResponse.data?.handled) {
+          const nextSessionId = toolResponse.data.id || sessionId;
+          const assistantMsg: Message = {
+            role: "assistant",
+            content: toolResponse.data.message || "The Lumora tool is ready.",
+            toolRun: toolResponse.data.toolRun,
+            chatMode,
+            studentMode,
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+
+          setSessionId(nextSessionId);
+          if (nextSessionId && nextSessionId !== sessionId) {
+            router.push(`/chat/${nextSessionId}`);
+          }
+          await typeAssistantMessage(assistantMsg, nextSessionId);
+          if (toolResponse.data.toolRun) {
+            toast(`${toolResponse.data.toolRun.label} completed.`, "success");
+          }
+          fetchSessions();
+          return;
+        }
+      }
+
+      setAgentStatus("Lumora is thinking...");
+      const canSend = await consumeMessage();
+      if (!canSend && !session) {
+        toast("Please sign in to save your chat history.", "info");
+      }
+
       const res = await axios.post("/api/tools/ai/chat", {
-        messages: [...messages, userMsg],
+        messages: nextMessages,
         sessionId,
-        attachments: userMsg.attachments,
-        safeMode
+        safeMode,
+        studentMode,
+        chatMode,
+        forceImage: options?.forceImage || false
+      }, {
+        signal: abortController.signal
       });
+
+      requestAbortRef.current = null;
 
       if (res.data.blocked) {
         toast("Flagged by NSFW Safety Filter", "warning");
@@ -392,29 +782,172 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         imageUrl: res.data.imageUrl,
         isImage: res.data.isImage,
         enhancedPrompt: res.data.enhancedPrompt,
+        chatMode: (res.data.chatMode as ChatMode) || chatMode,
+        studentMode: typeof res.data.studentMode === "boolean" ? res.data.studentMode : studentMode,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       };
-
-      setMessages(prev => {
-        const next = [...prev, assistantMsg];
-        if (nextSessionId) {
-          setSessionCache(c => ({ ...c, [nextSessionId]: next }));
-        }
-        return next;
-      });
 
       setSessionId(nextSessionId);
       if (nextSessionId && nextSessionId !== sessionId) {
         router.push(`/chat/${nextSessionId}`);
       }
+      await typeAssistantMessage(assistantMsg, nextSessionId);
       fetchSessions();
     } catch (e: any) {
+      if (e?.code === "ERR_CANCELED" || e?.name === "CanceledError") {
+        toast("Generation stopped.", "info");
+        return;
+      }
       const msg = e.response?.data?.error || e.message || "Connection lost";
       setError(msg);
       toast(msg, "warning");
     } finally {
+      requestAbortRef.current = null;
       setIsLoading(false);
       setIsGeneratingImage(false);
+      setAgentStatus("Ready to help");
+    }
+  };
+
+  const editAndResendMessage = async (messageIndex: number, content: string) => {
+    const trimmedContent = content.trim();
+    const targetMessage = messages[messageIndex];
+
+    if (!trimmedContent || isLoading || !targetMessage || targetMessage.role !== "user") return;
+
+    const editedUserMessage: Message = {
+      ...targetMessage,
+      content: trimmedContent,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    };
+    const nextHistory = [...messages.slice(0, messageIndex), editedUserMessage];
+
+    setMessages(nextHistory);
+    if (sessionId) {
+      setSessionCache(c => ({ ...c, [sessionId]: nextHistory }));
+    }
+    setIsLoading(true);
+    setError(null);
+    setAttachments([]);
+    typingStopRef.current = false;
+
+    const canSend = await consumeMessage();
+    if (!canSend && !session) {
+      toast("Please sign in to save your chat history.", "info");
+    }
+
+    try {
+      const abortController = new AbortController();
+      requestAbortRef.current = abortController;
+
+      const res = await axios.post("/api/tools/ai/chat", {
+        messages: nextHistory,
+        sessionId,
+        safeMode,
+        studentMode,
+        chatMode,
+        forceImage: false
+      }, {
+        signal: abortController.signal
+      });
+
+      requestAbortRef.current = null;
+
+      if (res.data.blocked) {
+        toast("Flagged by NSFW Safety Filter", "warning");
+      }
+
+      const nextSessionId = res.data.id || sessionId;
+      const assistantMsg: Message = {
+        role: "assistant",
+        content: res.data.message || "No response.",
+        imageUrl: res.data.imageUrl,
+        isImage: res.data.isImage,
+        enhancedPrompt: res.data.enhancedPrompt,
+        chatMode: (res.data.chatMode as ChatMode) || chatMode,
+        studentMode: typeof res.data.studentMode === "boolean" ? res.data.studentMode : studentMode,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+
+      setSessionId(nextSessionId);
+      if (nextSessionId && nextSessionId !== sessionId) {
+        router.push(`/chat/${nextSessionId}`);
+      }
+      await typeAssistantMessage(assistantMsg, nextSessionId);
+      fetchSessions();
+    } catch (e: any) {
+      if (e?.code === "ERR_CANCELED" || e?.name === "CanceledError") {
+        toast("Generation stopped.", "info");
+        return;
+      }
+      const msg = e.response?.data?.error || e.message || "Connection lost";
+      setError(msg);
+      toast(msg, "warning");
+    } finally {
+      requestAbortRef.current = null;
+      setIsLoading(false);
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const branchConversation = async (messageIndex: number) => {
+    if (isLoading || messageIndex < 0 || messageIndex >= messages.length) return;
+
+    const branchMessages = messages
+      .slice(0, messageIndex + 1)
+      .map(({ id, isTyping, ...message }) => message);
+
+    try {
+      const res = await axios.post("/api/tools/ai/chat/branch", {
+        sourceSessionId: sessionId,
+        messages: branchMessages,
+      });
+
+      const newSessionId = res.data.id;
+      const branchTitle = res.data.title || "Branched Chat";
+      const branchedMessages = res.data.messages || branchMessages;
+
+      if (!newSessionId) throw new Error("Branch session was not created");
+
+      const now = new Date().toISOString();
+      setSessionId(newSessionId);
+      setMessages(branchedMessages);
+      setSessionCache(c => ({ ...c, [newSessionId]: branchedMessages }));
+      setSessions(prev => [
+        {
+          id: newSessionId,
+          title: branchTitle,
+          createdAt: now,
+          updatedAt: now,
+          lastMessage: branchedMessages[branchedMessages.length - 1]?.content || "Branched chat",
+        },
+        ...prev
+      ]);
+      router.push(`/chat/${newSessionId}`);
+      fetchSessions();
+      toast("Branch created. You can explore from here.", "success");
+    } catch (e: any) {
+      const msg = e.response?.data?.error || e.message || "Could not create branch";
+      toast(msg, "warning");
+    }
+  };
+
+  const rememberMessage = async (content: string) => {
+    const memory = content.replace(/\s+/g, " ").trim().slice(0, 500);
+    if (!memory) {
+      toast("Nothing useful to remember here.", "warning");
+      return;
+    }
+
+    try {
+      const res = await axios.post("/api/tools/ai/chat/settings", {
+        action: "add-memory",
+        memory,
+      });
+      setChatSettings({ ...DEFAULT_AI_CHAT_SETTINGS, ...(res.data.settings || chatSettings) });
+      toast("Saved to AI memory.", "success");
+    } catch (e: any) {
+      toast(e.response?.data?.error || "Could not save memory.", "warning");
     }
   };
 
@@ -450,38 +983,88 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setDeleteModal({ isOpen: true, sessionId: id });
   };
 
-  const processFiles = (files: File[]) => {
-    files.forEach(file => {
-      if (file.size > 10 * 1024 * 1024) {
-        toast(`${file.name} is too large. Max size is 10MB.`, "warning");
-        return;
-      }
+  const processFiles = async (files: File[]) => {
+    if (!files.length || isUploading) return;
 
-      const reader = new FileReader();
-      reader.onload = (f) => {
-        const isImage = file.type.startsWith("image/");
-        const dataUrl = f.target?.result as string;
+    const existingImages = attachments.filter(item => item.type.startsWith("image/")).length;
+    const availableImageSlots = Math.max(0, MAX_VISION_IMAGES - existingImages);
+    const seenNames = new Set(attachments.map(item => item.name.trim().toLowerCase()));
+    let acceptedImages = 0;
+    let added = 0;
 
-        setAttachments(prev => {
-          if (prev.some(item => item.name === file.name && item.type === file.type)) {
-            return prev;
+    setIsUploading(true);
+    try {
+      for (const file of files) {
+        const normalizedName = file.name.trim().toLowerCase();
+        if (seenNames.has(normalizedName)) {
+          toast(`${file.name} is already attached.`, "info");
+          continue;
+        }
+
+        if (file.type.startsWith("image/")) {
+          if (acceptedImages >= availableImageSlots) {
+            toast(`Lumora Vision accepts up to ${MAX_VISION_IMAGES} images per message.`, "warning");
+            continue;
           }
-          return [...prev, {
-            id: Math.random().toString(36).substr(2, 9),
+          if (file.size > MAX_IMAGE_SOURCE_BYTES) {
+            toast(`${file.name} is larger than 20MB.`, "warning");
+            continue;
+          }
+
+          try {
+            const optimized = await optimizeImageForVision(file);
+            const attachment: ChatAttachment = {
+              id: crypto.randomUUID(),
+              name: file.name,
+              type: optimized.type,
+              data: optimized.data,
+              preview: optimized.data,
+              file,
+            };
+            setAttachments(prev => [...prev, attachment]);
+            seenNames.add(normalizedName);
+            acceptedImages += 1;
+            added += 1;
+          } catch (error) {
+            console.error("Image optimization failed:", error);
+            toast(`Could not prepare ${file.name} for analysis.`, "warning");
+          }
+          continue;
+        }
+
+        if (!SUPPORTED_TEXT_TYPES.has(file.type)) {
+          toast(`${file.name} is not supported yet. Upload an image, TXT, Markdown, CSV, or JSON file.`, "warning");
+          continue;
+        }
+        if (file.size > MAX_TEXT_FILE_BYTES) {
+          toast(`${file.name} is larger than the 1MB text-file limit.`, "warning");
+          continue;
+        }
+
+        try {
+          const text = await file.text();
+          const attachment: ChatAttachment = {
+            id: crypto.randomUUID(),
             name: file.name,
             type: file.type,
-            data: dataUrl,
-            preview: isImage ? dataUrl : ""
-          }];
-        });
-      };
-
-      if (file.type.startsWith("image/")) {
-        reader.readAsDataURL(file);
-      } else {
-        reader.readAsText(file);
+            data: text,
+            preview: "",
+          };
+          setAttachments(prev => [...prev, attachment]);
+          seenNames.add(normalizedName);
+          added += 1;
+        } catch (error) {
+          console.error("Text attachment read failed:", error);
+          toast(`Could not read ${file.name}.`, "warning");
+        }
       }
-    });
+
+      if (added > 0) {
+        toast(`${added} ${added === 1 ? "file" : "files"} ready for Lumora analysis.`, "success");
+      }
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -503,6 +1086,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setDeleteModal,
         attachments,
         setAttachments,
+        isUploading,
         copiedId,
         setCopiedId,
         agentStatus,
@@ -518,6 +1102,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setIsDragging,
         safeMode,
         toggleSafeMode,
+        studentMode,
+        toggleStudentMode,
+        chatMode,
+        updateChatMode,
+        chatSettings,
+        saveChatSettings,
         isSettingsOpen,
         setIsSettingsOpen,
         isGeneratingImage,
@@ -535,6 +1125,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         loadSession,
         startNewChat,
         handleSend,
+        editAndResendMessage,
+        branchConversation,
+        rememberMessage,
+        stopGeneration,
         confirmDeleteSession,
         openDeleteModal,
         rollSuggestions,

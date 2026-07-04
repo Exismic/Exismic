@@ -1,26 +1,22 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
-  Upload, 
   Download, 
-  Loader2, 
   X, 
-  ArrowRight,
-  FileText,
   Scissors,
   CheckCircle2,
   AlertCircle,
-  Zap,
   Layers,
   Files
 } from "lucide-react";
 import { PdfThumbnail } from "./pdf/PdfThumbnail";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import { readDownloadResponse } from "@/lib/pdf-client";
 
 const SPLITTER_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to split or extract pages from." },
@@ -32,11 +28,17 @@ const SPLITTER_STEPS = [
 export default function PdfSplitter() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [resultFileName, setResultFileName] = useState("split-pages.zip");
   const [error, setError] = useState<string | null>(null);
   const [splitMode, setSplitMode] = useState<"all" | "range">("all");
   const [range, setRange] = useState("1-3");
+
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles[0]) {
@@ -55,7 +57,6 @@ export default function PdfSplitter() {
   const handleSplit = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setStatus("Analyzing PDF structure...");
     setError(null);
 
     const formData = new FormData();
@@ -76,12 +77,15 @@ export default function PdfSplitter() {
         throw new Error(errData.error || "Split failed. The PDF might be protected or too large.");
       }
 
-      const result = await response.json();
-      setResultUrl(result.resultUrl);
-      setStatus("Split Complete!");
-    } catch (err: any) {
+      const artifact = await readDownloadResponse(
+        response,
+        splitMode === "all" ? "split-pages.zip" : "extracted-pages.pdf",
+      );
+      setResultUrl(artifact.url);
+      setResultFileName(artifact.fileName);
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to split PDF");
+      setError(err instanceof Error ? err.message : "Failed to split PDF");
     } finally {
       setIsProcessing(false);
     }
@@ -146,7 +150,7 @@ export default function PdfSplitter() {
                          <div className="flex flex-col sm:flex-row items-center gap-6">
                             <a 
                               href={resultUrl} 
-                              download="split_pages.zip"
+                              download={resultFileName}
                               className="px-14 py-7 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-4 shadow-3xl"
                             >
                               <Download className="w-5 h-5" />
@@ -188,7 +192,7 @@ export default function PdfSplitter() {
                                  </span>
                                  <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    Neural Ready
+                                    Ready
                                  </div>
                               </div>
                            </div>
@@ -295,7 +299,7 @@ export default function PdfSplitter() {
              stats={file ? [
                { label: "Target Pages", value: splitMode === 'all' ? "All" : range },
                { label: "Split Mode", value: splitMode === 'all' ? "Sequential" : "Selective" },
-               { label: "Engine", value: "Neural-V3" }
+               { label: "Processor", value: "PDF-lib" }
              ] : []}
            />
  
@@ -303,7 +307,7 @@ export default function PdfSplitter() {
              <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4">
                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
                <div className="space-y-1">
-                  <p className="uppercase tracking-[0.2em]">Engine Error</p>
+                  <p className="uppercase tracking-[0.2em]">Split Failed</p>
                   <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
                </div>
              </div>
