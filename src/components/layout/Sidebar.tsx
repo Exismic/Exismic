@@ -203,9 +203,12 @@ export function Sidebar() {
     <>
       {/* Mobile Trigger */}
       <button 
+        type="button"
+        aria-label={isOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={isOpen}
         className={cn(
           "fixed top-4 z-[150] min-h-11 min-w-11 lg:hidden glass-dark rounded-[1.1rem] shadow-2xl border-white/10 text-white transition-all duration-500 flex items-center justify-center",
-          isOpen ? "left-[232px]" : "left-4"
+          "left-4"
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -364,7 +367,7 @@ export function Sidebar() {
                   <UserProfile 
                     fullName={fullName} 
                     email={session?.user?.email} 
-                    avatarUrl={session?.user?.user_metadata?.avatar_url} 
+                    avatarUrl={dbUser?.custom_avatar_url || session?.user?.user_metadata?.avatar_url}
                     isPro={isPro} 
                     frameId={frameId}
                     gradientId={gradientId}

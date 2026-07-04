@@ -8,11 +8,8 @@ import type { Session } from "@supabase/supabase-js";
 import { 
   Sparkles, 
   Search, 
-  Menu, 
-  X, 
   Crown, 
   LogIn, 
-  Zap,
   LayoutDashboard,
   MessageSquare,
   Code2,
@@ -33,13 +30,13 @@ import { ProBadge } from "../ui/ProBadge";
 import { UserProfile } from "../ui/UserProfile";
 import { AvatarWithFrame } from "../ui/AvatarWithFrame";
 import { CreditTokenIcon } from "../ui/CreditTokenIcon";
+import { PremiumName } from "../ui/PremiumName";
 import { NotificationsDropdown } from "./NotificationsDropdown";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -47,6 +44,7 @@ export function Navbar() {
   const [isCancelling, setIsCancelling] = useState(false);
   
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileUserDropdownRef = useRef<HTMLDivElement>(null);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
   const { isPro, isLoading: isProLoading, user: dbUser, refresh: refreshPro } = usePro();
@@ -105,7 +103,11 @@ export function Navbar() {
   // Click outside handlers
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const clickedDesktopProfile = userDropdownRef.current?.contains(target);
+      const clickedMobileProfile = mobileUserDropdownRef.current?.contains(target);
+
+      if (!clickedDesktopProfile && !clickedMobileProfile) {
         setUserDropdownOpen(false);
       }
       if (toolsDropdownRef.current && !toolsDropdownRef.current.contains(e.target as Node)) {
@@ -118,7 +120,6 @@ export function Navbar() {
 
   // Close menus on path change
   useEffect(() => {
-    setMobileMenuOpen(false);
     setToolsDropdownOpen(false);
     setUserDropdownOpen(false);
   }, [pathname]);
@@ -173,7 +174,7 @@ export function Navbar() {
 
   const navLinks = session ? loggedInLinks : loggedOutLinks;
   const fullName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Explorer";
-  const avatarUrl = session?.user?.user_metadata?.avatar_url;
+  const avatarUrl = dbUser?.custom_avatar_url || session?.user?.user_metadata?.avatar_url;
 
   const usageCount = dbUser?.aiGenerationsUsed ?? 0;
   const totalLimit = dbUser?.aiGenerationsLimit ?? 50;
@@ -587,142 +588,192 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile Hamburguer Menu Trigger */}
-          <div className="flex md:hidden items-center gap-3 relative z-50">
-            <button 
+          {/* Mobile command bar. The sidebar owns navigation on small screens. */}
+          <div className="relative z-50 flex w-full min-w-0 items-center gap-2 pl-14 md:hidden">
+            <button
+              type="button"
               onClick={handleSearchClick}
               aria-label="Open global search"
-              className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition-all"
+              className="group/mobile-search relative flex h-12 min-w-0 flex-1 items-center gap-2.5 overflow-hidden rounded-2xl border border-white/[0.09] bg-[#08080d]/88 px-3 text-left text-zinc-400 shadow-[0_14px_34px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all active:scale-[0.98]"
             >
-              <Search size={16} />
+              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(168,85,247,0.16),transparent_42%),radial-gradient(circle_at_92%_100%,rgba(34,211,238,0.1),transparent_38%)]" />
+              <Search size={16} strokeWidth={2.2} className="relative shrink-0 text-cyan-200" />
+              <span className="relative min-w-0 flex-1 truncate text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 group-active/mobile-search:text-white">
+                Search Lumora
+              </span>
+              <span className="relative hidden h-6 shrink-0 items-center rounded-lg border border-white/[0.08] bg-black/30 px-2 text-[8px] font-black text-zinc-600 sm:flex">
+                Ctrl K
+              </span>
             </button>
 
-            <div className="[&_button]:h-11 [&_button]:w-11 [&_button]:rounded-xl">
+            <div className="shrink-0">
               <NotificationsDropdown />
             </div>
-            
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-              aria-expanded={mobileMenuOpen}
-              className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white transition-all"
-            >
-              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+
+            {session ? (
+              <div className="relative shrink-0" ref={mobileUserDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  aria-label="Open profile menu"
+                  aria-expanded={userDropdownOpen}
+                  className={cn(
+                    "group/mobile-profile relative flex h-12 w-12 items-center justify-center rounded-2xl border bg-[#08080d]/88 shadow-[0_14px_34px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all active:scale-95",
+                    userDropdownOpen
+                      ? "border-purple-300/35 shadow-[0_0_30px_rgba(168,85,247,0.16)]"
+                      : "border-white/[0.09]",
+                  )}
+                >
+                  <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.18),transparent_48%),radial-gradient(circle_at_82%_82%,rgba(34,211,238,0.12),transparent_42%)]" />
+                  <AvatarWithFrame
+                    avatarUrl={avatarUrl}
+                    displayName={fullName}
+                    isPro={isPro}
+                    frameId={localFrameId || undefined}
+                    size="sm"
+                    className="relative z-10 scale-[0.88]"
+                  />
+                  <span className="absolute bottom-1.5 right-1.5 z-20 h-2.5 w-2.5 rounded-full border-2 border-[#08080d] bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.8)]" />
+                </button>
+
+                <AnimatePresence>
+                  {userDropdownOpen && (
+                    <>
+                      <motion.button
+                        type="button"
+                        aria-label="Close profile menu"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="fixed inset-0 top-20 z-[150] cursor-default bg-black/70 backdrop-blur-[3px]"
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        className="fixed inset-x-3 top-[4.75rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[1.75rem] border border-white/[0.12] bg-[#07070c] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)]"
+                      >
+                      <span className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.16),transparent_40%),radial-gradient(circle_at_90%_22%,rgba(34,211,238,0.1),transparent_38%)]" />
+
+                      <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-2 pb-4 pt-2">
+                        <AvatarWithFrame
+                          avatarUrl={avatarUrl}
+                          displayName={fullName}
+                          isPro={isPro}
+                          frameId={localFrameId || undefined}
+                          size="md"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <PremiumName
+                            name={fullName.toUpperCase()}
+                            isPro={isPro}
+                            gradientId={localGradientId}
+                            className="block truncate text-sm font-black"
+                          />
+                          <p className="mt-1 truncate text-[10px] font-semibold text-zinc-500">
+                            {session.user.email}
+                          </p>
+                          <div className="mt-2">
+                            {isPro ? (
+                              <ProBadge size="sm" />
+                            ) : (
+                              <span className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                                Lumora Explorer
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="relative grid grid-cols-2 gap-2 py-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            setShowUpsell(true);
+                          }}
+                          className="flex min-h-16 items-center gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 text-left transition-colors active:bg-cyan-300/[0.08]"
+                        >
+                          <CreditTokenIcon />
+                          <span className="min-w-0">
+                            <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Credits</span>
+                            <span className="mt-1 block truncate text-xs font-black text-white">{credits.toLocaleString()}</span>
+                          </span>
+                        </button>
+                        <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-purple-300/10 bg-purple-300/[0.035] px-3">
+                          <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
+                          <span className="min-w-0">
+                            <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Membership</span>
+                            <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Lumora Pro" : "Free"}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="relative grid gap-1.5">
+                        <Link
+                          href="/"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                        >
+                          <LayoutDashboard size={16} className="text-cyan-300" />
+                          Dashboard
+                          <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                        </Link>
+                        <Link
+                          href="/account/settings"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                        >
+                          <Settings size={16} className="text-purple-300" />
+                          Settings & Security
+                          <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            if (isPro) setIsManageModalOpen(true);
+                            else router.push("/pro");
+                          }}
+                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                        >
+                          <CreditCard size={16} className="text-fuchsia-300" />
+                          {isPro ? "Manage Membership" : "Explore Pro"}
+                          <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                        </button>
+                        <div className="mx-3 h-px bg-white/[0.06]" />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setUserDropdownOpen(false);
+                            await supabase.auth.signOut();
+                            router.push("/");
+                          }}
+                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-red-400/80 transition-colors active:bg-red-500/[0.08]"
+                        >
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                aria-label="Sign in"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/[0.09] bg-[#08080d]/88 text-zinc-300 shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl"
+              >
+                <LogIn size={17} />
+              </Link>
+            )}
           </div>
 
         </div>
-
-        {/* Mobile Drawer Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <>
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMobileMenuOpen(false)}
-                className="fixed inset-0 top-20 bg-black/60 backdrop-blur-md z-40 md:hidden"
-              />
-              
-              <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
-                className="fixed inset-x-0 top-20 max-h-[calc(100dvh-5rem)] overflow-y-auto bg-[#030303]/95 backdrop-blur-3xl border-b border-white/[0.06] shadow-2xl p-4 sm:p-6 z-40 md:hidden flex flex-col gap-5"
-              >
-                <div className="flex flex-col gap-1.5">
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2 px-3">Navigation</p>
-                  {navLinks.map((link) => {
-                    const mobileHref = link.isDropdown ? "/tools" : link.href;
-                    const isActive = link.isDropdown
-                      ? pathname === "/tools" || pathname.startsWith("/category/")
-                      : pathname === link.href;
-                    
-                    return (
-                      <Link 
-                        key={`${link.name}-${mobileHref}`}
-                        href={mobileHref}
-                        className={cn(
-                          "flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all",
-                          isActive 
-                            ? "bg-white/[0.03] text-white border border-white/5" 
-                            : "text-zinc-400 hover:text-white"
-                        )}
-                      >
-                        <span>{link.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                <div className="h-px bg-white/5" />
-
-                {session ? (
-                  <div className="flex flex-col gap-4">
-                    <Link
-                      href="/account/settings"
-                      className="flex min-h-12 items-center gap-3 rounded-xl border border-white/5 bg-white/[0.025] px-4 text-xs font-black uppercase tracking-wider text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
-                    >
-                      <Settings size={15} />
-                      Account Settings
-                    </Link>
-
-                    <div className="flex justify-between items-center px-4">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Credits available</span>
-                      <span className="text-xs text-white font-bold">{credits.toLocaleString()} Credits</span>
-                    </div>
-                    
-                    <button 
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setShowUpsell(true);
-                      }}
-                      className="w-full h-11 rounded-xl bg-linear-to-r from-accent-purple to-accent-cyan text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg"
-                    >
-                      <Zap size={14} fill="currentColor" /> Buy Credits
-                    </button>
-
-                    {!isPro && (
-                      <Link
-                        href="/pro"
-                        className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-purple-300/20 bg-purple-300/[0.07] text-xs font-black uppercase tracking-widest text-purple-100"
-                      >
-                        <Crown size={14} />
-                        Explore Pro
-                      </Link>
-                    )}
-                    
-                    <button 
-                      onClick={async () => {
-                        await supabase.auth.signOut();
-                        setMobileMenuOpen(false);
-                        router.push('/');
-                      }}
-                      className="w-full h-11 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2"
-                    >
-                      <LogOut size={14} /> Log Out
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    <Link href="/auth/login" className="w-full">
-                      <button className="w-full h-11 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-400 hover:text-white font-bold text-xs uppercase tracking-widest">
-                        Login
-                      </button>
-                    </Link>
-                    <Link href="/auth/login?signup=true" className="w-full">
-                      <button className="w-full h-11 rounded-xl bg-linear-to-r from-accent-purple to-accent-cyan text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg">
-                        Sign Up <LogIn size={14} />
-                      </button>
-                    </Link>
-                  </div>
-                )}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </header>
 
       {/* Subscription/Billing Management Modal */}

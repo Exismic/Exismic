@@ -176,12 +176,22 @@ export function NotificationsDropdown() {
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.98 }}
-            className="absolute right-0 top-full z-50 mt-3 w-[min(24rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0e]/95 shadow-3xl backdrop-blur-2xl sm:rounded-3xl"
-          >
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close notifications"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 top-20 z-[150] cursor-default bg-black/70 backdrop-blur-[3px] md:hidden"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              className="fixed inset-x-2 top-[4.75rem] isolate z-[160] overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0e] shadow-3xl sm:rounded-3xl md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-3 md:w-[min(24rem,calc(100vw-1rem))] md:bg-[#0c0c0e]/95 md:backdrop-blur-2xl"
+            >
             {/* Header */}
             <div className="flex items-center justify-between gap-3 border-b border-white/5 bg-white/[0.02] p-4 sm:p-5">
                <div className="flex items-center gap-3">
@@ -265,7 +275,8 @@ export function NotificationsDropdown() {
                  </button>
               </div>
             )}
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
