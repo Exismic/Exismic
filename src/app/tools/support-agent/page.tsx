@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import {
   ArrowRight,
   BarChart3,
@@ -20,11 +21,12 @@ import {
   SUPPORT_AGENT_USE_CASES,
 } from "@/lib/support-agent/types";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Lumora Support Agent - AI support agents for your website",
   description:
     "Create an AI customer support chatbot for your website. Train Lumora with FAQs, policies, documents, and product details, then embed it in minutes.",
-};
+  canonicalUrl: `${SITE_URL}/tools/support-agent`,
+});
 
 const featureIcons = [BookOpen, MessageSquare, Users, Handshake, MessagesSquare, BarChart3];
 const useCaseIcons = [Store, Bot, Sparkles, Users, Code2, MessageSquare];

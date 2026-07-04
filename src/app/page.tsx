@@ -4,11 +4,12 @@ import { Dashboard } from "@/components/tool/Dashboard";
 import { LandingPage } from "@/components/layout/LandingPage";
 import { createClient } from "@/utils/supabase/server";
 import { CategorySection } from "@/components/tool/CategorySection";
-import { constructMetadata } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { HomeToolConcierge } from "@/components/tool/HomeToolConcierge";
 
 export const metadata: Metadata = constructMetadata({
   title: "Lumora - All-in-One AI Tools | Free Background Remover, Image Generator & More",
+  canonicalUrl: `${SITE_URL}/`,
   description: "Experience the elite AI-powered studio. Remove backgrounds, generate images, edit videos, restore photos, and create music — everything you need in one simple place.",
 });
 

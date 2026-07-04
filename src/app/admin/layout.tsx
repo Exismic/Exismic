@@ -1,10 +1,17 @@
 import Link from "next/link";
 import type React from "react";
+import type { Metadata } from "next";
 import { AlertTriangle, BarChart3, LockKeyhole, Mail, Shield, SlidersHorizontal, WalletCards } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { isAdminConfigured, isAdminEmail } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 function AdminGateCard({
   icon,

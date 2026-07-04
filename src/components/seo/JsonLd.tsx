@@ -2,7 +2,7 @@ import React from 'react';
 
 interface SEOProps {
   type: 'Organization' | 'WebSite' | 'SoftwareApplication' | 'FAQPage';
-  data: any;
+  data: Record<string, unknown>;
 }
 
 export function JsonLd({ type, data }: SEOProps) {
@@ -23,8 +23,8 @@ export function JsonLd({ type, data }: SEOProps) {
 export const defaultSchemaData = {
   organization: {
     name: 'Lumora',
-    url: 'https://lumoraai.online',
-    logo: 'https://lumoraai.online/logo.png',
+    url: 'https://www.lumoraai.online',
+    logo: 'https://www.lumoraai.online/logo.png',
     sameAs: [
       'https://twitter.com/lumoraai',
       'https://github.com/lumoraai',
@@ -32,10 +32,10 @@ export const defaultSchemaData = {
   },
   website: {
     name: 'Lumora AI',
-    url: 'https://lumoraai.online',
+    url: 'https://www.lumoraai.online',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://lumoraai.online/tools?q={search_term_string}',
+      target: 'https://www.lumoraai.online/tools?q={search_term_string}',
       'query-input': 'required name=search_term_string',
     },
   },

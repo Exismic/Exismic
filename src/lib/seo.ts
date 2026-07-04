@@ -11,16 +11,21 @@ interface MetadataProps {
   type?: 'website' | 'article';
 }
 
+export const SITE_URL = "https://www.lumoraai.online";
+
 export function constructMetadata({
   title = "Lumora - All-in-One AI Tools | Image, Video, Audio & More",
   description = "The elite AI-powered studio. Remove backgrounds, generate images, edit videos, restore photos, and create music — everything you need in one simple place.",
   image = "/og-image.png",
   icons = "/favicon.png",
   noIndex = false,
-  canonicalUrl = "https://lumoraai.online",
+  canonicalUrl,
   type = 'website',
 }: MetadataProps = {}): Metadata {
-  const baseUrl = "https://lumoraai.online";
+  const resolvedCanonicalUrl = canonicalUrl?.replace(
+    /^https:\/\/lumoraai\.online(?=\/|$)/,
+    SITE_URL,
+  );
   
   return {
     title,
@@ -37,7 +42,7 @@ export function constructMetadata({
     openGraph: {
       title,
       description,
-      url: canonicalUrl,
+      url: resolvedCanonicalUrl || SITE_URL,
       siteName: "Lumora AI",
       images: [
         {
@@ -57,14 +62,16 @@ export function constructMetadata({
       creator: "@lumoraai",
     },
     icons: {
-      icon: "/favicon.png",
-      shortcut: "/favicon.png",
-      apple: "/favicon.png",
+      icon: icons,
+      shortcut: icons,
+      apple: icons,
     },
-    metadataBase: new URL(baseUrl),
-    alternates: {
-      canonical: canonicalUrl,
-    },
+    metadataBase: new URL(SITE_URL),
+    alternates: resolvedCanonicalUrl
+      ? {
+          canonical: resolvedCanonicalUrl,
+        }
+      : undefined,
     robots: {
       index: !noIndex,
       follow: !noIndex,
@@ -79,14 +86,20 @@ export function constructMetadata({
   };
 }
 
-export function getToolMetadata(toolId: string) {
-  const tool = TOOLS.find(t => t.id === toolId);
+export function getToolMetadata(toolId: string, categoryId?: string) {
+  const routeHref = categoryId ? `/tools/${categoryId}/${toolId}` : null;
+  const tool = TOOLS.find(
+    (candidate) =>
+      candidate.id === toolId ||
+      candidate.id === `${categoryId}-${toolId}` ||
+      candidate.href === routeHref,
+  );
   if (!tool) return constructMetadata();
 
   return constructMetadata({
     title: tool.seoTitle || `${tool.name} - Free AI Powered Online Tool | Lumora`,
     description: tool.seoDescription || tool.description,
-    canonicalUrl: `https://lumoraai.online${tool.href}`,
+    canonicalUrl: `${SITE_URL}${tool.href}`,
   });
 }
 
@@ -97,6 +110,6 @@ export function getCategoryMetadata(categoryId: string) {
   return constructMetadata({
     title: `${category.name} - Professional AI Tools Online | Lumora`,
     description: `Access our elite suite of AI-powered ${category.name.toLowerCase()}. ${category.description} Free, fast, and studio-grade results.`,
-    canonicalUrl: `https://lumoraai.online/tools/${category.id}`,
+    canonicalUrl: `${SITE_URL}/category/${category.id}`,
   });
 }

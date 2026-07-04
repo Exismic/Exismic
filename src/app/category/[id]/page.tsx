@@ -1,7 +1,7 @@
 import { CATEGORIES } from "@/data/tools";
 import { CategoryClient } from "./CategoryClient";
 import { Metadata } from "next";
-import { constructMetadata } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return constructMetadata({
     title: seoTitle,
     description: `Discover our collection of professional ${name.toLowerCase()} architected for elite creative workflows. High-performance, AI-driven, and easy to use.`,
-    canonicalUrl: `https://lumoraai.online/category/${id}`,
+    canonicalUrl: `${SITE_URL}/category/${id}`,
   });
 }
 

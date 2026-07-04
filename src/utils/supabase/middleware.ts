@@ -2,13 +2,22 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  const publicPages = new Set([
+    "/",
+    "/about",
+    "/help",
+    "/privacy-policy",
+    "/terms-of-service",
+  ]);
+
   const isPublicRoute =
-    request.nextUrl.pathname === '/' ||
+    publicPages.has(request.nextUrl.pathname) ||
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/api/auth') ||
     request.nextUrl.pathname.startsWith('/api/tools') ||
     request.nextUrl.pathname.startsWith('/api/user/favorites') ||
     request.nextUrl.pathname.startsWith('/api/support-agent/widget') ||
+    request.nextUrl.pathname.startsWith('/category/') ||
     request.nextUrl.pathname.startsWith('/tools') ||
     request.nextUrl.pathname.startsWith('/pro') ||
     request.nextUrl.pathname.startsWith('/pricing') ||

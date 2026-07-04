@@ -11,8 +11,8 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { toolId } = await params;
-  return getToolMetadata(toolId);
+  const { category, toolId } = await params;
+  return getToolMetadata(toolId, category);
 }
 
 export default async function ToolDetailPage({ params }: PageProps) {

@@ -1,14 +1,22 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lumoraai.online';
-
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/api/', '/_next/', '/static/'],
+      userAgent: "*",
+      allow: "/",
+      disallow: [
+        "/api/",
+        "/account/",
+        "/admin/",
+        "/chat/",
+        "/dashboard/",
+        "/favorites",
+        "/history",
+      ],
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    host: SITE_URL,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

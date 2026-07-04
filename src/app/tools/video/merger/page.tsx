@@ -1,10 +1,12 @@
 import VideoMerger from "@/components/tool/VideoMerger";
 import { Film, Layout } from "lucide-react";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = constructMetadata({
   title: "Video Merger | Lumora Studio",
   description: "Merge multiple video clips into a single high-quality production master.",
-};
+  canonicalUrl: `${SITE_URL}/tools/video/merger`,
+});
 
 export default function VideoMergerPage() {
   return (

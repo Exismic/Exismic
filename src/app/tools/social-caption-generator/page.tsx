@@ -1,10 +1,12 @@
 import { SocialCaptionGenerator } from "@/components/tool/SocialCaptionGenerator";
 import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "AI Social Media Caption Generator | Lumora",
   description: "Generate viral, platform-optimized captions with AI vision.",
-};
+  canonicalUrl: `${SITE_URL}/tools/social-caption-generator`,
+});
 
 export default function SocialCaptionPage() {
   return (
