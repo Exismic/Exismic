@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { v4 as uuidv4 } from 'uuid';
 import { randomInt } from "crypto";
+import { getServerSiteUrl } from "@/lib/site-url";
 
 type AuthRateLimitType = "otp_verification" | "magic_link" | "password_reset";
 
@@ -17,7 +18,7 @@ function isValidEmail(email: string) {
 }
 
 function getSiteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  return getServerSiteUrl();
 }
 
 export async function checkRateLimit(email: string, type: AuthRateLimitType) {

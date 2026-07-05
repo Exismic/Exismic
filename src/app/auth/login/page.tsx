@@ -22,6 +22,7 @@ import { useSearchParams } from "next/navigation";
 import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction } from "@/app/actions/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { getClientSiteUrl } from "@/lib/site-url";
 
 // --- Premium Custom Icons ---
 const GoogleIcon = () => (
@@ -169,7 +170,7 @@ export default function AuthPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { 
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnUrl)}` 
+          redirectTo: `${getClientSiteUrl()}/auth/callback?next=${encodeURIComponent(returnUrl)}` 
         },
       });
       if (error) throw error;

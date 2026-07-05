@@ -1,12 +1,13 @@
 import { resend } from './resend';
 import { recordEmailEvent } from './email-diagnostics';
+import { getServerSiteUrl } from './site-url';
 
 const EMAIL_SENDER_DOMAIN = 'lumoraai.online';
 const SENDER_PAYMENT = `"Lumora" <payments@${EMAIL_SENDER_DOMAIN}>`;
 const SENDER_NOREPLY = `"Lumora" <noreply@${EMAIL_SENDER_DOMAIN}>`;
 const SENDER_WELCOME = `"Lumora" <welcome@${EMAIL_SENDER_DOMAIN}>`;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lumoraai.online';
+const SITE_URL = getServerSiteUrl();
 
 type EmailPayload = Parameters<typeof resend.emails.send>[0];
 

@@ -1,4 +1,5 @@
 const RESEND_KEY_PREFIX = "re_";
+const CANONICAL_SITE_URL = "https://lumoraai.online";
 
 export type EmailDiagnosticStatus = "ok" | "warning" | "error";
 
@@ -36,7 +37,7 @@ export function getRecentEmailEvents() {
 
 export function getEmailDiagnostics() {
   const resendKey = process.env.RESEND_API_KEY || "";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || CANONICAL_SITE_URL;
   const senderDomain = "lumoraai.online";
 
   const checks = [
@@ -51,8 +52,10 @@ export function getEmailDiagnostics() {
     {
       key: "siteUrl",
       label: "Site URL",
-      status: siteUrl ? "ok" : "warning",
-      detail: siteUrl || "NEXT_PUBLIC_SITE_URL missing. Emails will fall back to lumoraai.online.",
+      status: siteUrl.includes("localhost") ? "warning" : "ok",
+      detail: siteUrl.includes("localhost")
+        ? `${siteUrl} is local. Production emails and auth links fall back to ${CANONICAL_SITE_URL}.`
+        : siteUrl,
     },
     {
       key: "senderDomain",

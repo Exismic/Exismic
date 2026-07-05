@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { sendWelcomeEmail } from '@/lib/emails'
+import { getServerSiteUrl } from '@/lib/site-url'
 
 /**
  * Auth Callback Route - Handles OAuth/Email auth completion
@@ -14,7 +15,8 @@ import { sendWelcomeEmail } from '@/lib/emails'
  */
 export async function GET(request: Request) {
   try {
-    const { searchParams, origin } = new URL(request.url)
+    const { searchParams } = new URL(request.url)
+    const siteUrl = getServerSiteUrl(request)
     const code = searchParams.get('code')
     const tokenHash = searchParams.get('token_hash')
     const verificationType = searchParams.get('type')
@@ -27,7 +29,7 @@ export async function GET(request: Request) {
 
     if (!code && (!tokenHash || verificationType !== 'magiclink')) {
       console.warn('[AUTH] No valid auth code or magic-link token provided')
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+      return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
     }
 
     const supabase = await createClient()
@@ -41,13 +43,13 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('[AUTH] Session exchange error:', error.message)
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+      return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
     }
 
     const session = data.session
     if (!session?.user?.id) {
       console.error('[AUTH] No user in session')
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+      return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
     }
 
     const userId = session.user.id
@@ -160,7 +162,7 @@ export async function GET(request: Request) {
     }
 
     // Redirect to dashboard
-    const redirectUrl = next.startsWith('/') ? `${origin}${next}` : `${origin}/`
+    const redirectUrl = next.startsWith('/') ? `${siteUrl}${next}` : `${siteUrl}/`
     
     console.log(`[AUTH] ✅ Auth complete, redirecting to: ${redirectUrl}`)
 
@@ -168,7 +170,6 @@ export async function GET(request: Request) {
 
   } catch (err) {
     console.error('[AUTH] ❌ Callback error:', err)
-    const { origin } = new URL(request.url)
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    return NextResponse.redirect(`${getServerSiteUrl(request)}/auth/auth-code-error`)
   }
 }

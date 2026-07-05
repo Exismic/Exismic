@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashTrustedLoginToken } from "@/lib/trusted-login";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { getServerSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -12,10 +13,7 @@ const statusSchema = z.object({
 });
 
 function siteUrl(request: Request) {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configuredUrl) return configuredUrl.replace(/\/+$/, "");
-
-  return new URL(request.url).origin;
+  return getServerSiteUrl(request);
 }
 
 export async function POST(request: Request) {
