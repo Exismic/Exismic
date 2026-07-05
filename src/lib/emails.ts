@@ -1,7 +1,7 @@
 import { resend } from './resend';
 import { recordEmailEvent } from './email-diagnostics';
 
-const EMAIL_SENDER_DOMAIN = process.env.EMAIL_SENDER_DOMAIN || 'lumoraai.online';
+const EMAIL_SENDER_DOMAIN = 'lumoraai.online';
 const SENDER_PAYMENT = `"Lumora" <payments@${EMAIL_SENDER_DOMAIN}>`;
 const SENDER_NOREPLY = `"Lumora" <noreply@${EMAIL_SENDER_DOMAIN}>`;
 const SENDER_WELCOME = `"Lumora" <welcome@${EMAIL_SENDER_DOMAIN}>`;
@@ -411,7 +411,7 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
 
 export async function sendPaymentFailedEmail(email: string) {
   try {
-    const { error } = await sendTrackedEmail('credits_purchased', email, {
+    const { error } = await sendTrackedEmail('payment_failed', email, {
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Lumora - Payment Failed',
@@ -447,7 +447,7 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
   invoiceId: string;
 }) {
   try {
-    const { error } = await sendTrackedEmail('auth_otp', email, {
+    const { error } = await sendTrackedEmail('credits_purchased', email, {
       from: SENDER_PAYMENT,
       to: email,
       subject: 'Credits Refueled ⚡',
@@ -570,7 +570,7 @@ function renderTransactionalEmail({
 
 export async function sendAuthOTP(email: string, otp: string) {
   try {
-    const { error } = await sendTrackedEmail('magic_link', email, {
+    const { error } = await sendTrackedEmail('auth_otp', email, {
       from: SENDER_NOREPLY,
       to: email,
       subject: 'Your Lumora Verification Code',
@@ -605,7 +605,7 @@ export async function sendAuthOTP(email: string, otp: string) {
 
 export async function sendMagicLinkEmail(email: string, magicLink: string) {
   try {
-    const { error } = await sendTrackedEmail('welcome', email, {
+    const { error } = await sendTrackedEmail('magic_link', email, {
       from: SENDER_NOREPLY,
       to: email,
       subject: 'Your Lumora Magic Login Link',
@@ -814,7 +814,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
   try {
     const resetLink = `${SITE_URL}/auth/reset-password?token=${token}&email=${email}`;
     
-    const { error } = await resend.emails.send({
+    const { error } = await sendTrackedEmail('password_reset', email, {
       from: SENDER_NOREPLY,
       to: email,
       subject: 'Reset Your Lumora Password',

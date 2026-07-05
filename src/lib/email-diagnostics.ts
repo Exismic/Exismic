@@ -37,7 +37,7 @@ export function getRecentEmailEvents() {
 export function getEmailDiagnostics() {
   const resendKey = process.env.RESEND_API_KEY || "";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
-  const senderDomain = process.env.EMAIL_SENDER_DOMAIN || "lumoraai.online";
+  const senderDomain = "lumoraai.online";
 
   const checks = [
     {

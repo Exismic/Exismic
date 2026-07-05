@@ -23,46 +23,57 @@ function getSiteUrl() {
 export async function checkRateLimit(email: string, type: AuthRateLimitType) {
   const emailLower = email.trim().toLowerCase();
   const now = Date.now();
-  const supabaseAdmin = createAdminClient();
 
-  const { data, error } = await supabaseAdmin
-    .from("auth_rate_limits")
-    .select("last_requested_at")
-    .eq("email", emailLower)
-    .eq("type", type)
-    .maybeSingle();
+  try {
+    const data = await prisma.authRateLimit.findFirst({
+      where: {
+        email: emailLower,
+        type,
+      },
+      select: {
+        lastRequestedAt: true,
+      },
+    });
 
-  if (error) {
-    console.error("[Auth] Rate limit lookup failed:", error.message);
-    return { allowed: false, error: "Could not validate request limits. Please try again later." };
-  }
+    if (!data?.lastRequestedAt) {
+      return { allowed: true, error: null };
+    }
 
-  if (data?.last_requested_at) {
-    const lastRequestedAt = new Date(data.last_requested_at).getTime();
+    const lastRequestedAt = data.lastRequestedAt.getTime();
     if (Number.isFinite(lastRequestedAt) && now - lastRequestedAt < AUTH_EMAIL_RATE_LIMIT_MS) {
       return { allowed: false, error: AUTH_EMAIL_RATE_LIMIT_MESSAGE };
     }
-  }
 
-  return { allowed: true, error: null };
+    return { allowed: true, error: null };
+  } catch (error) {
+    console.error("[Auth] Rate limit lookup failed; allowing request so auth email is not blocked:", error);
+    return { allowed: true, error: null };
+  }
 }
 
 async function recordRateLimit(email: string, type: AuthRateLimitType) {
   const emailLower = email.trim().toLowerCase();
-  const now = new Date().toISOString();
-  const supabaseAdmin = createAdminClient();
+  const now = new Date();
 
-  const { error: upsertError } = await supabaseAdmin
-    .from("auth_rate_limits")
-    .upsert({
-      email: emailLower,
-      type,
-      last_requested_at: now,
-      updated_at: now,
-    }, { onConflict: "email,type" });
-
-  if (upsertError) {
-    console.error("[Auth] Rate limit update failed:", upsertError.message);
+  try {
+    await prisma.authRateLimit.upsert({
+      where: {
+        email_type: {
+          email: emailLower,
+          type,
+        },
+      },
+      update: {
+        lastRequestedAt: now,
+      },
+      create: {
+        email: emailLower,
+        type,
+        lastRequestedAt: now,
+      },
+    });
+  } catch (error) {
+    console.error("[Auth] Rate limit update failed; email was still sent:", error);
     return false;
   }
 
