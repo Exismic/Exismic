@@ -8,6 +8,7 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint",
+    "email:test": "node scripts/send-email-tests.cjs",
     "discord:presence": "node scripts/discord-presence-worker.mjs"
   },
   "dependencies": {

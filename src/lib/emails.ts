@@ -53,7 +53,7 @@ const PREMIUM_DARK_THEME = (content: string) => `
         body {
             margin: 0;
             padding: 0;
-            background-color: #050505;
+            background-color: #030306;
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #ffffff;
             -webkit-font-smoothing: antialiased;
@@ -61,36 +61,62 @@ const PREMIUM_DARK_THEME = (content: string) => `
         .wrapper {
             width: 100%;
             table-layout: fixed;
-            background-color: #050505;
-            padding-bottom: 60px;
+            background-color: #030306;
+            background-image:
+              radial-gradient(circle at 16% 0%, rgba(168,85,247,0.28), transparent 32%),
+              radial-gradient(circle at 88% 12%, rgba(34,211,238,0.18), transparent 30%),
+              radial-gradient(circle at 50% 100%, rgba(236,72,153,0.12), transparent 36%);
+            padding: 44px 16px 60px;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #0a0a0a;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(16,16,24,0.94), rgba(6,8,13,0.96));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 34px;
             overflow: hidden;
-            margin-top: 40px;
+            box-shadow: 0 36px 120px rgba(0,0,0,0.62), 0 0 64px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
         }
         .header {
-            padding: 40px 0;
+            padding: 38px 0 30px;
             text-align: center;
-            background: radial-gradient(circle at top, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle at 50% 0%, rgba(124,58,237,0.34), transparent 58%);
+        }
+        .mark-wrap {
+            display: inline-block;
+            padding: 1px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #a855f7, #22d3ee, #f472b6);
+            box-shadow: 0 0 48px rgba(168,85,247,0.34), 0 0 30px rgba(34,211,238,0.16);
+        }
+        .mark {
+            width: 54px;
+            height: 54px;
+            border-radius: 21px;
+            background: linear-gradient(145deg, #070811, #151428);
+            color: #ffffff;
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -1px;
         }
         .logo {
+            margin-top: 16px;
             font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+            font-weight: 900;
+            letter-spacing: -0.8px;
             color: #ffffff;
             text-decoration: none;
             text-transform: uppercase;
+            text-shadow: 0 0 28px rgba(168,85,247,0.42);
         }
         .logo-dot {
-            color: #7c3aed;
+            color: #22d3ee;
         }
         .content {
-            padding: 0 40px 40px;
+            padding: 0 40px 42px;
         }
         .hero-section {
             text-align: center;
@@ -98,37 +124,41 @@ const PREMIUM_DARK_THEME = (content: string) => `
         }
         .status-badge {
             display: inline-block;
-            padding: 6px 16px;
-            background: rgba(124, 58, 237, 0.1);
-            border: 1px solid rgba(124, 58, 237, 0.2);
-            color: #a78bfa;
+            padding: 8px 15px;
+            background: rgba(34,211,238,0.11);
+            border: 1px solid rgba(34,211,238,0.28);
+            color: #67e8f9;
             border-radius: 100px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
             margin-bottom: 24px;
+            box-shadow: 0 0 28px rgba(34,211,238,0.10);
         }
         h1 {
-            font-size: 32px;
-            font-weight: 800;
-            line-height: 1.2;
+            font-size: 36px;
+            font-weight: 900;
+            line-height: 1.08;
             margin: 0 0 16px;
-            background: linear-gradient(to right, #ffffff, #a78bfa);
+            letter-spacing: -1.7px;
+            background: linear-gradient(90deg, #ffffff, #c4b5fd, #67e8f9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         p {
-            color: #94a3b8;
+            color: #a7b0c2;
             font-size: 16px;
             line-height: 1.6;
             margin: 0 0 24px;
         }
         .info-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 22px;
             padding: 24px;
             margin-bottom: 32px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
         }
         .info-grid {
             display: table;
@@ -142,17 +172,17 @@ const PREMIUM_DARK_THEME = (content: string) => `
             padding: 8px 0;
         }
         .info-label {
-            font-size: 13px;
-            color: #64748b;
+            font-size: 12px;
+            color: #7d8aa3;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
+            letter-spacing: 1.3px;
+            font-weight: 800;
         }
         .info-value {
             font-size: 15px;
             color: #f8fafc;
             text-align: right;
-            font-weight: 500;
+            font-weight: 800;
         }
         .benefit-item {
             display: flex;
@@ -162,22 +192,22 @@ const PREMIUM_DARK_THEME = (content: string) => `
             font-size: 14px;
         }
         .benefit-icon {
-            color: #7c3aed;
+            color: #67e8f9;
             margin-right: 12px;
             font-size: 18px;
         }
         .cta-button {
             display: block;
-            background: #ffffff;
-            color: #000000;
+            background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+            color: #ffffff;
             text-align: center;
             padding: 16px 32px;
-            border-radius: 12px;
+            border-radius: 18px;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 16px;
+            font-weight: 900;
+            font-size: 15px;
             margin-top: 8px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);
         }
         .footer {
             text-align: center;
@@ -194,7 +224,7 @@ const PREMIUM_DARK_THEME = (content: string) => `
             margin: 0 10px;
         }
         .accent-text {
-            color: #7c3aed;
+            color: #67e8f9;
             font-weight: 600;
         }
     </style>
@@ -203,6 +233,7 @@ const PREMIUM_DARK_THEME = (content: string) => `
     <div class="wrapper">
         <div class="container">
             <div class="header">
+                <div class="mark-wrap"><div class="mark">L</div></div>
                 <div class="logo">Lumora<span class="logo-dot">.</span></div>
             </div>
             <div class="content">
@@ -517,31 +548,38 @@ function renderTransactionalEmail({
 </head>
 <body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">${preheader}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 18% 0%, rgba(124,58,237,0.24), transparent 34%), radial-gradient(circle at 86% 10%, rgba(6,182,212,0.18), transparent 30%), radial-gradient(circle at 50% 100%, rgba(168,85,247,0.10), transparent 36%);">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 18% 0%, rgba(124,58,237,0.30), transparent 34%), radial-gradient(circle at 86% 10%, rgba(6,182,212,0.21), transparent 30%), radial-gradient(circle at 50% 100%, rgba(236,72,153,0.13), transparent 36%);">
     <tr>
-      <td align="center" style="padding:48px 18px 38px;">
+      <td align="center" style="padding:48px 18px 40px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:660px;">
           <tr>
             <td align="center" style="padding-bottom:20px;">
-              <div style="display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.82), rgba(34,211,238,0.56), rgba(255,255,255,0.12)); box-shadow:0 0 64px rgba(124,58,237,0.30), 0 0 34px rgba(6,182,212,0.12);">
-                <div style="border-radius:27px; background:rgba(8,8,14,0.94); padding:18px 28px;">
-                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#a78bfa;">.</span></div>
+              <div style="display:inline-block; padding:1px; border-radius:30px; background:linear-gradient(135deg, rgba(168,85,247,0.92), rgba(34,211,238,0.70), rgba(244,114,182,0.58)); box-shadow:0 0 72px rgba(124,58,237,0.34), 0 0 36px rgba(6,182,212,0.16);">
+                <div style="border-radius:29px; background:rgba(8,8,14,0.94); padding:14px 22px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding-right:12px;">
+                        <div style="width:42px; height:42px; border-radius:16px; background:linear-gradient(145deg,#0b0c16,#171428); border:1px solid rgba(255,255,255,0.12); color:#ffffff; text-align:center; line-height:42px; font-size:24px; font-weight:900; box-shadow:inset 0 1px 0 rgba(255,255,255,0.09);">L</div>
+                      </td>
+                      <td style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#22d3ee;">.</span></td>
+                    </tr>
+                  </table>
                 </div>
               </div>
             </td>
           </tr>
           <tr>
-            <td style="border-radius:34px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:rgba(7,7,12,0.91); box-shadow:0 34px 120px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);">
+            <td style="border-radius:36px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); background:linear-gradient(145deg,rgba(12,12,19,0.95),rgba(5,7,12,0.96)); box-shadow:0 36px 130px rgba(0,0,0,0.64), 0 0 60px rgba(124,58,237,0.14), inset 0 1px 0 rgba(255,255,255,0.08);">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center" style="padding:48px 42px 30px; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.30), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.06));">
-                    <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(103,232,249,0.32); background:rgba(6,182,212,0.12); color:#67e8f9; font-size:11px; line-height:1; font-weight:850; letter-spacing:1.7px; text-transform:uppercase;">${badge}</div>
-                    <h1 style="margin:0; color:#ffffff; font-size:42px; line-height:1.05; letter-spacing:-2px; font-weight:900;">${title}</h1>
+                  <td align="center" style="padding:50px 42px 32px; background-image:linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.035) 1px, transparent 1px), radial-gradient(circle at 50% 0%, rgba(124,58,237,0.34), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.14), rgba(6,182,212,0.075)); background-size:44px 44px,44px 44px,auto,auto;">
+                    <div style="display:inline-block; margin-bottom:22px; padding:8px 15px; border-radius:999px; border:1px solid rgba(103,232,249,0.34); background:rgba(6,182,212,0.13); color:#67e8f9; font-size:11px; line-height:1; font-weight:900; letter-spacing:1.8px; text-transform:uppercase; box-shadow:0 0 26px rgba(6,182,212,0.11);">${badge}</div>
+                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.04; letter-spacing:-2.2px; font-weight:950;">${title}</h1>
                     <p style="max-width:510px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">${body}</p>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding:10px 42px 42px;">
+                  <td align="center" style="padding:12px 42px 44px;">
                     ${content}
                     <p style="margin:22px 0 0; color:#737f94; font-size:12px; line-height:1.6;">${footerNote}</p>
                   </td>
@@ -557,7 +595,7 @@ function renderTransactionalEmail({
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>Trusted account security for your creative workspace.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Lumora AI<br>Trusted account security for your creative workspace.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
             </td>
           </tr>
         </table>
@@ -581,12 +619,13 @@ export async function sendAuthOTP(email: string, otp: string) {
         title: 'Verify your <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora account</span>',
         body: 'Enter this code to finish securing your account and open your Lumora studio.',
         content: `
-          <div style="margin:4px auto 24px; display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.80), rgba(34,211,238,0.55)); box-shadow:0 0 54px rgba(124,58,237,0.28), 0 0 28px rgba(6,182,212,0.14);">
-            <div style="border-radius:27px; background:rgba(255,255,255,0.045); padding:26px 32px; border:1px solid rgba(255,255,255,0.10);">
-              <div style="font-size:48px; line-height:1; font-weight:900; letter-spacing:9px; color:#ffffff; font-family:'SFMono-Regular','Consolas','Courier New',monospace; text-shadow:0 0 24px rgba(167,139,250,0.46);">${otp}</div>
+          <div style="margin:4px auto 24px; display:inline-block; padding:1px; border-radius:30px; background:linear-gradient(135deg, rgba(168,85,247,0.92), rgba(34,211,238,0.68), rgba(244,114,182,0.48)); box-shadow:0 0 64px rgba(124,58,237,0.32), 0 0 32px rgba(6,182,212,0.16);">
+            <div style="border-radius:29px; background:linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)); padding:28px 34px; border:1px solid rgba(255,255,255,0.11);">
+              <div style="font-size:52px; line-height:1; font-weight:950; letter-spacing:10px; color:#ffffff; font-family:'SFMono-Regular','Consolas','Courier New',monospace; text-shadow:0 0 28px rgba(167,139,250,0.52);">${otp}</div>
+              <div style="margin-top:14px; color:#67e8f9; font-size:10px; line-height:1; font-weight:900; letter-spacing:2px; text-transform:uppercase;">Secure verification code</div>
             </div>
           </div>
-          <div style="max-width:440px; margin:0 auto; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;">
+          <div style="max-width:440px; margin:0 auto; border-radius:22px; border:1px solid rgba(245,158,11,0.20); background:linear-gradient(135deg, rgba(245,158,11,0.09), rgba(255,255,255,0.025)); padding:18px;">
             <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">This code expires in 10 minutes. For your security, never share it with anyone.</p>
           </div>
         `,
@@ -616,8 +655,8 @@ export async function sendMagicLinkEmail(email: string, magicLink: string) {
         title: 'Login to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora</span>',
         body: 'Use the secure button below to sign in without a password. This link is one-time use and expires soon.',
         content: `
-          <a href="${magicLink}" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Login to Lumora</a>
-          <div style="margin-top:24px; padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035);">
+          <a href="${magicLink}" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Login to Lumora</a>
+          <div style="margin-top:24px; padding:18px; border-radius:22px; border:1px solid rgba(255,255,255,0.10); background:linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));">
             <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">This magic link expires in 15 minutes. If the button does not work, paste this secure link into your browser:</p>
             <p style="margin:10px 0 0; word-break:break-all; color:#67e8f9; font-size:12px; line-height:1.6;">${magicLink}</p>
           </div>
@@ -825,11 +864,11 @@ export async function sendResetPasswordEmail(email: string, token: string) {
         title: 'Password <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Recovery</span>',
         body: 'We received a request to reset your Lumora password. If this was you, use the secure button below to choose a new password.',
         content: `
-          <a href="${resetLink}" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Reset Password</a>
-          <div style="margin-top:24px; padding:18px; border-radius:20px; border:1px solid rgba(245,158,11,0.22); background:rgba(245,158,11,0.075);">
+          <a href="${resetLink}" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Reset Password</a>
+          <div style="margin-top:24px; padding:18px; border-radius:22px; border:1px solid rgba(245,158,11,0.22); background:linear-gradient(135deg, rgba(245,158,11,0.10), rgba(255,255,255,0.025));">
             <p style="margin:0; color:#f8d294; font-size:12px; line-height:1.65;">This reset link expires in 10 minutes. For your security, only use this link in the browser where you requested it.</p>
           </div>
-          <div style="margin-top:14px; padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035);">
+          <div style="margin-top:14px; padding:18px; border-radius:22px; border:1px solid rgba(255,255,255,0.10); background:linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));">
             <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">If the button does not work, paste this secure link into your browser:</p>
             <p style="margin:10px 0 0; word-break:break-all; color:#67e8f9; font-size:12px; line-height:1.6;">${resetLink}</p>
           </div>
@@ -860,11 +899,11 @@ export async function sendPasswordChangedEmail(email: string) {
         title: 'Password <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">changed</span>',
         body: 'This is a confirmation that your Lumora account password was updated. If you made this change, no further action is needed.',
         content: `
-          <div style="max-width:440px; margin:0 auto 20px; border-radius:20px; border:1px solid rgba(16,185,129,0.22); background:rgba(16,185,129,0.075); padding:18px;">
+          <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(16,185,129,0.24); background:linear-gradient(135deg, rgba(16,185,129,0.10), rgba(34,211,238,0.045)); padding:18px;">
             <p style="margin:0; color:#b7f7d3; font-size:12px; line-height:1.65;">Your account password was changed successfully. Future sign-ins will require the new password.</p>
           </div>
-          <a href="${SITE_URL}/auth/login" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Review Account</a>
-          <div style="margin-top:24px; padding:18px; border-radius:20px; border:1px solid rgba(245,158,11,0.22); background:rgba(245,158,11,0.075);">
+          <a href="${SITE_URL}/auth/login" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Review Account</a>
+          <div style="margin-top:24px; padding:18px; border-radius:22px; border:1px solid rgba(245,158,11,0.22); background:linear-gradient(135deg, rgba(245,158,11,0.10), rgba(255,255,255,0.025));">
             <p style="margin:0; color:#f8d294; font-size:12px; line-height:1.65;">If you did not change your password, reset it immediately and contact Lumora support.</p>
           </div>
         `,
