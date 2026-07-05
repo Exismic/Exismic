@@ -7,6 +7,9 @@ import { CategorySection } from "@/components/tool/CategorySection";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { HomeToolConcierge } from "@/components/tool/HomeToolConcierge";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = constructMetadata({
   title: "Lumora - All-in-One AI Tools | Free Background Remover, Image Generator & More",
   canonicalUrl: `${SITE_URL}/`,
