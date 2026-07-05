@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { sendAuthOTP, sendWelcomeEmail, sendResetPasswordEmail, sendMagicLinkEmail } from "@/lib/emails";
+import { sendAuthOTP, sendWelcomeEmail, sendResetPasswordEmail, sendMagicLinkEmail, sendPasswordChangedEmail } from "@/lib/emails";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { v4 as uuidv4 } from 'uuid';
@@ -12,9 +12,25 @@ type AuthRateLimitType = "otp_verification" | "magic_link" | "password_reset";
 
 const AUTH_EMAIL_RATE_LIMIT_MS = 2 * 60 * 60 * 1000;
 const AUTH_EMAIL_RATE_LIMIT_MESSAGE = "Please wait 2 hours before requesting another code";
+const PASSWORD_RESET_TOKEN_PREFIX = "pwd_reset:";
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validatePasswordStrength(password: string) {
+  const checks = [
+    /[a-z]/.test(password),
+    /[A-Z]/.test(password),
+    /\d/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ].filter(Boolean).length;
+
+  if (password.length < 10 || checks < 3) {
+    return "Use at least 10 characters with a mix of uppercase, lowercase, numbers, or symbols.";
+  }
+
+  return null;
 }
 
 function getSiteUrl() {
@@ -172,7 +188,14 @@ export async function resendOtpAction(email: string) {
 
   // 2. Update Database
   await prisma.verificationToken.deleteMany({
-    where: { identifier: emailLower }
+    where: {
+      identifier: emailLower,
+      token: {
+        not: {
+          startsWith: PASSWORD_RESET_TOKEN_PREFIX,
+        },
+      },
+    }
   });
 
   await prisma.verificationToken.create({
@@ -200,6 +223,11 @@ export async function signUpAction(formData: FormData) {
 
   if (!isValidEmail(email)) {
     return { error: "Enter a valid email address." };
+  }
+
+  const passwordError = validatePasswordStrength(password);
+  if (passwordError) {
+    return { error: passwordError };
   }
 
   const existingDbUser = await prisma.user.findUnique({ where: { email } });
@@ -249,7 +277,14 @@ export async function signUpAction(formData: FormData) {
 
   // Delete any existing tokens for this email
   await prisma.verificationToken.deleteMany({
-    where: { identifier: email }
+    where: {
+      identifier: email,
+      token: {
+        not: {
+          startsWith: PASSWORD_RESET_TOKEN_PREFIX,
+        },
+      },
+    }
   });
 
   // Create new token
@@ -279,7 +314,12 @@ export async function verifyOtpAction(email: string, otp: string) {
   const verificationToken = await prisma.verificationToken.findFirst({
     where: {
       identifier: emailLower,
-      token: otpClean
+      token: otpClean,
+      NOT: {
+        token: {
+          startsWith: PASSWORD_RESET_TOKEN_PREFIX,
+        },
+      },
     }
   });
 
@@ -292,8 +332,11 @@ export async function verifyOtpAction(email: string, otp: string) {
   }
 
   // 2. Verification successful - Cleanup
-  await prisma.verificationToken.delete({
-    where: { token: otpClean }
+  await prisma.verificationToken.deleteMany({
+    where: {
+      identifier: emailLower,
+      token: otpClean,
+    }
   });
 
   // 3. Confirm the user in Supabase Auth (Crucial for allowing login)
@@ -394,14 +437,22 @@ export async function forgotPasswordAction(email: string) {
 
   const dbUser = await prisma.user.findUnique({ where: { email: emailLower } });
   if (!dbUser) {
+    await recordRateLimit(emailLower, "password_reset");
     return { success: true };
   }
 
   // 2. Generate Reset Token
-  const token = uuidv4();
+  const token = `${PASSWORD_RESET_TOKEN_PREFIX}${uuidv4()}`;
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-  await prisma.verificationToken.deleteMany({ where: { identifier: emailLower } });
+  await prisma.verificationToken.deleteMany({
+    where: {
+      identifier: emailLower,
+      token: {
+        startsWith: PASSWORD_RESET_TOKEN_PREFIX,
+      },
+    },
+  });
   await prisma.verificationToken.create({
     data: { identifier: emailLower, token, expires }
   });
@@ -416,34 +467,79 @@ export async function forgotPasswordAction(email: string) {
   return { success: true };
 }
 
-export async function updatePasswordAction(email: string, token: string, password: string) {
+export async function validateResetPasswordTokenAction(email: string, token: string) {
   const emailLower = email.toLowerCase().trim();
-  
-  // 1. Verify Token
+
+  if (!isValidEmail(emailLower) || !token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) {
+    return { valid: false, error: "This password reset link is invalid or has already been used." };
+  }
+
   const verificationToken = await prisma.verificationToken.findFirst({
-    where: { identifier: emailLower, token }
+    where: {
+      identifier: emailLower,
+      token,
+      expires: {
+        gt: new Date(),
+      },
+    },
+    select: {
+      token: true,
+    },
   });
 
-  if (!verificationToken || verificationToken.expires < new Date()) {
+  if (!verificationToken) {
+    return { valid: false, error: "This password reset link is invalid, expired, or already used." };
+  }
+
+  return { valid: true };
+}
+
+export async function updatePasswordAction(email: string, token: string, password: string) {
+  const emailLower = email.toLowerCase().trim();
+
+  if (!isValidEmail(emailLower) || !token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) {
     return { error: "Reset link has expired or is invalid. Please request a new one." };
   }
 
-  // 2. Update Password in Supabase (Admin)
+  const passwordError = validatePasswordStrength(password);
+  if (passwordError) {
+    return { error: passwordError };
+  }
+
   try {
     const supabaseAdmin = createAdminClient();
     const user = await prisma.user.findUnique({ where: { email: emailLower } });
 
     if (!user) return { error: "User not found." };
 
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-      password: password,
-      email_confirm: true // Just in case
+    const consumedToken = await prisma.verificationToken.deleteMany({
+      where: {
+        identifier: emailLower,
+        token,
+        expires: {
+          gt: new Date(),
+        },
+      },
     });
 
-    if (error) return { error: error.message };
+    if (consumedToken.count !== 1) {
+      return { error: "Reset link has expired or is invalid. Please request a new one." };
+    }
 
-    // 3. Cleanup Token
-    await prisma.verificationToken.delete({ where: { token } });
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      password: password,
+      email_confirm: true
+    });
+
+    if (error) {
+      console.error("[Auth] Password update failed after token consumption:", error.message);
+      return { error: "Password reset failed. Please request a new reset link." };
+    }
+
+    const alertSent = await sendPasswordChangedEmail(emailLower);
+    if (!alertSent) {
+      console.error("[Auth] Password changed email failed:", emailLower);
+    }
 
     return { success: true };
   } catch (err) {

@@ -847,3 +847,37 @@ export async function sendResetPasswordEmail(email: string, token: string) {
     return false;
   }
 }
+
+export async function sendPasswordChangedEmail(email: string) {
+  try {
+    const { error } = await sendTrackedEmail('password_changed', email, {
+      from: SENDER_NOREPLY,
+      to: email,
+      subject: 'Your Lumora Password Was Changed',
+      html: renderTransactionalEmail({
+        preheader: 'Your Lumora password was changed successfully.',
+        badge: 'Security Alert',
+        title: 'Password <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">changed</span>',
+        body: 'This is a confirmation that your Lumora account password was updated. If you made this change, no further action is needed.',
+        content: `
+          <div style="max-width:440px; margin:0 auto 20px; border-radius:20px; border:1px solid rgba(16,185,129,0.22); background:rgba(16,185,129,0.075); padding:18px;">
+            <p style="margin:0; color:#b7f7d3; font-size:12px; line-height:1.65;">Your account password was changed successfully. Future sign-ins will require the new password.</p>
+          </div>
+          <a href="${SITE_URL}/auth/login" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Review Account</a>
+          <div style="margin-top:24px; padding:18px; border-radius:20px; border:1px solid rgba(245,158,11,0.22); background:rgba(245,158,11,0.075);">
+            <p style="margin:0; color:#f8d294; font-size:12px; line-height:1.65;">If you did not change your password, reset it immediately and contact Lumora support.</p>
+          </div>
+        `,
+        footerNote: "Lumora sends this alert whenever your account password changes.",
+      }),
+    });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Password changed email failed:', error);
+    return false;
+  }
+}

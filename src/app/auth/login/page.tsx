@@ -203,8 +203,8 @@ export default function AuthPage() {
         const password = formData.get('password') as string;
         const confirmPassword = formData.get('confirmPassword') as string;
 
-        if (password.length < 8) {
-          setError("Password must be at least 8 characters.");
+        if (password.length < 10) {
+          setError("Use at least 10 characters with a mix of uppercase, lowercase, numbers, or symbols.");
           setIsLoading(false);
           return;
         }

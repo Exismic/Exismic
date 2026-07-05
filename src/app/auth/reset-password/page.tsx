@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -11,11 +11,10 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  ArrowLeft,
   Wand2
 } from "lucide-react";
 import Link from "next/link";
-import { updatePasswordAction } from "@/app/actions/auth";
+import { updatePasswordAction, validateResetPasswordTokenAction } from "@/app/actions/auth";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -26,8 +25,36 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingLink, setIsCheckingLink] = useState(true);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const validateLink = async () => {
+      if (!token || !email) {
+        setIsCheckingLink(false);
+        setLinkError("This password reset link is invalid or has expired.");
+        return;
+      }
+
+      const result = await validateResetPasswordTokenAction(email, token);
+      if (cancelled) return;
+
+      if (!result.valid) {
+        setLinkError(result.error || "This password reset link is invalid or has already been used.");
+      }
+      setIsCheckingLink(false);
+    };
+
+    void validateLink();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [email, token]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +62,8 @@ function ResetPasswordForm() {
       setError("Invalid or missing reset token.");
       return;
     }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+    if (password.length < 10) {
+      setError("Use at least 10 characters with a mix of uppercase, lowercase, numbers, or symbols.");
       return;
     }
     if (password !== confirmPassword) {
@@ -54,21 +81,30 @@ function ResetPasswordForm() {
       } else {
         setSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to reset password. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!token || !email) {
+  if (isCheckingLink) {
+    return (
+      <div className="py-16 flex flex-col items-center justify-center gap-4 text-center">
+        <Loader2 className="animate-spin text-cyan-300" size={32} />
+        <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.22em]">Checking secure link</p>
+      </div>
+    );
+  }
+
+  if (!token || !email || linkError) {
     return (
       <div className="text-center space-y-4">
         <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto border border-red-500/20">
           <AlertCircle className="text-red-500" size={32} />
         </div>
-        <h2 className="text-xl font-bold">Invalid Link</h2>
-        <p className="text-zinc-500 text-sm">This password reset link is invalid or has expired.</p>
+        <h2 className="text-xl font-bold">Invalid or Used Link</h2>
+        <p className="text-zinc-500 text-sm">{linkError || "This password reset link is invalid or has expired."}</p>
         <Link 
           href="/auth/login" 
           className="inline-block text-white hover:underline text-xs font-bold uppercase tracking-widest"
