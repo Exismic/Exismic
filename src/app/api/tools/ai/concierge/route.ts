@@ -10,19 +10,20 @@ const requestSchema = z.object({
 });
 
 const aliases: Record<string, string[]> = {
-  "image-eraser": ["remove background", "background removal", "remove bg", "transparent", "cutout", "erase object"],
-  "image-compressor": ["compress image", "smaller image", "reduce image size", "image file size", "optimize photo"],
-  "image-resizer": ["resize image", "crop image", "dimensions", "aspect ratio", "instagram size"],
+  "image-eraser": ["remove background", "background removal", "remove bg", "transparent", "cutout", "erase object", "delete background", "change background", "background remover"],
+  "image-compressor": ["compress image", "smaller image", "reduce image size", "image file size", "optimize photo", "photo too large", "bulk compress", "make photos lighter"],
+  "image-resizer": ["resize image", "crop image", "dimensions", "aspect ratio", "instagram size", "profile picture size", "banner size", "change width", "change height"],
   "image-converter": ["convert image", "jpg", "jpeg", "png", "webp", "gif", "image format"],
-  "image-restorer": ["restore photo", "old photo", "damaged photo", "blurry photo", "repair photo"],
-  "watermark-remover": ["remove watermark", "watermark", "remove logo", "remove text from image"],
+  "image-restorer": ["restore photo", "old photo", "damaged photo", "blurry photo", "repair photo", "fix photo", "enhance old image", "face restore"],
+  "watermark-remover": ["remove watermark", "watermark", "remove logo", "remove text from image", "clean stamp", "erase watermark"],
   "image-collage": ["collage", "photo grid", "combine photos"],
+  "image-minecraft-skin": ["minecraft skin", "skin maker", "minecraft character", "64x64 skin", "minecraft texture", "blocky avatar"],
   "youtube-thumbnail": ["youtube thumbnail", "thumbnail"],
-  "ai-img-gen": ["generate image", "create image", "ai art", "text to image"],
-  "ai-logo": ["logo", "brand mark", "business logo"],
-  "audio-vocal-remover": ["remove vocals", "instrumental", "karaoke", "separate vocals"],
+  "ai-img-gen": ["generate image", "create image", "ai art", "text to image", "make art", "create picture", "ai photo"],
+  "ai-logo": ["logo", "brand mark", "business logo", "company logo", "make logo", "logo design"],
+  "audio-vocal-remover": ["remove vocals", "instrumental", "karaoke", "separate vocals", "isolate vocals", "remove singer"],
   "audio-stem-splitter": ["split stems", "drums", "bass", "music stems"],
-  "audio-noise-remover": ["remove noise", "background noise", "clean audio"],
+  "audio-noise-remover": ["remove noise", "background noise", "clean audio", "audio hiss", "voice cleanup"],
   "audio-tts": ["text to speech", "voiceover", "read text", "ai voice"],
   "pdf-merger": ["merge pdf", "combine pdf"],
   "pdf-splitter": ["split pdf", "extract pdf pages"],
@@ -37,25 +38,30 @@ const aliases: Record<string, string[]> = {
   "video-enhancer": ["enhance video", "upscale video", "improve video"],
   "video-gif": ["video to gif", "make gif"],
   "video-merger": ["merge video", "combine clips", "join videos"],
-  "resume-builder": ["resume", "cv", "job application"],
-  "invoice-generator": ["invoice", "bill client", "quotation"],
+  "resume-builder": ["resume", "cv", "job application", "ats", "cover letter", "portfolio resume"],
+  "invoice-generator": ["invoice", "bill client", "quotation", "estimate", "receipt"],
   "productivity-qr": ["qr code", "qr"],
   "typing-test": ["typing speed", "wpm", "typing test"],
-  "social-caption-generator": ["caption", "social post", "instagram post", "linkedin post"],
-  "screenshot-to-code": ["screenshot to code", "image to html", "recreate ui", "frontend from screenshot"],
-  "support-agent": ["support bot", "customer support", "website chatbot", "chat widget"],
-  "ai-code": ["write code", "debug code", "code editor", "build app", "programming"],
-  "ai-writer": ["write article", "write copy", "blog", "rewrite", "content writing"],
-  "ai-chat": ["ask ai", "research", "explain", "brainstorm", "chat"],
+  "social-caption-generator": ["caption", "social post", "instagram post", "linkedin post", "tweet", "hashtags", "viral caption"],
+  "screenshot-to-code": ["screenshot to code", "image to html", "recreate ui", "frontend from screenshot", "figma to code", "ui to code"],
+  "support-agent": ["support bot", "customer support", "website chatbot", "chat widget", "faq bot", "business chatbot"],
+  "ai-code": ["write code", "debug code", "code editor", "build app", "programming", "fix bug", "react component", "api route"],
+  "ai-writer": ["write article", "write copy", "blog", "rewrite", "content writing", "email copy", "description"],
+  "ai-chat": ["ask ai", "research", "explain", "brainstorm", "chat", "learn", "solve", "homework"],
 };
 
 const greetingPattern = /^(hi|hey|hello|thanks|thank you|yo|sup)[!. ]*$/i;
+const uploadIntentPattern = /\b(upload|file|photo|image|video|audio|pdf|document|picture|song|voice|clip)\b/i;
+const createIntentPattern = /\b(create|generate|make|design|write|build|draft)\b/i;
+const editIntentPattern = /\b(edit|fix|remove|clean|enhance|compress|convert|resize|trim|merge|split|restore|change)\b/i;
 
 type Recommendation = Pick<Tool, "id" | "name" | "description" | "href" | "category" | "icon"> & {
   pro: boolean;
+  reason: string;
+  confidence: number;
 };
 
-function toRecommendation(tool: Tool): Recommendation {
+function toRecommendation(tool: Tool, reason: string, confidence: number): Recommendation {
   return {
     id: tool.id,
     name: tool.name,
@@ -64,6 +70,8 @@ function toRecommendation(tool: Tool): Recommendation {
     category: tool.category,
     icon: tool.icon,
     pro: Boolean(tool.pro || tool.isProTool),
+    reason,
+    confidence,
   };
 }
 
@@ -75,28 +83,61 @@ function tokenize(value: string) {
     .filter((word) => word.length > 2);
 }
 
+function normalizeQuery(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\bbg\b/g, "background")
+    .replace(/\bpic\b/g, "picture")
+    .replace(/\bpics\b/g, "pictures")
+    .replace(/\bvid\b/g, "video")
+    .replace(/\bdoc\b/g, "document")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getMatchReason(tool: Tool, query: string) {
+  if (tool.requiresFileUpload && uploadIntentPattern.test(query)) {
+    return `Built for uploaded ${tool.category === "pdf" ? "documents" : `${tool.category} files`}.`;
+  }
+  if (tool.category === "ai" && createIntentPattern.test(query)) {
+    return "Best fit for creating from a prompt.";
+  }
+  if (editIntentPattern.test(query)) {
+    return "Best fit for editing or improving the file you described.";
+  }
+  return `Closest match in ${tool.category.replace("-", " ")} tools.`;
+}
+
 function localRecommendations(message: string) {
-  if (greetingPattern.test(message.trim())) {
+  const query = normalizeQuery(message);
+
+  if (greetingPattern.test(query)) {
     return {
-      reply: "Hi. Tell me what you want to create, edit, convert, or improve, and I will point you to the right Lumora tool.",
+      reply: "Hi. Tell me the result you want, like “remove a background,” “compress this PDF,” or “make a YouTube thumbnail.”",
       tools: [] as Tool[],
+      reasons: {} as Record<string, string>,
+      confidence: {} as Record<string, number>,
     };
   }
 
-  const query = message.toLowerCase();
   const queryTokens = new Set(tokenize(query));
   const ranked = TOOLS.map((tool) => {
     const searchable = `${tool.name} ${tool.description} ${(aliases[tool.id] || []).join(" ")}`.toLowerCase();
     let score = 0;
 
     for (const phrase of aliases[tool.id] || []) {
-      if (query.includes(phrase)) score += phrase.includes(" ") ? 12 : 6;
+      if (query.includes(phrase)) score += phrase.includes(" ") ? 18 : 8;
+      const phraseTokens = tokenize(phrase);
+      if (phraseTokens.length > 1 && phraseTokens.every((token) => queryTokens.has(token))) score += 10;
     }
 
     for (const token of queryTokens) {
       if (searchable.includes(token)) score += 2;
+      if (token === tool.category) score += 8;
     }
 
+    if (tool.requiresFileUpload && uploadIntentPattern.test(query)) score += 3;
+    if (tool.category === "ai" && createIntentPattern.test(query)) score += 3;
     if (query.includes(tool.name.toLowerCase())) score += 15;
     return { tool, score };
   })
@@ -107,15 +148,31 @@ function localRecommendations(message: string) {
 
   if (ranked.length === 0) {
     return {
-      reply: "I can help with images, video, audio, PDFs, writing, coding, and productivity. Describe the result you need in one sentence.",
+      reply: "I can route image, video, audio, PDF, writing, coding, and business tasks. Describe the final result you want in one sentence.",
       tools: [] as Tool[],
+      reasons: {} as Record<string, string>,
+      confidence: {} as Record<string, number>,
     };
   }
 
   const primary = ranked[0];
+  const topScore = Math.max(
+    1,
+    ...ranked.map((tool) => {
+      const queryText = `${tool.name} ${tool.description} ${(aliases[tool.id] || []).join(" ")}`.toLowerCase();
+      return Array.from(queryTokens).reduce((score, token) => score + (queryText.includes(token) ? 1 : 0), 0);
+    })
+  );
+  const reasons = Object.fromEntries(ranked.map((tool) => [tool.id, getMatchReason(tool, query)]));
+  const confidence = Object.fromEntries(
+    ranked.map((tool, index) => [tool.id, Math.max(72 - index * 9, Math.min(96, 84 + topScore * 2 - index * 8))])
+  );
+
   return {
-    reply: `Start with ${primary.name}. It is the closest match for what you described${ranked.length > 1 ? ", and I added a couple of useful alternatives" : ""}.`,
+    reply: `${primary.name} is the best starting point. ${ranked.length > 1 ? "I also found alternatives in case your file or workflow needs a different path." : "Open it and you can start right away."}`,
     tools: ranked,
+    reasons,
+    confidence,
   };
 }
 
@@ -191,7 +248,12 @@ async function askGroq(message: string) {
         ? `${tools[0].name} is the best match. ${modelReply}`
         : modelReply;
 
-      return { reply, tools };
+      return {
+        reply,
+        tools,
+        reasons: Object.fromEntries(tools.map((tool) => [tool.id, getMatchReason(tool, normalizeQuery(message))])),
+        confidence: Object.fromEntries(tools.map((tool, index) => [tool.id, Math.max(70, 94 - index * 8)])),
+      };
     } catch (error) {
       lastError = error;
     }
@@ -219,7 +281,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       reply: result.reply,
-      recommendations: result.tools.map(toRecommendation),
+      recommendations: result.tools.map((tool, index) => toRecommendation(
+        tool,
+        result.reasons?.[tool.id] || getMatchReason(tool, parsed.data.message),
+        result.confidence?.[tool.id] || Math.max(70, 90 - index * 8)
+      )),
     });
   } catch (error) {
     console.error("[ToolConcierge]", error);

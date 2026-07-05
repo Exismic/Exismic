@@ -6,11 +6,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUp,
   ArrowUpRight,
+  CheckCircle2,
+  Code2,
   Compass,
   FileArchive,
   FileUser,
+  ImageIcon,
   ImageMinus,
   Loader2,
+  MessageSquare,
+  Sparkles,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -26,6 +31,8 @@ interface Recommendation {
   category: string;
   icon: IconName;
   pro: boolean;
+  reason?: string;
+  confidence?: number;
 }
 
 interface ConciergeMessage {
@@ -39,7 +46,12 @@ const starterPrompts: Array<{ label: string; prompt: string; icon: LucideIcon }>
   { label: "Remove a background", prompt: "Remove a photo background", icon: ImageMinus },
   { label: "Compress a PDF", prompt: "Make a PDF smaller", icon: FileArchive },
   { label: "Build a resume", prompt: "Create a professional resume", icon: FileUser },
+  { label: "Make a thumbnail", prompt: "Create a YouTube thumbnail", icon: ImageIcon },
+  { label: "Build a support bot", prompt: "Create a website support chatbot", icon: MessageSquare },
+  { label: "Fix code", prompt: "Debug and improve my code", icon: Code2 },
 ];
+
+const routingPills = ["Smart routing", "Best-match tools", "Instant launch"];
 
 export function HomeToolConcierge() {
   const [isOpen, setIsOpen] = useState(false);
@@ -166,7 +178,7 @@ export function HomeToolConcierge() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 260, damping: 27 }}
-            className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[min(760px,calc(100dvh-1.5rem))] max-w-[460px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[linear-gradient(145deg,rgba(12,10,24,0.98),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.98))] shadow-[0_35px_120px_rgba(0,0,0,0.78),0_0_60px_rgba(91,33,182,0.1)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:w-[460px]"
+            className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-h-[min(720px,calc(100dvh-1rem))] max-w-[470px] flex-col overflow-hidden rounded-[26px] border border-white/[0.1] bg-[linear-gradient(145deg,rgba(12,10,24,0.98),rgba(4,7,12,0.99)_55%,rgba(4,13,17,0.98))] shadow-[0_35px_120px_rgba(0,0,0,0.82),0_0_70px_rgba(91,33,182,0.13)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:max-h-[min(720px,calc(100dvh-4rem))] sm:w-[470px]"
             aria-label="Lumora AI tool concierge"
           >
             <motion.div
@@ -177,7 +189,7 @@ export function HomeToolConcierge() {
             />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:28px_28px] opacity-30" />
 
-            <header className="relative z-10 flex items-center justify-between gap-4 border-b border-white/[0.07] bg-black/15 px-5 py-4">
+            <header className="relative z-10 flex items-center justify-between gap-3 border-b border-white/[0.07] bg-black/15 px-4 py-4 sm:px-5">
               <div className="flex min-w-0 items-center gap-3">
                 <LumoraMark size={52} />
                 <div className="min-w-0">
@@ -203,7 +215,7 @@ export function HomeToolConcierge() {
               </button>
             </header>
 
-            <div className="custom-scrollbar relative z-10 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+            <div className="custom-scrollbar relative z-10 flex-1 space-y-4 overflow-y-auto px-3.5 py-4 sm:p-5">
               {messages.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -211,40 +223,51 @@ export function HomeToolConcierge() {
                   transition={{ delay: 0.08 }}
                   className="space-y-5 py-1"
                 >
-                  <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[linear-gradient(125deg,rgba(124,58,237,0.09),rgba(255,255,255,0.025)_45%,rgba(34,211,238,0.06))] p-5">
+                  <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[linear-gradient(125deg,rgba(124,58,237,0.11),rgba(255,255,255,0.025)_45%,rgba(34,211,238,0.08))] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5">
+                    <span className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-cyan-400/10 blur-3xl" />
+                    <span className="pointer-events-none absolute -bottom-16 left-8 size-32 rounded-full bg-violet-500/10 blur-3xl" />
                     <div className="mb-4 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.18em] text-violet-200/80">
                       <Compass size={13} className="text-cyan-300" />
                       Intent router
                     </div>
-                    <h3 className="max-w-sm text-2xl font-black leading-tight tracking-tight text-white">
+                    <h3 className="relative max-w-sm text-xl font-black leading-tight tracking-tight text-white sm:text-2xl">
                       Tell me the outcome.
                     </h3>
-                    <p className="mt-2 max-w-sm text-sm font-medium leading-relaxed text-zinc-500">
+                    <p className="relative mt-2 max-w-sm text-sm font-medium leading-relaxed text-zinc-500">
                       Explain what you want to create, edit, convert, or improve. I will take you straight to the best tool.
                     </p>
+                    <div className="relative mt-4 flex flex-wrap gap-2">
+                      {routingPills.map((pill) => (
+                        <span
+                          key={pill}
+                          className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/[0.08] bg-black/20 px-3 text-[9px] font-black uppercase tracking-[0.14em] text-zinc-400"
+                        >
+                          <CheckCircle2 size={11} className="text-cyan-300" />
+                          {pill}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
                     <p className="mb-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-600">
                       Start with an example
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {starterPrompts.map((prompt, index) => {
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {starterPrompts.map((prompt) => {
                         const PromptIcon = prompt.icon;
                         return (
                           <button
                             key={prompt.prompt}
                             type="button"
                             onClick={() => void sendMessage(prompt.prompt)}
-                            className={cn(
-                              "group/prompt flex min-h-16 items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 text-left transition hover:-translate-y-0.5 hover:border-violet-300/25 hover:bg-violet-300/[0.055]",
-                              index === 2 && "col-span-2"
-                            )}
+                            className="group/prompt relative flex min-h-[60px] items-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.025] px-3 text-left transition hover:-translate-y-0.5 hover:border-violet-300/25 hover:bg-violet-300/[0.055] active:scale-[0.99]"
                           >
-                            <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-white/[0.08] bg-black/25 text-zinc-400 transition group-hover/prompt:border-cyan-300/20 group-hover/prompt:text-cyan-200">
+                            <span className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-violet-300 via-fuchsia-300 to-cyan-300 opacity-0 transition group-hover/prompt:opacity-80" />
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-black/25 text-zinc-400 transition group-hover/prompt:border-cyan-300/20 group-hover/prompt:text-cyan-200">
                               <PromptIcon size={16} />
                             </span>
-                            <span className="text-[10px] font-bold leading-snug text-zinc-300 transition group-hover/prompt:text-white">
+                            <span className="text-[11px] font-bold leading-snug text-zinc-300 transition group-hover/prompt:text-white">
                               {prompt.label}
                             </span>
                             <ArrowUpRight size={13} className="ml-auto shrink-0 text-zinc-700 transition group-hover/prompt:-translate-y-0.5 group-hover/prompt:translate-x-0.5 group-hover/prompt:text-violet-200" />
@@ -263,12 +286,12 @@ export function HomeToolConcierge() {
                   animate={{ opacity: 1, y: 0 }}
                   className={cn(
                     "space-y-3",
-                    message.role === "user" && "ml-10"
+                    message.role === "user" && "ml-6 sm:ml-10"
                   )}
                 >
                   <div
                     className={cn(
-                      "rounded-xl border px-4 py-3.5 text-sm font-medium leading-relaxed shadow-lg",
+                      "rounded-2xl border px-4 py-3.5 text-sm font-medium leading-relaxed shadow-lg",
                       message.role === "assistant"
                         ? "border-white/[0.08] bg-[linear-gradient(120deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] text-zinc-300"
                         : "border-violet-300/20 bg-[linear-gradient(120deg,rgba(124,58,237,0.16),rgba(34,211,238,0.06))] text-white"
@@ -285,14 +308,14 @@ export function HomeToolConcierge() {
                           <Link
                             key={recommendation.id}
                             href={recommendation.href}
-                            className="group/tool relative flex min-h-[74px] items-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-[linear-gradient(115deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-3.5 shadow-lg transition hover:-translate-y-0.5 hover:border-cyan-300/25 hover:shadow-[0_16px_40px_rgba(6,182,212,0.08)]"
+                            className="group/tool relative flex min-h-[86px] items-center gap-3 overflow-hidden rounded-2xl border border-white/[0.08] bg-[linear-gradient(115deg,rgba(255,255,255,0.04),rgba(255,255,255,0.012))] p-3.5 shadow-lg transition hover:-translate-y-0.5 hover:border-cyan-300/25 hover:shadow-[0_16px_40px_rgba(6,182,212,0.08)] active:scale-[0.99]"
                           >
                             <span className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-violet-400 via-fuchsia-400 to-cyan-300 opacity-70" />
-                            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-violet-300/15 bg-violet-300/[0.07] text-violet-100 transition group-hover/tool:border-cyan-300/20 group-hover/tool:bg-cyan-300/[0.07] group-hover/tool:text-cyan-100">
+                            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-violet-300/15 bg-violet-300/[0.07] text-violet-100 transition group-hover/tool:border-cyan-300/20 group-hover/tool:bg-cyan-300/[0.07] group-hover/tool:text-cyan-100">
                               <ToolIcon size={19} />
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="flex items-center gap-2">
+                              <span className="flex flex-wrap items-center gap-2">
                                 <span className="truncate text-xs font-bold text-white">
                                   {recommendation.name}
                                 </span>
@@ -309,6 +332,19 @@ export function HomeToolConcierge() {
                               </span>
                               <span className="mt-1 line-clamp-1 block text-[10px] font-medium text-zinc-500">
                                 {recommendation.description}
+                              </span>
+                              <span className="mt-2 flex flex-wrap items-center gap-2 text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-600">
+                                {typeof recommendation.confidence === "number" && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/10 bg-emerald-300/[0.045] px-2 py-1 text-emerald-200/80">
+                                    <Sparkles size={10} />
+                                    {recommendation.confidence}% match
+                                  </span>
+                                )}
+                                {recommendation.reason && (
+                                  <span className="line-clamp-1 normal-case tracking-normal text-zinc-500">
+                                    {recommendation.reason}
+                                  </span>
+                                )}
                               </span>
                             </span>
                             <ArrowUpRight
@@ -344,7 +380,7 @@ export function HomeToolConcierge() {
                       if (input.trim()) void sendMessage(input);
                     }
                   }}
-                  placeholder="Describe what you want to do..."
+                  placeholder="Example: remove the background from my product photo"
                   rows={1}
                   className="min-h-12 flex-1 resize-none bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-zinc-700"
                 />
