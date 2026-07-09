@@ -35,6 +35,7 @@ export async function GET() {
       subscription_status: dbUser.subscriptionStatus,
       plan_expires_at: dbUser.planExpiresAt,
       daily_credits: dbUser.dailyCredits,
+      bonus_credits: dbUser.bonusCredits,
       lifetime_credits: dbUser.lifetimeCredits,
       ai_messages_today: dbUser.aiMessagesToday,
     };

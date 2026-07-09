@@ -54,7 +54,7 @@ export default function SubtitleGeneratorPage() {
 
       <footer className="mt-20 text-center pb-12">
         <p className="text-gray-600 text-sm font-medium uppercase tracking-widest">
-          Engineered for Accuracy with Lumora AI
+          Engineered for Accuracy with Exismic Ai
         </p>
       </footer>
     </div>

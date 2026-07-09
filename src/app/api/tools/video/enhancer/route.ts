@@ -119,8 +119,8 @@ export async function POST(req: NextRequest) {
       contentType: mimeType || "video/mp4",
       requestId,
       headers: {
-        "X-Lumora-Priority": String(priority),
-        "X-Lumora-Queue": queue,
+        "X-Exismic-Priority": String(priority),
+        "X-Exismic-Queue": queue,
       },
     });
   } catch (error) {

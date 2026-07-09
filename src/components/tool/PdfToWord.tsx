@@ -22,7 +22,7 @@ import { readDownloadResponse } from "@/lib/pdf-client";
 const TO_WORD_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to reconstruct into an editable Word file." },
   { title: "Select Flow", desc: "Choose flowing paragraphs or preserve each extracted line." },
-  { title: "Extract Text", desc: "Lumora reads embedded PDF text and builds a valid editable DOCX file." },
+  { title: "Extract Text", desc: "Exismic reads embedded PDF text and builds a valid editable DOCX file." },
   { title: "Download", desc: "Download the editable Word document directly." }
 ];
 

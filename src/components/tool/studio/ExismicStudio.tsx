@@ -11,18 +11,18 @@ import { SidebarExplorer } from "./SidebarExplorer";
 import EditorComponent from "./EditorComponent";
 import { AIAgentPanel } from "./AIAgentPanel";
 import TerminalComponent from "./TerminalComponent";
-import { useLumoraStore } from "./useLumoraStore";
+import { useExismicStore } from "./useExismicStore";
 import { useContextSync } from "./useContextSync";
 import { cn } from "@/lib/utils";
 import { Search, Command, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function LumoraStudio() {
+export default function ExismicStudio() {
   const { 
     isLeftSidebarOpen, 
     isRightSidebarOpen,
     isTerminalOpen,
-  } = useLumoraStore();
+  } = useExismicStore();
 
   useContextSync();
 

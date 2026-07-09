@@ -22,9 +22,9 @@ import {
 } from "@/lib/support-agent/types";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Lumora Support Agent - AI support agents for your website",
+  title: "Exismic Support Agent - AI support agents for your website",
   description:
-    "Create an AI customer support chatbot for your website. Train Lumora with FAQs, policies, documents, and product details, then embed it in minutes.",
+    "Create an AI customer support chatbot for your website. Train Exismic with FAQs, policies, documents, and product details, then embed it in minutes.",
   canonicalUrl: `${SITE_URL}/tools/support-agent`,
 });
 
@@ -44,14 +44,14 @@ export default function SupportAgentLandingPage() {
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100">
             <Bot className="h-4 w-4" />
-            Lumora Support Agent
+            Exismic Support Agent
           </div>
           <div className="space-y-5">
             <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               AI support agents for your website
             </h1>
             <p className="max-w-2xl text-base font-semibold leading-8 text-zinc-400 sm:text-lg">
-              Train Lumora with your FAQs, policies, documents, and product details. Then embed a support chatbot on your website in minutes.
+              Train Exismic with your FAQs, policies, documents, and product details. Then embed a support chatbot on your website in minutes.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -102,7 +102,7 @@ export default function SupportAgentLandingPage() {
           {[
             ["Create", "Set the agent name, business profile, tone, and first message."],
             ["Train", "Add the FAQs, policies, documents, and product details customers ask about."],
-            ["Embed", "Place the chat widget on your website and review every conversation from Lumora."],
+            ["Embed", "Place the chat widget on your website and review every conversation from Exismic."],
           ].map(([title, description], index) => (
             <div key={title} className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-sm font-black text-black">{index + 1}</div>
@@ -170,7 +170,7 @@ export default function SupportAgentLandingPage() {
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200">FAQ</p>
           <div className="mt-6 divide-y divide-white/10">
             {[
-              ["Can I train it with my own business information?", "Yes. Lumora Support Agent is designed around your FAQs, policies, documents, services, and product details."],
+              ["Can I train it with my own business information?", "Yes. Exismic Support Agent is designed around your FAQs, policies, documents, services, and product details."],
               ["Can I add it to my website?", "Yes. The website widget area is built for embed setup and brand customization."],
               ["Can it capture leads?", "Yes. Lead capture can be enabled per agent so interested visitors can leave contact details for follow-up."],
             ].map(([question, answer]) => (
@@ -196,7 +196,7 @@ function ProductPreview() {
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-400 text-sm font-black text-white">LS</div>
               <div>
-                <p className="text-sm font-black text-white">Lumora Support</p>
+                <p className="text-sm font-black text-white">Exismic Support</p>
                 <p className="text-xs font-bold text-zinc-500">Website assistant</p>
               </div>
             </div>

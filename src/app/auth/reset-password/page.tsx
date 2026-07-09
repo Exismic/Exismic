@@ -143,7 +143,7 @@ function ResetPasswordForm() {
     <div className="space-y-8">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight text-white">New Password</h2>
-        <p className="text-zinc-500 text-sm">Set a secure password for your Lumora account.</p>
+        <p className="text-zinc-500 text-sm">Set a secure password for your Exismic account.</p>
       </div>
 
       <form onSubmit={handleReset} className="space-y-4">
@@ -235,7 +235,7 @@ export default function ResetPasswordPage() {
               </div>
             </div>
             <h1 className="text-4xl font-black tracking-tighter text-white italic uppercase">
-              Lumora<span className="text-purple-500">.</span>
+              Exismic<span className="text-purple-500">.</span>
             </h1>
           </Link>
         </div>
@@ -251,7 +251,7 @@ export default function ResetPasswordPage() {
 
         <div className="text-center">
           <p className="text-zinc-600 text-[9px] font-black uppercase tracking-[0.4em]">
-            Lumora
+            Exismic
           </p>
         </div>
       </motion.div>

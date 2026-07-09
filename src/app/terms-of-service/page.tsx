@@ -25,7 +25,7 @@ const SECTIONS = [
     color: "text-accent-purple",
     bg: "bg-accent-purple/10",
     glow: "shadow-[0_0_30px_rgba(168,85,247,0.3)]",
-    content: "By accessing or using the Lumora platform, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, you may not access the platform or use any services."
+    content: "By accessing or using the Exismic platform, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, you may not access the platform or use any services."
   },
   {
     id: "conduct",
@@ -34,7 +34,7 @@ const SECTIONS = [
     color: "text-accent-cyan",
     bg: "bg-accent-cyan/10",
     glow: "shadow-[0_0_30px_rgba(34,211,238,0.3)]",
-    content: "You agree to use Lumora responsibly and legally. You shall not attempt to reverse engineer our AI models, use automated scraping tools, distribute malicious content, or use the service for any illegal activities."
+    content: "You agree to use Exismic responsibly and legally. You shall not attempt to reverse engineer our AI models, use automated scraping tools, distribute malicious content, or use the service for any illegal activities."
   },
   {
     id: "ip",
@@ -43,7 +43,7 @@ const SECTIONS = [
     color: "text-amber-400",
     bg: "bg-amber-400/10",
     glow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]",
-    content: "You retain all ownership rights to the original content you submit and the generations you create using Lumora. Lumora retains all intellectual property rights to the underlying platform, AI architectures, and user interface."
+    content: "You retain all ownership rights to the original content you submit and the generations you create using Exismic. Exismic retains all intellectual property rights to the underlying platform, AI architectures, and user interface."
   },
   {
     id: "payments",
@@ -52,7 +52,7 @@ const SECTIONS = [
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
     glow: "shadow-[0_0_30px_rgba(52,211,153,0.3)]",
-    content: "Lumora Pro subscriptions are billed in advance on a recurring basis. All fees are non-refundable unless legally required. You may cancel your subscription at any time, and you will retain access until the end of your current billing cycle."
+    content: "Exismic Pro subscriptions are billed in advance on a recurring basis. All fees are non-refundable unless legally required. You may cancel your subscription at any time, and you will retain access until the end of your current billing cycle."
   },
   {
     id: "privacy",
@@ -61,7 +61,7 @@ const SECTIONS = [
     color: "text-blue-400",
     bg: "bg-blue-400/10",
     glow: "shadow-[0_0_30px_rgba(96,165,250,0.3)]",
-    content: "Your privacy is critical to us. Our data collection and usage practices are governed by our Privacy Policy. By using Lumora, you agree to the terms outlined in our Privacy Policy.",
+    content: "Your privacy is critical to us. Our data collection and usage practices are governed by our Privacy Policy. By using Exismic, you agree to the terms outlined in our Privacy Policy.",
     link: { text: "Read Privacy Policy", url: "/privacy-policy" }
   },
   {
@@ -80,7 +80,7 @@ const SECTIONS = [
     color: "text-indigo-400",
     bg: "bg-indigo-400/10",
     glow: "shadow-[0_0_30px_rgba(129,140,248,0.3)]",
-    content: "Lumora is provided 'as is' without warranties of any kind. In no event shall Lumora or its directors, employees, or partners be liable for any indirect, incidental, or consequential damages arising from your use of the platform."
+    content: "Exismic is provided 'as is' without warranties of any kind. In no event shall Exismic or its directors, employees, or partners be liable for any indirect, incidental, or consequential damages arising from your use of the platform."
   },
   {
     id: "changes",
@@ -89,7 +89,7 @@ const SECTIONS = [
     color: "text-zinc-400",
     bg: "bg-zinc-400/10",
     glow: "shadow-[0_0_30px_rgba(161,161,170,0.3)]",
-    content: "We reserve the right to modify these terms at any time. We will notify you of significant changes via email or an in-app notice. Your continued use of Lumora after such changes constitutes acceptance of the new terms."
+    content: "We reserve the right to modify these terms at any time. We will notify you of significant changes via email or an in-app notice. Your continued use of Exismic after such changes constitutes acceptance of the new terms."
   }
 ];
 
@@ -246,7 +246,7 @@ export default function TermsPage() {
               If you have any questions about these terms or our practices, please don't hesitate to reach out to our legal team.
             </p>
             <div className="pt-6">
-              <a href="mailto:legal@lumora.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+              <a href="mailto:legal@exismic.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
                 Contact Legal Team <ArrowUpRight size={18} />
               </a>
             </div>

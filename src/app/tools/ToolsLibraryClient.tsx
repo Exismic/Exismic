@@ -75,7 +75,7 @@ export default function ToolsLibraryPage() {
                 <Cloud size={16} className="text-cyan-200" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100">Service-backed</p>
               </div>
-              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Uses Lumora backend, Modal, or AI providers for the core result.</p>
+              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Uses Exismic backend, Modal, or AI providers for the core result.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="flex items-center gap-3">
@@ -87,9 +87,9 @@ export default function ToolsLibraryPage() {
             <div className="rounded-2xl border border-amber-300/20 bg-amber-400/[0.05] p-4">
               <div className="flex items-center gap-3">
                 <Wrench size={16} className="text-amber-200" />
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-100">Beta or setup</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-100">Experimental</p>
               </div>
-              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Some advanced tools need provider setup before production-quality output.</p>
+              <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">Some advanced tools are still in active development and might have limited capacity.</p>
             </div>
           </div>
 

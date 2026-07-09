@@ -11,7 +11,7 @@ export function FavoritesMigration() {
   useEffect(() => {
     const migrateFavorites = async () => {
       try {
-        const localFavsRaw = localStorage.getItem('lumora-favorites');
+        const localFavsRaw = localStorage.getItem('exismic-favorites');
         if (!localFavsRaw) return;
         
         const localFavs = JSON.parse(localFavsRaw);
@@ -33,7 +33,7 @@ export function FavoritesMigration() {
         }
 
         // Clear local storage after successful migration
-        localStorage.removeItem('lumora-favorites');
+        localStorage.removeItem('exismic-favorites');
         console.log("Migration complete!");
         
         // Refresh the page to show the newly migrated favorites

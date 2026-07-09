@@ -11,7 +11,7 @@ export default function VideoBackgroundRemover() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [resultFileName, setResultFileName] = useState("lumora-transparent-video.webm");
+  const [resultFileName, setResultFileName] = useState("exismic-transparent-video.webm");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +53,7 @@ export default function VideoBackgroundRemover() {
         method: "POST",
         body: formData,
       });
-      const artifact = await readVideoResponse(response, "lumora-transparent-video.webm");
+      const artifact = await readVideoResponse(response, "exismic-transparent-video.webm");
       setResultUrl(artifact.url);
       setResultFileName(artifact.fileName);
     } catch (processingError) {
@@ -71,7 +71,7 @@ export default function VideoBackgroundRemover() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
-    setResultFileName("lumora-transparent-video.webm");
+    setResultFileName("exismic-transparent-video.webm");
     setError(null);
   };
 
@@ -95,7 +95,7 @@ export default function VideoBackgroundRemover() {
         </div>
         <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Choose a video</h2>
         <p className="mt-3 max-w-md text-sm leading-6 text-zinc-400 sm:text-base">
-          Lumora isolates the subject frame by frame and returns a transparent WebM with audio preserved.
+          Exismic isolates the subject frame by frame and returns a transparent WebM with audio preserved.
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
           <span className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-2">MP4, MOV, WebM, AVI</span>

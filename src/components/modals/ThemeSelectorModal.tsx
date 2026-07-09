@@ -150,7 +150,7 @@ export function ThemeSelectorModal({
                     Profile Themes 
                     <span className="px-2 py-0.5 rounded bg-gradient-to-r from-purple-500 to-pink-500 text-[7px] font-black tracking-widest text-white uppercase shadow-[0_0_10px_rgba(168,85,247,0.3)] animate-pulse">PRO ELITE</span>
                   </h3>
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">Customize your Lumora background, layout accents, and glows</p>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">Customize your Exismic background, layout accents, and glows</p>
                 </div>
               </div>
               <button

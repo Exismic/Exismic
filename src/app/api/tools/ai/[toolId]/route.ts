@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import axios from "axios";
+import { deductCredits, getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
@@ -85,34 +87,17 @@ export async function POST(
       const generatedText = groqResponse.data.choices[0].message.content;
 
       // Sync & Check Credits from Prisma
-      const dailyCredits = currentUser.dailyCredits ?? 0;
-      const lifetimeCredits = currentUser.lifetimeCredits ?? 0;
-      const totalCreditsAvailable = dailyCredits + lifetimeCredits;
-      const cost = 2;
+      const totalCreditsAvailable = getCreditTotal(currentUser);
+      const cost = getToolCreditCost(toolId, 4);
 
       if (totalCreditsAvailable < cost) {
         return NextResponse.json({ error: "Insufficient credits" }, { status: 403 });
       }
 
-      // Deduct Credits (Sync with Prisma)
-      let newLifetime = lifetimeCredits;
-      let newDaily = dailyCredits;
-
-      if (newLifetime >= cost) {
-        newLifetime -= cost;
-      } else {
-        const remaining = cost - newLifetime;
-        newLifetime = 0;
-        newDaily -= remaining;
+      const debitResult = await deductCredits(currentUser.id, cost, toolId);
+      if (!debitResult.success) {
+        return NextResponse.json({ error: debitResult.error || "Insufficient credits" }, { status: 403 });
       }
-
-      await prisma.user.update({
-        where: { id: currentUser.id },
-        data: {
-          lifetimeCredits: newLifetime,
-          dailyCredits: newDaily
-        }
-      });
 
       return NextResponse.json({ 
         success: true, 

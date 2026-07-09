@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 const VOICES = [
   {
     id: 'JBFqnCBsd6RMkjVDRZzb',
-    name: 'Lumora Narrator',
+    name: 'Exismic Narrator',
     accent: 'Multilingual',
     description: 'Clear, balanced',
   },

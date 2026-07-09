@@ -7,7 +7,7 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 async function callGroq(messages: any[], model: string = "llama-3.3-70b-versatile") {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
   const keys = rawKeys.split(",").map(k => k.trim()).filter(Boolean);
-  if (keys.length === 0) throw new Error("No Groq API keys configured");
+  if (keys.length === 0) throw new Error("The AI processing service is currently unavailable.");
 
   let lastError: any = null;
   for (const key of keys) {

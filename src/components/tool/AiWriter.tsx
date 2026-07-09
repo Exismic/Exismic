@@ -59,7 +59,7 @@ export default function AiWriter() {
     const url = URL.createObjectURL(new Blob([result], { type: "text/plain;charset=utf-8" }));
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `lumora-writing-${Date.now()}.txt`;
+    anchor.download = `exismic-writing-${Date.now()}.txt`;
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
   };

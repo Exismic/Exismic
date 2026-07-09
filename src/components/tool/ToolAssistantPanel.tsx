@@ -22,7 +22,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Category, Tool } from "@/data/tools";
-import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 
 interface ToolAssistantPanelProps {
   tool: Tool;
@@ -45,11 +45,77 @@ interface CoachResponse {
   error?: string;
 }
 
-const QUICK_PROMPTS = [
-  "Recommend the best settings for my goal",
-  "Explain the controls I can use",
-  "Help me improve the output quality",
-];
+function getToolPrompts(tool: Tool) {
+  if (tool.suggestions && tool.suggestions.length > 0) return tool.suggestions;
+
+  const name = tool.name;
+  
+  if (tool.category === "image") {
+    if (name.includes("Remover") || name.includes("Eraser")) {
+      return [
+        "How do I get cleaner cutout edges?",
+        "What image formats work best?",
+        "Explain the brush/refine settings",
+      ];
+    }
+    if (name.includes("Generator") || name.includes("Maker")) {
+      return [
+        "Help me write a detailed prompt",
+        "What art styles can I use?",
+        "How do I fix weird artifacts?",
+      ];
+    }
+    return [
+      `Recommend best settings for ${name}`,
+      "How can I avoid losing quality?",
+      "Explain the advanced controls",
+    ];
+  }
+  
+  if (tool.category === "video") {
+    return [
+      "What's the best export format/codec?",
+      "How do I compress without losing quality?",
+      `Explain the timeline controls`,
+    ];
+  }
+
+  if (tool.category === "audio") {
+    if (name.includes("Voice") || name.includes("Speech")) {
+      return [
+        "How do I make it sound more natural?",
+        "What's the best audio format?",
+        "Explain the voice pitch/speed controls",
+      ];
+    }
+    return [
+      "How to eliminate background hum/noise?",
+      "What bitrates should I use?",
+      `Recommend settings for ${name}`,
+    ];
+  }
+
+  if (tool.category === "ai" || name.includes("AI")) {
+    if (name.includes("Code")) {
+      return [
+        "Help me write the prompt for this feature",
+        "Can you explain the framework choices?",
+        "How do I handle syntax errors?",
+      ];
+    }
+    return [
+      "Write an optimized prompt for me",
+      "How can I make the output more creative?",
+      "Explain the advanced parameters",
+    ];
+  }
+
+  return [
+    `Recommend best settings for ${name}`,
+    `Explain how to use ${name}`,
+    "Help me improve the output quality",
+  ];
+}
 
 const TOOL_TARGET_SELECTORS: Partial<Record<Tool["id"], string[]>> = {
   "ai-writer": ["textarea[placeholder*='What should I write']"],
@@ -112,7 +178,7 @@ function collectVisibleSettings() {
   );
 
   controls.forEach((control) => {
-    if (control.closest("[data-lumora-assistant='true']")) return;
+    if (control.closest("[data-exismic-assistant='true']")) return;
 
     if (control instanceof HTMLSelectElement) {
       settings.push(
@@ -140,7 +206,7 @@ function collectVisibleSettings() {
 function isEligibleTextControl(
   control: HTMLInputElement | HTMLTextAreaElement,
 ) {
-  if (control.closest("[data-lumora-assistant='true']")) return false;
+  if (control.closest("[data-exismic-assistant='true']")) return false;
   if (control.disabled || control.readOnly) return false;
   const styles = window.getComputedStyle(control);
   return styles.display !== "none" && styles.visibility !== "hidden";
@@ -210,6 +276,7 @@ async function writeClipboard(text: string) {
 
 export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -218,6 +285,11 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
     createMessage("assistant", defaultIntro(tool)),
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowIntro(false), 2600);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     setMessages([createMessage("assistant", defaultIntro(tool))]);
@@ -241,8 +313,8 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
     const latestAssistant = [...messages]
       .reverse()
       .find((message) => message.role === "assistant" && message.followUps?.length);
-    return latestAssistant?.followUps?.slice(0, 3) || QUICK_PROMPTS;
-  }, [messages]);
+    return latestAssistant?.followUps?.slice(0, 3) || getToolPrompts(tool).slice(0, 3);
+  }, [messages, tool]);
 
   const askCoach = async (message: string) => {
     const cleanMessage = message.trim();
@@ -272,7 +344,7 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
 
       const data = (await response.json()) as CoachResponse;
       if (!response.ok || !data.reply) {
-        throw new Error(data.error || "Lumora AI is temporarily unavailable.");
+        throw new Error(data.error || "Exismic Ai is temporarily unavailable.");
       }
 
       setMessages((current) => [
@@ -284,7 +356,7 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
       ]);
     } catch (error) {
       const messageText =
-        error instanceof Error ? error.message : "Lumora AI is temporarily unavailable.";
+        error instanceof Error ? error.message : "Exismic Ai is temporarily unavailable.";
       setMessages((current) => [
         ...current,
         createMessage("assistant", messageText, { isError: true }),
@@ -330,123 +402,160 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
 
   return (
     <>
-      <motion.button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        aria-label={`Open Lumora AI for ${tool.name}`}
-        title={`Ask Lumora AI about ${tool.name}`}
-        initial={{ opacity: 0, scale: 0.75, y: 14 }}
-        animate={{ opacity: isOpen ? 0 : 1, scale: isOpen ? 0.8 : 1, y: 0 }}
-        whileHover={{ y: -4, scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        className={cn(
-          "fixed bottom-4 right-4 z-40 flex min-h-14 items-center gap-2 overflow-hidden rounded-lg border border-cyan-300/20 bg-[#06080d]/92 p-1.5 pr-3 text-cyan-50 shadow-[0_18px_55px_rgba(6,182,212,0.16)] backdrop-blur-2xl sm:bottom-7 sm:right-7",
-          isOpen && "pointer-events-none",
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 18, scale: 0.94 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.94 }}
+            transition={{ type: "spring", stiffness: 280, damping: 24 }}
+            className="fixed bottom-4 right-4 z-40 sm:bottom-7 sm:right-7"
+          >
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              className={cn(
+                "group relative isolate flex h-16 items-center justify-start overflow-hidden rounded-2xl p-[1px] text-left shadow-[0_22px_70px_rgba(0,0,0,0.58)] transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(109,40,217,0.24)]",
+                showIntro ? "w-[190px]" : "w-16 hover:w-[190px]"
+              )}
+              aria-label={`Ask Exismic Ai about ${tool.name}`}
+              title={`Ask Exismic Ai about ${tool.name}`}
+            >
+              <span className="absolute -inset-[120%] animate-[spin_3.6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,#7c3aed_72deg,#ec4899_125deg,#22d3ee_178deg,transparent_235deg)] opacity-80 motion-reduce:animate-none" />
+              <span className="absolute inset-[1px] rounded-[15px] bg-[linear-gradient(118deg,#070812_0%,#0c0a18_48%,#061018_100%)]" />
+              <span className="absolute inset-y-1 left-1 w-14 rounded-xl bg-[radial-gradient(circle,rgba(139,92,246,0.22),transparent_68%)] opacity-70 blur-md transition-opacity duration-500 group-hover:opacity-100" />
+              <span className="absolute inset-0 rounded-2xl bg-[linear-gradient(110deg,transparent_18%,rgba(255,255,255,0.08)_45%,transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <motion.span
+                aria-hidden="true"
+                initial={{ x: "-180%" }}
+                animate={{ x: "520%" }}
+                transition={{ delay: 0.35, duration: 1.2, ease: "easeInOut" }}
+                className="absolute inset-y-0 z-10 w-8 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent blur-sm"
+              />
+
+              <span className="relative z-20 flex size-[62px] shrink-0 items-center justify-center">
+                <ExismicMark size={50} />
+              </span>
+
+              <span
+                className={cn(
+                  "relative z-20 flex flex-col justify-center overflow-hidden whitespace-nowrap pr-5 transition-[max-width,opacity,transform] duration-500",
+                  showIntro
+                    ? "max-w-[140px] translate-x-0 opacity-100"
+                    : "max-w-0 -translate-x-2 opacity-0 group-hover:max-w-[140px] group-hover:translate-x-0 group-hover:opacity-100"
+                )}
+              >
+                <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-white">Ask Exismic Ai</span>
+                <span className="block truncate text-[9px] font-semibold text-zinc-500">{tool.name}</span>
+              </span>
+            </button>
+          </motion.div>
         )}
-      >
-        <span className="relative flex h-11 w-11 shrink-0 items-center justify-center">
-          <span className="absolute inset-0 animate-pulse rounded-lg bg-cyan-400/10" />
-          <LumoraMark size={42} />
-        </span>
-        <span className="hidden min-w-0 text-left sm:block">
-          <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-white">
-            Ask Lumora AI
-          </span>
-          <span className="block max-w-32 truncate text-[9px] font-semibold text-zinc-500">
-            {tool.name}
-          </span>
-        </span>
-      </motion.button>
+      </AnimatePresence>
 
       <AnimatePresence>
         {isOpen && (
           <motion.section
-            data-lumora-assistant="true"
+            data-exismic-assistant="true"
             initial={{ opacity: 0, y: 22, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 14, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="fixed inset-x-2 bottom-2 z-[70] mx-auto flex max-h-[min(82dvh,720px)] max-w-[460px] flex-col overflow-hidden rounded-lg border border-white/10 bg-[#05060a]/97 shadow-[0_28px_110px_rgba(0,0,0,0.8),0_0_70px_rgba(124,58,237,0.09)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:w-[440px]"
-            aria-label={`Lumora AI assistant for ${tool.name}`}
+            className="fixed inset-x-2 bottom-2 z-[70] mx-auto flex max-h-[min(82dvh,720px)] max-w-[460px] flex-col overflow-hidden rounded-[26px] border border-white/[0.1] bg-[linear-gradient(145deg,rgba(12,10,24,0.98),rgba(4,7,12,0.99)_55%,rgba(4,13,17,0.98))] shadow-[0_35px_120px_rgba(0,0,0,0.82),0_0_70px_rgba(91,33,182,0.13)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:w-[460px]"
+            aria-label={`Exismic Ai assistant for ${tool.name}`}
           >
-            <div className="relative border-b border-white/10 bg-white/[0.025] p-4">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-violet-400 via-cyan-300 to-fuchsia-400" />
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
-                    <LumoraMark size={42} />
+            <motion.div
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,#8b5cf6,#ec4899,#22d3ee,transparent)] bg-[length:220%_100%]"
+              animate={{ backgroundPosition: ["100% 0%", "-120% 0%"] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:28px_28px] opacity-30" />
+
+            <div className="relative z-10 flex items-center justify-between gap-4 border-b border-white/[0.07] bg-black/15 p-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <ExismicMark size={48} />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h2 className="bg-gradient-to-r from-white via-violet-100 to-cyan-100 bg-clip-text text-sm font-black uppercase tracking-[0.16em] text-transparent">
+                      Exismic Ai
+                    </h2>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-white">
-                        Lumora AI
-                      </p>
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
-                    </div>
-                    <p className="truncate text-[10px] font-semibold text-zinc-500">
-                      Connected to {category.name} / {tool.name}
-                    </p>
-                  </div>
+                  <p className="mt-0.5 truncate text-[10px] font-semibold text-zinc-500">
+                    Connected to {category.name} / {tool.name}
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="flex h-11 w-11 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-zinc-500 transition-colors hover:bg-white/[0.07] hover:text-white"
-                  aria-label="Close Lumora AI"
-                >
-                  <X size={17} />
-                </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-zinc-500 transition hover:rotate-90 hover:border-fuchsia-300/20 hover:bg-fuchsia-300/[0.06] hover:text-white"
+                aria-label="Close Exismic Ai"
+              >
+                <X size={17} />
+              </button>
             </div>
 
-            <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4 custom-scrollbar">
+            <div ref={scrollRef} className="custom-scrollbar relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto px-3.5 py-4 sm:p-5">
               {messages.map((message) => (
-                <article
+                <motion.div
                   key={message.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className={cn(
-                    "group relative border p-3.5 text-sm font-medium leading-relaxed",
-                    message.role === "assistant"
-                      ? "mr-6 rounded-lg border-cyan-300/10 bg-cyan-300/[0.035] text-zinc-300"
-                      : "ml-9 rounded-lg border-violet-300/15 bg-violet-400/[0.08] text-white",
-                    message.isError && "border-red-400/20 bg-red-400/[0.06] text-red-100",
+                    "space-y-3",
+                    message.role === "user" ? "ml-6 sm:ml-10" : "mr-6 sm:mr-10"
                   )}
                 >
-                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                  <div
+                    className={cn(
+                      "rounded-2xl border px-4 py-3.5 text-sm font-medium leading-relaxed shadow-lg",
+                      message.role === "assistant"
+                        ? "border-white/[0.08] bg-[linear-gradient(120deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] text-zinc-300"
+                        : "border-violet-300/20 bg-[linear-gradient(120deg,rgba(124,58,237,0.16),rgba(34,211,238,0.06))] text-white",
+                      message.isError && "border-red-400/20 bg-[linear-gradient(120deg,rgba(248,113,113,0.16),rgba(248,113,113,0.06))] text-red-100",
+                    )}
+                  >
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
 
-                  {message.role === "assistant" && !message.isError && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-2.5">
-                      <button
-                        type="button"
-                        onClick={() => void copyMessage(message)}
-                        className="flex min-h-9 items-center gap-1.5 rounded-md border border-white/[0.08] px-2.5 text-[9px] font-black uppercase tracking-wider text-zinc-500 transition hover:bg-white/[0.05] hover:text-white"
-                      >
-                        {copiedId === message.id ? <Check size={12} /> : <Copy size={12} />}
-                        {copiedId === message.id ? "Copied" : "Copy"}
-                      </button>
-                      {message.draft && (
+                    {message.role === "assistant" && !message.isError && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-2.5">
                         <button
                           type="button"
-                          onClick={() => void applyDraft(message.draft || "")}
-                          className="flex min-h-9 items-center gap-1.5 rounded-md border border-violet-300/20 bg-violet-400/[0.08] px-2.5 text-[9px] font-black uppercase tracking-wider text-violet-100 transition hover:bg-violet-400/[0.14]"
+                          onClick={() => void copyMessage(message)}
+                          className="flex min-h-9 items-center gap-1.5 rounded-md border border-white/[0.08] px-2.5 text-[9px] font-black uppercase tracking-wider text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
                         >
-                          <WandSparkles size={12} />
-                          Use in tool
+                          {copiedId === message.id ? <Check size={12} /> : <Copy size={12} />}
+                          {copiedId === message.id ? "Copied" : "Copy"}
                         </button>
-                      )}
-                    </div>
-                  )}
-                </article>
+                        {message.draft && (
+                          <button
+                            type="button"
+                            onClick={() => void applyDraft(message.draft || "")}
+                            className="flex min-h-9 items-center gap-1.5 rounded-md border border-violet-300/20 bg-violet-400/[0.08] px-2.5 text-[9px] font-black uppercase tracking-wider text-violet-200 transition hover:bg-violet-400/[0.14] hover:text-white"
+                          >
+                            <WandSparkles size={12} />
+                            Use in tool
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
               ))}
 
               {isLoading && (
-                <div className="mr-16 flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                  <Loader2 size={14} className="animate-spin text-cyan-300" />
-                  Reading this tool
+                <div className="flex items-center gap-3 rounded-xl border border-violet-300/15 bg-violet-300/[0.045] px-4 py-3.5 text-xs font-semibold text-zinc-400 mr-10">
+                  <span className="relative flex size-8 items-center justify-center rounded-lg border border-violet-300/15 bg-black/20">
+                    <Loader2 size={14} className="animate-spin text-cyan-300" />
+                  </span>
+                  Reading this tool...
                 </div>
               )}
             </div>
 
-            <div className="border-t border-white/10 bg-black/20 p-3.5">
+            <div className="relative z-10 border-t border-white/[0.07] bg-black/25 p-3.5 sm:p-4">
               <div className="mb-3 flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
                 {followUps.map((prompt) => (
                   <button
@@ -454,7 +563,7 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
                     type="button"
                     onClick={() => void askCoach(prompt)}
                     disabled={isLoading}
-                    className="min-h-10 shrink-0 rounded-md border border-white/10 bg-white/[0.025] px-3 text-[9px] font-black uppercase tracking-wider text-zinc-400 transition hover:border-cyan-300/20 hover:bg-cyan-300/[0.05] hover:text-cyan-50 disabled:opacity-40"
+                    className="min-h-10 shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.025] px-3.5 text-[9px] font-black uppercase tracking-wider text-zinc-400 transition hover:-translate-y-0.5 hover:border-violet-300/25 hover:bg-violet-300/[0.055] hover:text-white disabled:opacity-40 active:scale-[0.99]"
                   >
                     {prompt}
                   </button>
@@ -468,15 +577,15 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="flex items-end gap-2">
+              <form onSubmit={handleSubmit} className="group/composer flex items-end gap-2 rounded-xl border border-white/[0.09] bg-black/35 p-1.5 shadow-inner transition focus-within:border-violet-300/25 focus-within:shadow-[0_0_28px_rgba(124,58,237,0.08)]">
                 <div className="relative min-w-0 flex-1">
                   <textarea
-                    data-lumora-assistant="true"
+                    data-exismic-assistant="true"
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     onKeyDown={handleInputKeyDown}
                     placeholder={`Ask about ${tool.name}...`}
-                    className="max-h-32 min-h-12 w-full resize-none rounded-md border border-white/10 bg-black/45 px-3.5 py-3 pr-10 text-sm font-medium text-white outline-none transition-all placeholder:text-zinc-700 focus:border-cyan-300/35 focus:bg-black/60"
+                    className="max-h-32 min-h-12 w-full resize-none bg-transparent px-3 py-3 pr-10 text-sm font-medium text-white outline-none placeholder:text-zinc-700"
                     rows={1}
                   />
                   <CornerDownLeft
@@ -487,14 +596,14 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-cyan-200/20 bg-gradient-to-br from-violet-600 via-blue-500 to-cyan-400 text-white shadow-[0_8px_24px_rgba(34,211,238,0.18)] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:grayscale disabled:opacity-35"
-                  aria-label="Ask Lumora AI"
+                  className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[linear-gradient(135deg,#7c3aed,#2563eb_52%,#06b6d4)] text-white shadow-[0_10px_28px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:brightness-115 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-label="Ask Exismic Ai"
                 >
                   {isLoading ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
                 </button>
               </form>
 
-              <div className="mt-2.5 flex items-center justify-between gap-3 text-[8px] font-bold uppercase tracking-[0.14em] text-zinc-700">
+              <div className="mt-2.5 flex items-center justify-between gap-3 px-1 text-[8px] font-bold uppercase tracking-[0.14em] text-zinc-700">
                 <span className="flex items-center gap-1.5">
                   <SlidersHorizontal size={10} />
                   Reads active controls

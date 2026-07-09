@@ -137,7 +137,7 @@ export const useIdeStore = create<IdeState>()(
       setDiffCode: (diff) => set({ diffCode: diff }),
     }),
     {
-      name: 'lumora-studio-v2',
+      name: 'exismic-studio-v2',
       partialize: (state) => ({
         files: state.files,
         openFileIds: state.openFileIds,

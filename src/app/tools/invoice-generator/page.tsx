@@ -6,7 +6,7 @@ import { InvoiceGeneratorClient } from "@/components/tool/InvoiceGenerator";
 export const metadata: Metadata = constructMetadata({
   title: "Free Invoice Generator - Create Professional Invoices Online",
   description: "Create professional, branded invoices for your business or freelance work with our free AI-powered invoice generator. Custom templates, tax calculation, and more.",
-  canonicalUrl: "https://lumoraai.online/tools/invoice-generator",
+  canonicalUrl: "https://exismicai.online/tools/invoice-generator",
 });
 
 export default function InvoiceGeneratorPage() {

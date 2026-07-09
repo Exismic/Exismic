@@ -22,20 +22,20 @@ export function JsonLd({ type, data }: SEOProps) {
 
 export const defaultSchemaData = {
   organization: {
-    name: 'Lumora',
-    url: 'https://www.lumoraai.online',
-    logo: 'https://www.lumoraai.online/logo.png',
+    name: 'Exismic',
+    url: 'https://www.exismicai.online',
+    logo: 'https://www.exismicai.online/logo.png',
     sameAs: [
-      'https://twitter.com/lumoraai',
-      'https://github.com/lumoraai',
+      'https://twitter.com/exismicai',
+      'https://github.com/exismicai',
     ],
   },
   website: {
-    name: 'Lumora AI',
-    url: 'https://www.lumoraai.online',
+    name: 'Exismic Ai',
+    url: 'https://www.exismicai.online',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://www.lumoraai.online/tools?q={search_term_string}',
+      target: 'https://www.exismicai.online/tools?q={search_term_string}',
       'query-input': 'required name=search_term_string',
     },
   },

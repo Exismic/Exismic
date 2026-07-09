@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { deductCredits, getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,10 +35,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const dailyCredits = user.dailyCredits ?? 0;
-    const lifetimeCredits = user.lifetimeCredits ?? 0;
-    const totalCreditsAvailable = dailyCredits + lifetimeCredits;
-    const cost = 5;
+    const totalCreditsAvailable = getCreditTotal(user);
+    const cost = getToolCreditCost("ai-writer", 6);
 
     if (totalCreditsAvailable < cost) {
       return NextResponse.json({ error: "Insufficient credits. AI Writer costs 5 credits." }, { status: 403 });
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (!GROQ_API_KEY) {
-      return NextResponse.json({ error: "Groq API Key not found in environment." }, { status: 500 });
+      return NextResponse.json({ error: "The AI text generation service is currently unavailable. Please try again later." }, { status: 500 });
     }
 
     const systemPrompt = `You are a world-class AI writing assistant. 
@@ -83,25 +83,10 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     const content = data.choices[0]?.message?.content;
 
-    // 2. Deduct Credits only on SUCCESS
-    let newLifetime = lifetimeCredits;
-    let newDaily = dailyCredits;
-
-    if (newLifetime >= cost) {
-      newLifetime -= cost;
-    } else {
-      const remaining = cost - newLifetime;
-      newLifetime = 0;
-      newDaily = Math.max(0, newDaily - remaining);
+    const debitResult = await deductCredits(sbUser.id, cost, "ai-writer");
+    if (!debitResult.success) {
+      return NextResponse.json({ error: debitResult.error || "Insufficient credits." }, { status: 403 });
     }
-
-    await prisma.user.update({
-      where: { id: sbUser.id },
-      data: {
-        lifetimeCredits: newLifetime,
-        dailyCredits: newDaily
-      }
-    });
 
     return NextResponse.json({ content });
 
@@ -110,4 +95,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message || "An error occurred during generation." }, { status: 500 });
   }
 }
-

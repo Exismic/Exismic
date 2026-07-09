@@ -9,7 +9,9 @@ import {
   ArrowRight,
   Sparkles,
   Crown,
-  Loader2
+  Loader2,
+  CreditCard,
+  ExternalLink
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -72,81 +74,27 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
     setIsProcessing(true);
 
     try {
-      // 1. Create order on server
-      const currency = isIndia ? "INR" : "USD";
-
-      const orderRes = await fetch('/api/razorpay/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          plan: 'credits',
-          currency,
-          tierId: tier.id
+      const orderRes = await fetch("/api/paypal/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: "credits",
+          tierId: tier.id,
         }),
       });
 
-      if (!orderRes.ok) throw new Error('Failed to create order');
-      const order = await orderRes.json();
-
-      // 2. Initialize Razorpay Checkout
-      const options = {
-        key: order.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YourKeyHere",
-        amount: order.amount,
-        currency: order.currency,
-        name: "Lumora Credits",
-        description: `Purchase of ${tier.credits} AI Credits`,
-        image: "/logo.png",
-        order_id: order.id,
-        handler: async function (response: RazorpayResponse) {
-          try {
-            // 3. Verify on server
-            const verifyRes = await fetch('/api/razorpay/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                plan: 'credits',
-                tierId: tier.id,
-                isINR: isIndia
-              }),
-            });
-
-            const verifyData = await verifyRes.json().catch(() => ({ error: "Payment verification returned an invalid response." }));
-
-            if (verifyRes.ok && verifyData.success) {
-               setLastCreditsAdded(tier.credits);
-               setShowSuccess(true);
-               refreshCredits(); // Refresh the local credit state
-            } else {
-               console.error("Credit payment verification failed:", verifyData);
-               setShowFailure(true);
-            }
-          } catch (verifyErr) {
-            console.error("Verification failed:", verifyErr);
-            setShowFailure(true);
-          }
-        },
-        modal: {
-          ondismiss: function() {
-            setIsProcessing(false);
-          }
-        },
-        theme: {
-          color: "#7c3aed",
-        },
-      };
-
-      const checkoutWindow = window as Window & { Razorpay?: RazorpayConstructor };
-      if (!checkoutWindow.Razorpay) {
-        throw new Error("Payment checkout failed to load. Please refresh and try again.");
+      const data = await orderRes.json().catch(() => null);
+      if (!orderRes.ok || !data?.approvalUrl) {
+        console.warn("[PayPal] Credit modal checkout unavailable:", data?.error || "Could not start PayPal checkout.");
+        setShowFailure(true);
+        setIsProcessing(false);
+        return;
       }
-      const rzp = new checkoutWindow.Razorpay(options);
-      rzp.open();
+
+      window.location.href = data.approvalUrl;
     } catch (err) {
-      console.error("Payment failed:", err);
-    } finally {
+      console.warn("PayPal checkout unavailable:", err instanceof Error ? err.message : err);
+      setShowFailure(true);
       setIsProcessing(false);
     }
   };
@@ -193,7 +141,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                     Refuel your <GradientText>Permanent Reserve.</GradientText>
                  </h2>
                  <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-                    Purchase credits that <span className="text-white">never expire.</span> Permanent credits are used before your daily allowance.
+                    Purchase credits that <span className="text-white">never expire.</span> Daily and bonus credits are used first, then permanent reserve.
                  </p>
               </div>
 
@@ -253,7 +201,12 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                             <div className="space-y-1">
                                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 italic">{tier.label}</h4>
                                <div className="flex items-baseline gap-2">
-                                  <span className="text-4xl font-black text-white italic">{tier.credits}</span>
+                                  <span className={cn(
+                                    "bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent text-5xl font-black italic",
+                                    tier.color === 'blue' ? "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]" :
+                                    tier.color === 'purple' ? "bg-[linear-gradient(110deg,#fff,#c084fc,#06b6d4,#fff)] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" :
+                                    "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]"
+                                  )}>{tier.credits}</span>
                                   <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">PERM</span>
                                </div>
                             </div>
@@ -291,19 +244,37 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                   <div className="flex flex-col items-center gap-6 pt-6">
                      <button 
                        onClick={handlePurchase}
-                       disabled={!selectedTier || isProcessing}
+                       disabled={!selectedTier || isProcessing || !paymentsEnabled}
                        className={cn(
-                         "w-full max-w-sm h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] italic transition-all flex items-center justify-center gap-4",
-                         selectedTier && !isProcessing
-                           ? "premium-gradient text-white shadow-4xl hover:scale-[1.02] active:scale-98"
-                           : "bg-white/5 text-zinc-700 cursor-not-allowed"
+                         "group relative flex h-16 w-full max-w-sm items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.4em] text-[10px] italic transition-all duration-500",
+                         selectedTier && paymentsEnabled
+                           ? "text-white shadow-[0_0_30px_-5px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_-10px_rgba(34,211,238,0.6)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95"
+                           : "text-zinc-600 bg-white/5 cursor-not-allowed"
                        )}
                      >
-                        {isProcessing ? (
-                          <Loader2 className="animate-spin" size={20} />
-                        ) : (
-                          <>Initialize Purchase <ArrowRight size={18} /></>
+                        {selectedTier && paymentsEnabled && (
+                          <span className="absolute inset-0 bg-[linear-gradient(110deg,#06b6d4,#3b82f6,#a855f7,#06b6d4)] bg-[length:300%_auto] animate-gradient-x" />
                         )}
+                        <div className={cn(
+                          "relative z-10 flex h-full w-full items-center justify-center gap-4 rounded-2xl px-5 transition-all duration-500",
+                          selectedTier && paymentsEnabled ? "bg-[#030303] group-hover:bg-transparent" : "bg-transparent"
+                        )}>
+                          {selectedTier && paymentsEnabled && (
+                            <>
+                              <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
+                              <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.25),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
+                            </>
+                          )}
+                          <div className="relative z-20 flex items-center gap-4 text-[11px] sm:text-[12px]">
+                            {isProcessing ? (
+                               <><Loader2 size={18} className="animate-spin text-cyan-400" /> <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]">Processing...</span></>
+                            ) : selectedTier && paymentsEnabled ? (
+                               <><Zap size={16} className="text-cyan-400 group-hover:text-white transition-colors duration-300 animate-pulse" /> <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,1)] group-hover:text-cyan-50">Complete checkout</span> <ArrowRight size={16} className="text-cyan-400 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" /></>
+                            ) : (
+                               <span className="font-black text-zinc-400 tracking-widest">Live checkout soon</span>
+                            )}
+                          </div>
+                        </div>
                      </button>
                      <div className="flex items-center gap-4 text-zinc-700">
                         <ShieldCheck size={14} />

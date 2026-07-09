@@ -64,7 +64,7 @@ const DEFAULT_HISTORY_PREFERENCES = {
 
 function readHistoryPreferences() {
   if (typeof window === "undefined") return DEFAULT_HISTORY_PREFERENCES;
-  const rawPreferences = window.localStorage.getItem("lumora:user-preferences");
+  const rawPreferences = window.localStorage.getItem("exismic:user-preferences");
   if (!rawPreferences) return DEFAULT_HISTORY_PREFERENCES;
 
   try {
@@ -115,7 +115,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
         highFidelityPreview: typeof detail.highFidelityPreview === "boolean" ? detail.highFidelityPreview : false,
       });
     };
-    window.addEventListener("lumora-preferences-updated", handlePreferencesUpdate);
+    window.addEventListener("exismic-preferences-updated", handlePreferencesUpdate);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session?.user) {
@@ -130,7 +130,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener("lumora-preferences-updated", handlePreferencesUpdate);
+      window.removeEventListener("exismic-preferences-updated", handlePreferencesUpdate);
     };
   }, [limit, supabase]);
 

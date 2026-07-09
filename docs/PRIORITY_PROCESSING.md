@@ -1,10 +1,10 @@
-# Lumora Priority Processing
+# Exismic Priority Processing
 
 This implementation adds a priority-processing layer for Pro users without forcing every heavy tool into a new async queue contract immediately.
 
 ## Current Flow
 
-1. Next.js checks the authenticated user's Lumora plan.
+1. Next.js checks the authenticated user's Exismic plan.
 2. Pro or active-subscription users are tagged as:
    - `priority: true`
    - `queue: "priority"`
@@ -63,9 +63,9 @@ For the background remover, both workers can reuse `python-api/modal_bg_remover.
 
 ## BullMQ/Redis Phase
 
-When Lumora needs true async queueing, add Redis + BullMQ with two named queues:
+When Exismic needs true async queueing, add Redis + BullMQ with two named queues:
 
-- `lumora-normal`
-- `lumora-priority`
+- `exismic-normal`
+- `exismic-priority`
 
-Next.js should enqueue job data with `priority: true` for Pro users, and workers should consume `lumora-priority` before `lumora-normal`. The current metadata fields already match that future contract, so the UI and job history do not need to change.
+Next.js should enqueue job data with `priority: true` for Pro users, and workers should consume `exismic-priority` before `exismic-normal`. The current metadata fields already match that future contract, so the UI and job history do not need to change.

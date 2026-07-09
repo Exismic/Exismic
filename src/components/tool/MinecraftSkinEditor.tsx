@@ -427,7 +427,7 @@ export function MinecraftSkinEditor({
       setOriginalPixels(new Uint8ClampedArray(pixels));
       setUndoStack([]);
       setRedoStack([]);
-      setMessage("Pixel edits saved to your Lumora history.");
+      setMessage("Pixel edits saved to your Exismic history.");
       onSaved(payload.skinUrl);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save the edited skin.");
@@ -445,7 +445,7 @@ export function MinecraftSkinEditor({
       await onAiEdit(aiCommand.trim(), partToApi(part), pixelsToDataUrl(pixels));
       setAiCommand("");
     } catch (aiError) {
-      setError(aiError instanceof Error ? aiError.message : "Lumora could not apply that edit.");
+      setError(aiError instanceof Error ? aiError.message : "Exismic could not apply that edit.");
     } finally {
       setIsAiEditing(false);
     }
@@ -648,7 +648,7 @@ export function MinecraftSkinEditor({
           </div>
 
           <div>
-            <p className="mb-2 text-[11px] font-bold text-zinc-300">Lumora AI edit</p>
+            <p className="mb-2 text-[11px] font-bold text-zinc-300">Exismic Ai edit</p>
             <textarea
               value={aiCommand}
               onChange={(event) => setAiCommand(event.target.value.slice(0, 240))}

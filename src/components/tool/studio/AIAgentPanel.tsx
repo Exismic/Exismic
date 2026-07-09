@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useLumoraStore } from "./useLumoraStore";
+import { useExismicStore } from "./useExismicStore";
 import axios from "axios";
 
 type Message = {
@@ -23,12 +23,12 @@ type Message = {
 };
 
 export function AIAgentPanel() {
-  const { files, activeFileId, fileContents, addFile, updateFileContent, setDiffCode, setActiveTab, openFile } = useLumoraStore();
+  const { files, activeFileId, fileContents, addFile, updateFileContent, setDiffCode, setActiveTab, openFile } = useExismicStore();
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: '1', 
       role: 'assistant', 
-      content: "I'm the Lumora Studio Agent. I can write code, refactor files, and help you build entire features. How can I help?" 
+      content: "I'm the Exismic Studio Agent. I can write code, refactor files, and help you build entire features. How can I help?" 
     }
   ]);
   const [input, setInput] = useState("");
@@ -53,7 +53,7 @@ export function AIAgentPanel() {
 
       const response = await axios.post("/api/tools/ai/chat", {
         messages: [
-          { role: 'system', content: "You are the Lumora Studio AI Agent. You help users build web applications. You can suggest creating new files or editing existing ones. Always wrap code in triple backticks with the language specified. When suggesting a full file implementation, try to be concise and correct." },
+          { role: 'system', content: "You are the Exismic Studio AI Agent. You help users build web applications. You can suggest creating new files or editing existing ones. Always wrap code in triple backticks with the language specified. When suggesting a full file implementation, try to be concise and correct." },
           ...messages.map(m => ({ role: m.role, content: m.content })),
           { role: 'user', content: input + context }
         ]
@@ -67,7 +67,7 @@ export function AIAgentPanel() {
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      setMessages(prev => [...prev, { id: 'err', role: 'assistant', content: "Error connecting to Groq. Please check your API key." }]);
+      setMessages(prev => [...prev, { id: 'err', role: 'assistant', content: "Error connecting to the AI processing service. Please try again later." }]);
     } finally {
       setIsGenerating(false);
     }

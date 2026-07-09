@@ -11,19 +11,19 @@ interface MetadataProps {
   type?: 'website' | 'article';
 }
 
-export const SITE_URL = "https://www.lumoraai.online";
+export const SITE_URL = "https://www.exismicai.online";
 
 export function constructMetadata({
-  title = "Lumora - All-in-One AI Tools | Image, Video, Audio & More",
+  title = "Exismic - All-in-One AI Tools | Image, Video, Audio & More",
   description = "The elite AI-powered studio. Remove backgrounds, generate images, edit videos, restore photos, and create music — everything you need in one simple place.",
   image = "/og-image.png",
-  icons = "/favicon.png",
+  icons = "/exismic-app-icon-transparent.png?v=1",
   noIndex = false,
   canonicalUrl,
   type = 'website',
 }: MetadataProps = {}): Metadata {
   const resolvedCanonicalUrl = canonicalUrl?.replace(
-    /^https:\/\/lumoraai\.online(?=\/|$)/,
+    /^https:\/\/exismicai\.online(?=\/|$)/,
     SITE_URL,
   );
   
@@ -36,14 +36,14 @@ export function constructMetadata({
     keywords: [
       "AI tools", "free background remover", "AI image generator", 
       "vocal remover", "AI writer", "photo restorer", "PDF tools", 
-      "lumora", "AI video editor", "magic eraser online", "screenshot to code",
+      "exismic", "AI video editor", "magic eraser online", "screenshot to code",
       "AI resume builder", "social caption generator", "invoice generator"
     ],
     openGraph: {
       title,
       description,
       url: resolvedCanonicalUrl || SITE_URL,
-      siteName: "Lumora AI",
+      siteName: "Exismic Ai",
       images: [
         {
           url: image,
@@ -59,7 +59,7 @@ export function constructMetadata({
       title,
       description,
       images: [image],
-      creator: "@lumoraai",
+      creator: "@exismicai",
     },
     icons: {
       icon: icons,
@@ -97,7 +97,7 @@ export function getToolMetadata(toolId: string, categoryId?: string) {
   if (!tool) return constructMetadata();
 
   return constructMetadata({
-    title: tool.seoTitle || `${tool.name} - Free AI Powered Online Tool | Lumora`,
+    title: tool.seoTitle || `${tool.name} - Free AI Powered Online Tool | Exismic`,
     description: tool.seoDescription || tool.description,
     canonicalUrl: `${SITE_URL}${tool.href}`,
   });
@@ -108,7 +108,7 @@ export function getCategoryMetadata(categoryId: string) {
   if (!category) return constructMetadata();
 
   return constructMetadata({
-    title: `${category.name} - Professional AI Tools Online | Lumora`,
+    title: `${category.name} - Professional AI Tools Online | Exismic`,
     description: `Access our elite suite of AI-powered ${category.name.toLowerCase()}. ${category.description} Free, fast, and studio-grade results.`,
     canonicalUrl: `${SITE_URL}/category/${category.id}`,
   });

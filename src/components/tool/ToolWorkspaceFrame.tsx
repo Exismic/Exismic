@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, Share2, Star, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Share2, Star, FlaskConical, type LucideIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ToolReliabilityBadge } from "@/components/tool/ToolReliability";
+import { CATEGORY_ANIM_STYLES, type CategoryAnimStyle } from "@/lib/category-styles";
 
 export function ToolWorkspaceHeader({
   name,
@@ -43,28 +44,78 @@ export function ToolWorkspaceHeader({
       </Link>
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex min-w-0 items-start gap-4 sm:gap-5">
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.09] bg-[#0b0c12] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_14px_35px_rgba(0,0,0,0.35)] sm:h-16 sm:w-16">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-fuchsia-400/60 via-violet-400/60 to-cyan-300/60" />
-            <Icon size={27} className={cn("relative z-10", isPro ? "text-violet-300" : "text-cyan-100")} />
+        <div className="flex min-w-0 items-start gap-5 sm:gap-7">
+          {/* Logo Box Container */}
+          <div className="relative group flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center">
+             {/* Idle ambient breathing aura */}
+             <div className={cn("absolute -inset-4 rounded-full blur-2xl animate-pulse", isPro ? "bg-amber-500/25" : (CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20"))} />
+             
+             {/* Spinning gradient border (idle) */}
+             <div className={cn("absolute inset-0 rounded-2xl animate-[spin_4s_linear_infinite]",
+               isPro ? "bg-[conic-gradient(from_0deg,rgba(251,191,36,1)_0%,rgba(245,158,11,1)_33%,rgba(253,230,138,1)_66%,rgba(251,191,36,1)_100%)]"
+                     : (CATEGORY_ANIM_STYLES[categoryId]?.spinIdle || CATEGORY_ANIM_STYLES.pdf.spinIdle)
+             )} />
+             
+             {/* Inner glass box to cover the middle of the spinning gradient, leaving only the border */}
+             <div className="absolute inset-[2px] rounded-[14px] bg-[#0b0c12] flex items-center justify-center overflow-hidden z-10 transition-transform duration-300 group-hover:scale-[0.98]">
+                {/* Subtle glass reflection */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
+                
+                {/* Floating icon */}
+                <motion.div
+                  animate={{ y: [0, -3, 0] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                >
+                  <Icon size={32} className={cn("relative z-20 transition-transform duration-300 group-hover:scale-110", isPro ? "text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]" : (CATEGORY_ANIM_STYLES[categoryId]?.iconGlow || CATEGORY_ANIM_STYLES.pdf.iconGlow))} />
+                </motion.div>
+
+                {/* Shimmer sweep effect (idle) */}
+                <motion.div
+                  className="absolute top-0 left-[-100%] h-full w-[50%] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] z-30"
+                  animate={{ left: ["-100%", "200%"] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "linear", repeatDelay: 1 }}
+                />
+             </div>
           </div>
 
-          <div className="min-w-0 pt-0.5">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="text-[8px] font-black uppercase tracking-[0.18em] text-cyan-200/70">
+          <div className="min-w-0 pt-1 sm:pt-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] shadow-lg", isPro ? "border border-amber-400/30 bg-amber-400/10 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]" : (CATEGORY_ANIM_STYLES[categoryId]?.badge || CATEGORY_ANIM_STYLES.pdf.badge))}>
                 {categoryName} workspace
               </span>
               {isPro && (
-                <span className="rounded-full border border-violet-300/20 bg-violet-300/[0.08] px-2 py-1 text-[7px] font-black uppercase tracking-[0.16em] text-violet-200">
-                  Pro
+                <span className="relative overflow-hidden rounded-full border border-amber-400/50 bg-amber-400/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.16em] text-amber-200 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                  <span className="absolute inset-0 bg-[linear-gradient(110deg,transparent_20%,rgba(255,255,255,0.4)_50%,transparent_80%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
+                  <span className="relative z-10">Pro</span>
                 </span>
               )}
               <ToolReliabilityBadge toolId={toolId} />
             </div>
-            <h1 className="break-words text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-[1.02] tracking-tight text-white">
-              {name}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-zinc-500 sm:text-[15px]">
+            
+            <div className="relative inline-block">
+               {/* Background glow for the text */}
+               <h1 className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.05] tracking-tight blur-xl opacity-30 select-none pointer-events-none", isPro ? "text-amber-400" : "text-white")}>
+                 {name}
+               </h1>
+               <div className="relative flex items-center gap-4">
+                 <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.05] tracking-tight text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                   isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]"
+                         : (CATEGORY_ANIM_STYLES[categoryId]?.textGrad || CATEGORY_ANIM_STYLES.pdf.textGrad)
+                 )}>
+                   {name}
+                 </h1>
+                 {toolId === 'image-minecraft-skin' && (
+                   <div className="group relative flex cursor-help items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-cyan-300 backdrop-blur-md transition hover:bg-cyan-400/20">
+                     <FlaskConical size={14} className="mr-1.5" /> BETA
+                     <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[#0b0c12] px-3 py-2 text-[10px] font-medium normal-case tracking-normal text-zinc-300 opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
+                       This tool is currently under testing.
+                     </div>
+                   </div>
+                 )}
+               </div>
+            </div>
+            
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-zinc-400 sm:text-base">
               {description}
             </p>
           </div>

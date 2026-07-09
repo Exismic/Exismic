@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SupportAgentModulePage } from "@/components/support-agent/SupportAgentModulePage";
 
 export const metadata: Metadata = {
-  title: "Support Agent Knowledge - Lumora",
+  title: "Support Agent Knowledge - Exismic",
 };
 
 export default async function SupportAgentKnowledgePage({ params }: { params: Promise<{ id: string }> }) {

@@ -33,7 +33,7 @@ export default function TrustedLoginApprovalPage() {
     setDetails({
       challengeId: params.get("challenge") || "",
       approvalToken: params.get("token") || "",
-      email: params.get("email") || "your Lumora account",
+      email: params.get("email") || "your Exismic account",
       device: params.get("device") || "Unknown device",
       ip: params.get("ip") || "Unknown network",
       time: params.get("time") || "",
@@ -124,7 +124,7 @@ export default function TrustedLoginApprovalPage() {
               ? result === "approved"
                 ? "The requesting browser is completing sign-in now."
                 : "That browser will not receive access to your account."
-              : "A browser is asking to access your Lumora account."}
+              : "A browser is asking to access your Exismic account."}
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function TrustedLoginApprovalPage() {
 
               <div className="flex items-start gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[0.045] p-4 text-[11px] leading-relaxed text-zinc-400">
                 <AlertTriangle className="mt-0.5 shrink-0 text-amber-200" size={17} />
-                Approve only if you started this login. Lumora will never ask you to approve a
+                Approve only if you started this login. Exismic will never ask you to approve a
                 request over chat or a phone call.
               </div>
 

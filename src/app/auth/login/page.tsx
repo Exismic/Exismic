@@ -21,7 +21,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction } from "@/app/actions/auth";
 import { useAuth } from "@/hooks/useAuth";
-import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { getClientSiteUrl } from "@/lib/site-url";
 
 // --- Premium Custom Icons ---
@@ -118,7 +118,7 @@ export default function AuthPage() {
         } else if (data.status === "delivery_failed") {
           setTrustedChallengeId("");
           setTrustedBrowserToken("");
-          setError("Lumora could not reach the registered phone.");
+          setError("Exismic could not reach the registered phone.");
         }
       } catch (pollError) {
         if (!cancelled) {
@@ -352,10 +352,10 @@ export default function AuthPage() {
           <Link href="/" className="group flex flex-col items-center">
             <div className="relative mb-6">
               <div className="absolute -inset-6 bg-purple-600/30 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-              <LumoraMark size={80} />
+              <ExismicMark size={80} />
             </div>
             <h1 className="text-4xl font-black tracking-tighter text-white bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40 italic uppercase">
-              Lumora<span className="text-purple-500">.</span>
+              Exismic<span className="text-purple-500">.</span>
             </h1>
           </Link>
         </div>
@@ -420,8 +420,8 @@ export default function AuthPage() {
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 text-[10px] font-black uppercase tracking-widest">
                       <Radio size={13} /> Background phone approval
                     </div>
-                    <h2 className="text-2xl font-bold tracking-tight">Continue with Lumora Confirm</h2>
-                    <p className="text-zinc-500 text-sm">Enter your registered email. Lumora will send a secure approval prompt to your phone, even when the mobile app is closed.</p>
+                    <h2 className="text-2xl font-bold tracking-tight">Continue with Exismic Confirm</h2>
+                    <p className="text-zinc-500 text-sm">Enter your registered email. Exismic will send a secure approval prompt to your phone, even when the mobile app is closed.</p>
                   </div>
 
                   {trustedChallengeId ? (
@@ -498,7 +498,7 @@ export default function AuthPage() {
                   <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                     <p className="text-[11px] leading-relaxed text-zinc-500">
                       Android can receive this as a background browser notification. On iPhone,
-                      install Lumora to the Home Screen before registering the phone.
+                      install Exismic to the Home Screen before registering the phone.
                     </p>
                   </div>
                 </motion.div>
@@ -712,7 +712,7 @@ export default function AuthPage() {
                           <KeyRound size={18} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-xs font-black uppercase tracking-[0.18em] text-white">Continue with Lumora Confirm</div>
+                          <div className="text-xs font-black uppercase tracking-[0.18em] text-white">Continue with Exismic Confirm</div>
                           <div className="mt-1 text-[11px] font-medium text-zinc-500">Approve sign-in from your registered phone.</div>
                         </div>
                         <ArrowRight size={17} className="text-cyan-200 opacity-70 transition-transform group-hover:translate-x-1" />
@@ -821,7 +821,7 @@ export default function AuthPage() {
           
           <div className="flex flex-col items-center gap-2">
             <p className="text-zinc-600 text-[9px] font-black uppercase tracking-[0.4em]">
-              Lumora
+              Exismic
             </p>
           </div>
         </div>

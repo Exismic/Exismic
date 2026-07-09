@@ -1,7 +1,7 @@
 {
-  "name": "lumora-engine",
+  "name": "exismic-engine",
   "version": "1.0.0",
-  "description": "High-performance AI processing engine for Lumora",
+  "description": "High-performance AI processing engine for Exismic",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",

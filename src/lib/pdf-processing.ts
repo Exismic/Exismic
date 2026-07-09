@@ -36,7 +36,7 @@ export async function assertPdfSignature(file: File) {
   }
 }
 
-export function safeDownloadStem(fileName: string, fallback = "lumora-document") {
+export function safeDownloadStem(fileName: string, fallback = "exismic-document") {
   return (
     fileName
       .replace(/\.[^/.]+$/, "")
@@ -63,7 +63,7 @@ export function createDownloadResponse(
       "Content-Length": String(bytes.byteLength),
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
-      "X-Lumora-Request-Id": options.requestId,
+      "X-Exismic-Request-Id": options.requestId,
       ...options.headers,
     },
   });
@@ -101,7 +101,7 @@ export function pdfErrorResponse(error: unknown, requestId: string) {
       status,
       headers: {
         "Cache-Control": "no-store",
-        "X-Lumora-Request-Id": requestId,
+        "X-Exismic-Request-Id": requestId,
       },
     },
   );

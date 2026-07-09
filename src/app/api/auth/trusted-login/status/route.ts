@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     if (error || !data?.properties?.hashed_token) {
       console.error("[Trusted Login Session]", error?.message || "No login token returned");
       return NextResponse.json(
-        { error: "Approval succeeded, but Lumora could not create the session." },
+        { error: "Approval succeeded, but Exismic could not create the session." },
         { status: 500 },
       );
     }

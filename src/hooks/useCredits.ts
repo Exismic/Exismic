@@ -7,11 +7,13 @@ import { create } from 'zustand';
 
 export interface CreditState {
   dailyCredits: number;
+  bonusCredits: number;
   lifetimeCredits: number;
   creditsLastReset: string;
   aiMessagesToday: number;
   aiMessagesReset: string;
   plan: 'free' | 'pro';
+  todayClaim?: { amount: number; rarity: string; type?: "temporary" | "permanent" } | null;
 }
 
 const FREE_LIMITS = {
@@ -90,7 +92,11 @@ export function useCredits() {
         const nowIST = new Date(istString);
         
         const nextResetIST = new Date(nowIST);
-        nextResetIST.setHours(24, 0, 0, 0); 
+        nextResetIST.setHours(12, 0, 0, 0); 
+        
+        if (nowIST.getTime() >= nextResetIST.getTime()) {
+          nextResetIST.setDate(nextResetIST.getDate() + 1);
+        }
         
         const diff = nextResetIST.getTime() - nowIST.getTime();
         
@@ -99,6 +105,10 @@ export function useCredits() {
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
         
         setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+        
+        if (hours === 0 && minutes === 0 && seconds === 0) {
+          window.location.reload();
+        }
       } catch (err) {
         console.error("Countdown error:", err);
       }
@@ -152,11 +162,13 @@ export function useCredits() {
         const data = json.data;
         setState({
           dailyCredits: data.dailyCredits,
+          bonusCredits: data.bonusCredits || 0,
           lifetimeCredits: data.lifetimeCredits,
           creditsLastReset: data.lastReset || new Date().toISOString(),
           aiMessagesToday: data.aiMessagesToday || 0,
           aiMessagesReset: new Date().toISOString(),
           plan: data.plan || 'free',
+          todayClaim: data.todayClaim || null,
         });
       } else {
         console.warn('Credits API returned error:', json.error);
@@ -195,6 +207,7 @@ export function useCredits() {
           const data = payload.new;
           updateState({
             dailyCredits: data.daily_credits,
+            bonusCredits: data.bonus_credits,
             lifetimeCredits: data.lifetime_credits,
             aiMessagesToday: data.ai_messages_today,
             plan: data.plan,
@@ -279,12 +292,15 @@ export function useCredits() {
   };
 
   return {
-    credits: (state?.lifetimeCredits ?? 0) + (state?.dailyCredits ?? 0),
+    credits: (state?.lifetimeCredits ?? 0) + (state?.dailyCredits ?? 0) + (state?.bonusCredits ?? 0),
     dailyCredits: state?.dailyCredits ?? 0,
+    bonusCredits: state?.bonusCredits ?? 0,
     lifetimeCredits: state?.lifetimeCredits ?? 0,
+    purchasedCredits: state?.lifetimeCredits ?? 0,
     messagesUsed: state?.aiMessagesToday ?? 0,
     plan: state?.plan ?? 'free',
     isPro: state?.plan === 'pro',
+    todayClaim: state?.todayClaim ?? null,
     loading,
     userId,
     deductCredits,
@@ -304,11 +320,13 @@ export function useCredits() {
             if (json.success && json.data) {
               setState({
                 dailyCredits: json.data.dailyCredits,
+                bonusCredits: json.data.bonusCredits || 0,
                 lifetimeCredits: json.data.lifetimeCredits,
                 creditsLastReset: json.data.lastReset || new Date().toISOString(),
                 aiMessagesToday: json.data.aiMessagesToday || 0,
                 aiMessagesReset: new Date().toISOString(),
                 plan: json.data.plan || 'free',
+                todayClaim: json.data.todayClaim || null,
               });
             }
           }).finally(() => setLoading(false));

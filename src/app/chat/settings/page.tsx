@@ -21,8 +21,8 @@ import { cn } from "@/lib/utils";
 import { type AiChatSettings, DEFAULT_AI_CHAT_SETTINGS, type ChatMode } from "@/components/providers/ChatProvider";
 
 const CHAT_MODES: { id: ChatMode; label: string; description: string }[] = [
-  { id: "auto", label: "Auto", description: "Lumora detects coding, research, business, creative, or fast mode per request." },
-  { id: "default", label: "Default", description: "Balanced Lumora replies for everyday work." },
+  { id: "auto", label: "Auto", description: "Exismic detects coding, research, business, creative, or fast mode per request." },
+  { id: "default", label: "Default", description: "Balanced Exismic replies for everyday work." },
   { id: "coding", label: "Coding", description: "Debugging, architecture, files, and production notes." },
   { id: "research", label: "Research", description: "Careful comparison, uncertainty, and structured analysis." },
   { id: "business", label: "Business", description: "Strategy, execution, metrics, and decisions." },
@@ -122,8 +122,8 @@ export default function AiChatSettingsPage() {
       if (!response.ok) throw new Error(data.error || "Could not save settings.");
       const saved = { ...DEFAULT_AI_CHAT_SETTINGS, ...(data.settings || nextSettings) };
       setSettings(saved);
-      localStorage.setItem("lumora_chat_mode", saved.defaultChatMode);
-      localStorage.setItem("lumora_student_mode", String(saved.defaultStudentMode));
+      localStorage.setItem("exismic_chat_mode", saved.defaultChatMode);
+      localStorage.setItem("exismic_student_mode", String(saved.defaultStudentMode));
       showNotice("AI Chat settings saved.");
     } catch (error) {
       showNotice(error instanceof Error ? error.message : "Could not save settings.", "warning");
@@ -218,7 +218,7 @@ export default function AiChatSettingsPage() {
                 Chat Settings
               </h1>
               <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-zinc-400">
-                Set Lumora&apos;s default behavior, memory, response style, typing feel, and learning preferences.
+                Set Exismic&apos;s default behavior, memory, response style, typing feel, and learning preferences.
               </p>
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function AiChatSettingsPage() {
                 </div>
                 <div>
                   <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white">Custom Instructions</h2>
-                  <p className="mt-1 text-xs font-semibold text-zinc-500">Tell Lumora how to answer across future chats.</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Tell Exismic how to answer across future chats.</p>
                 </div>
               </div>
               <textarea
@@ -310,7 +310,7 @@ export default function AiChatSettingsPage() {
                 </div>
                 <div>
                   <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white">Response Feel</h2>
-                  <p className="mt-1 text-xs font-semibold text-zinc-500">Tune how much detail Lumora gives by default.</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Tune how much detail Exismic gives by default.</p>
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -394,7 +394,7 @@ export default function AiChatSettingsPage() {
                     key: "memoryEnabled" as const,
                     icon: Brain,
                     title: "Use AI Memory",
-                    desc: "Let Lumora use saved memories while responding.",
+                    desc: "Let Exismic use saved memories while responding.",
                   },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -425,7 +425,7 @@ export default function AiChatSettingsPage() {
                   </div>
                   <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white">Memory Controls</h2>
                   <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">
-                    Save preferences, project details, or facts Lumora should remember.
+                    Save preferences, project details, or facts Exismic should remember.
                   </p>
                 </div>
                 {memories.length > 0 && (

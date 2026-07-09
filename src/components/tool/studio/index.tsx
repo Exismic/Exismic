@@ -1,7 +1,7 @@
 "use client";
 
-import LumoraStudio from "./LumoraStudio";
+import ExismicStudio from "./ExismicStudio";
 
 export default function StudioEntry() {
-  return <LumoraStudio />;
+  return <ExismicStudio />;
 }

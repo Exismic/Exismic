@@ -76,7 +76,7 @@ async function requireProUser() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user?.id) {
-    return { error: "Please sign in to use Lumora AI resume features.", status: 401 };
+    return { error: "Please sign in to use Exismic Ai resume features.", status: 401 };
   }
 
   const dbUser = await prisma.user.findUnique({
@@ -94,7 +94,7 @@ async function requireProUser() {
 async function callGroq(messages: GroqMessage[], jsonMode = false) {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
   const keys = rawKeys.split(",").map((key) => key.trim()).filter(Boolean);
-  if (!keys.length) throw new Error("No Groq API keys configured.");
+  if (!keys.length) throw new Error("The AI processing service is currently unavailable. Please try again later.");
 
   const body = {
     model: MODEL,
@@ -247,11 +247,11 @@ export async function POST(req: NextRequest) {
       const jobDescription = sanitizeText(body.jobDescription, "", 6000);
 
       if (brief.length < 12) {
-        return NextResponse.json({ error: "Tell Lumora AI more about the resume you want." }, { status: 400 });
+        return NextResponse.json({ error: "Tell Exismic Ai more about the resume you want." }, { status: 400 });
       }
 
       const content = await callGroq([
-        { role: "system", content: "You are Lumora AI, a senior resume strategist. Return clean, valid JSON only." },
+        { role: "system", content: "You are Exismic Ai, a senior resume strategist. Return clean, valid JSON only." },
         { role: "user", content: fullResumePrompt(brief, role, jobDescription) },
       ], true);
       const resume = normalizeResumeData(extractJson(content));
@@ -268,7 +268,7 @@ export async function POST(req: NextRequest) {
       }
 
       const content = await callGroq([
-        { role: "system", content: "You are Lumora AI, an ATS optimization expert. Return clean, valid JSON only." },
+        { role: "system", content: "You are Exismic Ai, an ATS optimization expert. Return clean, valid JSON only." },
         { role: "user", content: atsPrompt(resumeText, role, jobDescription) },
       ], true);
       const insight = sanitizeAtsInsight(extractJson(content));
@@ -289,7 +289,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[Resume AI] Error:", error);
     const rawMessage = error instanceof Error ? error.message : "Resume AI failed.";
-    const message = rawMessage.includes("No Groq API keys configured")
+    const message = rawMessage.includes("The AI processing service is currently unavailable")
       ? rawMessage
       : "Resume AI is temporarily unavailable. Please try again.";
     return NextResponse.json({ error: message }, { status: 500 });

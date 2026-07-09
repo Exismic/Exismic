@@ -15,7 +15,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // 1. Immediate Health Check for Railway
-app.get('/', (req, res) => res.status(200).send('Lumora Engine is LIVE! 🚀'));
+app.get('/', (req, res) => res.status(200).send('Exismic Engine is LIVE! 🚀'));
 app.get('/health', (req, res) => res.status(200).json({ status: 'active', timestamp: new Date().toISOString() }));
 
 // 2. Delayed Route Registration to prevent health check timeout
@@ -26,7 +26,7 @@ app.use('/', imageRoutes);
 
 // 3. Robust Listener
 const server = app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`🚀 Lumora Backend Engine is LIVE on 0.0.0.0:${PORT}`);
+  console.log(`🚀 Exismic Backend Engine is LIVE on 0.0.0.0:${PORT}`);
 });
 
 // 4. Graceful Shutdown

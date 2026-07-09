@@ -20,7 +20,7 @@ export type LoginApprovalPush = {
 function configureWebPush() {
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || "mailto:security@lumoraai.online";
+  const subject = process.env.VAPID_SUBJECT || "mailto:security@exismicai.online";
 
   if (!publicKey || !privateKey) {
     throw new Error("VAPID keys are not configured.");
@@ -39,7 +39,7 @@ export async function sendLoginApprovalPush(
     subscription,
     JSON.stringify({
       type: "trusted-login",
-      title: "Lumora login request",
+      title: "Exismic login request",
       body: `${payload.requestDevice} is requesting access to ${payload.email}.`,
       ...payload,
     }),

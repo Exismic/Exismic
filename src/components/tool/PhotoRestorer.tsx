@@ -233,7 +233,7 @@ export function PhotoRestorer() {
 
     const content = await zip.generateAsync({ type: "blob" });
     const blobUrl = URL.createObjectURL(content);
-    downloadUrl(blobUrl, "lumora-pro-restored-photos.zip");
+    downloadUrl(blobUrl, "exismic-pro-restored-photos.zip");
     window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   };
 

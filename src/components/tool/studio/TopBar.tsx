@@ -14,7 +14,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import Link from "next/link";
-import { useLumoraStore } from "./useLumoraStore";
+import { useExismicStore } from "./useExismicStore";
 import { cn } from "@/lib/utils";
 import GradientText from "../../ui/GradientText";
 
@@ -28,7 +28,7 @@ export function TopBar() {
     setRightSidebarOpen,
     activeTab,
     setActiveTab
-  } = useLumoraStore();
+  } = useExismicStore();
 
   const menuItems = [
     { label: "File", items: ["New File", "Open Project", "Save All", "Export as ZIP"] },
@@ -53,7 +53,7 @@ export function TopBar() {
               <Sparkles size={14} />
            </div>
            <h1 className="text-xs font-black text-white uppercase italic tracking-tighter">
-              Lumora <span className="text-accent-blue">Studio</span>
+              Exismic <span className="text-accent-blue">Studio</span>
            </h1>
         </div>
 

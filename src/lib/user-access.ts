@@ -58,6 +58,7 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
       email,
       name: sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || email?.split('@')[0] || null,
       dailyCredits: 50,
+      bonusCredits: 0,
       lifetimeCredits: 0,
       plan: 'free',
       subscriptionStatus: 'none',

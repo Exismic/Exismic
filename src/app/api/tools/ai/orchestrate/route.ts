@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import {
-  detectLumoraTool,
-  lumoraAiToolRegistry,
-  validateLumoraToolParameters,
-  type LumoraAiToolId,
-} from "@/lib/lumora-ai-tools";
+  detectExismicTool,
+  exismicAiToolRegistry,
+  validateExismicToolParameters,
+  type ExismicAiToolId,
+} from "@/lib/exismic-ai-tools";
 import { createClient } from "@/utils/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ function safeFileStem(name: string) {
     .replace(/\.[^.]+$/, "")
     .replace(/[^a-z0-9_-]+/gi, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 60) || "lumora-result";
+    .slice(0, 60) || "exismic-result";
 }
 
 function getLatestImage(messages: StoredMessage[]) {
@@ -105,7 +105,7 @@ async function persistToolMessage({
   return created.id;
 }
 
-function appendParameters(form: FormData, toolId: LumoraAiToolId, parameters: Record<string, unknown>) {
+function appendParameters(form: FormData, toolId: ExismicAiToolId, parameters: Record<string, unknown>) {
   if (toolId === "image-compressor") {
     form.append("quality", String(parameters.quality));
     form.append("format", String(parameters.format));
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.email) {
-      return NextResponse.json({ error: "Please sign in to run Lumora tools." }, { status: 401 });
+      return NextResponse.json({ error: "Please sign in to run Exismic tools." }, { status: 401 });
     }
 
     const body = await request.formData();
@@ -143,10 +143,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid chat history." }, { status: 400 });
     }
 
-    const detected = detectLumoraTool(prompt);
+    const detected = detectExismicTool(prompt);
     if (!detected) return NextResponse.json({ handled: false });
 
-    const registryEntry = lumoraAiToolRegistry[detected.toolId];
+    const registryEntry = exismicAiToolRegistry[detected.toolId];
     if (detected.missing === "dimensions") {
       const message = "Tell me the target dimensions, for example: **resize this to 1080 x 1080**.";
       const activeSessionId = await persistToolMessage({
@@ -182,9 +182,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "The image is larger than 25MB." }, { status: 413 });
     }
 
-    const parameters = validateLumoraToolParameters(detected) as Record<string, unknown>;
+    const parameters = validateExismicToolParameters(detected) as Record<string, unknown>;
     const toolForm = new FormData();
-    toolForm.append("file", sourceFile, sourceFile.name || "lumora-image.jpg");
+    toolForm.append("file", sourceFile, sourceFile.name || "exismic-image.jpg");
     appendParameters(toolForm, detected.toolId, parameters);
 
     if (detected.toolId === "image-resizer") {
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `${registryEntry.label} returned no result.` }, { status: 502 });
     }
 
-    const sourceStem = safeFileStem(sourceFile.name || "lumora-image");
+    const sourceStem = safeFileStem(sourceFile.name || "exismic-image");
     const format = String(result.format || (detected.toolId === "background-remover" ? "png" : parameters.targetFormat || parameters.format || "png"));
     const toolRun = {
       toolId: detected.toolId,
@@ -270,8 +270,8 @@ export async function POST(request: NextRequest) {
       toolRun,
     });
   } catch (error: unknown) {
-    console.error("[Lumora AI Orchestrator]", error);
-    const message = error instanceof Error ? error.message : "Lumora could not run this tool.";
+    console.error("[Exismic Ai Orchestrator]", error);
+    const message = error instanceof Error ? error.message : "Exismic could not run this tool.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

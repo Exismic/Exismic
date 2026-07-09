@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 type ErrorLevel = "L" | "M" | "Q" | "H";
 
 export default function QRCodeGenerator() {
-  const [value, setValue] = useState("https://lumora.in");
+  const [value, setValue] = useState("https://exismic.in");
   const [qrColor, setQrColor] = useState("#a855f7");
   const [bgColor, setBgColor] = useState("#050505");
   const [logo, setLogo] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export default function QRCodeGenerator() {
       const url = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `lumora-qr-${Date.now()}.png`;
+      a.download = `exismic-qr-${Date.now()}.png`;
       a.click();
     }
   };
@@ -149,7 +149,7 @@ export default function QRCodeGenerator() {
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         className="w-full bg-black/50 border border-white/10 rounded-2xl p-5 pl-14 text-sm font-bold focus:border-purple-500 outline-none transition-all shadow-inner group-hover:border-white/20"
-                        placeholder="https://lumora.in"
+                        placeholder="https://exismic.in"
                       />
                       <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400 opacity-50 group-hover:opacity-100 transition-opacity" />
                    </div>
@@ -305,7 +305,7 @@ export default function QRCodeGenerator() {
 
                 <div className="mt-12 text-center">
                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">Scan with Smartphone</p>
-                   <h4 className="text-xl font-black italic tracking-tighter text-white opacity-40">LUMORA MATRIX CORE</h4>
+                   <h4 className="text-xl font-black italic tracking-tighter text-white opacity-40">EXISMIC MATRIX CORE</h4>
                 </div>
 
                 {/* Floating Glow */}

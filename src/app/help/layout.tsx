@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Lumora Help and Support",
+  title: "Exismic Help and Support",
   description:
-    "Get help with Lumora tools, accounts, subscriptions, files, and AI workflows.",
+    "Get help with Exismic tools, accounts, subscriptions, files, and AI workflows.",
   canonicalUrl: `${SITE_URL}/help`,
 });
 

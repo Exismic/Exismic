@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         },
         {
           status: response.status === 429 ? 429 : 503,
-          headers: { "X-Lumora-Request-Id": requestId },
+          headers: { "X-Exismic-Request-Id": requestId },
         },
       );
     }
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       file!.name
         .replace(/\.[^/.]+$/, "")
         .replace(/[^a-zA-Z0-9_-]+/g, "-")
-        .slice(0, 80) || "lumora-voice";
+        .slice(0, 80) || "exismic-voice";
 
     return NextResponse.json(
       {
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       {
         headers: {
           "Cache-Control": "no-store",
-          "X-Lumora-Request-Id": requestId,
+          "X-Exismic-Request-Id": requestId,
         },
       },
     );
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       },
       {
         status: 500,
-        headers: { "X-Lumora-Request-Id": requestId },
+        headers: { "X-Exismic-Request-Id": requestId },
       },
     );
   }

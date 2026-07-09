@@ -35,7 +35,7 @@ export function TerminalPanel() {
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    term.writeln('\x1b[1;36m▲ Lumora Studio Engine [v1.0.0]\x1b[0m');
+    term.writeln('\x1b[1;36m▲ Exismic Studio Engine [v1.0.0]\x1b[0m');
     term.writeln('\x1b[90mAgent initialized. Ready for commands.\x1b[0m');
     term.write('\r\n\x1b[32m➜\x1b[0m \x1b[36mproject\x1b[0m ');
 

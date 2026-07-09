@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 import {
   checkRateLimit,
   getRequestIp,
@@ -274,7 +276,7 @@ async function createAiDesign(
             {
               role: "system",
               content:
-                "You are Lumora's Minecraft skin reconstruction director. First identify the reference character's defining visual traits, then convert them into the exact structured fields requested. Respect prompt-over-reference precedence only where the prompt is explicit. Produce practical pixel-character specifications for a strict 64x64 UV map.",
+                "You are Exismic's Minecraft skin reconstruction director. First identify the reference character's defining visual traits, then convert them into the exact structured fields requested. Respect prompt-over-reference precedence only where the prompt is explicit. Produce practical pixel-character specifications for a strict 64x64 UV map.",
             },
             { role: "user", content: userContent },
           ],
@@ -448,12 +450,13 @@ export async function POST(request: NextRequest) {
     const user = await ensureDatabaseUser(apiUser);
     const isPro = user.plan === "pro" || user.subscriptionStatus === "active";
     const referenceRebuilt = referenceMode === "rebuild" && Boolean(referenceImage);
+    const baseCost = getToolCreditCost("image-minecraft-skin", 24);
     const cost = referenceRebuilt
-      ? (isPro ? 1 : 2)
+      ? Math.ceil(baseCost * 0.5)
       : targetPart === "all"
-        ? (isPro ? 8 : 12)
-        : (isPro ? 2 : 4);
-    const availableCredits = (user.dailyCredits ?? 0) + (user.lifetimeCredits ?? 0);
+        ? baseCost
+        : Math.ceil(baseCost / 3);
+    const availableCredits = getCreditTotal(user);
 
     if (availableCredits < cost) {
       return NextResponse.json(
@@ -511,24 +514,40 @@ export async function POST(request: NextRequest) {
     const updated = await prisma.$transaction(async (transaction) => {
       const latest = await transaction.user.findUnique({
         where: { id: apiUser.id },
-        select: { dailyCredits: true, lifetimeCredits: true },
+        select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
       });
-      if (!latest) throw new Error("Your Lumora account could not be found.");
+      if (!latest) throw new Error("Your Exismic account could not be found.");
 
       const latestDaily = latest.dailyCredits ?? 0;
+      const latestBonus = latest.bonusCredits ?? 0;
       const latestLifetime = latest.lifetimeCredits ?? 0;
-      if (latestDaily + latestLifetime < cost) throw new Error("Your credit balance changed. Please try again.");
+      if (latestDaily + latestBonus + latestLifetime < cost) throw new Error("Your credit balance changed. Please try again.");
 
-      const lifetimeSpend = Math.min(latestLifetime, cost);
-      const dailySpend = cost - lifetimeSpend;
+      const dailySpend = Math.min(latestDaily, cost);
+      const afterDaily = cost - dailySpend;
+      const bonusSpend = Math.min(latestBonus, afterDaily);
+      const lifetimeSpend = afterDaily - bonusSpend;
       const updatedUser = await transaction.user.update({
         where: { id: apiUser.id },
         data: {
           lifetimeCredits: { decrement: lifetimeSpend },
+          bonusCredits: { decrement: bonusSpend },
           dailyCredits: { decrement: dailySpend },
           aiGenerationsUsed: { increment: 1 },
         },
-        select: { dailyCredits: true, lifetimeCredits: true },
+        select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+      });
+
+      await transaction.creditTransaction.create({
+        data: {
+          userId: apiUser.id,
+          amount: -cost,
+          balanceType: "mixed",
+          transactionType: "tool_usage",
+          toolId: "image-minecraft-skin",
+          description: `Used ${cost} credits for Minecraft skin generation`,
+          metadata: { dailySpend, bonusSpend, permanentSpend: lifetimeSpend },
+        },
       });
 
       await transaction.userFile.create({
@@ -570,7 +589,7 @@ export async function POST(request: NextRequest) {
       priority: isPro,
       referenceRebuilt,
       referenceGuided,
-      creditsRemaining: updated.dailyCredits + updated.lifetimeCredits,
+      creditsRemaining: getCreditTotal(updated),
     });
   } catch (error) {
     if (outputPath) {

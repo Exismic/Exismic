@@ -39,14 +39,14 @@ import { PremiumName } from "@/components/ui/PremiumName";
 import { usePro } from "@/hooks/usePro";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { ProBackground } from "@/components/pro/ProBackground";
+import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
 type DashboardAction = {
   label: string;
   description: string;
   href: string;
   icon: LucideIcon;
-  glow: string;
-  accent: string;
+  category?: keyof typeof CATEGORY_ANIM_STYLES;
   isPremium?: boolean;
 };
 
@@ -66,50 +66,44 @@ const CREATIVE_SUITE: DashboardAction[] = [
     description: "Generate stunning high-fidelity 4K art and photos from text prompts.",
     href: "/tools/ai/img-gen",
     icon: ImageIcon,
-    glow: "from-cyan-600/20 to-blue-600/20",
-    accent: "text-accent-cyan"
+    category: "ai"
   },
   {
     label: "Background Remover",
     description: "Instantly isolate products, subjects, and portraits from backgrounds.",
     href: "/tools/image/bg-remover",
     icon: Brush,
-    glow: "from-purple-600/20 to-pink-600/20",
-    accent: "text-accent-purple",
-    isPremium: true
+    isPremium: true,
+    category: "image"
   },
   {
     label: "Magic Eraser",
     description: "Remove unwanted objects, text, and defects from photos instantly.",
     href: "/tools/image/eraser",
     icon: Wand2,
-    glow: "from-pink-600/20 to-red-600/20",
-    accent: "text-pink-500"
+    category: "image"
   },
   {
     label: "Social Media Caption Generator",
     description: "Create engaging high-conversion copy and captions for your platforms.",
     href: "/tools/social-caption-generator",
     icon: Sparkles,
-    glow: "from-amber-600/20 to-orange-600/20",
-    accent: "text-amber-500"
+    category: "ai"
   },
   {
     label: "Resume Builder",
     description: "Design premium ATS-optimized professional resumes using smart builders.",
     href: "/tools/resume-builder",
     icon: FileText,
-    glow: "from-emerald-600/20 to-teal-600/20",
-    accent: "text-emerald-500",
-    isPremium: true
+    isPremium: true,
+    category: "productivity"
   },
   {
     label: "Vocal Remover",
     description: "Extract vocals or split music tracks into clear instrumental stems.",
     href: "/tools/audio/vocal-remover",
     icon: Mic2,
-    glow: "from-blue-600/20 to-cyan-600/20",
-    accent: "text-accent-blue"
+    category: "audio"
   }
 ];
 
@@ -119,35 +113,31 @@ const DEVELOPER_SUITE: DashboardAction[] = [
     description: "Full stack AI IDE with Monaco editor, live previews, and agentic assistant.",
     href: "/tools/ai/code",
     icon: Code2,
-    glow: "from-purple-600/30 via-red-500/30 to-orange-500/20 shadow-[0_0_50px_rgba(239,68,68,0.15)]",
-    accent: "text-red-500",
-    isPremium: true
+    isPremium: true,
+    category: "ai"
   },
   {
     label: "AI Code Generator",
     description: "Write, refactor, and debug production code instantly using AI chat.",
-    href: "/tools/ai/code?mode=chat",
+    href: "/tools/ai/code\?mode=chat",
     icon: Terminal,
-    glow: "from-red-600/20 via-orange-500/20 to-yellow-500/20 shadow-[0_0_30px_rgba(249,115,22,0.1)]",
-    accent: "text-orange-500",
-    isPremium: true
+    isPremium: true,
+    category: "ai"
   },
   {
     label: "Screenshot to Code",
     description: "Upload mockups and design screenshots to compile clean React markup.",
     href: "/tools/screenshot-to-code",
     icon: Monitor,
-    glow: "from-orange-600/20 via-amber-500/20 to-yellow-500/20",
-    accent: "text-amber-500",
-    isPremium: true
+    isPremium: true,
+    category: "ai"
   },
   {
     label: "Format Converter",
     description: "Quickly convert code formats, JSON configurations, and markup languages.",
     href: "/tools/format-converter",
     icon: RefreshCw,
-    glow: "from-zinc-600/20 to-zinc-800/20",
-    accent: "text-zinc-400"
+    category: "productivity"
   }
 ];
 
@@ -157,83 +147,126 @@ const PRODUCTIVITY_SUITE: DashboardAction[] = [
     description: "Generate sleek professional custom PDF invoices for clients instantly.",
     href: "/tools/productivity/invoice",
     icon: Layers,
-    glow: "from-emerald-600/20 to-cyan-600/20",
-    accent: "text-emerald-400"
+    category: "productivity"
   },
   {
     label: "PDF Tools",
     description: "Compress, merge, lock, and manage PDF documents directly in-browser.",
     href: "/tools/productivity/pdf",
     icon: FileText,
-    glow: "from-red-600/20 to-orange-600/20",
-    accent: "text-red-400"
+    category: "pdf"
   },
   {
     label: "Unit Converter",
     description: "Convert length, weights, and metrics accurately with conversion scales.",
     href: "/tools/productivity/units",
     icon: Scale,
-    glow: "from-blue-600/20 to-zinc-600/20",
-    accent: "text-accent-blue"
+    category: "productivity"
   }
 ];
 
 function SuiteCard({ action, i }: { action: DashboardAction; i: number }) {
+  const isPro = action.isPremium;
+  const style = CATEGORY_ANIM_STYLES[action.category || "ai"] || CATEGORY_ANIM_STYLES.ai;
+  const Icon = action.icon;
+
   return (
-    <Link href={action.href}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.03 * i, duration: 0.6 }}
-        whileHover={{ y: -4, scale: 1.01 }}
-        className={cn(
-          "group relative min-h-[190px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] bg-zinc-900/20 backdrop-blur-2xl border border-white/5 hover:border-white/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all duration-500 overflow-hidden h-full flex flex-col justify-between touch-manipulation active:scale-[0.99]",
-          action.isPremium && "border-accent-purple/20 bg-linear-to-br from-zinc-900/30 via-zinc-900/30 to-accent-purple/[0.04] shadow-[0_0_30px_rgba(168,85,247,0.05)_inset]"
-        )}
-      >
-        {/* Premium Pro Badge */}
-        {action.isPremium && (
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-            <ProBadge size="sm" type={action.label.includes("Code") || action.label.includes("Screenshot") ? "studio" : "default"} />
-          </div>
-        )}
-
-        {/* Shine Hover Effect Layer */}
-        <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] overflow-hidden pointer-events-none z-10">
-          <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/5 to-transparent" />
-        </div>
-
-        {/* Ambient Hover Glows */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.03 * i, duration: 0.6 }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      className="group relative h-full min-w-0"
+    >
+      <Link href={action.href} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
         <div className={cn(
-          "absolute -inset-px rounded-[1.75rem] sm:rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl -z-10 bg-linear-to-br",
-          action.glow
-        )} />
-
-        <div className="space-y-4">
-          <div className={cn(
-            "w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-500 md:group-hover:scale-110 md:group-hover:rotate-3 shadow-2xl",
-            "bg-zinc-900/40 border border-white/5"
-          )}>
-            <div className={cn("absolute inset-0 opacity-10 bg-linear-to-br", action.glow)} />
-            <action.icon size={22} className={cn("relative z-10 transition-all duration-500 group-hover:scale-110", action.accent)} />
+          "relative h-full min-h-[260px] flex flex-col p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
+          "border border-white/5",
+          isPro 
+            ? "bg-zinc-950/60 border-amber-500/20 shadow-[inset_0_1px_2px_rgba(245,158,11,0.1),0_0_15px_rgba(245,158,11,0.05)] hover:border-amber-400/60 hover:shadow-[0_0_50px_rgba(245,158,11,0.25)]" 
+            : cn("bg-zinc-950/50 hover:bg-zinc-900/60 transition-all duration-500 border", style.cardBorder),
+          "md:group-hover:scale-[1.03] active:scale-[0.99]"
+        )}>
+          {/* Shine Animation Layer */}
+          <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden pointer-events-none z-10">
+            <div className={cn(
+              "absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/10 to-transparent",
+              isPro && "via-amber-500/20"
+            )} />
           </div>
 
-          <div className="space-y-1.5">
-            <h3 className="pr-10 text-base font-bold leading-snug tracking-tight text-white transition-colors [overflow-wrap:normal] [word-break:normal] group-hover:text-white sm:text-lg">
+          {/* Badges */}
+          {isPro && (
+             <div className="absolute top-4 right-4 sm:top-5 sm:right-5 md:top-6 md:right-6 z-20">
+               <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 backdrop-blur-md border border-amber-400/40 text-[8px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                 <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+                 <Crown size={9} className="relative z-10 fill-amber-200 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]" />
+                 <span className="relative z-10">Pro</span>
+               </div>
+             </div>
+          )}
+
+          {/* Icon Section */}
+          <div className="mb-6 sm:mb-8 relative pr-20 sm:pr-24">
+            <div className={cn(
+              "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl",
+              "bg-[#0b0c12] border border-white/5",
+            )}>
+              <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura)} />
+              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500", isPro ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.4)_25%,transparent_50%)] group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.9)_25%,transparent_50%)]" : cn(style.spinIdle, style.spinHover))} />
+              <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
+                <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", isPro && "from-amber-500/10")} />
+                <motion.div
+                  className={cn("absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg]", isPro ? "bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" : "bg-gradient-to-r from-transparent via-white/10 to-transparent")}
+                  animate={{ left: ["-100%", "200%"] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", repeatType: "mirror" }}
+                />
+              </div>
+              <Icon className={cn(
+                "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
+                "group-hover:scale-110",
+                isPro ? "text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.9)]" : style.iconGlow
+              )} />
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3">
+            <h3 className={cn(
+              "text-xl sm:text-2xl font-black tracking-tighter leading-tight transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+              isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.2)]" : style.textGrad
+            )}>
               {action.label}
             </h3>
-            <p className="line-clamp-3 text-xs leading-relaxed text-zinc-500 transition-colors [overflow-wrap:normal] [word-break:normal] group-hover:text-zinc-400 sm:line-clamp-2 sm:text-[13px]">
+            <p className="text-xs sm:text-[13px] font-medium text-zinc-500 line-clamp-3 sm:line-clamp-2 leading-relaxed tracking-tight group-hover:text-zinc-300 transition-colors break-words">
               {action.description}
             </p>
           </div>
-        </div>
 
-        <div className="mt-6 flex min-h-11 items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-white transition-all">
-          Launch Tool 
-          <ArrowUpRight size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-zinc-500 group-hover:text-white" />
+          {/* Premium Button CTA */}
+          <div className="mt-6 sm:mt-8">
+            <div className={cn(
+              "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-widest text-[9px] sm:text-[10px] transition-all duration-500 relative overflow-hidden",
+              isPro 
+                ? "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-amber-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:scale-[1.02] group-hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] border border-amber-300/50" 
+                : cn("group-hover:scale-[1.02] border shadow-lg", style.buttonGrad)
+            )}>
+              <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
+              <span className="relative z-10 flex items-center gap-2 sm:gap-3">
+                Launch Tool
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5" />
+              </span>
+            </div>
+          </div>
+
+          {/* Ambient Bottom Glow */}
+          <div className={cn(
+            "absolute inset-x-16 bottom-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-[0.5px]",
+            isPro ? "bg-linear-to-r from-transparent via-amber-400 to-transparent" : "bg-linear-to-r from-transparent via-white/50 to-transparent"
+          )} />
         </div>
-      </motion.div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }
 
@@ -487,54 +520,59 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }:
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className={cn(
-        "relative min-h-[150px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] bg-zinc-950/40 backdrop-blur-md border border-white/5 group hover:border-white/10 transition-all duration-500 overflow-hidden touch-manipulation",
+        "group relative isolate min-h-[160px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] bg-[linear-gradient(145deg,rgba(12,10,24,0.95),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.95))] backdrop-blur-2xl border border-white/5 hover:border-white/10 transition-all duration-500 overflow-hidden touch-manipulation hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(0,0,0,0.6)] shadow-xl",
         isPro && "border-accent-purple/20 shadow-[0_0_30px_rgba(168,85,247,0.1)]"
       )}
     >
       {loading ? (
-        <div className="absolute inset-0 bg-zinc-950/20 animate-pulse z-20" />
+        <div className="absolute inset-0 bg-zinc-950/40 animate-pulse z-40" />
       ) : null}
+
+      {/* Premium Accents */}
+      <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30 transition-opacity duration-500 group-hover:opacity-50" />
       <div className={cn(
-        "absolute top-0 right-0 w-32 h-32 blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-700",
-        color === "purple" && "bg-purple-600",
-        color === "cyan" && "bg-cyan-500",
-        color === "amber" && "bg-amber-500",
-        color === "gold" && "bg-amber-400"
+        "absolute -bottom-10 -right-10 w-48 h-48 blur-[80px] opacity-0 group-hover:opacity-30 transition-all duration-700",
+        color === "purple" && "bg-purple-500",
+        color === "cyan" && "bg-cyan-400",
+        color === "amber" && "bg-amber-400",
+        color === "gold" && "bg-amber-300"
       )} />
 
       {isPro && (
-        <div className="absolute -inset-1 bg-accent-purple/10 blur-2xl animate-pulse pointer-events-none" />
+        <div className="absolute -inset-1 bg-accent-purple/5 blur-2xl animate-pulse pointer-events-none" />
       )}
 
-      <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
+      <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-20">
          <div className={cn(
-           "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110",
-           color === "purple" ? "bg-purple-500/10 text-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.2)] border border-purple-500/20" : 
-           color === "cyan" ? "bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(0,255,255,0.2)] border border-cyan-500/20" : 
-           color === "amber" ? "bg-amber-500/10 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] border border-amber-500/20" : 
-           color === "gold" ? "bg-amber-400/10 text-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.2)] border border-amber-400/20" : "bg-white/5 text-zinc-500 border border-white/10"
+           "relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border bg-[linear-gradient(115deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005))] shadow-lg transition-all duration-500 group-hover:scale-110",
+           color === "purple" ? "text-accent-purple shadow-[0_0_30px_rgba(168,85,247,0.1)] border-purple-500/20 group-hover:border-purple-500/40 group-hover:bg-purple-500/10" : 
+           color === "cyan" ? "text-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.1)] border-cyan-500/20 group-hover:border-cyan-500/40 group-hover:bg-cyan-500/10" : 
+           color === "amber" ? "text-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.1)] border-amber-500/20 group-hover:border-amber-500/40 group-hover:bg-amber-500/10" : 
+           color === "gold" ? "text-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.1)] border-amber-400/20 group-hover:border-amber-400/40 group-hover:bg-amber-400/10" : "text-zinc-500 border-white/10"
          )}>
-            <Icon size={22} />
+            <Icon size={24} />
          </div>
          
          {progress !== undefined && (
-            <div className="relative w-10 h-10 flex items-center justify-center">
+            <div className="relative w-12 h-12 flex items-center justify-center">
                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-zinc-900" />
-                  <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="transparent" 
-                     strokeDasharray={100} strokeDashoffset={100 - Math.min(progress, 100)}
-                     className={cn(color === "cyan" ? "text-cyan-400" : "text-accent-purple", "transition-all duration-1000")} 
+                  <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                  <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                     strokeDasharray={125} strokeDashoffset={125 - Math.min(progress, 100) * 1.25}
+                     strokeLinecap="round"
+                     className={cn(color === "cyan" ? "text-cyan-400" : "text-accent-purple", "transition-all duration-1000 ease-out")} 
                   />
                </svg>
             </div>
          )}
       </div>
       
-      <div className="space-y-1 relative z-10">
-         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-zinc-400 transition-colors break-words">{label}</p>
-         <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words">
+      <div className="space-y-1 relative z-20">
+         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 group-hover:text-zinc-400 transition-colors break-words">{label}</p>
+         <h3 className="text-3xl sm:text-4xl font-black bg-gradient-to-br from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent tracking-tight break-words">
             {isPro && label === "Pro Status" ? (
-              <GradientText className="from-accent-purple to-accent-blue cyber-neon-glow">PRO</GradientText>
+              <GradientText className="from-accent-purple to-accent-blue cyber-neon-glow drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">PRO</GradientText>
             ) : value}
          </h3>
       </div>

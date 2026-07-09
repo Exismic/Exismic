@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 
 interface LoaderProps {
   isLoading?: boolean;
@@ -12,8 +12,8 @@ interface LoaderProps {
 }
 
 /**
- * Lumora Premium Loader
- * A smooth, modern loading screen with the Lumora app mark and glowing effects.
+ * Exismic Premium Loader
+ * A smooth, modern loading screen with the Exismic app mark and glowing effects.
  */
 export const Loader = ({ 
   isLoading = true, 
@@ -78,7 +78,7 @@ export const Loader = ({
                 className="absolute inset-0 bg-accent-purple/20 blur-2xl rounded-3xl -z-10"
               />
 
-              <LumoraMark size={96} />
+              <ExismicMark size={96} />
               
               <motion.div 
                 suppressHydrationWarning
@@ -144,7 +144,7 @@ export const Loader = ({
                 transition={{ delay: 1 }}
                 className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-600"
               >
-                Powered by Lumora AI
+                Powered by Exismic Ai
               </motion.span>
             </div>
           </div>

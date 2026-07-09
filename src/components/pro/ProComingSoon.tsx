@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Crown, 
-  Sparkles, 
   Zap, 
   Infinity, 
   Cpu, 
@@ -13,16 +11,15 @@ import {
   ArrowRight,
   Mail,
   Loader2,
-  Lock,
-  Star
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
+import { PRICING_CONFIG } from '@/config/pricing';
 
 const UPCOMING_BENEFITS = [
   { 
-    title: "1000 Daily Credits", 
+    title: `${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString()} Daily Credits`, 
     desc: "A massive daily allowance for all your creative needs.", 
     icon: Zap, 
     color: "text-cyan-400"
@@ -75,10 +72,10 @@ export function ProComingSoon() {
       } else {
         setStatus('success');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setStatus('error');
-      setErrorMessage(err.message || 'Something went wrong. Please try again.');
+      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     }
   };
 
@@ -110,7 +107,7 @@ export function ProComingSoon() {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-black tracking-tight leading-[0.9]"
           >
-            LUMORA PRO IS <br />
+            EXISMIC PRO IS <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-400 to-cyan-400">COMING SOON</span>
           </motion.h1>
           
@@ -120,7 +117,7 @@ export function ProComingSoon() {
             transition={{ delay: 0.2 }}
             className="max-w-2xl mx-auto text-zinc-500 text-lg md:text-xl font-medium leading-relaxed"
           >
-            Get unlimited access, 1000 daily credits, priority processing & exclusive AI models.
+            Get unlimited access, {PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString()} daily credits, priority processing & exclusive AI models.
           </motion.p>
         </div>
 
@@ -136,8 +133,8 @@ export function ProComingSoon() {
                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-2">
                   <CheckCircle2 className="text-emerald-400 w-8 h-8" />
                </div>
-               <h3 className="text-xl font-black uppercase tracking-tight text-white">You're on the list!</h3>
-               <p className="text-zinc-500 text-sm font-medium">We'll notify you the exact second Lumora Pro goes live. Prepare for unlimited power.</p>
+               <h3 className="text-xl font-black uppercase tracking-tight text-white">You&apos;re on the list!</h3>
+               <p className="text-zinc-500 text-sm font-medium">We&apos;ll notify you the exact second Exismic Pro goes live. Prepare for unlimited power.</p>
                <button 
                  onClick={() => router.push('/dashboard')}
                  className="inline-flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest mt-4 hover:gap-4 transition-all"

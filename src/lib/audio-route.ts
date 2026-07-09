@@ -44,7 +44,7 @@ export async function handleAudioProcessingRequest(
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "no-store",
-        "X-Lumora-Request-Id": requestId,
+        "X-Exismic-Request-Id": requestId,
       },
     });
   } catch (error) {
@@ -59,7 +59,7 @@ export async function handleAudioProcessingRequest(
         },
         {
           status: 503,
-          headers: { "X-Lumora-Request-Id": requestId },
+          headers: { "X-Exismic-Request-Id": requestId },
         },
       );
     }
@@ -74,7 +74,7 @@ export async function handleAudioProcessingRequest(
       },
       {
         status: 500,
-        headers: { "X-Lumora-Request-Id": requestId },
+        headers: { "X-Exismic-Request-Id": requestId },
       },
     );
   }

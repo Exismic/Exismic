@@ -850,7 +850,7 @@ export function DiscordCardGenerator() {
       zip.file("index.html", html);
       zip.file(
         "README.txt",
-        `Lumora Discord Profile Card
+        `Exismic Discord Profile Card
 
 Discord User ID: ${activeUserId}
 

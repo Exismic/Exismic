@@ -306,7 +306,7 @@ export default function ResultPage() {
           <div className="flex items-center justify-between">
              <div className="space-y-1">
               <h2 className="text-2xl font-bold font-outfit text-white">Your {tool?.name} is ready</h2>
-              <p className="text-sm text-zinc-500">Made with Lumora</p>
+              <p className="text-sm text-zinc-500">Made with Exismic</p>
             </div>
             {isFinished && (
               <div className="flex gap-4">
@@ -399,7 +399,7 @@ export default function ResultPage() {
               ) : tool?.id === 'img-bg-remover' ? (
                 <>Your image was fixed using smart AI.</>
               ) : (
-                <>Your file was fixed using Lumora's smart AI.</>
+                <>Your file was fixed using Exismic's smart AI.</>
               )}
             </p>
           </div>

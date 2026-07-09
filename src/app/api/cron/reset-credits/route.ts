@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Reset PRO users (1000 credits or config value)
-    const proDaily = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS || 1000
+    // Reset PRO users to the configured daily allowance.
+    const proDaily = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
     const proResult = await prisma.user.updateMany({
       where: { plan: 'pro' },
       data: {

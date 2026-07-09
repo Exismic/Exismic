@@ -1,4 +1,4 @@
-const PRODUCTION_SITE_URL = "https://lumoraai.online";
+const PRODUCTION_SITE_URL = "https://exismicai.online";
 
 function trimUrl(url: string) {
   return url.trim().replace(/\/+$/, "");

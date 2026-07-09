@@ -360,7 +360,7 @@ export function BackgroundRemover() {
     const blobUrl = URL.createObjectURL(content);
     const a = document.createElement("a");
     a.href = blobUrl;
-    a.download = "lumora-pro-background-cutouts.zip";
+    a.download = "exismic-pro-background-cutouts.zip";
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   };

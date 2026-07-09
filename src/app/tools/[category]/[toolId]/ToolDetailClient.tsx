@@ -50,6 +50,7 @@ import axios from "axios";
 import { ToolReliabilityNotice } from "@/components/tool/ToolReliability";
 import { isToolUnavailable } from "@/lib/tool-reliability";
 import { ToolWorkspaceHeader } from "@/components/tool/ToolWorkspaceFrame";
+import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
 interface ToolDetailClientProps {
   tool: Tool;
@@ -188,24 +189,54 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
         />
       )}
 
-      <ToolReliabilityNotice toolId={tool.id} />
+      {!unavailable && <ToolReliabilityNotice toolId={tool.id} />}
 
        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-8">
           <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "min-w-0 space-y-5 md:space-y-7")}>
-             {unavailable ? (
-                <div className="rounded-lg border border-red-400/20 bg-red-500/[0.04] p-5 text-left shadow-xl sm:p-7">
-                  <div className="max-w-2xl space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-red-200">Processor unavailable</p>
-                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">This tool needs its backend connected first.</h2>
-                    <p className="text-sm sm:text-base font-medium leading-relaxed text-zinc-400">
-                      The catalog card now shows the real status, and the upload/generation flow is disabled so users do not waste time on a dead request.
-                    </p>
-                    <Link href="/tools" className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 text-xs font-bold text-black transition-all hover:bg-zinc-200">
-                      Browse live tools
-                    </Link>
+             {unavailable ? (() => {
+                const isGold = tool.pro || tool.isProTool;
+                const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
+
+                return (
+                <div className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-[#0b0c12] p-10 sm:p-16 lg:p-24 flex flex-col items-center justify-center text-center shadow-2xl group">
+                  {/* Animated Ambient Background */}
+                  <div className={cn("absolute inset-0 blur-[100px] opacity-40 animate-pulse transition-all duration-1000", isGold ? "bg-amber-500/20" : animStyle.aura)} />
+                  <div className={cn("absolute inset-[-50%] animate-[spin_8s_linear_infinite] opacity-30", isGold ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.3)_25%,transparent_50%)]" : animStyle.spinIdle)} />
+                  <div className="absolute inset-0 bg-[#0b0c12]/80 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_4s_linear_infinite]" />
+                  
+                  <div className="relative z-10 flex flex-col items-center max-w-lg space-y-10">
+                    <div className="flex size-24 sm:size-32 items-center justify-center rounded-[2.5rem] bg-[#0b0c12] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group-hover:scale-110 transition-transform duration-700">
+                      <div className={cn("absolute inset-0 blur-xl animate-pulse", isGold ? "bg-amber-500/30" : animStyle.aura)} />
+                      <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite]", isGold ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.6)_25%,transparent_50%)]" : animStyle.spinHover)} />
+                      <div className="absolute inset-[2px] rounded-[calc(2.5rem-2px)] bg-[#0b0c12] flex items-center justify-center z-10">
+                        <Icon size={56} className={cn("relative z-20 transition-all duration-500", isGold ? "text-amber-300 drop-shadow-[0_0_20px_rgba(245,158,11,0.8)]" : animStyle.iconGlow)} />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-6 flex flex-col items-center">
+                      <div className={cn("inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-opacity-10 backdrop-blur-md shadow-lg text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]", isGold ? "border-amber-400/30 bg-amber-400/10 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]" : animStyle.badge)}>
+                        <Sparkles size={14} className={isGold ? "text-amber-400" : "opacity-80"} />
+                        In Development
+                      </div>
+                      <h2 className={cn("text-5xl sm:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]", isGold ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]" : animStyle.textGrad)}>
+                        Coming Soon
+                      </h2>
+                      <p className="text-sm sm:text-base font-medium leading-relaxed text-zinc-400 px-4">
+                        We are currently engineering the high-performance backend for this tool. It will be available to you very soon.
+                      </p>
+                    </div>
+
+                    <div className="pt-6 w-full sm:w-auto">
+                      <Link href="/tools" className={cn("relative overflow-hidden flex min-h-14 items-center justify-center rounded-2xl px-12 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border", isGold ? "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-amber-950 shadow-[0_0_30px_rgba(245,158,11,0.4)] border-amber-300/50" : animStyle.buttonGrad)}>
+                        <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
+                        <span className="relative z-10 flex items-center gap-3">Explore Live Tools <Play size={14} className="fill-current" /></span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-             ) : tool.id === 'ai-img-gen' ? (
+                );
+             })() : tool.id === 'ai-img-gen' ? (
                 <ImageGeneratorTool />
              ) : tool.id === 'ai-logo' ? (
                 <LogoGeneratorTool />
@@ -354,7 +385,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                         <p className="text-zinc-500 font-medium">Your content has been processed and is ready.</p>
                                      </div>
                                   </div>
-                                  <a href={displayResult || "#"} download={`lumora-${tool.id}-result.txt`} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-400 px-6 text-xs font-bold text-black transition-all hover:bg-emerald-300 sm:w-auto">
+                                  <a href={displayResult || "#"} download={`exismic-${tool.id}-result.txt`} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-400 px-6 text-xs font-bold text-black transition-all hover:bg-emerald-300 sm:w-auto">
                                      <Download size={20} /> Download result
                                   </a>
                                </div>
@@ -386,7 +417,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                         <Sparkles size={20} />
                      </div>
                      <div>
-                       <h3 className="text-lg font-bold tracking-tight text-white">Lumora Pro</h3>
+                       <h3 className="text-lg font-bold tracking-tight text-white">Exismic Pro</h3>
                        <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-500">Priority processing, larger batches, and premium creative controls.</p>
                      </div>
                      <Link href="/pro" className="flex min-h-12 w-full items-center justify-center rounded-md bg-white px-5 text-xs font-bold text-black transition-all hover:bg-zinc-200">

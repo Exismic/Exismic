@@ -28,6 +28,7 @@ import {
   Calendar,
   Clock,
   Crown,
+  Gift,
   LayoutGrid,
   ChevronLeft,
   Loader2,
@@ -145,7 +146,7 @@ export default function AccountSettings() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const { dailyCredits, lifetimeCredits, messagesUsed, plan, isPro, refreshCredits } = useCredits();
+  const { credits, dailyCredits, bonusCredits, lifetimeCredits, messagesUsed, isPro, refreshCredits } = useCredits();
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -358,8 +359,12 @@ export default function AccountSettings() {
       if (!session) { router.push('/auth/login'); return; }
       setUser(session.user);
       setName(session.user.user_metadata?.full_name || "");
-      const { data: dbData } = await supabase.from('User').select('*').eq('email', session.user.email).single();
-      if (dbData) { setDbUser(dbData); setUsername(dbData.username || ""); }
+      const res = await fetch(`/api/user/profile?t=${Date.now()}`, { cache: 'no-store' });
+      const json = await res.json();
+      if (res.ok && json.success && json.user) { 
+        setDbUser(json.user); 
+        setUsername(json.user.username || ""); 
+      }
     }
     loadData();
   }, [supabase, router]);
@@ -368,7 +373,7 @@ export default function AccountSettings() {
     async function loadPreferences() {
       try {
         const localPreferences = typeof window !== 'undefined'
-          ? window.localStorage.getItem('lumora:user-preferences')
+          ? window.localStorage.getItem('exismic:user-preferences')
           : null;
         if (localPreferences) {
           setPreferences({ ...DEFAULT_USER_PREFERENCES, ...JSON.parse(localPreferences) });
@@ -380,8 +385,8 @@ export default function AccountSettings() {
         const nextPreferences = { ...DEFAULT_USER_PREFERENCES, ...data.preferences };
         setPreferences(nextPreferences);
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem('lumora:user-preferences', JSON.stringify(nextPreferences));
-          window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: nextPreferences }));
+          window.localStorage.setItem('exismic:user-preferences', JSON.stringify(nextPreferences));
+          window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: nextPreferences }));
           document.documentElement.dataset.highFidelityPreview = nextPreferences.highFidelityPreview ? 'true' : 'false';
         }
       } catch (error) {
@@ -402,8 +407,8 @@ export default function AccountSettings() {
     setStatus(null);
 
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('lumora:user-preferences', JSON.stringify(nextPreferences));
-      window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: nextPreferences }));
+      window.localStorage.setItem('exismic:user-preferences', JSON.stringify(nextPreferences));
+      window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: nextPreferences }));
       document.documentElement.dataset.highFidelityPreview = nextPreferences.highFidelityPreview ? 'true' : 'false';
     }
 
@@ -418,16 +423,16 @@ export default function AccountSettings() {
       const savedPreferences = { ...DEFAULT_USER_PREFERENCES, ...data.preferences };
       setPreferences(savedPreferences);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('lumora:user-preferences', JSON.stringify(savedPreferences));
-        window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: savedPreferences }));
+        window.localStorage.setItem('exismic:user-preferences', JSON.stringify(savedPreferences));
+        window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: savedPreferences }));
         document.documentElement.dataset.highFidelityPreview = savedPreferences.highFidelityPreview ? 'true' : 'false';
       }
       setStatus({ type: 'success', message: 'Preferences updated.' });
     } catch (error: any) {
       setPreferences(previous);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('lumora:user-preferences', JSON.stringify(previous));
-        window.dispatchEvent(new CustomEvent('lumora-preferences-updated', { detail: previous }));
+        window.localStorage.setItem('exismic:user-preferences', JSON.stringify(previous));
+        window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: previous }));
         document.documentElement.dataset.highFidelityPreview = previous.highFidelityPreview ? 'true' : 'false';
       }
       setStatus({ type: 'error', message: error.message || 'Failed to save preference.' });
@@ -457,21 +462,13 @@ export default function AccountSettings() {
       const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, croppedBlob, { contentType: 'image/jpeg', upsert: true });
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-      const { error: profileError } = await supabase.from('User').upsert({
-        id: user.id,
-        email: user.email,
-        image: publicUrl,
-        custom_avatar_url: publicUrl
-      }, { onConflict: 'id' });
-      if (profileError) throw profileError;
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          avatar_url: publicUrl,
-          picture: publicUrl,
-          custom_avatar_url: publicUrl
-        }
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: publicUrl })
       });
-      if (updateError) throw updateError;
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update profile picture');
       setUser({ ...user, user_metadata: { ...user.user_metadata, avatar_url: publicUrl, picture: publicUrl, custom_avatar_url: publicUrl } });
       setDbUser(dbUser ? { ...dbUser, image: publicUrl, custom_avatar_url: publicUrl } : dbUser);
       setImageToCrop(null);
@@ -521,13 +518,34 @@ export default function AccountSettings() {
     }
   };
 
-  const getHoursUntilReset = () => {
-    const now = new Date();
-    const midnight = new Date();
-    midnight.setHours(24, 0, 0, 0);
-    const diff = midnight.getTime() - now.getTime();
-    return Math.floor(diff / (1000 * 60 * 60));
-  };
+  const [timeUntilReset, setTimeUntilReset] = useState("00h 00m 00s");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      
+      // Daily reset is at 12:00 PM IST, which is 06:30 AM UTC
+      const target = new Date();
+      target.setUTCHours(6, 30, 0, 0);
+      
+      // If current time is past today's reset time, next reset is tomorrow
+      if (now.getTime() >= target.getTime()) {
+        target.setUTCDate(target.getUTCDate() + 1);
+      }
+      
+      const diff = target.getTime() - now.getTime();
+      
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeUntilReset(`${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`);
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (!isMounted || !user) return <AccountSettingsSkeleton />;
 
@@ -844,28 +862,124 @@ export default function AccountSettings() {
                 )}
                 {activeTab === 'credits' && (
                    <div className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         <section className="glass-dark border border-white/5 rounded-[3rem] p-10 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-accent-purple/5 blur-[80px] pointer-events-none group-hover:bg-accent-purple/10 transition-colors" />
-                            <div className="space-y-8 relative z-10">
-                               <div className="flex items-center gap-3 text-accent-purple"><Sparkles size={20} className="animate-pulse" /><span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">Permanent Reserve</span></div>
-                               <div suppressHydrationWarning className="space-y-1"><h3 className="text-6xl font-black italic uppercase tracking-tighter text-white">{lifetimeCredits}</h3><p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest italic">Bought • Never Expires</p></div>
-                               <button onClick={() => setIsBuyModalOpen(true)} className="w-full py-4 rounded-xl premium-gradient text-white font-black uppercase tracking-widest text-[9px] shadow-4xl hover:scale-[1.02] active:scale-98 transition-all">Purchase Permanent Credits</button>
+                      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+                         <section className="group relative isolate overflow-hidden rounded-[2.5rem] border border-white/5 bg-[linear-gradient(145deg,rgba(12,10,24,0.95),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.95))] p-8 shadow-xl backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+                            <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(34,211,238,0.3),transparent)] opacity-50 transition-opacity duration-500 group-hover:opacity-100" />
+                            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30 transition-opacity duration-500 group-hover:opacity-50" />
+                            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-accent-cyan/10 blur-[80px] opacity-0 transition-all duration-700 group-hover:opacity-20" />
+                            
+                            <div className="relative z-10 space-y-7">
+                               <div className="flex items-center gap-4">
+                                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/20 bg-[linear-gradient(115deg,rgba(34,211,238,0.1),rgba(34,211,238,0.02))] text-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:border-cyan-500/40 group-hover:bg-cyan-500/10"><Wallet size={20} /></div>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-500/70 group-hover:text-cyan-400 transition-colors">Total Balance</span>
+                               </div>
+                               <div suppressHydrationWarning className="space-y-1">
+                                  <h3 className="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-400 drop-shadow-sm sm:text-6xl">{credits}</h3>
+                                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Daily + Bonus + Permanent</p>
+                               </div>
+                               <Link href="/shop" className="group/btn relative isolate flex min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#7c3aed,#2563eb_40%,#06b6d4)] text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_14px_35px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-1 hover:brightness-115 hover:shadow-[0_24px_60px_rgba(6,182,212,0.35)] active:scale-95">
+                                 <span className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent)] opacity-50" />
+                                 <span className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.15),transparent)] opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
+                                 <span className="absolute -inset-1 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_60%)] opacity-0 blur-md transition-opacity duration-500 group-hover/btn:opacity-100" />
+                                 <span className="relative z-10 flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                                   Open Credit Shop <ArrowRight size={14} className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                                 </span>
+                               </Link>
                             </div>
                          </section>
-                         <section className="glass-dark border border-white/5 rounded-[3rem] p-10 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-accent-cyan/5 blur-[80px] pointer-events-none group-hover:bg-accent-cyan/10 transition-colors" />
-                            <div className="space-y-8 relative z-10">
-                               <div className="flex items-center gap-3 text-accent-cyan"><Zap size={20} className="fill-accent-cyan/20" /><span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">Daily Allowance</span></div>
-                               <div suppressHydrationWarning className="space-y-1"><h3 className="text-6xl font-black italic uppercase tracking-tighter text-white">{dailyCredits} <span className="text-2xl text-zinc-800 tracking-normal">/</span> <span className="text-2xl text-zinc-600">{isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50}</span></h3><p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest italic">Replenishes Daily</p></div>
-                               <div className="space-y-4">
-                                  <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden p-[1px] border border-white/5"><motion.div initial={{ width: 0 }} animate={{ width: `${(dailyCredits / (isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50)) * 100}%` }} className="h-full bg-linear-to-r from-accent-cyan to-blue-600 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.2)]" /></div>
-                                  <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-zinc-600"><div className="flex items-center gap-1.5"><Clock size={10} />Resets in {getHoursUntilReset()} hours</div><div className="flex items-center gap-3"><button onClick={refreshCredits} className="hover:text-white transition-colors flex items-center gap-1"><RefreshCcw size={10} /> Sync</button></div></div>
+                         <section className="group relative isolate overflow-hidden rounded-[2.5rem] border border-white/5 bg-[linear-gradient(145deg,rgba(12,10,24,0.95),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.95))] p-8 shadow-xl backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:border-purple-500/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+                            <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(168,85,247,0.3),transparent)] opacity-50 transition-opacity duration-500 group-hover:opacity-100" />
+                            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30 transition-opacity duration-500 group-hover:opacity-50" />
+                            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-accent-purple/10 blur-[80px] opacity-0 transition-all duration-700 group-hover:opacity-20" />
+                            
+                            <div className="relative z-10 space-y-7">
+                               <div className="flex items-center gap-4">
+                                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-500/20 bg-[linear-gradient(115deg,rgba(168,85,247,0.1),rgba(168,85,247,0.02))] text-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:border-purple-500/40 group-hover:bg-purple-500/10"><Sparkles size={20} className="animate-pulse" /></div>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.35em] text-purple-500/70 group-hover:text-purple-400 transition-colors">Permanent Reserve</span>
+                               </div>
+                               <div suppressHydrationWarning className="space-y-1">
+                                  <h3 className="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-purple-100 to-purple-400 drop-shadow-sm sm:text-6xl">{lifetimeCredits}</h3>
+                                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Bought • Never Expires</p>
+                               </div>
+                               <button onClick={() => setIsBuyModalOpen(true)} className="group/btn relative isolate flex min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#a855f7,#7c3aed_50%,#4f46e5)] text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_14px_35px_rgba(124,58,237,0.25)] transition-all hover:-translate-y-1 hover:brightness-115 hover:shadow-[0_24px_60px_rgba(168,85,247,0.35)] active:scale-95">
+                                 <span className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent)] opacity-50" />
+                                 <span className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.15),transparent)] opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
+                                 <span className="absolute -inset-1 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_60%)] opacity-0 blur-md transition-opacity duration-500 group-hover/btn:opacity-100" />
+                                 <span className="relative z-10 flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                                   Permanent Packs <ArrowRight size={14} className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                                 </span>
+                               </button>
+                            </div>
+                         </section>
+                         <section className="group relative isolate overflow-hidden rounded-[2.5rem] border border-white/5 bg-[linear-gradient(145deg,rgba(12,10,24,0.95),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.95))] p-8 shadow-xl backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:border-blue-500/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+                            <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(59,130,246,0.3),transparent)] opacity-50 transition-opacity duration-500 group-hover:opacity-100" />
+                            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30 transition-opacity duration-500 group-hover:opacity-50" />
+                            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-blue-500/10 blur-[80px] opacity-0 transition-all duration-700 group-hover:opacity-20" />
+                            
+                            <div className="relative z-10 space-y-7">
+                               <div className="flex items-center gap-4">
+                                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-blue-500/20 bg-[linear-gradient(115deg,rgba(59,130,246,0.1),rgba(59,130,246,0.02))] text-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:border-blue-500/40 group-hover:bg-blue-500/10"><Zap size={20} className="fill-blue-500/20" /></div>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-500/70 group-hover:text-blue-400 transition-colors">Daily Allowance</span>
+                               </div>
+                               <div suppressHydrationWarning className="space-y-1">
+                                  <h3 className="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-400 drop-shadow-sm sm:text-6xl">{dailyCredits} <span className="text-2xl text-blue-900 tracking-normal">/</span> <span className="text-2xl text-blue-500/50">{isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50}</span></h3>
+                                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Replenishes Daily</p>
+                               </div>
+                               <div className="space-y-4 pt-3">
+                                  <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${(dailyCredits / (isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50)) * 100}%` }} className="h-full bg-linear-to-r from-cyan-400 to-blue-600 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                                  </div>
+                                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em] text-blue-400/80">
+                                    <div className="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20">
+                                      <Clock size={12} className="animate-pulse" /> 
+                                      <span className="tabular-nums tracking-widest">Resets In {timeUntilReset}</span>
+                                    </div>
+                                  </div>
                                 </div>
                             </div>
                          </section>
                       </div>
-                      <div className="mt-12 flex items-center gap-6"><button onClick={() => setIsBuyModalOpen(true)} className="flex-1 py-5 rounded-2xl premium-gradient text-white font-black uppercase tracking-widest text-[10px] shadow-4xl hover:scale-[1.02] active:scale-98 transition-all">Buy More Credits</button><button onClick={refreshCredits} className="p-5 rounded-2xl glass-dark border border-white/5 text-zinc-500 hover:text-white transition-all"><RefreshCcw size={18} /></button></div>
+                      <section className="group relative isolate overflow-hidden rounded-[2.5rem] border border-white/5 bg-[linear-gradient(145deg,rgba(12,10,24,0.95),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.95))] p-8 shadow-xl backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+                         {/* Premium Accents */}
+                         <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(34,211,238,0.3),transparent)] opacity-50 transition-opacity duration-500 group-hover:opacity-100" />
+                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30 transition-opacity duration-500 group-hover:opacity-50" />
+                         <div className="absolute -bottom-10 -right-10 w-48 h-48 blur-[80px] bg-cyan-400 opacity-0 transition-all duration-700 group-hover:opacity-20" />
+
+                         <div className="relative z-20 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                            <div className="flex items-center gap-5">
+                               <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/20 bg-[linear-gradient(115deg,rgba(34,211,238,0.1),rgba(34,211,238,0.02))] text-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:border-cyan-500/40 group-hover:bg-cyan-500/10">
+                                  <Gift size={24} />
+                               </div>
+                               <div>
+                                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-500/70 group-hover:text-cyan-400 transition-colors">Bonus Reserve</p>
+                                  <h4 className="mt-1 text-3xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-400 drop-shadow-sm">
+                                    {bonusCredits} <span className="text-2xl text-cyan-200/50">CREDITS</span>
+                                  </h4>
+                                  <p className="mt-1 text-xs font-medium text-zinc-500">Shop rewards stack separately from your daily allowance and permanent reserve.</p>
+                               </div>
+                            </div>
+                            <Link href="/shop" className="group/btn relative isolate inline-flex min-h-[52px] items-center justify-center gap-2 overflow-hidden rounded-[14px] border border-cyan-500/20 bg-[linear-gradient(115deg,rgba(34,211,238,0.1),rgba(34,211,238,0.02))] px-6 text-[10px] font-black uppercase tracking-widest text-cyan-100 shadow-[0_10px_30px_rgba(34,211,238,0.1)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:bg-cyan-400/10 hover:text-white hover:shadow-[0_20px_50px_rgba(34,211,238,0.25)] active:scale-95">
+                              <span className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(34,211,238,0.6),transparent)] opacity-50" />
+                              <span className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(34,211,238,0.1),transparent)] opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
+                              <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
+                                Claim Daily Reward <ArrowRight size={14} className="text-cyan-400 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:text-cyan-300" />
+                              </span>
+                            </Link>
+                         </div>
+                      </section>
+                      <div className="mt-12 flex items-center gap-4 sm:gap-6">
+                        <Link href="/shop" className="group relative isolate flex min-h-[64px] flex-1 items-center justify-center gap-3 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#7c3aed,#2563eb_40%,#06b6d4)] text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_18px_50px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-1 hover:brightness-115 hover:shadow-[0_24px_70px_rgba(6,182,212,0.35)] active:scale-98">
+                           <span className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent)] opacity-50" />
+                           <span className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.15),transparent)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                           <span className="absolute -inset-1 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_60%)] opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-100" />
+                           <span className="relative z-10 flex items-center gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                             Open Credit Shop <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1.5" />
+                           </span>
+                        </Link>
+                        <button onClick={refreshCredits} className="group flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-2xl border border-white/5 bg-[linear-gradient(115deg,rgba(255,255,255,0.03),rgba(255,255,255,0.005))] text-zinc-400 shadow-lg transition-all hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.06] hover:text-white hover:shadow-[0_18px_40px_rgba(255,255,255,0.05)] active:scale-95">
+                           <RefreshCcw size={20} className="transition-transform duration-500 group-hover:rotate-180" />
+                        </button>
+                      </div>
                       <section className="glass-dark border border-white/5 rounded-[3rem] p-10 flex flex-col items-center justify-center text-center space-y-8">
                          <div className="relative w-40 h-40 flex items-center justify-center">
                             <svg className="w-full h-full transform -rotate-90"><circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-zinc-900" /><circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * (isPro ? 100 : (messagesUsed / 30) * 100)) / 100} className="text-accent-purple transition-all duration-1000" /></svg>
@@ -874,7 +988,7 @@ export default function AccountSettings() {
                          <div className="space-y-2"><h4 className="text-sm font-black uppercase tracking-widest text-white">AI Interactions</h4><p className="text-[10px] font-medium text-zinc-500 leading-relaxed uppercase tracking-tight px-4">{isPro ? "Unlimited elite model access active" : `Daily limit: ${messagesUsed}/30 interactions`}</p></div>
                       </section>
                       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-6"><h4 className="text-sm font-black uppercase tracking-[0.2em] text-accent-purple italic">What consumes credits?</h4><ul className="space-y-4">{[{ label: "AI Image Generation", value: "5 Credits" }, { label: "Magic Object Removal", value: "3 Credits" }, { label: "Vocal Extraction", value: "8 Credits" }, { label: "Video Processing", value: "10-20 Credits" }].map((item, i) => <li key={i} className="flex items-center justify-between"><span className="text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="text-[10px] font-black text-white tracking-widest">{item.value}</span></li>)}</ul></div>
+                         <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-6"><h4 className="text-sm font-black uppercase tracking-[0.2em] text-accent-purple italic">What consumes credits?</h4><ul className="space-y-4">{[{ label: "AI Image Generation", value: "18 Credits" }, { label: "Minecraft Skin Maker", value: "24 Credits" }, { label: "Vocal Extraction", value: "14 Credits" }, { label: "Video Processing", value: "30-35 Credits" }].map((item, i) => <li key={i} className="flex items-center justify-between"><span className="text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="text-[10px] font-black text-white tracking-widest">{item.value}</span></li>)}</ul></div>
                          <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-6"><h4 className="text-sm font-black uppercase tracking-[0.2em] text-accent-cyan italic">What is free?</h4><ul className="space-y-4">{[{ label: "PDF Merging", value: "Free" }, { label: "Basic Image Compression", value: "Free" }, { label: "Text Formatting", value: "Free" }, { label: "QR Code Generation", value: "Free" }].map((item, i) => <li key={i} className="flex items-center justify-between"><span className="text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="text-[10px] font-black text-accent-cyan tracking-widest uppercase">{item.value}</span></li>)}</ul></div>
                       </section>
                    </div>
@@ -893,81 +1007,97 @@ export default function AccountSettings() {
                 )}
                 {activeTab === 'billing' && (
                      <div className="space-y-8">
-                        <section className="glass-dark relative space-y-8 overflow-hidden rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:space-y-12 lg:rounded-[3rem] lg:p-12">
-                           <div className="absolute top-0 right-0 w-64 h-64 bg-accent-purple/5 blur-[80px] pointer-events-none" />
-                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                             <div className="space-y-4">
-                               <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Subscription</h3>
-                               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Your current plan and billing cycle</p>
-                             </div>
-                             <div className={cn(
-                               "px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs italic border transition-all",
-                               isPro 
-                                 ? "bg-accent-purple/10 border-accent-purple/20 text-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.2)]" 
-                                 : "bg-zinc-800/50 border-white/5 text-zinc-500"
-                             )}>
-                               {isPro ? "Active Pro Plan" : "Free Explorer"}
-                             </div>
-                           </div>
+                        <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.05] bg-[#07070b] p-6 sm:p-10 lg:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+                          {/* Subtle Background Glows */}
+                          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-cyan-500/10 blur-[100px]" />
+                          <div className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-purple-500/10 blur-[100px]" />
+                          
+                          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+                            <div className="space-y-3">
+                              <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white drop-shadow-sm">Subscription</h3>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Your current plan and billing cycle</p>
+                            </div>
+                            <div className={cn(
+                              "inline-flex items-center justify-center px-6 py-3 rounded-full font-black uppercase tracking-[0.2em] text-[10px] border transition-all",
+                              isPro 
+                                ? "bg-purple-500/10 border-purple-500/20 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.15)]" 
+                                : "bg-white/[0.03] border-white/10 text-zinc-400"
+                            )}>
+                              {isPro ? "Active Pro Plan" : "Free Explorer"}
+                            </div>
+                          </div>
 
-                           <div className="space-y-7 rounded-[1.75rem] border border-white/5 bg-white/[0.02] p-5 sm:p-8 lg:space-y-10 lg:rounded-[2.5rem] lg:p-10">
-                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                                 <div className="flex items-center gap-6">
-                                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/5 bg-zinc-900 text-accent-purple shadow-2xl group sm:h-20 sm:w-20 sm:rounded-[2rem]">
-                                      <div className="absolute inset-0 bg-accent-purple/5 group-hover:bg-accent-purple/10 transition-colors" />
-                                      <Crown size={40} className={cn("relative z-10", isPro && "fill-accent-purple/20")} />
+                          {/* Main Card */}
+                          <div className="relative z-10 rounded-[2rem] border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent p-6 sm:p-10 backdrop-blur-xl mb-8">
+                            <div className="absolute inset-0 rounded-[2rem] bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] opacity-20" />
+                            
+                            <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/50 shadow-2xl group">
+                                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                  <Crown size={36} className={cn("relative z-10 transition-transform duration-500 group-hover:scale-110", isPro ? "text-purple-400 fill-purple-400/20" : "text-zinc-500")} />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-3">
+                                    <h4 className="text-3xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-400">
+                                      {isPro ? "Exismic Elite Pro" : "Exismic Free"}
+                                    </h4>
+                                    {isPro && (
+                                      <span className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        Verified
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mt-2">
+                                    {isPro 
+                                      ? dbUser?.subscription_status === 'cancelled' 
+                                        ? <span className="text-amber-400/80">Pro access ends on: {new Date(dbUser.plan_expires_at).toLocaleDateString()}</span>
+                                        : `Next billing date: June 1, 2026` 
+                                      : "Upgrade for premium AI tools"}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                                <button 
+                                  onClick={() => isPro ? setIsManageModalOpen(true) : router.push('/pro')}
+                                  className="group relative isolate flex items-center justify-center min-w-[200px] h-14 overflow-hidden rounded-2xl bg-white px-8 text-[11px] font-black uppercase tracking-widest text-black shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] transition-all hover:scale-105 active:scale-95"
+                                >
+                                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:animate-shine" />
+                                  <span className="relative z-10">{isPro ? "Manage Subscription" : "Upgrade to Pro"}</span>
+                                </button>
+                                <button 
+                                  onClick={() => setIsInvoiceModalOpen(true)}
+                                  className="group flex items-center justify-center min-w-[180px] h-14 rounded-2xl border border-white/10 bg-white/[0.02] px-8 text-[11px] font-black uppercase tracking-widest text-zinc-300 transition-all hover:bg-white/[0.06] hover:border-white/20 hover:text-white"
+                                >
+                                  View Invoices
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bottom Stats */}
+                          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-5">
+                            {[{ icon: Wallet, label: "Billing", value: "Secure checkout", color: "text-blue-400" }, 
+                              { icon: Calendar, label: "Cycle", value: "Monthly", color: "text-purple-400" }, 
+                              { icon: Activity, label: "Status", value: isPro ? "Active" : "Standard", color: isPro ? "text-emerald-400" : "text-zinc-400" }].map((item, i) => (
+                              <div key={i} className="group relative overflow-hidden rounded-2xl border border-white/[0.04] bg-white/[0.01] p-6 transition-all hover:bg-white/[0.03] hover:border-white/10">
+                                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                                   <item.icon size={48} className={item.color} />
+                                 </div>
+                                 <div className="relative z-10 flex items-center gap-4">
+                                    <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-zinc-900/50 shadow-inner transition-colors group-hover:bg-zinc-800/50", item.color)}>
+                                       <item.icon size={20} />
                                     </div>
                                     <div>
-                                      <h4 className="text-2xl font-black italic uppercase tracking-tighter text-white">
-                                        {isPro ? "Lumora Elite Pro" : "Lumora Free"}
-                                      </h4>
-                                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest mt-1">
-                                        {isPro 
-                                          ? dbUser?.subscription_status === 'cancelled' 
-                                            ? `Pro access ends on: ${new Date(dbUser.plan_expires_at).toLocaleDateString()}`
-                                            : `Next billing date: June 1, 2026` 
-                                          : "Upgrade for premium AI tools"}
-                                      </p>
+                                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">{item.label}</p>
+                                       <p className="mt-1 text-sm font-black italic tracking-tight text-zinc-200">{item.value}</p>
                                     </div>
                                  </div>
-
-                                 {isPro && (
-                                    <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                                       <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                       <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Secure & Verified</span>
-                                    </div>
-                                 )}
                               </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                 <button 
-                                   onClick={() => isPro ? setIsManageModalOpen(true) : router.push('/pro')}
-                                   className="py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 hover:scale-[1.02] active:scale-98 transition-all shadow-xl"
-                                 >
-                                   {isPro ? "Manage Subscription" : "Upgrade to Pro"}
-                                 </button>
-                                 <button 
-                                   onClick={() => setIsInvoiceModalOpen(true)}
-                                   className="py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/10 hover:border-white/20 transition-all"
-                                 >
-                                   View Invoices
-                                 </button>
-                              </div>
-                           </div>
-
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              {[{ icon: Wallet, label: "Billing", value: "Secure checkout" }, { icon: Calendar, label: "Cycle", value: "Monthly" }, { icon: Activity, label: "Status", value: isPro ? "Active" : "Standard" }].map((item, i) => (
-                                <div key={i} className="p-6 rounded-[1.75rem] bg-white/[0.01] border border-white/5 flex items-center gap-4">
-                                   <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-600">
-                                      <item.icon size={18} />
-                                   </div>
-                                   <div>
-                                      <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600">{item.label}</p>
-                                      <p className="text-xs font-bold text-white italic">{item.value}</p>
-                                   </div>
-                                </div>
-                              ))}
-                           </div>
+                            ))}
+                          </div>
                         </section>
                      </div>
                   )}
@@ -976,7 +1106,7 @@ export default function AccountSettings() {
                        <section className="glass-dark space-y-8 rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:space-y-12 lg:rounded-[3rem] lg:p-12">
                           <div className="space-y-4">
                              <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Preferences</h3>
-                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Customize your Lumora experience</p>
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Customize your Exismic experience</p>
                           </div>
                           <div className="space-y-6">
                             {isLoadingPreferences ? (
@@ -997,27 +1127,45 @@ export default function AccountSettings() {
                               const enabled = preferences[pref.key];
                               const isSavingThis = savingPreference === pref.key;
                               return (
-                               <div key={pref.key} className={cn(
-                                 "flex flex-col gap-5 p-6 sm:p-8 rounded-3xl border transition-all sm:flex-row sm:items-center sm:justify-between",
-                                 enabled ? "bg-cyan-300/[0.035] border-cyan-300/15" : "bg-white/[0.02] border-white/5",
-                                 "group hover:bg-white/[0.04]"
-                               )}>
-                                  <div className="flex items-center gap-4">
+                               <motion.div 
+                                 layout
+                                 initial={{ opacity: 0, y: 15 }}
+                                 animate={{ opacity: 1, y: 0 }}
+                                 whileHover={{ scale: 1.01, y: -2 }}
+                                 transition={{ duration: 0.4, ease: "easeOut" }}
+                                 key={pref.key} 
+                                 className={cn(
+                                   "relative overflow-hidden flex flex-col gap-5 p-6 sm:p-8 rounded-[2rem] border transition-all duration-500 sm:flex-row sm:items-center sm:justify-between group",
+                                   enabled ? "bg-white/[0.03] border-purple-500/30 shadow-[0_0_30px_rgba(168,85,247,0.05)]" : "bg-white/[0.015] border-white/5 hover:border-white/15"
+                                 )}
+                               >
+                                 {/* Glowing gradient background when enabled */}
+                                 {enabled && (
+                                   <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(168,85,247,0.08),rgba(34,211,238,0.08))] pointer-events-none" />
+                                 )}
+                                  
+                                  <div className="flex items-center gap-5 relative z-10">
                                      <div className={cn(
-                                       "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
-                                       enabled ? "bg-cyan-300/10 text-cyan-200 border border-cyan-300/15" : "bg-white/5 text-zinc-500 group-hover:text-white"
+                                       "relative w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500",
+                                       enabled 
+                                         ? "bg-[linear-gradient(135deg,rgba(168,85,247,0.2),rgba(34,211,238,0.2))] text-cyan-200 border border-cyan-300/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]" 
+                                         : "bg-white/5 text-zinc-500 group-hover:text-white border border-transparent group-hover:border-white/10"
                                      )}>
-                                        <pref.icon size={22} />
+                                        <pref.icon size={24} className={cn("transition-transform duration-500", enabled ? "scale-110 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" : "group-hover:scale-110")} />
+                                        {enabled && <div className="absolute inset-0 rounded-2xl bg-cyan-400/20 blur-xl -z-10" />}
                                      </div>
-                                     <div className="space-y-1">
-                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-white">{pref.label}</h4>
-                                        <p className="text-[9px] font-medium text-zinc-600 uppercase tracking-tight">{pref.desc}</p>
-                                        <p className={cn(
-                                          "text-[8px] font-black uppercase tracking-[0.2em]",
-                                          enabled ? "text-cyan-200/80" : "text-zinc-700"
-                                        )}>
-                                          {isSavingThis ? "Saving..." : enabled ? "Enabled" : "Disabled"}
-                                        </p>
+                                     <div className="space-y-1.5">
+                                        <h4 className={cn("text-[11px] sm:text-xs font-black uppercase tracking-widest transition-colors", enabled ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" : "text-zinc-300 group-hover:text-white")}>{pref.label}</h4>
+                                        <p className="text-[9px] sm:text-[10px] font-medium text-zinc-500 uppercase tracking-tight">{pref.desc}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <div className={cn("w-1.5 h-1.5 rounded-full", enabled ? "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-pulse" : "bg-zinc-700")} />
+                                          <p className={cn(
+                                            "text-[9px] font-black uppercase tracking-[0.2em]",
+                                            enabled ? "text-cyan-300" : "text-zinc-600"
+                                          )}>
+                                            {isSavingThis ? "Saving..." : enabled ? "Active" : "Disabled"}
+                                          </p>
+                                        </div>
                                      </div>
                                   </div>
                                   <button
@@ -1027,24 +1175,24 @@ export default function AccountSettings() {
                                     disabled={isLoadingPreferences || Boolean(savingPreference)}
                                     onClick={() => void handlePreferenceToggle(pref.key)}
                                     className={cn(
-                                      "relative h-8 w-16 shrink-0 rounded-full border p-1 transition-all duration-300 disabled:cursor-wait disabled:opacity-60",
+                                      "relative h-9 w-[4.5rem] shrink-0 rounded-full border p-1 transition-all duration-500 disabled:cursor-wait disabled:opacity-60 z-10 outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50",
                                       enabled
-                                        ? "border-cyan-300/30 bg-linear-to-r from-accent-purple to-accent-cyan shadow-[0_0_22px_rgba(34,211,238,0.18)]"
-                                        : "border-white/5 bg-zinc-800"
+                                        ? "border-purple-400/50 bg-[linear-gradient(135deg,#a855f7,#06b6d4)] shadow-[0_0_25px_rgba(168,85,247,0.4)]"
+                                        : "border-white/10 bg-zinc-800/80 hover:bg-zinc-700/80 hover:border-white/20"
                                     )}
                                   >
                                     <span className={cn(
-                                      "absolute inset-0 rounded-full bg-white/10 opacity-0 transition-opacity",
-                                      enabled && "opacity-100"
+                                      "absolute inset-0 rounded-full bg-white/20 opacity-0 transition-opacity duration-300",
+                                      enabled && "opacity-100 animate-pulse"
                                     )} />
                                     <span className={cn(
-                                      "relative block h-6 w-6 rounded-full bg-white shadow-lg transition-transform duration-300",
-                                      enabled ? "translate-x-8" : "translate-x-0 bg-zinc-500"
+                                      "relative flex items-center justify-center h-7 w-7 rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,0.3)] transition-all duration-500",
+                                      enabled ? "translate-x-8 scale-100" : "translate-x-0 bg-zinc-400 scale-90"
                                     )}>
-                                      {isSavingThis && <span className="absolute inset-1 animate-spin rounded-full border border-zinc-400 border-t-transparent" />}
+                                      {isSavingThis && <Loader2 size={14} className="animate-spin text-purple-600" />}
                                     </span>
                                   </button>
-                               </div>
+                               </motion.div>
                               );
                             })}
                           </div>

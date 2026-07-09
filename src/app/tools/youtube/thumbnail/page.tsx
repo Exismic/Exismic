@@ -313,7 +313,7 @@ export default function YouTubeThumbnailMaker() {
       setError("");
       const canvas = await renderThumbnail();
       const link = document.createElement("a");
-      link.download = `lumora-youtube-thumbnail-${Date.now()}.png`;
+      link.download = `exismic-youtube-thumbnail-${Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {

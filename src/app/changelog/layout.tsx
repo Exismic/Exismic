@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Lumora Changelog",
+  title: "Exismic Changelog",
   robots: {
     index: false,
     follow: true,

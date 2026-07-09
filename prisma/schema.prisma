@@ -25,6 +25,7 @@ model User {
   aiMessagesReset        DateTime?               @map("ai_messages_reset")
   aiMessagesToday        Int                     @default(0) @map("ai_messages_today")
   creditsLastReset       DateTime?               @map("credits_last_reset")
+  bonusCredits           Int                     @default(0) @map("bonus_credits")
   dailyCredits           Int                     @default(50) @map("daily_credits")
   lifetimeCredits        Int                     @default(0) @map("lifetime_credits")
   planExpiresAt          DateTime?               @map("plan_expires_at")
@@ -47,6 +48,38 @@ model User {
   files                  UserFile[]
   trustedLoginDevices    TrustedLoginDevice[]
   trustedLoginChallenges TrustedLoginChallenge[]
+  creditTransactions     CreditTransaction[]
+  creditShopClaims       CreditShopClaim[]
+}
+
+model CreditTransaction {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  amount           Int
+  balanceType      String   @map("balance_type")
+  transactionType  String   @map("transaction_type")
+  toolId           String?  @map("tool_id")
+  description      String?
+  metadata         Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("credit_transactions")
+}
+
+model CreditShopClaim {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  claimDate   DateTime @map("claim_date") @db.Date
+  rarity      String
+  amount      Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, claimDate])
+  @@index([userId, createdAt])
+  @@map("credit_shop_claims")
 }
 
 model TrustedLoginDevice {

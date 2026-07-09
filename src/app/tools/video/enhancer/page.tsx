@@ -54,7 +54,7 @@ export default function VideoEnhancerPage() {
 
       <footer className="mt-20 text-center pb-12">
         <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">
-          Powered by Lumora Neural Processing Units
+          Powered by Exismic Neural Processing Units
         </p>
       </footer>
     </div>

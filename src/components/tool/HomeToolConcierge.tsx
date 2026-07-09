@@ -20,7 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ICON_MAP, type IconName } from "@/data/tools";
-import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { cn } from "@/lib/utils";
 
 interface Recommendation {
@@ -88,7 +88,7 @@ export function HomeToolConcierge() {
         error?: string;
       };
 
-      if (!response.ok) throw new Error(data.error || "Lumora AI is unavailable.");
+      if (!response.ok) throw new Error(data.error || "Exismic Ai is unavailable.");
 
       setMessages((current) => [
         ...current,
@@ -138,7 +138,7 @@ export function HomeToolConcierge() {
                 "group relative isolate flex h-16 items-center justify-start overflow-hidden rounded-2xl p-[1px] text-left shadow-[0_22px_70px_rgba(0,0,0,0.58)] transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(109,40,217,0.24)]",
                 showIntro ? "w-[190px]" : "w-16 hover:w-[190px]"
               )}
-              aria-label="Ask Lumora AI to find a tool"
+              aria-label="Ask Exismic Ai to find a tool"
             >
               <span className="absolute -inset-[120%] animate-[spin_3.6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,#7c3aed_72deg,#ec4899_125deg,#22d3ee_178deg,transparent_235deg)] opacity-80 motion-reduce:animate-none" />
               <span className="absolute inset-[1px] rounded-[15px] bg-[linear-gradient(118deg,#070812_0%,#0c0a18_48%,#061018_100%)]" />
@@ -153,7 +153,7 @@ export function HomeToolConcierge() {
               />
 
               <span className="relative z-20 flex size-[62px] shrink-0 items-center justify-center">
-                <LumoraMark size={50} />
+                <ExismicMark size={50} />
               </span>
 
               <span
@@ -164,7 +164,7 @@ export function HomeToolConcierge() {
                     : "max-w-0 -translate-x-2 opacity-0 group-hover:max-w-[120px] group-hover:translate-x-0 group-hover:opacity-100"
                 )}
               >
-                Ask Lumora AI
+                Ask Exismic Ai
               </span>
             </button>
           </motion.div>
@@ -179,7 +179,7 @@ export function HomeToolConcierge() {
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 260, damping: 27 }}
             className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-h-[min(720px,calc(100dvh-1rem))] max-w-[470px] flex-col overflow-hidden rounded-[26px] border border-white/[0.1] bg-[linear-gradient(145deg,rgba(12,10,24,0.98),rgba(4,7,12,0.99)_55%,rgba(4,13,17,0.98))] shadow-[0_35px_120px_rgba(0,0,0,0.82),0_0_70px_rgba(91,33,182,0.13)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:max-h-[min(720px,calc(100dvh-4rem))] sm:w-[470px]"
-            aria-label="Lumora AI tool concierge"
+            aria-label="Exismic Ai tool concierge"
           >
             <motion.div
               aria-hidden="true"
@@ -191,10 +191,10 @@ export function HomeToolConcierge() {
 
             <header className="relative z-10 flex items-center justify-between gap-3 border-b border-white/[0.07] bg-black/15 px-4 py-4 sm:px-5">
               <div className="flex min-w-0 items-center gap-3">
-                <LumoraMark size={52} />
+                <ExismicMark size={52} />
                 <div className="min-w-0">
                   <h2 className="bg-gradient-to-r from-white via-violet-100 to-cyan-100 bg-clip-text text-sm font-black uppercase tracking-[0.16em] text-transparent">
-                    Lumora AI
+                    Exismic Ai
                   </h2>
                   <p className="mt-1 flex items-center gap-2 text-[10px] font-semibold text-zinc-500">
                     <span className="relative flex size-2">
@@ -209,7 +209,7 @@ export function HomeToolConcierge() {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-zinc-500 transition hover:rotate-90 hover:border-fuchsia-300/20 hover:bg-fuchsia-300/[0.06] hover:text-white"
-                aria-label="Close Lumora AI"
+                aria-label="Close Exismic Ai"
               >
                 <X size={17} />
               </button>
@@ -364,7 +364,7 @@ export function HomeToolConcierge() {
                   <span className="relative flex size-8 items-center justify-center rounded-lg border border-violet-300/15 bg-black/20">
                     <Loader2 size={14} className="animate-spin text-cyan-300" />
                   </span>
-                  Mapping your request to Lumora...
+                  Mapping your request to Exismic...
                 </div>
               )}
             </div>

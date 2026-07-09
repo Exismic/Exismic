@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ 
-        error: 'ElevenLabs API key is missing. Please add it to your .env file.' 
-      }, { status: 503 });
+        error: 'The text-to-speech AI service is currently unavailable. Please try again later.' 
+      }, { status: 500 });
     }
 
     const voiceId = voice_id || 'JBFqnCBsd6RMkjVDRZzb';

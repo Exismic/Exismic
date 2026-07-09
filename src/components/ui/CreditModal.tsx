@@ -52,6 +52,7 @@ const PRO_BENEFITS = [
 export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps) {
   const [mounted, setMounted] = React.useState(false);
   const [isIndia, setIsIndia] = React.useState(false);
+  const [timeUntilReset, setTimeUntilReset] = React.useState("00h 00m 00s");
   const isPro = plan === "pro";
   const isOutOfCredits = credits <= 0;
   const proPrice = isIndia
@@ -61,6 +62,27 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
   React.useEffect(() => {
     setMounted(true);
     setIsIndia(getIsIndia());
+    
+    const updateTime = () => {
+      const now = new Date();
+      const target = new Date();
+      target.setUTCHours(6, 30, 0, 0); // 12 PM IST
+      
+      if (now.getTime() >= target.getTime()) {
+        target.setUTCDate(target.getUTCDate() + 1);
+      }
+      
+      const diff = target.getTime() - now.getTime();
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeUntilReset(`${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`);
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   React.useEffect(() => {
@@ -80,7 +102,7 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
     ? "Your Pro workspace"
     : isOutOfCredits
       ? "Keep creating today"
-      : "Make Lumora yours";
+      : "Make Exismic yours";
 
   const description = isPro
     ? "Your priority access, expanded credits, and commercial toolkit are active."
@@ -127,7 +149,7 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
                 <CreditTokenIcon size="md" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white">
-                    Lumora Pro
+                    Exismic Pro
                   </p>
                   <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-600">
                     Creative access system
@@ -269,19 +291,31 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
                 <Link
                   href="/pro"
                   onClick={onClose}
-                  className="group/cta relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(105deg,#7c3aed,#a855f7_36%,#2563eb_68%,#06b6d4)] px-5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_16px_45px_rgba(79,70,229,0.25),inset_0_1px_0_rgba(255,255,255,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(34,211,238,0.22),0_0_28px_rgba(168,85,247,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60 active:translate-y-0 active:scale-[0.99]"
+                  className="group/cta relative flex min-h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-cyan-500 px-5 shadow-[0_0_40px_rgba(168,85,247,0.4),inset_0_1px_0_rgba(255,255,255,0.6)] transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:shadow-[0_15px_50px_rgba(34,211,238,0.5),inset_0_1px_0_rgba(255,255,255,0.8)] active:translate-y-0 active:scale-[0.98]"
                 >
-                  <span className="absolute -left-20 inset-y-0 w-12 skew-x-[-20deg] bg-white/30 blur-sm transition-transform duration-1000 group-hover/cta:translate-x-[700px]" />
-                  {isPro ? <RefreshCcw size={16} /> : <Crown size={16} />}
-                  <span className="relative">
-                    {isPro ? "Manage Pro membership" : "Unlock Lumora Pro"}
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-[150%] skew-x-[-25deg] transition-transform duration-1000 group-hover/cta:translate-x-[150%]" />
+                  {isPro ? (
+                    <RefreshCcw size={18} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  ) : (
+                    <Crown size={18} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  )}
+                  <span className="relative text-xs font-black uppercase tracking-[0.2em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                    {isPro ? "Manage Pro membership" : "Unlock Exismic Pro"}
                   </span>
-                  <ArrowRight size={16} className="relative transition-transform duration-300 group-hover/cta:translate-x-1" />
+                  <ArrowRight size={18} className="relative text-white transition-transform duration-300 group-hover/cta:translate-x-1.5 group-hover/cta:scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                 </Link>
-                <p className="mt-3 text-center text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-700">
-                  Daily credits reset at 00:00 UTC
-                  {!isPro && " · Cancel anytime"}
-                </p>
+                <div className="mt-4 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.16em]">
+                  <span className="flex items-center gap-1.5 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+                    <RefreshCcw size={12} className="text-cyan-300" />
+                    Resets in {timeUntilReset}
+                  </span>
+                  {!isPro && (
+                    <>
+                      <span className="text-zinc-700">·</span>
+                      <span className="text-zinc-500">Cancel anytime</span>
+                    </>
+                  )}
+                </div>
               </footer>
             </div>
           </motion.section>

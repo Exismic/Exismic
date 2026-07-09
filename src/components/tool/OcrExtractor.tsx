@@ -118,7 +118,7 @@ export default function OcrExtractor() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${file?.name.replace(/\.[^/.]+$/, "") || "lumora-ocr"}-text.txt`;
+    link.download = `${file?.name.replace(/\.[^/.]+$/, "") || "exismic-ocr"}-text.txt`;
     document.body.appendChild(link);
     link.click();
     link.remove();

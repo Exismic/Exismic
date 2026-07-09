@@ -11,12 +11,12 @@ import type {
   SupportUsageLog,
 } from "./types";
 
-const STORAGE_KEY = "lumora:support-agents:v1";
-const DOCUMENTS_KEY = "lumora:support-documents:v1";
-const CONVERSATIONS_KEY = "lumora:support-conversations:v1";
-const MESSAGES_KEY = "lumora:support-messages:v1";
-const LEADS_KEY = "lumora:support-leads:v1";
-const USAGE_KEY = "lumora:support-usage:v1";
+const STORAGE_KEY = "exismic:support-agents:v1";
+const DOCUMENTS_KEY = "exismic:support-documents:v1";
+const CONVERSATIONS_KEY = "exismic:support-conversations:v1";
+const MESSAGES_KEY = "exismic:support-messages:v1";
+const LEADS_KEY = "exismic:support-leads:v1";
+const USAGE_KEY = "exismic:support-usage:v1";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];

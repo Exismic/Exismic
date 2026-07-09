@@ -201,12 +201,12 @@ export async function POST(req: NextRequest) {
     return new NextResponse(outputBuffer, {
       headers: {
         "Content-Type": "image/jpeg",
-        "Content-Disposition": `attachment; filename="lumora-watermark-cleaned-${Date.now()}.jpg"`,
-        "X-Lumora-Provider": provider,
-        "X-Lumora-Width": String(outputMetadata.width || ""),
-        "X-Lumora-Height": String(outputMetadata.height || ""),
-        "X-Lumora-Priority": context.priority ? "true" : "false",
-        "X-Lumora-Queue": context.queue,
+        "Content-Disposition": `attachment; filename="exismic-watermark-cleaned-${Date.now()}.jpg"`,
+        "X-Exismic-Provider": provider,
+        "X-Exismic-Width": String(outputMetadata.width || ""),
+        "X-Exismic-Height": String(outputMetadata.height || ""),
+        "X-Exismic-Priority": context.priority ? "true" : "false",
+        "X-Exismic-Queue": context.queue,
       },
     });
   } catch (error: unknown) {

@@ -71,7 +71,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
           title={category.name}
           subtitle={`Browse our collection of professional ${category.name.toLowerCase()} architected for high-performance workflows.`}
           categoryId={categoryId}
-          isPro={categoryId === 'ai' || categoryId === 'video'}
+          isPro={categoryId === 'ai'}
         />
       </div>
 

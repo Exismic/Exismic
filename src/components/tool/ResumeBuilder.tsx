@@ -60,7 +60,7 @@ interface ResumeSuggestResponse {
   error?: string;
 }
 
-const STORAGE_KEY = "lumora_resume_data_v2";
+const STORAGE_KEY = "exismic_resume_data_v2";
 
 const SECTION_NAV: Array<{ id: ActiveSection; label: string; icon: typeof User }> = [
   { id: "personal", label: "Profile", icon: User },
@@ -73,7 +73,7 @@ const SECTION_NAV: Array<{ id: ActiveSection; label: string; icon: typeof User }
 const TOP_TABS: Array<{ id: ActiveTab; label: string; icon: typeof User }> = [
   { id: "content", label: "Content", icon: User },
   { id: "design", label: "Design", icon: Layout },
-  { id: "ai", label: "Lumora AI", icon: Sparkles },
+  { id: "ai", label: "Exismic Ai", icon: Sparkles },
 ];
 
 const inputClass = "w-full min-h-12 rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white placeholder:text-zinc-700 outline-none transition-all focus:border-violet-300/50 focus:ring-4 focus:ring-violet-500/10";
@@ -286,7 +286,7 @@ export function ResumeBuilder() {
       experience: [
         {
           id: createId("exp"),
-          company: "Lumora Labs",
+          company: "Exismic Labs",
           role: "Frontend Developer",
           period: "2024 - Present",
           description: "- Built responsive AI tool pages used across image, productivity, and video workflows\n- Improved conversion-focused UI patterns with premium dark-mode components\n- Partnered with backend engineers to connect AI generation APIs and user history",
@@ -304,10 +304,10 @@ export function ResumeBuilder() {
       projects: [
         {
           id: createId("project"),
-          name: "Lumora Tool Suite",
+          name: "Exismic Tool Suite",
           role: "Builder",
           description: "- Designed and implemented premium AI tools with responsive layouts\n- Connected generation flows to API routes, local state, and downloadable results",
-          link: "lumora.ai",
+          link: "exismic.ai",
         },
       ],
     });
@@ -368,16 +368,16 @@ export function ResumeBuilder() {
       const result = await response.json() as ResumeSuggestResponse;
 
       if (!response.ok || !result.success || !result.resume) {
-        throw new Error(result.error || "Lumora AI could not build the resume.");
+        throw new Error(result.error || "Exismic Ai could not build the resume.");
       }
 
       setData(normalizeResumeData(result.resume));
       setActiveTab("content");
       setActiveSection("personal");
-      setNotice("Lumora AI built your resume draft.");
+      setNotice("Exismic Ai built your resume draft.");
       window.setTimeout(() => setNotice(null), 2500);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : "Lumora AI could not build the resume.");
+      setAiError(error instanceof Error ? error.message : "Exismic Ai could not build the resume.");
     } finally {
       setIsGenerating(null);
     }
@@ -425,7 +425,7 @@ export function ResumeBuilder() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${(data.personalInfo.fullName || "Lumora_Resume").replace(/\s+/g, "_")}_Resume.pdf`;
+      link.download = `${(data.personalInfo.fullName || "Exismic_Resume").replace(/\s+/g, "_")}_Resume.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -565,7 +565,7 @@ export function ResumeBuilder() {
 
                     {activeSection === "experience" && (
                       <Panel title="Work Experience" icon={Briefcase} action={<IconButton onClick={addExperience}><Plus size={16} /></IconButton>}>
-                        {data.experience.length === 0 && <EmptyState text="Add a role or let Lumora AI build one from your brief." />}
+                        {data.experience.length === 0 && <EmptyState text="Add a role or let Exismic Ai build one from your brief." />}
                         {data.experience.map((exp) => (
                           <EditorCard key={exp.id} onRemove={() => removeExperience(exp.id)}>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -685,7 +685,7 @@ export function ResumeBuilder() {
 
               {activeTab === "ai" && (
                 <motion.div key="ai" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5 p-5">
-                  <Panel title="Lumora AI Resume" icon={Sparkles}>
+                  <Panel title="Exismic Ai Resume" icon={Sparkles}>
                     <ProNotice isPro={isPro} />
                     <input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Target role, e.g. Frontend Developer" className={inputClass} />
                     <textarea value={aiBrief} onChange={(event) => setAiBrief(event.target.value)} disabled={!isPro} placeholder="Briefly describe your experience, education, projects, strongest skills, achievements, and target industry." className={cn(textareaClass, "min-h-36", !isPro && "opacity-50")} />
@@ -841,7 +841,7 @@ function ProNotice({ isPro }: { isPro: boolean }) {
   if (isPro) {
     return (
       <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm font-bold leading-relaxed text-cyan-100">
-        Lumora AI can build a full resume draft and score it against a job description.
+        Exismic Ai can build a full resume draft and score it against a job description.
       </div>
     );
   }
@@ -853,7 +853,7 @@ function ProNotice({ isPro }: { isPro: boolean }) {
           <Lock size={17} />
         </div>
         <div>
-          <p className="text-sm font-black text-white">Lumora AI is Pro only</p>
+          <p className="text-sm font-black text-white">Exismic Ai is Pro only</p>
           <p className="mt-1 text-xs font-bold leading-relaxed text-amber-100/75">Upgrade to generate full resumes and ATS analysis from a short brief.</p>
           <Link href="/pro" className="mt-3 inline-flex min-h-10 items-center rounded-2xl bg-amber-300 px-4 text-xs font-black uppercase tracking-widest text-black">
             Upgrade

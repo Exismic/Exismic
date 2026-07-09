@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/user/credits
  * Fetch current user's credits (with automatic daily reset check)
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -25,15 +25,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    const { getTodayInIndia } = await import('@/lib/credits');
+    const claimDate = getTodayInIndia();
+    const todayClaim = await prisma.creditShopClaim.findUnique({
+      where: {
+        userId_claimDate: {
+          userId,
+          claimDate,
+        },
+      },
+      select: { amount: true, rarity: true }
+    });
+
     return NextResponse.json({
       success: true,
       data: {
         dailyCredits: credits.dailyCredits,
+        bonusCredits: credits.bonusCredits,
         lifetimeCredits: credits.lifetimeCredits,
-        totalCredits: credits.dailyCredits + credits.lifetimeCredits,
+        purchasedCredits: credits.lifetimeCredits,
+        totalCredits: credits.dailyCredits + credits.bonusCredits + credits.lifetimeCredits,
         aiMessagesToday: credits.aiMessagesToday,
         plan: credits.plan,
         lastReset: credits.creditsLastReset,
+        todayClaim: todayClaim || null,
       }
     }, {
       headers: {
@@ -103,6 +118,7 @@ export async function POST(request: NextRequest) {
             email: user.email || null,
             name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || null,
             dailyCredits: 50,
+            bonusCredits: 0,
             lifetimeCredits: 0,
             aiMessagesToday: 1,
             plan: 'free',

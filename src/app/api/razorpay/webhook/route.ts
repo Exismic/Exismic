@@ -84,6 +84,16 @@ export async function POST(request: NextRequest) {
             where: { id: userId },
             data: { lifetimeCredits: { increment: packagePrice.tier.credits } },
           }),
+          prisma.creditTransaction.create({
+            data: {
+              userId,
+              amount: packagePrice.tier.credits,
+              balanceType: "permanent",
+              transactionType: "purchase",
+              description: `Purchased ${packagePrice.tier.credits} permanent credits`,
+              metadata: { tierId: packagePrice.tier.id, providerPaymentId, providerOrderId, event },
+            },
+          }),
           prisma.paymentTransaction.create({
             data: {
               providerPaymentId,

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
-import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
 
 const subscribeToHydration = () => () => {};
@@ -40,7 +40,7 @@ interface ManageSubscriptionModalProps {
 }
 
 const INCLUDED_BENEFITS = [
-  { icon: null, label: "1,000 daily credits", detail: "Restored every day", custom: true },
+  { icon: null, label: `${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString()} daily credits`, detail: "Restored every day", custom: true },
   { icon: Cpu, label: "Priority processing", detail: "Faster eligible jobs" },
   { icon: ImageDown, label: "Clean Pro exports", detail: "No generated watermark" },
   { icon: ShieldCheck, label: "Commercial rights", detail: "For client and brand work" },
@@ -144,10 +144,10 @@ export function ManageSubscriptionModal({
 
             <header className="relative z-10 flex min-h-20 shrink-0 items-center justify-between border-b border-white/[0.07] px-5 sm:px-7">
               <div className="flex min-w-0 items-center gap-3">
-                <LumoraMark size={42} />
+                <ExismicMark size={42} />
                 <div className="min-w-0">
                   <h2 id="membership-modal-title" className="truncate text-sm font-black tracking-[-0.01em] text-white">
-                    Lumora Pro
+                    Exismic Pro
                   </h2>
                   <p className="mt-1 text-[8px] font-black uppercase tracking-[0.22em] text-zinc-600">
                     Membership and billing
@@ -319,7 +319,7 @@ export function ManageSubscriptionModal({
                             <AlertTriangle size={16} />
                           </span>
                           <div>
-                            <p className="text-xs font-black text-white">Cancel Lumora Pro?</p>
+                            <p className="text-xs font-black text-white">Cancel Exismic Pro?</p>
                             <p className="mt-1.5 text-[10px] font-medium leading-5 text-zinc-500">
                               You keep all Pro features until {formattedDate}. After that, daily credits return to 50.
                             </p>

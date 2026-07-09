@@ -3,7 +3,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Sparkles, Crown } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
 interface CategoryHeadingProps {
   icon: React.ElementType;
@@ -14,39 +15,6 @@ interface CategoryHeadingProps {
   className?: string;
 }
 
-const CATEGORY_STYLES: Record<string, { gradient: string, glow: string, accent: string }> = {
-  'image': {
-    gradient: "from-purple-500 via-pink-500 to-purple-500",
-    glow: "rgba(168, 85, 247, 0.3)",
-    accent: "text-purple-400"
-  },
-  'video': {
-    gradient: "from-cyan-500 via-blue-500 to-cyan-500",
-    glow: "rgba(34, 211, 238, 0.3)",
-    accent: "text-cyan-400"
-  },
-  'audio': {
-    gradient: "from-orange-500 via-red-500 to-orange-500",
-    glow: "rgba(249, 115, 22, 0.3)",
-    accent: "text-orange-400"
-  },
-  'ai': {
-    gradient: "from-violet-600 via-cyan-400 to-violet-600",
-    glow: "rgba(124, 58, 237, 0.3)",
-    accent: "text-violet-400"
-  },
-  'pdf': {
-    gradient: "from-emerald-500 via-teal-500 to-emerald-500",
-    glow: "rgba(16, 185, 129, 0.3)",
-    accent: "text-emerald-400"
-  },
-  'productivity': {
-    gradient: "from-blue-500 via-indigo-500 to-blue-500",
-    glow: "rgba(59, 130, 246, 0.3)",
-    accent: "text-blue-400"
-  }
-};
-
 const CategoryHeading: React.FC<CategoryHeadingProps> = ({
   icon: Icon,
   title,
@@ -55,25 +23,28 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
   isPro = false,
   className
 }) => {
-  const style = CATEGORY_STYLES[categoryId] || CATEGORY_STYLES['ai'];
+  const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
 
   return (
     <div className={cn("relative space-y-12", className)}>
       <div className="flex flex-col gap-8">
         {/* Integrated Studio Badge - Static & Professional */}
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#0c0c0e] border border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden group">
-            <div className={cn(
-              "absolute inset-0 opacity-10 bg-linear-to-br",
-              style.gradient
-            )} />
-            <Icon size={24} style={{ color: style.glow.replace('0.3', '1') }} className="relative z-10" />
-            <div className="absolute inset-0 bg-linear-to-tr from-white/5 to-transparent" />
+          <div className="relative group flex h-14 w-14 shrink-0 items-center justify-center">
+             <div className={cn("absolute -inset-3 rounded-full blur-xl animate-pulse", isPro ? "bg-amber-500/25" : animStyle.aura)} />
+             <div className={cn("absolute inset-0 rounded-xl animate-[spin_4s_linear_infinite]",
+               isPro ? "bg-[conic-gradient(from_0deg,rgba(251,191,36,1)_0%,rgba(245,158,11,1)_33%,rgba(253,230,138,1)_66%,rgba(251,191,36,1)_100%)]"
+                     : animStyle.spinIdle
+             )} />
+             <div className="absolute inset-[1.5px] rounded-[10px] bg-[#0b0c12] flex items-center justify-center overflow-hidden z-10 transition-transform duration-300 group-hover:scale-[0.98]">
+                <Icon size={24} className={cn("relative z-20 transition-transform duration-300 group-hover:scale-110", isPro ? "text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" : animStyle.iconGlow)} />
+                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+             </div>
           </div>
           
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <Sparkles size={12} className={style.accent} />
+              <Sparkles size={12} className={isPro ? "text-amber-400" : "text-white/50"} />
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">
                 {isPro ? "Premium Pro Series" : "Essential Creative Suite"}
               </p>
@@ -89,35 +60,15 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
         {/* Hero Title - Engineered for Zero Clipping */}
         <div className="space-y-6">
           <div className="relative py-2 pr-12 overflow-visible inline-block"> 
-            <motion.h1 
-              animate={{ 
-                backgroundPosition: ["0% center", "200% center"] 
-              }}
-              transition={{ 
-                duration: 5, 
-                repeat: Infinity, 
-                ease: "linear" 
-              }}
-              style={{
-                backgroundImage: `linear-gradient(to right, ${
-                  categoryId === 'image' ? '#A855F7, #EC4899, #A855F7' :
-                  categoryId === 'video' ? '#06B6D4, #3B82F6, #06B6D4' :
-                  categoryId === 'audio' ? '#F97316, #EF4444, #F97316' :
-                  categoryId === 'ai' ? '#7C3AED, #22D3EE, #7C3AED' :
-                  categoryId === 'pdf' ? '#10B981, #14B8A6, #10B981' :
-                  '#3B82F6, #6366F1, #3B82F6' // Productivity
-                })`,
-                backgroundSize: '200% auto',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
+            <h1 
               className={cn(
-                "text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter uppercase italic leading-none select-none px-8 -mx-8 bg-clip-text text-transparent",
+                "text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter uppercase italic leading-none select-none px-8 -mx-8 bg-clip-text text-transparent bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]" : animStyle.textGrad,
                 className
               )}
             >
               {title}
-            </motion.h1>
+            </h1>
             {/* Soft Ambient Depth */}
             <span 
               className="absolute inset-0 text-white/5 blur-3xl -z-10 select-none uppercase italic font-black text-5xl md:text-7xl xl:text-8xl tracking-tighter leading-none px-8 -mx-8"
@@ -138,7 +89,7 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
         <motion.div 
            animate={{ x: ['-100%', '200%'] }}
            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-           className={cn("absolute inset-y-0 w-40 bg-linear-to-r from-transparent via-current to-transparent opacity-30", style.accent)} 
+           className={cn("absolute inset-y-0 w-40 bg-linear-to-r from-transparent via-white to-transparent opacity-20")} 
         />
       </div>
     </div>

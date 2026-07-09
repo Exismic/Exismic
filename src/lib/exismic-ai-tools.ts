@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type LumoraAiToolId =
+export type ExismicAiToolId =
   | "background-remover"
   | "image-compressor"
   | "image-converter"
@@ -9,7 +9,7 @@ export type LumoraAiToolId =
 const qualitySchema = z.number().int().min(1).max(100).default(82);
 const formatSchema = z.enum(["jpg", "jpeg", "png", "webp", "gif"]);
 
-export const lumoraAiToolRegistry = {
+export const exismicAiToolRegistry = {
   "background-remover": {
     id: "background-remover",
     label: "Background Remover",
@@ -54,8 +54,8 @@ export const lumoraAiToolRegistry = {
   },
 } as const;
 
-export interface DetectedLumoraTool {
-  toolId: LumoraAiToolId;
+export interface DetectedExismicTool {
+  toolId: ExismicAiToolId;
   parameters: Record<string, unknown>;
   missing?: "dimensions";
 }
@@ -88,7 +88,7 @@ function extractDimensions(prompt: string) {
   return undefined;
 }
 
-export function detectLumoraTool(prompt: string): DetectedLumoraTool | null {
+export function detectExismicTool(prompt: string): DetectedExismicTool | null {
   const normalized = prompt.toLowerCase().replace(/\s+/g, " ").trim();
   if (/\b(?:how\s+to|explain|teach\s+me|what\s+is)\b/i.test(normalized)) return null;
   const quality = extractQuality(prompt);
@@ -143,6 +143,6 @@ export function detectLumoraTool(prompt: string): DetectedLumoraTool | null {
   return null;
 }
 
-export function validateLumoraToolParameters(tool: DetectedLumoraTool) {
-  return lumoraAiToolRegistry[tool.toolId].parameters.parse(tool.parameters);
+export function validateExismicToolParameters(tool: DetectedExismicTool) {
+  return exismicAiToolRegistry[tool.toolId].parameters.parse(tool.parameters);
 }

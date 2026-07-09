@@ -1,7 +1,7 @@
 "use server";
 
 import { getCurrentUserId } from "@/lib/auth";
-import { addCredits, deductCredits } from "@/lib/credits";
+import { addCredits } from "@/lib/credits";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { CheckoutCurrency, getCreditPackageByCredits, getCreditPackagePrice, normalizeCheckoutCurrency } from "@/lib/payment-pricing";
@@ -153,58 +153,4 @@ export async function verifyRazorpayPayment(
   });
 
   return { success: true };
-}
-
-export async function openLuckyDrop() {
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const COST = 50;
-
-  // Deduct cost
-  const deductResult = await deductCredits(userId, COST);
-  if (!deductResult.success) {
-    return { success: false, error: "Insufficient credits to open Lucky Drop." };
-  }
-
-  // Random logic
-  const rand = Math.random();
-  let rarity: 'common' | 'epic' | 'legendary' = 'common';
-  let creditsWon = 0;
-
-  if (rand < 0.02) {
-    // 2% chance for rare drop (epic/legendary)
-    const rareRand = Math.random();
-    if (rareRand < 0.01) {
-      // 1% inside rare -> 500
-      rarity = 'legendary';
-      creditsWon = 500;
-    } else if (rareRand < 0.06) {
-      // 5% inside rare -> 200
-      rarity = 'epic';
-      creditsWon = 200;
-    } else {
-      // remaining 94% inside rare -> 50-199
-      rarity = 'epic';
-      creditsWon = Math.floor(Math.random() * (199 - 50 + 1)) + 50;
-    }
-  } else {
-    // 98% normal drop
-    rarity = 'common';
-    // Small reward: 0 to 30 credits (so it averages around 15, making it a "loss" normally)
-    creditsWon = Math.floor(Math.random() * 31); 
-  }
-
-  // Add won credits (as permanent lifetime credits!)
-  if (creditsWon > 0) {
-    await addCredits(userId, creditsWon, `Lucky Drop Win (${rarity})`);
-  }
-
-  return { 
-    success: true, 
-    rarity, 
-    creditsWon 
-  };
 }

@@ -22,7 +22,7 @@ import { readDownloadResponse } from "@/lib/pdf-client";
 const COMPRESSOR_STEPS = [
   { title: "Upload PDF", desc: "Select the large document you want to optimize for web or email." },
   { title: "Select Mode", desc: "Choose how aggressively document metadata should be cleaned." },
-  { title: "Repack Streams", desc: "Lumora rebuilds internal PDF objects without rasterizing your pages." },
+  { title: "Repack Streams", desc: "Exismic rebuilds internal PDF objects without rasterizing your pages." },
   { title: "Download", desc: "Download the smaller file, or the original when it is already optimized." }
 ];
 
@@ -72,14 +72,14 @@ export default function PdfCompressor() {
         response,
         "optimized-document.pdf",
       );
-      const oldSize = Number(artifact.headers.get("X-Lumora-Original-Size")) || file.size;
-      const newSize = Number(artifact.headers.get("X-Lumora-Output-Size")) || artifact.size;
+      const oldSize = Number(artifact.headers.get("X-Exismic-Original-Size")) || file.size;
+      const newSize = Number(artifact.headers.get("X-Exismic-Output-Size")) || artifact.size;
       setResult({
         url: artifact.url,
         fileName: artifact.fileName,
         oldSize,
         newSize,
-        optimized: artifact.headers.get("X-Lumora-Optimized") === "true",
+        optimized: artifact.headers.get("X-Exismic-Optimized") === "true",
       });
     } catch (err: unknown) {
       console.error(err);
@@ -187,7 +187,7 @@ export default function PdfCompressor() {
                             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">
                               {result.optimized
                                 ? `Saved ${formatSize(result.oldSize - result.newSize)} without rasterizing pages`
-                                : "Lumora kept the original because rebuilding it would make the file larger"}
+                                : "Exismic kept the original because rebuilding it would make the file larger"}
                             </p>
                          </div>
 

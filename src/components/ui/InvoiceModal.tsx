@@ -32,7 +32,7 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
     id: "INV-2026-0507-8821",
     date: "May 7, 2026",
     amount: "$6.99",
-    plan: "Lumora Elite Pro - Monthly",
+    plan: "Exismic Elite Pro - Monthly",
     method: "Secure card payment",
     status: "Paid"
   };
@@ -125,13 +125,15 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
 
               {/* Footer Actions */}
               <div className="pt-6 space-y-4">
-                <button className="w-full py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-[0.98]">
+                <button 
+                  onClick={() => window.print()}
+                  className="w-full py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-[0.98]">
                   <Download size={16} />
                   Download PDF Invoice
                 </button>
                 <div className="flex items-center justify-center gap-2 text-[9px] font-black text-zinc-700 uppercase tracking-widest">
                   <ShieldCheck size={12} />
-                  Secure Transaction • Lumora Studios
+                  Secure Transaction • Exismic Studios
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 {
-  "name": "Lumora",
-  "short_name": "Lumora",
-  "description": "Lumora AI creative platform",
+  "name": "Exismic",
+  "short_name": "Exismic",
+  "description": "Exismic Ai creative platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#030303",

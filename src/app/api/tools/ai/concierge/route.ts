@@ -195,7 +195,7 @@ async function askGroq(message: string) {
       {
         role: "system",
         content: [
-          "You are Lumora AI's tool concierge.",
+          "You are Exismic Ai's tool concierge.",
           "Understand the user's intended outcome and recommend zero to three tools from the exact catalog.",
           "Never invent a tool ID. For greetings or unclear requests, ask one concise clarifying question and return an empty toolIds array.",
           "Return JSON only in this shape: {\"message\":\"short helpful response\",\"toolIds\":[\"exact-id\"]}.",
@@ -269,7 +269,7 @@ export async function POST(request: NextRequest) {
 
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: "Tell Lumora AI what you want to do." }, { status: 400 });
+      return NextResponse.json({ error: "Tell Exismic Ai what you want to do." }, { status: 400 });
     }
 
     let result;
@@ -290,7 +290,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[ToolConcierge]", error);
     return NextResponse.json(
-      { error: "Lumora AI could not process that request. Please try again." },
+      { error: "Exismic Ai could not process that request. Please try again." },
       { status: 500 }
     );
   }

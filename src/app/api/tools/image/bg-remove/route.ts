@@ -57,47 +57,7 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // 2. Try Local Python FastAPI Service (If available)
-    try {
-      const formData = new FormData();
-      const blob = new Blob([new Uint8Array(buffer)]);
-      formData.append("file", blob, "input.png");
-
-      const response = await axios.post(getEngineRoute("/image/remove-bg"), formData, {
-        responseType: 'arraybuffer',
-        timeout: 5000 // Short timeout for local service
-      });
-
-      const fileName = `result_${jobId}.png`;
-      const fullPath = path.join(STORAGE_PATH, fileName);
-      await writeFile(fullPath, Buffer.from(response.data));
-      return { resultUrl: `/results/${fileName}` };
-    } catch {
-      console.log("Local BG removal failed, trying cloud APIs...");
-    }
-
-    // 3. Try Hugging Face (Free)
-    const hfToken = process.env.HUGGINGFACE_TOKEN;
-    if (hfToken) {
-      try {
-        console.log("Attempting background removal via Hugging Face...");
-        const hfUrl = "https://api-inference.huggingface.co/models/briaai/RMBG-1.4";
-        const hfResponse = await axios.post(hfUrl, buffer, {
-          headers: { Authorization: `Bearer ${hfToken}` },
-          responseType: 'arraybuffer',
-          timeout: 30000
-        });
-
-        const fileName = `result_hf_${jobId}.png`;
-        const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, Buffer.from(hfResponse.data));
-        return { resultUrl: `/results/${fileName}` };
-      } catch (hfError: unknown) {
-        console.error("Hugging Face BG Removal Failed:", getErrorMessage(hfError));
-      }
-    }
-
-    // 4. Try remove.bg (Dedicated fallback)
+    // 1. Try remove.bg (Highest Quality & Lightning Fast)
     const removeBgKey = process.env.REMOVE_BG_API_KEY;
     if (removeBgKey) {
       try {
@@ -110,7 +70,7 @@ export async function POST(req: NextRequest) {
         const removeBgResponse = await axios.post("https://api.remove.bg/v1.0/removebg", removeBgForm, {
           headers: { "X-Api-Key": removeBgKey },
           responseType: "arraybuffer",
-          timeout: 30000
+          timeout: 15000
         });
 
         const fileName = `result_removebg_${jobId}.png`;
@@ -122,7 +82,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Try Fal.ai (Premium)
+    // 2. Try Fal.ai (Premium & Very Fast)
     const falKey = process.env.FAL_KEY;
     if (falKey) {
       try {
@@ -144,6 +104,46 @@ export async function POST(req: NextRequest) {
         }
       } catch (falError: unknown) {
         console.error("Fal.ai BG Removal Failed:", getErrorMessage(falError));
+      }
+    }
+
+    // 3. Try Local Python FastAPI Service (If available)
+    try {
+      const formData = new FormData();
+      const blob = new Blob([new Uint8Array(buffer)]);
+      formData.append("file", blob, "input.png");
+
+      const response = await axios.post(getEngineRoute("/image/remove-bg"), formData, {
+        responseType: 'arraybuffer',
+        timeout: 5000 // Short timeout for local service
+      });
+
+      const fileName = `result_${jobId}.png`;
+      const fullPath = path.join(STORAGE_PATH, fileName);
+      await writeFile(fullPath, Buffer.from(response.data));
+      return { resultUrl: `/results/${fileName}` };
+    } catch {
+      console.log("Local BG removal failed, trying cloud APIs...");
+    }
+
+    // 4. Try Hugging Face (Free, but slow cold starts)
+    const hfToken = process.env.HUGGINGFACE_TOKEN;
+    if (hfToken) {
+      try {
+        console.log("Attempting background removal via Hugging Face...");
+        const hfUrl = "https://api-inference.huggingface.co/models/briaai/RMBG-1.4";
+        const hfResponse = await axios.post(hfUrl, buffer, {
+          headers: { Authorization: `Bearer ${hfToken}` },
+          responseType: 'arraybuffer',
+          timeout: 30000
+        });
+
+        const fileName = `result_hf_${jobId}.png`;
+        const fullPath = path.join(STORAGE_PATH, fileName);
+        await writeFile(fullPath, Buffer.from(hfResponse.data));
+        return { resultUrl: `/results/${fileName}` };
+      } catch (hfError: unknown) {
+        console.error("Hugging Face BG Removal Failed:", getErrorMessage(hfError));
       }
     }
 

@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { CATEGORIES, ICON_MAP } from "@/data/tools";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, ArrowRight } from "lucide-react";
+import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
 export function CategorySection() {
   const containerVariants = {
@@ -75,10 +76,11 @@ export function CategorySection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
         >
           {CATEGORIES.map((cat) => {
             const Icon = ICON_MAP[cat.icon];
+            const style = CATEGORY_ANIM_STYLES[cat.id] || CATEGORY_ANIM_STYLES.ai;
             return (
               <motion.div
                 key={cat.id}
@@ -86,65 +88,71 @@ export function CategorySection() {
                 whileHover="hover"
                 className="group relative"
               >
-                <Link href={`/category/${cat.id}`} className="block h-full rounded-[1.75rem] sm:rounded-[2.5rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/60">
+                <Link href={`/category/${cat.id}`} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
                   <div className={cn(
-                    "relative h-full min-h-[190px] flex flex-col items-center justify-center gap-5 sm:gap-6 p-5 sm:p-8 rounded-[1.75rem] sm:rounded-[2.5rem] glass-dark border border-white/5 transition-all duration-500 overflow-hidden touch-manipulation active:scale-[0.99]",
-                    "hover:shadow-2xl md:hover:-translate-y-2",
-                    "before:absolute before:inset-0 before:opacity-0 before:group-hover:opacity-100 before:transition-opacity before:duration-500 before:-z-10"
-                  )}
-                   style={{ 
-                    // @ts-expect-error - Custom CSS property for neon glow
-                    '--glow-color': cat.glow,
-                  } as React.CSSProperties}
-                  >
-                    {/* Floating Neon Glow Background */}
-                    <div className="absolute -inset-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl -z-10" 
-                      style={{ background: cat.glow }}
-                    />
-                    
-                    {/* Multi-layered Icon Container */}
-                    <div className="relative group/icon">
-                      <div className={cn(
-                        "w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-white/5 flex items-center justify-center transition-all duration-500",
-                        "group-hover:bg-white/10 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:rotate-6"
-                      )}>
-                        <motion.div
-                          variants={iconAnimation}
-                          initial="initial"
-                          animate="animate"
-                          className={cn("transition-all duration-500 drop-shadow-[0_0_10px_var(--glow-color)]")}
-                        >
-                          {/* Use solid color for icons to ensure visibility, with glow */}
-                          <Icon 
-                            size={34} 
-                            className="sm:w-10 sm:h-10"
-                            style={{ 
-                              color: cat.glow.replace('0.5', '1'),
-                            }}
-                          />
-                        </motion.div>
-                      </div>
-                      
-                      {/* Secondary glowing orb behind icon */}
-                      <div className={cn(
-                        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none -z-10",
-                        cat.color.replace('from-', 'bg-').split(' ')[0]
-                      )} />
+                    "relative h-full min-h-[260px] flex flex-col items-center text-center p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
+                    "border", style.cardBorder,
+                    "bg-zinc-950/50 hover:bg-zinc-900/60",
+                    "md:group-hover:scale-[1.03] active:scale-[0.99]"
+                  )}>
+                    {/* Shine Animation Layer */}
+                    <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden pointer-events-none z-10">
+                      <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.1),transparent)]" />
                     </div>
 
-                    <div className="flex flex-col items-center text-center">
-                      <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight mb-2 group-hover:scale-105 transition-transform break-words">
+                    {/* Icon Section */}
+                    <div className="mb-6 sm:mb-8 relative flex justify-center w-full">
+                      <div className={cn(
+                        "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl",
+                        "bg-[#0b0c12] border border-white/5",
+                      )}>
+                        <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", style.aura)} />
+                        <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500", style.spinIdle, style.spinHover)} />
+                        <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+                          <motion.div
+                            className="absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                            animate={{ left: ["-100%", "200%"] }}
+                            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", repeatType: "mirror" }}
+                          />
+                        </div>
+                        <Icon className={cn(
+                          "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
+                          "group-hover:scale-110",
+                          style.iconGlow
+                        )} />
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 w-full">
+                      <h3 className={cn(
+                        "text-xl sm:text-2xl font-black tracking-tighter leading-tight transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                        style.textGrad
+                      )}>
                         {cat.name}
                       </h3>
-                      <p className="text-[11px] sm:text-xs font-medium text-zinc-400 leading-relaxed max-w-[180px] sm:max-w-[140px] group-hover:text-zinc-200 transition-all uppercase tracking-wider break-words">
+                      <p className="text-xs sm:text-[13px] font-medium text-zinc-500 line-clamp-3 sm:line-clamp-2 leading-relaxed tracking-tight group-hover:text-zinc-300 transition-colors break-words mx-auto">
                         {cat.description}
                       </p>
                     </div>
 
-                    {/* Neon Border Glow */}
-                    <div className="absolute inset-x-0 bottom-0 h-[2px] opacity-0 group-hover:opacity-100 transition-all duration-500 blur-[2px]"
-                      style={{ background: `linear-gradient(to right, transparent, ${cat.glow}, transparent)` }}
-                    />
+                    {/* Premium Button CTA */}
+                    <div className="mt-6 sm:mt-8 w-full">
+                      <div className={cn(
+                        "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-widest text-[9px] sm:text-[10px] transition-all duration-500 relative overflow-hidden group-hover:scale-[1.02] border shadow-lg",
+                        style.buttonGrad
+                      )}>
+                        <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
+                        <span className="relative z-10 flex items-center gap-2 sm:gap-3 text-white">
+                          View Tools
+                          <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5 text-white" />
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Ambient Bottom Glow */}
+                    <div className="absolute inset-x-16 bottom-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-[0.5px]" style={{ background: `linear-gradient(to right, transparent, ${cat.glow}, transparent)` }} />
                   </div>
                 </Link>
               </motion.div>

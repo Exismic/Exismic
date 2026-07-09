@@ -12,12 +12,12 @@ import {
   FileJson,
   BookOpen
 } from "lucide-react";
-import { useLumoraStore } from "./useLumoraStore";
+import { useExismicStore } from "./useExismicStore";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function SidebarExplorer() {
-  const { files, activeFileId, openFile, deleteFile, addFile } = useLumoraStore();
+  const { files, activeFileId, openFile, deleteFile, addFile } = useExismicStore();
   const [isExpanded, setIsExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 

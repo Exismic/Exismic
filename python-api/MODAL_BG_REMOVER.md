@@ -1,4 +1,4 @@
-# Lumora Modal Background Remover
+# Exismic Modal Background Remover
 
 Self-hosted background removal endpoint using Modal.com, FastAPI, `rembg`, and the `u2net` model.
 
@@ -14,7 +14,7 @@ modal setup
 Pick a strong private key and store it in Modal:
 
 ```bash
-modal secret create lumora-bg-remover BG_REMOVER_API_KEY="replace-with-a-long-random-key"
+modal secret create exismic-bg-remover BG_REMOVER_API_KEY="replace-with-a-long-random-key"
 ```
 
 The Next.js app must use the same value as `MODAL_IMAGE_API_KEY`.
@@ -30,7 +30,7 @@ modal deploy python-api/modal_bg_remover.py
 Modal will print a URL like:
 
 ```text
-https://your-workspace--lumora-bg-remover.modal.run
+https://your-workspace--exismic-bg-remover.modal.run
 ```
 
 Use that as `MODAL_IMAGE_URL`.
@@ -40,7 +40,7 @@ Use that as `MODAL_IMAGE_URL`.
 Add this to `.env.local`:
 
 ```env
-MODAL_IMAGE_URL=https://your-user--lumora-bg-remover-lumora-bg-remover.modal.run
+MODAL_IMAGE_URL=https://your-user--exismic-bg-remover-exismic-bg-remover.modal.run
 MODAL_IMAGE_API_KEY=replace-with-a-long-random-key
 ```
 

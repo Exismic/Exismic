@@ -11,11 +11,11 @@ self.addEventListener("push", (event) => {
   if (payload.type !== "trusted-login") return;
 
   event.waitUntil(
-    self.registration.showNotification(payload.title || "Lumora login request", {
-      body: payload.body || "A device is asking to sign in to your Lumora account.",
+    self.registration.showNotification(payload.title || "Exismic login request", {
+      body: payload.body || "A device is asking to sign in to your Exismic account.",
       icon: "/favicon.png",
       badge: "/favicon.png",
-      tag: `lumora-login-${payload.challengeId}`,
+      tag: `exismic-login-${payload.challengeId}`,
       renotify: true,
       requireInteraction: true,
       vibrate: [180, 80, 180],
@@ -62,12 +62,12 @@ self.addEventListener("notificationclick", (event) => {
                   : "The requesting browser was denied access.",
               icon: "/favicon.png",
               badge: "/favicon.png",
-              tag: `lumora-login-result-${payload.challengeId}`,
+              tag: `exismic-login-result-${payload.challengeId}`,
             },
           ),
         )
         .catch(() =>
-          self.registration.showNotification("Lumora security", {
+          self.registration.showNotification("Exismic security", {
             body: "That request expired. Start a new login request if it was you.",
             icon: "/favicon.png",
             badge: "/favicon.png",

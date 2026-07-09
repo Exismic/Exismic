@@ -33,7 +33,7 @@ export async function readDownloadResponse(
           ? "Sign in to use this tool."
           : "The document could not be processed."),
       payload?.requestId ||
-        response.headers.get("X-Lumora-Request-Id") ||
+        response.headers.get("X-Exismic-Request-Id") ||
         undefined,
       payload?.retryable ?? response.status >= 500,
     );
@@ -43,12 +43,12 @@ export async function readDownloadResponse(
   if (blob.size === 0) {
     throw new PdfRequestError(
       "The document processor returned an empty file.",
-      response.headers.get("X-Lumora-Request-Id") || undefined,
+      response.headers.get("X-Exismic-Request-Id") || undefined,
       true,
     );
   }
 
-  const encodedName = response.headers.get("X-Lumora-File-Name");
+  const encodedName = response.headers.get("X-Exismic-File-Name");
   let fileName = fallbackFileName;
   if (encodedName) {
     try {
@@ -63,7 +63,7 @@ export async function readDownloadResponse(
     fileName,
     size: blob.size,
     requestId:
-      response.headers.get("X-Lumora-Request-Id") || undefined,
+      response.headers.get("X-Exismic-Request-Id") || undefined,
     headers: response.headers,
   };
 }

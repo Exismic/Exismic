@@ -95,7 +95,7 @@ interface InvoiceGeneratorProps {
   category: { name?: string } | null;
 }
 
-const STORAGE_KEY = "lumora_invoice_draft_v2";
+const STORAGE_KEY = "exismic_invoice_draft_v2";
 const A4_SIZE: [number, number] = [595.28, 841.89];
 
 const CURRENCIES = [
@@ -340,8 +340,8 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
   const fillSample = () => {
     setData((prev) => ({
       ...prev,
-      senderName: "Lumora Studio",
-      senderEmail: "billing@lumora.ai",
+      senderName: "Exismic Studio",
+      senderEmail: "billing@exismic.ai",
       senderTaxId: "TAX-47291",
       senderAddress: "221 Studio Avenue\nSan Francisco, CA 94103",
       clientName: "Northstar Creative LLC",
@@ -383,7 +383,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
     reader.readAsDataURL(file);
   };
 
-  const applyLumoraAI = async () => {
+  const applyExismicAI = async () => {
     if (!isPro || !aiBrief.trim()) return;
     setAiStatus("thinking");
     setAiError(null);
@@ -397,7 +397,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(payload.error || "Lumora AI could not build this invoice.");
+        throw new Error(payload.error || "Exismic Ai could not build this invoice.");
       }
 
       const invoice = (payload.invoice || {}) as AIInvoiceResult;
@@ -449,7 +449,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
       setAiStatus("done");
       window.setTimeout(() => setAiStatus("idle"), 2500);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : "Lumora AI could not build this invoice.");
+      setAiError(error instanceof Error ? error.message : "Exismic Ai could not build this invoice.");
       setAiStatus("idle");
     }
   };
@@ -682,7 +682,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `invoice-${data.invoiceNumber || "lumora"}.pdf`;
+      link.download = `invoice-${data.invoiceNumber || "exismic"}.pdf`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 
@@ -747,7 +747,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
 
         <section className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
           <div className="xl:col-span-5 space-y-6">
-            <Card title="Lumora AI" icon={Sparkles}>
+            <Card title="Exismic Ai" icon={Sparkles}>
               <div className="space-y-4">
                 <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
                   <div className="flex items-start gap-3">
@@ -757,7 +757,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
                     <div>
                       <p className="text-sm font-black text-white">Brief to advanced invoice</p>
                       <p className="mt-1 text-xs font-medium leading-relaxed text-cyan-100/70">
-                        Pro-only: describe the client, work, amounts, due date, tax, and discount. Lumora AI fills the invoice cleanly.
+                        Pro-only: describe the client, work, amounts, due date, tax, and discount. Exismic Ai fills the invoice cleanly.
                       </p>
                     </div>
                   </div>
@@ -771,13 +771,13 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
                 />
                 {isPro ? (
                   <button
-                    onClick={applyLumoraAI}
+                    onClick={applyExismicAI}
                     disabled={!aiBrief.trim() || aiStatus === "thinking"}
                     className="relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 via-cyan-400 to-emerald-300 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_18px_60px_rgba(6,182,212,0.2)] transition-all hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <span className="absolute inset-0 bg-white/20 translate-x-[-120%] skew-x-12 transition-transform duration-1000 hover:translate-x-[120%]" />
                     {aiStatus === "thinking" ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
-                    {aiStatus === "thinking" ? "Lumora AI Building..." : aiStatus === "done" ? "Invoice Filled" : "Generate With Lumora AI"}
+                    {aiStatus === "thinking" ? "Exismic Ai Building..." : aiStatus === "done" ? "Invoice Filled" : "Generate With Exismic Ai"}
                   </button>
                 ) : (
                   <Link
@@ -785,7 +785,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
                     className="relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-amber-300/20 bg-amber-300/10 text-xs font-black uppercase tracking-[0.18em] text-amber-100 transition-all hover:bg-amber-300/15 active:scale-95"
                   >
                     <Crown size={17} />
-                    Upgrade for Lumora AI
+                    Upgrade for Exismic Ai
                   </Link>
                 )}
                 {aiError && (
@@ -964,7 +964,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
                 {isPro && (
                   <div className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase text-cyan-100 flex items-center gap-2">
                     <Sparkles size={13} />
-                    Lumora AI Ready
+                    Exismic Ai Ready
                   </div>
                 )}
               </div>

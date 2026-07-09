@@ -3,7 +3,7 @@ import { Film, Layout } from "lucide-react";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata = constructMetadata({
-  title: "Video Merger | Lumora Studio",
+  title: "Video Merger | Exismic Studio",
   description: "Merge multiple video clips into a single high-quality production master.",
   canonicalUrl: `${SITE_URL}/tools/video/merger`,
 });

@@ -88,7 +88,7 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
                <div className="space-y-4">
                   <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white sm:text-4xl md:text-5xl">
                      {type === 'pro' ? (
-                       <>Welcome to <GradientText>Lumora Pro.</GradientText></>
+                       <>Welcome to <GradientText>Exismic Pro.</GradientText></>
                      ) : (
                        <><GradientText>Refuel</GradientText> Complete.</>
                      )}

@@ -10,7 +10,7 @@ export type FileNode = {
   language: string;
 };
 
-interface LumoraState {
+interface ExismicState {
   files: FileNode[];
   activeFileId: string | null;
   openFileIds: string[];
@@ -38,7 +38,7 @@ interface LumoraState {
   setDiffCode: (diff: { original: string; modified: string } | null) => void;
 }
 
-export const useLumoraStore = create<LumoraState>()(
+export const useExismicStore = create<ExismicState>()(
   persist(
     (set, getStore) => ({
       files: [],
@@ -116,7 +116,7 @@ export const useLumoraStore = create<LumoraState>()(
       setDiffCode: (diff) => set({ diffCode: diff }),
     }),
     {
-      name: 'lumora-studio-v3',
+      name: 'exismic-studio-v3',
       partialize: (state) => ({
         files: state.files,
         openFileIds: state.openFileIds,

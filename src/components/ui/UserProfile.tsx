@@ -19,6 +19,7 @@ interface UserProfileProps {
   variant?: "sidebar" | "menu-trigger" | "menu-header";
   className?: string;
   showSettings?: boolean;
+  isCompact?: boolean;
 }
 
 export function UserProfile({
@@ -31,18 +32,20 @@ export function UserProfile({
   variant = "sidebar",
   className = "",
   showSettings = true,
+  isCompact = false,
 }: UserProfileProps) {
   // Safe uppercase name
   const displayName = fullName.toUpperCase();
 
   // Determine subtext
-  const subtext = isPro ? "LUMORA PRO" : "LUMORA EXPLORER";
+  const subtext = isPro ? "EXISMIC PRO" : "EXISMIC EXPLORER";
 
   if (variant === "sidebar") {
     return (
       <div 
         className={cn(
           "relative group rounded-2xl transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] ease-[cubic-bezier(0.16,1,0.3,1)]",
+          isCompact && "w-[52px] mx-auto flex justify-center",
           className
         )}
       >
@@ -67,7 +70,8 @@ export function UserProfile({
         {/* Inner Card */}
         <div 
           className={cn(
-            "relative flex items-center gap-3.5 p-3.5 rounded-[15px] transition-all duration-500 overflow-hidden shadow-2xl",
+            "relative flex items-center transition-all duration-500 overflow-hidden shadow-2xl",
+            isCompact ? "p-2 justify-center rounded-[14px]" : "gap-3.5 p-3.5 rounded-[15px]",
             "bg-[#07070b]/60 backdrop-blur-xl",
             isPro 
               ? "shadow-[0_4px_30px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.06)] group-hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.22),0_10px_35px_-10px_rgba(6,182,212,0.18),inset_0_1px_1px_rgba(255,255,255,0.08)]" 
@@ -84,12 +88,13 @@ export function UserProfile({
               displayName={displayName}
               isPro={isPro}
               frameId={frameId}
-              size="md"
+              size={isCompact ? "sm" : "md"}
             />
             
             {/* Active Status Beacon - Emerald/Cyan Pulsing Indicator */}
             <span className={cn(
-              "absolute -top-1 -right-1 w-3.5 h-3.5 border-[2.5px] border-[#07070b] rounded-full z-20 shadow-md flex items-center justify-center",
+              "absolute -top-1 -right-1 border-[2.5px] border-[#07070b] rounded-full z-20 shadow-md flex items-center justify-center",
+              isCompact ? "w-2.5 h-2.5" : "w-3.5 h-3.5",
               isPro 
                 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" 
                 : "bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.6)]"
@@ -100,27 +105,29 @@ export function UserProfile({
               )} />
             </span>
 
-            <VerifiedTick className="absolute -bottom-2 -right-2 z-20 shadow-lg" size="sm" />
+            {!isCompact && <VerifiedTick className="absolute -bottom-2 -right-2 z-20 shadow-lg" size="sm" />}
           </div>
 
           {/* Name & Plan Info with luxurious high-contrast typography */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-            <div className="text-[14.5px] font-black font-sans text-zinc-100 tracking-wide leading-none truncate group-hover:text-white transition-colors duration-300 drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.6)]">
-              <PremiumName name={displayName} isPro={isPro} gradientId={gradientId} />
+          {!isCompact && (
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+              <div className="text-[14.5px] font-black font-sans text-zinc-100 tracking-wide leading-none truncate group-hover:text-white transition-colors duration-300 drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.6)]">
+                <PremiumName name={displayName} isPro={isPro} gradientId={gradientId} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                {isPro ? (
+                  <ProBadge size="sm" />
+                ) : (
+                  <span className="text-[9px] font-extrabold text-zinc-500 tracking-[0.15em] leading-none uppercase select-none">
+                    {subtext}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              {isPro ? (
-                <ProBadge size="sm" />
-              ) : (
-                <span className="text-[9px] font-extrabold text-zinc-500 tracking-[0.15em] leading-none uppercase select-none">
-                  {subtext}
-                </span>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* Settings Trigger with luxury jewel glass container */}
-          {showSettings && (
+          {showSettings && !isCompact && (
             <Link 
               href="/account/settings" 
               className={cn(

@@ -124,14 +124,14 @@ export function usePro() {
     });
 
     window.addEventListener("focus", refreshAfterAccountChange);
-    window.addEventListener("lumora:pro-status-changed", refreshAfterAccountChange);
+    window.addEventListener("exismic:pro-status-changed", refreshAfterAccountChange);
     document.addEventListener("visibilitychange", refreshWhenVisible);
 
     return () => {
       void supabase.removeChannel(channel);
       subscription.unsubscribe();
       window.removeEventListener("focus", refreshAfterAccountChange);
-      window.removeEventListener("lumora:pro-status-changed", refreshAfterAccountChange);
+      window.removeEventListener("exismic:pro-status-changed", refreshAfterAccountChange);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, [loadProStatus, supabase]);

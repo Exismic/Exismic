@@ -22,7 +22,7 @@ export default function VideoToGif() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [resultFileName, setResultFileName] = useState("lumora-animation.gif");
+  const [resultFileName, setResultFileName] = useState("exismic-animation.gif");
   const [error, setError] = useState<string | null>(null);
 
   // Settings
@@ -88,7 +88,7 @@ export default function VideoToGif() {
         method: "POST",
         body: formData,
       });
-      const artifact = await readVideoResponse(response, "lumora-animation.gif");
+      const artifact = await readVideoResponse(response, "exismic-animation.gif");
       setResultUrl(artifact.url);
       setResultFileName(artifact.fileName);
       setStatus("GIF ready");
@@ -105,7 +105,7 @@ export default function VideoToGif() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
-    setResultFileName("lumora-animation.gif");
+    setResultFileName("exismic-animation.gif");
     setError(null);
     setIsProcessing(false);
   };

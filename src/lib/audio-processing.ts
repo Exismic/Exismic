@@ -62,7 +62,7 @@ function safeFileStem(fileName: string) {
       .replace(/\.[^/.]+$/, "")
       .replace(/[^a-zA-Z0-9_-]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 80) || "lumora-audio"
+      .slice(0, 80) || "exismic-audio"
   );
 }
 

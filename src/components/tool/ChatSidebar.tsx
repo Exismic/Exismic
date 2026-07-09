@@ -54,8 +54,8 @@ const cleanSubtitleText = (text: string): string => {
   return cleaned || "No messages yet";
 };
 
-import { LumoraLogo } from "@/components/ui/LumoraLogo";
-export { LumoraLogo };
+import { ExismicLogo } from "@/components/ui/ExismicLogo";
+export { ExismicLogo };
 
 export function ChatSidebar() {
   const {
@@ -154,18 +154,18 @@ export function ChatSidebar() {
             isSidebarCollapsed ? "w-16" : "w-[calc(100vw-16px)] max-w-[304px] md:w-[304px]"
           )}
         >
-          {/* Lumora Logo */}
+          {/* Exismic Logo */}
           {isSidebarCollapsed ? (
             <div 
               className="flex justify-center mb-6 cursor-pointer hover:scale-105 active:scale-95 transition-transform" 
               onClick={() => setIsSidebarCollapsed(false)} 
               title="Expand Sidebar"
             >
-               <LumoraLogo size={28} showText={false} />
+               <ExismicLogo size={28} showText={false} />
             </div>
           ) : (
             <div className="flex items-center justify-between gap-2 mb-6 px-2">
-               <LumoraLogo size={28} showText={true} />
+               <ExismicLogo size={28} showText={true} />
                <button
                  type="button"
                  onClick={() => setIsSidebarOpen(false)}

@@ -78,7 +78,7 @@ export default function CareersPage() {
                     Think you're a good fit?
                  </h3>
                  <p className="text-zinc-500 font-medium max-w-lg leading-relaxed">
-                    If you believe you have what it takes to contribute to Lumora's mission, don't wait for a listing. Send your portfolio and resume to our team.
+                    If you believe you have what it takes to contribute to Exismic's mission, don't wait for a listing. Send your portfolio and resume to our team.
                  </p>
                  <div className="flex items-center gap-3 pt-4">
                     <div className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
@@ -86,10 +86,10 @@ export default function CareersPage() {
                  </div>
               </div>
               
-              <Link href="mailto:carrers@lumoratools.xyz" className="relative group/btn z-10">
+              <Link href="mailto:carrers@exismictools.xyz" className="relative group/btn z-10">
                  <div className="absolute -inset-1 bg-linear-to-r from-accent-purple to-accent-cyan rounded-2xl blur-lg opacity-40 group-hover/btn:opacity-100 transition duration-500" />
                  <button className="relative px-10 py-6 bg-white text-black rounded-xl font-black text-[11px] uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all shadow-2xl">
-                    carrers@lumoratools.xyz
+                    carrers@exismictools.xyz
                  </button>
               </Link>
            </div>

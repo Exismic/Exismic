@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { useLumoraStore } from "./useLumoraStore";
+import { useExismicStore } from "./useExismicStore";
 import { X, Check, RotateCcw, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,7 +12,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react").then(mod => mo
 const MonacoDiffEditor = dynamic(() => import("@monaco-editor/react").then(mod => mod.DiffEditor), { ssr: false });
 
 export function EditorTabs() {
-  const { files, openFileIds, activeFileId, openFile, closeFile } = useLumoraStore();
+  const { files, openFileIds, activeFileId, openFile, closeFile } = useExismicStore();
   const openFiles = useMemo(() => files.filter(f => openFileIds.includes(f.id)), [files, openFileIds]);
 
   return (
@@ -52,7 +52,7 @@ export default function EditorComponent() {
     setActiveTab,
     diffCode, 
     setDiffCode 
-  } = useLumoraStore();
+  } = useExismicStore();
 
   const activeFile = useMemo(() => files.find(f => f.id === activeFileId), [files, activeFileId]);
   const content = activeFile ? fileContents[activeFile.id] || "" : "";

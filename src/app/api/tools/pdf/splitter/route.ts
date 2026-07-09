@@ -91,9 +91,9 @@ export async function POST(request: NextRequest) {
         contentType: "application/zip",
         requestId,
         headers: {
-          "X-Lumora-File-Name": encodeURIComponent(fileName),
-          "X-Lumora-Page-Count": String(pageCount),
-          "X-Lumora-Output-Type": "zip",
+          "X-Exismic-File-Name": encodeURIComponent(fileName),
+          "X-Exismic-Page-Count": String(pageCount),
+          "X-Exismic-Output-Type": "zip",
         },
       });
     }
@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
       contentType: "application/pdf",
       requestId,
       headers: {
-        "X-Lumora-File-Name": encodeURIComponent(fileName),
-        "X-Lumora-Page-Count": String(indexes.length),
-        "X-Lumora-Output-Type": "pdf",
+        "X-Exismic-File-Name": encodeURIComponent(fileName),
+        "X-Exismic-Page-Count": String(indexes.length),
+        "X-Exismic-Output-Type": "pdf",
       },
     });
   } catch (error) {

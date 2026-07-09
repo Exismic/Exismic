@@ -599,7 +599,7 @@ export function Navbar() {
               <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(168,85,247,0.16),transparent_42%),radial-gradient(circle_at_92%_100%,rgba(34,211,238,0.1),transparent_38%)]" />
               <Search size={16} strokeWidth={2.2} className="relative shrink-0 text-cyan-200" />
               <span className="relative min-w-0 flex-1 truncate text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 group-active/mobile-search:text-white">
-                Search Lumora
+                Search Exismic
               </span>
               <span className="relative hidden h-6 shrink-0 items-center rounded-lg border border-white/[0.08] bg-black/30 px-2 text-[8px] font-black text-zinc-600 sm:flex">
                 Ctrl K
@@ -680,7 +680,7 @@ export function Navbar() {
                               <ProBadge size="sm" />
                             ) : (
                               <span className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                                Lumora Explorer
+                                Exismic Explorer
                               </span>
                             )}
                           </div>
@@ -706,7 +706,7 @@ export function Navbar() {
                           <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
                           <span className="min-w-0">
                             <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Membership</span>
-                            <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Lumora Pro" : "Free"}</span>
+                            <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Exismic Pro" : "Free"}</span>
                           </span>
                         </div>
                       </div>

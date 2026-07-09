@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
+import { deductCredits, getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 
 export async function POST(req: Request) {
   try {
@@ -27,14 +29,10 @@ export async function POST(req: Request) {
     }
 
     // Credit system (Sync with Prisma)
-    const dailyCredits = user.dailyCredits ?? 0;
-    const lifetimeCredits = user.lifetimeCredits ?? 0;
-    const totalCreditsAvailable = dailyCredits + lifetimeCredits;
-    const userPlan = user.plan || 'free';
-
-    const cost = 5;
-    if (userPlan !== 'pro' && totalCreditsAvailable < cost) {
-      return NextResponse.json({ error: "Insufficient credits. Upgrade to Pro for unlimited coding!" }, { status: 403 });
+    const totalCreditsAvailable = getCreditTotal(user);
+    const cost = getToolCreditCost("ai-code", 8);
+    if (totalCreditsAvailable < cost) {
+      return NextResponse.json({ error: `Insufficient credits. Code generation costs ${cost} credits.` }, { status: 403 });
     }
 
     const { prompt, language, framework } = await req.json();
@@ -65,7 +63,7 @@ export async function POST(req: Request) {
       throw lastError || new Error("All AI keys exhausted or failed");
     }
 
-    const systemPrompt = `You are Lumora Code Genius, an elite AI software engineer. 
+    const systemPrompt = `You are Exismic Code Genius, an elite AI software engineer. 
 Your goal is to generate clean, modern, and highly efficient code.
 
 RESPONSE STRUCTURE (STRICTLY FOLLOW THIS):
@@ -101,50 +99,21 @@ Instructions:
 
     const codeOutput = response.choices[0].message.content;
 
-    // Deduct credits (Sync with Supabase)
-    if (userPlan !== 'pro') {
-      let newLifetime = lifetimeCredits;
-      let newDaily = dailyCredits;
-
-      if (newLifetime >= cost) {
-        newLifetime -= cost;
-      } else {
-        const remaining = cost - newLifetime;
-        newLifetime = 0;
-        newDaily -= remaining;
-      }
-
-      await Promise.all([
-        prisma.user.update({
-          where: { id: user.id },
-          data: {
-            lifetimeCredits: newLifetime,
-            dailyCredits: newDaily
-          }
-        }),
-        prisma.job.create({
-          data: {
-            userId: user.id,
-            toolType: 'ai-code',
-            status: 'COMPLETED',
-            originalUrl: prompt,
-            resultUrl: codeOutput,
-            metadata: { language, framework, model: "llama-3.3-70b-versatile" }
-          }
-        })
-      ]);
-    } else {
-       await prisma.job.create({
-          data: {
-            userId: user.id,
-            toolType: 'ai-code',
-            status: 'COMPLETED',
-            originalUrl: prompt,
-            resultUrl: codeOutput,
-            metadata: { language, framework, model: "llama-3.3-70b-versatile" }
-          }
-       });
+    const debitResult = await deductCredits(user.id, cost, "ai-code");
+    if (!debitResult.success) {
+      return NextResponse.json({ error: debitResult.error || "Insufficient credits." }, { status: 403 });
     }
+
+    await prisma.job.create({
+      data: {
+        userId: user.id,
+        toolType: 'ai-code',
+        status: 'COMPLETED',
+        originalUrl: prompt,
+        resultUrl: codeOutput,
+        metadata: { language, framework, model: "llama-3.3-70b-versatile" }
+      }
+    });
 
     return NextResponse.json({ code: codeOutput });
 

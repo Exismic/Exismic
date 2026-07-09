@@ -31,7 +31,7 @@ export default function TerminalComponent() {
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    term.writeln("\x1b[1;36mWelcome to Lumora Studio Terminal\x1b[0m");
+    term.writeln("\x1b[1;36mWelcome to Exismic Studio Terminal\x1b[0m");
     term.writeln("\x1b[2mType 'help' for available commands\x1b[0m");
     term.write("\r\n\x1b[1;35m$\x1b[0m ");
 

@@ -245,7 +245,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 4. WHY LUMORA (BENEFITS) */}
+      {/* 4. WHY EXISMIC (BENEFITS) */}
       <section className="py-40 px-6 relative bg-zinc-950/30 border-y border-white/[0.04]">
          <div className="max-w-7xl mx-auto w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
@@ -307,7 +307,7 @@ export function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <TestimonialCard 
-            quote="Lumora has completely replaced four other subscriptions for me. The AI quality is unmatched."
+            quote="Exismic has completely replaced four other subscriptions for me. The AI quality is unmatched."
             author="Sarah Jenkins"
             role="Digital Artist"
             avatar="SJ"

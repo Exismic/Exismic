@@ -16,11 +16,11 @@ export function SupportAgentAuthCard() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-purple-300/20 bg-purple-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-purple-100">
               <Sparkles className="h-3 w-3" />
-              Lumora Support Agent
+              Exismic Support Agent
             </div>
             <h1 className="text-3xl font-black uppercase tracking-tight sm:text-5xl">Sign in to manage agents</h1>
             <p className="max-w-xl text-sm font-semibold leading-7 text-zinc-400">
-              Your support agents, business knowledge, widget settings, and conversations stay connected to your Lumora account.
+              Your support agents, business knowledge, widget settings, and conversations stay connected to your Exismic account.
             </p>
           </div>
           <Link

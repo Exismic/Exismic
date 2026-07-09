@@ -25,7 +25,7 @@ async function fetchJson(url: string, cacheSeconds = 0) {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     headers: {
       Accept: "application/json",
-      "User-Agent": "Lumora-Discord-Card/1.0",
+      "User-Agent": "Exismic-Discord-Card/1.0",
     },
   });
 
@@ -47,7 +47,7 @@ async function fetchOfficialDiscordUser(userId: string) {
       headers: {
         Accept: "application/json",
         Authorization: `Bot ${token}`,
-        "User-Agent": "Lumora-Discord-Card/1.0",
+        "User-Agent": "Exismic-Discord-Card/1.0",
       },
     });
     if (!response.ok) return null;

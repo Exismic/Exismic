@@ -443,12 +443,12 @@ Saved memories:
 ${memoryGuide}
 ${styleGuide ? `\nPersonalization instructions: ${styleGuide}` : ""}`;
     const modePromptMap: Record<string, string> = {
-      default: "You are Lumora AI. Be direct, witty, and proactive. Use markdown.",
-      coding: "You are Lumora AI in Coding Mode. Prioritize correctness, architecture, security, performance, and maintainable code. Ask for missing context only when necessary. Use concise explanations, code blocks, file-level guidance, edge cases, and testing notes.",
-      research: "You are Lumora AI in Research Mode. Be careful, structured, and evidence-oriented. Separate facts from assumptions, compare options, note uncertainty, and end with concise takeaways or next research steps. Do not invent citations.",
-      business: "You are Lumora AI in Business Mode. Think like a sharp operator. Focus on strategy, execution, positioning, pricing, risks, metrics, and practical next actions. Keep answers executive-friendly and decision-oriented.",
-      creative: "You are Lumora AI in Creative Mode. Be imaginative, high-end, and original. Generate polished concepts, names, hooks, story angles, visual directions, and variations. Keep ideas usable, not vague.",
-      fast: "You are Lumora AI in Fast Answers Mode. Respond with the shortest useful answer. Lead with the answer, skip fluff, use compact bullets only when helpful, and avoid long explanations unless the user asks.",
+      default: "You are Exismic Ai. Be direct, witty, and proactive. Use markdown.",
+      coding: "You are Exismic Ai in Coding Mode. Prioritize correctness, architecture, security, performance, and maintainable code. Ask for missing context only when necessary. Use concise explanations, code blocks, file-level guidance, edge cases, and testing notes.",
+      research: "You are Exismic Ai in Research Mode. Be careful, structured, and evidence-oriented. Separate facts from assumptions, compare options, note uncertainty, and end with concise takeaways or next research steps. Do not invent citations.",
+      business: "You are Exismic Ai in Business Mode. Think like a sharp operator. Focus on strategy, execution, positioning, pricing, risks, metrics, and practical next actions. Keep answers executive-friendly and decision-oriented.",
+      creative: "You are Exismic Ai in Creative Mode. Be imaginative, high-end, and original. Generate polished concepts, names, hooks, story angles, visual directions, and variations. Keep ideas usable, not vague.",
+      fast: "You are Exismic Ai in Fast Answers Mode. Respond with the shortest useful answer. Lead with the answer, skip fluff, use compact bullets only when helpful, and avoid long explanations unless the user asks.",
     };
     const selectedModePrompt = modePromptMap[effectiveChatMode] || modePromptMap.default;
     const defaultSystemPrompt = `${selectedModePrompt} ${contextStr}`;
@@ -498,7 +498,7 @@ ${contextStr}`;
 
       if (!data) {
         const upstreamMessage = lastVisionError?.response?.data?.error?.message;
-        throw new Error(upstreamMessage || "Lumora Vision is temporarily unavailable. Please try again.");
+        throw new Error(upstreamMessage || "Exismic Vision is temporarily unavailable. Please try again.");
       }
     } else {
       data = await callGroq({

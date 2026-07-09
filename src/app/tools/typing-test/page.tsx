@@ -236,19 +236,19 @@ function buildInsights(stats: TypingStats, heatmap: Record<string, number>, inpu
 }
 
 function saveResult(result: ResultRecord) {
-  const stored = localStorage.getItem("lumora_typing_leaderboard");
+  const stored = localStorage.getItem("exismic_typing_leaderboard");
   const current = stored ? (JSON.parse(stored) as ResultRecord[]) : [];
   const next = [result, ...current]
     .sort((a, b) => b.wpm - a.wpm || b.accuracy - a.accuracy)
     .slice(0, 12);
-  localStorage.setItem("lumora_typing_leaderboard", JSON.stringify(next));
+  localStorage.setItem("exismic_typing_leaderboard", JSON.stringify(next));
   return next;
 }
 
 function loadLeaderboard() {
   if (typeof window === "undefined") return [];
   try {
-    const stored = localStorage.getItem("lumora_typing_leaderboard");
+    const stored = localStorage.getItem("exismic_typing_leaderboard");
     return stored ? (JSON.parse(stored) as ResultRecord[]) : [];
   } catch {
     return [];
@@ -258,7 +258,7 @@ function loadLeaderboard() {
 function loadStreak(): StreakState {
   if (typeof window === "undefined") return { date: "", streak: 0 };
   try {
-    const stored = localStorage.getItem("lumora_typing_streak");
+    const stored = localStorage.getItem("exismic_typing_streak");
     return stored ? (JSON.parse(stored) as StreakState) : { date: "", streak: 0 };
   } catch {
     return { date: "", streak: 0 };
@@ -322,7 +322,7 @@ export default function TypingSpeedTesterPage() {
       if (current.date === today) return current;
       const nextStreak = current.date === yesterdayKey() ? current.streak + 1 : 1;
       const next = { date: today, streak: nextStreak };
-      localStorage.setItem("lumora_typing_streak", JSON.stringify(next));
+      localStorage.setItem("exismic_typing_streak", JSON.stringify(next));
       return next;
     });
   }, [theme]);
@@ -391,7 +391,7 @@ export default function TypingSpeedTesterPage() {
   };
 
   const copySummary = async () => {
-    const text = `Lumora Typing Test: ${resultStats.wpm} WPM, ${resultStats.accuracy}% accuracy, ${resultStats.consistency}% consistency.`;
+    const text = `Exismic Typing Test: ${resultStats.wpm} WPM, ${resultStats.accuracy}% accuracy, ${resultStats.consistency}% consistency.`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
@@ -422,7 +422,7 @@ export default function TypingSpeedTesterPage() {
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "900 74px Arial";
-    ctx.fillText("Lumora Typing Test", 90, 130);
+    ctx.fillText("Exismic Typing Test", 90, 130);
     ctx.font = "700 28px Arial";
     ctx.fillStyle = "#9ca3af";
     ctx.fillText(`${THEMES.find((item) => item.id === theme)?.label} • ${mode === "endless" ? "Endless" : `${mode}s`} • ${new Date().toLocaleDateString()}`, 94, 178);
@@ -461,11 +461,11 @@ export default function TypingSpeedTesterPage() {
 
     ctx.fillStyle = "#22d3ee";
     ctx.font = "900 28px Arial";
-    ctx.fillText("lumora.ai/tools/typing-test", 94, 810);
+    ctx.fillText("exismic.ai/tools/typing-test", 94, 810);
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
-    link.download = `lumora-typing-${resultStats.wpm}wpm.png`;
+    link.download = `exismic-typing-${resultStats.wpm}wpm.png`;
     link.click();
   };
 

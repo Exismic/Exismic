@@ -47,7 +47,7 @@ export default async function SystemAdminPage() {
                 <Activity size={12} />
                 System Command Center
               </div>
-              <h1 className="text-3xl font-black tracking-tight sm:text-5xl">Lumora Diagnostics</h1>
+              <h1 className="text-3xl font-black tracking-tight sm:text-5xl">Exismic Diagnostics</h1>
               <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-zinc-500">
                 Email, payment, auth, database, and heavy-tool configuration in one place.
               </p>

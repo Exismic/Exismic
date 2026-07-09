@@ -235,7 +235,7 @@ export function MinecraftSkinMaker() {
       setReferenceMode("guided");
       setNotice(
         optimized.looksLikeSkinLayout
-          ? "Skin-layout reference detected. Guided Remix is selected so Lumora preserves its pixels and applies your prompt edits."
+          ? "Skin-layout reference detected. Guided Remix is selected so Exismic preserves its pixels and applies your prompt edits."
           : "Reference added. Guided remix will preserve its identity while applying your prompt."
       );
     } catch (uploadError) {
@@ -279,7 +279,7 @@ export function MinecraftSkinMaker() {
         error?: string;
       };
       if (!response.ok || !payload.success) {
-        throw new Error(payload.error || "Lumora could not generate this skin.");
+        throw new Error(payload.error || "Exismic could not generate this skin.");
       }
 
       setProgress(100);
@@ -290,7 +290,7 @@ export function MinecraftSkinMaker() {
         payload.referenceRebuilt
           ? "Reference rebuilt as a cleaned, game-ready 64×64 skin without redesigning it."
           : payload.referenceGuided
-            ? "Reference pixels preserved. Lumora changed only the UV details requested in your prompt."
+            ? "Reference pixels preserved. Exismic changed only the UV details requested in your prompt."
             : targetPart === "all"
               ? "Skin compiled and validated at 64×64."
               : `${PARTS.find((part) => part.id === targetPart)?.label} updated without changing the rest of the skin.`
@@ -311,7 +311,7 @@ export function MinecraftSkinMaker() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${result.design.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "lumora-skin"}.png`;
+      link.download = `${result.design.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "exismic-skin"}.png`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -343,7 +343,7 @@ export function MinecraftSkinMaker() {
     });
     const payload = await response.json() as GeneratedSkin & { success?: boolean; error?: string };
     if (!response.ok || !payload.success) {
-      throw new Error(payload.error || "Lumora could not apply that AI edit.");
+      throw new Error(payload.error || "Exismic could not apply that AI edit.");
     }
     setResult(payload);
     setNotice("AI edit applied to the current skin while preserving every unrelated UV pixel.");
@@ -779,7 +779,7 @@ export function MinecraftSkinMaker() {
                 </motion.div>
                 <h3 className="mt-7 text-xl font-black text-white">Your character will appear here</h3>
                 <p className="mt-3 max-w-sm text-sm leading-6 text-zinc-500">
-                  Describe the character, choose an arm model, and Lumora will compile a game-ready skin.
+                  Describe the character, choose an arm model, and Exismic will compile a game-ready skin.
                 </p>
                 <div className="mt-7 flex flex-wrap justify-center gap-2">
                   {["Valid UV map", "Opaque base layer", "Java + Bedrock"].map((label) => (

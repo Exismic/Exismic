@@ -1,5 +1,5 @@
 const RESEND_KEY_PREFIX = "re_";
-const CANONICAL_SITE_URL = "https://lumoraai.online";
+const CANONICAL_SITE_URL = "https://exismicai.online";
 
 export type EmailDiagnosticStatus = "ok" | "warning" | "error";
 
@@ -38,7 +38,7 @@ export function getRecentEmailEvents() {
 export function getEmailDiagnostics() {
   const resendKey = process.env.RESEND_API_KEY || "";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || CANONICAL_SITE_URL;
-  const senderDomain = "lumoraai.online";
+  const senderDomain = "exismicai.online";
 
   const checks = [
     {
@@ -77,9 +77,9 @@ export function getEmailDiagnostics() {
         ? "warning"
         : "ok",
     senders: {
-      payment: `"Lumora" <payments@${senderDomain}>`,
-      noreply: `"Lumora" <noreply@${senderDomain}>`,
-      welcome: `"Lumora" <welcome@${senderDomain}>`,
+      payment: `"Exismic" <payments@${senderDomain}>`,
+      noreply: `"Exismic" <noreply@${senderDomain}>`,
+      welcome: `"Exismic" <welcome@${senderDomain}>`,
     },
     checks,
     recentEvents: getRecentEmailEvents(),

@@ -110,7 +110,7 @@ export function LogoGeneratorTool() {
 
   // Load history from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("lumora_logo_history");
+    const stored = localStorage.getItem("exismic_logo_history");
     if (stored) {
       try {
         setHistory(JSON.parse(stored));
@@ -295,7 +295,7 @@ export function LogoGeneratorTool() {
 
         setHistory(prev => {
           const updated = [newHistoryItem, ...prev];
-          localStorage.setItem("lumora_logo_history", JSON.stringify(updated));
+          localStorage.setItem("exismic_logo_history", JSON.stringify(updated));
           return updated;
         });
         
@@ -372,7 +372,7 @@ export function LogoGeneratorTool() {
             <input 
               type="text"
               {...register("brandName")}
-              placeholder="Brand Name (e.g. Lumora)"
+              placeholder="Brand Name (e.g. Exismic)"
               className="w-full bg-[#07070a] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
             />
             <input 
@@ -514,7 +514,7 @@ export function LogoGeneratorTool() {
         </div>
 
         <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-           <span className="text-[8px] font-black tracking-widest text-zinc-500 uppercase">Lumora Brand Engine v2</span>
+           <span className="text-[8px] font-black tracking-widest text-zinc-500 uppercase">Exismic Brand Engine v2</span>
            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
         </div>
       </div>
@@ -884,7 +884,7 @@ export function LogoGeneratorTool() {
                       <div className="w-9 h-7 bg-yellow-600/10 border border-yellow-500/20 rounded-md flex items-center justify-center">
                         <div className="w-5 h-4 border border-yellow-500/10 rounded" />
                       </div>
-                      <span className="text-[8px] font-mono tracking-widest text-zinc-600">LUMORA ELITE MEMBERSHIP</span>
+                      <span className="text-[8px] font-mono tracking-widest text-zinc-600">EXISMIC ELITE MEMBERSHIP</span>
                     </div>
 
                     <div className="flex items-center gap-4">

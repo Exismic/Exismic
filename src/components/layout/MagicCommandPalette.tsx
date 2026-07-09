@@ -59,7 +59,7 @@ const AI_COMMANDS = [
   { 
     id: "cmd-code-fresh", 
     label: "Initialize Next.js project template", 
-    description: "Autonomous file setup in Lumora IDE", 
+    description: "Autonomous file setup in Exismic IDE", 
     route: "/tools/ai/code?new=true",
     category: "Quick Actions",
     icon: <Code2 size={16} className="text-accent-purple" />

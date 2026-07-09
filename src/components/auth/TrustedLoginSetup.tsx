@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
   CheckCircle2,
+  ChevronDown,
   Copy,
   ExternalLink,
   Laptop,
@@ -74,6 +75,7 @@ export function TrustedLoginSetup() {
   const [handoffUrl, setHandoffUrl] = useState("");
   const [isLocalPreview, setIsLocalPreview] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const loadEnrollment = useCallback(async () => {
     try {
@@ -127,14 +129,14 @@ export function TrustedLoginSetup() {
       setNotice({
         type: "info",
         message:
-          "Open Lumora Settings on the phone you want to register, then return to this Security tab.",
+          "Open Exismic Settings on the phone you want to register, then return to this Security tab.",
       });
       return;
     }
     if (!selectedEmail) {
       setNotice({
         type: "error",
-        message: "Verify an email on your Lumora account before setting up Lumora Confirm.",
+        message: "Verify an email on your Exismic account before setting up Exismic Confirm.",
       });
       return;
     }
@@ -151,7 +153,7 @@ export function TrustedLoginSetup() {
       setNotice({
         type: "info",
         message:
-          "On iPhone, add Lumora to your Home Screen first, open the installed app, and run setup there.",
+          "On iPhone, add Exismic to your Home Screen first, open the installed app, and run setup there.",
       });
       return;
     }
@@ -192,7 +194,7 @@ export function TrustedLoginSetup() {
       setNotice({
         type: "success",
         message:
-          "Registration successful. This phone can now approve logins even when Lumora is closed.",
+          "Registration successful. This phone can now approve logins even when Exismic is closed.",
       });
     } catch (error) {
       setNotice({
@@ -215,7 +217,7 @@ export function TrustedLoginSetup() {
       await loadEnrollment();
       setNotice({
         type: "success",
-        message: "Lumora Confirm has been removed from this account.",
+        message: "Exismic Confirm has been removed from this account.",
       });
     } catch (error) {
       setNotice({
@@ -229,26 +231,26 @@ export function TrustedLoginSetup() {
 
   return (
     <>
-      <section className="relative overflow-hidden rounded-[2rem] border border-cyan-400/15 bg-[#07080c] p-5 sm:p-8 lg:rounded-[3rem] lg:p-12">
+      <section className="relative overflow-hidden rounded-[2.5rem] border border-cyan-400/20 bg-white/[0.02] p-5 sm:p-8 lg:rounded-[3rem] lg:p-12 shadow-2xl backdrop-blur-xl">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-cyan-500/8 blur-[100px]" />
         <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-purple-600/10 blur-[110px]" />
 
         <div className="relative space-y-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-gradient-to-br from-purple-500/25 to-cyan-400/15 text-cyan-100 shadow-[0_0_35px_rgba(34,211,238,0.12)]">
-                <ShieldCheck size={25} />
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/30 bg-[linear-gradient(135deg,rgba(168,85,247,0.2),rgba(34,211,238,0.2))] text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,0.2)]">
+                <ShieldCheck size={28} className="drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
               </div>
               <div>
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.055] px-3 py-1 text-[8px] font-black uppercase tracking-[0.22em] text-cyan-100">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_#67e8f9]" />
                   Optional security setup
                 </div>
-                <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white sm:text-3xl">
-                  Set up Lumora Confirm
+                <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white sm:text-3xl drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                  Set up Exismic Confirm
                 </h3>
                 <p className="mt-2 max-w-2xl text-[11px] font-medium leading-relaxed text-zinc-500">
-                  Choose your final login email and confirm one phone. Lumora stores the phone
+                  Choose your final login email and confirm one phone. Exismic stores the phone
                   details and push subscription only after you approve setup.
                 </p>
               </div>
@@ -295,29 +297,70 @@ export function TrustedLoginSetup() {
           ) : (
             <div className="space-y-6">
               <div className={cn("grid gap-5", detectedDevice?.isPhone && "lg:grid-cols-[1fr_auto] lg:items-end")}>
-                <label className="space-y-3">
+                <div className="space-y-3">
                   <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">
                     Final login email
                   </span>
-                  <select
-                    value={selectedEmail}
-                    onChange={(event) => setSelectedEmail(event.target.value)}
-                    className="min-h-14 w-full rounded-2xl border border-white/10 bg-black/35 px-5 text-sm font-semibold text-white outline-none transition focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/10"
-                  >
-                    {enrollment.emails.length ? (
-                      enrollment.emails.map((email) => (
-                        <option key={email} value={email} className="bg-[#08090d]">
-                          {email}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No verified email available</option>
-                    )}
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className={cn(
+                        "flex min-h-[4rem] w-full items-center justify-between rounded-2xl border bg-white/[0.03] px-5 text-sm font-semibold text-white shadow-inner backdrop-blur-xl outline-none transition-all duration-300 hover:bg-white/[0.05]",
+                        isDropdownOpen ? "border-cyan-400/50 shadow-[0_0_30px_rgba(34,211,238,0.15)]" : "border-white/10"
+                      )}
+                    >
+                      <span>{selectedEmail || "Select an email"}</span>
+                      <ChevronDown size={16} className={cn("text-zinc-500 transition-transform duration-300", isDropdownOpen && "rotate-180")} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {isDropdownOpen && (
+                        <>
+                          <div className="fixed inset-0 z-[60]" onClick={() => setIsDropdownOpen(false)} />
+                          <motion.div
+                            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -5, scale: 0.98 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute left-0 top-[calc(100%+0.5rem)] z-[70] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0c0d12]/95 shadow-2xl backdrop-blur-3xl"
+                          >
+                            <div className="max-h-60 overflow-y-auto p-2">
+                              {enrollment.emails.length ? (
+                                enrollment.emails.map((email) => (
+                                  <button
+                                    key={email}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedEmail(email);
+                                      setIsDropdownOpen(false);
+                                    }}
+                                    className={cn(
+                                      "flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-semibold transition-all duration-200",
+                                      selectedEmail === email
+                                        ? "bg-cyan-400/10 text-cyan-300"
+                                        : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                                    )}
+                                  >
+                                    {email}
+                                    {selectedEmail === email && <CheckCircle2 size={16} className="text-cyan-400" />}
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-3 text-sm text-zinc-500">
+                                  No verified email available
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   <span className="block text-[10px] leading-relaxed text-zinc-600">
-                    Only verified emails connected to your Lumora account can be selected.
+                    Only verified emails connected to your Exismic account can be selected.
                   </span>
-                </label>
+                </div>
 
                 {detectedDevice?.isPhone ? (
                   <button
@@ -337,29 +380,36 @@ export function TrustedLoginSetup() {
               </div>
 
               {!detectedDevice?.isPhone ? (
-                <div className="overflow-hidden rounded-3xl border border-cyan-300/15 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_45%),rgba(255,255,255,0.018)]">
-                  <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100">
-                        <Laptop size={20} />
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="relative overflow-hidden rounded-[2.5rem] border border-cyan-400/20 bg-[linear-gradient(145deg,rgba(34,211,238,0.08),rgba(168,85,247,0.03))] shadow-[0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-3xl"
+                >
+                  <div className="absolute inset-0 bg-white/[0.01]" />
+                  <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+                    <div className="flex items-start gap-5">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] border border-cyan-300/30 bg-gradient-to-br from-cyan-400/20 to-purple-500/20 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
+                        <Laptop size={22} className="drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
                       </div>
                       <div>
                         <p className="text-xs font-black uppercase tracking-widest text-white">
                           One-time setup must happen on your phone
                         </p>
                         <p className="mt-2 max-w-xl text-[11px] leading-relaxed text-zinc-500">
-                          The phone must grant notification permission once. After that, Lumora can
+                          The phone must grant notification permission once. After that, Exismic can
                           send login approvals while the browser or installed app is closed.
                         </p>
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
                           {[
-                            ["01", "Open Lumora on phone"],
+                            ["01", "Open Exismic on phone"],
                             ["02", "Sign in normally once"],
                             ["03", "Security > Enable"],
                           ].map(([step, label]) => (
-                            <div key={step} className="rounded-2xl border border-white/8 bg-black/20 p-3">
-                              <span className="text-[8px] font-black tracking-widest text-cyan-300">{step}</span>
-                              <p className="mt-1 text-[10px] font-bold text-zinc-300">{label}</p>
+                            <div key={step} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 transition-all duration-500 hover:-translate-y-1 hover:border-cyan-400/40 hover:bg-white/[0.05] hover:shadow-[0_10px_30px_rgba(34,211,238,0.15)]">
+                              <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/0 to-cyan-400/0 transition-colors duration-500 group-hover:from-cyan-400/10 group-hover:to-transparent" />
+                              <span className="relative text-[10px] font-black tracking-widest text-cyan-400 transition-all duration-500 group-hover:text-cyan-300 group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">{step}</span>
+                              <p className="relative mt-2 text-xs font-bold text-zinc-300 transition-colors duration-500 group-hover:text-white">{label}</p>
                             </div>
                           ))}
                         </div>
@@ -367,9 +417,12 @@ export function TrustedLoginSetup() {
                     </div>
 
                     {!isLocalPreview && handoffUrl ? (
-                      <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white p-3 text-black">
-                        <QRCodeSVG value={handoffUrl} size={112} level="M" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">
+                      <div className="relative group/qr flex flex-col items-center gap-3 rounded-3xl border border-cyan-200/20 bg-white p-4 text-black shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-transform duration-500 hover:scale-105 hover:shadow-[0_0_50px_rgba(34,211,238,0.3)]">
+                        <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-r from-cyan-400 to-purple-500 opacity-20 blur-xl transition-opacity duration-500 group-hover:opacity-40" />
+                        <div className="relative">
+                          <QRCodeSVG value={handoffUrl} size={120} level="M" />
+                        </div>
+                        <span className="relative text-[9px] font-black uppercase tracking-widest text-zinc-800">
                           Scan with phone
                         </span>
                       </div>
@@ -377,27 +430,27 @@ export function TrustedLoginSetup() {
                   </div>
 
                   {!isLocalPreview ? (
-                    <div className="border-t border-white/8 px-5 py-4 sm:px-6">
-                      <div className="flex flex-wrap gap-3">
+                    <div className="relative border-t border-white/10 bg-black/20 px-6 py-5">
+                      <div className="flex flex-wrap gap-4">
                         <button
                           type="button"
                           onClick={() => void copyHandoffLink()}
-                          className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 text-[9px] font-black uppercase tracking-widest text-zinc-300 transition hover:bg-white/[0.07]"
+                          className="group flex min-h-12 items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-5 text-[10px] font-black uppercase tracking-widest text-zinc-300 transition-all hover:bg-white/[0.08] hover:text-white"
                         >
-                          <Copy size={14} />
+                          <Copy size={15} className="transition-transform group-hover:scale-110" />
                           {copied ? "Link copied" : "Copy phone link"}
                         </button>
                         <a
                           href={handoffUrl}
-                          className="flex min-h-11 items-center gap-2 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.05] px-4 text-[9px] font-black uppercase tracking-widest text-cyan-100 transition hover:bg-cyan-300/[0.09]"
+                          className="group flex min-h-12 items-center gap-2.5 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 text-[10px] font-black uppercase tracking-widest text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all hover:bg-cyan-500/20 hover:text-cyan-100 hover:shadow-[0_0_25px_rgba(34,211,238,0.25)]"
                         >
-                          <ExternalLink size={14} />
+                          <ExternalLink size={15} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                           Open setup link
                         </a>
                       </div>
                     </div>
                   ) : null}
-                </div>
+                </motion.div>
               ) : null}
 
               {enrollment.device ? (
@@ -434,15 +487,22 @@ export function TrustedLoginSetup() {
                   </button>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.018] px-5 py-10 text-center">
-                  <Smartphone className="mx-auto text-zinc-700" size={29} />
-                  <p className="mt-4 text-xs font-black uppercase tracking-widest text-white">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="group relative overflow-hidden rounded-[2.5rem] border border-dashed border-white/20 bg-gradient-to-b from-white/[0.02] to-transparent px-6 py-16 text-center transition-all duration-500 hover:border-cyan-500/40 hover:bg-cyan-500/[0.02]"
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05),transparent_50%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/[0.03] text-zinc-500 shadow-2xl backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:border-cyan-400/30 group-hover:bg-cyan-400/10 group-hover:text-cyan-300 group-hover:shadow-[0_20px_40px_rgba(34,211,238,0.2)]">
+                     <Smartphone size={32} className="transition-all duration-500 group-hover:drop-shadow-[0_0_15px_rgba(34,211,238,1)]" />
+                  </div>
+                  <p className="relative mt-6 text-sm font-black uppercase tracking-widest text-white transition-colors group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                     No trusted phone registered
                   </p>
-                  <p className="mx-auto mt-2 max-w-md text-[11px] leading-relaxed text-zinc-600">
+                  <p className="relative mx-auto mt-3 max-w-md text-xs leading-relaxed text-zinc-500 transition-colors group-hover:text-zinc-400">
                     Nothing has been saved. Open this page on your signed-in phone to begin.
                   </p>
-                </div>
+                </motion.div>
               )}
             </div>
           )}
@@ -479,7 +539,7 @@ export function TrustedLoginSetup() {
                       Confirm this phone
                     </h4>
                     <p className="mt-1 text-[10px] text-zinc-500">
-                      Review before Lumora saves anything.
+                      Review before Exismic saves anything.
                     </p>
                   </div>
                 </div>
@@ -512,8 +572,8 @@ export function TrustedLoginSetup() {
                 ))}
 
                 <p className="rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.04] p-4 text-[10px] leading-relaxed text-zinc-500">
-                  Selecting Confirm setup authorizes Lumora to store these device details and a
-                  secure push subscription. Login prompts can arrive while Lumora is closed. You
+                  Selecting Confirm setup authorizes Exismic to store these device details and a
+                  secure push subscription. Login prompts can arrive while Exismic is closed. You
                   can revoke this phone anytime.
                 </p>
 

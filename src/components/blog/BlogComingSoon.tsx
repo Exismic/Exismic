@@ -19,7 +19,7 @@ import { createClient } from '@/utils/supabase/client';
 const UPCOMING_TOPICS = [
   { 
     title: "AI Design Mastery", 
-    desc: "How to use Lumora to create professional brand assets in minutes.", 
+    desc: "How to use Exismic to create professional brand assets in minutes.", 
     icon: PenTool, 
     color: "text-purple-400"
   },
@@ -105,7 +105,7 @@ export function BlogComingSoon() {
           className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 mb-8 backdrop-blur-xl"
         >
           <BookOpen size={14} className="text-indigo-400" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">The Lumora Journal</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">The Exismic Journal</span>
         </motion.div>
         
         {/* Main Headline */}
@@ -142,7 +142,7 @@ export function BlogComingSoon() {
                   <Mail className="text-emerald-400 w-8 h-8" />
                </div>
                <h3 className="text-xl font-black uppercase tracking-tight text-white">We'll keep you posted!</h3>
-               <p className="text-zinc-500 text-sm font-medium">You're now on the list for the first edition of the Lumora Journal.</p>
+               <p className="text-zinc-500 text-sm font-medium">You're now on the list for the first edition of the Exismic Journal.</p>
                <button 
                  onClick={() => router.push('/')}
                  className="inline-flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest mt-4 hover:gap-4 transition-all"

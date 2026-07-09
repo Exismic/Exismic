@@ -771,23 +771,23 @@ html.theme-cosmic-nebula body::before {
     radial-gradient(circle at 82% 72%, rgba(255,255,255,0.6) 0 1px, transparent 2px),
     radial-gradient(circle at 36% 82%, rgba(255,255,255,0.65) 0 1px, transparent 2px);
 }
-@property --lumora-neon-angle {
+@property --exismic-neon-angle {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
 }
 
-@keyframes lumora-neon-trace {
+@keyframes exismic-neon-trace {
   to {
-    --lumora-neon-angle: 360deg;
+    --exismic-neon-angle: 360deg;
   }
 }
 
-.lumora-neon-outline {
+.exismic-neon-outline {
   padding: 2px;
   clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
   background: conic-gradient(
-    from var(--lumora-neon-angle),
+    from var(--exismic-neon-angle),
     transparent 0deg 205deg,
     #7c3aed 235deg,
     #d946ef 262deg,
@@ -803,22 +803,22 @@ html.theme-cosmic-nebula body::before {
   pointer-events: none;
 }
 
-.lumora-neon-outline--animated {
-  animation: lumora-neon-trace 2.4s linear infinite;
+.exismic-neon-outline--animated {
+  animation: exismic-neon-trace 2.4s linear infinite;
 }
 
-.lumora-neon-outline--static {
-  --lumora-neon-angle: 280deg;
+.exismic-neon-outline--static {
+  --exismic-neon-angle: 280deg;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lumora-neon-outline--animated {
+  .exismic-neon-outline--animated {
     animation: none;
-    --lumora-neon-angle: 280deg;
+    --exismic-neon-angle: 280deg;
   }
 }
 
-@keyframes lumora-gradient-drift {
+@keyframes exismic-gradient-drift {
   0%,
   100% {
     background-position: 0% 50%;
@@ -838,9 +838,8 @@ html.theme-cosmic-nebula body::before {
   [class*="bg-clip-text"][class*="text-transparent"]
 ) {
   background-size: 260% 100% !important;
-  animation: lumora-gradient-drift 12s cubic-bezier(0.45, 0, 0.55, 1) infinite !important;
+  animation: exismic-gradient-drift 12s cubic-bezier(0.45, 0, 0.55, 1) infinite !important;
 }
-
 @media (prefers-reduced-motion: reduce) {
   :where(
     .gradient-text,
@@ -855,3 +854,115 @@ html.theme-cosmic-nebula body::before {
     background-position: 50% 50% !important;
   }
 }
+
+/* Insane Premium Checkout Button Styles */
+.premium-checkout-button {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(105deg, #7c3aed, #a855f7 36%, #2563eb 68%, #06b6d4) !important;
+  background-size: 200% auto !important;
+  animation: premium-btn-gradient 4s ease infinite;
+}
+
+/* Glowing border trace */
+.premium-checkout-button::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    90deg, 
+    #7c3aed, 
+    #d946ef, 
+    #00ffff, 
+    #7c3aed
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  background-size: 200% auto;
+  animation: shine-border 3s linear infinite;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+@keyframes shine-border {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes premium-btn-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Pulsing backdrop glow */
+.premium-checkout-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  background: inherit;
+  filter: blur(12px);
+  opacity: 0.45;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-checkout-button:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 
+    0 20px 40px -15px rgba(124, 58, 237, 0.5),
+    0 0 30px 2px rgba(0, 255, 255, 0.25);
+  color: #ffffff !important;
+}
+
+.premium-checkout-button:hover:not(:disabled)::after {
+  opacity: 0.8;
+  filter: blur(18px);
+}
+
+.premium-checkout-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+/* Insane Disabled / Currently Unavailable styling */
+.premium-checkout-button:disabled {
+  background: rgba(12, 10, 16, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  backdrop-filter: blur(12px);
+}
+
+.premium-checkout-button:disabled::before {
+  background: linear-gradient(
+    90deg, 
+    rgba(124, 58, 237, 0.4), 
+    rgba(34, 211, 238, 0.2), 
+    rgba(124, 58, 237, 0.4)
+  );
+  animation: shine-border 5s linear infinite;
+  opacity: 0.6;
+}
+
+.premium-checkout-button:disabled::after {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, transparent 70%);
+  filter: blur(20px);
+  opacity: 0.8;
+}
+
+/* Pulse keyframes for disabled icon/text */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 0.7; filter: drop-shadow(0 0 2px rgba(168,85,247,0.3)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(168,85,247,0.6)) drop-shadow(0 0 15px rgba(0,255,255,0.3)); }
+}
+
+.premium-checkout-button:disabled .animate-pulse-neon {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+

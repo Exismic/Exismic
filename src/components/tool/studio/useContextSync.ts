@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { useLumoraStore } from './useLumoraStore';
+import { useExismicStore } from './useExismicStore';
 import axios from 'axios';
 
 export function useContextSync() {
-  const { files, activeFileId } = useLumoraStore();
+  const { files, activeFileId } = useExismicStore();
 
   useEffect(() => {
     if (files.length === 0) return;

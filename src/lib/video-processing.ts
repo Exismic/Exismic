@@ -40,7 +40,7 @@ export function safeVideoStem(fileName: string) {
       .replace(/\.[^/.]+$/, "")
       .replace(/[^a-zA-Z0-9_-]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 80) || "lumora-video"
+      .slice(0, 80) || "exismic-video"
   );
 }
 
@@ -91,7 +91,7 @@ export async function callVideoModal(
     headers: {
       "Content-Type": "application/json",
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-      "X-Lumora-Request-Id": requestId,
+      "X-Exismic-Request-Id": requestId,
     },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(timeoutMs),
@@ -163,8 +163,8 @@ export function createVideoDownloadResponse(
       "Content-Length": String(bytes.byteLength),
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
-      "X-Lumora-File-Name": encodeURIComponent(options.fileName),
-      "X-Lumora-Request-Id": options.requestId,
+      "X-Exismic-File-Name": encodeURIComponent(options.fileName),
+      "X-Exismic-Request-Id": options.requestId,
       ...options.headers,
     },
   });
@@ -192,7 +192,7 @@ export function videoErrorResponse(error: unknown, requestId: string) {
       status,
       headers: {
         "Cache-Control": "no-store",
-        "X-Lumora-Request-Id": requestId,
+        "X-Exismic-Request-Id": requestId,
       },
     },
   );

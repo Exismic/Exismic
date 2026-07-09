@@ -103,7 +103,7 @@ export function ProTourModal({ isOpen, onClose }: ProTourModalProps) {
                      You are a <span className="gradient-text">Pro Member</span>
                   </h2>
                   <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px] max-w-md mx-auto">
-                     Enjoy the full power of Lumora with your active subscription
+                     Enjoy the full power of Exismic with your active subscription
                   </p>
                </div>
 

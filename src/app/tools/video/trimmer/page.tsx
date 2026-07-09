@@ -55,7 +55,7 @@ export default function VideoTrimmerPage() {
       {/* Footer / Status */}
       <footer className="mt-20 text-center pb-12">
         <p className="text-gray-600 text-sm font-medium">
-          Powered by Lumora High-Performance Engine
+          Powered by Exismic High-Performance Engine
         </p>
       </footer>
     </div>

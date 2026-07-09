@@ -27,7 +27,7 @@ export function CookieConsent() {
   useEffect(() => {
     setMounted(true);
     // Check if user has already made a choice
-    const savedConsent = localStorage.getItem("lumora_cookie_consent");
+    const savedConsent = localStorage.getItem("exismic_cookie_consent");
     if (!savedConsent) {
       // Delay showing banner slightly for better UX
       const timer = setTimeout(() => setShowBanner(true), 1500);
@@ -40,7 +40,7 @@ export function CookieConsent() {
   }, []);
 
   const savePreferences = async (newPrefs: CookiePreferences) => {
-    localStorage.setItem("lumora_cookie_consent", JSON.stringify(newPrefs));
+    localStorage.setItem("exismic_cookie_consent", JSON.stringify(newPrefs));
     setPreferences(newPrefs);
     setShowBanner(false);
     setShowModal(false);
@@ -103,7 +103,7 @@ export function CookieConsent() {
                       We value your privacy
                     </p>
                     <p className="text-xs text-zinc-400 max-w-lg leading-relaxed">
-                      We use essential cookies to make Lumora work. We'd also like to use analytics to improve your experience. You can manage your preferences anytime.{" "}
+                      We use essential cookies to make Exismic work. We'd also like to use analytics to improve your experience. You can manage your preferences anytime.{" "}
                       <Link href="/cookies" className="text-accent-cyan hover:underline underline-offset-2 transition-all">
                         Cookie Policy
                       </Link>
@@ -210,7 +210,7 @@ export function CookieConsent() {
                     </div>
                     <div className="flex-1">
                       <label htmlFor="analytics" className="font-bold text-white text-sm cursor-pointer select-none block">Analytics</label>
-                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">Helps us understand user behavior so we can improve Lumora.</p>
+                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">Helps us understand user behavior so we can improve Exismic.</p>
                     </div>
                   </div>
 

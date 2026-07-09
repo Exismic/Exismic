@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     if (level === "medium" || level === "high") {
       document.setCreator("");
-      document.setProducer("Lumora PDF Optimizer");
+      document.setProducer("Exismic PDF Optimizer");
     }
     if (level === "high") {
       document.setTitle("");
@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
       contentType: "application/pdf",
       requestId,
       headers: {
-        "X-Lumora-File-Name": encodeURIComponent(fileName),
-        "X-Lumora-Original-Size": String(original.byteLength),
-        "X-Lumora-Output-Size": String(output.byteLength),
-        "X-Lumora-Optimized": String(didOptimize),
-        "X-Lumora-Compression-Mode": level,
+        "X-Exismic-File-Name": encodeURIComponent(fileName),
+        "X-Exismic-Original-Size": String(original.byteLength),
+        "X-Exismic-Output-Size": String(output.byteLength),
+        "X-Exismic-Optimized": String(didOptimize),
+        "X-Exismic-Compression-Mode": level,
       },
     });
   } catch (error) {

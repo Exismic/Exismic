@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     const selectedEmail = normalizeLoginEmail(parsed.data.email);
     if (!verifiedIdentityEmails(user).includes(selectedEmail)) {
       return NextResponse.json(
-        { error: "Choose a verified email connected to this Lumora account." },
+        { error: "Choose a verified email connected to this Exismic account." },
         { status: 403 },
       );
     }
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Open Lumora Settings on the phone you want to register, then complete setup there.",
+            "Open Exismic Settings on the phone you want to register, then complete setup there.",
         },
         { status: 400 },
       );
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     });
     if (emailOwner && emailOwner.userId !== user.id) {
       return NextResponse.json(
-        { error: "This login email is already registered to another Lumora account." },
+        { error: "This login email is already registered to another Exismic account." },
         { status: 409 },
       );
     }
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     });
     if (tokenOwner && tokenOwner.userId !== user.id) {
       return NextResponse.json(
-        { error: "This phone is already registered to another Lumora account." },
+        { error: "This phone is already registered to another Exismic account." },
         { status: 409 },
       );
     }
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     });
     if (endpointOwner && endpointOwner.userId !== user.id) {
       return NextResponse.json(
-        { error: "This phone notification subscription belongs to another Lumora account." },
+        { error: "This phone notification subscription belongs to another Exismic account." },
         { status: 409 },
       );
     }
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Registration successful. This phone can now receive Lumora login approvals.",
+      message: "Registration successful. This phone can now receive Exismic login approvals.",
       device: serializeDevice(device),
     });
   } catch (error) {

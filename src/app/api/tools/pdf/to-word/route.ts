@@ -130,10 +130,10 @@ export async function POST(req: NextRequest) {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       requestId,
       headers: {
-        "X-Lumora-File-Name": encodeURIComponent(fileName),
-        "X-Lumora-Page-Count": String(parsed.numpages),
-        "X-Lumora-Character-Count": String(extractedText.length),
-        "X-Lumora-Layout": layout,
+        "X-Exismic-File-Name": encodeURIComponent(fileName),
+        "X-Exismic-Page-Count": String(parsed.numpages),
+        "X-Exismic-Character-Count": String(extractedText.length),
+        "X-Exismic-Layout": layout,
       },
     });
   } catch (error: unknown) {

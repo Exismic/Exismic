@@ -23,7 +23,7 @@ const SERVICE_BACKED: ToolReliability = {
   label: "AI Powered",
   headline: "AI-Powered Workflow",
   description:
-    "This tool uses Lumora backend processing and requires active AI provider API keys.",
+    "This tool uses Exismic backend processing and requires active AI provider API keys.",
 };
 
 const CLIENT_ONLY: ToolReliability = {
@@ -39,7 +39,7 @@ const SERVER_PROCESSED: ToolReliability = {
   label: "Live",
   headline: "Secure document processing",
   description:
-    "This tool validates the upload on Lumora servers and returns the generated file directly without persistent result storage.",
+    "This tool validates the upload on Exismic servers and returns the generated file directly without persistent result storage.",
 };
 
 export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
@@ -74,7 +74,7 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     label: "AI Powered",
     headline: "UV-safe character generation",
     description:
-      "Lumora turns the character brief into a structured design, compiles a valid 64x64 skin texture, and verifies it in an interactive 3D preview.",
+      "Exismic turns the character brief into a structured design, compiles a valid 64x64 skin texture, and verifies it in an interactive 3D preview.",
     requirements: ["Language model credentials"],
     dependencyGroups: [
       { label: "AI design director", env: ["GROQ_API_KEYS", "GROQ_API_KEY"], optional: true },
@@ -182,7 +182,7 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     ...SERVICE_BACKED,
     label: "AI Powered",
     description:
-      "Speech transcription uses a multilingual Whisper model through Lumora's secured backend.",
+      "Speech transcription uses a multilingual Whisper model through Exismic's secured backend.",
     requirements: ["Language model API credentials"],
     dependencyGroups: [{ label: "Transcription provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
@@ -191,7 +191,7 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     label: "Frame Accurate",
     headline: "Transparent video output",
     description:
-      "Lumora isolates the subject across the full clip and returns a transparent WebM while preserving available audio.",
+      "Exismic isolates the subject across the full clip and returns a transparent WebM while preserving available audio.",
     requirements: ["Video processing service configuration"],
     dependencyGroups: [{ label: "Video processing endpoint", env: ["MODAL_VIDEO_URL"] }],
   },
@@ -246,7 +246,7 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     label: "AI Powered",
     headline: "Performance-preserving voice conversion",
     description:
-      "Voice Changer securely converts uploaded speech through Lumora's server-side voice provider.",
+      "Voice Changer securely converts uploaded speech through Exismic's server-side voice provider.",
     requirements: ["ElevenLabs API credentials"],
     dependencyGroups: [
       { label: "Voice conversion provider", env: ["ELEVENLABS_API_KEY"] },
@@ -287,7 +287,7 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
   "pdf-compressor": {
     ...SERVER_PROCESSED,
     description:
-      "Lumora safely repacks PDF objects and only returns a smaller file when optimization genuinely reduces its size.",
+      "Exismic safely repacks PDF objects and only returns a smaller file when optimization genuinely reduces its size.",
   },
   "pdf-to-img": CLIENT_ONLY,
   "pdf-img-to-pdf": SERVER_PROCESSED,
@@ -315,7 +315,7 @@ export function getToolReliability(toolId: string): ToolReliability {
       level: "operational",
       label: "Live",
       headline: "Operational",
-      description: "This tool has an active Lumora workflow.",
+      description: "This tool has an active Exismic workflow.",
     }
   );
 }

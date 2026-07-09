@@ -35,7 +35,7 @@ export default function VideoMerger() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [resultFileName, setResultFileName] = useState("lumora-merged-video.mp4");
+  const [resultFileName, setResultFileName] = useState("exismic-merged-video.mp4");
   const [error, setError] = useState<string | null>(null);
   const [activePreview, setActivePreview] = useState<string | null>(null);
   const clipsRef = useRef<Clip[]>([]);
@@ -104,7 +104,7 @@ export default function VideoMerger() {
         method: "POST",
         body: formData,
       });
-      const artifact = await readVideoResponse(response, "lumora-merged-video.mp4");
+      const artifact = await readVideoResponse(response, "exismic-merged-video.mp4");
       setResultUrl(artifact.url);
       setResultFileName(artifact.fileName);
       setStatus("Merge complete");
@@ -331,7 +331,7 @@ export default function VideoMerger() {
                             clips.forEach((clip) => URL.revokeObjectURL(clip.preview));
                             setClips([]);
                             setResultUrl(null);
-                            setResultFileName("lumora-merged-video.mp4");
+                            setResultFileName("exismic-merged-video.mp4");
                           }}
                           className="w-full py-4 text-zinc-600 font-black text-[11px] uppercase tracking-[0.4em] hover:text-white transition-colors"
                         >

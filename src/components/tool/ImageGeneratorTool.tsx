@@ -71,7 +71,7 @@ export function ImageGeneratorTool() {
 
   // Load history from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("lumora_image_history");
+    const stored = localStorage.getItem("exismic_image_history");
     if (stored) {
       try {
         setHistory(JSON.parse(stored));
@@ -166,7 +166,7 @@ export function ImageGeneratorTool() {
 
         setHistory(prev => {
           const updated = [newHistoryItem, ...prev];
-          localStorage.setItem("lumora_image_history", JSON.stringify(updated));
+          localStorage.setItem("exismic_image_history", JSON.stringify(updated));
           return updated;
         });
       }
@@ -220,7 +220,7 @@ export function ImageGeneratorTool() {
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = `lumora-gen-${Date.now()}.png`;
+      link.download = `exismic-gen-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -491,7 +491,7 @@ export function ImageGeneratorTool() {
                               <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/10 to-transparent pointer-events-none" />
                               <div className="flex items-center gap-2 text-accent-purple relative z-10">
                                  <Sparkles size={14} className="animate-pulse" />
-                                 <span className="text-[10px] font-black uppercase tracking-[0.25em]">Lumora AI Prompt Enhancement</span>
+                                 <span className="text-[10px] font-black uppercase tracking-[0.25em]">Exismic Ai Prompt Enhancement</span>
                               </div>
                               <p className="text-xs text-zinc-400 font-medium leading-relaxed italic relative z-10">
                                  "{enhancedPrompt}"

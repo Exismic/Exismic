@@ -101,6 +101,7 @@ export async function GET(request: Request) {
             discordUserId: discordUserId ? String(discordUserId) : null,
             discordUsername: discordUsername ? String(discordUsername) : null,
             dailyCredits: 50,
+            bonusCredits: 0,
             lifetimeCredits: 0,
             plan: 'free',
             creditsLastReset: now,

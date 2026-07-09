@@ -312,17 +312,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem("lumora_safe_mode");
+    const stored = localStorage.getItem("exismic_safe_mode");
     if (stored !== null) {
       setSafeMode(stored === "true");
     }
 
-    const storedStudentMode = localStorage.getItem("lumora_student_mode");
+    const storedStudentMode = localStorage.getItem("exismic_student_mode");
     if (storedStudentMode !== null) {
       setStudentMode(storedStudentMode === "true");
     }
 
-    const storedChatMode = localStorage.getItem("lumora_chat_mode") as ChatMode | null;
+    const storedChatMode = localStorage.getItem("exismic_chat_mode") as ChatMode | null;
     if (storedChatMode && ["auto", "default", "coding", "research", "business", "creative", "fast"].includes(storedChatMode)) {
       setChatMode(storedChatMode);
     }
@@ -332,10 +332,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         const nextSettings = { ...DEFAULT_AI_CHAT_SETTINGS, ...(res.data.settings || {}) };
         setChatSettings(nextSettings);
 
-        if (!localStorage.getItem("lumora_chat_mode")) {
+        if (!localStorage.getItem("exismic_chat_mode")) {
           setChatMode(nextSettings.defaultChatMode);
         }
-        if (!localStorage.getItem("lumora_student_mode")) {
+        if (!localStorage.getItem("exismic_student_mode")) {
           setStudentMode(nextSettings.defaultStudentMode);
         }
       })
@@ -398,20 +398,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // --- Handlers & Functions ---
   const toggleSafeMode = (val: boolean) => {
     if (!val && !isPro) {
-      toast("Creative Mode is exclusive to Lumora Pro/Elite users.", "warning");
+      toast("Creative Mode is exclusive to Exismic Pro/Elite users.", "warning");
       return;
     }
     setSafeMode(val);
-    localStorage.setItem("lumora_safe_mode", String(val));
+    localStorage.setItem("exismic_safe_mode", String(val));
     toast(val ? "Safe Mode activated (NSFW Filter active)" : "Creative Mode activated (NSFW Filter relaxed)", "success");
   };
 
   const toggleStudentMode = (val: boolean) => {
     setStudentMode(val);
-    localStorage.setItem("lumora_student_mode", String(val));
+    localStorage.setItem("exismic_student_mode", String(val));
     toast(
       val
-        ? "Student Mode activated. Lumora will teach step-by-step."
+        ? "Student Mode activated. Exismic will teach step-by-step."
         : "Student Mode turned off.",
       "success"
     );
@@ -419,7 +419,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const updateChatMode = (mode: ChatMode) => {
     setChatMode(mode);
-    localStorage.setItem("lumora_chat_mode", mode);
+    localStorage.setItem("exismic_chat_mode", mode);
     const label = mode === "auto" ? "Auto" : mode === "default" ? "Default" : mode.charAt(0).toUpperCase() + mode.slice(1);
     toast(`${label} mode selected.`, "success");
   };
@@ -429,11 +429,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setChatSettings(nextSettings);
 
     if (settings.defaultChatMode) {
-      localStorage.setItem("lumora_chat_mode", settings.defaultChatMode);
+      localStorage.setItem("exismic_chat_mode", settings.defaultChatMode);
       setChatMode(settings.defaultChatMode);
     }
     if (typeof settings.defaultStudentMode === "boolean") {
-      localStorage.setItem("lumora_student_mode", String(settings.defaultStudentMode));
+      localStorage.setItem("exismic_student_mode", String(settings.defaultStudentMode));
       setStudentMode(settings.defaultStudentMode);
     }
 
@@ -712,7 +712,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       requestAbortRef.current = abortController;
 
       if (isExplicitToolRequest && !options?.forceImage) {
-        setAgentStatus("Running a Lumora tool...");
+        setAgentStatus("Running a Exismic tool...");
         const toolForm = new FormData();
         toolForm.append("prompt", normalizedContent);
         toolForm.append("messages", JSON.stringify(nextMessages));
@@ -732,7 +732,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const nextSessionId = toolResponse.data.id || sessionId;
           const assistantMsg: Message = {
             role: "assistant",
-            content: toolResponse.data.message || "The Lumora tool is ready.",
+            content: toolResponse.data.message || "The Exismic tool is ready.",
             toolRun: toolResponse.data.toolRun,
             chatMode,
             studentMode,
@@ -752,7 +752,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      setAgentStatus("Lumora is thinking...");
+      setAgentStatus("Exismic is thinking...");
       const canSend = await consumeMessage();
       if (!canSend && !session) {
         toast("Please sign in to save your chat history.", "info");
@@ -1003,7 +1003,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
         if (file.type.startsWith("image/")) {
           if (acceptedImages >= availableImageSlots) {
-            toast(`Lumora Vision accepts up to ${MAX_VISION_IMAGES} images per message.`, "warning");
+            toast(`Exismic Vision accepts up to ${MAX_VISION_IMAGES} images per message.`, "warning");
             continue;
           }
           if (file.size > MAX_IMAGE_SOURCE_BYTES) {
@@ -1060,7 +1060,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (added > 0) {
-        toast(`${added} ${added === 1 ? "file" : "files"} ready for Lumora analysis.`, "success");
+        toast(`${added} ${added === 1 ? "file" : "files"} ready for Exismic analysis.`, "success");
       }
     } finally {
       setIsUploading(false);

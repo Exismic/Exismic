@@ -1,33 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { createRazorpayOrder, verifyRazorpayPayment, openLuckyDrop } from "@/app/actions/shop";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Script from "next/script";
 import confetti from "canvas-confetti";
-import { Zap, PackageOpen, Star, Diamond, Coins, Loader2, Sparkles, ShieldCheck, Info } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Coins,
+  CreditCard,
+  Crown,
+  Diamond,
+  ExternalLink,
+  Gift,
+  Info,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from "lucide-react";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/app/actions/shop";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { cn } from "@/lib/utils";
 
-const CREDIT_PACKS = PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
-  id: pack.id,
-  credits: pack.credits,
-  price: pack.priceUSD,
-  priceINR: pack.priceINR,
-  popular: Boolean(pack.popular),
-  icon: pack.icon === "Crown"
-    ? <Star size={28} className="text-purple-400" />
-    : pack.icon === "Sparkles"
-      ? <Diamond size={28} className="text-cyan-400" />
-      : <Coins size={28} className="text-emerald-400" />,
-  color: pack.color === "purple"
-    ? "from-cyan-500/20 to-blue-900/20"
-    : pack.color === "gold"
-      ? "from-purple-500/20 to-fuchsia-900/20"
-      : "from-emerald-500/20 to-emerald-900/20",
-  borderColor: pack.popular ? "border-cyan-500/50" : pack.color === "gold" ? "border-purple-500/30" : "border-emerald-500/30",
+const rarityRows = [
+  { name: "Common", amount: "10", chance: "Base", color: "text-zinc-300", dot: "bg-zinc-300", aura: "from-zinc-300/25 to-white/5" },
+  { name: "Uncommon", amount: "20", chance: "Often", color: "text-cyan-200", dot: "bg-cyan-300", aura: "from-cyan-300/35 to-blue-400/10" },
+  { name: "Rare", amount: "50", chance: "Lucky", color: "text-blue-200", dot: "bg-blue-300", aura: "from-blue-300/35 to-violet-400/12" },
+  { name: "Epic", amount: "100", chance: "Very lucky", color: "text-fuchsia-200", dot: "bg-fuchsia-300", aura: "from-fuchsia-300/40 to-purple-500/16" },
+  { name: "Legendary", amount: "250", chance: "Ultra rare", color: "text-amber-200", dot: "bg-amber-300", aura: "from-amber-200/45 to-fuchsia-400/18" },
+];
+
+const claimParticles = Array.from({ length: 16 }, (_, index) => ({
+  id: index,
+  x: Math.cos((index / 16) * Math.PI * 2) * (72 + (index % 4) * 18),
+  y: Math.sin((index / 16) * Math.PI * 2) * (54 + (index % 3) * 18),
+  delay: index * 0.025,
 }));
+
+function getRewardVisual(rarity?: string) {
+  const normalized = (rarity || "common").toLowerCase();
+  return rarityRows.find((row) => row.name.toLowerCase() === normalized) || rarityRows[0];
+}
+
+const packStyles: Record<string, { icon: typeof Zap; gradient: string; glow: string; numberGradient: string }> = {
+  blue: { icon: Coins, gradient: "from-cyan-400/18 via-blue-500/12 to-violet-500/12", glow: "shadow-cyan-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]" },
+  purple: { icon: Diamond, gradient: "from-violet-400/20 via-fuchsia-500/12 to-cyan-400/10", glow: "shadow-violet-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#c084fc,#06b6d4,#fff)] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" },
+  gold: { icon: Crown, gradient: "from-amber-300/18 via-fuchsia-500/10 to-violet-500/12", glow: "shadow-amber-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]" },
+};
 
 type RazorpayPaymentResponse = {
   razorpay_payment_id: string;
@@ -41,152 +64,138 @@ type RazorpayConstructor = new (options: Record<string, unknown>) => {
 };
 
 export default function ShopPage() {
-  const { user } = useAuth();
-  const { credits, refreshCredits, toast } = useCredits();
-  
-  const [isProcessingId, setIsProcessingId] = useState<string | null>(null);
-  
-  const [openingDrop, setOpeningDrop] = useState(false);
-  const [dropResult, setDropResult] = useState<{ creditsWon: number, rarity: string } | null>(null);
-  
-  const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-  const [isIndia, setIsIndia] = useState(false);
+  const { user } = useAuth(null);
+  const {
+    credits,
+    dailyCredits,
+    bonusCredits,
+    purchasedCredits,
+    isPro,
+    countdown,
+    todayClaim,
+    refreshCredits,
+    toast,
+  } = useCredits();
   const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
+
+  const [isIndia, setIsIndia] = useState(false);
+  const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
+  const [isProcessingId, setIsProcessingId] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [claimResult, setClaimResult] = useState<{ amount: number; rarity: string; type?: "temporary" | "permanent" } | null>(null);
+  const [claimStage, setClaimStage] = useState<"idle" | "opening" | "revealed">("idle");
+  const [claimLocked, setClaimLocked] = useState(false);
 
   useEffect(() => {
     setIsIndia(getIsIndia());
   }, []);
 
-  // Initialize Razorpay
-  const handlePurchase = async (pack: typeof CREDIT_PACKS[0]) => {
+  useEffect(() => {
+    if (todayClaim && claimStage === "idle") {
+      setClaimResult(todayClaim);
+      setClaimStage("revealed");
+      setClaimLocked(true);
+    }
+  }, [todayClaim, claimStage]);
+
+  const dailyLimit = isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50;
+  const dailyPercent = Math.min(100, Math.round((dailyCredits / dailyLimit) * 100));
+
+  const formattedPacks = useMemo(() => PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
+    ...pack,
+    priceLabel: isIndia ? `Rs ${pack.priceINR}` : `$${pack.priceUSD}`,
+    style: packStyles[pack.color] || packStyles.blue,
+  })), [isIndia]);
+
+  async function handleClaimDailyReward() {
+    if (!user) {
+      toast("Please login to claim your daily shop reward", "warning");
+      return;
+    }
+
+    setClaiming(true);
+    setClaimResult(null);
+    setClaimStage("opening");
+
+    try {
+      const response = await fetch("/api/credits/daily-claim", { method: "POST" });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setClaimLocked(Boolean(data.alreadyClaimed));
+        setClaimStage(data.alreadyClaimed ? "revealed" : "idle");
+        if (data.alreadyClaimed && data.amount && data.rarity) {
+          setClaimResult({ amount: Number(data.amount), rarity: String(data.rarity), type: data.type });
+        }
+        toast(data.error || "Daily reward unavailable", data.alreadyClaimed ? "info" : "warning");
+        return;
+      }
+
+      const result = { amount: Number(data.amount || 0), rarity: String(data.rarity || "common"), type: data.type as "temporary" | "permanent" };
+      
+      // Set result early so the opening animation knows what's coming
+      setClaimResult(result);
+      
+      // Build suspense! Legendary rewards take longer to open with intense animations
+      const suspenseTime = result.rarity === "legendary" ? 3000 : result.rarity === "epic" ? 1800 : 1000;
+      await new Promise((resolve) => setTimeout(resolve, suspenseTime));
+      
+      setClaimStage("revealed");
+      setClaimLocked(true);
+      refreshCredits();
+      confetti({
+        particleCount: result.rarity === "legendary" ? 150 : result.rarity === "epic" ? 90 : 45,
+        spread: 70,
+        origin: { y: 0.58 },
+        colors: ["#22d3ee", "#8b5cf6", "#f472b6", "#facc15", "#ffffff"],
+      });
+    } catch (error) {
+      console.error(error);
+      toast("Could not claim today's reward", "warning");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  async function handlePurchase(pack: typeof formattedPacks[number]) {
     if (!paymentsEnabled) {
-      toast(PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE, "info");
+      toast("Credit packs will be available soon.", "info");
       return;
     }
     if (!user) {
       toast("Please login to purchase credits", "warning");
       return;
     }
-    if (!isRazorpayLoaded) {
-      toast("Payment system is loading, please wait", "info");
-      return;
-    }
 
     setIsProcessingId(pack.id);
-    
+
     try {
-      const currency = isIndia ? "INR" : "USD";
-      const { success, order, error } = await createRazorpayOrder(pack.id, currency);
-      
-      if (!success || !order) {
-        toast(error || "Failed to initialize payment", "warning");
+      const response = await fetch("/api/paypal/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: "credits",
+          tierId: pack.id,
+        }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.approvalUrl) {
+        toast(data?.error || "Could not start PayPal checkout.", "warning");
         setIsProcessingId(null);
         return;
       }
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Lumora AI",
-        description: `${pack.credits} Permanent Credits`,
-        order_id: order.id,
-        handler: async function (response: RazorpayPaymentResponse) {
-          const verify = await verifyRazorpayPayment(
-            response.razorpay_payment_id,
-            response.razorpay_order_id,
-            response.razorpay_signature,
-            pack.credits
-          );
-
-          if (verify.success) {
-            toast(`Successfully added ${pack.credits} credits!`, "success");
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            refreshCredits();
-          } else {
-            toast(verify.error || "Payment verification failed", "warning");
-          }
-          setIsProcessingId(null);
-        },
-        prefill: {
-          email: user?.email || "",
-        },
-        theme: {
-          color: "#7c3aed",
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessingId(null);
-          }
-        }
-      };
-
-      const checkoutWindow = window as Window & { Razorpay?: RazorpayConstructor };
-      if (!checkoutWindow.Razorpay) {
-        throw new Error("Payment checkout failed to load. Please refresh and try again.");
-      }
-
-      const rzp = new checkoutWindow.Razorpay(options);
-      rzp.on("payment.failed", function () {
-        toast("Payment failed or cancelled", "warning");
-        setIsProcessingId(null);
-      });
-      rzp.open();
-
-    } catch (err) {
-      console.error(err);
-      toast("An unexpected error occurred", "warning");
+      window.location.href = data.approvalUrl;
+    } catch (error) {
+      console.warn("[PayPal] Credit checkout unavailable:", error instanceof Error ? error.message : error);
+      toast(error instanceof Error ? error.message : "PayPal checkout failed", "warning");
       setIsProcessingId(null);
     }
-  };
-
-  const handleOpenDrop = async () => {
-    if (!user) {
-      toast("Please login to open Lucky Drops", "warning");
-      return;
-    }
-    
-    if (credits < 50) {
-      toast("You need 50 credits to open a Lucky Drop!", "warning");
-      return;
-    }
-
-    setOpeningDrop(true);
-    setDropResult(null);
-
-    // Initial animation delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    try {
-      const res = await openLuckyDrop();
-      if (!res.success) {
-        toast(res.error || "Failed to open drop", "warning");
-        setOpeningDrop(false);
-        return;
-      }
-
-      // Brawl Stars style suspense delay before showing reward
-      await new Promise(resolve => setTimeout(resolve, 1200));
-
-      setDropResult({ creditsWon: res.creditsWon, rarity: res.rarity });
-      
-      if (res.rarity === 'legendary') {
-        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, colors: ['#fbbf24', '#f59e0b', '#fff'] });
-      } else if (res.rarity === 'epic') {
-        confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 }, colors: ['#c084fc', '#a855f7', '#fff'] });
-      }
-
-      refreshCredits();
-    } catch (err) {
-      console.error(err);
-      toast("Failed to open drop", "warning");
-    } finally {
-      setOpeningDrop(false);
-    }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20 px-4 md:px-8 font-sans selection:bg-purple-500/30">
+    <div className="relative min-h-screen overflow-hidden bg-[#030303] px-4 pb-20 pt-24 text-white selection:bg-purple-500/30 sm:px-6 lg:px-8">
       {paymentsEnabled && (
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
@@ -195,226 +204,386 @@ export default function ShopPage() {
         />
       )}
 
-      {/* Background Refinements */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.15),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px]" />
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute left-1/2 top-0 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.2),transparent_68%)] blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[520px] w-[680px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12),transparent_66%)] blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.028)_1px,transparent_1px)] bg-[size:42px_42px] opacity-35" />
       </div>
 
-      <div className="max-w-5xl mx-auto relative z-10">
-        
-        {/* Header section */}
-        <div className="text-center mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-sm font-medium mb-6 backdrop-blur-md"
-          >
-            <Zap size={16} className="text-yellow-400" />
-            <span>Your Balance:</span>
-            <span className="font-bold text-white">{credits} Credits</span>
-          </motion.div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-4">
-            Power Up Your Creativity
-          </h1>
-          <p className="text-zinc-400 max-w-xl mx-auto text-lg">
-            Get permanent lifetime credits that never expire or try your luck with a mystery drop!
-          </p>
-        </div>
+      <main className="relative z-10 mx-auto max-w-7xl">
+        <section className="mb-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.05] px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100"
+            >
+              <Sparkles size={14} />
+              Credit shop
+            </motion.div>
+            <h1 className="max-w-3xl text-5xl font-black uppercase leading-[0.86] tracking-tight sm:text-7xl lg:text-8xl">
+              Build your{" "}
+              <span className="block bg-[linear-gradient(110deg,#fff,#c4b5fd,#22d3ee,#f472b6,#fff)] bg-[length:240%_100%] bg-clip-text text-transparent animate-[gradient-shift_8s_ease-in-out_infinite]">
+                credit vault.
+              </span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-base font-medium leading-8 text-zinc-400 sm:text-lg">
+              Daily credits reset for normal usage. Bonus rewards and permanent credits sit on top, ready for heavier Pro tools.
+            </p>
+          </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Shop Section */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center backdrop-blur-sm">
-                <Coins size={20} className="text-blue-400" />
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-500">Total balance</p>
+                <p className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">{credits.toLocaleString()}</p>
               </div>
-              <h2 className="text-2xl font-bold tracking-tight">Credit Packs</h2>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-100 shadow-[0_0_45px_rgba(34,211,238,0.12)]">
+                <Coins size={28} />
+              </div>
             </div>
-
-            {!paymentsEnabled && (
-              <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300/20 bg-amber-300/[0.055] p-4 text-left">
-                <Info size={18} className="mt-0.5 shrink-0 text-amber-200" />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-100">Credit purchases unavailable</p>
-                  <p className="mt-1 text-sm font-medium leading-6 text-zinc-400">
-                    New credit purchases are paused right now. Please check back soon.
-                  </p>
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {[
+                ["Daily", dailyCredits],
+                ["Bonus", bonusCredits],
+                ["Permanent", purchasedCredits],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="rounded-2xl border border-white/[0.07] bg-black/25 p-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-600">{label}</p>
+                  <p className="mt-1 text-lg font-black text-white">{Number(value).toLocaleString()}</p>
                 </div>
-              </div>
-            )}
-
-            <div className="grid gap-4">
-              {CREDIT_PACKS.map((pack, idx) => (
-                <motion.div 
-                  key={pack.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className={`relative overflow-hidden rounded-3xl border ${pack.popular ? pack.borderColor : 'border-white/5'} bg-white/[0.02] backdrop-blur-xl p-1 transition-all hover:bg-white/[0.04]`}
-                >
-                  {pack.popular && (
-                    <div className="absolute top-0 right-8 px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-[10px] font-black uppercase tracking-widest rounded-b-lg shadow-lg">
-                      Most Popular
-                    </div>
-                  )}
-                  
-                  <div className={`absolute inset-0 bg-gradient-to-br ${pack.color} opacity-50`} />
-                  
-                  <div className="relative p-6 flex items-center justify-between gap-6">
-                    <div className="flex items-center gap-6">
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center bg-black/40 border border-white/10 shadow-inner`}>
-                        {pack.icon}
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-black">{pack.credits} <span className="text-zinc-500 text-lg font-medium">Credits</span></h3>
-                        <p className="text-zinc-400 text-sm flex items-center gap-1 mt-1">
-                          <ShieldCheck size={14} className="text-emerald-500" /> 
-                          Permanent Reserve
-                        </p>
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => handlePurchase(pack)}
-                      disabled={isProcessingId !== null || !paymentsEnabled}
-                      className={`px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-xl flex items-center gap-2
-                        ${pack.popular 
-                          ? 'bg-white text-black hover:bg-zinc-200' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                        } disabled:opacity-50`}
-                    >
-                      {isProcessingId === pack.id
-                        ? <Loader2 size={18} className="animate-spin" />
-                        : paymentsEnabled
-                          ? (isIndia ? `Rs ${pack.priceINR}` : `$${pack.price}`)
-                          : "Unavailable"}
-                    </button>
-                  </div>
-                </motion.div>
               ))}
             </div>
           </div>
+        </section>
 
-          {/* Lucky Drop Section */}
-          <div className="lg:col-span-5">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-white/10 flex items-center justify-center backdrop-blur-sm">
-                <PackageOpen size={20} className="text-yellow-400" />
+        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-[linear-gradient(145deg,rgba(124,58,237,0.13),rgba(255,255,255,0.035)_48%,rgba(34,211,238,0.08))] p-5 shadow-[0_28px_100px_rgba(0,0,0,0.5)] sm:p-7"
+          >
+            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
+            <div className="relative">
+              <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100/80">Free daily shop reward</p>
+                  <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">Open today&apos;s reward</h2>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-fuchsia-300/20 bg-fuchsia-300/[0.08] text-fuchsia-100">
+                  <Gift size={26} />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold tracking-tight">Lucky Drop</h2>
-            </div>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="relative overflow-hidden rounded-3xl border border-yellow-500/30 bg-black/40 backdrop-blur-xl"
-            >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.1),transparent_70%)]" />
-              
-              <div className="p-8 relative flex flex-col items-center text-center">
-                
-                {/* 3D Box Representation */}
-                <div className="relative w-48 h-48 mb-8 mt-4 flex items-center justify-center">
-                  <AnimatePresence mode="wait">
-                    {!dropResult ? (
+
+
+              <div className="relative mt-5 overflow-hidden rounded-[2rem] border border-white/10 bg-[#05050a]/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <motion.div
+                  aria-hidden="true"
+                  animate={claimStage === "opening" ? { opacity: [0.16, 0.42, 0.16], scale: [1, 1.08, 1] } : { opacity: 0.18, scale: 1 }}
+                  transition={{ duration: 1.15, repeat: claimStage === "opening" ? Infinity : 0, ease: "easeInOut" }}
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.24),transparent_35%),radial-gradient(circle_at_70%_30%,rgba(168,85,247,0.22),transparent_36%)]"
+                />
+                <div className="relative grid gap-5 md:grid-cols-[180px_1fr] md:items-center">
+                  <div className="relative mx-auto flex h-44 w-44 items-center justify-center">
+                    <AnimatePresence>
+                      {claimStage === "revealed" && claimResult && (
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={
+                            claimResult.rarity === "legendary" && claimResult.type === "permanent" ? { scale: [0.8, 1.5, 1.2], opacity: [0, 1, 1], rotate: 360 } :
+                            claimResult.rarity === "legendary" ? { scale: [0.8, 1.3, 1.1], opacity: [0, 1, 1], rotate: 180 } :
+                            claimResult.rarity === "epic" ? { scale: [0.8, 1.25, 1.15], opacity: [0, 1, 1] } :
+                            { scale: 1.25, opacity: 1 }
+                          }
+                          transition={
+                            claimResult.rarity === "legendary" && claimResult.type === "permanent" ? { duration: 4, repeat: Infinity, ease: "linear" } :
+                            claimResult.rarity === "legendary" ? { duration: 6, repeat: Infinity, ease: "linear" } :
+                            claimResult.rarity === "epic" ? { duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" } :
+                            { duration: 0.6, ease: "easeOut" }
+                          }
+                          className={cn(
+                            "absolute inset-4 rounded-[2rem] bg-gradient-to-br opacity-90 blur-[35px]",
+                            getRewardVisual(claimResult.rarity).aura
+                          )}
+                        />
+                      )}
+                    </AnimatePresence>
+
+                    {claimStage === "opening" && (
                       <motion.div
-                        key="closed-box"
-                        animate={openingDrop ? {
-                          scale: [1, 1.1, 0.9, 1.2, 0.8, 1.3],
-                          rotate: [0, -5, 5, -10, 10, 0],
-                        } : {
-                          y: [0, -10, 0]
+                        animate={
+                          claimResult?.rarity === "legendary" 
+                            ? { scale: [1, 1.8, 2.5], opacity: [0, 0.9, 0] } 
+                            : claimResult?.rarity === "epic" 
+                            ? { scale: [1, 1.5, 2], opacity: [0, 0.7, 0] } 
+                            : { scale: [1, 1.4, 1.8], opacity: [0, 0.6, 0] }
+                        }
+                        transition={{ 
+                          duration: claimResult?.rarity === "legendary" ? 0.4 : claimResult?.rarity === "epic" ? 0.8 : 1.2, 
+                          repeat: Infinity, 
+                          ease: "easeOut" 
                         }}
-                        transition={openingDrop ? { duration: 1.5, ease: "easeInOut" } : { duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        className="relative z-10"
-                      >
-                        <div className="w-32 h-32 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.5)] border-2 border-yellow-300/50 flex items-center justify-center overflow-hidden">
-                          <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-pulse" />
-                          <Sparkles size={48} className="text-white drop-shadow-lg" />
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="open-result"
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`w-32 h-32 rounded-full flex items-center justify-center shadow-[0_0_80px_rgba(0,0,0,0.5)] border-4
-                          ${dropResult.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-400 to-amber-600 border-yellow-200 shadow-yellow-500/50' : 
-                            dropResult.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500 to-fuchsia-600 border-fuchsia-300 shadow-purple-500/50' : 
-                            'bg-gradient-to-br from-zinc-600 to-zinc-800 border-zinc-400 shadow-white/20'}`}
-                        >
-                          <span className="text-4xl font-black text-white drop-shadow-md">
-                            +{dropResult.creditsWon}
-                          </span>
-                        </div>
-                        <div className={`mt-4 text-xs font-black uppercase tracking-[0.3em] px-4 py-1 rounded-full border
-                          ${dropResult.rarity === 'legendary' ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10' : 
-                            dropResult.rarity === 'epic' ? 'text-purple-400 border-purple-400/30 bg-purple-400/10' : 
-                            'text-zinc-400 border-zinc-400/30 bg-zinc-400/10'}`}
-                        >
-                          {dropResult.rarity} Drop
-                        </div>
-                      </motion.div>
+                        className={cn(
+                          "absolute inset-4 rounded-full blur-xl",
+                          claimResult?.rarity === "legendary" ? "bg-amber-400" : claimResult?.rarity === "epic" ? "bg-purple-400" : "bg-cyan-400"
+                        )}
+                      />
                     )}
-                  </AnimatePresence>
-                </div>
+                    <motion.div
+                      animate={claimStage === "opening" ? { rotate: 360 } : { rotate: 0 }}
+                      transition={{ 
+                        duration: claimStage === "opening" && claimResult?.rarity === "legendary" ? 0.5 : claimStage === "opening" ? 3 : 0, 
+                        repeat: claimStage === "opening" ? Infinity : 0, 
+                        ease: "linear" 
+                      }}
+                      className={cn(
+                        "absolute inset-0 rounded-[2.5rem] opacity-90 blur-lg",
+                        claimResult?.rarity === "legendary" && claimStage === "opening" ? "bg-[conic-gradient(from_0deg,transparent,#fcd34d,#f59e0b,#fff,#f59e0b,transparent)]" :
+                        "bg-[conic-gradient(from_0deg,transparent,#22d3ee,#a855f7,#fff,#22d3ee,transparent)]"
+                      )}
+                    />
+                    <motion.div
+                      animate={
+                        claimStage === "opening" && claimResult?.rarity === "legendary" ? { scale: [1, 1.15, 1], rotate: [0, -4, 4, -4, 4, 0] } : 
+                        claimStage === "opening" && claimResult?.rarity === "epic" ? { scale: [1, 1.1, 1], rotate: [0, -2, 2, 0] } : 
+                        claimStage === "opening" ? { scale: [1, 1.05, 1] } : 
+                        claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? { scale: [0.8, 1.15, 1], y: [0, -10, 0], rotate: [0, -2, 2, -2, 2, 0] } :
+                        claimStage === "revealed" && claimResult?.rarity === "legendary" ? { scale: [0.8, 1.15, 1], y: [0, -5, 0] } :
+                        claimStage === "revealed" ? { scale: [0.8, 1.15, 1] } : { scale: 1 }
+                      }
+                      transition={
+                        claimStage === "opening" && claimResult?.rarity === "legendary" ? { duration: 0.3, repeat: Infinity, ease: "linear" } : 
+                        claimStage === "opening" && claimResult?.rarity === "epic" ? { duration: 0.6, repeat: Infinity, ease: "linear" } : 
+                        claimStage === "opening" ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : 
+                        claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? { duration: 2, repeat: Infinity, repeatType: "reverse" } :
+                        claimStage === "revealed" && claimResult?.rarity === "legendary" ? { duration: 3, repeat: Infinity, repeatType: "reverse" } :
+                        { duration: 0.5, ease: "easeInOut" }
+                      }
+                      className={cn(
+                        "relative flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-[2rem] border bg-gradient-to-br from-[#12121a] to-[#050508] shadow-[0_0_45px_rgba(0,0,0,0.8)] backdrop-blur-xl",
+                        claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? "border-amber-400/60 shadow-[0_0_60px_rgba(251,191,36,0.3)]" :
+                        claimResult?.rarity === "legendary" ? "border-amber-400/40" :
+                        claimResult ? "border-white/20" : "border-white/10"
+                      )}
+                    >
+                      {claimStage === "opening" && (
+                        <div className={cn(
+                          "absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(255,255,255,0.15),transparent)] bg-[length:100%_200%] pointer-events-none",
+                          claimResult?.rarity === "legendary" ? "animate-shine-fast" : "animate-shine"
+                        )} />
+                      )}
+                      
+                      {claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "permanent" && (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent,#fcd34d,#f59e0b,#fff,#f59e0b,transparent)] opacity-30 blur-md pointer-events-none"
+                        />
+                      )}
+                      {claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "temporary" && (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                          className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent,#fcd34d,#fff,transparent)] opacity-20 blur-md pointer-events-none"
+                        />
+                      )}
 
-                <div className="space-y-2 mb-8 h-16">
-                  {!dropResult && !openingDrop && (
-                    <>
-                      <h3 className="text-xl font-bold">Mystery Credit Box</h3>
-                      <p className="text-zinc-400 text-sm">Win up to 500 permanent credits!</p>
-                    </>
-                  )}
-                  {openingDrop && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-yellow-400 font-bold text-lg animate-pulse">
-                      Unlocking...
+                      {/* Glass effect layers */}
+                      <div className="absolute inset-x-2 top-2 h-1/3 rounded-full bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none blur-[1px]" />
+                      <div className="absolute inset-0 rounded-[2rem] shadow-[inset_0_0_30px_rgba(255,255,255,0.02)] pointer-events-none" />
+
+                      <div className={cn(
+                        "relative flex h-24 w-24 items-center justify-center rounded-[1.3rem] border bg-black/60 shadow-[inset_0_2px_20px_rgba(255,255,255,0.04)] backdrop-blur-md",
+                        claimResult?.rarity === "legendary" ? "border-amber-400/30 shadow-[0_0_25px_rgba(251,191,36,0.15)]" : "border-white/10"
+                      )}>
+                        {claimStage === "opening" ? (
+                          <Loader2 size={36} className={cn(
+                            "animate-spin", 
+                            claimResult?.rarity === "legendary" ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" : 
+                            claimResult?.rarity === "epic" ? "text-purple-400" : "text-cyan-100"
+                          )} />
+                        ) : claimResult ? (
+                          <span className={cn(
+                            "text-4xl font-black italic tracking-tighter bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent pr-2",
+                            claimResult.type === "permanent" 
+                              ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_15px_rgba(244,63,94,0.6)]" 
+                              : "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.6)]"
+                          )}>
+                            +{claimResult.amount}
+                          </span>
+                        ) : (
+                          <Gift size={38} className="text-white/80 drop-shadow-md" />
+                        )}
+                      </div>
                     </motion.div>
-                  )}
-                  {dropResult && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                      <h3 className="text-xl font-bold text-white mb-1">
-                        {dropResult.creditsWon > 0 ? `You won ${dropResult.creditsWon} Credits!` : "Better luck next time!"}
-                      </h3>
-                      <button 
-                        onClick={() => setDropResult(null)}
-                        className="text-zinc-400 text-sm hover:text-white transition-colors underline decoration-white/20 underline-offset-4"
-                      >
-                        Spin again
-                      </button>
-                    </motion.div>
-                  )}
-                </div>
 
-                <button
-                  onClick={handleOpenDrop}
-                  disabled={openingDrop}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-sm uppercase tracking-widest hover:from-yellow-400 hover:to-amber-500 active:scale-[0.98] transition-all shadow-[0_0_30px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2"
-                >
-                  {openingDrop ? <Loader2 className="animate-spin" size={18} /> : "Open for 50 Credits"}
-                </button>
+                    <AnimatePresence>
+                      {claimStage === "revealed" && claimResult && (
+                        <>
+                          {claimParticles.map((particle) => (
+                            <motion.span
+                              key={particle.id}
+                              initial={{ x: 0, y: 0, opacity: 0, scale: 0.45 }}
+                              animate={{ x: particle.x, y: particle.y, opacity: [0, 1, 0], scale: [0.45, 1, 0.2] }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.9, delay: particle.delay, ease: "easeOut" }}
+                              className={cn("absolute left-1/2 top-1/2 h-2 w-2 rounded-full", getRewardVisual(claimResult.rarity).dot)}
+                            />
+                          ))}
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-                <div className="mt-6 flex items-center justify-center gap-4 text-[10px] uppercase font-bold tracking-widest text-zinc-500">
-                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-zinc-500" /> Common (98%)</span>
-                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-purple-500" /> Epic (1.9%)</span>
-                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-500" /> Legendary (0.1%)</span>
+                  <div className="text-center md:text-left">
+                    <p className={cn(
+                      "text-[10px] font-black uppercase tracking-[0.24em]",
+                      claimResult ? getRewardVisual(claimResult.rarity).color : "text-cyan-100/70"
+                    )}>
+                      {claimStage === "opening" ? "Reward charging" : claimResult ? `${claimResult.rarity} reward unlocked` : "Daily bonus reward"}
+                    </p>
+                    <h3 className={cn(
+                      "mt-2 text-2xl font-black uppercase tracking-tight sm:text-3xl",
+                      claimResult?.type === "permanent" 
+                        ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" 
+                        : claimResult
+                          ? "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]"
+                          : "text-white"
+                    )}>
+                      {claimStage === "opening" ? "Opening your reward..." : claimResult ? `+${claimResult.amount} ${claimResult.type === "permanent" ? "permanent" : claimResult.type === "temporary" ? "temporary" : ""} credits`.trim() : "Tap once. Reveal your bonus."}
+                    </h3>
+                    <p className="mt-3 text-sm font-medium leading-6 text-zinc-500">
+                      {claimResult
+                        ? claimResult.type === "permanent" 
+                          ? "Added to your permanent lifetime balance. These credits never expire and will always be available."
+                          : claimResult.type === "temporary"
+                            ? "Added to your temporary balance. Temporary credits expire when the daily limit resets, so use them today!"
+                            : "Claimed and added to your balance. Come back tomorrow for another chance!"
+                        : "Daily rewards have a chance to drop temporary credits that expire daily, or extremely rare permanent credits."}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-            
-            <div className="mt-6 p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex gap-3 text-sm text-zinc-400">
-              <Info size={18} className="text-blue-400 shrink-0" />
-              <p>Lucky drops deduct from your balance first. Won credits are added to your <strong className="text-white">permanent lifetime reserve</strong>.</p>
+
+              <button
+                onClick={handleClaimDailyReward}
+                disabled={claiming || claimLocked}
+                className={cn(
+                  "mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.22em] transition-all",
+                  claimLocked
+                    ? "border border-emerald-300/15 bg-emerald-300/[0.065] text-emerald-100"
+                    : "bg-[linear-gradient(135deg,#a855f7,#2563eb_52%,#22d3ee)] text-white shadow-[0_20px_55px_rgba(37,99,235,0.22)] hover:-translate-y-0.5 hover:brightness-110"
+                )}
+              >
+                {claiming ? <Loader2 size={18} className="animate-spin" /> : claimLocked ? <CheckCircle2 size={18} /> : <Gift size={18} />}
+                {claiming ? "Opening reward" : claimLocked ? `New reward in ${countdown || "..."}` : "Claim free reward"}
+              </button>
+            </div>
+          </motion.div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-600">Permanent credits</p>
+                <h2 className="mt-1 text-3xl font-black uppercase tracking-tight text-white">Credit packs</h2>
+              </div>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em]",
+                  "border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-100",
+                )}
+              >
+                <CreditCard size={12} />
+                Secure checkout
+              </span>
             </div>
 
+            <div className="grid gap-4">
+              {formattedPacks.map((pack, index) => {
+                const Icon = pack.style.icon;
+                return (
+                  <motion.div
+                    key={pack.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.07 }}
+                    className={cn(
+                      "relative overflow-hidden rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-1 shadow-2xl",
+                      pack.style.glow,
+                      pack.popular && "border-cyan-300/30"
+                    )}
+                  >
+                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", pack.style.gradient)} />
+                    {pack.popular && (
+                      <div className="absolute right-5 top-0 rounded-b-xl bg-gradient-to-r from-cyan-300 to-violet-300 px-3 py-1 text-[8px] font-black uppercase tracking-[0.16em] text-black">
+                        Best value
+                      </div>
+                    )}
+                    <div className="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-white">
+                          <Icon size={28} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">{pack.label}</p>
+                          <h3 className={cn("mt-1 text-4xl font-black bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent", pack.style.numberGradient)}>{pack.credits.toLocaleString()} <span className="text-sm font-bold text-zinc-500 drop-shadow-none">credits</span></h3>
+                          <p className="mt-1 flex items-center gap-2 text-xs font-semibold text-zinc-500">
+                            <ShieldCheck size={13} className="text-emerald-300" />
+                            Permanent balance, never expires
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 sm:min-w-[180px]">
+                        <button
+                          onClick={() => handlePurchase(pack)}
+                          disabled={isProcessingId !== null || !paymentsEnabled}
+                          className={cn(
+                            "group relative flex min-h-12 items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.2em] transition-all duration-500",
+                            paymentsEnabled
+                              ? "text-white shadow-[0_0_25px_-5px_rgba(34,211,238,0.4)] hover:shadow-[0_0_40px_-10px_rgba(34,211,238,0.6)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95"
+                              : "text-zinc-500 opacity-60 cursor-not-allowed"
+                          )}
+                        >
+                          {paymentsEnabled && (
+                            <span className="absolute inset-0 bg-[linear-gradient(110deg,#06b6d4,#3b82f6,#a855f7,#06b6d4)] bg-[length:300%_auto] animate-gradient-x" />
+                          )}
+                          <div className={cn(
+                            "relative z-10 flex h-full w-full items-center justify-center gap-2 rounded-2xl px-5 transition-all duration-500",
+                            paymentsEnabled ? "bg-[#030303] group-hover:bg-transparent" : "bg-white/[0.04] border border-white/10"
+                          )}>
+                            {paymentsEnabled && (
+                              <>
+                                <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
+                                <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.25),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
+                              </>
+                            )}
+                            <div className="relative z-20 flex items-center gap-2 text-[11px] sm:text-[12px]">
+                              {isProcessingId === pack.id ? <Loader2 size={16} className="animate-spin text-cyan-400" /> : paymentsEnabled ? (
+                                <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,1)] group-hover:text-cyan-50">{pack.priceLabel}</span>
+                              ) : "Live checkout soon"}
+                              {paymentsEnabled && !isProcessingId && <ArrowRight size={14} className="text-cyan-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />}
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 text-sm font-medium leading-6 text-zinc-500">
+              <div className="mb-2 flex items-center gap-2 text-zinc-300">
+                <Info size={16} className="text-cyan-300" />
+                <span className="text-[10px] font-black uppercase tracking-[0.18em]">Spend order</span>
+              </div>
+              Exismic spends daily credits first, then bonus credits, then permanent credits. Your free shop reward never reduces your normal daily allowance.
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

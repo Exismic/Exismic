@@ -44,7 +44,7 @@ const SECTIONS = [
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
     glow: "shadow-[0_0_30px_rgba(52,211,153,0.3)]",
-    content: "Your information is used exclusively to power your Lumora experience. We process your files in real-time to deliver the requested AI generation, maintain your account security, and communicate important service updates. We do not use your data to train public AI models."
+    content: "Your information is used exclusively to power your Exismic experience. We process your files in real-time to deliver the requested AI generation, maintain your account security, and communicate important service updates. We do not use your data to train public AI models."
   },
   {
     id: "security",
@@ -239,7 +239,7 @@ export default function PrivacyPage() {
               Our dedicated privacy team is always here to help you understand how your data is handled.
             </p>
             <div className="pt-6">
-              <a href="mailto:privacy@lumora.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+              <a href="mailto:privacy@exismic.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
                 Contact Privacy Team <ArrowUpRight size={18} />
               </a>
             </div>

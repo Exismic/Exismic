@@ -23,14 +23,14 @@ export async function readVideoResponse(
     ) as Error & { requestId?: string };
     error.requestId =
       payload?.requestId ||
-      response.headers.get("X-Lumora-Request-Id") ||
+      response.headers.get("X-Exismic-Request-Id") ||
       undefined;
     throw error;
   }
 
   const blob = await response.blob();
   if (blob.size === 0) throw new Error("The processor returned an empty video.");
-  const encodedName = response.headers.get("X-Lumora-File-Name");
+  const encodedName = response.headers.get("X-Exismic-File-Name");
   let fileName = fallbackFileName;
   if (encodedName) {
     try {
@@ -43,7 +43,7 @@ export async function readVideoResponse(
     url: URL.createObjectURL(blob),
     fileName,
     size: blob.size,
-    requestId: response.headers.get("X-Lumora-Request-Id") || undefined,
+    requestId: response.headers.get("X-Exismic-Request-Id") || undefined,
     headers: response.headers,
   };
 }

@@ -139,7 +139,7 @@ export function PaletteGenerator() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `lumora-palette-${Date.now()}.png`;
+      anchor.download = `exismic-palette-${Date.now()}.png`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

@@ -109,7 +109,7 @@ function formatBytes(bytes: number) {
 
 function stageCopy(status: ToolStatus) {
   if (status === "uploading") {
-    return ["Secure upload", "Sending the source audio to Lumora"];
+    return ["Secure upload", "Sending the source audio to Exismic"];
   }
   if (status === "preparing") {
     return ["Preparing tracks", "Validating the audio and building your downloads"];
@@ -257,7 +257,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
           {
             requestId:
               payload?.requestId ||
-              response.headers.get("X-Lumora-Request-Id") ||
+              response.headers.get("X-Exismic-Request-Id") ||
               undefined,
             retryable: payload?.retryable ?? response.status >= 500,
           },
@@ -345,8 +345,8 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
         compression: "DEFLATE",
         compressionOptions: { level: 6 },
       });
-      const stem = file.name.replace(/\.[^/.]+$/, "") || "lumora-audio";
-      saveBlob(blob, `${stem}-lumora-tracks.zip`);
+      const stem = file.name.replace(/\.[^/.]+$/, "") || "exismic-audio";
+      saveBlob(blob, `${stem}-exismic-tracks.zip`);
     } catch {
       setError({
         message: "The ZIP could not be prepared. Individual downloads still work.",
@@ -376,7 +376,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200/70">
-                Lumora audio engine
+                Exismic audio engine
               </p>
               <h2 className="mt-1 text-xl font-black tracking-tight text-white sm:text-2xl">
                 {config.title}
@@ -642,7 +642,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
                   </h3>
                   <p className="mt-3 text-sm leading-6 text-zinc-500">
                     {file
-                      ? "Preview the source below. Lumora will keep the timing aligned across every result."
+                      ? "Preview the source below. Exismic will keep the timing aligned across every result."
                       : "Upload audio to unlock a playable source preview, validated results, retries, and proper downloads."}
                   </p>
                 </div>

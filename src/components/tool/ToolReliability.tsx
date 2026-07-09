@@ -106,25 +106,6 @@ export function ToolReliabilityNotice({
           <p className="max-w-3xl text-sm font-medium leading-relaxed text-zinc-400">
             {reliability.description}
           </p>
-          {reliability.requirements?.length ? (
-            <div className="space-y-3 pt-1">
-              <div className="flex flex-wrap gap-2">
-                {reliability.requirements.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-md border border-white/10 bg-black/20 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-zinc-500"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-              {(reliability.level === "service-backed" || reliability.level === "limited") && (
-                <p className="text-[11px] font-semibold leading-relaxed text-zinc-600">
-                  Admins can review exact provider setup and missing keys from the system diagnostics panel.
-                </p>
-              )}
-            </div>
-          ) : null}
         </div>
       </div>
     </div>

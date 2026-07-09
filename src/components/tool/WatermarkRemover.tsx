@@ -322,7 +322,7 @@ export function WatermarkRemover() {
               {result && (
                 <a
                   href={result}
-                  download={`lumora-no-watermark-${Date.now()}.jpg`}
+                  download={`exismic-no-watermark-${Date.now()}.jpg`}
                   className="w-full px-8 py-5 rounded-2xl bg-white text-black font-black text-[11px] uppercase tracking-[0.25em] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3"
                 >
                   <Download size={20} />

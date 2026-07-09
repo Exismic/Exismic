@@ -106,7 +106,7 @@ export default function MemeGenerator() {
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;
-    a.download = `lumora-meme-${Date.now()}.png`;
+    a.download = `exismic-meme-${Date.now()}.png`;
     a.click();
   };
 
@@ -307,7 +307,7 @@ export default function MemeGenerator() {
                {/* Watermark Overlay */}
                {!isPro && (
                  <div className="absolute bottom-12 right-12 opacity-30 pointer-events-none">
-                    <h4 className="text-[10px] font-black italic tracking-tighter text-white">LUMORA STUDIOS</h4>
+                    <h4 className="text-[10px] font-black italic tracking-tighter text-white">EXISMIC STUDIOS</h4>
                  </div>
                )}
             </div>

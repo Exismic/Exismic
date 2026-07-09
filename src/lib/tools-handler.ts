@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { inferResultFileType, normalizeHistoryToolType } from "@/lib/results";
-import { deductCredits, getUserCredits } from "@/lib/credits";
+import { deductCredits, getCreditTotal, getUserCredits } from "@/lib/credits";
 
 export interface ToolOptions {
   toolId: string;
@@ -80,7 +80,7 @@ export async function withToolHandler(
 
     if (options.creditCost > 0) {
       const credits = await getUserCredits(user.id);
-      const availableCredits = (credits?.dailyCredits || 0) + (credits?.lifetimeCredits || 0);
+      const availableCredits = credits ? getCreditTotal(credits) : 0;
 
       if (!credits || availableCredits < options.creditCost) {
         return NextResponse.json(
@@ -146,7 +146,7 @@ export async function withToolHandler(
     } satisfies Prisma.InputJsonObject;
 
     const debitResult = options.creditCost > 0
-      ? await deductCredits(user.id, options.creditCost)
+      ? await deductCredits(user.id, options.creditCost, options.toolId)
       : { success: true };
 
     if (!debitResult.success) {

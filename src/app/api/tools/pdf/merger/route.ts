@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
       contentType: "application/pdf",
       requestId,
       headers: {
-        "X-Lumora-File-Name": encodeURIComponent(outputName),
-        "X-Lumora-Page-Count": String(totalPages),
-        "X-Lumora-Source-Count": String(files.length),
+        "X-Exismic-File-Name": encodeURIComponent(outputName),
+        "X-Exismic-Page-Count": String(totalPages),
+        "X-Exismic-Source-Count": String(files.length),
       },
     });
   } catch (error) {

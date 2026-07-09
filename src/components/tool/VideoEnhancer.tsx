@@ -38,7 +38,7 @@ export default function VideoEnhancer() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [resultFileName, setResultFileName] = useState("lumora-enhanced.mp4");
+  const [resultFileName, setResultFileName] = useState("exismic-enhanced.mp4");
   const [sliderPos, setSliderPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -142,7 +142,7 @@ export default function VideoEnhancer() {
         body: formData,
       });
 
-      const artifact = await readVideoResponse(response, "lumora-enhanced.mp4");
+      const artifact = await readVideoResponse(response, "exismic-enhanced.mp4");
       setResultUrl(artifact.url);
       setResultFileName(artifact.fileName);
       setStatus("Enhancement complete");
@@ -159,7 +159,7 @@ export default function VideoEnhancer() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
-    setResultFileName("lumora-enhanced.mp4");
+    setResultFileName("exismic-enhanced.mp4");
     setError(null);
     setIsProcessing(false);
     setSliderPos(50);

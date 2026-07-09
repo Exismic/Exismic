@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   let agent: Partial<SupportAgent> = {
     id,
-    name: "Lumora Support",
+    name: "Exismic Support",
     welcome_message: "Hi, welcome in. How can I help today?",
     primary_color: "#8B5CF6",
     widget_position: "bottom-right",
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const script = `
 (function(){
   var cfg = ${escapeScriptJson({ agent, origin })};
-  var id = 'lumora-support-widget-' + cfg.agent.id;
+  var id = 'exismic-support-widget-' + cfg.agent.id;
   if (document.getElementById(id)) return;
 
   function mount(){
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       '<section class="ls-panel" aria-label="Support chat">' +
         '<div class="ls-head"><div class="ls-avatar"></div><div class="ls-meta"><p class="ls-title"></p><p class="ls-sub"></p><span class="ls-status"><span class="ls-dot"></span>Online now</span></div><button class="ls-close" type="button" aria-label="Close support chat">x</button></div>' +
         '<div class="ls-chat"></div>' +
-        '<div class="ls-foot">Powered by Lumora Support Agent</div>' +
+        '<div class="ls-foot">Powered by Exismic Support Agent</div>' +
         '<form class="ls-form"><input class="ls-input" name="message" autocomplete="off" placeholder="Ask a question"><button class="ls-send">Send</button></form>' +
       '</section>';
 
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     var send = root.querySelector('.ls-send');
     var conversationId = null;
 
-    var agentName = cfg.agent.name || 'Lumora Support';
+    var agentName = cfg.agent.name || 'Exismic Support';
     var welcome = cfg.agent.welcome_message || 'Hi, welcome in. How can I help today?';
     var iconUrl = String(cfg.agent.widget_icon_url || '').trim();
     title.textContent = agentName;

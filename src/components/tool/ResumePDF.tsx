@@ -278,7 +278,7 @@ export default function ResumePDF({ data, accentColor, template }: ResumePDFProp
   ];
 
   return (
-    <Document title={`${title} - Lumora Resume`}>
+    <Document title={`${title} - Exismic Resume`}>
       <Page size="A4" style={pageStyle}>
         <View style={[styles.accentBar, { backgroundColor: isClassic ? "#111827" : accentColor }]} />
 

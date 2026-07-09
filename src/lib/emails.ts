@@ -1,13 +1,15 @@
 import { resend } from './resend';
 import { recordEmailEvent } from './email-diagnostics';
 import { getServerSiteUrl } from './site-url';
+import { PRICING_CONFIG } from '@/config/pricing';
 
-const EMAIL_SENDER_DOMAIN = 'lumoraai.online';
-const SENDER_PAYMENT = `"Lumora" <payments@${EMAIL_SENDER_DOMAIN}>`;
-const SENDER_NOREPLY = `"Lumora" <noreply@${EMAIL_SENDER_DOMAIN}>`;
-const SENDER_WELCOME = `"Lumora" <welcome@${EMAIL_SENDER_DOMAIN}>`;
+const EMAIL_SENDER_DOMAIN = 'exismicai.online';
+const SENDER_PAYMENT = `"Exismic" <payments@${EMAIL_SENDER_DOMAIN}>`;
+const SENDER_NOREPLY = `"Exismic" <noreply@${EMAIL_SENDER_DOMAIN}>`;
+const SENDER_WELCOME = `"Exismic" <welcome@${EMAIL_SENDER_DOMAIN}>`;
 
 const SITE_URL = getServerSiteUrl();
+const PRO_DAILY_CREDITS_LABEL = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString();
 
 type EmailPayload = Parameters<typeof resend.emails.send>[0];
 
@@ -46,7 +48,7 @@ const PREMIUM_DARK_THEME = (content: string) => `
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumora Notification</title>
+    <title>Exismic Notification</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         
@@ -234,7 +236,7 @@ const PREMIUM_DARK_THEME = (content: string) => `
         <div class="container">
             <div class="header">
                 <div class="mark-wrap"><div class="mark">L</div></div>
-                <div class="logo">Lumora<span class="logo-dot">.</span></div>
+                <div class="logo">Exismic<span class="logo-dot">.</span></div>
             </div>
             <div class="content">
                 ${content}
@@ -263,7 +265,7 @@ export async function sendProWelcomeEmail(email: string, details: {
     const { error } = await sendTrackedEmail('pro_welcome', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: 'Welcome to Lumora Pro - Your Membership is Active',
+      subject: 'Welcome to Exismic Pro - Your Membership is Active',
       html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -272,10 +274,10 @@ export async function sendProWelcomeEmail(email: string, details: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
   <meta name="supported-color-schemes" content="dark">
-  <title>Welcome to Lumora Pro</title>
+  <title>Welcome to Exismic Pro</title>
 </head>
 <body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Your Lumora Pro membership is active. Open the dashboard and start creating with premium power.</div>
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Your Exismic Pro membership is active. Open the dashboard and start creating with premium power.</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 20% 0%, rgba(124,58,237,0.22), transparent 34%), radial-gradient(circle at 86% 18%, rgba(6,182,212,0.16), transparent 30%);">
     <tr>
       <td align="center" style="padding:46px 18px 34px;">
@@ -284,7 +286,7 @@ export async function sendProWelcomeEmail(email: string, details: {
             <td style="padding:0 0 18px; text-align:center;">
               <div style="display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.75), rgba(34,211,238,0.5), rgba(255,255,255,0.12)); box-shadow:0 0 60px rgba(124,58,237,0.26);">
                 <div style="border-radius:27px; background:rgba(8,8,14,0.92); padding:18px 28px;">
-                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#a78bfa;">.</span></div>
+                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Exismic<span style="color:#a78bfa;">.</span></div>
                 </div>
               </div>
             </td>
@@ -295,7 +297,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                 <tr>
                   <td style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.28), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
                     <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,0.36); background:rgba(124,58,237,0.16); color:#c4b5fd; font-size:11px; line-height:1; font-weight:800; letter-spacing:1.7px; text-transform:uppercase;">Membership Activated</div>
-                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.02; letter-spacing:-2.2px; font-weight:900;">Welcome to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora Pro</span></h1>
+                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.02; letter-spacing:-2.2px; font-weight:900;">Welcome to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Exismic Pro</span></h1>
                     <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">Your membership is live. Premium credits, faster generation, advanced AI models, and studio-grade tools are now unlocked for your account.</p>
                   </td>
                 </tr>
@@ -306,7 +308,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                         <td style="padding:24px;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                             <tr><td style="padding:0 0 16px; color:#ffffff; font-size:15px; font-weight:850;">Plan details</td><td align="right" style="padding:0 0 16px; color:#a78bfa; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.4px;">Active</td></tr>
-                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Plan</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">Lumora Pro ($6.99/mo)</td></tr>
+                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Plan</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">Exismic Pro ($6.99/mo)</td></tr>
                             <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Invoice ID</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.invoiceId}</td></tr>
                             <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Amount Paid</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.amount}</td></tr>
                             <tr><td style="padding:12px 0 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Next Billing</td><td align="right" style="padding:12px 0 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.date}</td></tr>
@@ -321,7 +323,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                     <div style="margin:0 0 16px; color:#ffffff; font-size:16px; font-weight:850;">Key benefits unlocked</div>
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td width="50%" style="padding:0 8px 12px 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(124,58,237,0.28);">&#10022;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">1,000 daily credits</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Premium generation capacity every day.</div></div></td>
+                        <td width="50%" style="padding:0 8px 12px 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(124,58,237,0.28);">&#10022;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">${PRO_DAILY_CREDITS_LABEL} daily credits</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Premium generation capacity every day.</div></div></td>
                         <td width="50%" style="padding:0 0 12px 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(6,182,212,0.24);">&#9889;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Priority speed</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Faster processing for creative workflows.</div></div></td>
                       </tr>
                       <tr>
@@ -348,7 +350,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>You are receiving this email because your Lumora Pro membership was activated.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic Ai<br>You are receiving this email because your Exismic Pro membership was activated.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
             </td>
           </tr>
         </table>
@@ -381,19 +383,19 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
     const { error } = await sendTrackedEmail('payment_failed', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: 'Welcome to Lumora Pro! 🎉 Your subscription is active',
+      subject: 'Welcome to Exismic Pro! 🎉 Your subscription is active',
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
             <div class="status-badge">MEMBERSHIP ACTIVATED</div>
             <h1>The wait is over.<br>Welcome to <span class="accent-text">Pro.</span></h1>
-            <p>Thank you for choosing Lumora. Your subscription is now active, and you've unlocked our most powerful AI engine and studio-grade features.</p>
+            <p>Thank you for choosing Exismic. Your subscription is now active, and you've unlocked our most powerful AI engine and studio-grade features.</p>
         </div>
         
         <div class="info-card">
             <div class="info-grid">
                 <div class="info-row">
                     <div class="info-cell info-label">Plan</div>
-                    <div class="info-cell info-value">Lumora Pro ($6.99/mo)</div>
+                    <div class="info-cell info-value">Exismic Pro ($6.99/mo)</div>
                 </div>
                 <div class="info-row">
                     <div class="info-cell info-label">Invoice ID</div>
@@ -413,7 +415,7 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
         <div style="margin-bottom: 32px;">
             <p style="font-weight: 600; color: #ffffff; margin-bottom: 16px;">Key benefits unlocked:</p>
             <div class="benefit-item">
-                <span class="benefit-icon">✦</span> 1,000 Daily Premium Credits
+                <span class="benefit-icon">✦</span> ${PRO_DAILY_CREDITS_LABEL} Daily Premium Credits
             </div>
             <div class="benefit-item">
                 <span class="benefit-icon">✦</span> Ultra-fast Generation Speed
@@ -446,7 +448,7 @@ export async function sendPaymentFailedEmail(email: string) {
     const { error } = await sendTrackedEmail('payment_failed', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: 'Lumora - Payment Failed',
+      subject: 'Exismic - Payment Failed',
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
             <div class="status-badge" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">PAYMENT ERROR</div>
@@ -544,7 +546,7 @@ function renderTransactionalEmail({
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
   <meta name="supported-color-schemes" content="dark">
-  <title>Lumora</title>
+  <title>Exismic</title>
 </head>
 <body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">${preheader}</div>
@@ -561,7 +563,7 @@ function renderTransactionalEmail({
                       <td style="padding-right:12px;">
                         <div style="width:42px; height:42px; border-radius:16px; background:linear-gradient(145deg,#0b0c16,#171428); border:1px solid rgba(255,255,255,0.12); color:#ffffff; text-align:center; line-height:42px; font-size:24px; font-weight:900; box-shadow:inset 0 1px 0 rgba(255,255,255,0.09);">L</div>
                       </td>
-                      <td style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#22d3ee;">.</span></td>
+                      <td style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Exismic<span style="color:#22d3ee;">.</span></td>
                     </tr>
                   </table>
                 </div>
@@ -595,7 +597,7 @@ function renderTransactionalEmail({
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Lumora AI<br>Trusted account security for your creative workspace.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Exismic Ai<br>Trusted account security for your creative workspace.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
             </td>
           </tr>
         </table>
@@ -612,12 +614,12 @@ export async function sendAuthOTP(email: string, otp: string) {
     const { error } = await sendTrackedEmail('auth_otp', email, {
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Your Lumora Verification Code',
+      subject: 'Your Exismic Verification Code',
       html: renderTransactionalEmail({
-        preheader: 'Your Lumora verification code expires in 10 minutes.',
+        preheader: 'Your Exismic verification code expires in 10 minutes.',
         badge: 'Verification Code',
-        title: 'Verify your <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora account</span>',
-        body: 'Enter this code to finish securing your account and open your Lumora studio.',
+        title: 'Verify your <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Exismic account</span>',
+        body: 'Enter this code to finish securing your account and open your Exismic studio.',
         content: `
           <div style="margin:4px auto 24px; display:inline-block; padding:1px; border-radius:30px; background:linear-gradient(135deg, rgba(168,85,247,0.92), rgba(34,211,238,0.68), rgba(244,114,182,0.48)); box-shadow:0 0 64px rgba(124,58,237,0.32), 0 0 32px rgba(6,182,212,0.16);">
             <div style="border-radius:29px; background:linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)); padding:28px 34px; border:1px solid rgba(255,255,255,0.11);">
@@ -648,14 +650,14 @@ export async function sendMagicLinkEmail(email: string, magicLink: string) {
     const { error } = await sendTrackedEmail('magic_link', email, {
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Your Lumora Magic Login Link',
+      subject: 'Your Exismic Magic Login Link',
       html: renderTransactionalEmail({
-        preheader: 'Use your one-click Lumora magic link within 15 minutes.',
+        preheader: 'Use your one-click Exismic magic link within 15 minutes.',
         badge: 'One-Click Login',
-        title: 'Login to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Lumora</span>',
+        title: 'Login to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Exismic</span>',
         body: 'Use the secure button below to sign in without a password. This link is one-time use and expires soon.',
         content: `
-          <a href="${magicLink}" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Login to Lumora</a>
+          <a href="${magicLink}" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Login to Exismic</a>
           <div style="margin-top:24px; padding:18px; border-radius:22px; border:1px solid rgba(255,255,255,0.10); background:linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));">
             <p style="margin:0; color:#8792a8; font-size:12px; line-height:1.65;">This magic link expires in 15 minutes. If the button does not work, paste this secure link into your browser:</p>
             <p style="margin:10px 0 0; word-break:break-all; color:#67e8f9; font-size:12px; line-height:1.6;">${magicLink}</p>
@@ -680,7 +682,7 @@ export async function sendWelcomeEmail(email: string) {
     const { error } = await sendTrackedEmail('welcome', email, {
       from: SENDER_WELCOME,
       to: email,
-      subject: "Welcome to Lumora - Let's Create Something Amazing",
+      subject: "Welcome to Exismic - Let's Create Something Amazing",
       html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -689,10 +691,10 @@ export async function sendWelcomeEmail(email: string) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
   <meta name="supported-color-schemes" content="dark">
-  <title>Welcome to Lumora</title>
+  <title>Welcome to Exismic</title>
 </head>
 <body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Welcome to Lumora. Your creative studio is ready.</div>
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Welcome to Exismic. Your creative studio is ready.</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 18% 0%, rgba(124,58,237,0.24), transparent 36%), radial-gradient(circle at 84% 12%, rgba(6,182,212,0.17), transparent 32%);">
     <tr>
       <td align="center" style="padding:46px 18px 34px;">
@@ -701,7 +703,7 @@ export async function sendWelcomeEmail(email: string) {
             <td style="padding:0 0 18px; text-align:center;">
               <div style="display:inline-block; padding:1px; border-radius:28px; background:linear-gradient(135deg, rgba(168,85,247,0.78), rgba(34,211,238,0.52), rgba(255,255,255,0.12)); box-shadow:0 0 60px rgba(124,58,237,0.26);">
                 <div style="border-radius:27px; background:rgba(8,8,14,0.92); padding:18px 28px;">
-                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Lumora<span style="color:#a78bfa;">.</span></div>
+                  <div style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Exismic<span style="color:#a78bfa;">.</span></div>
                 </div>
               </div>
             </td>
@@ -713,7 +715,7 @@ export async function sendWelcomeEmail(email: string) {
                   <td style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.27), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
                     <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,0.36); background:rgba(124,58,237,0.16); color:#c4b5fd; font-size:11px; line-height:1; font-weight:800; letter-spacing:1.7px; text-transform:uppercase;">Welcome to the Studio</div>
                     <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.04; letter-spacing:-2.2px; font-weight:900;">Your creative workspace is <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">ready</span></h1>
-                    <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">We are thrilled to have you here. Lumora gives you a polished set of AI tools for visuals, writing, productivity, and everyday creative work.</p>
+                    <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">We are thrilled to have you here. Exismic gives you a polished set of AI tools for visuals, writing, productivity, and everyday creative work.</p>
                   </td>
                 </tr>
 
@@ -741,7 +743,7 @@ export async function sendWelcomeEmail(email: string) {
                         <td width="50%" style="padding:0 8px 12px 0;">
                           <div style="min-height:118px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
                             <div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#a855f7,#ec4899); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900;">&#9998;</div>
-                            <div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Chat with Lumora AI</div>
+                            <div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Chat with Exismic Ai</div>
                             <div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Brainstorm, write, plan, and solve problems faster.</div>
                           </div>
                         </td>
@@ -759,7 +761,7 @@ export async function sendWelcomeEmail(email: string) {
                       <tr>
                         <td style="padding:22px;">
                           <div style="color:#c4b5fd; font-size:13px; font-weight:850; letter-spacing:0.2px;">Want more power later?</div>
-                          <p style="margin:8px 0 14px; color:#cbd5e1; font-size:13px; line-height:1.65;">Lumora Pro unlocks 1,000 daily premium credits, faster generation, advanced AI models, and commercial-ready workflows.</p>
+                          <p style="margin:8px 0 14px; color:#cbd5e1; font-size:13px; line-height:1.65;">Exismic Pro unlocks ${PRO_DAILY_CREDITS_LABEL} daily premium credits, faster generation, advanced AI models, and commercial-ready workflows.</p>
                           <a href="${SITE_URL}/pro" style="color:#67e8f9; font-size:13px; font-weight:850; text-decoration:none;">Explore Pro benefits &rarr;</a>
                         </td>
                       </tr>
@@ -770,7 +772,7 @@ export async function sendWelcomeEmail(email: string) {
                 <tr>
                   <td align="center" style="padding:0 42px 42px;">
                     <a href="${SITE_URL}/dashboard" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Go to Dashboard</a>
-                    <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">Your free Lumora account is ready. Start with any tool and build from there.</p>
+                    <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">Your free Exismic account is ready. Start with any tool and build from there.</p>
                   </td>
                 </tr>
               </table>
@@ -784,7 +786,7 @@ export async function sendWelcomeEmail(email: string) {
                 <a href="${SITE_URL}/help" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Lumora AI<br>You are receiving this email because you created a Lumora account.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic Ai<br>You are receiving this email because you created a Exismic account.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
             </td>
           </tr>
         </table>
@@ -812,12 +814,12 @@ async function sendWelcomeEmailLegacy(email: string) {
     await resend.emails.send({
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Welcome to Lumora! Let\'s build the future 🚀',
+      subject: 'Welcome to Exismic! Let\'s build the future 🚀',
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
             <div class="status-badge">WELCOME TO THE STUDIO</div>
             <h1>Your Creative Journey <span class="accent-text">Starts Here.</span></h1>
-            <p>We're thrilled to have you on board. Lumora is designed to be your ultimate creative companion. Here are a few things you can do right now:</p>
+            <p>We're thrilled to have you on board. Exismic is designed to be your ultimate creative companion. Here are a few things you can do right now:</p>
         </div>
         
         <div style="margin-bottom: 32px;">
@@ -837,7 +839,7 @@ async function sendWelcomeEmailLegacy(email: string) {
 
         <div class="info-card" style="border-color: rgba(124, 58, 237, 0.3); background: rgba(124, 58, 237, 0.05);">
             <h3 style="color: #a78bfa; margin-top: 0;">Unlock Elite Power</h3>
-            <p style="color: #cbd5e1; font-size: 14px;">Want unlimited access and 1,000 daily credits? Upgrade to Lumora Pro for just $6.99/mo and join the top 1% of creators.</p>
+            <p style="color: #cbd5e1; font-size: 14px;">Want more capacity and ${PRO_DAILY_CREDITS_LABEL} daily credits? Upgrade to Exismic Pro for just $6.99/mo and join the top 1% of creators.</p>
             <a href="${SITE_URL}/pricing" style="color: #a78bfa; font-weight: bold; text-decoration: none; font-size: 14px;">View Pro Benefits →</a>
         </div>
         
@@ -857,12 +859,12 @@ export async function sendResetPasswordEmail(email: string, token: string) {
     const { error } = await sendTrackedEmail('password_reset', email, {
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Reset Your Lumora Password',
+      subject: 'Reset Your Exismic Password',
       html: renderTransactionalEmail({
-        preheader: 'Reset your Lumora password within 10 minutes.',
+        preheader: 'Reset your Exismic password within 10 minutes.',
         badge: 'Security Request',
         title: 'Password <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Recovery</span>',
-        body: 'We received a request to reset your Lumora password. If this was you, use the secure button below to choose a new password.',
+        body: 'We received a request to reset your Exismic password. If this was you, use the secure button below to choose a new password.',
         content: `
           <a href="${resetLink}" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Reset Password</a>
           <div style="margin-top:24px; padding:18px; border-radius:22px; border:1px solid rgba(245,158,11,0.22); background:linear-gradient(135deg, rgba(245,158,11,0.10), rgba(255,255,255,0.025));">
@@ -892,22 +894,22 @@ export async function sendPasswordChangedEmail(email: string) {
     const { error } = await sendTrackedEmail('password_changed', email, {
       from: SENDER_NOREPLY,
       to: email,
-      subject: 'Your Lumora Password Was Changed',
+      subject: 'Your Exismic Password Was Changed',
       html: renderTransactionalEmail({
-        preheader: 'Your Lumora password was changed successfully.',
+        preheader: 'Your Exismic password was changed successfully.',
         badge: 'Security Alert',
         title: 'Password <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">changed</span>',
-        body: 'This is a confirmation that your Lumora account password was updated. If you made this change, no further action is needed.',
+        body: 'This is a confirmation that your Exismic account password was updated. If you made this change, no further action is needed.',
         content: `
           <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(16,185,129,0.24); background:linear-gradient(135deg, rgba(16,185,129,0.10), rgba(34,211,238,0.045)); padding:18px;">
             <p style="margin:0; color:#b7f7d3; font-size:12px; line-height:1.65;">Your account password was changed successfully. Future sign-ins will require the new password.</p>
           </div>
           <a href="${SITE_URL}/auth/login" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(124,58,237,0.34), 0 0 26px rgba(6,182,212,0.18);">Review Account</a>
           <div style="margin-top:24px; padding:18px; border-radius:22px; border:1px solid rgba(245,158,11,0.22); background:linear-gradient(135deg, rgba(245,158,11,0.10), rgba(255,255,255,0.025));">
-            <p style="margin:0; color:#f8d294; font-size:12px; line-height:1.65;">If you did not change your password, reset it immediately and contact Lumora support.</p>
+            <p style="margin:0; color:#f8d294; font-size:12px; line-height:1.65;">If you did not change your password, reset it immediately and contact Exismic support.</p>
           </div>
         `,
-        footerNote: "Lumora sends this alert whenever your account password changes.",
+        footerNote: "Exismic sends this alert whenever your account password changes.",
       }),
     });
     if (error) {

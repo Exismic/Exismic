@@ -52,8 +52,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat, cleanTitle, type ChatMode, type Message } from "@/components/providers/ChatProvider";
-import { LumoraLogo } from "./ChatSidebar";
-import { LumoraMark } from "@/components/ui/LumoraLogo";
+import { ExismicLogo } from "./ChatSidebar";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -70,7 +70,7 @@ const SLASH_COMMANDS = [
 
 const CHAT_MODES: { id: ChatMode; label: string; short: string; description: string }[] = [
   { id: "auto", label: "Auto Mode", short: "Auto", description: "Detects the best mode per request" },
-  { id: "default", label: "Default", short: "Default", description: "Balanced Lumora replies" },
+  { id: "default", label: "Default", short: "Default", description: "Balanced Exismic replies" },
   { id: "coding", label: "Coding Mode", short: "Coding", description: "Code, architecture, debugging" },
   { id: "research", label: "Research Mode", short: "Research", description: "Careful analysis and tradeoffs" },
   { id: "business", label: "Business Mode", short: "Business", description: "Strategy, execution, metrics" },
@@ -402,11 +402,11 @@ export function ChatWorkspace() {
          return;
       }
       const text = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n---\n\n');
-      const blob = new Blob([`LUMORA CHAT EXPORT\nGenerated: ${new Date().toLocaleString()}\n\n${text}`], { type: 'text/plain' });
+      const blob = new Blob([`EXISMIC CHAT EXPORT\nGenerated: ${new Date().toLocaleString()}\n\n${text}`], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lumora-chat-${new Date().getTime()}.txt`;
+      a.download = `exismic-chat-${new Date().getTime()}.txt`;
       a.click();
       toast("Chat Exported Successfully", "success");
     } else if (['remove-bg', 'compress-image', 'convert-image', 'resize-image'].includes(cmdId)) {
@@ -434,7 +434,7 @@ export function ChatWorkspace() {
     }
   };
 
-  const handleDownload = async (url: string, filename = "lumora-chat-generation.png") => {
+  const handleDownload = async (url: string, filename = "exismic-chat-generation.png") => {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -1027,7 +1027,7 @@ export function ChatWorkspace() {
                    >
                       <div className="relative inline-block group">
                         <div className="absolute -inset-4 bg-gradient-to-tr from-accent-purple/35 to-accent-cyan/35 blur-xl opacity-80 group-hover:opacity-100 transition-opacity rounded-full animate-pulse-glow" />
-                        <LumoraLogo size={88} showText={false} className="mx-auto relative z-10 hover:scale-105 transition-transform duration-500" />
+                        <ExismicLogo size={88} showText={false} className="mx-auto relative z-10 hover:scale-105 transition-transform duration-500" />
                       </div>
                       <div className="space-y-3 flex flex-col items-center mt-6">
                         <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-[1.05] sm:leading-[1.1] px-2">
@@ -1134,7 +1134,7 @@ export function ChatWorkspace() {
                       <div className="flex flex-col items-center mt-1 shrink-0">
                         {msg.role === 'assistant' ? (
                           <div className="relative shrink-0">
-                             <LumoraMark size={40} />
+                             <ExismicMark size={40} />
                           </div>
                         ) : (
                           <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 overflow-hidden shadow-md shrink-0 flex items-center justify-center">
@@ -1295,7 +1295,7 @@ export function ChatWorkspace() {
 
                             <div className="flex flex-wrap items-center gap-1.5 mb-2.5 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500 select-none">
                               <Sparkles size={10} className="text-accent-purple animate-pulse" />
-                              <span>{msg.studentMode ? "Lumora Tutor" : "Lumora AI"}</span>
+                              <span>{msg.studentMode ? "Exismic Tutor" : "Exismic Ai"}</span>
                               {msg.studentMode && (
                                 <span className="ml-1 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2 py-0.5 text-[8px] tracking-[0.2em] text-cyan-200">
                                   Student Mode
@@ -1314,7 +1314,7 @@ export function ChatWorkspace() {
                             )}>
                               {msg.isTyping && !msg.content.trim() ? (
                                 <span className="inline-flex items-center gap-2 text-zinc-400">
-                                  <span>Lumora is typing</span>
+                                  <span>Exismic is typing</span>
                                   <span className="flex items-center gap-1">
                                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-bounce" />
                                     <span className="h-1.5 w-1.5 rounded-full bg-purple-300 animate-bounce [animation-delay:140ms]" />
@@ -1744,7 +1744,7 @@ export function ChatWorkspace() {
                                         </span>
                                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-cyan-100/80 truncate">
                                           {attachments.some(item => item.type.startsWith("image/"))
-                                            ? "Lumora Vision ready"
+                                            ? "Exismic Vision ready"
                                             : "Files ready for analysis"}
                                         </span>
                                       </div>
@@ -1918,7 +1918,7 @@ export function ChatWorkspace() {
                                 "text-[9.5px] font-black uppercase tracking-widest leading-none transition-colors duration-300",
                                 isAssistantTyping ? "text-purple-300" : input.trim().length > 0 ? "text-cyan-400" : "text-zinc-500"
                               )}>
-                                {isAssistantTyping ? "Lumora Typing..." : input.trim().length > 0 ? "Typing..." : "Ready"}
+                                {isAssistantTyping ? "Exismic Typing..." : input.trim().length > 0 ? "Typing..." : "Ready"}
                               </span>
                            </div>
                            {input.trim().length > 0 && (
@@ -2004,7 +2004,7 @@ export function ChatWorkspace() {
                   <div className="space-y-1">
                     <h4 className="text-xs font-black text-white uppercase tracking-wide">Chat Mode</h4>
                     <p className="text-[10px] text-zinc-400 leading-relaxed font-semibold">
-                      Tune Lumora for code, research, business, creative work, or quick answers.
+                      Tune Exismic for code, research, business, creative work, or quick answers.
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -2056,7 +2056,7 @@ export function ChatWorkspace() {
                         <Sparkles size={14} className="text-purple-400 animate-pulse" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-white tracking-wide uppercase italic">LUMORA-3.5-MAX</span>
+                        <span className="text-[11px] font-black text-white tracking-wide uppercase italic">EXISMIC-3.5-MAX</span>
                         <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none mt-1">Direct API Access</span>
                       </div>
                     </div>

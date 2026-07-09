@@ -100,7 +100,7 @@ export default function ProBenefitsPage() {
     },
     {
       title: "Exclusive Profile Themes",
-      desc: "Own the look of Lumora with private Pro themes, accents, and polished interface glows.",
+      desc: "Own the look of Exismic with private Pro themes, accents, and polished interface glows.",
       icon: Sparkles,
       color: "text-violet-400",
       bg: "bg-violet-400/10"

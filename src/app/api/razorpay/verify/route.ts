@@ -157,35 +157,51 @@ export async function POST(req: NextRequest) {
       const tier = packagePrice.tier;
       const creditsToAdd = tier.credits;
 
-      await prisma.user.upsert({
-        where: { id: user.id },
-        update: {
-          lifetimeCredits: { increment: creditsToAdd }
-        },
-        create: {
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata?.full_name || user.email.split('@')[0],
-          lifetimeCredits: creditsToAdd,
-          dailyCredits: 50,
-          plan: 'free'
-        }
-      });
-
-      await prisma.paymentTransaction.create({
-        data: {
-          providerPaymentId: razorpay_payment_id,
-          providerOrderId: razorpay_order_id,
-          userId: user.id,
-          kind: 'credits',
-          amount: orderAmount,
-          currency: verifiedCurrency,
-          metadata: {
-            tierId: tier.id,
-            credits: tier.credits,
+      await prisma.$transaction([
+        prisma.user.upsert({
+          where: { id: user.id },
+          update: {
+            lifetimeCredits: { increment: creditsToAdd }
           },
-        },
-      });
+          create: {
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email.split('@')[0],
+            lifetimeCredits: creditsToAdd,
+            bonusCredits: 0,
+            dailyCredits: 50,
+            plan: 'free'
+          }
+        }),
+        prisma.paymentTransaction.create({
+          data: {
+            providerPaymentId: razorpay_payment_id,
+            providerOrderId: razorpay_order_id,
+            userId: user.id,
+            kind: 'credits',
+            amount: orderAmount,
+            currency: verifiedCurrency,
+            metadata: {
+              tierId: tier.id,
+              credits: tier.credits,
+            },
+          },
+        }),
+        prisma.creditTransaction.create({
+          data: {
+            userId: user.id,
+            amount: creditsToAdd,
+            balanceType: 'permanent',
+            transactionType: 'purchase',
+            description: `Purchased ${tier.credits} permanent credits`,
+            metadata: {
+              tierId: tier.id,
+              providerPaymentId: razorpay_payment_id,
+              providerOrderId: razorpay_order_id,
+            },
+          },
+        }),
+      ]);
 
       emailSent = await sendCreditsPurchasedEmail(user.email, {
         credits: tier.credits,
@@ -199,7 +215,7 @@ export async function POST(req: NextRequest) {
     } else {
       const proPrice = getProPrice(verifiedCurrency as CheckoutCurrency);
       if (orderAmount !== proPrice.amountMinor) {
-        return NextResponse.json({ success: false, error: 'Payment amount does not match Lumora Pro pricing.' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Payment amount does not match Exismic Pro pricing.' }, { status: 400 });
       }
 
       const nextBillingDate = new Date();
@@ -226,7 +242,9 @@ export async function POST(req: NextRequest) {
           subscriptionStatus: 'active',
           planExpiresAt: nextBillingDate,
           aiGenerationsLimit: 1000,
-          dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
+          dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS,
+          bonusCredits: 0,
+          lifetimeCredits: 0,
         }
       });
 

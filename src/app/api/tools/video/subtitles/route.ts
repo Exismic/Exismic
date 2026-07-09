@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       {
         headers: {
           "Cache-Control": "no-store",
-          "X-Lumora-Request-Id": requestId,
+          "X-Exismic-Request-Id": requestId,
         },
       },
     );

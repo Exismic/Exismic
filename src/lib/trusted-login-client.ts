@@ -1,7 +1,7 @@
 "use client";
 
-const DEVICE_TOKEN_KEY = "lumora:trusted-login-device";
-const PUSH_WORKER_PATH = "/lumora-push-sw.js";
+const DEVICE_TOKEN_KEY = "exismic:trusted-login-device";
+const PUSH_WORKER_PATH = "/exismic-push-sw.js";
 
 type NavigatorWithUserAgentData = Navigator & {
   userAgentData?: {
@@ -60,7 +60,7 @@ export async function registerTrustedLoginPush() {
 
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!publicKey) {
-    throw new Error("Lumora push notifications are not configured.");
+    throw new Error("Exismic push notifications are not configured.");
   }
 
   const permission =
@@ -69,7 +69,7 @@ export async function registerTrustedLoginPush() {
       : await Notification.requestPermission();
 
   if (permission !== "granted") {
-    throw new Error("Allow notifications so Lumora can send login approvals to this phone.");
+    throw new Error("Allow notifications so Exismic can send login approvals to this phone.");
   }
 
   const registration = await navigator.serviceWorker.register(PUSH_WORKER_PATH, {

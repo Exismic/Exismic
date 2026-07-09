@@ -4,7 +4,7 @@ export const PRICING_CONFIG = {
   PRO_PLAN: {
     USD: 6.99,
     INR: 499,
-    DAILY_CREDITS: 1000,
+    DAILY_CREDITS: 500,
     IS_PRO_LIVE: true,
   },
   CREDIT_PACKAGES: [
@@ -40,15 +40,6 @@ export const PRICING_CONFIG = {
 };
 
 export function getIsIndia() {
-  if (typeof window === 'undefined') return false;
-  
-  // Detection by timezone
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  if (tz === 'Asia/Calcutta' || tz === 'Asia/Kolkata') return true;
-  
-  // Detection by locale
-  if (navigator.language === 'en-IN' || navigator.languages?.includes('en-IN')) return true;
-  
   return false;
 }
 

@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     );
     const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
     return createVideoDownloadResponse(bytes, {
-      fileName: "lumora-merged-video.mp4",
+      fileName: "exismic-merged-video.mp4",
       contentType: mimeType || "video/mp4",
       requestId,
     });

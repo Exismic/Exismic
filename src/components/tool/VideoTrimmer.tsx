@@ -41,7 +41,7 @@ export default function VideoTrimmer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [resultFileName, setResultFileName] = useState("lumora-trimmed.mp4");
+  const [resultFileName, setResultFileName] = useState("exismic-trimmed.mp4");
   const [resultMetadata, setResultMetadata] = useState<{ duration: number; size: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -142,7 +142,7 @@ export default function VideoTrimmer() {
         method: "POST",
         body: formData,
       });
-      const artifact = await readVideoResponse(response, "lumora-trimmed.mp4");
+      const artifact = await readVideoResponse(response, "exismic-trimmed.mp4");
       setResultUrl(artifact.url);
       setResultFileName(artifact.fileName);
       setResultMetadata({
@@ -161,7 +161,7 @@ export default function VideoTrimmer() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
-    setResultFileName("lumora-trimmed.mp4");
+    setResultFileName("exismic-trimmed.mp4");
     setResultMetadata(null);
     setStartTime(0);
     setEndTime(0);

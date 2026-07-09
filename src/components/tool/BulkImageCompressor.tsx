@@ -162,7 +162,7 @@ export function BulkImageCompressor() {
     const url = URL.createObjectURL(content);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "lumora_bulk_optimized.zip";
+    a.download = "exismic_bulk_optimized.zip";
     a.click();
   };
 

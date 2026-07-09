@@ -32,7 +32,7 @@ const TO_PDF_STEPS = [
   { title: "Upload Images", desc: "Select the photos or graphics you want to compile into a PDF." },
   { title: "Arrange Order", desc: "Drag and drop or use arrows to set the perfect page sequence." },
   { title: "Select Layout", desc: "Choose between 'Auto' (matches image size) or 'A4' (standard document)." },
-  { title: "Compile", desc: "Lumora normalizes each image and embeds it as a PDF page." }
+  { title: "Compile", desc: "Exismic normalizes each image and embeds it as a PDF page." }
 ];
 
 export default function ImgToPdf() {

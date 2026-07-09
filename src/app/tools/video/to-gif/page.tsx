@@ -3,7 +3,7 @@ import { Film, Sparkles } from "lucide-react";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata = constructMetadata({
-  title: "Video to GIF | Lumora Studio",
+  title: "Video to GIF | Exismic Studio",
   description: "Convert video clips to high-quality optimized GIFs with custom palettes.",
   canonicalUrl: `${SITE_URL}/tools/video/to-gif`,
 });

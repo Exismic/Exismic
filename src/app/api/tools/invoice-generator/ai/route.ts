@@ -126,10 +126,10 @@ function sanitizeInvoice(raw: InvoiceAIResult): InvoiceAIResult {
 async function callGroq(brief: string) {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
   const keys = rawKeys.split(",").map((key) => key.trim()).filter(Boolean);
-  if (!keys.length) throw new Error("Groq API key is not configured.");
+  if (!keys.length) throw new Error("The AI processing service is currently unavailable. Please try again later.");
 
   const today = new Date().toISOString().split("T")[0];
-  const systemPrompt = `You are Lumora AI, an expert billing assistant inside an invoice generator.
+  const systemPrompt = `You are Exismic Ai, an expert billing assistant inside an invoice generator.
 Convert the user's rough invoice brief into polished invoice JSON.
 
 Rules:
@@ -212,7 +212,7 @@ JSON: {"invoiceNumber":"INV-12345","status":"Draft","issueDate":"${today}","dueD
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("All Groq API keys failed.");
+  throw lastError instanceof Error ? lastError : new Error("All AI processing services failed. Please try again later.");
 }
 
 export async function POST(req: NextRequest) {
@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      return NextResponse.json({ error: "Please sign in to use Lumora AI." }, { status: 401 });
+      return NextResponse.json({ error: "Please sign in to use Exismic Ai." }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
@@ -230,24 +230,24 @@ export async function POST(req: NextRequest) {
     });
 
     if (!dbUser || !hasActiveProAccess(dbUser)) {
-      return NextResponse.json({ error: "Lumora AI invoice generation is a Pro feature." }, { status: 403 });
+      return NextResponse.json({ error: "Exismic Ai invoice generation is a Pro feature." }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
     const brief = sanitizeMultiline(body.brief, "", 3000);
 
     if (brief.length < 8) {
-      return NextResponse.json({ error: "Tell Lumora AI a little more about the invoice." }, { status: 400 });
+      return NextResponse.json({ error: "Tell Exismic Ai a little more about the invoice." }, { status: 400 });
     }
 
     const invoice = await callGroq(brief);
     return NextResponse.json({ success: true, invoice });
   } catch (error) {
     console.error("[Invoice AI] Generation failed:", error);
-    const rawMessage = error instanceof Error ? error.message : "Lumora AI invoice generation failed.";
-    const message = rawMessage.includes("Groq API key is not configured")
+    const rawMessage = error instanceof Error ? error.message : "Exismic Ai invoice generation failed.";
+    const message = rawMessage.includes("The AI processing service is currently unavailable")
       ? rawMessage
-      : "Lumora AI is temporarily unavailable. Please try again in a moment.";
+      : "Exismic Ai is temporarily unavailable. Please try again in a moment.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

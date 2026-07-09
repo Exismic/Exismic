@@ -27,7 +27,7 @@ export default function VideoCompressor() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [resultFileName, setResultFileName] = useState("lumora-compressed.mp4");
+  const [resultFileName, setResultFileName] = useState("exismic-compressed.mp4");
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,7 +108,7 @@ export default function VideoCompressor() {
     setFile(null);
     setPreviewUrl(null);
     setResultUrl(null);
-    setResultFileName("lumora-compressed.mp4");
+    setResultFileName("exismic-compressed.mp4");
     setCompressedSize(null);
     setIsProcessing(false);
     setStatus("");
@@ -380,7 +380,7 @@ export default function VideoCompressor() {
                 <div>
                   <h4 className="text-sm font-bold text-white mb-1">Smart VBR Engine</h4>
                   <p className="text-[11px] text-gray-500 leading-relaxed uppercase tracking-tight font-medium">
-                    Lumora re-encodes with a quality-tuned profile while preserving the original audio track.
+                    Exismic re-encodes with a quality-tuned profile while preserving the original audio track.
                   </p>
                 </div>
               </div>

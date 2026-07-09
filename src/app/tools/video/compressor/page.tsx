@@ -54,7 +54,7 @@ export default function VideoCompressorPage() {
 
       <footer className="mt-20 text-center pb-12">
         <p className="text-gray-600 text-sm font-medium">
-          Powered by Lumora Serverless Processing
+          Powered by Exismic Serverless Processing
         </p>
       </footer>
     </div>

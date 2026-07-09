@@ -224,7 +224,7 @@ export function SpeechToText() {
         </div>
         <div className="flex-1 whitespace-pre-wrap py-6 text-[15px] font-medium leading-8 text-zinc-200">
           {result?.text || (
-            <span className="text-zinc-600">Upload a recording and Lumora will turn the speech into editable text.</span>
+            <span className="text-zinc-600">Upload a recording and Exismic will turn the speech into editable text.</span>
           )}
         </div>
       </section>

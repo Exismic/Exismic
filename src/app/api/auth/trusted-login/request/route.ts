@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Lumora could not reach the registered phone. Open Settings on that phone and refresh the registration.",
+            "Exismic could not reach the registered phone. Open Settings on that phone and refresh the registration.",
         },
         { status: 503 },
       );

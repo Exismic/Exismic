@@ -48,7 +48,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminGateCard
         icon={<AlertTriangle size={30} />}
         title="Admin Not Configured"
-        message="Set ADMIN_EMAILS in your environment with the exact email addresses allowed to access Lumora admin pages."
+        message="Set ADMIN_EMAILS in your environment with the exact email addresses allowed to access Exismic admin pages."
       />
     );
   }
@@ -87,7 +87,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Shield size={19} />
             </div>
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.2em]">Lumora Admin</p>
+              <p className="text-sm font-black uppercase tracking-[0.2em]">Exismic Admin</p>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">{user.email}</p>
             </div>
           </Link>

@@ -6,6 +6,8 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { deductCredits, getCreditTotal } from "@/lib/credits";
+import { getDailyCreditLimit, getToolCreditCost } from "@/lib/credit-policy";
 
 const STORAGE_PATH = path.join(process.cwd(), "public", "generations");
 
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
-          dailyCredits: isPro ? 5000 : 50,
+          dailyCredits: getDailyCreditLimit(isPro ? "pro" : "free"),
           aiGenerationsUsed: 0,
           nextResetDate: nextResetUTC
         }
@@ -107,17 +109,15 @@ export async function POST(req: NextRequest) {
     const { prompt, enhancedUsed } = enhancePrompt(rawPrompt);
 
     // 3. Sync Credits from Prisma (Source of Truth)
-    const dailyCredits = user.dailyCredits ?? 0;
-    const lifetimeCredits = user.lifetimeCredits ?? 0;
-    const totalCreditsAvailable = dailyCredits + lifetimeCredits;
+    const totalCreditsAvailable = getCreditTotal(user);
     const userPlan = user.plan || "free";
 
-    const costPerGen = 10;
+    const costPerGen = getToolCreditCost("ai-img-gen", 18);
     const totalCost = costPerGen * n;
 
     if (totalCreditsAvailable < totalCost) {
       const upgradeMsg = userPlan === "free" 
-        ? "You've reached your free daily limit. Pro users get 1,000 credits daily (100+ generations). Upgrade now for unlimited creative flow!"
+        ? `You've reached your free daily limit. Pro users get ${getDailyCreditLimit("pro")} daily credits and priority generation. Upgrade when you need more creative capacity.`
         : "You've reached your Pro daily limit. Please wait for the daily reset or contact support for higher limits.";
       
       return NextResponse.json({ 
@@ -347,17 +347,6 @@ export async function POST(req: NextRequest) {
     // 6. DB Record & Credit Deduction
     const resultUrl = `/generations/${localFileName}`;
     
-    let newLifetime = lifetimeCredits;
-    let newDaily = dailyCredits;
-
-    if (newLifetime >= totalCost) {
-      newLifetime -= totalCost;
-    } else {
-      const remaining = totalCost - newLifetime;
-      newLifetime = 0;
-      newDaily = Math.max(0, newDaily - remaining);
-    }
-
     await prisma.userFile.create({
       data: {
         userId: sbUser.id,
@@ -381,16 +370,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    try {
-      await prisma.user.update({
-        where: { id: sbUser.id },
-        data: {
-          lifetimeCredits: newLifetime,
-          dailyCredits: newDaily
-        }
-      });
-    } catch (dbErr) {
-      console.error("[Image Gen] Prisma credit update failed:", dbErr);
+    const debitResult = await deductCredits(sbUser.id, totalCost, "ai-img-gen");
+    if (!debitResult.success) {
+      console.error("[Image Gen] Credit deduction failed after generation:", debitResult.error);
     }
 
     return NextResponse.json({ 
@@ -402,7 +384,9 @@ export async function POST(req: NextRequest) {
       processingLabel,
       noWatermark,
       commercialLicense,
-      creditsRemaining: totalCreditsAvailable - totalCost,
+      creditsRemaining: debitResult.success && debitResult.data
+        ? getCreditTotal(debitResult.data)
+        : Math.max(0, totalCreditsAvailable - totalCost),
       enhancedPrompt: enhancedUsed
     });
 

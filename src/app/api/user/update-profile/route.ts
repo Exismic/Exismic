@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, username } = await req.json();
+    const { name, username, image } = await req.json();
     const cleanName = typeof name === 'string' ? name.trim().slice(0, 80) : undefined;
     const cleanUsername = typeof username === 'string' ? username.trim().toLowerCase() : undefined;
 
@@ -50,6 +50,7 @@ export async function POST(req: Request) {
       update: {
         ...(cleanName ? { name: cleanName } : {}),
         ...(cleanUsername ? { username: cleanUsername } : {}),
+        ...(image ? { image: image, customAvatarUrl: image } : {}),
       },
       create: {
         id: user.id,
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
         name: cleanName || user.user_metadata?.full_name || user.email.split('@')[0],
         username: cleanUsername,
         dailyCredits: 50,
+        bonusCredits: 0,
         lifetimeCredits: 0,
         plan: 'free',
       },
@@ -66,6 +68,7 @@ export async function POST(req: Request) {
       data: {
         full_name: cleanName || user.user_metadata?.full_name,
         username: cleanUsername || user.user_metadata?.username,
+        ...(image ? { avatar_url: image, picture: image, custom_avatar_url: image } : {}),
       }
     });
 

@@ -101,6 +101,48 @@ function generateOtp() {
   return randomInt(100000, 1000000).toString();
 }
 
+async function findSupabaseAuthUserByEmail(email: string) {
+  const supabaseAdmin = createAdminClient();
+  const emailLower = email.trim().toLowerCase();
+
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page,
+      perPage: 1000,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const match = data.users.find((user) => user.email?.toLowerCase() === emailLower);
+    if (match) return match;
+    if (data.users.length < 1000) break;
+  }
+
+  return null;
+}
+
+async function getAuthUserIdForEmail(email: string) {
+  const emailLower = email.trim().toLowerCase();
+  const dbUser = await prisma.user.findUnique({ where: { email: emailLower } });
+
+  if (dbUser) {
+    try {
+      const supabaseAdmin = createAdminClient();
+      const { data, error } = await supabaseAdmin.auth.admin.getUserById(dbUser.id);
+      if (!error && data.user?.email?.toLowerCase() === emailLower) {
+        return data.user.id;
+      }
+    } catch (error) {
+      console.error("[Auth] Failed to verify Prisma auth user id:", error);
+    }
+  }
+
+  const authUser = await findSupabaseAuthUserByEmail(emailLower);
+  return authUser?.id || null;
+}
+
 export async function sendMagicLinkAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const rawReturnUrl = String(formData.get("returnUrl") || "/dashboard");
@@ -262,6 +304,7 @@ export async function signUpAction(formData: FormData) {
         id: data.user.id,
         email,
         dailyCredits: 50,
+        bonusCredits: 0,
         lifetimeCredits: 0,
         plan: 'free',
         creditsLastReset: new Date(),
@@ -342,47 +385,53 @@ export async function verifyOtpAction(email: string, otp: string) {
   // 3. Confirm the user in Supabase Auth (Crucial for allowing login)
   try {
     const supabaseAdmin = createAdminClient();
-    const dbUser = await prisma.user.findUnique({ where: { email: emailLower } });
+    const authUserId = await getAuthUserIdForEmail(emailLower);
 
-    if (dbUser) {
-      const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(dbUser.id, {
+    if (authUserId) {
+      const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(authUserId, {
         email_confirm: true,
         user_metadata: { verified_via_custom_otp: true },
         email_confirmed_at: new Date().toISOString()
       });
 
       if (confirmError) {
-        console.error(`[Auth] Failed to confirm user ${dbUser.id}:`, confirmError.message);
+        console.error(`[Auth] Failed to confirm user ${authUserId}:`, confirmError.message);
+        return { error: "Could not verify this account. Please request a new code and try again." };
       }
+    } else {
+      return { error: "Could not find this account. Please sign up again." };
     }
   } catch (adminError) {
     console.error('[Auth] Supabase Admin operation failed. Make sure SUPABASE_SERVICE_ROLE_KEY is set.', adminError);
+    return { error: "Could not verify this account right now. Please try again." };
   }
 
   // 4. Initialize user in Database with credits
   try {
     const supabaseAdmin = createAdminClient();
+    const authUserId = await getAuthUserIdForEmail(emailLower);
     
-    const authUser = await prisma.user.findUnique({ where: { email: emailLower } });
-    
-    if (authUser) {
+    if (authUserId) {
       // Upsert in Prisma
       await prisma.user.upsert({
         where: { email: emailLower },
         update: {},
         create: {
-          id: authUser.id,
+          id: authUserId,
           email: emailLower,
           dailyCredits: 50,
+          bonusCredits: 0,
+          lifetimeCredits: 0,
           plan: 'free'
         }
       });
 
       // Upsert in Supabase User table
       await supabaseAdmin.from('User').upsert({
-        id: authUser.id,
+        id: authUserId,
         email: emailLower,
         daily_credits: 50,
+        bonus_credits: 0,
         plan: 'free'
       }, { onConflict: 'email' });
     }
@@ -398,9 +447,13 @@ export async function verifyOtpAction(email: string, otp: string) {
 }
 
 export async function signInAction(formData: FormData) {
-  const email = (formData.get("email") as string).toLowerCase();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = formData.get("password") as string;
   const supabase = await createClient();
+
+  if (!isValidEmail(email)) {
+    return { error: "Enter a valid email address." };
+  }
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -435,8 +488,8 @@ export async function forgotPasswordAction(email: string) {
     return { error: limit.error || AUTH_EMAIL_RATE_LIMIT_MESSAGE };
   }
 
-  const dbUser = await prisma.user.findUnique({ where: { email: emailLower } });
-  if (!dbUser) {
+  const authUserId = await getAuthUserIdForEmail(emailLower);
+  if (!authUserId) {
     await recordRateLimit(emailLower, "password_reset");
     return { success: true };
   }
@@ -508,9 +561,9 @@ export async function updatePasswordAction(email: string, token: string, passwor
 
   try {
     const supabaseAdmin = createAdminClient();
-    const user = await prisma.user.findUnique({ where: { email: emailLower } });
+    const authUserId = await getAuthUserIdForEmail(emailLower);
 
-    if (!user) return { error: "User not found." };
+    if (!authUserId) return { error: "User not found." };
 
     const consumedToken = await prisma.verificationToken.deleteMany({
       where: {
@@ -526,7 +579,7 @@ export async function updatePasswordAction(email: string, token: string, passwor
       return { error: "Reset link has expired or is invalid. Please request a new one." };
     }
 
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(authUserId, {
       password: password,
       email_confirm: true
     });

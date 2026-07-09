@@ -30,7 +30,7 @@ interface PdfFile {
 const MERGER_STEPS = [
   { title: "Upload Documents", desc: "Select multiple PDF files you want to combine into one." },
   { title: "Arrange Order", desc: "Drag and drop or use arrows to set the perfect document sequence." },
-  { title: "Merge Pages", desc: "Lumora copies every page into one document in your selected order." },
+  { title: "Merge Pages", desc: "Exismic copies every page into one document in your selected order." },
   { title: "Download", desc: "Save your combined document instantly to your local storage." }
 ];
 

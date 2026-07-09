@@ -123,15 +123,15 @@ async function callGroq({
   messages: ToolCoachMessage[];
 }) {
   const tool = TOOLS.find((item) => item.id === toolId);
-  if (!tool) throw new Error("Unknown Lumora tool.");
+  if (!tool) throw new Error("Unknown Exismic tool.");
 
   const category = CATEGORIES.find((item) => item.id === tool.category);
   const reliability = TOOL_RELIABILITY[tool.id];
   const keys = getGroqKeys();
-  if (keys.length === 0) throw new Error("Lumora AI is not configured.");
+  if (keys.length === 0) throw new Error("Exismic Ai is not configured.");
 
   const systemPrompt = [
-    "You are Lumora AI, an in-product expert helping a user operate one specific Lumora tool.",
+    "You are Exismic Ai, an in-product expert helping a user operate one specific Exismic tool.",
     "Your advice must be concrete, concise, and limited to controls and capabilities described below.",
     "Treat every listed control as a real tool capability. Never tell the user to do a calculation or transformation manually when a dedicated control is listed.",
     "Never claim you changed a setting, uploaded a file, generated an output, or completed an action.",
@@ -150,7 +150,7 @@ async function callGroq({
     `Access: ${tool.isProTool || tool.pro ? "Pro feature" : "available to all users"}`,
     reliability
       ? `Operational context: ${reliability.headline}. ${reliability.description}`
-      : "Operational context: standard Lumora workflow.",
+      : "Operational context: standard Exismic workflow.",
     visibleSettings.length
       ? `Current non-sensitive controls: ${visibleSettings.join("; ")}`
       : "Current non-sensitive controls: none detected.",
@@ -182,7 +182,7 @@ async function callGroq({
       });
 
       if (response.status === 429) {
-        lastError = new Error("Lumora AI is busy. Please try again shortly.");
+        lastError = new Error("Exismic Ai is busy. Please try again shortly.");
         continue;
       }
       if (!response.ok) {
@@ -193,7 +193,7 @@ async function callGroq({
       const data = (await response.json()) as GroqResponse;
       const content = data.choices?.[0]?.message?.content?.trim();
       if (!content) {
-        lastError = new Error("Lumora AI returned an empty response.");
+        lastError = new Error("Exismic Ai returned an empty response.");
         continue;
       }
       return parseCoachResult(content);
@@ -204,7 +204,7 @@ async function callGroq({
 
   throw lastError instanceof Error
     ? lastError
-    : new Error("Lumora AI is temporarily unavailable.");
+    : new Error("Exismic Ai is temporarily unavailable.");
 }
 
 export async function POST(req: NextRequest) {
@@ -217,10 +217,10 @@ export async function POST(req: NextRequest) {
         : "";
 
     if (!TOOLS.some((tool) => tool.id === toolId)) {
-      return NextResponse.json({ error: "Unknown Lumora tool." }, { status: 400 });
+      return NextResponse.json({ error: "Unknown Exismic tool." }, { status: 400 });
     }
     if (!userMessage) {
-      return NextResponse.json({ error: "Ask Lumora AI a question first." }, { status: 400 });
+      return NextResponse.json({ error: "Ask Exismic Ai a question first." }, { status: 400 });
     }
 
     const supabase = await createClient();
@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[ToolCoach]", error);
     const message =
-      error instanceof Error ? error.message : "Lumora AI is temporarily unavailable.";
+      error instanceof Error ? error.message : "Exismic Ai is temporarily unavailable.";
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }
