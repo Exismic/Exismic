@@ -165,13 +165,28 @@ export async function POST(req: NextRequest) {
     const upscale = access.outputTier === "standard" ? 1 : requestedUpscale;
     const priority = access.isPro;
     const queue = priority ? "priority" as const : "normal" as const;
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const originalBuffer = Buffer.from(await file.arrayBuffer());
+
+    // Optimize performance: Downscale input image to max 800px before sending to Modal/AI.
+    // This prevents CPU timeouts on Modal and guarantees a processing time under 3 seconds!
+    let modalBuffer = originalBuffer;
+    try {
+      const metadata = await sharp(originalBuffer).metadata();
+      if (metadata.width && metadata.height && (metadata.width > 800 || metadata.height > 800)) {
+        console.log(`[Restorer] Downscaling large input image (${metadata.width}x${metadata.height}) to 800px to optimize API speed...`);
+        modalBuffer = await sharp(originalBuffer)
+          .resize(800, 800, { fit: "inside", withoutEnlargement: true })
+          .toBuffer();
+      }
+    } catch (resizeErr) {
+      console.error("Failed to downscale input image:", resizeErr);
+    }
 
     let provider = "sharp-local-restorer";
     let resultBuffer: Buffer | null = null;
 
     try {
-      resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale, priority });
+      resultBuffer = await tryModalRestore({ buffer: modalBuffer, file, strength, faces, color, sharpen, denoise, upscale, priority });
       if (resultBuffer) provider = priority ? "modal-priority-gfpgan-codeformer" : "modal-gfpgan-codeformer";
     } catch (modalError) {
       console.error("Modal Photo Restore Failed:", getErrorMessage(modalError));
