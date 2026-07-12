@@ -7,14 +7,14 @@ import { Type } from "lucide-react";
 
 export default function SubtitleGeneratorPage() {
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-purple-500/30" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#050505] px-4 pb-6 pt-24 font-sans text-white selection:bg-purple-500/30 sm:px-6 md:px-12 md:pb-12 md:pt-28" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-16 relative">
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
           
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center text-center space-y-6"
           >
@@ -28,10 +28,10 @@ export default function SubtitleGeneratorPage() {
             </motion.div>
             
             <div className="space-y-4">
-              <h1 className="text-5xl md:text-7xl font-black tracking-tightest bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40">
+              <h1 className="text-4xl font-black tracking-tightest bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent sm:text-5xl md:text-7xl">
                 Subtitle AI
               </h1>
-              <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+              <p className="mx-auto max-w-2xl text-base font-medium leading-relaxed text-gray-400 sm:text-lg md:text-xl">
                 Transform speech into text with pixel-perfect accuracy. Generate SRT files or burn subtitles directly into your videos using OpenAI Whisper.
               </p>
             </div>

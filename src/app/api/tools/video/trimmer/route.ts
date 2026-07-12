@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 import {
@@ -23,11 +23,10 @@ export const maxDuration = 300;
 export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
-    const authUser = await requireApiUser();
-    if (authUser instanceof NextResponse) return authUser;
+    const authUser = await getOptionalApiUser();
     const limit = checkRateLimit(
-      `video-trimmer:${authUser.id}:${getRequestIp(req)}`,
-      12,
+      `video-trimmer:${authUser?.id || "guest"}:${getRequestIp(req)}`,
+      authUser ? 12 : 3,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

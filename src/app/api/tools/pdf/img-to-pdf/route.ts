@@ -5,7 +5,7 @@ import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 import {
@@ -33,11 +33,10 @@ export async function POST(request: NextRequest) {
   const requestId = createPdfRequestId();
 
   try {
-    const user = await requireApiUser();
-    if (user instanceof NextResponse) return user;
+    const user = await getOptionalApiUser();
     const limit = checkRateLimit(
-      `img-to-pdf:${user.id}:${getRequestIp(request)}`,
-      20,
+      `img-to-pdf:${user?.id || "guest"}:${getRequestIp(request)}`,
+      user ? 20 : 6,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

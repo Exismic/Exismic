@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { CATEGORIES, TOOLS } from "@/data/tools";
 import { getToolMetadata } from "@/lib/seo";
-import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolDetailClient } from "../../[category]/[toolId]/ToolDetailClient";
 
 const tool = TOOLS.find((item) => item.id === "image-resizer");
@@ -17,28 +16,12 @@ export default function ImageResizerPage() {
   ).slice(0, 3);
 
   return (
-    <>
-      <JsonLd
-        type="SoftwareApplication"
-        data={{
-          name: tool.name,
-          description: tool.description,
-          applicationCategory: `${category.name}Application`,
-          operatingSystem: "Any",
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "USD",
-          },
-        }}
-      />
-      <ToolDetailClient
-        tool={tool}
-        category={category}
-        relatedTools={relatedTools}
-        categoryId={category.id}
-        toolId="resizer"
-      />
-    </>
+    <ToolDetailClient
+      tool={tool}
+      category={category}
+      relatedTools={relatedTools}
+      categoryId={category.id}
+      toolId="resizer"
+    />
   );
 }

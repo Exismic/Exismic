@@ -13,7 +13,8 @@ import {
   Thermometer,
   Clock,
   Ruler,
-  Weight
+  Weight,
+  type LucideIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -74,7 +75,7 @@ const UNITS: Record<UnitCategory, Unit[]> = {
   ]
 };
 
-const CATEGORIES: { id: UnitCategory, label: string, icon: any }[] = [
+const CATEGORIES: { id: UnitCategory, label: string, icon: LucideIcon }[] = [
   { id: "length", label: "Length", icon: Ruler },
   { id: "weight", label: "Weight", icon: Weight },
   { id: "temp", label: "Temp", icon: Thermometer },
@@ -125,9 +126,9 @@ export function UnitConverter() {
     setFromValue(result);
   };
 
-  const UnitSelect = ({ value, onChange, units, label }: any) => {
+  const UnitSelect = ({ value, onChange, units }: { value: string; onChange: (value: string) => void; units: Unit[]; label: string }) => {
     const [open, setOpen] = useState(false);
-    const active = units.find((u: any) => u.value === value);
+    const active = units.find((unit) => unit.value === value);
     return (
       <div className="relative flex-1">
         <button 
@@ -146,7 +147,7 @@ export function UnitConverter() {
                 initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.98 }}
                 className="absolute left-0 right-0 mt-2 p-2 rounded-2xl glass-dark border border-white/10 shadow-4xl z-110 max-h-[250px] overflow-y-auto"
               >
-                {units.map((u: any) => (
+                {units.map((u) => (
                   <button 
                     key={u.value} 
                     onClick={() => { onChange(u.value); setOpen(false); }}
@@ -181,7 +182,7 @@ export function UnitConverter() {
                     className="w-full bg-transparent text-5xl md:text-6xl font-black text-white focus:outline-none placeholder:text-zinc-800"
                   />
                </div>
-               <UnitSelect value={fromUnit} onChange={setFromUnit} units={UNITS[category]} />
+               <UnitSelect label="Convert from" value={fromUnit} onChange={setFromUnit} units={UNITS[category]} />
             </div>
 
             {/* Swap Button Component */}
@@ -202,7 +203,7 @@ export function UnitConverter() {
                      {result}
                   </div>
                </div>
-               <UnitSelect value={toUnit} onChange={setToUnit} units={UNITS[category]} />
+               <UnitSelect label="Convert to" value={toUnit} onChange={setToUnit} units={UNITS[category]} />
             </div>
          </div>
 

@@ -382,6 +382,7 @@ model PaymentTransaction {
   provider          String   @default("razorpay")
   providerPaymentId String   @unique @map("provider_payment_id")
   providerOrderId   String?  @map("provider_order_id")
+  transactionReference String?  @unique @map("transaction_reference")
   userId            String   @map("user_id")
   kind              String
   amount            Int
@@ -391,4 +392,56 @@ model PaymentTransaction {
 
   @@index([userId])
   @@map("payment_transactions")
+}
+
+
+model PaymentOrder {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id")
+  planId            String   @map("plan_id")
+  market            String
+  currency          String
+  amount            Int
+  gateway           String
+  providerOrderId   String?  @map("provider_order_id")
+  providerPaymentId String?  @map("provider_payment_id")
+  status            String   @default("created")
+  credits           Int      @default(0)
+  metadata          Json     @default("{}")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt])
+  @@index([gateway, providerOrderId])
+  @@index([providerPaymentId])
+  @@map("payment_orders")
+}
+
+model PaymentEvent {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gateway           String
+  providerEventId   String   @map("provider_event_id")
+  eventType         String   @map("event_type")
+  providerOrderId   String?  @map("provider_order_id")
+  providerPaymentId String?  @map("provider_payment_id")
+  rawPayload        Json     @map("raw_payload")
+  processed         Boolean  @default(false)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([gateway, providerEventId])
+  @@index([gateway, providerOrderId])
+  @@index([gateway, providerPaymentId])
+  @@map("payment_events")
+}
+
+model UserBilling {
+  userId             String    @id @map("user_id")
+  planId             String    @default("free") @map("plan_id")
+  credits            Int       @default(0)
+  status             String    @default("free")
+  currentPeriodEnd   DateTime? @map("current_period_end") @db.Timestamptz(6)
+  lastPaymentOrderId String?   @map("last_payment_order_id") @db.Uuid
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("user_billing")
 }

@@ -143,7 +143,7 @@ export function ImageFormatConverter() {
     const url = URL.createObjectURL(content);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `toolverse_converted_${targetFormat.toLowerCase()}.zip`;
+    a.download = `exismic_converted_${targetFormat.toLowerCase()}.zip`;
     a.click();
   };
 

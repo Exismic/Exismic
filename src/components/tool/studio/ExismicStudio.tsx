@@ -53,7 +53,7 @@ export default function ExismicStudio() {
       <TopBar />
 
       <div className="flex-1 flex overflow-hidden">
-        <PanelGroup direction="horizontal">
+        <PanelGroup orientation="horizontal">
           {/* Left Sidebar (Explorer) */}
           {isLeftSidebarOpen && (
             <>
@@ -66,7 +66,7 @@ export default function ExismicStudio() {
 
           {/* Main Content (Editor + Terminal) */}
           <Panel defaultSize={52} minSize={30}>
-            <PanelGroup direction="vertical">
+            <PanelGroup orientation="vertical">
               <Panel defaultSize={75} minSize={20}>
                 <EditorComponent />
               </Panel>

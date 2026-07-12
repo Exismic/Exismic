@@ -22,7 +22,7 @@ function envCheck(key: string, label: string, required = true) {
   };
 }
 
-function summarizeStatus(statuses: DiagnosticStatus[]) {
+function summarizeStatus(statuses: DiagnosticStatus[]): DiagnosticStatus {
   if (statuses.includes("error")) return "error";
   if (statuses.includes("warning")) return "warning";
   return "ok";
@@ -121,8 +121,8 @@ export async function getSystemDiagnostics() {
   };
 
   const status = summarizeStatus([
-    email.status,
-    tools.status,
+    email.status as DiagnosticStatus,
+    tools.status as DiagnosticStatus,
     database.status,
     payments.status,
     ...env.map((item) => item.status),

@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { setFunctionalStorageItem } from "@/lib/cookie-consent";
 import { type AiChatSettings, DEFAULT_AI_CHAT_SETTINGS, type ChatMode } from "@/components/providers/ChatProvider";
 
 const CHAT_MODES: { id: ChatMode; label: string; description: string }[] = [
@@ -122,8 +123,8 @@ export default function AiChatSettingsPage() {
       if (!response.ok) throw new Error(data.error || "Could not save settings.");
       const saved = { ...DEFAULT_AI_CHAT_SETTINGS, ...(data.settings || nextSettings) };
       setSettings(saved);
-      localStorage.setItem("exismic_chat_mode", saved.defaultChatMode);
-      localStorage.setItem("exismic_student_mode", String(saved.defaultStudentMode));
+      setFunctionalStorageItem("exismic_chat_mode", saved.defaultChatMode);
+      setFunctionalStorageItem("exismic_student_mode", String(saved.defaultStudentMode));
       showNotice("AI Chat settings saved.");
     } catch (error) {
       showNotice(error instanceof Error ? error.message : "Could not save settings.", "warning");

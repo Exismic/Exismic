@@ -4,9 +4,12 @@ import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
+import { requireProApiUser } from "@/lib/api-security";
 
 export async function POST(req: Request) {
   try {
+    const proUser = await requireProApiUser();
+    if (proUser instanceof NextResponse) return proUser;
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 

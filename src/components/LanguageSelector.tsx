@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { getFunctionalStorageItem, setFunctionalStorageItem } from '@/lib/cookie-consent';
 import '@/lib/i18n/config'; // Import config to initialize
 
 const LANGUAGES = [
@@ -24,28 +25,28 @@ export function LanguageSelector() {
 
   useEffect(() => {
     setMounted(true);
+    const savedLanguage = getFunctionalStorageItem('i18nextLng');
+    if (savedLanguage && savedLanguage !== i18n.language) {
+      void i18n.changeLanguage(savedLanguage);
+    }
     // Initial RTL check
     const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
     document.documentElement.dir = currentLang.dir;
     document.documentElement.lang = currentLang.code;
-  }, [i18n.language]);
+  }, [i18n, i18n.language]);
 
   const handleLanguageChange = (lang: typeof LANGUAGES[0]) => {
     i18n.changeLanguage(lang.code);
-    document.documentElement.dir = lang.dir;
-    document.documentElement.lang = lang.code;
     setIsOpen(false);
     
     // Save to localStorage (i18next-browser-languagedetector does this automatically but we can be explicit)
-    localStorage.setItem('i18nextLng', lang.code);
+    setFunctionalStorageItem('i18nextLng', lang.code);
     
     // Potential Supabase sync could go here
     // syncWithSupabase(lang.code);
   };
 
   if (!mounted) return null;
-
-  const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
   return (
     <div className="relative">

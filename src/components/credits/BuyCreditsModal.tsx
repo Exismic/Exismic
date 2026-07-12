@@ -21,16 +21,16 @@ import { cn } from "@/lib/utils";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
+import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
 
 const CREDIT_TIERS = PRICING_CONFIG.CREDIT_PACKAGES;
 
 interface RazorpayResponse {
-  razorpay_order_id: string;
+  razorpay_order_id?: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
 }
-
-type RazorpayConstructor = new (options: Record<string, unknown>) => { open: () => void };
 
 const ICON_MAP: Record<string, LucideIcon> = {
   'Zap': Zap,
@@ -45,25 +45,30 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [lastCreditsAdded, setLastCreditsAdded] = useState(0);
+  const [failureReason, setFailureReason] = useState<string | undefined>();
   const [isIndia, setIsIndia] = useState(false);
 
   useEffect(() => {
-    setIsIndia(getIsIndia());
+    let active = true;
+    fetch("/api/billing/market", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (active && (data?.market === "IN" || data?.market === "GLOBAL")) {
+          setIsIndia(data.countryCode === "UNKNOWN" ? getIsIndia() : data.market === "IN");
+        }
+      })
+      .catch(() => {
+        if (active) setIsIndia(getIsIndia());
+      });
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const marketOverride = isIndia ? "IN" : "GLOBAL";
+  const gatewayName = isIndia ? "Razorpay" : "PayPal";
   
   const { refreshCredits } = useCredits();
-
-  // Load Razorpay Script
-  useEffect(() => {
-    if (!paymentsEnabled) return;
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [paymentsEnabled]);
 
   const handlePurchase = async () => {
     if (!paymentsEnabled) return;
@@ -74,26 +79,77 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
     setIsProcessing(true);
 
     try {
-      const orderRes = await fetch("/api/paypal/order", {
+      const checkoutRequest = createCheckoutSignal();
+      const orderRes = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: checkoutRequest.signal,
         body: JSON.stringify({
-          plan: "credits",
-          tierId: tier.id,
+          planId: tier.billingPlanId || tier.id,
+          marketOverride,
         }),
-      });
+      }).finally(checkoutRequest.clear);
 
       const data = await orderRes.json().catch(() => null);
-      if (!orderRes.ok || !data?.approvalUrl) {
-        console.warn("[PayPal] Credit modal checkout unavailable:", data?.error || "Could not start PayPal checkout.");
+      if (!orderRes.ok || !data?.success) {
+        console.warn(`[${gatewayName}] Credit modal checkout unavailable:`, data?.error || `Could not start ${gatewayName} checkout.`);
         setShowFailure(true);
         setIsProcessing(false);
         return;
       }
 
+      if (data.gateway === "razorpay") {
+        const Razorpay = await loadRazorpayCheckout();
+        if (!data.razorpayOrderId) throw new Error("Credit checkout could not start. Please refresh and try again.");
+
+        const razorpay = new Razorpay({
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Exismic",
+          description: data.plan?.name || `${tier.credits.toLocaleString()} credits`,
+          order_id: data.razorpayOrderId,
+          theme: { color: "#8b5cf6" },
+          modal: {
+            ondismiss: () => setIsProcessing(false),
+          },
+          handler: async (paymentResponse: RazorpayResponse) => {
+            const verifyResponse = await fetch("/api/billing/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(paymentResponse),
+            });
+            const verifyData = await verifyResponse.json().catch(() => null);
+            if (!verifyResponse.ok || !verifyData?.success) {
+              const reason = verifyData?.error || "Payment verification failed.";
+              console.warn("Credit payment verification failed:", reason);
+              setFailureReason(reason);
+              setShowFailure(true);
+              setIsProcessing(false);
+              return;
+            }
+            setLastCreditsAdded(tier.credits);
+            await refreshCredits();
+            setShowSuccess(true);
+            setIsProcessing(false);
+          },
+        });
+        razorpay.on("payment.failed", (failure: unknown) => {
+          reportPaymentFailure(data.orderId, failure);
+          setFailureReason("Payment was not completed. No charge was added to your account.");
+          setShowFailure(true);
+          setIsProcessing(false);
+        });
+        razorpay.open();
+        return;
+      }
+
+      if (!data?.approvalUrl) throw new Error("PayPal did not return an approval link.");
       window.location.href = data.approvalUrl;
     } catch (err) {
-      console.warn("PayPal checkout unavailable:", err instanceof Error ? err.message : err);
+      const reason = err instanceof Error ? err.message : `${gatewayName} checkout failed`;
+      console.warn(`${gatewayName} checkout unavailable:`, reason);
+      setFailureReason(reason);
       setShowFailure(true);
       setIsProcessing(false);
     }
@@ -229,7 +285,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                                  <span className="text-xl font-black text-white italic">
                                    {isIndia ? `Rs ${tier.priceINR}` : `$${tier.priceUSD}`}
                                  </span>
-                                 <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{isIndia ? "INR checkout" : "USD checkout"}</span>
+                                 <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{gatewayName} checkout</span>
                                </div>
                             </div>
                          </div>
@@ -308,10 +364,13 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
           onClose={() => setShowFailure(false)}
           onRetry={() => {
             setShowFailure(false);
+            setFailureReason(undefined);
             handlePurchase();
           }}
+          reason={failureReason}
         />
       )}
     </AnimatePresence>
   );
 }
+

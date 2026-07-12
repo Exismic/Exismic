@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
+import { usePro } from "@/hooks/usePro";
 
 interface ProtectedToolProps {
   children: React.ReactNode;
@@ -14,11 +15,12 @@ interface ProtectedToolProps {
 
 export function ProtectedTool({ children }: ProtectedToolProps) {
   const { user, isLoading } = useRequireAuth();
+  const { isPro, isLoading: isProLoading } = usePro();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
 
-  if (isLoading) {
+  if (isLoading || (user && isProLoading)) {
     return (
       <div className="min-h-[520px] p-4 sm:p-8">
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/5 bg-white/[0.025] p-5 sm:p-8">
@@ -87,6 +89,33 @@ export function ProtectedTool({ children }: ProtectedToolProps) {
               Back to Free Tools
             </Link>
           </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative flex min-h-[500px] items-center justify-center overflow-hidden p-5 text-center sm:p-12"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(124,58,237,0.14),transparent_42%)]" />
+        <div className="relative w-full max-w-md rounded-[2rem] border border-violet-400/20 bg-zinc-950/75 p-7 shadow-[0_30px_100px_rgba(76,29,149,0.18)] backdrop-blur-2xl sm:p-10">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-400/25 bg-violet-400/10 text-violet-200">
+            <Lock size={28} />
+          </div>
+          <h2 className="mt-6 text-2xl font-black uppercase italic tracking-tight text-white">Pro tool</h2>
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            This tool uses Exismic&apos;s premium processing models and is included with Pro.
+          </p>
+          <Link
+            href="/pro"
+            className="mt-7 flex min-h-14 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 px-5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_16px_40px_rgba(139,92,246,0.24)] transition hover:brightness-110"
+          >
+            Explore Pro <ArrowRight size={16} />
+          </Link>
         </div>
       </motion.div>
     );

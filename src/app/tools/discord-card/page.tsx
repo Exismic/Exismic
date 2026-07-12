@@ -10,6 +10,7 @@ export const metadata: Metadata = constructMetadata({
   description:
     "Create a live Discord profile card with your avatar, banner, status, activities, badges, profile effects, and connections.",
   canonicalUrl: `${SITE_URL}/tools/discord-card`,
+  noIndex: true,
 });
 
 export default function DiscordCardPage() {

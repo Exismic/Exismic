@@ -28,6 +28,13 @@ export function useDashboardStats() {
       const response = await fetch("/api/files/history?summary=1", {
         cache: "no-store",
       });
+      
+      if (response.status === 401) {
+        // Handle unauthenticated or stale session gracefully
+        setStats(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(`Usage summary failed with ${response.status}`);
       }
@@ -39,7 +46,7 @@ export function useDashboardStats() {
         loading: false
       });
     } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
+      console.warn("Error fetching dashboard stats:", error);
       setStats(prev => ({ ...prev, loading: false }));
     }
   }, [userId]);

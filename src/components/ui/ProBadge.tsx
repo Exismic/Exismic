@@ -39,21 +39,21 @@ export function ProBadge({
   const dimensions = {
     sm: {
       shell: "h-6 rounded-lg",
-      body: "gap-1.5 rounded-[7px] pl-1 pr-2",
-      mark: "h-4 w-4 text-[6px]",
-      text: "text-[7px] tracking-[0.16em]",
+      body: "gap-1.5 rounded-[7px] pl-1.5 pr-2.5",
+      mark: "h-4 w-4 text-[6.5px]",
+      text: "text-[8px] tracking-[0.16em]",
     },
     md: {
-      shell: "h-9 rounded-xl",
+      shell: "h-8 rounded-xl",
       body: "gap-2 rounded-[11px] pl-1.5 pr-3",
-      mark: "h-6 w-6 text-[8px]",
-      text: "text-[9px] tracking-[0.17em]",
+      mark: "h-5 w-5 text-[8px]",
+      text: "text-[10px] tracking-[0.17em]",
     },
     lg: {
       shell: "h-11 rounded-[14px]",
       body: "gap-2.5 rounded-[13px] pl-2 pr-4",
       mark: "h-7 w-7 text-[10px]",
-      text: "text-[11px] tracking-[0.18em]",
+      text: "text-[12px] tracking-[0.18em]",
     },
   }[size];
 
@@ -94,7 +94,7 @@ export function ProBadge({
         </span>
 
         <motion.span
-          className={cn("relative bg-clip-text font-black text-transparent", dimensions.text, visual.text)}
+          className={cn("relative flex items-center bg-clip-text font-black text-transparent -translate-y-px", dimensions.text, visual.text)}
           style={{ backgroundSize: "220% 100%" }}
           animate={{ backgroundPosition: ["0% center", "-220% center"] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
@@ -102,7 +102,7 @@ export function ProBadge({
           {visual.label}
         </motion.span>
 
-        <span className={cn("h-1 w-1 rounded-full opacity-70", visual.dot)} />
+        <span className={cn("h-1 w-1 rounded-full opacity-70 -translate-y-px", visual.dot)} />
 
         <span className="pointer-events-none absolute inset-y-0 -left-12 w-7 skew-x-[-18deg] bg-white/16 blur-sm transition-transform duration-1000 group-hover/pro:translate-x-40" />
       </span>

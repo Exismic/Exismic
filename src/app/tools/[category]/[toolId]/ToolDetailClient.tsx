@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 import { Tool, Category, ICON_MAP } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import { useToolProcessor } from "@/hooks/useToolProcessor";
@@ -51,6 +52,10 @@ import { ToolReliabilityNotice } from "@/components/tool/ToolReliability";
 import { isToolUnavailable } from "@/lib/tool-reliability";
 import { ToolWorkspaceHeader } from "@/components/tool/ToolWorkspaceFrame";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
+import { ToolQualitySelector } from "@/components/tool/ToolQualitySelector";
+import { isQualityUpgradeableTool } from "@/lib/tool-quality-policy";
+import { PRICING_CONFIG } from "@/config/pricing";
+import { SITE_URL } from "@/lib/seo";
 
 interface ToolDetailClientProps {
   tool: Tool;
@@ -73,13 +78,13 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     const fetchFavorites = async () => {
       try {
         const response = await axios.get('/api/user/favorites');
-        setIsFavorited(response.data.favorites.includes(toolId));
+        setIsFavorited(response.data.favorites.includes(tool.id));
       } catch (err) {
         console.error("Failed to fetch favorites:", err);
       }
     };
     fetchFavorites();
-  }, [toolId]);
+  }, [tool.id]);
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -95,8 +100,13 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     
     try {
       await axios.post('/api/user/favorites', {
-        toolId,
+        toolId: tool.id,
         action: previousState ? 'remove' : 'add'
+      }).then((response) => {
+        setIsFavorited(response.data.isFavorited === true);
+        window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
+          detail: { favorites: response.data.favorites },
+        }));
       });
     } catch (err) {
       console.error("Failed to update favorite:", err);
@@ -138,25 +148,38 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   // Structured Data for Google (JSON-LD)
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": "WebApplication",
     "name": tool.name,
     "description": tool.description,
-    "applicationCategory": category.name,
-    "operatingSystem": "Any",
+    "url": `${SITE_URL}${tool.href}`,
+    "applicationCategory": categoryId === "productivity" ? "UtilitiesApplication" : categoryId === "ai" ? "BusinessApplication" : "MultimediaApplication",
+    "operatingSystem": "Any operating system with a modern web browser",
+    "browserRequirements": "Requires JavaScript and a modern web browser",
+    "isAccessibleForFree": !tool.isProTool,
     "offers": {
       "@type": "Offer",
-      "price": tool.pro ? "9.99" : "0",
+      "price": tool.isProTool ? PRICING_CONFIG.PRO_PLAN.USD.toString() : "0",
       "priceCurrency": "USD"
     }
   };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Tools", "item": `${SITE_URL}/tools` },
+      { "@type": "ListItem", "position": 2, "name": category.name, "item": `${SITE_URL}/category/${category.id}` },
+      { "@type": "ListItem", "position": 3, "name": tool.name, "item": `${SITE_URL}${tool.href}` },
+    ],
+  };
 
   const PageContent = (
-    <div className="mx-auto max-w-[1440px] space-y-6 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 md:space-y-8 md:px-8 md:pb-28 md:pt-7">
-      <Script
-        id="tool-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <div className="mx-auto max-w-[1440px] space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28">
+      {tool.indexable !== false && (
+        <>
+          <Script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          <Script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        </>
+      )}
       {categoryId === 'pdf' && (
         <Script 
           src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
@@ -190,6 +213,10 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
       )}
 
       {!unavailable && <ToolReliabilityNotice toolId={tool.id} />}
+
+      {!tool.isProTool && isQualityUpgradeableTool(tool.id) && (
+        <ToolQualitySelector toolId={tool.id} />
+      )}
 
        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-8">
           <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "min-w-0 space-y-5 md:space-y-7")}>

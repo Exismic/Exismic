@@ -26,6 +26,7 @@ import {
   Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import axios from "axios";
 import { useCredits } from "@/hooks/useCredits";
 
@@ -93,7 +94,7 @@ export function LogoGeneratorTool() {
 
   // Decimal countdown timer
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (isGenerating) {
       setEstimatedTime(6.0);
       timer = setInterval(() => {
@@ -110,7 +111,7 @@ export function LogoGeneratorTool() {
 
   // Load history from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("exismic_logo_history");
+    const stored = getFunctionalStorageItem("exismic_logo_history");
     if (stored) {
       try {
         setHistory(JSON.parse(stored));
@@ -295,15 +296,17 @@ export function LogoGeneratorTool() {
 
         setHistory(prev => {
           const updated = [newHistoryItem, ...prev];
-          localStorage.setItem("exismic_logo_history", JSON.stringify(updated));
+          setFunctionalStorageItem("exismic_logo_history", JSON.stringify(updated));
           return updated;
         });
         
         toast.success("Logo generated successfully!");
       }
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || "Failed to generate logo. Please try again.";
-      const needsUpgrade = err.response?.data?.needsUpgrade;
+    } catch (err: unknown) {
+      const errorMsg = axios.isAxiosError(err)
+        ? err.response?.data?.error || "Failed to generate logo. Please try again."
+        : "Failed to generate logo. Please try again.";
+      const needsUpgrade = axios.isAxiosError(err) && Boolean(err.response?.data?.needsUpgrade);
       
       setError(
         needsUpgrade ? (
@@ -393,7 +396,7 @@ export function LogoGeneratorTool() {
                 <button
                   key={lay.id}
                   type="button"
-                  onClick={() => setValue("layout", lay.id as any)}
+                  onClick={() => setValue("layout", lay.id as LogoGeneratorOptions["layout"])}
                   className={cn(
                     "p-3 rounded-xl border text-left transition-all flex justify-between items-center",
                     selectedLayout === lay.id 
@@ -486,7 +489,7 @@ export function LogoGeneratorTool() {
                   <button
                     key={bg.id}
                     type="button"
-                    onClick={() => setValue("backgroundType", bg.id as any)}
+                    onClick={() => setValue("backgroundType", bg.id as LogoGeneratorOptions["backgroundType"])}
                     className={cn(
                       "p-3 rounded-xl border text-left transition-all flex items-center justify-between",
                       selectedBg === bg.id 
@@ -1005,7 +1008,7 @@ export function LogoGeneratorTool() {
                      <img src={item.url} alt="History Art" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                      <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end text-left">
                         <span className="text-[8px] font-black uppercase tracking-widest text-cyan-400 mb-1 leading-none">{item.brandName}</span>
-                        <p className="text-[9px] text-zinc-300 line-clamp-2 font-bold mb-4 italic leading-relaxed">"{item.prompt}"</p>
+                        <p className="text-[9px] text-zinc-300 line-clamp-2 font-bold mb-4 italic leading-relaxed">&ldquo;{item.prompt}&rdquo;</p>
                         <div className="flex gap-2">
                            <button 
                               onClick={() => {

@@ -88,7 +88,7 @@ export function UserMenu() {
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
     try {
-      const res = await fetch('/api/razorpay/cancel', {
+      const res = await fetch('/api/payments/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -181,7 +181,7 @@ export function UserMenu() {
             fullName={fullName} 
             isPro={isPro} 
             avatarUrl={avatarUrl} 
-            frameId={frameId}
+            frameId={frameId || undefined}
             gradientId={gradientId}
             variant="menu-trigger" 
           />
@@ -208,7 +208,7 @@ export function UserMenu() {
                 email={user?.email} 
                 avatarUrl={avatarUrl} 
                 isPro={isPro} 
-                frameId={frameId}
+                frameId={frameId || undefined}
                 gradientId={gradientId}
                 variant="menu-header" 
               />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
@@ -9,7 +9,8 @@ import { X, Maximize2, Trash2, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function TerminalPanel() {
-  const { terminalHeight, setTerminalHeight, isTerminalOpen, setTerminalOpen } = useIdeStore();
+  const { isTerminalOpen, setTerminalOpen } = useIdeStore();
+  const [terminalHeight, setTerminalHeight] = useState(220);
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
   const isResizing = useRef(false);

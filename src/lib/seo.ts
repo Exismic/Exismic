@@ -9,31 +9,49 @@ interface MetadataProps {
   noIndex?: boolean;
   canonicalUrl?: string;
   type?: 'website' | 'article';
+  keywords?: string[];
 }
 
-export const SITE_URL = "https://www.exismicai.online";
+function resolveSiteUrl() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || "https://exismic.xyz";
+  const withProtocol = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
+  return withProtocol.trim().replace(/\/+$/, "");
+}
+
+export const SITE_URL = resolveSiteUrl();
+export const SEO_INDEXING_ENABLED = process.env.SEO_INDEXING_ENABLED === "true";
 
 export function constructMetadata({
   title = "Exismic - All-in-One AI Tools | Image, Video, Audio & More",
-  description = "The elite AI-powered studio. Remove backgrounds, generate images, edit videos, restore photos, and create music — everything you need in one simple place.",
+  description = "Create, edit, convert, and enhance images, video, audio, PDFs, and documents with Exismic's focused AI tools.",
   image = "/og-image.png",
   icons = "/exismic-app-icon-transparent.png?v=1",
   noIndex = false,
   canonicalUrl,
   type = 'website',
+  keywords,
 }: MetadataProps = {}): Metadata {
-  const resolvedCanonicalUrl = canonicalUrl?.replace(
-    /^https:\/\/exismicai\.online(?=\/|$)/,
-    SITE_URL,
-  );
+  const resolvedCanonicalUrl = canonicalUrl
+    ? `${SITE_URL}${new URL(canonicalUrl, SITE_URL).pathname}`
+    : undefined;
+  const shouldIndex = SEO_INDEXING_ENABLED && !noIndex;
   
   return {
     title,
     description,
+    applicationName: 'Exismic',
+    creator: 'Exismic',
+    publisher: 'Raxstdioz LLC',
+    category: 'technology',
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
     verification: {
       google: "8BBWHS5KOph0mfoJRgzFXCePJogKxSd33dFUFhdRi4w",
     },
-    keywords: [
+    keywords: keywords || [
       "AI tools", "free background remover", "AI image generator", 
       "vocal remover", "AI writer", "photo restorer", "PDF tools", 
       "exismic", "AI video editor", "magic eraser online", "screenshot to code",
@@ -43,7 +61,8 @@ export function constructMetadata({
       title,
       description,
       url: resolvedCanonicalUrl || SITE_URL,
-      siteName: "Exismic Ai",
+      siteName: "Exismic AI",
+      locale: 'en_US',
       images: [
         {
           url: image,
@@ -73,11 +92,11 @@ export function constructMetadata({
         }
       : undefined,
     robots: {
-      index: !noIndex,
-      follow: !noIndex,
+      index: shouldIndex,
+      follow: shouldIndex,
       googleBot: {
-        index: !noIndex,
-        follow: !noIndex,
+        index: shouldIndex,
+        follow: shouldIndex,
         'max-video-preview': -1,
         'max-image-preview': 'large',
         'max-snippet': -1,
@@ -100,6 +119,14 @@ export function getToolMetadata(toolId: string, categoryId?: string) {
     title: tool.seoTitle || `${tool.name} - Free AI Powered Online Tool | Exismic`,
     description: tool.seoDescription || tool.description,
     canonicalUrl: `${SITE_URL}${tool.href}`,
+    noIndex: tool.indexable === false,
+    keywords: tool.seoKeywords || [
+      tool.name.toLowerCase(),
+      `${tool.name.toLowerCase()} online`,
+      `${tool.name.toLowerCase()} free`,
+      `${tool.category} tools`,
+      'Exismic',
+    ],
   });
 }
 
@@ -111,5 +138,12 @@ export function getCategoryMetadata(categoryId: string) {
     title: `${category.name} - Professional AI Tools Online | Exismic`,
     description: `Access our elite suite of AI-powered ${category.name.toLowerCase()}. ${category.description} Free, fast, and studio-grade results.`,
     canonicalUrl: `${SITE_URL}/category/${category.id}`,
+    keywords: [
+      category.name.toLowerCase(),
+      `online ${category.name.toLowerCase()}`,
+      `free ${category.name.toLowerCase()}`,
+      'AI tools',
+      'Exismic',
+    ],
   });
 }

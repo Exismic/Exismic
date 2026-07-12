@@ -3,15 +3,18 @@ import { createClient } from "@/utils/supabase/server";
 import { TOOLS } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { FavoritesMigration } from "@/components/ui/FavoritesMigration";
+import { isFavoriteToolId } from "@/lib/favorites";
+import { listFavoriteToolIds, resolveFavoriteOwner } from "@/lib/server/favorites";
+
+export const dynamic = "force-dynamic";
 
 export default async function FavoritesPage() {
   const supabase = await createClient();
   
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (!session) {
+  if (!user) {
     return (
       <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 min-h-[60vh] flex flex-col items-center justify-center text-center overflow-x-hidden">
         <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
@@ -26,13 +29,10 @@ export default async function FavoritesPage() {
     );
   }
 
-  // Fetch favorites from Prisma
-  const favoritesData = await prisma.favorite.findMany({
-    where: { userId: session.user.id },
-    select: { toolId: true }
-  });
-
-  const favoritedIds = favoritesData.map(f => f.toolId);
+  const owner = await resolveFavoriteOwner(user);
+  const favoritedIds = owner
+    ? (await listFavoriteToolIds(owner.id)).filter(isFavoriteToolId)
+    : [];
   const favoritedTools = TOOLS.filter(tool => favoritedIds.includes(tool.id));
 
   return (

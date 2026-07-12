@@ -20,6 +20,7 @@ import { createClient } from "@/utils/supabase/client";
 import { TOOLS } from "@/data/tools";
 import { isDownloadableResultUrl, normalizeHistoryToolType, type ResultFileType } from "@/lib/results";
 import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
+import { getFunctionalStorageItem } from "@/lib/cookie-consent";
 
 interface ProcessedItem {
   id: string;
@@ -64,7 +65,7 @@ const DEFAULT_HISTORY_PREFERENCES = {
 
 function readHistoryPreferences() {
   if (typeof window === "undefined") return DEFAULT_HISTORY_PREFERENCES;
-  const rawPreferences = window.localStorage.getItem("exismic:user-preferences");
+  const rawPreferences = getFunctionalStorageItem("exismic:user-preferences");
   if (!rawPreferences) return DEFAULT_HISTORY_PREFERENCES;
 
   try {
@@ -228,10 +229,10 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
               <History size={24} />
             </div>
             <div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-white uppercase italic leading-none">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 uppercase italic leading-none drop-shadow-md">
                 {fullPage ? "All saved results" : "Your recent work"}
               </h2>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mt-2">
                 {fullPage ? "A unified archive of processed outputs" : "Everything you made recently"}
                 {preferences.autoRefreshHistory && <span className="ml-2 text-cyan-300/70">• Live</span>}
               </p>
@@ -250,11 +251,16 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
         )}
       </div>
 
-      <div className="relative group/container">
-        <div className="md:overflow-x-auto pb-8 md:pb-12 -mx-1 sm:-mx-4 px-1 sm:px-4 custom-scrollbar scroll-smooth no-scrollbar md:scrollbar-visible">
-          <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-stretch md:min-w-max">
+      <div className="relative group/container w-full">
+        <div className="pb-8 md:pb-12 w-full">
+          <div className={cn(
+            "grid gap-6 items-stretch w-full",
+            fullPage 
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          )}>
             <AnimatePresence mode="popLayout">
-              {items.map((item, i) => {
+              {(fullPage ? items : items.slice(0, 3)).map((item, i) => {
                 const toolInfo = getToolInfo(item.toolType);
                 const downloadableUrl = isDownloadableResultUrl(item.resultUrl)
                   ? item.resultUrl
@@ -265,8 +271,8 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                   <motion.div
                     key={item.id}
                     layout
-                    initial={{ opacity: 0, scale: 0.9, x: 20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ 
                       duration: 0.6, 
@@ -274,10 +280,10 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       type: "spring",
                       stiffness: 100
                     }}
-                    whileHover={{ y: -6 }}
-                    className="w-full md:w-[340px] p-1.5 sm:p-2 rounded-[1.75rem] md:rounded-[2.5rem] glass-dark border border-white/5 group hover:border-white/20 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)] transition-all duration-500 relative touch-manipulation"
+                    className="w-full h-full p-2 sm:p-2.5 rounded-[2rem] md:rounded-[2.5rem] bg-[#050508]/80 backdrop-blur-2xl border border-white/10 group hover:border-white/20 hover:shadow-[0_20px_60px_rgba(168,85,247,0.2)] transition-all duration-500 relative touch-manipulation overflow-hidden shadow-xl hover:-translate-y-2 flex flex-col"
                   >
-                    <div className="absolute inset-0 rounded-[1.75rem] md:rounded-[2.5rem] bg-gradient-to-br from-accent-purple/0 to-accent-blue/0 group-hover:from-accent-purple/5 group-hover:to-accent-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-accent-purple via-accent-cyan to-accent-blue rounded-[3rem] blur opacity-0 group-hover:opacity-20 transition duration-1000 animate-gradient-x bg-[length:200%_auto] z-[-1]" />
+                    <div className="absolute inset-0 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-accent-purple/0 to-accent-blue/0 group-hover:from-accent-purple/10 group-hover:to-accent-blue/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     
                     <div className="relative aspect-[16/10] rounded-[1.35rem] md:rounded-[2rem] overflow-hidden bg-zinc-950/50 flex items-center justify-center transition-transform duration-700 group-hover:scale-[0.98]">
                       {(item.fileType === 'image' || item.resultUrl?.match(/\.(webp|jpg|jpeg|gif|png)/i)) && downloadableUrl ? (
@@ -326,29 +332,29 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                     </div>
 
-                    <div className="p-4 sm:p-5 md:p-6 space-y-5 md:space-y-6">
-                      <div className="min-h-[3rem]">
+                    <div className="p-4 sm:p-5 md:p-6 space-y-4 md:space-y-5">
+                      <div className="flex flex-col space-y-1">
                         <p className="text-white font-black text-sm break-words line-clamp-2 uppercase italic tracking-tight mb-1 group-hover:text-accent-purple transition-colors">
                           {item.originalName}
                         </p>
-                        <div className="flex flex-col gap-1 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                        <div className="flex flex-col gap-1.5 mt-1">
                           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
                             {toolInfo.name}
                           </p>
-                          <div className="flex items-center gap-1 text-[9px] font-medium text-zinc-600 uppercase tracking-tighter">
-                            <History size={10} />
-                            {formatTimeAgo(item.createdAt)}
+                          <div className="flex items-center gap-1.5 text-[9px] font-medium text-zinc-600 uppercase tracking-widest">
+                            <History size={10} className="shrink-0" />
+                            <span className="truncate">{formatTimeAgo(item.createdAt)}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 pt-2">
+                      <div className="flex flex-col gap-2.5 pt-2 w-full">
                          <Link 
                           href={toolInfo.href}
-                          className="flex min-h-12 items-center justify-center gap-2 py-3.5 px-3 rounded-2xl bg-zinc-900/50 border border-white/5 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/10 transition-all active:scale-95"
+                          className="flex w-full min-h-[2.75rem] items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-zinc-900/50 border border-white/5 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/10 transition-all active:scale-95"
                          >
-                            <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-700" />
-                            Do it again
+                            <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-700 shrink-0" />
+                            <span>Retry Tool</span>
                          </Link>
                          {downloadableUrl ? (
                            <a
@@ -356,15 +362,15 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                             download={item.originalName}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex min-h-12 items-center justify-center gap-2 py-3.5 px-3 rounded-2xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-lg hover:shadow-accent-purple/20 transition-all active:scale-95"
+                            className="flex w-full min-h-[2.75rem] items-center justify-center gap-2.5 py-2 px-4 rounded-xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-lg hover:shadow-accent-purple/20 transition-all active:scale-95"
                            >
-                              <Download size={14} />
-                              Save
+                              <Download size={14} className="shrink-0" />
+                              <span>Save Result</span>
                            </a>
                          ) : (
-                           <div className="flex min-h-12 items-center justify-center gap-2 py-3.5 px-3 rounded-2xl bg-white/[0.03] border border-white/5 text-zinc-600 font-black text-[10px] uppercase tracking-widest">
-                              <FileText size={14} />
-                              Text saved
+                           <div className="flex w-full min-h-[2.75rem] items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-600 font-black text-[10px] uppercase tracking-widest">
+                              <FileText size={14} className="shrink-0" />
+                              <span>Saved</span>
                            </div>
                          )}
                       </div>
@@ -375,9 +381,6 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
             </AnimatePresence>
           </div>
         </div>
-
-        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#030303] to-transparent pointer-events-none opacity-0 group-hover/container:opacity-100 transition-opacity" />
-        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#030303] to-transparent pointer-events-none opacity-0 group-hover/container:opacity-100 transition-opacity" />
       </div>
 
       <style jsx global>{`

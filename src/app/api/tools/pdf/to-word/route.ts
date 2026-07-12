@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import JSZip from "jszip";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 import {
@@ -91,11 +91,10 @@ async function createEditableDocx(text: string, layout: string) {
 export async function POST(req: NextRequest) {
   const requestId = createPdfRequestId();
   try {
-    const user = await requireApiUser();
-    if (user instanceof NextResponse) return user;
+    const user = await getOptionalApiUser();
     const limit = checkRateLimit(
-      `pdf-to-word:${user.id}:${getRequestIp(req)}`,
-      20,
+      `pdf-to-word:${user?.id || "guest"}:${getRequestIp(req)}`,
+      user ? 20 : 6,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

@@ -3,9 +3,9 @@ import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 import {
   VIDEO_MAX_BYTES,
   VideoProcessingError,
@@ -24,18 +24,18 @@ export const maxDuration = 300;
 export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
-    const authUser = await requireApiUser();
-    if (authUser instanceof NextResponse) return authUser;
+    const formData = await req.formData();
+    const access = await resolveToolAccess(req, { toolId: "video-compressor", mode: "free-quality", creditCost: 8, formData });
+    if (isToolAccessResponse(access)) return access;
     const limit = checkRateLimit(
-      `video-compressor:${authUser.id}:${getRequestIp(req)}`,
-      8,
+      `video-compressor:${access.authUser?.id || "guest"}:${getRequestIp(req)}`,
+      access.isAuthenticated ? 8 : 3,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
-
-    const formData = await req.formData();
     const file = formData.get("video") as File;
-    const quality = String(formData.get("quality") || "medium");
+    const requestedQuality = String(formData.get("quality") || "medium");
+    const quality = access.outputTier === "standard" ? "medium" : requestedQuality;
     const format = String(formData.get("format") || "mp4");
 
     const fileError = validateUploadedFile(file, {
@@ -74,6 +74,8 @@ export async function POST(req: NextRequest) {
       requestId,
     );
     const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
+    const debit = await chargeToolAccess(access, "video-compressor", `tool:${requestId}`);
+    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
     const fileName = `${safeVideoStem(file.name)}-compressed.${format}`;
 
     return createVideoDownloadResponse(bytes, {

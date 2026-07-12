@@ -399,7 +399,7 @@ export default function ResultPage() {
               ) : tool?.id === 'img-bg-remover' ? (
                 <>Your image was fixed using smart AI.</>
               ) : (
-                <>Your file was fixed using Exismic's smart AI.</>
+                <>Your file was fixed using Exismic&apos;s smart AI.</>
               )}
             </p>
           </div>

@@ -145,6 +145,7 @@ export function useCredits() {
   }, [setNotification]);
 
   const fetchCredits = useCallback(async () => {
+    // Re-verify auth state before each fetch
     if (!userId) return;
     
     // Prevent refetching if we already have the state and are not loading
@@ -156,6 +157,12 @@ export function useCredits() {
     try {
       // Use no-store to avoid Next.js caching across users or sessions
       const response = await fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' });
+      
+      if (response.status === 401) {
+        setLoading(false);
+        return;
+      }
+
       const json = await response.json();
 
       if (json.success && json.data) {
@@ -174,7 +181,7 @@ export function useCredits() {
         console.warn('Credits API returned error:', json.error);
       }
     } catch (err) {
-      console.error('Failed to fetch credits via API:', err);
+      console.warn('Failed to fetch credits via API:', err);
     } finally {
       setLoading(false);
     }

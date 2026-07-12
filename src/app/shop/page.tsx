@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import Script from "next/script";
 import confetti from "canvas-confetti";
 import {
   ArrowRight,
@@ -20,11 +20,15 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
-import { createRazorpayOrder, verifyRazorpayPayment } from "@/app/actions/shop";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 import { cn } from "@/lib/utils";
+import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
+import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
+import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
+import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
+import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
 
 const rarityRows = [
   { name: "Common", amount: "10", chance: "Base", color: "text-zinc-300", dot: "bg-zinc-300", aura: "from-zinc-300/25 to-white/5" },
@@ -52,18 +56,21 @@ const packStyles: Record<string, { icon: typeof Zap; gradient: string; glow: str
   gold: { icon: Crown, gradient: "from-amber-300/18 via-fuchsia-500/10 to-violet-500/12", glow: "shadow-amber-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]" },
 };
 
+type CreditPack = (typeof PRICING_CONFIG.CREDIT_PACKAGES)[number] & {
+  priceLabel: string;
+  style: (typeof packStyles)[keyof typeof packStyles];
+};
+
 type RazorpayPaymentResponse = {
   razorpay_payment_id: string;
-  razorpay_order_id: string;
+  razorpay_order_id?: string;
   razorpay_signature: string;
 };
 
-type RazorpayConstructor = new (options: Record<string, unknown>) => {
-  open: () => void;
-  on: (event: string, handler: (response: unknown) => void) => void;
-};
 
 export default function ShopPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth(null);
   const {
     credits,
@@ -79,16 +86,64 @@ export default function ShopPage() {
   const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
 
   const [isIndia, setIsIndia] = useState(false);
-  const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
   const [isProcessingId, setIsProcessingId] = useState<string | null>(null);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [selectedPack, setSelectedPack] = useState<CreditPack | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [claimResult, setClaimResult] = useState<{ amount: number; rarity: string; type?: "temporary" | "permanent" } | null>(null);
   const [claimStage, setClaimStage] = useState<"idle" | "opening" | "revealed">("idle");
   const [claimLocked, setClaimLocked] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentFailure, setShowPaymentFailure] = useState(false);
+  const [successCredits, setSuccessCredits] = useState(0);
+  const [failureReason, setFailureReason] = useState<string | undefined>();
 
   useEffect(() => {
-    setIsIndia(getIsIndia());
+    let active = true;
+    fetch("/api/billing/market", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (active && (data?.market === "IN" || data?.market === "GLOBAL")) {
+          setIsIndia(data.countryCode === "UNKNOWN" ? getIsIndia() : data.market === "IN");
+        }
+      })
+      .catch(() => {
+        if (active) setIsIndia(getIsIndia());
+      });
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const marketOverride = isIndia ? "IN" : "GLOBAL";
+  const gatewayName = isIndia ? "Razorpay" : "PayPal";
+
+  const paymentStatus = searchParams.get("payment");
+  const paymentCredits = searchParams.get("credits");
+  const paymentReason = searchParams.get("reason");
+
+  useEffect(() => {
+    if (!paymentStatus) return;
+
+    if (paymentStatus === "success") {
+      const parsedCredits = Number(paymentCredits || 0);
+      setSuccessCredits(Number.isFinite(parsedCredits) ? parsedCredits : 0);
+      setShowPaymentSuccess(true);
+      void refreshCredits();
+      toast("Credits added to your account.", "success");
+    } else if (paymentStatus === "failed") {
+      const reason = paymentReason || "Payment could not be verified.";
+      setFailureReason(reason);
+      setShowPaymentFailure(true);
+      toast(reason, "warning");
+    } else if (paymentStatus === "cancelled") {
+      toast("Checkout cancelled. No payment was captured.", "info");
+    }
+
+    router.replace("/shop", { scroll: false });
+    // Run once per payment return URL. refreshCredits/toast can change identity after state updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentStatus, paymentCredits, paymentReason, router]);
 
   useEffect(() => {
     if (todayClaim && claimStage === "idle") {
@@ -101,10 +156,10 @@ export default function ShopPage() {
   const dailyLimit = isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50;
   const dailyPercent = Math.min(100, Math.round((dailyCredits / dailyLimit) * 100));
 
-  const formattedPacks = useMemo(() => PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
+  const formattedPacks = useMemo<CreditPack[]>(() => PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
     ...pack,
     priceLabel: isIndia ? `Rs ${pack.priceINR}` : `$${pack.priceUSD}`,
-    style: packStyles[pack.color] || packStyles.blue,
+    style: packStyles[pack.color as keyof typeof packStyles] || packStyles.blue,
   })), [isIndia]);
 
   async function handleClaimDailyReward() {
@@ -157,7 +212,7 @@ export default function ShopPage() {
     }
   }
 
-  async function handlePurchase(pack: typeof formattedPacks[number]) {
+  const handlePurchaseClick = (pack: typeof formattedPacks[number]) => {
     if (!paymentsEnabled) {
       toast("Credit packs will be available soon.", "info");
       return;
@@ -166,43 +221,101 @@ export default function ShopPage() {
       toast("Please login to purchase credits", "warning");
       return;
     }
+    setSelectedPack(pack);
+    setIsTermsModalOpen(true);
+  };
 
-    setIsProcessingId(pack.id);
+  const handlePurchaseConfirm = async () => {
+    if (!selectedPack) return;
+    setIsProcessingId(selectedPack.id);
+    setIsTermsModalOpen(false);
 
     try {
-      const response = await fetch("/api/paypal/order", {
+      const checkoutRequest = createCheckoutSignal();
+      const response = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: checkoutRequest.signal,
         body: JSON.stringify({
-          plan: "credits",
-          tierId: pack.id,
+          planId: selectedPack.billingPlanId || selectedPack.id,
+          marketOverride,
         }),
-      });
+      }).finally(checkoutRequest.clear);
       const data = await response.json().catch(() => null);
 
-      if (!response.ok || !data?.approvalUrl) {
-        toast(data?.error || "Could not start PayPal checkout.", "warning");
+      if (!response.ok || !data?.success) {
+        const reason = data?.error || `Could not start ${gatewayName} checkout.`;
+        setFailureReason(reason);
+        setShowPaymentFailure(true);
+        toast(reason, "warning");
         setIsProcessingId(null);
         return;
       }
 
+      if (data.gateway === "razorpay") {
+        const Razorpay = await loadRazorpayCheckout();
+        if (!data.razorpayOrderId) throw new Error("Credit checkout could not start. Please refresh and try again.");
+
+        const razorpay = new Razorpay({
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Exismic",
+          description: data.plan?.name || `${selectedPack.credits.toLocaleString()} credits`,
+          order_id: data.razorpayOrderId,
+          prefill: {
+            name: user?.user_metadata?.full_name || "Exismic user",
+            email: user?.email || "",
+          },
+          theme: { color: "#8b5cf6" },
+          modal: {
+            ondismiss: () => setIsProcessingId(null),
+          },
+          handler: async (paymentResponse: RazorpayPaymentResponse) => {
+            const verifyResponse = await fetch("/api/billing/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(paymentResponse),
+            });
+            const verifyData = await verifyResponse.json().catch(() => null);
+            if (!verifyResponse.ok || !verifyData?.success) {
+              const reason = verifyData?.error || "Payment verification failed.";
+              setFailureReason(reason);
+              setShowPaymentFailure(true);
+              toast(reason, "warning");
+              setIsProcessingId(null);
+              return;
+            }
+            window.location.href = `/billing/success?type=credits&credits=${selectedPack.credits}`;
+          },
+        });
+
+        razorpay.on("payment.failed", (failure: unknown) => {
+          reportPaymentFailure(data.orderId, failure);
+          const reason = "Payment was not completed. No charge was added to your account.";
+          setFailureReason(reason);
+          setShowPaymentFailure(true);
+          toast(reason, "warning");
+          setIsProcessingId(null);
+        });
+        razorpay.open();
+        return;
+      }
+
+      if (!data?.approvalUrl) throw new Error("PayPal did not return an approval link.");
       window.location.href = data.approvalUrl;
     } catch (error) {
-      console.warn("[PayPal] Credit checkout unavailable:", error instanceof Error ? error.message : error);
-      toast(error instanceof Error ? error.message : "PayPal checkout failed", "warning");
+      console.warn(`[${gatewayName}] Credit checkout unavailable:`, error instanceof Error ? error.message : error);
+      const reason = error instanceof Error ? error.message : `${gatewayName} checkout failed`;
+      setFailureReason(reason);
+      setShowPaymentFailure(true);
+      toast(reason, "warning");
       setIsProcessingId(null);
     }
   }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#030303] px-4 pb-20 pt-24 text-white selection:bg-purple-500/30 sm:px-6 lg:px-8">
-      {paymentsEnabled && (
-        <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="lazyOnload"
-          onLoad={() => setIsRazorpayLoaded(true)}
-        />
-      )}
 
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute left-1/2 top-0 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.2),transparent_68%)] blur-3xl" />
@@ -495,7 +608,7 @@ export default function ShopPage() {
                 )}
               >
                 <CreditCard size={12} />
-                Secure checkout
+                {gatewayName} checkout
               </span>
             </div>
 
@@ -537,7 +650,7 @@ export default function ShopPage() {
 
                       <div className="grid gap-2 sm:min-w-[180px]">
                         <button
-                          onClick={() => handlePurchase(pack)}
+                          onClick={() => handlePurchaseClick(pack)}
                           disabled={isProcessingId !== null || !paymentsEnabled}
                           className={cn(
                             "group relative flex min-h-12 items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.2em] transition-all duration-500",
@@ -584,6 +697,28 @@ export default function ShopPage() {
           </div>
         </section>
       </main>
+      <PaymentTermsModal
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onConfirm={handlePurchaseConfirm}
+        type="credits"
+        packName={selectedPack?.label}
+        price={selectedPack?.priceLabel}
+        gateway={isIndia ? "razorpay" : "paypal"}
+        isProcessing={isProcessingId !== null}
+      />
+      <PaymentSuccessModal
+        isOpen={showPaymentSuccess}
+        onClose={() => setShowPaymentSuccess(false)}
+        type="credits"
+        amount={successCredits}
+      />
+      <PaymentFailureModal
+        isOpen={showPaymentFailure}
+        onClose={() => setShowPaymentFailure(false)}
+        onRetry={() => setShowPaymentFailure(false)}
+        reason={failureReason}
+      />
     </div>
   );
 }

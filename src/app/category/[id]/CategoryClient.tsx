@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import CategoryHeading from "@/components/ui/CategoryHeading";
 import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 
 interface CategoryClientProps {
   categoryId: string;
@@ -15,24 +15,23 @@ interface CategoryClientProps {
 
 export function CategoryClient({ categoryId }: CategoryClientProps) {
   const [favorites, setFavorites] = useState<string[]>([]);
-  const supabase = createClient();
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        const { data: favs } = await supabase
-          .from('Favorite')
-          .select('toolId')
-          .eq('userId', session.user.id);
-        
-        if (favs) {
-          setFavorites(favs.map(f => f.toolId));
-        }
-      }
+      const response = await fetch('/api/user/favorites', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json();
+      setFavorites(Array.isArray(data.favorites) ? data.favorites : []);
     };
-    fetchFavorites();
-  }, [supabase]);
+    void fetchFavorites();
+
+    const handleFavoritesChanged = (event: Event) => {
+      const favorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(favorites)) setFavorites(favorites);
+    };
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+  }, []);
 
   const category = CATEGORIES.find(c => c.id === categoryId);
   const categoryTools = TOOLS.filter(t => t.category === categoryId);
@@ -101,8 +100,13 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
         </motion.div>
       )}
 
-      <div className="fixed top-0 right-0 w-[50%] h-[50%] bg-accent-purple/5 blur-[150px] -z-10 rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[50%] h-[50%] bg-accent-blue/5 blur-[150px] -z-10 rounded-full pointer-events-none" />
+      {/* Dynamic Ambient Background */}
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[#020202]">
+        <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.25),transparent_70%)] blur-[100px] mix-blend-screen" />
+        <div className="absolute -bottom-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.25),transparent_70%)] blur-[100px] mix-blend-screen" />
+        <div className="absolute top-[20%] left-[10%] w-[50%] h-[50%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(236,72,153,0.15),transparent_70%)] blur-[100px] mix-blend-screen" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay" />
+      </div>
     </div>
   );
 }

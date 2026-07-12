@@ -648,7 +648,7 @@ export function CollageMaker() {
                            <div className="flex flex-col md:flex-row gap-4">
                               <a 
                                 href={result}
-                                download={`toolverse-collage-${Date.now()}.${resultFormat}`}
+                                download={`exismic-collage-${Date.now()}.${resultFormat}`}
                                 className="flex-[2] py-8 rounded-3xl bg-emerald-500 text-white font-black text-lg uppercase tracking-widest shadow-4xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
                               >
                                 <Download size={28} /> Export as High-Res {resultFormat.toUpperCase()}

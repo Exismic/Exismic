@@ -250,6 +250,16 @@ export function MagicCommandPalette() {
     return searchResults.flatMap(g => g.items);
   }, [searchResults]);
 
+  const handleExecute = (item: any) => {
+    if (isExecuting) return;
+    setIsExecuting(item.id);
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsExecuting(null);
+      router.push(item.route);
+    }, 450);
+  };
+
   // Keyboard navigation controller
   useEffect(() => {
     const handleKeyboardNavigation = (e: KeyboardEvent) => {
@@ -279,19 +289,6 @@ export function MagicCommandPalette() {
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
-
-  const handleExecute = (item: any) => {
-    if (isExecuting) return;
-
-    setIsExecuting(item.id);
-    
-    // Rich navigation loader for immersive Raycast feeling
-    setTimeout(() => {
-      setIsOpen(false);
-      setIsExecuting(null);
-      router.push(item.route);
-    }, 450);
-  };
 
   return (
     <AnimatePresence>

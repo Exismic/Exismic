@@ -14,12 +14,24 @@ import {
   KeyRound,
   ArrowLeft,
   Smartphone,
-  Radio
+  Radio,
+  Link2,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
-import { signUpAction, signInAction, verifyOtpAction, forgotPasswordAction, resendOtpAction } from "@/app/actions/auth";
+import {
+  signUpAction,
+  signInAction,
+  verifyOtpAction,
+  forgotPasswordAction,
+  resendOtpAction,
+  getOAuthLinkRequestAction,
+  consumeOAuthLinkRequestAction,
+  cancelOAuthLinkRequestAction,
+  type OAuthLinkProvider,
+} from "@/app/actions/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { getClientSiteUrl } from "@/lib/site-url";
@@ -46,7 +58,34 @@ const DiscordIcon = () => (
   </svg>
 );
 
-type AuthState = 'signin' | 'signup' | 'magic' | 'forgot' | 'verify' | 'success';
+type AuthState =
+  | 'signin'
+  | 'signup'
+  | 'magic'
+  | 'forgot'
+  | 'verify'
+  | 'link'
+  | 'linkVerify'
+  | 'success';
+
+type AuthFieldErrors = {
+  email?: string;
+  password?: string;
+};
+
+function providerLabel(provider: OAuthLinkProvider | null) {
+  if (provider === 'google') return 'Google';
+  if (provider === 'github') return 'GitHub';
+  if (provider === 'discord') return 'Discord';
+  return 'social login';
+}
+
+function ProviderIcon({ provider }: { provider: OAuthLinkProvider | null }) {
+  if (provider === 'google') return <GoogleIcon />;
+  if (provider === 'github') return <GitHubIcon />;
+  if (provider === 'discord') return <DiscordIcon />;
+  return <Link2 size={20} />;
+}
 
 export default function AuthPage() {
   const [state, setState] = useState<AuthState>('signin');
@@ -55,6 +94,10 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [pendingSignupPassword, setPendingSignupPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
+  const [linkEmail, setLinkEmail] = useState("");
+  const [linkProvider, setLinkProvider] = useState<OAuthLinkProvider | null>(null);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isRedirectingState, setIsRedirectingState] = useState(false);
   const [trustedChallengeId, setTrustedChallengeId] = useState("");
@@ -62,7 +105,13 @@ export default function AuthPage() {
   const [trustedDeviceName, setTrustedDeviceName] = useState("");
   const [trustedExpiresAt, setTrustedExpiresAt] = useState("");
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+  const authErrorCode = searchParams.get('authError');
+  const linkToken = searchParams.get('link') || '';
+  const requestedReturnUrl = searchParams.get('returnUrl');
+  const returnUrl =
+    requestedReturnUrl?.startsWith('/') && !requestedReturnUrl.startsWith('//')
+      ? requestedReturnUrl
+      : '/dashboard';
   
   const { isRedirecting: isHookRedirecting } = useAuth(returnUrl);
   const isRedirecting = isHookRedirecting || isRedirectingState;
@@ -77,6 +126,39 @@ export default function AuthPage() {
       return () => clearTimeout(timer);
     }
   }, [success, error]);
+
+  useEffect(() => {
+    if (!authErrorCode) return;
+    const messages: Record<string, string> = {
+      provider_link_failed: "That login method couldn't be connected securely. Please try again.",
+      session_exchange_failed: "The sign-in session expired before it could finish. Please try again.",
+      missing_identity: "That provider didn't share a verified email address.",
+    };
+    setError(messages[authErrorCode] || "We couldn't finish that sign-in. Please try again.");
+  }, [authErrorCode]);
+
+  useEffect(() => {
+    if (!linkToken) return;
+    let cancelled = false;
+
+    void getOAuthLinkRequestAction(linkToken).then((result) => {
+      if (cancelled) return;
+      if (result.error || !result.email || !result.provider) {
+        setError(result.error || "This connection request is no longer available.");
+        setState('signin');
+        return;
+      }
+
+      setLinkEmail(result.email);
+      setLinkProvider(result.provider);
+      setState('link');
+      setError(null);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [linkToken]);
 
   useEffect(() => {
     if (!trustedChallengeId || !trustedBrowserToken) return;
@@ -143,7 +225,7 @@ export default function AuthPage() {
 
   // Handle OTP input
   const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) value = value[0];
+    value = value.replace(/\D/g, '').slice(0, 1);
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -165,6 +247,7 @@ export default function AuthPage() {
   const handleSocialLogin = async (provider: 'google' | 'github' | 'discord') => {
     setSocialLoading(provider);
     setError(null);
+    setFieldErrors({});
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOAuth({
@@ -187,14 +270,40 @@ export default function AuthPage() {
     setSuccess(null);
 
     const formData = new FormData(e.currentTarget);
-    const formEmail = formData.get('email') as string;
+    const formEmail = String(formData.get('email') || '').trim();
+    const formPassword = String(formData.get('password') || '');
     if (formEmail) setEmail(formEmail);
+
+    const nextFieldErrors: AuthFieldErrors = {};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail)) {
+      nextFieldErrors.email = "Enter a complete email address.";
+    }
+    if (state !== 'forgot' && !formPassword) {
+      nextFieldErrors.password = "Enter your password.";
+    }
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError("Check the highlighted fields and try again.");
+      setIsLoading(false);
+      return;
+    }
+    setFieldErrors({});
 
     try {
       if (state === 'signin') {
         const result = await signInAction(formData);
         if (result?.error) {
           setError(result.error);
+          if (result.field === 'email') {
+            setFieldErrors({ email: result.error });
+          } else if (result.field === 'password') {
+            setFieldErrors({ password: result.error });
+          } else if (result.field === 'credentials') {
+            setFieldErrors({
+              email: "Check this email address.",
+              password: "Check this password.",
+            });
+          }
         } else {
           setIsRedirectingState(true);
           window.location.href = returnUrl;
@@ -218,6 +327,8 @@ export default function AuthPage() {
         if (result?.error) {
           setError(result.error);
         } else if (result?.step === 'verify') {
+          setEmail(String(result.email || formEmail).trim().toLowerCase());
+          setPendingSignupPassword(password);
           setState('verify');
           setSuccess("Check your email for the verification code!");
         }
@@ -236,6 +347,65 @@ export default function AuthPage() {
     }
   };
 
+  const handleCancelLink = async () => {
+    if (linkToken) await cancelOAuthLinkRequestAction(linkToken);
+    setLinkEmail("");
+    setLinkProvider(null);
+    setState('signin');
+    setError(null);
+    window.history.replaceState({}, '', '/auth/login');
+  };
+
+  const handleLinkSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setFieldErrors({});
+
+    const password = String(new FormData(e.currentTarget).get('password') || '');
+    if (!password) {
+      setFieldErrors({ password: "Enter the password for this Exismic account." });
+      setError("Enter your password to approve this connection.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: linkEmail,
+        password,
+      });
+      if (signInError) {
+        setFieldErrors({ password: "That password doesn't match this account." });
+        setError("Password incorrect. Your account has not been changed.");
+        return;
+      }
+
+      const approval = await consumeOAuthLinkRequestAction(linkToken);
+      if (approval.error || !approval.provider) {
+        setError(approval.error || "Could not approve this login method.");
+        return;
+      }
+
+      setIsRedirectingState(true);
+      const { error: linkError } = await supabase.auth.linkIdentity({
+        provider: approval.provider,
+        options: {
+          redirectTo: `${getClientSiteUrl()}/auth/callback?next=${encodeURIComponent(returnUrl)}`,
+        },
+      });
+      if (linkError) {
+        setIsRedirectingState(false);
+        setError("Could not connect that login method. Please try again.");
+      }
+    } catch {
+      setError("Could not connect that login method. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleVerifyOtp = async () => {
     setIsLoading(true);
     setError(null);
@@ -247,16 +417,27 @@ export default function AuthPage() {
     }
 
     try {
-      const result = await verifyOtpAction(email, otpString);
+      const result = await verifyOtpAction(email, otpString, pendingSignupPassword);
       if (result.error) {
         setError(result.error);
       } else {
+        const supabase = createClient();
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password: pendingSignupPassword,
+        });
+
+        if (signInError) {
+          setPendingSignupPassword("");
+          setState('signin');
+          setSuccess("Email verified. Sign in with your new password.");
+          return;
+        }
+
         setState('success');
         setIsRedirectingState(true);
-        setTimeout(() => {
-          // Use window.location for a more reliable redirect during auth flows
-          window.location.href = returnUrl;
-        }, 1500);
+        setPendingSignupPassword("");
+        window.location.replace(returnUrl);
       }
     } catch {
       setError("Verification failed.");
@@ -369,30 +550,161 @@ export default function AuthPage() {
             <AnimatePresence>
               {(success || error) && (
                 <motion.div 
-                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  initial={{ opacity: 0, y: -14, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
                   className="absolute top-4 left-4 right-4 z-50"
                 >
-                  <div className={`p-4 rounded-2xl backdrop-blur-xl border flex items-center gap-3 shadow-2xl ${
+                  <div className={`relative overflow-hidden rounded-2xl border p-[1px] shadow-2xl ${
                     success 
-                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
-                      : "bg-red-500/10 border-red-500/20 text-red-500"
+                      ? "border-emerald-300/25 bg-gradient-to-r from-emerald-400/35 via-cyan-400/20 to-transparent"
+                      : "border-rose-300/20 bg-gradient-to-r from-rose-400/30 via-amber-300/15 to-transparent"
                   }`}>
-                    {success ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                    <span className="text-[11px] font-bold uppercase tracking-widest flex-1">
-                      {success || error}
-                    </span>
-                    <button onClick={() => { setSuccess(null); setError(null); }} className="opacity-50 hover:opacity-100 transition-opacity">
-                      <Lock className="rotate-45" size={14} />
-                    </button>
+                    <div className="flex items-start gap-3 rounded-[15px] bg-[#09090b]/95 px-4 py-3.5 backdrop-blur-2xl">
+                      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                        success
+                          ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-300"
+                          : "border-rose-300/20 bg-rose-300/10 text-rose-200"
+                      }`}>
+                        {success ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />}
+                      </div>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <p className={`text-[9px] font-black uppercase tracking-[0.22em] ${
+                          success ? "text-emerald-300" : "text-rose-200"
+                        }`}>
+                          {success ? "All set" : "Sign-in needs attention"}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold leading-relaxed text-zinc-200">
+                          {success || error}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Dismiss message"
+                        onClick={() => { setSuccess(null); setError(null); }}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-white/[0.06] hover:text-white"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                    <motion.div
+                      className={`absolute bottom-0 left-0 h-px ${success ? "bg-emerald-300" : "bg-rose-300"}`}
+                      initial={{ width: "100%" }}
+                      animate={{ width: "0%" }}
+                      transition={{ duration: 5, ease: "linear" }}
+                    />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <AnimatePresence mode="wait">
-              {state === 'success' ? (
+              {state === 'link' ? (
+                <motion.div
+                  key="link-offer"
+                  initial={{ opacity: 0, x: 18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -18 }}
+                  className="space-y-7"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.07] text-white shadow-[0_0_32px_rgba(34,211,238,0.12)]">
+                        <ProviderIcon provider={linkProvider} />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.24em] text-cyan-300">Permission required</p>
+                        <h2 className="mt-1 text-xl font-black tracking-tight text-white">Connect {providerLabel(linkProvider)}?</h2>
+                      </div>
+                    </div>
+                    <Link2 size={19} className="text-purple-300" />
+                  </div>
+
+                  <div className="border-y border-white/[0.07] py-6">
+                    <p className="text-sm font-semibold leading-relaxed text-zinc-200">
+                      An Exismic account already uses <span className="text-white">{linkEmail}</span>.
+                    </p>
+                    <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                      Connecting {providerLabel(linkProvider)} adds another secure way to sign in. Your Exismic name, profile picture, credits, plan, and settings will stay unchanged.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setState('linkVerify')}
+                      className="min-h-12 rounded-2xl bg-gradient-to-r from-purple-500 via-violet-500 to-cyan-400 px-5 text-[10px] font-black uppercase tracking-[0.17em] text-white shadow-[0_0_30px_rgba(124,58,237,0.2)] transition hover:brightness-110 active:scale-[0.98]"
+                    >
+                      Connect account
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleCancelLink()}
+                      className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.035] px-5 text-[10px] font-black uppercase tracking-[0.17em] text-zinc-300 transition hover:bg-white/[0.07] hover:text-white"
+                    >
+                      Not now
+                    </button>
+                  </div>
+                </motion.div>
+              ) : state === 'linkVerify' ? (
+                <motion.div
+                  key="link-verify"
+                  initial={{ opacity: 0, x: 18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -18 }}
+                  className="space-y-7"
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setState('link'); setError(null); setFieldErrors({}); }}
+                    className="flex min-h-11 items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 transition hover:text-white"
+                  >
+                    <ArrowLeft size={14} /> Back
+                  </button>
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-purple-300/20 bg-purple-300/[0.07] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-purple-200">
+                      <ShieldCheck size={13} /> Confirm ownership
+                    </div>
+                    <h2 className="mt-4 text-2xl font-black tracking-tight">Approve {providerLabel(linkProvider)} login</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-500">Enter your existing Exismic password. Nothing is linked until verification succeeds.</p>
+                  </div>
+
+                  <form onSubmit={handleLinkSubmit} className="space-y-4">
+                    <div className="rounded-2xl border border-white/[0.07] bg-black/30 px-5 py-4">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">Existing account</p>
+                      <p className="mt-1.5 truncate text-sm font-bold text-zinc-200">{linkEmail}</p>
+                    </div>
+                    <div>
+                      <div className="relative">
+                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+                        <input
+                          name="password"
+                          type="password"
+                          autoComplete="current-password"
+                          aria-invalid={Boolean(fieldErrors.password)}
+                          placeholder="Existing Exismic password"
+                          className={`w-full rounded-2xl border bg-black/40 py-4.5 pl-14 pr-6 text-sm text-white outline-none transition ${
+                            fieldErrors.password
+                              ? "border-rose-400/50 bg-rose-400/[0.035] focus:border-rose-300/70"
+                              : "border-white/[0.07] focus:border-purple-400/50 focus:bg-purple-400/[0.025]"
+                          }`}
+                        />
+                      </div>
+                      {fieldErrors.password ? (
+                        <p className="mt-2 px-1 text-[11px] font-semibold text-rose-300">{fieldErrors.password}</p>
+                      ) : null}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-white px-5 text-[10px] font-black uppercase tracking-[0.18em] text-black transition hover:bg-zinc-200 active:scale-[0.98] disabled:opacity-60"
+                    >
+                      {isLoading ? <Loader2 className="animate-spin" size={18} /> : <><Link2 size={16} /> Verify and connect</>}
+                    </button>
+                  </form>
+                </motion.div>
+              ) : state === 'success' ? (
                 <motion.div 
                   key="success"
                   initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
@@ -654,7 +966,7 @@ export default function AuthPage() {
                     </div>
                   )}
 
-                  {state === 'forgot' && (
+                  {(state as AuthState) === 'forgot' && (
                     <div className="space-y-2">
                       <button onClick={() => setState('signin')} className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4">
                         <ArrowLeft size={14} /> Back
@@ -740,13 +1052,27 @@ export default function AuthPage() {
                             name="email"
                             type="email" 
                             required
+                            autoComplete="email"
+                            aria-invalid={Boolean(fieldErrors.email)}
+                            onChange={() => {
+                              if (fieldErrors.email) {
+                                setFieldErrors((current) => ({ ...current, email: undefined }));
+                              }
+                            }}
                             placeholder="Email address"
-                            className="w-full bg-black/40 border border-white/[0.05] rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/40 focus:bg-purple-500/[0.02] transition-all"
+                            className={`w-full rounded-2xl border bg-black/40 py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 outline-none transition-all ${
+                              fieldErrors.email
+                                ? "border-rose-400/50 bg-rose-400/[0.035] focus:border-rose-300/70"
+                                : "border-white/[0.05] focus:border-purple-500/40 focus:bg-purple-500/[0.02]"
+                            }`}
                           />
                         </div>
+                        {fieldErrors.email ? (
+                          <p className="mt-2 px-1 text-[11px] font-semibold text-rose-300">{fieldErrors.email}</p>
+                        ) : null}
                       </div>
 
-                      {state !== 'forgot' && (
+                      {(state as AuthState) !== 'forgot' && (
                         <div className="relative group">
                           <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity blur-sm pointer-events-none" />
                           <div className="relative">
@@ -755,10 +1081,24 @@ export default function AuthPage() {
                               name="password"
                               type="password" 
                               required
+                              autoComplete={state === 'signup' ? 'new-password' : 'current-password'}
+                              aria-invalid={Boolean(fieldErrors.password)}
+                              onChange={() => {
+                                if (fieldErrors.password) {
+                                  setFieldErrors((current) => ({ ...current, password: undefined }));
+                                }
+                              }}
                               placeholder="Security Password"
-                              className="w-full bg-black/40 border border-white/[0.05] rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/40 focus:bg-purple-500/[0.02] transition-all"
+                              className={`w-full rounded-2xl border bg-black/40 py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 outline-none transition-all ${
+                                fieldErrors.password
+                                  ? "border-rose-400/50 bg-rose-400/[0.035] focus:border-rose-300/70"
+                                  : "border-white/[0.05] focus:border-purple-500/40 focus:bg-purple-500/[0.02]"
+                              }`}
                             />
                           </div>
+                          {fieldErrors.password ? (
+                            <p className="mt-2 px-1 text-[11px] font-semibold text-rose-300">{fieldErrors.password}</p>
+                          ) : null}
                         </div>
                       )}
 
@@ -771,6 +1111,7 @@ export default function AuthPage() {
                               name="confirmPassword"
                               type="password" 
                               required
+                              autoComplete="new-password"
                               placeholder="Confirm Password"
                               className="w-full bg-black/40 border border-white/[0.05] rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/40 focus:bg-purple-500/[0.02] transition-all"
                             />

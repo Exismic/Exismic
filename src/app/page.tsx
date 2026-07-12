@@ -45,6 +45,9 @@ const faqSchema = {
   ]
 };
 
+import { Crown, ArrowRight, Zap } from "lucide-react";
+import Link from "next/link";
+
 export default async function Home() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
@@ -58,6 +61,15 @@ export default async function Home() {
     );
   }
 
+  const { data: dbUser } = await supabase
+    .from('User')
+    .select('isPro, credits')
+    .eq('id', session.user.id)
+    .single();
+    
+  const isPro = dbUser?.isPro || false;
+  const credits = dbUser?.credits || 0;
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto py-12">
       <JsonLd type="FAQPage" data={faqSchema} />
@@ -65,7 +77,7 @@ export default async function Home() {
       <Dashboard />
 
       {/* 2. Global Category Explorer (Moved to bottom as discovery) */}
-      <section className="pt-24 border-t border-zinc-900">
+      <section className="pt-8">
          <div className="text-center space-y-4 mb-20">
             <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">Pick a category</h2>
             <p className="text-zinc-500 font-medium">Choose what you want to work on</p>

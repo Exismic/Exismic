@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import axios from 'axios';
+import { requireProApiUser } from "@/lib/api-security";
 
 export const dynamic = 'force-dynamic';
 
@@ -193,6 +194,8 @@ function readAiChatSettings(preferences?: string | null) {
 
 export async function GET(req: Request) {
   try {
+    const proUser = await requireProApiUser();
+    if (proUser instanceof NextResponse) return proUser;
     const supabaseServer = await createClient();
     const { data: { user: sbUser } } = await supabaseServer.auth.getUser();
     if (!sbUser || !sbUser.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -245,6 +248,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const proUser = await requireProApiUser();
+    if (proUser instanceof NextResponse) return proUser;
     const supabaseServer = await createClient();
     const { data: { user: sbUser } } = await supabaseServer.auth.getUser();
     if (!sbUser || !sbUser.email) return NextResponse.json({ error: "Please sign in" }, { status: 401 });
@@ -553,7 +558,7 @@ ${contextStr}`;
       } catch (err) {
         console.warn("Smart title generation failed:", err);
         // Clean fallback
-        let fallback = userQuery
+        const fallback = userQuery
           .replace(/[#*\_`\-\+\[\]\(\)]/g, "")
           .replace(/['"]+/g, "")
           .replace(/\s+/g, " ")

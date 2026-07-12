@@ -1,12 +1,13 @@
 "use server";
 
 import { getCurrentUserId } from "@/lib/auth";
-import { addCredits } from "@/lib/credits";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { CheckoutCurrency, getCreditPackageByCredits, getCreditPackagePrice, normalizeCheckoutCurrency } from "@/lib/payment-pricing";
 import { prisma } from "@/lib/prisma";
+import { generateTransactionReference } from "@/lib/payment-reference";
 import { PRICING_CONFIG } from "@/config/pricing";
+import { Prisma } from "@prisma/client";
 
 function getRazorpayClient() {
   const key_id = process.env.RAZORPAY_KEY_ID;
@@ -123,34 +124,55 @@ export async function verifyRazorpayPayment(
     return { success: false, error: "Payment amount does not match the selected package." };
   }
 
-  const existingTransaction = await prisma.paymentTransaction.findUnique({
-    where: { providerPaymentId: razorpay_payment_id },
-  });
-  if (existingTransaction) {
-    return { success: true, duplicate: true };
-  }
+  try {
+    const result = await prisma.$transaction(async (transaction) => {
+      const existing = await transaction.paymentTransaction.findUnique({
+        where: { providerPaymentId: razorpay_payment_id },
+      });
+      if (existing) return { duplicate: true };
 
-  // Add credits to user
-  const result = await addCredits(userId, creditsToAdd, `Shop purchase: ${creditsToAdd} credits`);
-  
-  if (!result.success) {
+      await transaction.paymentTransaction.create({
+        data: {
+          providerPaymentId: razorpay_payment_id,
+          providerOrderId: razorpay_order_id,
+          userId,
+          kind: "credits",
+          transactionReference: generateTransactionReference("credits"),
+          amount: expectedPrice.amountMinor,
+          currency,
+          metadata: { credits: creditsToAdd, source: "shop" },
+        },
+      });
+      await transaction.user.update({
+        where: { id: userId },
+        data: { lifetimeCredits: { increment: creditsToAdd } },
+      });
+      await transaction.creditTransaction.create({
+        data: {
+          userId,
+          amount: creditsToAdd,
+          balanceType: "permanent",
+          transactionType: "purchase",
+          description: `Shop purchase: ${creditsToAdd} permanent credits`,
+          metadata: {
+            provider: "razorpay",
+            providerPaymentId: razorpay_payment_id,
+            providerOrderId: razorpay_order_id,
+          },
+        },
+      });
+      return { duplicate: false };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+
+    return { success: true, duplicate: result.duplicate };
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = await prisma.paymentTransaction.findUnique({
+        where: { providerPaymentId: razorpay_payment_id },
+      });
+      if (existing) return { success: true, duplicate: true };
+    }
+    console.error("[SHOP] Atomic credit fulfillment failed:", error);
     return { success: false, error: "Failed to add credits to your account" };
   }
-
-  await prisma.paymentTransaction.create({
-    data: {
-      providerPaymentId: razorpay_payment_id,
-      providerOrderId: razorpay_order_id,
-      userId,
-      kind: "credits",
-      amount: expectedPrice.amountMinor,
-      currency,
-      metadata: {
-        credits: creditsToAdd,
-        source: "shop",
-      },
-    },
-  });
-
-  return { success: true };
 }

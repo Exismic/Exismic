@@ -28,6 +28,7 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type RGB }
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
+import { getFunctionalStorageItem, removeFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 
 interface InvoiceItem {
   id: string;
@@ -262,10 +263,10 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const saved = getFunctionalStorageItem(STORAGE_KEY);
         setData(saved ? JSON.parse(saved) as InvoiceData : createDefaultInvoice());
       } catch {
-        localStorage.removeItem(STORAGE_KEY);
+        removeFunctionalStorageItem(STORAGE_KEY);
       }
     }, 0);
     return () => window.clearTimeout(timer);
@@ -362,13 +363,13 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
   };
 
   const saveDraft = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    setDraftNotice("Draft saved on this device.");
+    const saved = setFunctionalStorageItem(STORAGE_KEY, JSON.stringify(data));
+    setDraftNotice(saved ? "Draft saved on this device." : "Enable Functional cookies to save drafts on this device.");
     window.setTimeout(() => setDraftNotice(null), 2500);
   };
 
   const clearDraft = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    removeFunctionalStorageItem(STORAGE_KEY);
     setData(createDefaultInvoice());
     setDraftNotice("Draft cleared.");
     window.setTimeout(() => setDraftNotice(null), 2500);
@@ -678,7 +679,11 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
       drawWrappedText({ page, text: data.paymentInstructions, x: 322, y, maxWidth: 220, size: 9, font: regular, color: mutedColor, lineHeight: 12 });
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const pdfBuffer = pdfBytes.buffer.slice(
+        pdfBytes.byteOffset,
+        pdfBytes.byteOffset + pdfBytes.byteLength,
+      ) as ArrayBuffer;
+      const blob = new Blob([pdfBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

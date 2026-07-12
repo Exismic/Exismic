@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
 import { Sparkles, ArrowRight, Users, Lock, FastForward } from "lucide-react";
 import { useRef } from "react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ export function Hero() {
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -25,7 +25,7 @@ export function Hero() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
     visible: { 
       opacity: 1, 
@@ -58,12 +58,12 @@ export function Hero() {
                     key={i} 
                     className="absolute rounded-full bg-white opacity-[0.1] blur-[1px]"
                     style={{
-                        width: Math.random() * 3 + 1 + 'px',
-                        height: Math.random() * 3 + 1 + 'px',
-                        top: Math.random() * 100 + '%',
-                        left: Math.random() * 100 + '%',
-                        animation: `float-particle ${Math.random() * 20 + 20}s linear infinite`,
-                        animationDelay: `-${Math.random() * 20}s`
+                        width: `${1 + ((i * 7) % 3)}px`,
+                        height: `${1 + ((i * 11) % 3)}px`,
+                        top: `${(i * 37) % 100}%`,
+                        left: `${(i * 61) % 100}%`,
+                        animation: `float-particle ${20 + ((i * 13) % 20)}s linear infinite`,
+                        animationDelay: `-${(i * 17) % 20}s`
                     }}
                 />
             ))}
@@ -136,4 +136,3 @@ export function Hero() {
     </section>
   );
 }
-

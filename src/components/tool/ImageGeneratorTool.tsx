@@ -18,6 +18,7 @@ import {
   Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import axios from "axios";
 import { useCredits } from "@/hooks/useCredits";
 
@@ -71,7 +72,7 @@ export function ImageGeneratorTool() {
 
   // Load history from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("exismic_image_history");
+    const stored = getFunctionalStorageItem("exismic_image_history");
     if (stored) {
       try {
         setHistory(JSON.parse(stored));
@@ -83,7 +84,7 @@ export function ImageGeneratorTool() {
 
   // Decimal countdown timer for estimated inference time
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval> | undefined;
     const startEstimate = isPro ? 2.5 : 5.0;
     const floorEstimate = isPro ? 0.3 : 0.5;
     if (isGenerating) {
@@ -166,13 +167,15 @@ export function ImageGeneratorTool() {
 
         setHistory(prev => {
           const updated = [newHistoryItem, ...prev];
-          localStorage.setItem("exismic_image_history", JSON.stringify(updated));
+          setFunctionalStorageItem("exismic_image_history", JSON.stringify(updated));
           return updated;
         });
       }
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || "Failed to generate image. Please try again.";
-      const needsUpgrade = err.response?.data?.needsUpgrade;
+    } catch (err: unknown) {
+      const errorMsg = axios.isAxiosError(err)
+        ? err.response?.data?.error || "Failed to generate image. Please try again."
+        : "Failed to generate image. Please try again.";
+      const needsUpgrade = axios.isAxiosError(err) && Boolean(err.response?.data?.needsUpgrade);
       
       setError(
         needsUpgrade ? (
@@ -494,7 +497,7 @@ export function ImageGeneratorTool() {
                                  <span className="text-[10px] font-black uppercase tracking-[0.25em]">Exismic Ai Prompt Enhancement</span>
                               </div>
                               <p className="text-xs text-zinc-400 font-medium leading-relaxed italic relative z-10">
-                                 "{enhancedPrompt}"
+                                 &ldquo;{enhancedPrompt}&rdquo;
                               </p>
                            </div>
                         )}
@@ -575,7 +578,7 @@ export function ImageGeneratorTool() {
                   <div key={i} className="group relative aspect-square rounded-[2.5rem] overflow-hidden glass border border-white/5 shadow-xl">
                      <img src={item.url} alt="History Art" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                      <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
-                        <p className="text-[10px] text-zinc-100 line-clamp-2 font-bold mb-4 italic leading-relaxed">"{item.prompt}"</p>
+                        <p className="text-[10px] text-zinc-100 line-clamp-2 font-bold mb-4 italic leading-relaxed">&ldquo;{item.prompt}&rdquo;</p>
                         <div className="flex gap-2">
                            <button 
                               onClick={() => {

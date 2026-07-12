@@ -1,7 +1,8 @@
 import React from 'react';
+import { SITE_URL } from '@/lib/seo';
 
 interface SEOProps {
-  type: 'Organization' | 'WebSite' | 'SoftwareApplication' | 'FAQPage';
+  type: 'Organization' | 'WebSite' | 'SoftwareApplication' | 'WebApplication' | 'FAQPage' | 'BreadcrumbList' | 'Article';
   data: Record<string, unknown>;
 }
 
@@ -23,20 +24,13 @@ export function JsonLd({ type, data }: SEOProps) {
 export const defaultSchemaData = {
   organization: {
     name: 'Exismic',
-    url: 'https://www.exismicai.online',
-    logo: 'https://www.exismicai.online/logo.png',
-    sameAs: [
-      'https://twitter.com/exismicai',
-      'https://github.com/exismicai',
-    ],
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    description: 'Exismic is an AI-powered creative workspace for image, video, audio, PDF, coding, and productivity workflows.',
   },
   website: {
-    name: 'Exismic Ai',
-    url: 'https://www.exismicai.online',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://www.exismicai.online/tools?q={search_term_string}',
-      'query-input': 'required name=search_term_string',
-    },
+    name: 'Exismic',
+    alternateName: ['Exismic AI', 'Exismic AI Studio'],
+    url: SITE_URL,
   },
 };

@@ -3,7 +3,7 @@ import { recordEmailEvent } from './email-diagnostics';
 import { getServerSiteUrl } from './site-url';
 import { PRICING_CONFIG } from '@/config/pricing';
 
-const EMAIL_SENDER_DOMAIN = 'exismicai.online';
+const EMAIL_SENDER_DOMAIN = process.env.EMAIL_SENDER_DOMAIN?.trim() || 'exismic.xyz';
 const SENDER_PAYMENT = `"Exismic" <payments@${EMAIL_SENDER_DOMAIN}>`;
 const SENDER_NOREPLY = `"Exismic" <noreply@${EMAIL_SENDER_DOMAIN}>`;
 const SENDER_WELCOME = `"Exismic" <welcome@${EMAIL_SENDER_DOMAIN}>`;
@@ -11,11 +11,29 @@ const SENDER_WELCOME = `"Exismic" <welcome@${EMAIL_SENDER_DOMAIN}>`;
 const SITE_URL = getServerSiteUrl();
 const PRO_DAILY_CREDITS_LABEL = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString();
 
-type EmailPayload = Parameters<typeof resend.emails.send>[0];
+function escapeEmailText(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 
-async function sendTrackedEmail(channel: string, recipient: string, payload: EmailPayload) {
+type EmailPayload = Parameters<typeof resend.emails.send>[0];
+type EmailRequestOptions = Parameters<typeof resend.emails.send>[1];
+
+async function sendTrackedEmail(
+  channel: string,
+  recipient: string,
+  payload: EmailPayload,
+  options?: EmailRequestOptions,
+) {
   try {
-    const response = await resend.emails.send(payload);
+    const response = await resend.emails.send(payload, options) as {
+      data?: unknown;
+      error?: string | { message?: string } | null;
+    };
     const errorMessage = response.error
       ? typeof response.error === 'string'
         ? response.error
@@ -229,13 +247,25 @@ const PREMIUM_DARK_THEME = (content: string) => `
             color: #67e8f9;
             font-weight: 600;
         }
+        @media only screen and (max-width: 620px) {
+            .wrapper { padding: 24px 10px 32px !important; }
+            .container { border-radius: 24px !important; }
+            .header { padding: 30px 0 24px !important; }
+            .content { padding: 0 20px 32px !important; }
+            h1 { font-size: 32px !important; line-height: 1.1 !important; letter-spacing: -1px !important; }
+            .info-card { padding: 19px !important; border-radius: 18px !important; }
+            .info-cell { display: block !important; width: 100% !important; text-align: left !important; }
+            .info-value { padding-top: 4px !important; padding-bottom: 12px !important; word-break: break-word !important; }
+            .cta-button { box-sizing: border-box !important; width: 100% !important; padding-left: 16px !important; padding-right: 16px !important; }
+            .footer-link { display: inline-block !important; margin: 5px 7px !important; }
+        }
     </style>
 </head>
 <body>
     <div class="wrapper">
         <div class="container">
             <div class="header">
-                <div class="mark-wrap"><div class="mark">L</div></div>
+                <div class="mark-wrap"><div class="mark">E</div></div>
                 <div class="logo">Exismic<span class="logo-dot">.</span></div>
             </div>
             <div class="content">
@@ -275,12 +305,24 @@ export async function sendProWelcomeEmail(email: string, details: {
   <meta name="color-scheme" content="dark">
   <meta name="supported-color-schemes" content="dark">
   <title>Welcome to Exismic Pro</title>
+  <style>
+    @media only screen and (max-width:620px) {
+      .pro-outer { padding:24px 10px 30px !important; }
+      .pro-card { border-radius:24px !important; }
+      .pro-hero { padding:36px 20px 28px !important; }
+      .pro-pad { padding-left:20px !important; padding-right:20px !important; }
+      .pro-title { font-size:34px !important; line-height:1.08 !important; letter-spacing:-1.4px !important; }
+      .pro-benefits td { display:block !important; width:100% !important; box-sizing:border-box !important; padding:0 0 12px !important; }
+      .pro-detail-label, .pro-detail-value { display:block !important; width:100% !important; text-align:left !important; }
+      .pro-detail-value { padding-top:5px !important; }
+    }
+  </style>
 </head>
 <body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Your Exismic Pro membership is active. Open the dashboard and start creating with premium power.</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 20% 0%, rgba(124,58,237,0.22), transparent 34%), radial-gradient(circle at 86% 18%, rgba(6,182,212,0.16), transparent 30%);">
     <tr>
-      <td align="center" style="padding:46px 18px 34px;">
+      <td class="pro-outer" align="center" style="padding:46px 18px 34px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:680px;">
           <tr>
             <td style="padding:0 0 18px; text-align:center;">
@@ -292,23 +334,23 @@ export async function sendProWelcomeEmail(email: string, details: {
             </td>
           </tr>
           <tr>
-            <td style="border-radius:34px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:rgba(7,7,12,0.88); box-shadow:0 34px 120px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);">
+            <td class="pro-card" style="border-radius:34px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:rgba(7,7,12,0.88); box-shadow:0 34px 120px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.28), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
+                  <td class="pro-hero" style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.28), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
                     <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,0.36); background:rgba(124,58,237,0.16); color:#c4b5fd; font-size:11px; line-height:1; font-weight:800; letter-spacing:1.7px; text-transform:uppercase;">Membership Activated</div>
-                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.02; letter-spacing:-2.2px; font-weight:900;">Welcome to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Exismic Pro</span></h1>
+                    <h1 class="pro-title" style="margin:0; color:#ffffff; font-size:44px; line-height:1.02; letter-spacing:-2.2px; font-weight:900;">Welcome to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Exismic Pro</span></h1>
                     <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">Your membership is live. Premium credits, faster generation, advanced AI models, and studio-grade tools are now unlocked for your account.</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:0 42px 34px;">
+                  <td class="pro-pad" style="padding:0 42px 34px;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:24px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.045); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);">
                       <tr>
                         <td style="padding:24px;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                             <tr><td style="padding:0 0 16px; color:#ffffff; font-size:15px; font-weight:850;">Plan details</td><td align="right" style="padding:0 0 16px; color:#a78bfa; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.4px;">Active</td></tr>
-                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Plan</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">Exismic Pro ($6.99/mo)</td></tr>
+                            <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Plan</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">Exismic Pro</td></tr>
                             <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Invoice ID</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.invoiceId}</td></tr>
                             <tr><td style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Amount Paid</td><td align="right" style="padding:12px 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.amount}</td></tr>
                             <tr><td style="padding:12px 0 0; border-top:1px solid rgba(255,255,255,0.07); color:#7d8aa3; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px;">Next Billing</td><td align="right" style="padding:12px 0 0; border-top:1px solid rgba(255,255,255,0.07); color:#f8fafc; font-size:14px; font-weight:800;">${details.date}</td></tr>
@@ -319,9 +361,9 @@ export async function sendProWelcomeEmail(email: string, details: {
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:0 42px 34px;">
+                  <td class="pro-pad" style="padding:0 42px 34px;">
                     <div style="margin:0 0 16px; color:#ffffff; font-size:16px; font-weight:850;">Key benefits unlocked</div>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <table class="pro-benefits" role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td width="50%" style="padding:0 8px 12px 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(124,58,237,0.28);">&#10022;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">${PRO_DAILY_CREDITS_LABEL} daily credits</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Premium generation capacity every day.</div></div></td>
                         <td width="50%" style="padding:0 0 12px 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(6,182,212,0.24);">&#9889;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Priority speed</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Faster processing for creative workflows.</div></div></td>
@@ -334,7 +376,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding:0 42px 42px;">
+                  <td class="pro-pad" align="center" style="padding:0 42px 42px;">
                     <a href="${SITE_URL}/dashboard" style="display:block; width:100%; max-width:420px; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:900; box-shadow:0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);">Go to Dashboard</a>
                     <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">Your invoice is attached to your account history. You can manage your subscription anytime from Settings.</p>
                   </td>
@@ -350,7 +392,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic Ai<br>You are receiving this email because your Exismic Pro membership was activated.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic AI<br>You are receiving this email because your Exismic Pro membership was activated.<br>&copy; ${new Date().getFullYear()} Raxstdioz LLC. All Rights Reserved.</div>
             </td>
           </tr>
         </table>
@@ -360,7 +402,7 @@ export async function sendProWelcomeEmail(email: string, details: {
 </body>
 </html>
       `,
-    });
+    }, { idempotencyKey: `pro-activated/${details.invoiceId}` });
 
     if (error) {
       console.error('Resend error:', error);
@@ -443,26 +485,39 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
   }
 }
 
-export async function sendPaymentFailedEmail(email: string) {
+export async function sendPaymentFailedEmail(email: string, details?: {
+  purchaseType?: 'pro' | 'credits';
+  amount?: string;
+  orderId?: string;
+  reason?: string;
+}) {
   try {
+    const purchaseLabel = details?.purchaseType === 'credits' ? 'credit purchase' : details?.purchaseType === 'pro' ? 'Pro membership' : 'purchase';
+    const retryUrl = details?.purchaseType === 'credits' ? `${SITE_URL}/shop` : `${SITE_URL}/pro`;
+    const safeReason = details?.reason ? escapeEmailText(details.reason) : 'The payment provider could not complete this transaction.';
+    const safeOrderId = details?.orderId ? escapeEmailText(details.orderId) : null;
     const { error } = await sendTrackedEmail('payment_failed', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: 'Exismic - Payment Failed',
+      subject: `Your Exismic ${purchaseLabel} was not completed`,
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
-            <div class="status-badge" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">PAYMENT ERROR</div>
-            <h1>Transaction <span class="accent-text" style="color: #f87171;">Unsuccessful.</span></h1>
-            <p>Don't worry, no amount was charged from your account. We encountered an issue while processing your payment.</p>
+            <div class="status-badge" style="background:rgba(244,63,94,0.10); border-color:rgba(244,63,94,0.26); color:#fb7185;">PAYMENT NOT COMPLETED</div>
+            <h1>Your ${purchaseLabel} needs <span class="accent-text" style="color:#fb7185;">another try.</span></h1>
+            <p>We could not complete this payment. Your Exismic account has not been upgraded or charged with credits.</p>
         </div>
-        
-        <div class="info-card" style="text-align: center;">
-            <p style="margin-bottom: 0; font-size: 14px;">This usually happens due to incorrect card details or bank restrictions. Please try again with a different payment method.</p>
+        <div class="info-card">
+          <div class="info-grid">
+            ${details?.amount ? `<div class="info-row"><div class="info-cell info-label">Attempted amount</div><div class="info-cell info-value">${escapeEmailText(details.amount)}</div></div>` : ''}
+            ${safeOrderId ? `<div class="info-row"><div class="info-cell info-label">Reference</div><div class="info-cell info-value">${safeOrderId}</div></div>` : ''}
+          </div>
+          <div style="height:1px; margin:14px 0 18px; background:rgba(255,255,255,0.08);"></div>
+          <p style="margin:0; font-size:13px; line-height:1.65;">${safeReason}</p>
         </div>
-        
-        <a href="${SITE_URL}/pricing" class="cta-button" style="background: #ffffff;">Retry Payment</a>
+        <a href="${retryUrl}" class="cta-button">Try Again Securely</a>
+        <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">A temporary bank authorization may take a short time to disappear. Contact support with the reference above if you need help.</p>
       `),
-    });
+    }, details?.orderId ? { idempotencyKey: `payment-failed/${details.orderId}` } : undefined);
 
     if (error) {
       console.error('Resend error:', error);
@@ -484,7 +539,7 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
     const { error } = await sendTrackedEmail('credits_purchased', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: 'Credits Refueled ⚡',
+      subject: 'Credits added to your Exismic account',
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
             <div class="status-badge">CREDITS ADDED</div>
@@ -511,7 +566,7 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
         
         <a href="${SITE_URL}/dashboard" class="cta-button">Resume Creation</a>
       `),
-    });
+    }, { idempotencyKey: `credits-purchased/${details.invoiceId}` });
     if (error) {
       console.error('Resend error:', error);
       return false;
@@ -523,7 +578,44 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
   }
 }
 
-function renderTransactionalEmail({
+export async function sendProRenewalReceiptEmail(email: string, details: {
+  amount: string;
+  invoiceId: string;
+  nextBillingDate: string;
+}) {
+  try {
+    const { error } = await sendTrackedEmail('pro_renewal', email, {
+      from: SENDER_PAYMENT,
+      to: email,
+      subject: 'Your Exismic Pro renewal receipt',
+      html: PREMIUM_DARK_THEME(`
+        <div class="hero-section">
+          <div class="status-badge">PRO RENEWED</div>
+          <h1>Your membership stays <span class="accent-text">active.</span></h1>
+          <p>Your monthly Exismic Pro payment was completed successfully.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-grid">
+            <div class="info-row"><div class="info-cell info-label">Transaction ID</div><div class="info-cell info-value">${details.invoiceId}</div></div>
+            <div class="info-row"><div class="info-cell info-label">Amount Paid</div><div class="info-cell info-value">${details.amount}</div></div>
+            <div class="info-row"><div class="info-cell info-label">Next Billing</div><div class="info-cell info-value">${details.nextBillingDate}</div></div>
+          </div>
+        </div>
+        <a href="${SITE_URL}/account/settings?tab=billing" class="cta-button">View Billing</a>
+      `),
+    }, { idempotencyKey: `pro-renewal/${details.invoiceId}` });
+    if (error) {
+      console.error('[Email] Pro renewal receipt failed:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('[Email] Pro renewal receipt failed:', error);
+    return false;
+  }
+}
+
+export function renderTransactionalEmail({
   preheader,
   badge,
   title,
@@ -547,12 +639,25 @@ function renderTransactionalEmail({
   <meta name="color-scheme" content="dark">
   <meta name="supported-color-schemes" content="dark">
   <title>Exismic</title>
+  <style>
+    @media only screen and (max-width: 620px) {
+      .email-outer { padding: 24px 10px 28px !important; }
+      .email-card { border-radius: 24px !important; }
+      .email-hero { padding: 36px 20px 26px !important; }
+      .email-content { padding: 8px 20px 34px !important; }
+      .email-title { font-size: 34px !important; line-height: 1.08 !important; letter-spacing: -1.4px !important; }
+      .email-footer { padding-left: 4px !important; padding-right: 4px !important; }
+      .email-button { width: 100% !important; box-sizing: border-box !important; }
+      .email-detail-label, .email-detail-value { display:block !important; width:100% !important; text-align:left !important; }
+      .email-detail-value { padding-top:5px !important; }
+    }
+  </style>
 </head>
 <body style="margin:0; padding:0; background:#030305; color:#ffffff; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">${preheader}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; background:#030305; background-image:radial-gradient(circle at 18% 0%, rgba(124,58,237,0.30), transparent 34%), radial-gradient(circle at 86% 10%, rgba(6,182,212,0.21), transparent 30%), radial-gradient(circle at 50% 100%, rgba(236,72,153,0.13), transparent 36%);">
     <tr>
-      <td align="center" style="padding:48px 18px 40px;">
+      <td class="email-outer" align="center" style="padding:48px 18px 40px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:660px;">
           <tr>
             <td align="center" style="padding-bottom:20px;">
@@ -561,7 +666,7 @@ function renderTransactionalEmail({
                   <table role="presentation" cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding-right:12px;">
-                        <div style="width:42px; height:42px; border-radius:16px; background:linear-gradient(145deg,#0b0c16,#171428); border:1px solid rgba(255,255,255,0.12); color:#ffffff; text-align:center; line-height:42px; font-size:24px; font-weight:900; box-shadow:inset 0 1px 0 rgba(255,255,255,0.09);">L</div>
+                        <div style="width:42px; height:42px; border-radius:16px; background:linear-gradient(145deg,#0b0c16,#171428); border:1px solid rgba(255,255,255,0.12); color:#ffffff; text-align:center; line-height:42px; font-size:24px; font-weight:900; box-shadow:inset 0 1px 0 rgba(255,255,255,0.09);">E</div>
                       </td>
                       <td style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Exismic<span style="color:#22d3ee;">.</span></td>
                     </tr>
@@ -571,17 +676,17 @@ function renderTransactionalEmail({
             </td>
           </tr>
           <tr>
-            <td style="border-radius:36px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); background:linear-gradient(145deg,rgba(12,12,19,0.95),rgba(5,7,12,0.96)); box-shadow:0 36px 130px rgba(0,0,0,0.64), 0 0 60px rgba(124,58,237,0.14), inset 0 1px 0 rgba(255,255,255,0.08);">
+            <td class="email-card" style="border-radius:36px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); background:linear-gradient(145deg,rgba(12,12,19,0.95),rgba(5,7,12,0.96)); box-shadow:0 36px 130px rgba(0,0,0,0.64), 0 0 60px rgba(124,58,237,0.14), inset 0 1px 0 rgba(255,255,255,0.08);">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center" style="padding:50px 42px 32px; background-image:linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.035) 1px, transparent 1px), radial-gradient(circle at 50% 0%, rgba(124,58,237,0.34), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.14), rgba(6,182,212,0.075)); background-size:44px 44px,44px 44px,auto,auto;">
+                  <td class="email-hero" align="center" style="padding:50px 42px 32px; background-image:linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.035) 1px, transparent 1px), radial-gradient(circle at 50% 0%, rgba(124,58,237,0.34), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.14), rgba(6,182,212,0.075)); background-size:44px 44px,44px 44px,auto,auto;">
                     <div style="display:inline-block; margin-bottom:22px; padding:8px 15px; border-radius:999px; border:1px solid rgba(103,232,249,0.34); background:rgba(6,182,212,0.13); color:#67e8f9; font-size:11px; line-height:1; font-weight:900; letter-spacing:1.8px; text-transform:uppercase; box-shadow:0 0 26px rgba(6,182,212,0.11);">${badge}</div>
-                    <h1 style="margin:0; color:#ffffff; font-size:44px; line-height:1.04; letter-spacing:-2.2px; font-weight:950;">${title}</h1>
+                    <h1 class="email-title" style="margin:0; color:#ffffff; font-size:44px; line-height:1.04; letter-spacing:-2.2px; font-weight:950;">${title}</h1>
                     <p style="max-width:510px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">${body}</p>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding:12px 42px 44px;">
+                  <td class="email-content" align="center" style="padding:12px 42px 44px;">
                     ${content}
                     <p style="margin:22px 0 0; color:#737f94; font-size:12px; line-height:1.6;">${footerNote}</p>
                   </td>
@@ -590,14 +695,14 @@ function renderTransactionalEmail({
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:28px 12px 0;">
+            <td class="email-footer" align="center" style="padding:28px 12px 0;">
               <div style="color:#6b7280; font-size:12px; line-height:1.7;">
                 <a href="${SITE_URL}/dashboard" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Dashboard</a>
                 <a href="${SITE_URL}/terms-of-service" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Terms</a>
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Exismic Ai<br>Trusted account security for your creative workspace.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Exismic AI<br>Built for secure, focused creative work.<br>&copy; ${new Date().getFullYear()} Raxstdioz LLC. All Rights Reserved.</div>
             </td>
           </tr>
         </table>
@@ -677,7 +782,7 @@ export async function sendMagicLinkEmail(email: string, magicLink: string) {
   }
 }
 
-export async function sendWelcomeEmail(email: string) {
+export async function sendWelcomeEmail(email: string, idempotencyKey?: string) {
   try {
     const { error } = await sendTrackedEmail('welcome', email, {
       from: SENDER_WELCOME,
@@ -796,7 +901,7 @@ export async function sendWelcomeEmail(email: string) {
 </body>
 </html>
       `,
-    });
+    }, idempotencyKey ? { idempotencyKey } : undefined);
     if (error) {
       console.error('Resend error:', error);
       return false;

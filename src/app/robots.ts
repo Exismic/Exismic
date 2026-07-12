@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/seo";
+import { SEO_INDEXING_ENABLED, SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  return {
+  const base = {
     rules: {
       userAgent: "*",
       allow: "/",
@@ -17,6 +17,8 @@ export default function robots(): MetadataRoute.Robots {
       ],
     },
     host: SITE_URL,
-    sitemap: `${SITE_URL}/sitemap.xml`,
   };
+  return SEO_INDEXING_ENABLED
+    ? { ...base, sitemap: `${SITE_URL}/sitemap.xml` }
+    : base;
 }

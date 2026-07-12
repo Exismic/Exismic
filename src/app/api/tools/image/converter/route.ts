@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { randomUUID } from "crypto";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"]);
 const SUPPORTED_OUTPUT_FORMATS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
@@ -14,9 +16,12 @@ function clampQuality(value: FormDataEntryValue | null) {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
+    const access = await resolveToolAccess(req, { toolId: "image-converter", mode: "free-quality", creditCost: 1, formData });
+    if (isToolAccessResponse(access)) return access;
     const file = formData.get("file") as File;
     const targetFormat = (formData.get("targetFormat") as string || "webp").toLowerCase();
-    const quality = clampQuality(formData.get("quality"));
+    const requestedQuality = clampQuality(formData.get("quality"));
+    const quality = access.outputTier === "standard" ? Math.min(requestedQuality, 78) : requestedQuality;
 
     if (!file) {
       return NextResponse.json({ error: "File is required" }, { status: 400 });
@@ -36,6 +41,9 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     let pipeline = sharp(buffer);
+    if (access.outputTier === "standard") {
+      pipeline = pipeline.resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true });
+    }
 
     // Dynamic Format Conversion map
     switch (targetFormat) {
@@ -57,6 +65,8 @@ export async function POST(req: NextRequest) {
     }
 
     const resultBuffer = await pipeline.toBuffer();
+    const debit = await chargeToolAccess(access, "image-converter", `tool:${randomUUID()}`);
+    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
     const outputMetadata = await sharp(resultBuffer).metadata();
     const mime = `image/${targetFormat === "jpg" ? "jpeg" : targetFormat}`;
 
@@ -68,6 +78,8 @@ export async function POST(req: NextRequest) {
       width: outputMetadata.width,
       height: outputMetadata.height,
       quality,
+      outputTier: access.outputTier,
+      creditsCharged: access.creditCost,
     });
 
   } catch (error: unknown) {

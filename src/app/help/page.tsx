@@ -1,10 +1,66 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft, ChevronDown, ImagePlus, CheckCircle, X } from "lucide-react";
 import Link from "next/link";
+import { useState, useRef } from "react";
+import { submitContactRequest } from "@/app/actions/contact";
 
 export default function HelpPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("General Support");
+  const [message, setMessage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const subjects = ["General Support", "Billing Inquiry", "Bug Report", "Feature Request"];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !email || !message) {
+      setErrorMsg("Please fill out all required fields.");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setErrorMsg("");
+    
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("subject", subject);
+    formData.append("message", message);
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
+    
+    const result = await submitContactRequest(formData);
+    
+    if (result.error) {
+      setErrorMsg(result.error);
+      setIsSubmitting(false);
+    } else {
+      setIsSuccess(true);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMsg("Image size must be less than 5MB.");
+        return;
+      }
+      setImageFile(file);
+    }
+  };
   return (
     <div className="min-h-screen bg-[#030303] text-white selection:bg-accent-purple/30 pb-32 overflow-hidden" suppressHydrationWarning>
       {/* Cinematic Background Architecture */}
@@ -63,85 +119,170 @@ export default function HelpPage() {
                 <p className="text-zinc-400 font-medium text-sm">We'll get back to you as soon as possible.</p>
               </div>
 
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const target = e.target as HTMLFormElement;
-                  const btn = target.querySelector('button[type="submit"]') as HTMLButtonElement;
-                  btn.innerHTML = '<span class="flex items-center gap-2"><svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sending Transmission...</span>';
-                  btn.disabled = true;
-                  setTimeout(() => {
-                    target.innerHTML = '<div class="flex flex-col items-center justify-center space-y-6 py-16"><div class="relative w-24 h-24"><div class="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse"></div><div class="relative w-full h-full rounded-full border border-emerald-500/50 bg-emerald-500/10 flex items-center justify-center text-emerald-400"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div><div class="text-center space-y-2"><p class="text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-emerald-300 to-emerald-500 uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">Transmission Sent</p><p class="text-zinc-400 font-medium">Our specialists will review your request shortly.</p></div></div>';
-                  }, 1500);
-                }}
-                className="space-y-6"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {/* Name Input */}
-                  <div className="space-y-2 relative group/input">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">Name</label>
-                    <div className="relative flex items-center">
-                      <div className="absolute left-4 text-zinc-600 transition-colors group-focus-within/input:text-accent-purple group-focus-within/input:drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
-                        <User size={18} />
-                      </div>
-                      <input required type="text" placeholder="John Doe" className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-2xl pl-12 pr-4 text-sm font-medium text-white placeholder-zinc-700 outline-none focus:border-accent-purple/50 focus:bg-accent-purple/[0.05] focus:ring-4 focus:ring-accent-purple/10 transition-all" />
-                    </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {errorMsg && (
+                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-center gap-3">
+                    <X size={16} /> {errorMsg}
                   </div>
-                  
-                  {/* Email Input */}
-                  <div className="space-y-2 relative group/input">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">Email Address</label>
-                    <div className="relative flex items-center">
-                      <div className="absolute left-4 text-zinc-600 transition-colors group-focus-within/input:text-accent-purple group-focus-within/input:drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
-                        <Mail size={18} />
-                      </div>
-                      <input required type="email" placeholder="john@example.com" className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-2xl pl-12 pr-4 text-sm font-medium text-white placeholder-zinc-700 outline-none focus:border-accent-purple/50 focus:bg-accent-purple/[0.05] focus:ring-4 focus:ring-accent-purple/10 transition-all" />
-                    </div>
-                  </div>
-                </div>
+                )}
                 
-                {/* Subject Dropdown */}
-                <div className="space-y-2 relative group/input">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">Subject</label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-4 text-zinc-600 transition-colors group-focus-within/input:text-accent-purple group-focus-within/input:drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] pointer-events-none z-10">
-                      <FileText size={18} />
+                {isSuccess ? (
+                  <div className="flex flex-col items-center justify-center space-y-6 py-16">
+                    <div className="relative w-24 h-24">
+                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
+                      <div className="relative w-full h-full rounded-full border border-emerald-500/50 bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <CheckCircle size={40} />
+                      </div>
                     </div>
-                    <select className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-2xl pl-12 pr-10 text-sm font-medium text-white outline-none focus:border-accent-purple/50 focus:bg-accent-purple/[0.05] focus:ring-4 focus:ring-accent-purple/10 transition-all appearance-none cursor-pointer relative z-0">
-                      <option value="support" className="bg-[#0b0c12]">General Support</option>
-                      <option value="billing" className="bg-[#0b0c12]">Billing Inquiry</option>
-                      <option value="bug" className="bg-[#0b0c12]">Bug Report</option>
-                      <option value="feature" className="bg-[#0b0c12]">Feature Request</option>
-                    </select>
-                    {/* Custom Dropdown Arrow */}
-                    <div className="absolute right-4 pointer-events-none text-zinc-600">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <div className="text-center space-y-2">
+                      <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-emerald-500 uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">Transmission Sent</p>
+                      <p className="text-zinc-400 font-medium">Our specialists will review your request shortly.</p>
                     </div>
                   </div>
-                </div>
-
-                {/* Message Textarea */}
-                <div className="space-y-2 relative group/input">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">Message</label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-5 text-zinc-600 transition-colors group-focus-within/input:text-accent-purple group-focus-within/input:drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
-                      <AlignLeft size={18} />
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {/* Name Input */}
+                      <div className="space-y-2.5 relative group/input">
+                        <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors group-focus-within/input:text-white">Name</label>
+                        <div className="relative flex items-center">
+                          <div className="absolute left-4 text-zinc-500 transition-colors group-focus-within/input:text-accent-cyan">
+                            <User size={18} />
+                          </div>
+                          <input required value={name} onChange={e => setName(e.target.value)} type="text" placeholder="John Doe" className="w-full h-14 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/[0.07] rounded-xl pl-12 pr-4 text-sm font-medium text-white placeholder-zinc-600 outline-none focus:border-accent-cyan/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(34,211,238,0.15)] transition-all duration-300" />
+                        </div>
+                      </div>
+                      
+                      {/* Email Input */}
+                      <div className="space-y-2.5 relative group/input">
+                        <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors group-focus-within/input:text-white">Email Address</label>
+                        <div className="relative flex items-center">
+                          <div className="absolute left-4 text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">
+                            <Mail size={18} />
+                          </div>
+                          <input required value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="john@example.com" className="w-full h-14 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/[0.07] rounded-xl pl-12 pr-4 text-sm font-medium text-white placeholder-zinc-600 outline-none focus:border-accent-purple/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(168,85,247,0.15)] transition-all duration-300" />
+                        </div>
+                      </div>
                     </div>
-                    <textarea required placeholder="How can we help you today?" className="w-full h-40 bg-white/[0.02] border border-white/10 rounded-2xl pl-12 pr-4 pt-5 pb-4 text-sm font-medium text-white placeholder-zinc-700 outline-none focus:border-accent-purple/50 focus:bg-accent-purple/[0.05] focus:ring-4 focus:ring-accent-purple/10 transition-all resize-none"></textarea>
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <button type="submit" className="relative group/btn w-full h-16 rounded-2xl bg-white/[0.03] border border-white/10 text-white font-black text-xs uppercase tracking-[0.3em] overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]">
-                    {/* Animated button background sweep */}
-                    <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(168,85,247,0)_0%,rgba(168,85,247,0.3)_50%,rgba(168,85,247,0)_100%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite] group-hover/btn:bg-[linear-gradient(110deg,rgba(168,85,247,0.4)_0%,rgba(168,85,247,0.8)_50%,rgba(168,85,247,0.4)_100%)] transition-colors duration-500" />
-                    <div className="absolute inset-0 bg-accent-purple/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" />
                     
-                    <span className="relative z-10 flex items-center justify-center gap-3 drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)]">
-                      Submit Request <MessageSquare size={16} className="text-accent-purple group-hover/btn:text-white transition-colors" />
-                    </span>
-                  </button>
-                </div>
+                    {/* Custom Subject Dropdown */}
+                    <div className="space-y-2.5 relative">
+                      <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors">Subject</label>
+                      <div className="relative">
+                        <div 
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          className={`w-full h-14 bg-white/5 border ${isDropdownOpen ? 'border-accent-purple/50 bg-white/10 shadow-[0_0_25px_rgba(168,85,247,0.15)]' : 'border-white/10 hover:border-white/20 hover:bg-white/[0.07]'} rounded-xl pl-12 pr-4 flex items-center justify-between cursor-pointer transition-all duration-300 group/dropdown`}
+                        >
+                          <div className={`absolute left-4 transition-colors ${isDropdownOpen ? 'text-accent-purple' : 'text-zinc-500 group-hover/dropdown:text-zinc-300'}`}>
+                            <FileText size={18} />
+                          </div>
+                          <span className="text-sm font-medium text-white">{subject}</span>
+                          <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-white' : ''}`} />
+                        </div>
+                        
+                        <AnimatePresence>
+                          {isDropdownOpen && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute top-[calc(100%+8px)] left-0 w-full bg-[#111218]/95 backdrop-blur-3xl border border-white/10 rounded-xl overflow-hidden z-50 shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-2"
+                            >
+                              {subjects.map(sub => (
+                                <div 
+                                  key={sub}
+                                  onClick={() => { setSubject(sub); setIsDropdownOpen(false); }}
+                                  className={`px-4 py-3 text-sm font-medium rounded-lg cursor-pointer transition-all flex items-center justify-between ${subject === sub ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                >
+                                  {sub}
+                                  {subject === sub && <div className="w-1.5 h-1.5 rounded-full bg-accent-purple shadow-[0_0_10px_rgba(168,85,247,0.8)] animate-pulse" />}
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    {/* Message Textarea */}
+                    <div className="space-y-2.5 relative group/input">
+                      <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors group-focus-within/input:text-white">Message</label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-5 text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">
+                          <AlignLeft size={18} />
+                        </div>
+                        <textarea 
+                          required 
+                          value={message} 
+                          onChange={e => setMessage(e.target.value)} 
+                          placeholder={
+                            subject === "Bug Report" ? "What did you expect to happen, and what actually happened?" :
+                            subject === "Feature Request" ? "Describe the feature you'd like to see..." :
+                            subject === "Billing Inquiry" ? "Please describe your billing issue or question..." :
+                            "How can we help you today?"
+                          }
+                          className="w-full h-40 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/[0.07] rounded-xl pl-12 pr-4 pt-5 pb-4 text-sm font-medium text-white placeholder-zinc-600 outline-none focus:border-accent-purple/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(168,85,247,0.15)] transition-all duration-300 resize-none"
+                        ></textarea>
+                      </div>
+                    </div>
+
+                    {/* Image Attachment */}
+                    <div className="space-y-2.5 group/upload">
+                      <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors group-hover/upload:text-white">Attachment (Optional)</label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        ref={fileInputRef}
+                        onChange={handleImageChange}
+                      />
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`w-full h-20 border-2 border-dashed rounded-xl flex items-center justify-center gap-3 cursor-pointer transition-all duration-300 ${imageFile ? 'border-accent-purple/50 text-white bg-accent-purple/[0.05] shadow-[0_0_20px_rgba(168,85,247,0.1)]' : 'border-white/10 bg-white/[0.02] text-zinc-500 hover:border-accent-purple/30 hover:bg-white/[0.05] hover:text-white'}`}
+                      >
+                        {imageFile ? (
+                          <>
+                            <CheckCircle size={20} className="text-accent-purple drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]" />
+                            <span className="text-sm font-black tracking-wide">{imageFile.name} attached</span>
+                            <div 
+                              className="ml-auto mr-4 p-2 hover:bg-white/10 rounded-lg text-zinc-500 hover:text-red-400 hover:rotate-90 transition-all duration-300"
+                              onClick={(e) => { e.stopPropagation(); setImageFile(null); }}
+                            >
+                              <X size={18} />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <ImagePlus size={20} className="transition-transform group-hover/upload:scale-110 group-hover/upload:rotate-3 duration-300" />
+                            <span className="text-sm font-medium tracking-wide">Click to attach a screenshot</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-6">
+                      <button disabled={isSubmitting} type="submit" className="relative group/btn w-full h-16 rounded-xl bg-white/[0.05] border border-white/10 text-white font-black text-sm uppercase tracking-[0.3em] overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                        {/* Dynamic energetic background sweep */}
+                        <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0)_100%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
+                        
+                        {/* Colorful glow underneath on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/20 via-accent-cyan/20 to-accent-purple/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" />
+                        
+                        <span className="relative z-10 flex items-center justify-center gap-3 drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)]">
+                          {isSubmitting ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 
+                              Sending...
+                            </span>
+                          ) : (
+                            <>Submit Request <Send size={18} className="transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" /></>
+                          )}
+                        </span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </form>
             </div>
           </motion.div>
@@ -166,10 +307,10 @@ export default function HelpPage() {
                 </p>
               </div>
               <a 
-                href="mailto:support@exismicai.online"
+                href="mailto:support@exismic.xyz"
                 className="w-full h-16 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] hover:text-white hover:border-white/20 hover:bg-white/[0.08] transition-all flex items-center justify-center gap-3 break-all px-2"
               >
-                support@exismicai.online <Send size={14} className="shrink-0" />
+                support@exismic.xyz <Send size={14} className="shrink-0" />
               </a>
             </div>
           </motion.div>

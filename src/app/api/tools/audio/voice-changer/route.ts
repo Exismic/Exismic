@@ -4,7 +4,7 @@ import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 
@@ -27,12 +27,11 @@ export async function POST(request: NextRequest) {
   const requestId = randomUUID();
 
   try {
-    const user = await requireApiUser();
-    if (user instanceof NextResponse) return user;
+    const user = await getOptionalApiUser();
 
     const limit = checkRateLimit(
-      `audio:voice-changer:${user.id}:${getRequestIp(request)}`,
-      10,
+      `audio:voice-changer:${user?.id || "guest"}:${getRequestIp(request)}`,
+      user ? 10 : 3,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

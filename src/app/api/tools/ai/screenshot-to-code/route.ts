@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
       allowedTypes: ["image/png", "image/jpeg", "image/webp"],
       maxSize: 10 * 1024 * 1024, // 10MB
       creditCost: 15,
+      accessMode: "pro",
     },
     async (fileBuffer, jobId, formData) => {
       const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";

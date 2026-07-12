@@ -122,13 +122,13 @@ export default function MemeGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-purple-500/30" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#050505] px-4 pb-6 pt-24 font-sans text-white selection:bg-purple-500/30 sm:px-6 md:px-12 md:pb-12 md:pt-28" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="text-center md:text-left">
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-center md:justify-start gap-3 mb-4"
             >
@@ -140,7 +140,7 @@ export default function MemeGenerator() {
               </h1>
             </motion.div>
             <motion.p
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
               className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"

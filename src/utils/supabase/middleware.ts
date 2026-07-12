@@ -6,6 +6,10 @@ export async function updateSession(request: NextRequest) {
     "/",
     "/about",
     "/help",
+    "/careers",
+    "/shop",
+    "/cookies",
+    "/changelog",
     "/privacy-policy",
     "/terms-of-service",
   ]);
@@ -15,13 +19,18 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/api/auth') ||
     request.nextUrl.pathname.startsWith('/api/tools') ||
-    request.nextUrl.pathname.startsWith('/api/user/favorites') ||
+    request.nextUrl.pathname === '/api/user/favorites' ||
+    request.nextUrl.pathname.startsWith('/api/billing/market') ||
+    request.nextUrl.pathname.startsWith('/api/webhooks') ||
+    request.nextUrl.pathname.startsWith('/api/razorpay/webhook') ||
+    request.nextUrl.pathname.startsWith('/api/paypal/webhook') ||
     request.nextUrl.pathname.startsWith('/api/support-agent/widget') ||
     request.nextUrl.pathname.startsWith('/category/') ||
     request.nextUrl.pathname.startsWith('/tools') ||
     request.nextUrl.pathname.startsWith('/pro') ||
     request.nextUrl.pathname.startsWith('/pricing') ||
-    request.nextUrl.pathname.startsWith('/blog');
+    request.nextUrl.pathname.startsWith('/blog') ||
+    request.nextUrl.pathname.startsWith('/u/');
 
   if (isPublicRoute) {
     return NextResponse.next({

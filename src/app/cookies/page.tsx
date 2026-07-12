@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { openCookiePreferences } from "@/lib/cookie-consent";
 
 const SECTIONS = [
   {
@@ -71,14 +72,25 @@ const SECTIONS = [
     content: (
       <div className="space-y-6">
         <p>
-          We currently use minimal essential cookies to keep our platform running fast and securely. 
-          You can control or delete cookies at any time directly through your web browser settings.
+          Essential services remain active because they are required for secure
+          sign-in, payments, and core platform features. Analytics and functional
+          storage are optional and remain off until you enable them.
         </p>
-        <div className="p-6 rounded-2xl bg-accent-purple/5 border border-accent-purple/20 text-sm shadow-inner flex gap-4 items-start">
+        <div className="flex items-start gap-4 rounded-2xl border border-accent-purple/20 bg-accent-purple/5 p-6 text-sm shadow-inner">
           <Sparkles size={18} className="text-accent-purple shrink-0 mt-0.5" />
-          <p className="leading-relaxed text-zinc-300">
-            <strong className="text-white block mb-1">Coming Soon:</strong> We are building a dedicated consent manager. For now, you can manage them in your browser settings. Blocking all cookies may prevent essential features (like logging in) from working properly.
-          </p>
+          <div className="space-y-4">
+            <p className="leading-relaxed text-zinc-300">
+              Your choice is saved on this browser for 180 days. You can reopen
+              the consent manager at any time and changes take effect immediately.
+            </p>
+            <button
+              type="button"
+              onClick={openCookiePreferences}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-accent-purple/30 bg-accent-purple/10 px-5 text-[11px] font-black uppercase tracking-[0.18em] text-white transition-all hover:border-accent-cyan/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
+            >
+              <SlidersHorizontal size={15} /> Manage preferences
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -100,26 +112,37 @@ const SECTIONS = [
                 <th className="p-5 font-black uppercase tracking-widest text-[10px]">Provider</th>
                 <th className="p-5 font-black uppercase tracking-widest text-[10px]">Purpose</th>
                 <th className="p-5 font-black uppercase tracking-widest text-[10px]">Type</th>
+                <th className="p-5 font-black uppercase tracking-widest text-[10px]">Duration</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               <tr className="hover:bg-white/[0.02] transition-colors">
-                <td className="p-5 font-medium text-white">__Secure-auth</td>
+                <td className="p-5 font-medium text-white">exismic_cookie_consent</td>
                 <td className="p-5 text-zinc-400">Exismic</td>
-                <td className="p-5 text-zinc-400">Maintains active user session</td>
+                <td className="p-5 text-zinc-400">Remembers your privacy choices on this browser</td>
                 <td className="p-5"><span className="px-3 py-1 rounded-full bg-accent-purple/10 text-accent-purple text-[10px] font-bold uppercase tracking-wider border border-accent-purple/20">Essential</span></td>
+                <td className="p-5 text-zinc-400">180 days</td>
               </tr>
               <tr className="hover:bg-white/[0.02] transition-colors">
-                <td className="p-5 font-medium text-white">_ga</td>
-                <td className="p-5 text-zinc-400">Google</td>
-                <td className="p-5 text-zinc-400">Anonymous traffic analysis</td>
+                <td className="p-5 font-medium text-white">sb-*-auth-token*</td>
+                <td className="p-5 text-zinc-400">Supabase</td>
+                <td className="p-5 text-zinc-400">Maintains and refreshes your secure sign-in session</td>
+                <td className="p-5"><span className="px-3 py-1 rounded-full bg-accent-purple/10 text-accent-purple text-[10px] font-bold uppercase tracking-wider border border-accent-purple/20">Essential</span></td>
+                <td className="p-5 text-zinc-400">Session dependent</td>
+              </tr>
+              <tr className="hover:bg-white/[0.02] transition-colors">
+                <td className="p-5 font-medium text-white">_clck</td>
+                <td className="p-5 text-zinc-400">Microsoft Clarity</td>
+                <td className="p-5 text-zinc-400">Distinguishes a browser for product analytics</td>
                 <td className="p-5"><span className="px-3 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan text-[10px] font-bold uppercase tracking-wider border border-accent-cyan/20">Analytics</span></td>
+                <td className="p-5 text-zinc-400">1 year</td>
               </tr>
               <tr className="hover:bg-white/[0.02] transition-colors">
-                <td className="p-5 font-medium text-white">theme_pref</td>
-                <td className="p-5 text-zinc-400">Exismic</td>
-                <td className="p-5 text-zinc-400">Saves visual preferences</td>
-                <td className="p-5"><span className="px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-400/20">Functional</span></td>
+                <td className="p-5 font-medium text-white">_clsk</td>
+                <td className="p-5 text-zinc-400">Microsoft Clarity</td>
+                <td className="p-5 text-zinc-400">Connects page views within an analytics session</td>
+                <td className="p-5"><span className="px-3 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan text-[10px] font-bold uppercase tracking-wider border border-accent-cyan/20">Analytics</span></td>
+                <td className="p-5 text-zinc-400">1 day</td>
               </tr>
             </tbody>
           </table>
@@ -207,7 +230,7 @@ export default function CookiesPage() {
                   Small data, big transparency.
                 </p>
                 <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-white/20" />
-                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: May 19, 2026</p>
+                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: July 10, 2026</p>
               </div>
             </div>
           </header>
@@ -281,7 +304,7 @@ export default function CookiesPage() {
               Have questions about your data?
             </h3>
             <p className="text-zinc-400 font-medium max-w-xl mx-auto text-lg">
-              If you have any concerns regarding how we use cookies, please don't hesitate to reach out to our privacy team.
+              If you have any concerns regarding how we use cookies, please don&apos;t hesitate to reach out to our privacy team.
             </p>
             <div className="pt-6">
               <a href="mailto:privacy@exismic.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">

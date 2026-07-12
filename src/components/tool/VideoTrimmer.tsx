@@ -198,7 +198,7 @@ export default function VideoTrimmer() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            {...getRootProps()}
+                {...(getRootProps() as unknown as import("framer-motion").HTMLMotionProps<"div">)}
             className={cn(
               "relative group cursor-pointer border-2 border-dashed rounded-[2.5rem] p-12 h-[450px]",
               "flex flex-col items-center justify-center transition-all duration-500",

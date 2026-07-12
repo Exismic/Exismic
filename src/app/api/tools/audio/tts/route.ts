@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit, getRequestIp, rateLimitResponse, requireApiUser } from '@/lib/api-security';
+import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from '@/lib/api-security';
 
 /**
  * ElevenLabs Text-to-Speech API Route
@@ -7,9 +7,8 @@ import { checkRateLimit, getRequestIp, rateLimitResponse, requireApiUser } from 
 
 export async function POST(req: NextRequest) {
   try {
-    const authUser = await requireApiUser();
-    if (authUser instanceof NextResponse) return authUser;
-    const limit = checkRateLimit(`tts:${authUser.id}:${getRequestIp(req)}`, 20, 60 * 60 * 1000);
+    const authUser = await getOptionalApiUser();
+    const limit = checkRateLimit(`tts:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 20 : 5, 60 * 60 * 1000);
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
 
     const { text, voice_id, settings } = await req.json();

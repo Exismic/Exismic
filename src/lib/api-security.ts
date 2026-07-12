@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
+import { getOrCreateUser, hasActiveProAccess } from "@/lib/user-access";
 
 type RateBucket = {
   count: number;
@@ -18,6 +19,25 @@ export async function requireApiUser(): Promise<User | NextResponse> {
   }
 
   return user;
+}
+
+export async function getOptionalApiUser(): Promise<User | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user || null;
+}
+
+export async function requireProApiUser(): Promise<User | NextResponse> {
+  const authUser = await requireApiUser();
+  if (authUser instanceof NextResponse) return authUser;
+  const appUser = await getOrCreateUser(authUser);
+  if (!hasActiveProAccess(appUser)) {
+    return NextResponse.json(
+      { error: "Exismic Pro is required for this tool.", code: "PRO_REQUIRED", proRequired: true },
+      { status: 403 },
+    );
+  }
+  return authUser;
 }
 
 export function getRequestIp(request: NextRequest) {

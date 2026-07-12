@@ -1,34 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { recordBillingFailure } from '@/lib/billing/fulfillment';
 import { createClient } from '@/utils/supabase/server';
-import { sendPaymentFailedEmail } from '@/lib/emails';
 
-/**
- * Example usage in /api/razorpay/failure route
- * This route is called when a payment fails or is cancelled.
- */
+type FailureBody = {
+  orderId?: string;
+  providerPaymentId?: string;
+  reason?: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const supabaseClient = await createClient();
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const body = await req.json().catch(() => ({})) as FailureBody;
+    if (!body.orderId) return NextResponse.json({ error: 'Payment order is required.' }, { status: 400 });
 
-    // Trigger Failure Email
-    // We call this even if we don't have detailed payment info to let the user know
-    // no charge was made and they can try again.
-    sendPaymentFailedEmail(user.email!).catch(err => 
-      console.error('Failed to send failure email:', err)
-    );
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Failure email triggered' 
+    const result = await recordBillingFailure({
+      orderId: body.orderId,
+      userId: user.id,
+      providerPaymentId: body.providerPaymentId,
+      reason: body.reason,
     });
 
-  } catch (error: any) {
-    console.error('Failure route error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, ...result });
+  } catch (error) {
+    console.error('[Billing] Failure recording failed:', error);
+    const message = error instanceof Error ? error.message : 'Could not record payment failure.';
+    return NextResponse.json({ error: message }, { status: message.includes('not found') ? 404 : 500 });
   }
 }

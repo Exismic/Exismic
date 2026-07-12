@@ -1,176 +1,243 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { prisma } from '@/lib/prisma'
-import { sendWelcomeEmail } from '@/lib/emails'
-import { getServerSiteUrl } from '@/lib/site-url'
+import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
+import { prisma } from "@/lib/prisma";
+import { getServerSiteUrl } from "@/lib/site-url";
+import { sendWelcomeEmailOnce } from "@/lib/welcome-email";
+import {
+  createOAuthLinkRequestAction,
+  isOAuthProviderApproved,
+  recordOAuthProviderApproval,
+  type OAuthLinkProvider,
+} from "@/app/actions/auth";
 
-/**
- * Auth Callback Route - Handles OAuth/Email auth completion
- * Path: /auth/callback
- * 
- * This route:
- * 1. Exchanges auth code for session
- * 2. Creates new user with 50 free credits
- * 3. Redirects to dashboard
- */
+const NEW_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
+const OAUTH_PROVIDERS = new Set<OAuthLinkProvider>([
+  "google",
+  "github",
+  "discord",
+]);
+
+function safeNextPath(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/dashboard";
+  }
+  return value;
+}
+
+function redirectToLogin(request: Request, reason: string) {
+  const url = new URL("/auth/login", getServerSiteUrl(request));
+  url.searchParams.set("authError", reason);
+  return NextResponse.redirect(url);
+}
+
+function getOAuthProvider(value: unknown): OAuthLinkProvider | null {
+  return typeof value === "string" && OAUTH_PROVIDERS.has(value as OAuthLinkProvider)
+    ? (value as OAuthLinkProvider)
+    : null;
+}
+
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const siteUrl = getServerSiteUrl(request)
-    const code = searchParams.get('code')
-    const tokenHash = searchParams.get('token_hash')
-    const verificationType = searchParams.get('type')
-    const next = searchParams.get('next') || '/'
+    const { searchParams } = new URL(request.url);
+    const siteUrl = getServerSiteUrl(request);
+    const code = searchParams.get("code");
+    const tokenHash = searchParams.get("token_hash");
+    const verificationType = searchParams.get("type");
+    const next = safeNextPath(searchParams.get("next"));
 
-    console.log('[AUTH] Callback triggered')
-    console.log('[AUTH] Code:', code ? 'present' : 'missing')
-    console.log('[AUTH] Token hash:', tokenHash ? 'present' : 'missing')
-    console.log('[AUTH] Next:', next)
-
-    if (!code && (!tokenHash || verificationType !== 'magiclink')) {
-      console.warn('[AUTH] No valid auth code or magic-link token provided')
-      return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
+    if (!code && (!tokenHash || verificationType !== "magiclink")) {
+      return redirectToLogin(request, "invalid_callback");
     }
 
-    const supabase = await createClient()
-    
+    const supabase = await createClient();
     const { data, error } = code
       ? await supabase.auth.exchangeCodeForSession(code)
       : await supabase.auth.verifyOtp({
           token_hash: tokenHash!,
-          type: 'magiclink',
-        })
+          type: "magiclink",
+        });
 
     if (error) {
-      console.error('[AUTH] Session exchange error:', error.message)
-      return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
+      console.error("[Auth] Session exchange failed:", error.message);
+      return redirectToLogin(request, "session_exchange_failed");
     }
 
-    const session = data.session
-    if (!session?.user?.id) {
-      console.error('[AUTH] No user in session')
-      return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
+    const authUser = data.session?.user;
+    const userId = authUser?.id;
+    const email = authUser?.email?.trim().toLowerCase();
+
+    if (!authUser || !userId || !email) {
+      return redirectToLogin(request, "missing_identity");
     }
 
-    const userId = session.user.id
-    const email = session.user.email
-    const userName = session.user.user_metadata?.full_name || 
-                     session.user.user_metadata?.name || 
-                     email?.split('@')[0] || 'User'
+    const provider = getOAuthProvider(authUser.app_metadata?.provider);
+    const identities = authUser.identities || [];
+    const currentProviderIdentity = provider
+      ? identities.find((identity) => identity.provider === provider)
+      : null;
+    const providerApproved = provider
+      ? await isOAuthProviderApproved(email, provider)
+      : false;
+    const userName =
+      authUser.user_metadata?.full_name ||
+      authUser.user_metadata?.name ||
+      email.split("@")[0] ||
+      "User";
     const providerAvatar =
-      session.user.user_metadata?.avatar_url ||
-      session.user.user_metadata?.picture ||
-      session.user.user_metadata?.user_avatar ||
-      null
-    const discordIdentity = session.user.identities?.find(identity => identity.provider === 'discord')
-    const discordUserId = discordIdentity?.identity_data?.sub || discordIdentity?.id || null
+      authUser.user_metadata?.avatar_url ||
+      authUser.user_metadata?.picture ||
+      authUser.user_metadata?.user_avatar ||
+      null;
+    const discordIdentity = identities.find(
+      (identity) => identity.provider === "discord",
+    );
+    const discordUserId =
+      discordIdentity?.identity_data?.sub || discordIdentity?.id || null;
     const discordUsername =
       discordIdentity?.identity_data?.preferred_username ||
       discordIdentity?.identity_data?.name ||
-      session.user.user_metadata?.preferred_username ||
-      null
+      authUser.user_metadata?.preferred_username ||
+      null;
 
-    const now = new Date()
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { email: { equals: email, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        customAvatarUrl: true,
+      },
+    });
 
-    console.log(`[AUTH] User: ${userId}`)
-    console.log(`[AUTH] Email: ${email}`)
+    const idConflict = Boolean(existingUser && existingUser.id !== userId);
+    const hasAnotherIdentity = provider
+      ? identities.some((identity) => identity.provider !== provider)
+      : false;
+    const providerNeedsConsent = Boolean(
+      existingUser &&
+        provider &&
+        !providerApproved &&
+        (idConflict || hasAnotherIdentity),
+    );
 
-    try {
-      // Check if user exists
-      const existingUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          dailyCredits: true,
-          image: true,
-          customAvatarUrl: true
-        }
-      })
-
-      if (!existingUser) {
-        // NEW USER
-        console.log(`[AUTH] 🆕 Creating new user: ${userId}`)
-
-        const newUser = await prisma.user.create({
-          data: {
-            id: userId,
-            email: email || '',
-            name: userName,
-            image: providerAvatar,
-            discordUserId: discordUserId ? String(discordUserId) : null,
-            discordUsername: discordUsername ? String(discordUsername) : null,
-            dailyCredits: 50,
-            bonusCredits: 0,
-            lifetimeCredits: 0,
-            plan: 'free',
-            creditsLastReset: now,
-            aiMessagesToday: 0,
-            aiMessagesReset: now,
-          }
-        })
-
-        console.log(`[AUTH] ✅ New user created with 50 credits: ${userId}`)
-        console.log(`[AUTH] User data:`, newUser)
-
-        if (email) {
-          const welcomeSent = await sendWelcomeEmail(email);
-          if (!welcomeSent) {
-            console.error(`[AUTH] Welcome email provider rejected delivery for ${email}`);
-          }
+    if (providerNeedsConsent && provider) {
+      if (idConflict) {
+        await supabase.auth.signOut();
+        const supabaseAdmin = createAdminClient();
+        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        if (deleteError) {
+          console.error("[Auth] Could not remove transient OAuth identity:", deleteError.message);
+          return redirectToLogin(request, "provider_link_failed");
         }
       } else {
-        // EXISTING USER - Just log
-        console.log(`[AUTH] 🔄 Existing user login: ${userId}`)
-        console.log(`[AUTH] Current credits: ${existingUser.dailyCredits}`)
-
-        if (existingUser.customAvatarUrl) {
-          await supabase.auth.updateUser({
-            data: {
-              avatar_url: existingUser.customAvatarUrl,
-              picture: existingUser.customAvatarUrl,
-              custom_avatar_url: existingUser.customAvatarUrl,
-            }
-          })
-        } else if (providerAvatar && providerAvatar !== existingUser.image) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              image: providerAvatar,
-              ...(discordUserId ? { discordUserId: String(discordUserId) } : {}),
-              ...(discordUsername ? { discordUsername: String(discordUsername) } : {}),
-            }
-          })
-          await supabase.auth.updateUser({
-            data: {
-              avatar_url: providerAvatar,
-              picture: providerAvatar,
-            }
-          })
-        } else if (discordUserId || discordUsername) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              ...(discordUserId ? { discordUserId: String(discordUserId) } : {}),
-              ...(discordUsername ? { discordUsername: String(discordUsername) } : {}),
-            }
-          })
+        if (!currentProviderIdentity) {
+          return redirectToLogin(request, "provider_link_failed");
         }
+        const { error: unlinkError } = await supabase.auth.unlinkIdentity(
+          currentProviderIdentity,
+        );
+        if (unlinkError) {
+          console.error("[Auth] Could not pause unapproved OAuth identity:", unlinkError.message);
+          return redirectToLogin(request, "provider_link_failed");
+        }
+        await supabase.auth.signOut();
       }
-    } catch (dbError) {
-      console.error('[AUTH] Database error:', dbError)
-      // Don't fail auth, just log the error
+
+      const linkRequest = await createOAuthLinkRequestAction(email, provider);
+      const linkUrl = new URL("/auth/login", siteUrl);
+      linkUrl.searchParams.set("link", linkRequest.nonce);
+      linkUrl.searchParams.set("returnUrl", next);
+      return NextResponse.redirect(linkUrl);
     }
 
-    // Redirect to dashboard
-    const redirectUrl = next.startsWith('/') ? `${siteUrl}${next}` : `${siteUrl}/`
-    
-    console.log(`[AUTH] ✅ Auth complete, redirecting to: ${redirectUrl}`)
+    let appUserCreated = false;
 
-    return NextResponse.redirect(redirectUrl)
+    if (!existingUser) {
+      await prisma.user.create({
+        data: {
+          id: userId,
+          email,
+          name: userName,
+          image: providerAvatar,
+          discordUserId: discordUserId ? String(discordUserId) : null,
+          discordUsername: discordUsername ? String(discordUsername) : null,
+          dailyCredits: 50,
+          bonusCredits: 0,
+          lifetimeCredits: 0,
+          plan: "free",
+          creditsLastReset: new Date(),
+          aiMessagesToday: 0,
+          aiMessagesReset: new Date(),
+        },
+      });
+      appUserCreated = true;
+    } else {
+      // Existing profile identity is authoritative. OAuth must never silently
+      // replace the user's chosen name, profile picture, frame, or theme.
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          ...(discordUserId
+            ? { discordUserId: String(discordUserId) }
+            : {}),
+          ...(discordUsername
+            ? { discordUsername: String(discordUsername) }
+            : {}),
+        },
+      });
 
-  } catch (err) {
-    console.error('[AUTH] ❌ Callback error:', err)
-    return NextResponse.redirect(`${getServerSiteUrl(request)}/auth/auth-code-error`)
+      if (existingUser.customAvatarUrl) {
+        const { error: avatarError } = await supabase.auth.updateUser({
+          data: {
+            avatar_url: existingUser.customAvatarUrl,
+            picture: existingUser.customAvatarUrl,
+            custom_avatar_url: existingUser.customAvatarUrl,
+          },
+        });
+        if (avatarError) {
+          console.warn("[Auth] Could not synchronize custom avatar:", avatarError.message);
+        }
+      }
+    }
+
+    if (provider && !providerApproved) {
+      await recordOAuthProviderApproval(email, provider);
+      const { error: approvalError } = await supabase.auth.updateUser({
+        data: {
+          approved_oauth_providers: Array.from(new Set([
+            ...(Array.isArray(authUser.user_metadata?.approved_oauth_providers)
+              ? authUser.user_metadata.approved_oauth_providers.filter(
+                  (value: unknown): value is string => typeof value === "string",
+                )
+              : []),
+            provider,
+          ])),
+        },
+      });
+      if (approvalError) {
+        console.warn("[Auth] Could not record approved provider:", approvalError.message);
+      }
+    }
+
+    const authCreatedAt = Date.parse(authUser.created_at);
+    const authIdentityIsNew =
+      Number.isFinite(authCreatedAt) &&
+      Date.now() - authCreatedAt <= NEW_ACCOUNT_WINDOW_MS;
+
+    if (appUserCreated || authIdentityIsNew) {
+      const welcomeResult = await sendWelcomeEmailOnce(email);
+      if (welcomeResult === "failed") {
+        console.error("[Auth] Welcome email could not be delivered:", email);
+      }
+    }
+
+    return NextResponse.redirect(new URL(next, siteUrl));
+  } catch (error) {
+    console.error("[Auth] Callback failed:", error);
+    return redirectToLogin(request, "callback_failed");
   }
 }

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
+import { getFunctionalStorageItem, removeFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import {
   RESUME_ACCENT_COLORS,
   RESUME_TEMPLATES,
@@ -125,7 +126,7 @@ export function ResumeBuilder() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = getFunctionalStorageItem(STORAGE_KEY);
       if (!saved) return;
 
       const parsed = JSON.parse(saved) as {
@@ -140,7 +141,7 @@ export function ResumeBuilder() {
       if (parsed.accentColor) setAccentColor(parsed.accentColor);
     } catch (error) {
       console.error("Failed to load saved resume:", error);
-      localStorage.removeItem(STORAGE_KEY);
+      removeFunctionalStorageItem(STORAGE_KEY);
     }
   }, []);
 
@@ -267,8 +268,8 @@ export function ResumeBuilder() {
   };
 
   const saveDraft = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, selectedTemplate, accentColor }));
-    setNotice("Resume saved on this device.");
+    const saved = setFunctionalStorageItem(STORAGE_KEY, JSON.stringify({ data, selectedTemplate, accentColor }));
+    setNotice(saved ? "Resume saved on this device." : "Enable Functional cookies to save this resume on your device.");
     window.setTimeout(() => setNotice(null), 2500);
   };
 

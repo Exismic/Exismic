@@ -149,7 +149,7 @@ export default function VideoMerger() {
       <AnimatePresence mode="wait">
         {clips.length === 0 ? (
           <motion.div
-            {...getRootProps()}
+                {...(getRootProps() as unknown as import("framer-motion").HTMLMotionProps<"div">)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(

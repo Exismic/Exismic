@@ -159,7 +159,8 @@ export async function GET(request: NextRequest) {
   const presence = officialPresence ?? lanyardPresence;
   const profile = profileResult ? asRecord(profileResult) : null;
   const profileUser = profile ? asRecord(profile.user) : {};
-  const presenceUser = presence ? asRecord(presence.discord_user) : {};
+  const presenceRecord = asRecord(presence);
+  const presenceUser = asRecord(presenceRecord.discord_user);
   const user =
     Object.keys(profileUser).length > 0
       ? profileUser

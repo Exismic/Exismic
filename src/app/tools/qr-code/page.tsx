@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useDropzone } from "react-dropzone";
-import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 import { 
   QrCode, 
   Upload, 
@@ -11,14 +11,10 @@ import {
   Copy, 
   Star, 
   Settings2, 
-  Palette, 
   Maximize, 
-  Layout, 
   Trash2, 
   CheckCircle2,
-  X,
   Smartphone,
-  ChevronRight,
   Info,
   Sparkles
 } from "lucide-react";
@@ -39,9 +35,14 @@ export default function QRCodeGenerator() {
 
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => () => {
+    if (logo) URL.revokeObjectURL(logo);
+  }, [logo]);
+
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
+      if (logo) URL.revokeObjectURL(logo);
       setLogo(URL.createObjectURL(file));
       setAddLogo(true);
     }
@@ -54,7 +55,7 @@ export default function QRCodeGenerator() {
   });
 
   const downloadPNG = () => {
-    const canvas = document.querySelector("canvas");
+    const canvas = canvasRef.current?.querySelector("canvas");
     if (canvas) {
       const url = canvas.toDataURL("image/png");
       const a = document.createElement("a");
@@ -65,7 +66,7 @@ export default function QRCodeGenerator() {
   };
 
   const handleCopy = async () => {
-    const canvas = document.querySelector("canvas");
+    const canvas = canvasRef.current?.querySelector("canvas");
     if (canvas) {
       canvas.toBlob(async (blob) => {
         if (blob) {
@@ -84,13 +85,13 @@ export default function QRCodeGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-purple-500/30" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#050505] px-4 pb-6 pt-24 font-sans text-white selection:bg-purple-500/30 sm:px-6 md:px-12 md:pb-12 md:pt-28" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-center md:justify-start gap-3 mb-4"
             >
@@ -102,7 +103,7 @@ export default function QRCodeGenerator() {
               </h1>
             </motion.div>
             <motion.p
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
               className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
@@ -281,6 +282,7 @@ export default function QRCodeGenerator() {
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
                 
                 <motion.div
+                  ref={canvasRef}
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   key={`${value}-${qrColor}-${bgColor}-${logo}-${addLogo}`}
@@ -288,10 +290,12 @@ export default function QRCodeGenerator() {
                 >
                   <QRCodeCanvas
                     value={value}
-                    size={280}
+                    size={size}
                     level={level}
-                    bgColor="#ffffff"
+                    bgColor={bgColor}
                     fgColor={qrColor}
+                    marginSize={4}
+                    style={{ width: "min(100%, 420px)", height: "auto" }}
                     imageSettings={addLogo && logo ? {
                       src: logo,
                       x: undefined,

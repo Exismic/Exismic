@@ -3,7 +3,7 @@ import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  requireProApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 import {
@@ -23,7 +23,7 @@ export const maxDuration = 300;
 export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
-    const authUser = await requireApiUser();
+    const authUser = await requireProApiUser();
     if (authUser instanceof NextResponse) return authUser;
     const limit = checkRateLimit(
       `video-bg-remover:${authUser.id}:${getRequestIp(req)}`,

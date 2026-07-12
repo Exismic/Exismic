@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       maxSize: 5 * 1024 * 1024,
       creditCost: 10,
       optionalFile: true,
+      accessMode: "pro",
     },
     async (fileBuffer, jobId, formData) => {
       const topic = formData.get("topic") as string;

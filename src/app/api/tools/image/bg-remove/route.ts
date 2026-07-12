@@ -3,6 +3,7 @@ import { withToolHandler } from "@/lib/tools-handler";
 import axios from "axios";
 import { writeFile } from "fs/promises";
 import path from "path";
+import sharp from "sharp";
 import { getEngineRoute } from "@/config/engine";
 
 // Practical local storage for results (Phase 2)
@@ -12,13 +13,27 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
+async function prepareOutput(buffer: Buffer, tier: "standard" | "hd") {
+  if (tier === "hd") return buffer;
+  return sharp(buffer)
+    .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+    .png({ quality: 82, compressionLevel: 9 })
+    .toBuffer();
+}
+
 export async function POST(req: NextRequest) {
   return withToolHandler(req, {
-    toolId: "bg-remove",
+    toolId: "image-eraser",
     allowedTypes: ["image/png", "image/jpeg", "image/webp"],
     maxSize: 10 * 1024 * 1024, // 10MB
-    creditCost: 1
+    creditCost: 4,
+    accessMode: "free-quality",
   }, async (buffer, jobId, _formData, context) => {
+    const providerBuffer = await sharp(buffer, { failOn: "none" })
+      .rotate()
+      .png()
+      .toBuffer();
+
     // 1. Try Modal.com image engine (production serverless)
     const modalImageUrl = context.priority
       ? process.env.MODAL_IMAGE_PRIORITY_URL || process.env.MODAL_IMAGE_URL
@@ -30,7 +45,7 @@ export async function POST(req: NextRequest) {
       try {
         console.log(`[BG Remove] Attempting Modal image engine via ${context.queue} queue...`);
         const modalForm = new FormData();
-        const blob = new Blob([new Uint8Array(buffer)]);
+        const blob = new Blob([new Uint8Array(providerBuffer)], { type: "image/png" });
         modalForm.append("file", blob, "input.png");
         modalForm.append("priority", String(context.priority));
         modalForm.append("queue", context.queue);
@@ -43,7 +58,7 @@ export async function POST(req: NextRequest) {
 
         const fileName = `result_modal_${context.queue}_${jobId}.png`;
         const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, Buffer.from(modalResponse.data));
+        await writeFile(fullPath, await prepareOutput(Buffer.from(modalResponse.data), context.outputTier));
         return {
           resultUrl: `/results/${fileName}`,
           metadata: {
@@ -59,11 +74,11 @@ export async function POST(req: NextRequest) {
     
     // 1. Try remove.bg (Highest Quality & Lightning Fast)
     const removeBgKey = process.env.REMOVE_BG_API_KEY;
-    if (removeBgKey) {
+    if (removeBgKey && context.outputTier === "hd") {
       try {
         console.log("Attempting background removal via remove.bg...");
         const removeBgForm = new FormData();
-        const blob = new Blob([new Uint8Array(buffer)]);
+        const blob = new Blob([new Uint8Array(providerBuffer)], { type: "image/png" });
         removeBgForm.append("image_file", blob, "input.png");
         removeBgForm.append("size", "auto");
 
@@ -84,11 +99,11 @@ export async function POST(req: NextRequest) {
 
     // 2. Try Fal.ai (Premium & Very Fast)
     const falKey = process.env.FAL_KEY;
-    if (falKey) {
+    if (falKey && context.outputTier === "hd") {
       try {
         console.log("Attempting background removal via Fal.ai...");
         // Convert buffer to base64 for Fal.ai
-        const base64Image = `data:image/png;base64,${buffer.toString("base64")}`;
+        const base64Image = `data:image/png;base64,${providerBuffer.toString("base64")}`;
         const falResponse = await fetch("https://fal.run/fal-ai/bria/background-removal", {
           method: "POST",
           headers: {
@@ -110,7 +125,7 @@ export async function POST(req: NextRequest) {
     // 3. Try Local Python FastAPI Service (If available)
     try {
       const formData = new FormData();
-      const blob = new Blob([new Uint8Array(buffer)]);
+      const blob = new Blob([new Uint8Array(providerBuffer)], { type: "image/png" });
       formData.append("file", blob, "input.png");
 
       const response = await axios.post(getEngineRoute("/image/remove-bg"), formData, {
@@ -120,7 +135,7 @@ export async function POST(req: NextRequest) {
 
       const fileName = `result_${jobId}.png`;
       const fullPath = path.join(STORAGE_PATH, fileName);
-      await writeFile(fullPath, Buffer.from(response.data));
+      await writeFile(fullPath, await prepareOutput(Buffer.from(response.data), context.outputTier));
       return { resultUrl: `/results/${fileName}` };
     } catch {
       console.log("Local BG removal failed, trying cloud APIs...");
@@ -132,15 +147,18 @@ export async function POST(req: NextRequest) {
       try {
         console.log("Attempting background removal via Hugging Face...");
         const hfUrl = "https://api-inference.huggingface.co/models/briaai/RMBG-1.4";
-        const hfResponse = await axios.post(hfUrl, buffer, {
-          headers: { Authorization: `Bearer ${hfToken}` },
+        const hfResponse = await axios.post(hfUrl, providerBuffer, {
+          headers: {
+            Authorization: `Bearer ${hfToken}`,
+            "Content-Type": "image/png",
+          },
           responseType: 'arraybuffer',
           timeout: 30000
         });
 
         const fileName = `result_hf_${jobId}.png`;
         const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, Buffer.from(hfResponse.data));
+        await writeFile(fullPath, await prepareOutput(Buffer.from(hfResponse.data), context.outputTier));
         return { resultUrl: `/results/${fileName}` };
       } catch (hfError: unknown) {
         console.error("Hugging Face BG Removal Failed:", getErrorMessage(hfError));

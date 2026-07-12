@@ -4,7 +4,8 @@ import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
+  requireProApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 import {
@@ -20,12 +21,14 @@ export async function handleAudioProcessingRequest(
   const requestId = randomUUID();
 
   try {
-    const user = await requireApiUser();
-    if (user instanceof NextResponse) return user;
+    const proUser = task === "stem-separation" ? await requireProApiUser() : null;
+    if (proUser instanceof NextResponse) return proUser;
+    const user = proUser || await getOptionalApiUser();
+    const actor = user?.id || "guest";
 
     const limit = checkRateLimit(
-      `audio:${task}:${user.id}:${getRequestIp(request)}`,
-      10,
+      `audio:${task}:${actor}:${getRequestIp(request)}`,
+      user ? 10 : 4,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

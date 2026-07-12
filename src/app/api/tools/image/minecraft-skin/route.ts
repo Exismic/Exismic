@@ -6,10 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getCreditTotal } from "@/lib/credits";
+import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
 import {
   checkRateLimit,
+  getOptionalApiUser,
   getRequestIp,
   rateLimitResponse,
   requireApiUser,
@@ -417,12 +418,11 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const apiUser = await requireApiUser();
-  if (apiUser instanceof NextResponse) return apiUser;
+  const apiUser = await getOptionalApiUser();
 
   const rateLimit = checkRateLimit(
-    `minecraft-skin:${apiUser.id}:${getRequestIp(request)}`,
-    12,
+    `minecraft-skin:${apiUser?.id || "guest"}:${getRequestIp(request)}`,
+    apiUser ? 12 : 3,
     10 * 60 * 1000
   );
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter);
@@ -447,8 +447,8 @@ export async function POST(request: NextRequest) {
       referenceMode,
     } = body.data;
     const seed = getMinecraftSkinSeed(prompt, body.data.seed);
-    const user = await ensureDatabaseUser(apiUser);
-    const isPro = user.plan === "pro" || user.subscriptionStatus === "active";
+    const user = apiUser ? await ensureDatabaseUser(apiUser) : null;
+    const isPro = Boolean(user && (user.plan === "pro" || user.subscriptionStatus === "active"));
     const referenceRebuilt = referenceMode === "rebuild" && Boolean(referenceImage);
     const baseCost = getToolCreditCost("image-minecraft-skin", 24);
     const cost = referenceRebuilt
@@ -456,9 +456,9 @@ export async function POST(request: NextRequest) {
       : targetPart === "all"
         ? baseCost
         : Math.ceil(baseCost / 3);
-    const availableCredits = getCreditTotal(user);
+    const availableCredits = user ? getCreditTotal(user) : 0;
 
-    if (availableCredits < cost) {
+    if (user && availableCredits < cost) {
       return NextResponse.json(
         {
           error: `This generation needs ${cost} credits. Your current balance is ${availableCredits}.`,
@@ -468,7 +468,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const aiDesign = referenceRebuilt
+    const aiDesign = !apiUser || referenceRebuilt
       ? null
       : await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
     const design = aiDesign
@@ -511,46 +511,45 @@ export async function POST(request: NextRequest) {
     await writeFile(outputPath, png);
     const resultUrl = `/generations/${filename}`;
 
-    const updated = await prisma.$transaction(async (transaction) => {
-      const latest = await transaction.user.findUnique({
+    if (!apiUser) {
+      outputPath = null;
+      return NextResponse.json({
+        success: true,
+        skinUrl: resultUrl,
+        design,
+        armModel,
+        targetPart,
+        seed,
+        cost: 0,
+        priority: false,
+        referenceRebuilt,
+        referenceGuided,
+        outputTier: "standard",
+        creditsRemaining: null,
+      });
+    }
+
+    const debit = await deductCredits(
+      apiUser.id,
+      cost,
+      "image-minecraft-skin",
+      `tool:minecraft-skin:${filename}`,
+    );
+    if (!debit.success || !debit.data) {
+      await unlink(outputPath).catch(() => undefined);
+      outputPath = null;
+      return NextResponse.json(
+        { error: debit.error || "Your credit balance changed. Please try again." },
+        { status: 402 },
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
         where: { id: apiUser.id },
-        select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
-      });
-      if (!latest) throw new Error("Your Exismic account could not be found.");
-
-      const latestDaily = latest.dailyCredits ?? 0;
-      const latestBonus = latest.bonusCredits ?? 0;
-      const latestLifetime = latest.lifetimeCredits ?? 0;
-      if (latestDaily + latestBonus + latestLifetime < cost) throw new Error("Your credit balance changed. Please try again.");
-
-      const dailySpend = Math.min(latestDaily, cost);
-      const afterDaily = cost - dailySpend;
-      const bonusSpend = Math.min(latestBonus, afterDaily);
-      const lifetimeSpend = afterDaily - bonusSpend;
-      const updatedUser = await transaction.user.update({
-        where: { id: apiUser.id },
-        data: {
-          lifetimeCredits: { decrement: lifetimeSpend },
-          bonusCredits: { decrement: bonusSpend },
-          dailyCredits: { decrement: dailySpend },
-          aiGenerationsUsed: { increment: 1 },
-        },
-        select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
-      });
-
-      await transaction.creditTransaction.create({
-        data: {
-          userId: apiUser.id,
-          amount: -cost,
-          balanceType: "mixed",
-          transactionType: "tool_usage",
-          toolId: "image-minecraft-skin",
-          description: `Used ${cost} credits for Minecraft skin generation`,
-          metadata: { dailySpend, bonusSpend, permanentSpend: lifetimeSpend },
-        },
-      });
-
-      await transaction.userFile.create({
+        data: { aiGenerationsUsed: { increment: 1 } },
+      }),
+      prisma.userFile.create({
         data: {
           userId: apiUser.id,
           toolType: "minecraft-skin-maker",
@@ -572,10 +571,8 @@ export async function POST(request: NextRequest) {
             aiDirected: Boolean(aiDesign),
           } satisfies Prisma.InputJsonObject,
         },
-      });
-
-      return updatedUser;
-    });
+      }),
+    ]);
 
     outputPath = null;
     return NextResponse.json({
@@ -589,7 +586,7 @@ export async function POST(request: NextRequest) {
       priority: isPro,
       referenceRebuilt,
       referenceGuided,
-      creditsRemaining: getCreditTotal(updated),
+      creditsRemaining: getCreditTotal(debit.data),
     });
   } catch (error) {
     if (outputPath) {

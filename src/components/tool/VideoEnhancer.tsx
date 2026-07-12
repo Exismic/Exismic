@@ -66,7 +66,6 @@ export default function VideoEnhancer() {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResultUrl(null);
-      setProgress(0);
       setSliderPos(50);
     }
   }, []);
@@ -170,7 +169,7 @@ export default function VideoEnhancer() {
       <AnimatePresence mode="wait">
         {!file ? (
           <motion.div
-            {...getRootProps()}
+                {...(getRootProps() as unknown as import("framer-motion").HTMLMotionProps<"div">)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(

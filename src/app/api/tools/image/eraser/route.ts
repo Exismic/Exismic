@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import sharp from "sharp";
-import { checkRateLimit, getRequestIp, rateLimitResponse, requireApiUser } from "@/lib/api-security";
+import { randomUUID } from "crypto";
+import { checkRateLimit, getRequestIp, rateLimitResponse } from "@/lib/api-security";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 
 export async function POST(req: NextRequest) {
   try {
-    const authUser = await requireApiUser();
-    if (authUser instanceof NextResponse) return authUser;
-    const limit = checkRateLimit(`image-eraser:${authUser.id}:${getRequestIp(req)}`, 30, 60 * 60 * 1000);
+    const access = await resolveToolAccess(req, { toolId: "image-eraser", mode: "free-quality", creditCost: 4 });
+    if (isToolAccessResponse(access)) return access;
+    const actor = access.authUser?.id || "guest";
+    const limit = checkRateLimit(`image-eraser:${actor}:${getRequestIp(req)}`, access.isAuthenticated ? 30 : 8, 60 * 60 * 1000);
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
 
     const { image, mask } = await req.json();
@@ -58,11 +61,22 @@ export async function POST(req: NextRequest) {
         });
 
         if (response.status === 200) {
-          const resultBase64 = Buffer.from(response.data).toString("base64");
+          let resultBuffer = Buffer.from(response.data);
+          if (access.outputTier === "standard") {
+            resultBuffer = await sharp(resultBuffer)
+              .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+              .png({ quality: 82, compressionLevel: 9 })
+              .toBuffer();
+          }
+          const debit = await chargeToolAccess(access, "image-eraser", `tool:${randomUUID()}`);
+          if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+          const resultBase64 = resultBuffer.toString("base64");
           return NextResponse.json({
             success: true,
             result: `data:image/png;base64,${resultBase64}`,
-            method: "hf-free"
+            method: "hf-free",
+            outputTier: access.outputTier,
+            creditsCharged: access.creditCost,
           });
         }
       } catch (hfError: any) {
@@ -73,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     // Fallback to Fal.ai (Premium)
     const falKey = process.env.FAL_KEY;
-    if (falKey) {
+    if (falKey && access.outputTier === "hd") {
       try {
         console.log("Falling back to Fal.ai Flux Inpainting...");
         const falResponse = await fetch("https://fal.run/fal-ai/flux/dev/inpainting", {
@@ -92,10 +106,14 @@ export async function POST(req: NextRequest) {
 
         const data = await falResponse.json();
         if (data.image && data.image.url) {
+          const debit = await chargeToolAccess(access, "image-eraser", `tool:${randomUUID()}`);
+          if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
           return NextResponse.json({
             success: true,
             result: data.image.url,
-            method: "fal-pro"
+            method: "fal-pro",
+            outputTier: access.outputTier,
+            creditsCharged: access.creditCost,
           });
         } else {
           throw new Error(data.detail || "Fal.ai failed");
@@ -120,14 +138,24 @@ export async function POST(req: NextRequest) {
       const blurredLayer = await sharp(imageBuffer).blur(15).composite([{ input: resizedMask, blend: 'dest-in' }]).toBuffer();
       
       // Mix with a bit of noise/grain to simulate texture
-      const resultBuffer = await sharp(imageBuffer)
+      let resultBuffer = await sharp(imageBuffer)
         .composite([{ input: blurredLayer, top: 0, left: 0 }])
         .toBuffer();
+      if (access.outputTier === "standard") {
+        resultBuffer = await sharp(resultBuffer)
+          .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+          .png({ quality: 82, compressionLevel: 9 })
+          .toBuffer();
+      }
+      const debit = await chargeToolAccess(access, "image-eraser", `tool:${randomUUID()}`);
+      if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
 
       return NextResponse.json({
         success: true,
         result: `data:image/png;base64,${resultBuffer.toString("base64")}`,
-        method: "local-quick-fix"
+        method: "local-quick-fix",
+        outputTier: access.outputTier,
+        creditsCharged: access.creditCost,
       });
     } catch (localError) {
       throw new Error("All erasure services are currently unavailable.");

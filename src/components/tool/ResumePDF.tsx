@@ -287,7 +287,7 @@ export default function ResumePDF({ data, accentColor, template }: ResumePDFProp
             <Text style={[styles.headerTopline, { color: "#d7b56d" }]}>Executive Profile</Text>
             <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
               {profileImage ? (
-                <Image src={profileImage} style={[styles.avatarImage, styles.avatarImageInline]} alt="Profile" />
+                <Image src={profileImage} style={[styles.avatarImage, styles.avatarImageInline]} />
               ) : (
                 <View style={[styles.monogram, styles.monogramInline, { backgroundColor: "#d7b56d" }]}>
                   <Text style={styles.monogramText}>{initials || "CV"}</Text>
@@ -308,7 +308,7 @@ export default function ResumePDF({ data, accentColor, template }: ResumePDFProp
         ) : isCreative ? (
           <View style={[styles.creativeHeader, { backgroundColor: accentColor }]}>
             {profileImage ? (
-              <Image src={profileImage} style={styles.avatarImage} alt="Profile" />
+              <Image src={profileImage} style={styles.avatarImage} />
             ) : (
               <View style={[styles.monogram, { backgroundColor: "rgba(255,255,255,0.18)" }]}>
                 <Text style={styles.monogramText}>{initials || "CV"}</Text>
@@ -326,7 +326,7 @@ export default function ResumePDF({ data, accentColor, template }: ResumePDFProp
           </View>
         ) : isClassic ? (
           <View style={styles.classicHeader}>
-            {profileImage && <Image src={profileImage} style={[styles.avatarImage, styles.avatarClassic]} alt="Profile" />}
+            {profileImage && <Image src={profileImage} style={[styles.avatarImage, styles.avatarClassic]} />}
             <Text style={[styles.name, { color: "#111827" }]}>{title}</Text>
             <Text style={[styles.roleLabel, { color: "#52525b" }]}>{role}</Text>
             <View style={styles.contactRow}>
@@ -339,7 +339,7 @@ export default function ResumePDF({ data, accentColor, template }: ResumePDFProp
         ) : (
           <View style={styles.modernHeader}>
             {profileImage ? (
-              <Image src={profileImage} style={styles.avatarImage} alt="Profile" />
+              <Image src={profileImage} style={styles.avatarImage} />
             ) : (
               <View style={[styles.monogram, { backgroundColor: accentColor }]}>
                 <Text style={styles.monogramText}>{initials || "CV"}</Text>

@@ -22,21 +22,34 @@ export default function CareersPage() {
           Home / Careers
         </Link>
 
-        <header className="space-y-10">
-          <div className="flex items-center gap-6">
-             <div className="w-16 h-px bg-linear-to-r from-accent-cyan to-transparent" />
-             <div className="p-3 bg-accent-cyan/10 rounded-2xl">
-                <Users size={24} className="text-accent-cyan animate-pulse" />
-             </div>
-          </div>
-          <div className="space-y-4">
-            <h1 className="text-7xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.8] pr-10 px-4 -mx-4">
-              Work with <span className="gradient-text">Us.</span>
+        {/* Cinematic Hero Section */}
+        <header className="relative w-full rounded-[4rem] bg-[#0b0c12]/80 backdrop-blur-3xl border border-white/5 overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] p-12 md:p-24 flex flex-col items-center text-center group transition-all duration-700 hover:border-accent-cyan/30">
+          {/* Glowing backdrops */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-accent-cyan/20 blur-[120px] rounded-full pointer-events-none transition-all duration-1000 group-hover:bg-accent-cyan/30 group-hover:scale-110" />
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="relative z-10 flex flex-col items-center space-y-10"
+          >
+            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 text-accent-cyan shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+              <Users size={16} className="animate-pulse" />
+              <span className="text-xs font-black uppercase tracking-[0.4em]">Careers</span>
+            </div>
+            
+            <h1 className="text-7xl md:text-[10rem] font-black tracking-tighter uppercase italic leading-[0.8] select-none drop-shadow-2xl">
+              Work With <br/> <span className="text-transparent bg-clip-text bg-[linear-gradient(110deg,#67e8f9_0%,#ffffff_45%,#22d3ee_55%,#ffffff_100%)] bg-[length:200%_100%] animate-[shine_4s_linear_infinite]">Us.</span>
             </h1>
-            <p className="text-zinc-500 font-medium text-xl md:text-2xl max-w-2xl leading-relaxed">
-              We're building the infrastructure for a simpler, AI-powered future. Join us in making complex tools accessible to everyone.
+            
+            <p className="text-zinc-400 font-medium text-xl md:text-3xl max-w-4xl leading-relaxed">
+              We're building the infrastructure for a simpler, AI-powered future. Join us in making complex tools <span className="text-white">accessible to everyone.</span>
             </p>
-          </div>
+          </motion.div>
+          
+          {/* Bottom structural trim */}
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-cyan/50 to-transparent" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-accent-cyan/50 blur-sm rounded-t-full" />
         </header>
 
         {/* Empty State / No Jobs */}
@@ -108,13 +121,16 @@ export default function CareersPage() {
 
 function ValueCard({ icon: Icon, title, desc }: any) {
    return (
-      <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-6 hover:bg-white/[0.04] transition-colors group">
-         <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-zinc-600 group-hover:text-accent-cyan transition-colors">
-            <Icon size={24} />
-         </div>
-         <div className="space-y-3">
-            <h4 className="text-lg font-black text-white uppercase italic tracking-tighter">{title}</h4>
-            <p className="text-zinc-600 text-xs font-medium leading-relaxed">{desc}</p>
+      <div className="p-10 rounded-[3rem] bg-[#0b0c12]/50 backdrop-blur-xl border border-white/5 space-y-6 hover:border-white/20 transition-all duration-500 hover:-translate-y-2 shadow-2xl group relative overflow-hidden">
+         <div className="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/10 blur-3xl rounded-full transition-all duration-700 group-hover:scale-150" />
+         <div className="relative z-10 space-y-6">
+           <div className="w-16 h-16 rounded-2xl bg-accent-cyan/10 border border-white/10 flex items-center justify-center text-accent-cyan group-hover:scale-110 transition-transform duration-500">
+              <Icon size={28} />
+           </div>
+           <div className="space-y-3">
+              <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">{title}</h4>
+              <p className="text-zinc-500 text-sm md:text-base font-medium leading-relaxed group-hover:text-zinc-300 transition-colors">{desc}</p>
+           </div>
          </div>
       </div>
    );

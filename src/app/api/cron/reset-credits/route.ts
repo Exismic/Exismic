@@ -17,9 +17,10 @@ import { PRICING_CONFIG } from '@/config/pricing'
 export async function POST(request: NextRequest) {
   // Verify the request is from Vercel Cron
   const authHeader = request.headers.get('authorization')
-  const expectedAuth = `Bearer ${process.env.CRON_SECRET}`
+  const cronSecret = process.env.CRON_SECRET
+  const expectedAuth = cronSecret ? `Bearer ${cronSecret}` : null
 
-  if (!authHeader || authHeader !== expectedAuth) {
+  if (!expectedAuth || !authHeader || authHeader !== expectedAuth) {
     console.warn('[CRON] Unauthorized cron attempt')
     return NextResponse.json(
       { error: 'Unauthorized' },
@@ -36,23 +37,51 @@ export async function POST(request: NextRequest) {
     // Get current time
     const now = new Date()
 
+    // Expire cancelled Pro memberships after their paid-through date.
+    const expiredProResult = await prisma.user.updateMany({
+      where: {
+        plan: 'pro',
+        subscriptionStatus: { in: ['cancelled', 'expired'] },
+        planExpiresAt: { lte: now },
+      },
+      data: {
+        plan: 'free',
+        subscriptionStatus: 'expired',
+        subscriptionId: null,
+        dailyCredits: 50,
+        aiGenerationsLimit: 50,
+        creditsLastReset: now,
+        aiMessagesToday: 0,
+        aiMessagesReset: now,
+      },
+    })
+
     // Reset FREE users (50 credits)
     const freeResult = await prisma.user.updateMany({
       where: { plan: 'free' },
       data: {
         dailyCredits: 50,
+        bonusCredits: 0,
         creditsLastReset: now,
         aiMessagesToday: 0,
         aiMessagesReset: now,
       }
     })
 
-    // Reset PRO users to the configured daily allowance.
+    // Reset PRO users to the configured daily allowance. Cancelled users keep Pro until planExpiresAt.
     const proDaily = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
     const proResult = await prisma.user.updateMany({
-      where: { plan: 'pro' },
+      where: {
+        plan: 'pro',
+        OR: [
+          { planExpiresAt: null },
+          { planExpiresAt: { gt: now } },
+          { subscriptionStatus: 'active' },
+        ],
+      },
       data: {
         dailyCredits: proDaily,
+        bonusCredits: 0,
         creditsLastReset: now,
         aiMessagesToday: 0,
         aiMessagesReset: now,
@@ -71,6 +100,7 @@ export async function POST(request: NextRequest) {
       stats: {
         freeUsersReset: freeResult.count,
         proUsersReset: proResult.count,
+        expiredProUsersDowngraded: expiredProResult.count,
         creditsPerFreeUser: 50,
         creditsPerProUser: proDaily,
         duration: `${duration}ms`,
@@ -105,7 +135,11 @@ export async function GET(request: NextRequest) {
   try {
     // Optional: Check if request is authorized
     const authHeader = request.headers.get('authorization')
-    const isAuthorized = authHeader === `Bearer ${process.env.CRON_SECRET}`
+    const isAuthorized = Boolean(process.env.CRON_SECRET) && authHeader === `Bearer ${process.env.CRON_SECRET}`
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     // Get some stats about user credits
     const userStats = await prisma.user.groupBy({
@@ -127,8 +161,8 @@ export async function GET(request: NextRequest) {
       stats,
       nextReset: {
         description: 'Daily reset runs at 12:00 AM IST',
-        cronExpression: '0 18 * * *',
-        timezone: 'UTC (18:00 UTC = 12:00 AM IST + 5:30)'
+        cronExpression: '30 18 * * *',
+        timezone: 'UTC (18:30 UTC = 12:00 AM IST)'
       }
     })
   } catch (err) {

@@ -22,36 +22,47 @@ export function ExismicMark({
   animated?: boolean;
 }) {
   return (
-    <span
+    <div
       className={cn(
-        "group/mark relative isolate inline-flex shrink-0 items-center justify-center transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2",
+        "group/mark relative isolate shrink-0 drop-shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all duration-500 group-hover:scale-110",
         className
       )}
       style={{ width: size, height: size }}
+      aria-hidden="true"
     >
-      <Image
-        src="/exismic-app-icon-transparent.png"
-        alt="Exismic"
-        width={512}
-        height={512}
-        priority
-        className="relative z-10 h-full w-full object-contain drop-shadow-[0_10px_24px_rgba(91,109,255,0.22)]"
-      />
-      <span
-        aria-hidden="true"
-        className={cn(
-          "exismic-neon-outline absolute inset-[3%] z-20 opacity-90",
-          animated ? "exismic-neon-outline--animated" : "exismic-neon-outline--static"
-        )}
-      />
-      <span
-        aria-hidden="true"
-        className={cn(
-          "exismic-neon-outline absolute inset-[3%] z-20 opacity-80 blur-[4px]",
-          animated ? "exismic-neon-outline--animated" : "exismic-neon-outline--static"
-        )}
-      />
-    </span>
+      {/* Animated gradient border shell */}
+      <div className="absolute inset-0 overflow-hidden [clip-path:polygon(50%_0%,93%_25%,93%_75%,50%_100%,7%_75%,7%_25%)]">
+        <div
+          className={cn("absolute -inset-1/2 bg-[conic-gradient(from_10deg,#67e8f9,#22d3ee_18%,#a855f7_42%,#d946ef_67%,#67e8f9_100%)]", animated ? "animate-[spin_4s_linear_infinite]" : "")}
+        />
+      </div>
+
+      {/* Dark divider (the border width) */}
+      <div className="absolute inset-[2px] [clip-path:polygon(50%_0%,93%_25%,93%_75%,50%_100%,7%_75%,7%_25%)] bg-[#05060b]" />
+      
+      {/* Inner 3D Bevel with Shine */}
+      <div className="absolute inset-[3px] overflow-hidden [clip-path:polygon(50%_0%,93%_25%,93%_75%,50%_100%,7%_75%,7%_25%)] bg-[linear-gradient(145deg,rgba(168,85,247,0.8),rgba(12,13,23,0.95)_48%,rgba(34,211,238,0.7))]">
+        <span className="absolute -left-10 top-0 h-full w-4 skew-x-[-18deg] bg-white/40 blur-[1px] transition-transform duration-1000 group-hover/mark:translate-x-20" />
+        <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,0.4),transparent_26%)]" />
+      </div>
+
+      {/* Deep Core where the E lives */}
+      <div
+        className="absolute flex items-center justify-center [clip-path:polygon(50%_0%,93%_25%,93%_75%,50%_100%,7%_75%,7%_25%)] bg-[#080914] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+        style={{ top: '16%', left: '16%', bottom: '16%', right: '16%' }}
+      >
+        {/* The letter E */}
+        <span 
+          className="relative z-10 text-white font-black leading-none drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" 
+          style={{ fontSize: size * 0.45, marginTop: '2%' }}
+        >
+          E
+        </span>
+      </div>
+
+      {/* Decorative Cyan Dot */}
+      <span className="absolute right-[4%] top-[19%] w-[12%] h-[12%] rounded-full bg-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-pulse" />
+    </div>
   );
 }
 
@@ -75,7 +86,7 @@ export function ExismicLogo({
       : "text-[9px] tracking-[0.32em] mt-1.5";
 
   const logoContent = (
-    <div className={cn("flex items-center gap-3 group relative cursor-pointer select-none", className)}>
+    <div suppressHydrationWarning className={cn("flex items-center gap-3 group relative cursor-pointer select-none", className)}>
       <ExismicMark size={size} className={innerClassName} />
 
       {/* Premium Typography Branding */}
@@ -101,7 +112,7 @@ export function ExismicLogo({
 
   if (logoLink) {
     return (
-      <Link href="/" className="inline-block outline-none">
+      <Link href="/" className="inline-block outline-none" suppressHydrationWarning>
         {logoContent}
       </Link>
     );
@@ -109,3 +120,4 @@ export function ExismicLogo({
 
   return logoContent;
 }
+

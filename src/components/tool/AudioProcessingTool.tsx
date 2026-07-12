@@ -138,7 +138,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
   const config = TOOL_CONFIG[mode];
   const Icon = config.icon;
   const controllerRef = useRef<AbortController | null>(null);
-  const stageTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const stageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<ToolStatus>("idle");
@@ -224,7 +224,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
     setError(null);
     setElapsed(0);
     setStatus("uploading");
-    stageTimerRef.current = window.setTimeout(
+    stageTimerRef.current = setTimeout(
       () => setStatus("processing"),
       650,
     );

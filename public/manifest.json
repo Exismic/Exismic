@@ -1,7 +1,7 @@
 {
   "name": "Exismic",
   "short_name": "Exismic",
-  "description": "Exismic Ai creative platform",
+  "description": "Exismic AI creative platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#030303",

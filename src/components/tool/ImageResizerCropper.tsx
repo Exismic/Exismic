@@ -409,7 +409,7 @@ export function ImageResizerCropper() {
                      onClick={() => {
                        const a = document.createElement("a");
                        a.href = result.url;
-                       a.download = `toolverse_${asset?.name?.replace(/\.[^.]+$/, "") || "image"}.${result.format}`;
+                       a.download = `exismic_${asset?.name?.replace(/\.[^.]+$/, "") || "image"}.${result.format}`;
                        a.click();
                      }}
                      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-white px-5 text-xs font-bold text-black shadow-lg transition-all hover:bg-zinc-200"

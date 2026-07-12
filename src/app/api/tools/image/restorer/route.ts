@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
-import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
+import { randomUUID } from "crypto";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
@@ -69,25 +69,6 @@ async function tryModalRestore(params: {
 
   const arrayBuffer = await response.arrayBuffer();
   return Buffer.from(arrayBuffer);
-}
-
-async function getPriorityContext() {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { priority: false, queue: "normal" as const };
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { plan: true, subscriptionStatus: true },
-    });
-
-    const priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
-    return { priority, queue: priority ? "priority" as const : "normal" as const };
-  } catch (error) {
-    console.warn("Could not resolve Pro priority context:", getErrorMessage(error));
-    return { priority: false, queue: "normal" as const };
-  }
 }
 
 async function restoreWithSharp(params: {
@@ -159,6 +140,8 @@ async function restoreWithSharp(params: {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
+    const access = await resolveToolAccess(req, { toolId: "image-restorer", mode: "free-quality", creditCost: 12, formData });
+    if (isToolAccessResponse(access)) return access;
     const file = formData.get("file") as File | null;
 
     if (!file) {
@@ -178,16 +161,20 @@ export async function POST(req: NextRequest) {
     const color = getBoolean(formData, "color", true);
     const sharpen = getBoolean(formData, "sharpen", true);
     const denoise = getBoolean(formData, "denoise", true);
-    const upscale = clampNumber(formData.get("upscale"), 1, 1, 2);
-    const context = await getPriorityContext();
+    const requestedUpscale = clampNumber(formData.get("upscale"), 1, 1, 2);
+    const upscale = access.outputTier === "standard" ? 1 : requestedUpscale;
+    const priority = access.isPro;
+    const queue = priority ? "priority" as const : "normal" as const;
     const buffer = Buffer.from(await file.arrayBuffer());
 
     let provider = "sharp-local-restorer";
     let resultBuffer: Buffer | null = null;
 
     try {
-      resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale, priority: context.priority });
-      if (resultBuffer) provider = context.priority ? "modal-priority-gfpgan-codeformer" : "modal-gfpgan-codeformer";
+      if (access.outputTier === "hd") {
+        resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale, priority });
+        if (resultBuffer) provider = priority ? "modal-priority-gfpgan-codeformer" : "modal-gfpgan-codeformer";
+      }
     } catch (modalError) {
       console.error("Modal Photo Restore Failed:", getErrorMessage(modalError));
     }
@@ -195,6 +182,15 @@ export async function POST(req: NextRequest) {
     if (!resultBuffer) {
       resultBuffer = await restoreWithSharp({ buffer, strength, faces, color, sharpen, denoise, upscale });
     }
+    if (access.outputTier === "standard") {
+      resultBuffer = await sharp(resultBuffer)
+        .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+        .png({ quality: 82, compressionLevel: 9 })
+        .toBuffer();
+    }
+
+    const debit = await chargeToolAccess(access, "image-restorer", `tool:${randomUUID()}`);
+    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
 
     const outputMetadata = await sharp(resultBuffer).metadata();
 
@@ -206,9 +202,11 @@ export async function POST(req: NextRequest) {
       height: outputMetadata.height,
       format: "png",
       provider,
-      priority: context.priority,
-      queue: context.queue,
-      processingLabel: context.priority ? "Processing with Priority..." : "Processing...",
+      priority,
+      queue,
+      processingLabel: priority ? "Processing with Priority..." : "Processing...",
+      outputTier: access.outputTier,
+      creditsCharged: access.creditCost,
       options: { strength, faces, color, sharpen, denoise, upscale },
     });
   } catch (error: unknown) {

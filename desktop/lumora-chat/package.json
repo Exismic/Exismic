@@ -10,7 +10,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "electron .",
-    "preview:production": "node scripts/launch.cjs https://lumoraai.online/chat",
+    "preview:production": "node scripts/launch.cjs https://exismic.xyz/chat",
     "verify": "node scripts/verify.cjs",
     "pack": "electron-builder --dir",
     "dist:windows": "electron-builder --win nsis portable"

@@ -94,12 +94,12 @@ export function parsePayPalCustomId(customId?: string) {
   };
 }
 
-async function getPayPalAccessToken() {
+export async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error("PayPal sandbox is not configured.");
+    throw new Error("PayPal is not configured.");
   }
 
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
@@ -116,7 +116,7 @@ async function getPayPalAccessToken() {
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.access_token) {
     console.error("[PayPal] Could not fetch access token", data);
-    throw new Error("PayPal sandbox credentials were rejected. Check that the Client ID and Secret are from the same Sandbox app.");
+    throw new Error("PayPal credentials were rejected. Check the configured mode and API app credentials.");
   }
 
   return String(data.access_token);
@@ -180,6 +180,202 @@ export async function createPayPalOrder({
   }
 
   return { order, approvalUrl };
+}
+
+
+export type PayPalSubscriptionResponse = {
+  id: string;
+  status: string;
+  custom_id?: string;
+  plan_id?: string;
+  billing_info?: {
+    next_billing_time?: string;
+    last_payment?: {
+      amount?: {
+        currency_code?: string;
+        value?: string;
+      };
+      time?: string;
+    };
+  };
+  links?: PayPalLink[];
+};
+
+async function createPayPalProduct(accessToken: string) {
+  const response = await fetch(`${getPayPalApiBase()}/v1/catalogs/products`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({
+      name: "Exismic Pro",
+      description: "Monthly Exismic Pro membership",
+      type: "SERVICE",
+      category: "SOFTWARE",
+    }),
+    cache: "no-store",
+  });
+
+  const product = await response.json().catch(() => null) as { id?: string } | null;
+  if (!response.ok || !product?.id) {
+    console.error("[PayPal] Product creation failed", product);
+    throw new Error("Could not prepare PayPal subscription product.");
+  }
+
+  return product.id;
+}
+
+async function createPayPalPlan(accessToken: string, amount: number, currency: CheckoutCurrency) {
+  const productId = await createPayPalProduct(accessToken);
+  const response = await fetch(`${getPayPalApiBase()}/v1/billing/plans`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      name: `Exismic Pro ${currency} Monthly`,
+      description: "Monthly Exismic Pro membership",
+      status: "ACTIVE",
+      billing_cycles: [
+        {
+          frequency: { interval_unit: "MONTH", interval_count: 1 },
+          tenure_type: "REGULAR",
+          sequence: 1,
+          total_cycles: 0,
+          pricing_scheme: {
+            fixed_price: {
+              value: amount.toFixed(2),
+              currency_code: currency,
+            },
+          },
+        },
+      ],
+      payment_preferences: {
+        auto_bill_outstanding: true,
+        setup_fee_failure_action: "CONTINUE",
+        payment_failure_threshold: 3,
+      },
+    }),
+    cache: "no-store",
+  });
+
+  const plan = await response.json().catch(() => null) as { id?: string } | null;
+  if (!response.ok || !plan?.id) {
+    console.error("[PayPal] Plan creation failed", plan);
+    throw new Error("Could not prepare PayPal subscription plan.");
+  }
+
+  return plan.id;
+}
+
+export async function resolvePayPalProPlanId(amount: number, currency: CheckoutCurrency) {
+  const configured = currency === "USD"
+    ? process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID
+    : process.env.PAYPAL_PRO_PLAN_ID_INR || process.env.PAYPAL_PRO_PLAN_ID;
+
+  if (configured) return configured;
+
+  if (getPayPalMode() === "live") {
+    throw new Error("PayPal Pro subscription plan is not configured.");
+  }
+
+  const accessToken = await getPayPalAccessToken();
+  return createPayPalPlan(accessToken, amount, currency);
+}
+
+export async function createPayPalSubscription({
+  context,
+  returnUrl,
+  cancelUrl,
+}: {
+  context: PayPalOrderContext;
+  returnUrl: string;
+  cancelUrl: string;
+}) {
+  const accessToken = await getPayPalAccessToken();
+  const planId = await resolvePayPalProPlanId(context.amount, context.currency);
+
+  const response = await fetch(`${getPayPalApiBase()}/v1/billing/subscriptions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({
+      plan_id: planId,
+      custom_id: encodePayPalCustomId(context),
+      quantity: "1",
+      application_context: {
+        brand_name: "Exismic",
+        locale: "en-US",
+        shipping_preference: "NO_SHIPPING",
+        user_action: "SUBSCRIBE_NOW",
+        return_url: returnUrl,
+        cancel_url: cancelUrl,
+      },
+    }),
+    cache: "no-store",
+  });
+
+  const subscription = await response.json().catch(() => null) as PayPalSubscriptionResponse | null;
+  if (!response.ok || !subscription?.id) {
+    console.error("[PayPal] Subscription creation failed", subscription);
+    throw new Error("Could not create PayPal subscription.");
+  }
+
+  const approvalUrl = subscription.links?.find((link) => link.rel === "approve")?.href;
+  if (!approvalUrl) {
+    throw new Error("PayPal did not return a subscription approval link.");
+  }
+
+  return { subscription, approvalUrl };
+}
+
+export async function getPayPalSubscription(subscriptionId: string) {
+  const accessToken = await getPayPalAccessToken();
+  const response = await fetch(`${getPayPalApiBase()}/v1/billing/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
+
+  const subscription = await response.json().catch(() => null) as PayPalSubscriptionResponse | null;
+  if (!response.ok || !subscription?.id) {
+    console.error("[PayPal] Subscription lookup failed", subscription);
+    throw new Error("Could not verify PayPal subscription.");
+  }
+
+  return subscription;
+}
+
+export async function cancelPayPalSubscription(subscriptionId: string, reason = "Cancelled from Exismic account settings") {
+  const accessToken = await getPayPalAccessToken();
+  const response = await fetch(`${getPayPalApiBase()}/v1/billing/subscriptions/${encodeURIComponent(subscriptionId)}/cancel`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ reason }),
+    cache: "no-store",
+  });
+
+  if (!response.ok && response.status !== 204) {
+    const data = await response.json().catch(() => null);
+    console.error("[PayPal] Subscription cancel failed", data);
+    throw new Error("Could not cancel PayPal subscription.");
+  }
+
+  return true;
 }
 
 export async function capturePayPalOrder(orderId: string) {

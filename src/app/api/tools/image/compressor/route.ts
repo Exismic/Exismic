@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { randomUUID } from "crypto";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
 const SUPPORTED_OUTPUT_FORMATS = new Set(["original", "jpg", "jpeg", "png", "webp", "avif"]);
@@ -25,8 +27,11 @@ function clampQuality(value: FormDataEntryValue | null) {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
+    const access = await resolveToolAccess(req, { toolId: "image-compressor", mode: "free-quality", creditCost: 2, formData });
+    if (isToolAccessResponse(access)) return access;
     const file = formData.get("file") as File;
-    const quality = clampQuality(formData.get("quality"));
+    const requestedQuality = clampQuality(formData.get("quality"));
+    const quality = access.outputTier === "standard" ? Math.min(requestedQuality, 76) : requestedQuality;
     const toWebp = formData.get("toWebp") === "true";
     const format = ((formData.get("format") as string) || "original").toLowerCase();
     const maxWidth = parsePositiveInteger(formData.get("maxWidth"), "Max width");
@@ -62,10 +67,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Resizing
-    if (maxWidth || maxHeight) {
+    if (maxWidth || maxHeight || access.outputTier === "standard") {
       pipeline = pipeline.resize({
-        width: maxWidth,
-        height: maxHeight,
+        width: access.outputTier === "standard" ? Math.min(maxWidth || 1600, 1600) : maxWidth,
+        height: access.outputTier === "standard" ? Math.min(maxHeight || 1600, 1600) : maxHeight,
         fit: "inside",
         withoutEnlargement: true
       });
@@ -98,6 +103,8 @@ export async function POST(req: NextRequest) {
     }
 
     const resultBuffer = await pipeline.toBuffer();
+    const debit = await chargeToolAccess(access, "image-compressor", `tool:${randomUUID()}`);
+    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
     const outputMetadata = await sharp(resultBuffer).metadata();
     const mime = `image/${targetFormat === "jpg" ? "jpeg" : targetFormat}`;
 
@@ -112,6 +119,8 @@ export async function POST(req: NextRequest) {
       originalHeight: inputMetadata.height,
       quality,
       metadataRemoved: removeMetadata,
+      outputTier: access.outputTier,
+      creditsCharged: access.creditCost,
     });
 
   } catch (error: unknown) {

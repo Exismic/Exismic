@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { CATEGORIES, ICON_MAP } from "@/data/tools";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { LayoutGrid, ArrowRight } from "lucide-react";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
 export function CategorySection() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -18,7 +18,7 @@ export function CategorySection() {
     },
   };
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: { 
       opacity: 1, 

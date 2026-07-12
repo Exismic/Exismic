@@ -78,7 +78,7 @@ export default function VideoBackgroundRemover() {
   if (!file) {
     return (
       <motion.div
-        {...getRootProps()}
+                {...(getRootProps() as unknown as import("framer-motion").HTMLMotionProps<"div">)}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(

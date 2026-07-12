@@ -10,17 +10,19 @@ export const PRICING_CONFIG = {
   CREDIT_PACKAGES: [
     {
       id: 'tier_1',
+      billingPlanId: 'starter',
       credits: 500,
-      priceUSD: 4.99,
-      priceINR: 349,
+      priceUSD: 3.99,
+      priceINR: 299,
       label: 'Starter Pack',
       color: 'blue',
       icon: 'Zap'
     },
     {
       id: 'tier_2',
+      billingPlanId: 'creator',
       credits: 1500,
-      priceUSD: 9.99,
+      priceUSD: 8.99,
       priceINR: 699,
       label: 'Creator Choice',
       color: 'purple',
@@ -29,9 +31,10 @@ export const PRICING_CONFIG = {
     },
     {
       id: 'tier_3',
+      billingPlanId: 'ultimate',
       credits: 5000,
       priceUSD: 24.99,
-      priceINR: 1799,
+      priceINR: 1999,
       label: 'Studio Power',
       color: 'gold',
       icon: 'Crown'
@@ -40,7 +43,18 @@ export const PRICING_CONFIG = {
 };
 
 export function getIsIndia() {
-  return false;
+  if (typeof window === "undefined") return false;
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const locale = navigator.language || "";
+  const locales = Array.isArray(navigator.languages) ? navigator.languages.join(",") : locale;
+
+  return (
+    timezone === "Asia/Kolkata" ||
+    timezone === "Asia/Calcutta" ||
+    /(^|[-_,])IN($|[-_,])/i.test(locale) ||
+    /(^|[-_,])IN($|[-_,])/i.test(locales)
+  );
 }
 
 export function formatPrice(amount: number, currency: 'USD' | 'INR') {

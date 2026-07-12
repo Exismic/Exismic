@@ -8,12 +8,13 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getDailyCreditLimit, getToolCreditCost } from "@/lib/credit-policy";
+import { requireProApiUser } from "@/lib/api-security";
 
 const STORAGE_PATH = path.join(process.cwd(), "public", "generations");
 
 function enhancePrompt(rawPrompt: string): { prompt: string; enhancedUsed: string } {
   let p = rawPrompt.trim();
-  let lowercase = p.toLowerCase();
+  const lowercase = p.toLowerCase();
   
   // 1. Better Environment Understanding: For prompts containing "Minecraft Nether"
   if (lowercase.includes("minecraft nether") || (lowercase.includes("minecraft") && lowercase.includes("nether"))) {
@@ -53,6 +54,8 @@ function enhancePrompt(rawPrompt: string): { prompt: string; enhancedUsed: strin
 
 export async function POST(req: NextRequest) {
   try {
+    const proUser = await requireProApiUser();
+    if (proUser instanceof NextResponse) return proUser;
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 

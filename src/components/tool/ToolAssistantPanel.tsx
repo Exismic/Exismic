@@ -409,14 +409,14 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.94 }}
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
-            className="fixed bottom-4 right-4 z-40 sm:bottom-7 sm:right-7"
+            className="fixed bottom-3 right-3 z-40 sm:bottom-7 sm:right-7"
           >
             <button
               type="button"
               onClick={() => setIsOpen(true)}
               className={cn(
-                "group relative isolate flex h-16 items-center justify-start overflow-hidden rounded-2xl p-[1px] text-left shadow-[0_22px_70px_rgba(0,0,0,0.58)] transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(109,40,217,0.24)]",
-                showIntro ? "w-[190px]" : "w-16 hover:w-[190px]"
+                "group relative isolate flex h-14 items-center justify-start overflow-hidden rounded-2xl p-[1px] text-left shadow-[0_22px_70px_rgba(0,0,0,0.58)] transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(109,40,217,0.24)] sm:h-16",
+                showIntro ? "w-14 sm:w-[190px]" : "w-14 sm:w-16 sm:hover:w-[190px]"
               )}
               aria-label={`Ask Exismic Ai about ${tool.name}`}
               title={`Ask Exismic Ai about ${tool.name}`}
@@ -433,7 +433,7 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
                 className="absolute inset-y-0 z-10 w-8 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent blur-sm"
               />
 
-              <span className="relative z-20 flex size-[62px] shrink-0 items-center justify-center">
+              <span className="relative z-20 flex size-14 shrink-0 scale-[0.86] items-center justify-center sm:size-[62px] sm:scale-100">
                 <ExismicMark size={50} />
               </span>
 
@@ -441,8 +441,8 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
                 className={cn(
                   "relative z-20 flex flex-col justify-center overflow-hidden whitespace-nowrap pr-5 transition-[max-width,opacity,transform] duration-500",
                   showIntro
-                    ? "max-w-[140px] translate-x-0 opacity-100"
-                    : "max-w-0 -translate-x-2 opacity-0 group-hover:max-w-[140px] group-hover:translate-x-0 group-hover:opacity-100"
+                    ? "max-w-0 opacity-0 sm:max-w-[140px] sm:translate-x-0 sm:opacity-100"
+                    : "max-w-0 -translate-x-2 opacity-0 sm:group-hover:max-w-[140px] sm:group-hover:translate-x-0 sm:group-hover:opacity-100"
                 )}
               >
                 <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-white">Ask Exismic Ai</span>

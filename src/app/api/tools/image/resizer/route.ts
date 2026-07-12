@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { randomUUID } from "crypto";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
 const SUPPORTED_OUTPUT_FORMATS = new Set(["jpg", "jpeg", "png", "webp"]);
@@ -58,12 +60,20 @@ function parseCrop(value: FormDataEntryValue | null): CropData {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
+    const access = await resolveToolAccess(req, { toolId: "image-resizer", mode: "free-quality", creditCost: 2, formData });
+    if (isToolAccessResponse(access)) return access;
     const file = formData.get("file") as File;
     const cropData = parseCrop(formData.get("crop"));
-    const targetWidth = parsePositiveInteger(formData.get("width"), "Width");
-    const targetHeight = parsePositiveInteger(formData.get("height"), "Height");
+    const requestedWidth = parsePositiveInteger(formData.get("width"), "Width");
+    const requestedHeight = parsePositiveInteger(formData.get("height"), "Height");
+    const standardScale = access.outputTier === "standard"
+      ? Math.min(1, 1600 / Math.max(requestedWidth, requestedHeight))
+      : 1;
+    const targetWidth = Math.max(1, Math.round(requestedWidth * standardScale));
+    const targetHeight = Math.max(1, Math.round(requestedHeight * standardScale));
     const format = ((formData.get("format") as string) || "jpg").toLowerCase();
-    const quality = parseQuality(formData.get("quality"));
+    const requestedQuality = parseQuality(formData.get("quality"));
+    const quality = access.outputTier === "standard" ? Math.min(requestedQuality, 78) : requestedQuality;
 
     if (!file) {
       return NextResponse.json({ error: "File is required." }, { status: 400 });
@@ -120,6 +130,8 @@ export async function POST(req: NextRequest) {
     }
 
     const resultBuffer = await pipeline.toBuffer();
+    const debit = await chargeToolAccess(access, "image-resizer", `tool:${randomUUID()}`);
+    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
     const outputMetadata = await sharp(resultBuffer).metadata();
 
     return NextResponse.json({
@@ -131,6 +143,8 @@ export async function POST(req: NextRequest) {
       format,
       quality,
       crop: { x: left, y: top, width: cropWidth, height: cropHeight }
+      ,outputTier: access.outputTier,
+      creditsCharged: access.creditCost,
     });
 
   } catch (error: unknown) {

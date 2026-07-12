@@ -110,13 +110,13 @@ export default function HashtagGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-cyan-500/30" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#050505] px-4 pb-6 pt-24 font-sans text-white selection:bg-cyan-500/30 sm:px-6 md:px-12 md:pb-12 md:pt-28" suppressHydrationWarning>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="text-center md:text-left">
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-center md:justify-start gap-3 mb-4"
             >
@@ -128,7 +128,7 @@ export default function HashtagGenerator() {
               </h1>
             </motion.div>
             <motion.p
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
               className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
@@ -172,7 +172,7 @@ export default function HashtagGenerator() {
                 {/* Platform Selector */}
                 <div>
                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-4 italic">Target Ecosystem</label>
-                   <div className="grid grid-cols-3 gap-2">
+                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {[
                         { id: "all", icon: <Globe className="w-3 h-3" /> },
                         { id: "instagram", icon: <Camera className="w-3 h-3" /> },
@@ -184,7 +184,7 @@ export default function HashtagGenerator() {
                           key={p.id}
                           onClick={() => setPlatform(p.id as Platform)}
                           className={cn(
-                            "flex flex-col items-center gap-2 p-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all",
+                            "flex min-h-14 flex-col items-center justify-center gap-2 rounded-xl border p-3 text-[9px] font-black uppercase tracking-[0.08em] transition-all",
                             platform === p.id 
                               ? "bg-cyan-600 border-cyan-500 text-white" 
                               : "border-white/5 bg-white/5 text-gray-500 hover:bg-white/10"

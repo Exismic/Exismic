@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
-import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
+import { randomUUID } from "crypto";
+import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
 
 const SUPPORTED_INPUT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
@@ -80,25 +80,6 @@ async function tryModalWatermarkRemoval(params: {
   return Buffer.from(await response.arrayBuffer());
 }
 
-async function getPriorityContext() {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { priority: false, queue: "normal" as const };
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { plan: true, subscriptionStatus: true },
-    });
-
-    const priority = dbUser?.plan === "pro" || dbUser?.subscriptionStatus === "active";
-    return { priority, queue: priority ? "priority" as const : "normal" as const };
-  } catch (error) {
-    console.warn("Could not resolve watermark priority context:", getErrorMessage(error));
-    return { priority: false, queue: "normal" as const };
-  }
-}
-
 async function buildReplacementPatch(buffer: Buffer, rect: { left: number; top: number; width: number; height: number }, imageWidth: number, imageHeight: number, strength: number) {
   const pad = Math.max(12, Math.round(Math.max(rect.width, rect.height) * 0.18));
   const candidateSources = [
@@ -142,6 +123,8 @@ async function buildReplacementPatch(buffer: Buffer, rect: { left: number; top: 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
+    const access = await resolveToolAccess(req, { toolId: "watermark-remover", mode: "free-quality", creditCost: 10, formData });
+    if (isToolAccessResponse(access)) return access;
     const file = formData.get("file") as File | null;
 
     if (!file) {
@@ -158,7 +141,8 @@ export async function POST(req: NextRequest) {
 
     const region = parseRegion(formData.get("region"));
     const strength = parseStrength(formData.get("strength"));
-    const context = await getPriorityContext();
+    const priority = access.isPro;
+    const queue = priority ? "priority" as const : "normal" as const;
     const buffer = Buffer.from(await file.arrayBuffer());
     const metadata = await sharp(buffer).metadata();
     const imageWidth = metadata.width || 0;
@@ -172,8 +156,10 @@ export async function POST(req: NextRequest) {
     let outputBuffer: Buffer | null = null;
 
     try {
-      outputBuffer = await tryModalWatermarkRemoval({ buffer, file, region, strength, priority: context.priority });
-      if (outputBuffer) provider = context.priority ? "modal-priority-inpainting" : "modal-inpainting";
+      if (access.outputTier === "hd") {
+        outputBuffer = await tryModalWatermarkRemoval({ buffer, file, region, strength, priority });
+        if (outputBuffer) provider = priority ? "modal-priority-inpainting" : "modal-inpainting";
+      }
     } catch (modalError) {
       console.error("Modal watermark removal failed:", getErrorMessage(modalError));
     }
@@ -195,18 +181,29 @@ export async function POST(req: NextRequest) {
         .jpeg({ quality: 94, mozjpeg: true })
         .toBuffer();
     }
+    if (access.outputTier === "standard") {
+      outputBuffer = await sharp(outputBuffer)
+        .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 82, mozjpeg: true })
+        .toBuffer();
+    }
+
+    const debit = await chargeToolAccess(access, "watermark-remover", `tool:${randomUUID()}`);
+    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
 
     const outputMetadata = await sharp(outputBuffer).metadata();
 
-    return new NextResponse(outputBuffer, {
+    return new NextResponse(new Uint8Array(outputBuffer), {
       headers: {
         "Content-Type": "image/jpeg",
         "Content-Disposition": `attachment; filename="exismic-watermark-cleaned-${Date.now()}.jpg"`,
         "X-Exismic-Provider": provider,
         "X-Exismic-Width": String(outputMetadata.width || ""),
         "X-Exismic-Height": String(outputMetadata.height || ""),
-        "X-Exismic-Priority": context.priority ? "true" : "false",
-        "X-Exismic-Queue": context.queue,
+        "X-Exismic-Priority": priority ? "true" : "false",
+        "X-Exismic-Queue": queue,
+        "X-Exismic-Output-Tier": access.outputTier,
+        "X-Exismic-Credits-Charged": String(access.creditCost),
       },
     });
   } catch (error: unknown) {

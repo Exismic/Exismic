@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { normalizeFavoriteToolId } from "@/lib/favorites";
+import { listFavoriteToolIds, resolveFavoriteOwner } from "@/lib/server/favorites";
+
+export const dynamic = "force-dynamic";
+
+const responseHeaders = {
+  "Cache-Control": "private, no-store, max-age=0",
+};
 
 export async function GET() {
   try {
@@ -8,16 +16,19 @@ export async function GET() {
     const { data: { user: sbUser } } = await supabaseServer.auth.getUser();
 
     if (!sbUser) {
-      return NextResponse.json({ favorites: [] });
+      return NextResponse.json(
+        { favorites: [], authenticated: false },
+        { headers: responseHeaders },
+      );
     }
 
-    const data = await prisma.favorite.findMany({
-      where: { userId: sbUser.id },
-      select: { toolId: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const owner = await resolveFavoriteOwner(sbUser);
+    const favorites = owner ? await listFavoriteToolIds(owner.id) : [];
 
-    return NextResponse.json({ favorites: data.map(f => f.toolId) });
+    return NextResponse.json(
+      { favorites, authenticated: true },
+      { headers: responseHeaders },
+    );
   } catch (error: unknown) {
     console.error("Error fetching favorites:", error);
     return NextResponse.json({ error: "Failed to fetch favorites" }, { status: 500 });
@@ -33,50 +44,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { toolId, action } = await req.json();
+    const body = await req.json().catch(() => null);
+    const toolId = normalizeFavoriteToolId(body?.toolId);
+    const action = body?.action;
 
-    if (!toolId || !['add', 'remove'].includes(action)) {
+    if (!toolId || !["add", "remove"].includes(action)) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    await prisma.user.upsert({
-      where: { id: sbUser.id },
-      update: {
-        email: sbUser.email ?? undefined,
-      },
-      create: {
-        id: sbUser.id,
-        email: sbUser.email ?? null,
-        name: typeof sbUser.user_metadata?.full_name === "string"
-          ? sbUser.user_metadata.full_name
-          : null,
-      },
-    });
+    const owner = await resolveFavoriteOwner(sbUser, { create: true });
 
     if (action === 'add') {
       await prisma.favorite.upsert({
         where: {
           userId_toolId: {
-            userId: sbUser.id,
+            userId: owner.id,
             toolId,
           },
         },
         update: {},
         create: {
-          userId: sbUser.id,
+          userId: owner.id,
           toolId,
         },
       });
     } else {
       await prisma.favorite.deleteMany({
         where: {
-          userId: sbUser.id,
+          userId: owner.id,
           toolId,
         },
       });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      {
+        success: true,
+        isFavorited: action === "add",
+        favorites: await listFavoriteToolIds(owner.id),
+      },
+      { headers: responseHeaders },
+    );
   } catch (error: unknown) {
     console.error("Error updating favorite:", error);
     return NextResponse.json({ error: "Failed to update favorite" }, { status: 500 });

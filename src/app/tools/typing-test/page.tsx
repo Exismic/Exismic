@@ -24,6 +24,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 
 type TestMode = "30" | "60" | "120" | "endless";
 type ThemeId = "tech" | "motivation" | "story" | "coding" | "startup" | "daily";
@@ -236,19 +237,19 @@ function buildInsights(stats: TypingStats, heatmap: Record<string, number>, inpu
 }
 
 function saveResult(result: ResultRecord) {
-  const stored = localStorage.getItem("exismic_typing_leaderboard");
+  const stored = getFunctionalStorageItem("exismic_typing_leaderboard");
   const current = stored ? (JSON.parse(stored) as ResultRecord[]) : [];
   const next = [result, ...current]
     .sort((a, b) => b.wpm - a.wpm || b.accuracy - a.accuracy)
     .slice(0, 12);
-  localStorage.setItem("exismic_typing_leaderboard", JSON.stringify(next));
+  setFunctionalStorageItem("exismic_typing_leaderboard", JSON.stringify(next));
   return next;
 }
 
 function loadLeaderboard() {
   if (typeof window === "undefined") return [];
   try {
-    const stored = localStorage.getItem("exismic_typing_leaderboard");
+    const stored = getFunctionalStorageItem("exismic_typing_leaderboard");
     return stored ? (JSON.parse(stored) as ResultRecord[]) : [];
   } catch {
     return [];
@@ -258,7 +259,7 @@ function loadLeaderboard() {
 function loadStreak(): StreakState {
   if (typeof window === "undefined") return { date: "", streak: 0 };
   try {
-    const stored = localStorage.getItem("exismic_typing_streak");
+    const stored = getFunctionalStorageItem("exismic_typing_streak");
     return stored ? (JSON.parse(stored) as StreakState) : { date: "", streak: 0 };
   } catch {
     return { date: "", streak: 0 };
@@ -322,7 +323,7 @@ export default function TypingSpeedTesterPage() {
       if (current.date === today) return current;
       const nextStreak = current.date === yesterdayKey() ? current.streak + 1 : 1;
       const next = { date: today, streak: nextStreak };
-      localStorage.setItem("exismic_typing_streak", JSON.stringify(next));
+      setFunctionalStorageItem("exismic_typing_streak", JSON.stringify(next));
       return next;
     });
   }, [theme]);

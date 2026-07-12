@@ -23,11 +23,11 @@ export default function VideoToGifPage() {
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Cinematic Loops</span>
         </div>
         
-        <h1 className="text-6xl md:text-8xl font-black mb-6 tracking-tightest leading-none bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40">
+        <h1 className="mb-6 bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-4xl font-black leading-none tracking-tightest text-transparent sm:text-6xl md:text-8xl">
           VIDEO TO <br /> <span className="text-purple-500 italic">GIF</span> STUDIO
         </h1>
         
-        <p className="text-gray-500 text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+        <p className="mx-auto max-w-2xl text-base font-medium leading-relaxed text-gray-500 sm:text-xl">
           Create pixel-perfect GIFs with intelligent palette optimization and surgical frame precision.
         </p>
       </div>
@@ -35,7 +35,7 @@ export default function VideoToGifPage() {
       <VideoToGif />
 
       {/* Feature Info Section */}
-      <div className="max-w-5xl mx-auto px-4 mt-20 grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-white/5 pt-20">
+      <div className="mx-auto mt-14 grid max-w-5xl grid-cols-1 gap-8 border-t border-white/5 px-4 pt-14 md:mt-20 md:grid-cols-3 md:gap-12 md:pt-20">
          {[
            { title: "Palette AI", desc: "Two-pass analysis for perfect 256-color depth.", icon: Sparkles },
            { title: "Dithering", desc: "Smooth gradients with Sierra2 algorithm.", icon: Film },

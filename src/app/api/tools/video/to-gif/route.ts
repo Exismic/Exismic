@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 import {
@@ -31,11 +31,10 @@ function boundedNumber(value: FormDataEntryValue | null, min: number, max: numbe
 export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
-    const authUser = await requireApiUser();
-    if (authUser instanceof NextResponse) return authUser;
+    const authUser = await getOptionalApiUser();
     const limit = checkRateLimit(
-      `video-to-gif:${authUser.id}:${getRequestIp(req)}`,
-      10,
+      `video-to-gif:${authUser?.id || "guest"}:${getRequestIp(req)}`,
+      authUser ? 10 : 3,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

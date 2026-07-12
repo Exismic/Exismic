@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { 
   Braces, 
   Copy, 
   Check, 
   Trash2, 
   Maximize2, 
-  Minimize2, 
   Download,
   AlertCircle,
   CheckCircle2,
@@ -20,13 +19,20 @@ import { cn } from "@/lib/utils";
 export function JsonFormatter() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [stats, setStats] = useState({ lines: 0, size: "0 B" });
+  const error = useMemo(() => {
+    if (!input.trim()) return null;
+    try {
+      JSON.parse(input);
+      return null;
+    } catch (caught) {
+      return caught instanceof Error ? caught.message : "Invalid JSON structure.";
+    }
+  }, [input]);
 
   const validateAndProcess = useCallback((mode: "format" | "minify") => {
     if (!input.trim()) {
-      setError(null);
       setOutput("");
       return;
     }
@@ -38,7 +44,6 @@ export function JsonFormatter() {
         : JSON.stringify(parsed);
       
       setOutput(processed);
-      setError(null);
 
       // Update stats
       const lines = processed.split("\n").length;
@@ -47,23 +52,8 @@ export function JsonFormatter() {
         lines, 
         size: size > 1024 ? `${(size / 1024).toFixed(2)} KB` : `${size} B` 
       });
-    } catch (e: any) {
-      setError(e.message);
+    } catch {
       setOutput("");
-    }
-  }, [input]);
-
-  // Real-time validation
-  useEffect(() => {
-    if (!input.trim()) {
-      setError(null);
-      return;
-    }
-    try {
-      JSON.parse(input);
-      setError(null);
-    } catch (e: any) {
-      setError(e.message);
     }
   }, [input]);
 
@@ -88,7 +78,12 @@ export function JsonFormatter() {
   const clearAll = () => {
     setInput("");
     setOutput("");
-    setError(null);
+    setStats({ lines: 0, size: "0 B" });
+  };
+
+  const handleInputChange = (value: string) => {
+    setInput(value);
+    setOutput("");
     setStats({ lines: 0, size: "0 B" });
   };
 
@@ -96,16 +91,10 @@ export function JsonFormatter() {
   const highlightJson = (json: string) => {
     if (!json) return null;
     return json.split("\n").map((line, i) => {
-      // Very basic tokenization for color
-      const coloredLine = line.replace(/(".*?")(\s*:)/g, '<span class="text-accent-blue">$1</span>$2')
-                             .replace(/:(\s*)(".*?")/g, ':$1<span class="text-emerald-400">$2</span>')
-                             .replace(/:(\s*)(true|false|null)/g, ':$1<span class="text-accent-purple font-bold">$2</span>')
-                             .replace(/:(\s*)(\d+)/g, ':$1<span class="text-orange-400">$2</span>');
-      
       return (
         <div key={i} className="flex gap-4 group">
           <span className="w-8 text-right text-zinc-700 font-mono text-[10px] select-none">{i + 1}</span>
-          <span dangerouslySetInnerHTML={{ __html: coloredLine }} className="font-mono text-xs text-zinc-300 break-all" />
+          <span className="font-mono text-xs text-zinc-300 break-all">{line}</span>
         </div>
       );
     });
@@ -170,7 +159,7 @@ export function JsonFormatter() {
             </div>
             <textarea 
                value={input}
-               onChange={(e) => setInput(e.target.value)}
+               onChange={(e) => handleInputChange(e.target.value)}
                className={cn(
                  "flex-1 w-full bg-transparent p-8 font-mono text-xs focus:outline-none resize-none transition-all custom-scrollbar",
                  error ? "text-red-400/80" : "text-zinc-300 placeholder:text-zinc-800"
@@ -250,7 +239,7 @@ export function JsonFormatter() {
             <div className="space-y-2">
                <h4 className="text-sm font-black text-zinc-100 uppercase tracking-widest">Auto-Discovery</h4>
                <p className="text-zinc-500 text-sm leading-relaxed">
-                  The **Validation Engine** runs in the background. If you see red text in the input area, there's a syntax error that will prevent formatting.
+                  The validation engine runs in the background. Red input text identifies a syntax error that must be corrected before formatting.
                </p>
             </div>
          </div>

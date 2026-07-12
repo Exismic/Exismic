@@ -324,12 +324,12 @@ export default function YouTubeThumbnailMaker() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-4 md:p-8 xl:p-12 font-sans selection:bg-cyan-500/30" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#050505] px-4 pb-4 pt-24 font-sans text-white selection:bg-cyan-500/30 md:px-8 md:pb-8 md:pt-28 xl:px-12 xl:pb-12" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <motion.div
-              initial={{ opacity: 0, y: -16 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-3 mb-3"
             >

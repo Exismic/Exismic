@@ -69,7 +69,7 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
                </div>
 
                <div className="pt-4">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-zinc-700 italic">TRANSACTION ID: NULL • TERMINAL SECURE</span>
+                  <span className="text-[8px] font-black uppercase tracking-widest text-zinc-700 italic">No charge was completed</span>
                </div>
             </div>
           </motion.div>
@@ -78,3 +78,4 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
     </AnimatePresence>
   );
 }
+

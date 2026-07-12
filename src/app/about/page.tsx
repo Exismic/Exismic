@@ -22,41 +22,34 @@ export default function AboutPage() {
           Mission / Back
         </Link>
 
-        {/* Hero Section */}
-        <header className="space-y-10 relative">
+        {/* Cinematic Hero Section */}
+        <header className="relative w-full rounded-[4rem] bg-[#0b0c12]/80 backdrop-blur-3xl border border-white/5 overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] p-12 md:p-24 flex flex-col items-center text-center group transition-all duration-700 hover:border-accent-orange/30">
+          {/* Glowing backdrops */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-accent-orange/20 blur-[120px] rounded-full pointer-events-none transition-all duration-1000 group-hover:bg-accent-orange/30 group-hover:scale-110" />
+          
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10"
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="relative z-10 flex flex-col items-center space-y-10"
           >
-            <div className="w-24 h-24 rounded-[2rem] bg-accent-orange/10 border border-accent-orange/20 flex items-center justify-center relative overflow-hidden shrink-0 group">
-              <div className="absolute inset-0 bg-accent-orange/20 blur-xl animate-pulse" />
-              <div className="absolute inset-[-100%] animate-[spin_4s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0%,rgba(249,115,22,0.3)_25%,transparent_50%)]" />
-              <div className="absolute inset-[2px] bg-[#0b0c12] rounded-[calc(2rem-2px)] z-10 flex items-center justify-center">
-                 <Rocket size={40} className="text-accent-orange relative z-20 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.8)]" />
-              </div>
+            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-accent-orange/30 bg-accent-orange/10 text-accent-orange shadow-[0_0_30px_rgba(249,115,22,0.2)]">
+              <Rocket size={16} className="animate-bounce" />
+              <span className="text-xs font-black uppercase tracking-[0.4em]">Our Mission</span>
             </div>
             
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent-orange/30 bg-accent-orange/10 text-accent-orange shadow-[0_0_20px_rgba(249,115,22,0.2)] text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]">
-                <Sparkles size={14} /> Our Mission
-              </div>
-              <h1 className="text-6xl md:text-[8rem] font-black tracking-tighter uppercase italic leading-[0.85] select-none">
-                Built for <br />
-                <span className="text-transparent bg-clip-text bg-[linear-gradient(110deg,#fdba74_0%,#ffffff_45%,#f97316_55%,#ffffff_100%)] bg-[length:200%_100%] animate-[shine_4s_linear_infinite] drop-shadow-[0_2px_15px_rgba(249,115,22,0.3)]">You.</span>
-              </h1>
-            </div>
+            <h1 className="text-7xl md:text-[10rem] font-black tracking-tighter uppercase italic leading-[0.8] select-none drop-shadow-2xl">
+              Built <br/> <span className="text-transparent bg-clip-text bg-[linear-gradient(110deg,#fdba74_0%,#ffffff_45%,#f97316_55%,#ffffff_100%)] bg-[length:200%_100%] animate-[shine_4s_linear_infinite]">For You.</span>
+            </h1>
+            
+            <p className="text-zinc-400 font-medium text-xl md:text-3xl max-w-4xl leading-relaxed">
+              We are democratizing access to high-performance AI tools, making elite capabilities <span className="text-white">simple, intuitive, and available for everyone.</span>
+            </p>
           </motion.div>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-zinc-400 font-medium text-xl md:text-3xl max-w-3xl leading-relaxed md:leading-snug"
-          >
-            We are democratizing access to high-performance AI tools, making elite capabilities simple, intuitive, and available for everyone.
-          </motion.p>
+          {/* Bottom structural trim */}
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-orange/50 to-transparent" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-accent-orange/50 blur-sm rounded-t-full" />
         </header>
 
         {/* Story Section */}
@@ -78,14 +71,24 @@ export default function AboutPage() {
               </p>
             </div>
             
-            <div className="w-full md:w-1/3 aspect-square rounded-[3rem] relative overflow-hidden border border-white/10 shrink-0">
-               <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(249,115,22,0.2),rgba(168,85,247,0.2))]" />
-               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+            <div className="w-full md:w-1/3 aspect-square rounded-[3rem] relative overflow-hidden border border-white/5 shrink-0 group/core bg-[#0b0c12]">
+               {/* Background glows */}
+               <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/10 to-accent-purple/10" />
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent-orange/20 blur-[80px] rounded-full group-hover/core:scale-150 transition-transform duration-1000" />
+               
+               {/* Grid Pattern */}
+               <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,rgba(255,255,255,1)_1px,transparent_1px)] bg-[length:24px_24px]" />
+               
                <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="w-32 h-32 rounded-full border border-white/20 animate-[spin_10s_linear_infinite] flex items-center justify-center">
-                   <div className="w-24 h-24 rounded-full border border-white/40 animate-[spin_7s_linear_infinite_reverse] flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-white shadow-[0_0_50px_rgba(255,255,255,0.8)]" />
-                   </div>
+                 {/* Outer rotating ring */}
+                 <div className="absolute w-64 h-64 rounded-full border border-accent-orange/20 border-l-accent-orange/60 animate-[spin_10s_linear_infinite]" />
+                 {/* Middle counter-rotating dashed ring */}
+                 <div className="absolute w-48 h-48 rounded-full border-2 border-dashed border-accent-purple/30 animate-[spin_15s_linear_infinite_reverse]" />
+                 
+                 {/* Center glowing core */}
+                 <div className="relative w-32 h-32 rounded-3xl bg-[#0b0c12] border border-white/10 shadow-[0_0_40px_rgba(249,115,22,0.3)] flex items-center justify-center rotate-45 overflow-hidden group-hover/core:shadow-[0_0_60px_rgba(168,85,247,0.5)] transition-shadow duration-700">
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/20 to-accent-purple/20" />
+                    <Cpu size={48} className="text-white -rotate-45 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]" />
                  </div>
                </div>
             </div>

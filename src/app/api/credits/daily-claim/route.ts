@@ -26,7 +26,6 @@ export async function POST() {
           error: result.error || "Daily reward unavailable.",
           amount: result.amount,
           rarity: result.rarity,
-          type: result.type,
         },
         { status: result.alreadyClaimed ? 409 : 400 }
       );

@@ -1,8 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 const ts = require("typescript");
+const Module = require("module");
 
 const repoRoot = path.resolve(__dirname, "..");
+const originalResolveFilename = Module._resolveFilename;
+Module._resolveFilename = function resolveExismicAlias(request, parent, isMain, options) {
+  if (request.startsWith("@/")) {
+    request = path.join(repoRoot, "src", request.slice(2));
+  }
+  return originalResolveFilename.call(this, request, parent, isMain, options);
+};
 
 function loadEnvFile(fileName, override = false) {
   const filePath = path.join(repoRoot, fileName);
@@ -50,6 +58,7 @@ require.extensions[".ts"] = (module, filename) => {
 
 async function main() {
   const to = process.argv[2] || process.env.EMAIL_TEST_TO || "kgold3796@gmail.com";
+  const runId = Date.now();
   const {
     sendAuthOTP,
     sendCreditsPurchasedEmail,
@@ -60,6 +69,9 @@ async function main() {
     sendResetPasswordEmail,
     sendWelcomeEmail,
   } = require(path.join(repoRoot, "src", "lib", "emails.ts"));
+  const { getSupportAutoReplyHtml } = require(path.join(repoRoot, "src", "emails", "SupportAutoReply.ts"));
+  const { resend } = require(path.join(repoRoot, "src", "lib", "resend.ts"));
+  const emailDomain = process.env.EMAIL_SENDER_DOMAIN || "exismic.xyz";
 
   const samples = [
     ["welcome", () => sendWelcomeEmail(to)],
@@ -67,7 +79,7 @@ async function main() {
       "pro_welcome",
       () =>
         sendProWelcomeEmail(to, {
-          invoiceId: "INV-LUMORA-TEST",
+          invoiceId: `INV-EXISMIC-TEST-${runId}`,
           amount: "Rs 499",
           date: "August 3, 2026",
         }),
@@ -78,17 +90,22 @@ async function main() {
         sendCreditsPurchasedEmail(to, {
           credits: 1000,
           amount: "Rs 499",
-          invoiceId: "CR-LUMORA-TEST",
+          invoiceId: `CR-EXISMIC-TEST-${runId}`,
         }),
     ],
-    ["payment_failed", () => sendPaymentFailedEmail(to)],
+    ["payment_failed", () => sendPaymentFailedEmail(to, {
+      purchaseType: "credits",
+      amount: "Rs 399",
+      orderId: `FAIL-EXISMIC-TEST-${runId}`,
+      reason: "The test payment was declined by the payment provider.",
+    })],
     ["auth_otp", () => sendAuthOTP(to, "482913")],
     [
       "magic_link",
       () =>
         sendMagicLinkEmail(
           to,
-          "https://lumoraai.online/auth/callback?token_hash=test-token&type=magiclink&next=%2Fdashboard",
+          "https://exismic.xyz/auth/callback?token_hash=test-token&type=magiclink&next=%2Fdashboard",
         ),
     ],
     [
@@ -96,9 +113,19 @@ async function main() {
       () => sendResetPasswordEmail(to, "pwd_reset:test-password-reset-token"),
     ],
     ["password_changed", () => sendPasswordChangedEmail(to)],
+    ["support_auto_reply", async () => {
+      const response = await resend.emails.send({
+        from: `Exismic Support <support@${emailDomain}>`,
+        to,
+        replyTo: `support@${emailDomain}`,
+        subject: "We received your request: Email design test",
+        html: getSupportAutoReplyHtml("Rayan", "Email design test"),
+      }, { idempotencyKey: `support-test/${runId}` });
+      return !response.error;
+    }],
   ];
 
-  console.log(`Sending ${samples.length} Lumora test emails to ${to}...`);
+  console.log(`Sending ${samples.length} Exismic test emails to ${to}...`);
 
   for (const [name, send] of samples) {
     const ok = await send();
@@ -111,11 +138,10 @@ async function main() {
     throw new Error("One or more test emails failed.");
   }
 
-  console.log("All Lumora test emails were accepted by Resend.");
+  console.log("All Exismic test emails were accepted by Resend.");
 }
 
 main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

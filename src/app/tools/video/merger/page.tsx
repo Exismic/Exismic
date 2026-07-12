@@ -23,11 +23,11 @@ export default function VideoMergerPage() {
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Master Production</span>
         </div>
         
-        <h1 className="text-6xl md:text-8xl font-black mb-6 tracking-tightest leading-none bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40">
+        <h1 className="mb-6 bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-4xl font-black leading-none tracking-tightest text-transparent sm:text-6xl md:text-8xl">
           VIDEO <br /> <span className="text-purple-500 italic">MERGER</span> STUDIO
         </h1>
         
-        <p className="text-gray-500 text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+        <p className="mx-auto max-w-2xl text-base font-medium leading-relaxed text-gray-500 sm:text-xl">
           Combine multiple clips into a single seamless masterpiece with automated normalization and high-bitrate encoding.
         </p>
       </div>
@@ -35,7 +35,7 @@ export default function VideoMergerPage() {
       <VideoMerger />
 
       {/* Workflow Section */}
-      <div className="max-w-5xl mx-auto px-4 mt-20 grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-white/5 pt-20">
+      <div className="mx-auto mt-14 grid max-w-5xl grid-cols-1 gap-8 border-t border-white/5 px-4 pt-14 md:mt-20 md:grid-cols-3 md:gap-12 md:pt-20">
          {[
            { title: "Smart Normalization", desc: "Auto-scales every clip to 1080p for a consistent viewing experience.", icon: Film },
            { title: "Lossless Merge", desc: "Preserves original quality with high-bitrate H.264 masters.", icon: Film },

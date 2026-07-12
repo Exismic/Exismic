@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { getUserCredits, deductCredits } from '@/lib/credits'
+import { getUserCredits } from '@/lib/credits'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic';
@@ -87,15 +87,17 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = user.id
-    const { action, amount } = await request.json()
+    const { action } = await request.json()
 
     if (!action) {
       return NextResponse.json({ error: 'Missing action' }, { status: 400 })
     }
 
-    const normalizedAmount = Number(amount ?? 0)
-    if (action === 'deduct' && (!Number.isInteger(normalizedAmount) || normalizedAmount <= 0 || normalizedAmount > 10000)) {
-      return NextResponse.json({ error: 'Invalid credit amount' }, { status: 400 })
+    if (action === 'deduct') {
+      return NextResponse.json(
+        { error: 'Credits can only be charged by a verified tool operation.' },
+        { status: 403 },
+      )
     }
 
     console.log(`[API] Processing credit action: ${action} for user: ${userId}`)
@@ -103,9 +105,7 @@ export async function POST(request: NextRequest) {
     let result: { success: boolean; error?: string; data?: unknown } = { success: true }
     
     try {
-      if (action === 'deduct') {
-        result = await deductCredits(userId, normalizedAmount)
-      } else if (action === 'consume-message') {
+      if (action === 'consume-message') {
         const now = new Date()
         const updated = await prisma.user.upsert({
           where: { id: userId },
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         result = { success: true, data: updated }
       } else {
         return NextResponse.json(
-          { error: 'Invalid action. Use "deduct" or "consume-message"' },
+          { error: 'Invalid action. Use "consume-message"' },
           { status: 400 }
         )
       }

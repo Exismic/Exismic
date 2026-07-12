@@ -6,9 +6,11 @@ import { cn } from "@/lib/utils";
 import { ICON_MAP, type IconName } from "@/data/tools";
 import { ArrowRight, Crown, Star, Zap } from "lucide-react";
 import { toggleFavorite } from "@/app/actions/favorites";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 import { ToolReliabilityBadge } from "@/components/tool/ToolReliability";
-import { CATEGORY_ANIM_STYLES, type CategoryAnimStyle } from "@/lib/category-styles";
+import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 import { isToolUnavailable } from "@/lib/tool-reliability";
 
 interface ToolCardProps {
@@ -35,14 +37,36 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
   const Icon = ICON_MAP[icon] || ICON_MAP.Wand2;
   const style = CATEGORY_ANIM_STYLES[category] || CATEGORY_ANIM_STYLES.pdf;
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
+  const [isSavingFavorite, setIsSavingFavorite] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsFavorited(initialFavorited);
+  }, [initialFavorited]);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorited(!isFavorited);
-    const result = await toggleFavorite(id);
-    if (result.error) {
-      setIsFavorited(isFavorited);
+    
+    if (isSavingFavorite) return;
+    const previousState = isFavorited;
+    setIsFavorited(!previousState);
+    setIsSavingFavorite(true);
+
+    try {
+      const result = await toggleFavorite(id);
+      if (result.error) throw new Error(result.error);
+
+      setIsFavorited(result.isFavorited === true);
+      window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
+        detail: { favorites: result.favorites },
+      }));
+      router.refresh();
+    } catch (error) {
+      setIsFavorited(previousState);
+      alert(error instanceof Error ? error.message : "Could not update favorites.");
+    } finally {
+      setIsSavingFavorite(false);
     }
   };
 
@@ -101,19 +125,29 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             
             <button 
               onClick={handleFavoriteClick}
+              disabled={isSavingFavorite}
               aria-label={isFavorited ? "Remove from favorites" : "Save to favorites"}
               className={cn(
-                "w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 touch-manipulation",
-                "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 active:scale-90",
-                isFavorited ? "text-amber-500 border-amber-500/40 bg-amber-500/10" : "text-zinc-500"
+                "relative overflow-hidden w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 touch-manipulation backdrop-blur-md shadow-lg border group/star",
+                isFavorited 
+                  ? "bg-amber-500/10 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:bg-amber-500/20 hover:border-amber-400/60" 
+                  : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.06] hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]",
+                "active:scale-90 disabled:cursor-wait disabled:opacity-60"
               )}
             >
+              {!isFavorited && (
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/star:opacity-100 transition-opacity duration-500" />
+              )}
+              {isFavorited && (
+                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(245,158,11,0.2)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+              )}
               <Star 
                 size={16} 
                 fill={isFavorited ? "currentColor" : "none"} 
+                strokeWidth={isFavorited ? 1.5 : 2}
                 className={cn(
-                  "transition-all duration-700 ease-out",
-                  isFavorited ? "scale-110 rotate-[72deg]" : "group-hover:scale-125"
+                  "relative z-10 transition-all duration-700 ease-out",
+                  isFavorited ? "scale-110 rotate-[72deg] drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" : "group-hover/star:scale-125"
                 )} 
               />
             </button>

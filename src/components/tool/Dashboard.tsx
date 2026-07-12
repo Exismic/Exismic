@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect, type ReactNode } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { 
   Sparkles, 
   Zap, 
@@ -27,7 +26,7 @@ import {
   Scale,
   type LucideIcon
 } from "lucide-react";
-import { TOOLS } from "@/data/tools";
+import { TOOLS, ICON_MAP } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import { RecentlyProcessed } from "./RecentlyProcessed";
 import Link from "next/link";
@@ -40,6 +39,7 @@ import { usePro } from "@/hooks/usePro";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { ProBackground } from "@/components/pro/ProBackground";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
+import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 
 type DashboardAction = {
   label: string;
@@ -280,8 +280,6 @@ export function Dashboard() {
   } = useDashboardStats();
   const { user: dbUser, authUser } = usePro();
   const [favorites, setFavorites] = useState<string[]>([]);
-  const supabase = createClient();
-
   const [gradientOverride, setGradientOverride] = useState<string | null>(null);
   const localGradientId = gradientOverride ?? authUser?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
 
@@ -296,17 +294,25 @@ export function Dashboard() {
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      if (dbUser?.id) {
-        const { data: favs } = await supabase
-          .from('Favorite')
-          .select('toolId')
-          .eq('userId', dbUser.id);
-        
-        if (favs) setFavorites(favs.map(f => f.toolId));
+      if (dbUser) {
+        import('@/app/actions/favorites').then(async ({ getFavorites }) => {
+          const favs = await getFavorites();
+          if (favs) setFavorites(favs);
+        });
       }
     };
     fetchFavorites();
-  }, [dbUser, supabase]);
+  }, [dbUser]);
+
+  useEffect(() => {
+    const handleFavoritesChanged = (event: Event) => {
+      const nextFavorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(nextFavorites)) setFavorites(nextFavorites);
+    };
+
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+  }, []);
 
   const popularTools = TOOLS.filter(t => t.popular).slice(0, 6);
   const userName = (authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || dbUser?.name || dbUser?.username || authUser?.email?.split('@')[0] || 'Explorer').split(' ')[0];
@@ -455,52 +461,122 @@ export function Dashboard() {
              ))}
           </div>
         </section>
-
         {/* 5. RECENT ACTIVITY & INSIGHTS */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 pt-8 border-t border-white/5">
            <div className="lg:col-span-2 space-y-8">
               <div className="flex items-center gap-3">
                  <History className="text-zinc-600" size={20} />
-                 <h3 className="text-xl font-bold text-white tracking-tight">Recent Activity</h3>
+                 <h3 className="text-2xl font-black text-white tracking-tight">Recent Activity</h3>
               </div>
               <RecentlyProcessed />
            </div>
 
            <div className="space-y-8">
               <div className="flex items-center gap-3">
-                 <Zap className="text-accent-purple" size={20} />
-                 <h3 className="text-xl font-bold text-white tracking-tight">System Updates</h3>
+                 <div className="w-10 h-10 rounded-xl bg-accent-purple/10 border border-accent-purple/20 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                   <Zap className="text-accent-purple animate-pulse" size={18} />
+                 </div>
+                 <h3 className="text-2xl font-black text-white tracking-tight">System Updates</h3>
               </div>
               
-              <div className="space-y-4">
-                 <motion.div 
-                   whileHover={{ x: 5 }}
-                   className="p-6 rounded-3xl bg-zinc-900/30 border border-white/5 space-y-3 cursor-pointer group hover:bg-zinc-900/50 transition-colors"
-                 >
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-cyan-400">
-                       <Plus size={12} /> New Tool
-                    </div>
-                    <h4 className="text-white font-bold text-base group-hover:text-cyan-400 transition-colors">AI Video Restorer (Beta)</h4>
-                    <p className="text-zinc-500 text-xs leading-relaxed">Restore old videos to 4K with smooth, clear playback. Exclusive for Pro.</p>
-                 </motion.div>
+              <div className="space-y-5">
+                 <Link href="/tools/image/mc-skin-generator">
+                   <motion.div 
+                     whileHover={{ scale: 1.02, y: -4 }}
+                     className="relative p-6 sm:p-8 rounded-[2rem] bg-zinc-950/80 backdrop-blur-2xl border border-emerald-500/20 space-y-5 cursor-pointer group overflow-hidden shadow-2xl hover:border-emerald-400/50 hover:shadow-[0_20px_60px_rgba(16,185,129,0.2)] transition-all duration-700"
+                   >
+                      {/* Insane Animated Glow */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-[2.5rem] blur opacity-30 group-hover:opacity-70 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
+                      <div className="absolute inset-0 bg-[#050606]/90 backdrop-blur-3xl rounded-[2rem] z-0" />
+                      <div className="absolute -top-10 -right-10 w-48 h-48 bg-emerald-500/20 blur-[60px] rounded-full group-hover:scale-150 group-hover:bg-emerald-400/30 transition-all duration-1000" />
+                      
+                      <div className="relative z-10 space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                           <Sparkles size={10} className="animate-pulse" /> Trending Now
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-100 via-white to-emerald-300 tracking-tight drop-shadow-sm">Minecraft AI Skin Gen</h4>
+                          <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">Generate unique, ultra-detailed custom Minecraft skins from simple text prompts. Stand out on any server instantly.</p>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <div className="relative w-fit flex items-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 text-teal-950 font-black text-[10px] uppercase tracking-widest shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:shadow-[0_10px_40px_rgba(16,185,129,0.6)] transition-all overflow-hidden group/btn">
+                            <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-[shine_2s_infinite]" />
+                            <span className="relative z-10">Try it now</span>
+                            <ArrowUpRight size={14} className="relative z-10 ml-1 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                   </motion.div>
+                 </Link>
 
                  {!isPro && (
-                   <div className="p-8 rounded-[2.5rem] bg-linear-to-br from-accent-purple/20 via-accent-blue/10 to-transparent border border-accent-purple/20 space-y-6 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-accent-purple/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
-                      <div className="space-y-3 relative z-10">
-                         <Crown className="text-accent-purple w-8 h-8" />
-                         <h4 className="text-xl font-black text-white tracking-tight">Go Pro.</h4>
-                         <p className="text-zinc-500 text-xs font-medium leading-relaxed">Unlock priority processing and all premium AI models.</p>
+                   <div className="relative p-6 sm:p-8 rounded-[2rem] bg-[#050508]/80 backdrop-blur-2xl border border-amber-500/20 space-y-6 overflow-hidden group hover:border-amber-400/50 hover:shadow-[0_0_50px_rgba(245,158,11,0.2)] transition-all duration-700">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-[2.5rem] blur opacity-20 group-hover:opacity-50 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
+                      <div className="absolute inset-0 bg-[#050508]/90 backdrop-blur-3xl rounded-[2rem] z-0" />
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-1000" />
+                      
+                      <div className="space-y-4 relative z-10">
+                         <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                           <Crown className="text-amber-400 w-7 h-7 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
+                         </div>
+                         <div className="space-y-1.5">
+                           <h4 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 tracking-tight drop-shadow-sm">Go Pro.</h4>
+                           <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">Unlock priority processing, unlimited 4K exports, and all premium AI models.</p>
+                         </div>
                       </div>
-                      <Link href="/pro" className="block relative z-10">
-                         <button className="w-full py-3 rounded-2xl bg-white text-black font-bold text-xs shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
-                            Upgrade Now
+                      <Link href="/pro" className="block relative z-10 pt-2">
+                         <button className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-amber-950 font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_10px_40px_rgba(245,158,11,0.6)] hover:scale-[1.02] active:scale-95 transition-all overflow-hidden group/btn">
+                            <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-[shine_2s_infinite]" />
+                            <span className="relative z-10">Upgrade Now</span>
                          </button>
                       </Link>
                    </div>
                  )}
               </div>
            </div>
+        </section>
+
+        {/* 6. FAVORITES SECTION */}
+        <section className="pt-24 pb-8 space-y-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+               <Star className="text-amber-400 fill-amber-400/20" size={24} />
+               <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter">Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 drop-shadow-sm">Favorites</span></h2>
+            </div>
+            {favorites.length > 0 && (
+              <div className="flex items-center gap-4">
+                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{favorites.length} saved tools</p>
+                 {favorites.length > 6 && (
+                   <Link href="/favorites" className="flex items-center gap-1.5 text-xs font-bold text-amber-500 hover:text-amber-400 transition-colors uppercase tracking-widest">
+                     View All <ArrowRight size={14} />
+                   </Link>
+                 )}
+              </div>
+            )}
+          </div>
+          
+          {favorites.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+              {favorites.slice(0, 6).map((toolId, i) => {
+                const tool = TOOLS.find(t => t.id === toolId);
+                if (!tool) return null;
+                return (
+                  <ToolCard key={tool.id} {...tool} index={i} initialFavorited={true} />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-16 sm:py-20 px-5 text-center space-y-6 bg-zinc-950/50 rounded-[2rem] sm:rounded-[3rem] border border-white/5 backdrop-blur-xl">
+               <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+                  <Star size={32} className="fill-amber-500/20 animate-pulse" />
+               </div>
+               <div className="space-y-2">
+                  <h3 className="text-xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500">No favorites yet</h3>
+                  <p className="text-zinc-500 text-xs font-medium">Click the premium star icon on any tool card to add it to your collection.</p>
+               </div>
+            </div>
+          )}
         </section>
       </div>
 

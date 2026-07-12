@@ -14,7 +14,7 @@ import { isAdminConfigured, isAdminEmail } from '@/lib/admin'
  */
 export async function GET(request: NextRequest) {
   try {
-    if (process.env.NODE_ENV === 'production' && !isAdminConfigured()) {
+    if (process.env.NODE_ENV === 'production') {
       return NextResponse.json({ error: 'Debug endpoint disabled' }, { status: 404 })
     }
 

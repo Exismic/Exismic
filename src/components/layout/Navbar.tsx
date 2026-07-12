@@ -139,7 +139,7 @@ export function Navbar() {
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
     try {
-      const res = await fetch('/api/razorpay/cancel', {
+      const res = await fetch('/api/payments/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -158,15 +158,17 @@ export function Navbar() {
     }
   };
 
-  const loggedInLinks = [
+  type NavLink = { name: string; href: string; isDropdown?: boolean };
+
+  const loggedInLinks: NavLink[] = [
     { name: "Dashboard", href: "/" },
     { name: "Tools", href: "#", isDropdown: true },
-    { name: "AI Chat", href: "/tools/ai/chat" },
+    { name: "AI Chat", href: "/chat" },
     { name: "Code Studio", href: "/tools/ai/code" },
     { name: "Explore", href: "/tools" },
   ];
 
-  const loggedOutLinks = [
+  const loggedOutLinks: NavLink[] = [
     { name: "Tools", href: "/tools" },
     { name: "Pricing", href: "/pro" },
     { name: "Blog", href: "/blog" },
@@ -201,7 +203,7 @@ export function Navbar() {
     }
   };
 
-  const isNavLinkActive = (link: (typeof loggedInLinks)[number] | (typeof loggedOutLinks)[number]) => {
+  const isNavLinkActive = (link: NavLink) => {
     if (link.name === "Tools" && link.isDropdown) {
       const isSpecializedWorkspace =
         pathname.startsWith("/tools/ai/chat") ||
@@ -378,7 +380,7 @@ export function Navbar() {
                                     <div className="text-[10px] text-zinc-500 line-clamp-1">Full stack AI coding terminal</div>
                                   </div>
                                 </Link>
-                                <Link href="/tools/ai/chat" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
+                                <Link href="/chat" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
                                   <div className="w-9 h-9 rounded-xl bg-accent-purple/10 flex items-center justify-center text-accent-purple group-hover:bg-accent-purple group-hover:text-white transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]">
                                     <MessageSquare size={16} />
                                   </div>
@@ -475,7 +477,13 @@ export function Navbar() {
 
                 {/* 2. Pro Badge */}
                 {isPro && (
-                  <ProBadge size="md" />
+                  <button 
+                    onClick={() => setIsManageModalOpen(true)}
+                    className="outline-none hover:scale-105 active:scale-95 transition-transform duration-300"
+                    title="Manage Subscription"
+                  >
+                    <ProBadge size="md" />
+                  </button>
                 )}
 
                 {/* 3. User Avatar and Custom Dropdown */}
@@ -491,7 +499,7 @@ export function Navbar() {
                       avatarUrl={avatarUrl}
                       displayName={fullName}
                       isPro={isPro}
-                      frameId={localFrameId}
+                      frameId={localFrameId || undefined}
                       size="sm"
                     />
                   </button>
@@ -511,7 +519,7 @@ export function Navbar() {
                           email={session?.user?.email} 
                           avatarUrl={avatarUrl} 
                           isPro={isPro} 
-                          frameId={localFrameId}
+                          frameId={localFrameId || undefined}
                           gradientId={localGradientId}
                           variant="menu-header" 
                         />

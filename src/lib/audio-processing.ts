@@ -170,7 +170,7 @@ async function fetchJson(
 function getModalAttempt(
   file: File,
   buffer: Buffer,
-  task: Exclude<AudioProcessingTask, "denoise">,
+  task: AudioProcessingTask,
 ): ProviderAttempt | null {
   const baseUrl =
     process.env.MODAL_AUDIO_PRIORITY_URL ||
@@ -197,7 +197,7 @@ function getModalAttempt(
           file_name: file.name,
           file_data_base64: buffer.toString("base64"),
           stems: task === "stem-separation" ? 4 : 2,
-          task: "separate",
+          task: task === "denoise" ? "denoise" : "separate",
         }),
       }),
   };
@@ -292,10 +292,8 @@ export async function runAudioProcessing(
   const buffer = Buffer.from(await file.arrayBuffer());
   const attempts: ProviderAttempt[] = [];
 
-  if (task !== "denoise") {
-    const modalAttempt = getModalAttempt(file, buffer, task);
-    if (modalAttempt) attempts.push(modalAttempt);
-  }
+  const modalAttempt = getModalAttempt(file, buffer, task);
+  if (modalAttempt) attempts.push(modalAttempt);
 
   attempts.push(getEngineAttempt(file, task));
 

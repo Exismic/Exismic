@@ -15,7 +15,7 @@ const path = require("node:path");
 
 const APP_NAME = "Lumora Chat";
 const LOCAL_CHAT_URL = "http://localhost:3000/chat";
-const PRODUCTION_CHAT_URL = "https://lumoraai.online/chat";
+const PRODUCTION_CHAT_URL = "https://exismic.xyz/chat";
 const TRUSTED_AUTH_HOSTS = new Set([
   "accounts.google.com",
   "github.com",

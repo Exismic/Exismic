@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useSyncExternalStore } from "react";
+import React, { useState, useEffect } from "react";
 import Script from "next/script";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -26,17 +26,16 @@ import {
   Sparkles,
   WandSparkles,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { ManageSubscriptionModal } from "@/components/tool/ManageSubscriptionModal";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
+import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
-
-const subscribeToHydration = () => () => {};
 
 const OUTCOMES = [
   { value: "10x", label: "daily credit capacity", icon: Gauge, tone: "text-fuchsia-300", wash: "from-fuchsia-500/[0.10]" },
@@ -123,7 +122,8 @@ const FAQS = [
 ];
 
 interface RazorpayResponse {
-  razorpay_order_id: string;
+  razorpay_order_id?: string;
+  razorpay_subscription_id?: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
 }
@@ -134,7 +134,8 @@ interface RazorpayOptions {
   currency: string;
   name: string;
   description: string;
-  order_id: string;
+  order_id?: string;
+  subscription_id?: string;
   handler: (response: RazorpayResponse) => Promise<void>;
   prefill: {
     name: string;
@@ -152,16 +153,36 @@ type RazorpayConstructor = new (options: RazorpayOptions) => { open: () => void 
 
 export function ProClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const prefersReducedMotion = useReducedMotion();
   const { user, authUser, isPro, isLoading: isProLoading, refresh } = usePro();
   const [loading, setLoading] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [market, setMarket] = useState<"IN" | "GLOBAL">("GLOBAL");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/billing/market", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (active && (data?.market === "IN" || data?.market === "GLOBAL")) {
+          setMarket(data.countryCode === "UNKNOWN" && getIsIndia() ? "IN" : data.market);
+        }
+      })
+      .catch(() => {
+        if (active) setMarket(getIsIndia() ? "IN" : "GLOBAL");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (toast) {
@@ -172,13 +193,36 @@ export function ProClient() {
     }
   }, [toast]);
 
-  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
-  const isIndia = isHydrated && getIsIndia();
+  const paymentStatus = searchParams.get("payment");
+  const paymentReason = searchParams.get("reason");
+
+  useEffect(() => {
+    if (!paymentStatus) return;
+
+    if (paymentStatus === "success") {
+      setShowSuccess(true);
+      setToast({ message: "Welcome to Exismic Pro. Your membership is active.", type: "success" });
+      void refresh();
+    } else if (paymentStatus === "failed") {
+      setShowFailure(true);
+      setToast({ message: paymentReason || "Payment could not be verified.", type: "error" });
+    } else if (paymentStatus === "cancelled") {
+      setToast({ message: "Checkout cancelled. No payment was captured.", type: "info" });
+    }
+
+    router.replace("/pro", { scroll: false });
+    // Run once per payment return URL. refresh can change identity after account sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentStatus, paymentReason, router]);
+
+  const isIndia = market === "IN";
   const currencySymbol = isIndia ? "Rs " : "$";
   const priceDisplay = isIndia
     ? PRICING_CONFIG.PRO_PLAN.INR.toString()
     : PRICING_CONFIG.PRO_PLAN.USD.toString();
   const currencyCode = isIndia ? "INR" : "USD";
+  const gatewayName = isIndia ? "Razorpay" : "PayPal";
+  const profileName = String((user as { fullName?: string; name?: string } | null)?.fullName || (user as { fullName?: string; name?: string } | null)?.name || authUser?.user_metadata?.full_name || "Exismic user");
   const subscriptionStatus = String(user?.subscriptionStatus || user?.subscription_status || "").toLowerCase();
   const isSubscriptionCancelled = subscriptionStatus === "cancelled";
   const proAccessUntil = user?.planExpiresAt || user?.plan_expires_at;
@@ -190,7 +234,7 @@ export function ProClient() {
       })
     : null;
 
-  const handleUpgrade = async () => {
+  const handleUpgradeClick = () => {
     if (!paymentsEnabled) {
       setToast({ message: PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE, type: "info" });
       return;
@@ -199,30 +243,79 @@ export function ProClient() {
       router.push("/auth/login");
       return;
     }
+    setIsTermsModalOpen(true);
+  };
 
+  const handleUpgradeConfirm = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/paypal/order", {
+      const response = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "pro" }),
+        body: JSON.stringify({ planId: "pro", marketOverride: market }),
       });
       const data = await response.json().catch(() => null);
 
-      if (!response.ok || !data?.approvalUrl) {
+      if (!response.ok || !data?.success) {
         setToast({
-          message: data?.error || "Could not start PayPal checkout.",
+          message: data?.error || `Could not start ${gatewayName} checkout.`,
           type: "error",
         });
         setLoading(false);
         return;
       }
 
+      if (data.gateway === "razorpay") {
+        const Razorpay = (window as Window & { Razorpay?: RazorpayConstructor }).Razorpay;
+        if (!Razorpay) throw new Error("Razorpay checkout is still loading. Please try again.");
+
+        const razorpayOptions: RazorpayOptions = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Exismic",
+          description: data.plan?.name || "Exismic Pro",
+          prefill: {
+            name: profileName,
+            email: user?.email || authUser?.email || "",
+          },
+          theme: { color: "#8b5cf6" },
+          modal: {
+            ondismiss: () => setLoading(false),
+          },
+          handler: async (paymentResponse) => {
+            const verifyResponse = await fetch("/api/billing/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(paymentResponse),
+            });
+            const verifyData = await verifyResponse.json().catch(() => null);
+            if (!verifyResponse.ok || !verifyData?.success) {
+              setToast({ message: verifyData?.error || "Payment verification failed.", type: "error" });
+              setLoading(false);
+              return;
+            }
+            window.location.href = "/billing/success?type=pro";
+          },
+        };
+
+        if (data.razorpaySubscriptionId) {
+          razorpayOptions.subscription_id = data.razorpaySubscriptionId;
+        } else {
+          razorpayOptions.order_id = data.razorpayOrderId;
+        }
+
+        const razorpay = new Razorpay(razorpayOptions);
+        razorpay.open();
+        return;
+      }
+
+      if (!data?.approvalUrl) throw new Error("PayPal did not return an approval link.");
       window.location.href = data.approvalUrl;
     } catch (error) {
-      console.warn("[PayPal] Pro checkout unavailable:", error instanceof Error ? error.message : error);
+      console.warn(`[${gatewayName}] Pro checkout unavailable:`, error instanceof Error ? error.message : error);
       setToast({
-        message: error instanceof Error ? error.message : "PayPal checkout could not start.",
+        message: error instanceof Error ? error.message : `${gatewayName} checkout could not start.`,
         type: "error",
       });
       setLoading(false);
@@ -251,7 +344,7 @@ export function ProClient() {
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
     try {
-      const res = await fetch("/api/razorpay/cancel", {
+      const res = await fetch("/api/payments/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -374,7 +467,7 @@ export function ProClient() {
                   <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
                     <button
                       type="button"
-                      onClick={handleUpgrade}
+                      onClick={handleUpgradeClick}
                       disabled={loading || !paymentsEnabled}
                       className="group relative flex h-14 w-full sm:w-auto items-center justify-center overflow-hidden rounded-full p-[1.5px] font-black uppercase tracking-[0.25em] text-white shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)] transition-all duration-500 hover:shadow-[0_0_60px_-15px_rgba(168,85,247,0.8)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-wait disabled:opacity-50"
                     >
@@ -421,7 +514,7 @@ export function ProClient() {
                   <span className="flex items-center gap-2">
                     <RefreshCcw size={11} /> Cancel anytime
                   </span>
-                  <span>{isIndia ? "Billed in INR" : "Billed in USD"}</span>
+                  <span>{isIndia ? "Billed through Razorpay" : "Billed in USD through PayPal"}</span>
                 </div>
               ) : (
                 <div className="mt-5 flex max-w-xl items-start gap-3 rounded-2xl border border-amber-300/20 bg-amber-300/[0.055] px-4 py-3 text-amber-100">
@@ -736,7 +829,7 @@ export function ProClient() {
                       {isPro ? "Active" : `${currencySymbol}${priceDisplay}`}
                     </p>
                     <p className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-600">
-                      {isPro ? "Full platform access" : `${currencyCode} · billed monthly`}
+                      {isPro ? "Full platform access" : `${currencyCode} · ${gatewayName} monthly`}
                     </p>
                   </div>
                   <ExismicMark size={54} />
@@ -769,7 +862,7 @@ export function ProClient() {
                   <div>
                     <button
                       type="button"
-                      onClick={handleUpgrade}
+                      onClick={handleUpgradeClick}
                       disabled={loading || !paymentsEnabled}
                       className="group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-full p-[1.5px] font-black uppercase tracking-[0.25em] text-white shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)] transition-all duration-500 hover:shadow-[0_0_60px_-15px_rgba(168,85,247,0.8)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-wait disabled:opacity-50"
                     >
@@ -876,8 +969,17 @@ export function ProClient() {
         onClose={() => setShowFailure(false)}
         onRetry={() => {
           setShowFailure(false);
-          void handleUpgrade();
+          setIsTermsModalOpen(true);
         }}
+      />
+      <PaymentTermsModal
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onConfirm={handleUpgradeConfirm}
+        type="pro"
+        price={`${currencySymbol}${priceDisplay}/mo`}
+        gateway={isIndia ? "razorpay" : "paypal"}
+        isProcessing={loading}
       />
     </div>
   );
@@ -1066,3 +1168,4 @@ function ProPageSkeleton() {
     </div>
   );
 }
+

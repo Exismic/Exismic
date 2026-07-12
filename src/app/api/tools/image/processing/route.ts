@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { withToolHandler } from "@/lib/tools-handler";
 import sharp from "sharp";
 import { writeFile } from "fs/promises";
@@ -16,8 +16,9 @@ export async function POST(req: NextRequest) {
     toolId: `img-${toolId}`,
     allowedTypes: ["image/png", "image/jpeg", "image/webp", "image/avif"],
     maxSize: 20 * 1024 * 1024, // 20MB
-    creditCost: 1
-  }, async (buffer, jobId, formData) => {
+    creditCost: 2,
+    accessMode: "free-quality",
+  }, async (buffer, jobId, formData, context) => {
     
     let pipeline = sharp(buffer);
     let extension = "png";
@@ -25,15 +26,23 @@ export async function POST(req: NextRequest) {
     // Dynamic processing based on Tool ID
     switch (toolId) {
       case "compressor":
-        pipeline = pipeline.jpeg({ quality: 60, progressive: true });
+        pipeline = pipeline
+          .resize({ width: context.outputTier === "standard" ? 1600 : undefined, withoutEnlargement: true })
+          .jpeg({ quality: context.outputTier === "standard" ? 68 : 92, progressive: true });
         extension = "jpg";
         break;
       case "resizer":
         // Default resize to 1080p if no params
-        pipeline = pipeline.resize(1920, 1080, { fit: 'inside' });
+        pipeline = pipeline.resize(
+          context.outputTier === "standard" ? 1600 : 3840,
+          context.outputTier === "standard" ? 1600 : 3840,
+          { fit: 'inside', withoutEnlargement: true },
+        );
         break;
       case "converter":
-        pipeline = pipeline.webp({ quality: 80 });
+        pipeline = pipeline
+          .resize({ width: context.outputTier === "standard" ? 1600 : undefined, withoutEnlargement: true })
+          .webp({ quality: context.outputTier === "standard" ? 76 : 94 });
         extension = "webp";
         break;
       default:

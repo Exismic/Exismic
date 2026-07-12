@@ -87,12 +87,11 @@ export default function FullyFunctionalCodeStudio() {
   return (
     <div className="min-h-screen bg-[#050508] flex items-center justify-center p-6 pt-24">
       <div className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-[#0b0c12] p-10 sm:p-16 lg:p-24 flex flex-col items-center justify-center text-center shadow-2xl group max-w-4xl w-full">
-        {/* Animated Ambient Background */}
         <div className={cn("absolute inset-0 blur-[100px] opacity-40 animate-pulse transition-all duration-1000", isGold ? "bg-amber-500/20" : animStyle.aura)} />
         <div className={cn("absolute inset-[-50%] animate-[spin_8s_linear_infinite] opacity-30", isGold ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.3)_25%,transparent_50%)]" : animStyle.spinIdle)} />
         <div className="absolute inset-0 bg-[#0b0c12]/80 backdrop-blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_4s_linear_infinite]" />
-        
+
         <div className="relative z-10 flex flex-col items-center max-w-2xl space-y-10">
           <div className="flex size-24 sm:size-32 items-center justify-center rounded-[2.5rem] bg-[#0b0c12] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group-hover:scale-110 transition-transform duration-700">
             <div className={cn("absolute inset-0 blur-xl animate-pulse", isGold ? "bg-amber-500/30" : animStyle.aura)} />
@@ -101,7 +100,7 @@ export default function FullyFunctionalCodeStudio() {
               <TerminalSquare size={56} className={cn("relative z-20 transition-all duration-500", isGold ? "text-amber-300 drop-shadow-[0_0_20px_rgba(245,158,11,0.8)]" : animStyle.iconGlow)} />
             </div>
           </div>
-          
+
           <div className="space-y-6 flex flex-col items-center">
             <div className={cn("inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-opacity-10 backdrop-blur-md shadow-lg text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]", isGold ? "border-amber-400/30 bg-amber-400/10 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]" : animStyle.badge)}>
               <Sparkles size={14} className={isGold ? "text-amber-400" : "opacity-80"} />
@@ -1662,7 +1661,7 @@ Always write the exact files the user wants. Be professional, output clean and c
             {activeFile ? (
               <Editor
                 height="100%"
-                language={getFileLanguage(activeFile.name)}
+                language={getFileLanguage(activeFile?.name || "")}
                 value={editorContent}
                 theme="vs-dark"
                 onChange={handleEditorChange}
@@ -2005,11 +2004,11 @@ Always write the exact files the user wants. Be professional, output clean and c
       {toastMsg && (
         <div className={cn(
           "fixed bottom-8 right-8 z-[200] px-5 py-3 rounded-2xl border text-[9px] font-black uppercase tracking-widest shadow-4xl backdrop-blur-md transition-all duration-300",
-          toastMsg.type === 'success' 
+          toastMsg!.type === 'success' 
             ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
             : "bg-red-500/10 border-red-500/20 text-red-400"
         )}>
-          {toastMsg.text}
+          {toastMsg!.text}
         </div>
       )}
 

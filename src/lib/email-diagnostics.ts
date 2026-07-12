@@ -1,5 +1,5 @@
 const RESEND_KEY_PREFIX = "re_";
-const CANONICAL_SITE_URL = "https://exismicai.online";
+const CANONICAL_SITE_URL = "https://exismic.xyz";
 
 export type EmailDiagnosticStatus = "ok" | "warning" | "error";
 
@@ -38,7 +38,7 @@ export function getRecentEmailEvents() {
 export function getEmailDiagnostics() {
   const resendKey = process.env.RESEND_API_KEY || "";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || CANONICAL_SITE_URL;
-  const senderDomain = "exismicai.online";
+  const senderDomain = process.env.EMAIL_SENDER_DOMAIN?.trim() || "exismic.xyz";
 
   const checks = [
     {

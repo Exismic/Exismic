@@ -3,7 +3,7 @@ import {
   checkRateLimit,
   getRequestIp,
   rateLimitResponse,
-  requireApiUser,
+  getOptionalApiUser,
   validateUploadedFile,
 } from "@/lib/api-security";
 
@@ -18,12 +18,12 @@ function getGroqApiKey() {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireApiUser();
-    if (user instanceof NextResponse) return user;
+    const user = await getOptionalApiUser();
+    const actor = user?.id || "guest";
 
     const limit = checkRateLimit(
-      `speech-to-text:${user.id}:${getRequestIp(req)}`,
-      20,
+      `speech-to-text:${actor}:${getRequestIp(req)}`,
+      user ? 20 : 5,
       60 * 60 * 1000,
     );
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);

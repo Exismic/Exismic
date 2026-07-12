@@ -1,21 +1,44 @@
 import { prisma } from "./prisma";
 import { FREE_DAILY_CREDITS, getDailyCreditLimit } from "@/lib/credit-policy";
-
-type CreditBalanceType = "daily" | "bonus" | "permanent" | "mixed";
-type CreditTransactionType = "daily_reset" | "tool_usage" | "shop_bonus" | "purchase" | "manual_adjustment";
+import { Prisma } from "@prisma/client";
 
 function getMostRecentResetTimestamp(): Date {
   const now = new Date();
-  const resetToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 6, 30, 0, 0));
-  if (now.getTime() < resetToday.getTime()) {
-    resetToday.setUTCDate(resetToday.getUTCDate() - 1);
-  }
-  return resetToday;
+  const istOffsetMs = 5.5 * 60 * 60 * 1000;
+  const nowInIst = new Date(now.getTime() + istOffsetMs);
+  const currentIstMidnightUtc =
+    Date.UTC(
+      nowInIst.getUTCFullYear(),
+      nowInIst.getUTCMonth(),
+      nowInIst.getUTCDate(),
+    ) - istOffsetMs;
+  return new Date(currentIstMidnightUtc);
 }
 
 export function getTodayInIndia() {
-  const reset = getMostRecentResetTimestamp();
-  return new Date(Date.UTC(reset.getUTCFullYear(), reset.getUTCMonth(), reset.getUTCDate()));
+  const nowInIst = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  return new Date(Date.UTC(
+    nowInIst.getUTCFullYear(),
+    nowInIst.getUTCMonth(),
+    nowInIst.getUTCDate(),
+  ));
+}
+
+function isRetryableTransactionError(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+}
+
+async function runSerializable<T>(operation: () => Promise<T>) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableTransactionError(error) || attempt === 2) throw error;
+    }
+  }
+  throw lastError;
 }
 
 export function getCreditTotal(credits: {
@@ -26,115 +49,87 @@ export function getCreditTotal(credits: {
   return (credits.dailyCredits ?? 0) + (credits.bonusCredits ?? 0) + (credits.lifetimeCredits ?? 0);
 }
 
-async function logCreditTransaction(input: {
-  userId: string;
-  amount: number;
-  balanceType: CreditBalanceType;
-  transactionType: CreditTransactionType;
-  toolId?: string;
-  description?: string;
-  metadata?: Record<string, unknown>;
-}) {
-  await prisma.creditTransaction.create({
-    data: {
-      userId: input.userId,
-      amount: input.amount,
-      balanceType: input.balanceType,
-      transactionType: input.transactionType,
-      toolId: input.toolId,
-      description: input.description,
-      metadata: input.metadata,
-    },
-  }).catch((error) => {
-    console.warn("[CREDITS] Transaction log skipped:", error);
-  });
-}
-
 export async function resetCreditsIfNewDay(userId: string) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        dailyCredits: true,
-        bonusCredits: true,
-        lifetimeCredits: true,
-        creditsLastReset: true,
-        aiMessagesToday: true,
-        plan: true,
-      },
-    });
+    return await runSerializable(() =>
+      prisma.$transaction(async (transaction) => {
+        const user = await transaction.user.findUnique({
+          where: { id: userId },
+          select: {
+            dailyCredits: true,
+            bonusCredits: true,
+            lifetimeCredits: true,
+            creditsLastReset: true,
+            aiMessagesToday: true,
+            plan: true,
+            planExpiresAt: true,
+          },
+        });
 
-    if (!user) {
-      console.warn(`[CREDITS] User not found: ${userId}`);
-      return null;
-    }
+        if (!user) return null;
 
-    const now = new Date();
-    const lastReset = user.creditsLastReset || new Date(0);
-    const mostRecentReset = getMostRecentResetTimestamp();
+        const now = new Date();
+        let currentPlan = user.plan;
+        let isPlanExpired = false;
 
-    const isNewDay = lastReset.getTime() < mostRecentReset.getTime();
+        if (user.plan === "pro" && user.planExpiresAt && new Date(user.planExpiresAt) < now) {
+          currentPlan = "free";
+          isPlanExpired = true;
+        }
 
-    const creditLimit = getDailyCreditLimit(user.plan);
+        const mostRecentReset = getMostRecentResetTimestamp();
+        const creditLimit = getDailyCreditLimit(currentPlan);
+        const isNewDay =
+          !user.creditsLastReset || user.creditsLastReset < mostRecentReset;
 
-    if (!isNewDay) {
-      if (user.dailyCredits <= creditLimit) return user;
+        if (!isNewDay && user.dailyCredits <= creditLimit && !isPlanExpired) return user;
 
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          dailyCredits: creditLimit,
-        },
-        select: {
-          dailyCredits: true,
-          bonusCredits: true,
-          lifetimeCredits: true,
-          creditsLastReset: true,
-          aiMessagesToday: true,
-          plan: true,
-        },
-      });
+        const updatedUser = await transaction.user.update({
+          where: { id: userId },
+          data: isNewDay
+            ? {
+                plan: currentPlan,
+                subscriptionStatus: isPlanExpired ? "none" : undefined,
+                dailyCredits: creditLimit,
+                bonusCredits: 0,
+                creditsLastReset: now,
+                aiMessagesToday: 0,
+                aiMessagesReset: now,
+              }
+            : {
+                plan: currentPlan,
+                subscriptionStatus: isPlanExpired ? "none" : undefined,
+                dailyCredits: creditLimit,
+              },
+          select: {
+            dailyCredits: true,
+            bonusCredits: true,
+            lifetimeCredits: true,
+            creditsLastReset: true,
+            aiMessagesToday: true,
+            plan: true,
+          },
+        });
 
-      await logCreditTransaction({
-        userId,
-        amount: creditLimit - user.dailyCredits,
-        balanceType: "daily",
-        transactionType: "manual_adjustment",
-        description: "Daily credit allowance normalized to current plan limit",
-      });
+        await transaction.creditTransaction.create({
+          data: {
+            userId,
+            amount: isNewDay
+              ? creditLimit - user.dailyCredits - user.bonusCredits
+              : creditLimit - user.dailyCredits,
+            balanceType: isNewDay ? "mixed" : "daily",
+            transactionType: isNewDay ? "daily_reset" : "manual_adjustment",
+            description: isPlanExpired
+              ? "Pro plan expired; membership degraded to free tier"
+              : (isNewDay
+                  ? "Daily allowance restored and temporary credits expired"
+                  : "Daily allowance normalized to the current plan limit"),
+          },
+        });
 
-      return updatedUser;
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        dailyCredits: creditLimit,
-        bonusCredits: 0, // Reset temporary credits daily
-        creditsLastReset: now,
-        aiMessagesToday: 0,
-        aiMessagesReset: now,
-      },
-      select: {
-        dailyCredits: true,
-        bonusCredits: true,
-        lifetimeCredits: true,
-        creditsLastReset: true,
-        aiMessagesToday: true,
-        plan: true,
-      },
-    });
-
-    await logCreditTransaction({
-      userId,
-      amount: creditLimit,
-      balanceType: "daily",
-      transactionType: "daily_reset",
-      description: "Daily credit allowance restored",
-    });
-
-    console.log(`[CREDITS] Daily reset for user ${userId}: ${creditLimit} credits restored`);
-    return updatedUser;
+        return updatedUser;
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+    );
   } catch (err) {
     console.error(`[CREDITS] Error resetting credits for ${userId}:`, err);
     throw err;
@@ -144,17 +139,20 @@ export async function resetCreditsIfNewDay(userId: string) {
 export async function initializeUserCredits(userId: string) {
   try {
     const now = new Date();
-    const user = await prisma.user.upsert({
+    const existing = await prisma.user.findUnique({
       where: { id: userId },
-      update: {
-        dailyCredits: FREE_DAILY_CREDITS,
-        bonusCredits: 0,
-        creditsLastReset: now,
-        aiMessagesToday: 0,
-        aiMessagesReset: now,
-        plan: "free",
+      select: {
+        id: true,
+        dailyCredits: true,
+        bonusCredits: true,
+        lifetimeCredits: true,
+        plan: true,
       },
-      create: {
+    });
+    if (existing) return existing;
+
+    const user = await prisma.user.create({
+      data: {
         id: userId,
         dailyCredits: FREE_DAILY_CREDITS,
         bonusCredits: 0,
@@ -181,59 +179,77 @@ export async function initializeUserCredits(userId: string) {
   }
 }
 
-export async function deductCredits(userId: string, amount: number, toolId?: string) {
+export async function deductCredits(
+  userId: string,
+  amount: number,
+  toolId?: string,
+  operationId?: string,
+) {
+  if (!Number.isInteger(amount) || amount <= 0 || amount > 10000) {
+    return { success: false, error: "Invalid credit amount" };
+  }
+
   try {
-    const updated = await prisma.$transaction(async (transaction) => {
-      const user = await transaction.user.findUnique({
-        where: { id: userId },
-        select: {
-          dailyCredits: true,
-          bonusCredits: true,
-          lifetimeCredits: true,
-        },
-      });
+    await resetCreditsIfNewDay(userId);
+    const debit = await runSerializable(() =>
+      prisma.$transaction(async (transaction) => {
+        if (operationId) {
+          const prior = await transaction.creditTransaction.findUnique({
+            where: { id: operationId },
+          });
+          if (prior) {
+            const balances = await transaction.user.findUnique({
+              where: { id: userId },
+              select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+            });
+            return { balances, spent: prior.metadata };
+          }
+        }
 
-      if (!user) throw new Error("User not found");
+        const user = await transaction.user.findUnique({
+          where: { id: userId },
+          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+        });
+        if (!user) throw new Error("User not found");
 
-      const totalAvailable = getCreditTotal(user);
-      if (totalAvailable < amount) throw new Error(`Insufficient credits:${totalAvailable}`);
+        const totalAvailable = getCreditTotal(user);
+        if (totalAvailable < amount) throw new Error(`Insufficient credits:${totalAvailable}`);
 
-      const dailySpend = Math.min(user.dailyCredits, amount);
-      const afterDaily = amount - dailySpend;
-      const bonusSpend = Math.min(user.bonusCredits, afterDaily);
-      const permanentSpend = afterDaily - bonusSpend;
+        const dailySpend = Math.min(user.dailyCredits, amount);
+        const afterDaily = amount - dailySpend;
+        const bonusSpend = Math.min(user.bonusCredits, afterDaily);
+        const permanentSpend = afterDaily - bonusSpend;
 
-      const updatedUser = await transaction.user.update({
-        where: { id: userId },
-        data: {
-          dailyCredits: { decrement: dailySpend },
-          bonusCredits: { decrement: bonusSpend },
-          lifetimeCredits: { decrement: permanentSpend },
-        },
-        select: {
-          dailyCredits: true,
-          bonusCredits: true,
-          lifetimeCredits: true,
-        },
-      });
+        const balances = await transaction.user.update({
+          where: { id: userId },
+          data: {
+            dailyCredits: user.dailyCredits - dailySpend,
+            bonusCredits: user.bonusCredits - bonusSpend,
+            lifetimeCredits: user.lifetimeCredits - permanentSpend,
+          },
+          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+        });
 
-      await transaction.creditTransaction.create({
-        data: {
-          userId,
-          amount: -amount,
-          balanceType: "mixed",
-          transactionType: "tool_usage",
-          toolId,
-          description: toolId ? `Used ${amount} credits for ${toolId}` : `Used ${amount} credits`,
-          metadata: { dailySpend, bonusSpend, permanentSpend },
-        },
-      });
+        const spent = { dailySpend, bonusSpend, permanentSpend };
+        await transaction.creditTransaction.create({
+          data: {
+            ...(operationId ? { id: operationId } : {}),
+            userId,
+            amount: -amount,
+            balanceType: "mixed",
+            transactionType: "tool_usage",
+            toolId,
+            description: toolId ? `Used ${amount} credits for ${toolId}` : `Used ${amount} credits`,
+            metadata: spent,
+          },
+        });
 
-      return updatedUser;
-    });
+        return { balances, spent };
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+    );
 
     console.log(`[CREDITS] Deducted ${amount} credits from user ${userId}`);
-    return { success: true, data: updated };
+    return { success: true, data: debit.balances, spent: debit.spent };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.startsWith("Insufficient credits:")) {
@@ -246,6 +262,9 @@ export async function deductCredits(userId: string, amount: number, toolId?: str
 }
 
 export async function addCredits(userId: string, amount: number, reason?: string) {
+  if (!Number.isInteger(amount) || amount <= 0 || amount > 1_000_000) {
+    return { success: false, error: "Invalid credit amount" };
+  }
   try {
     const user = await prisma.$transaction(async (transaction) => {
       const updated = await transaction.user.update({
@@ -278,6 +297,9 @@ export async function addCredits(userId: string, amount: number, reason?: string
 }
 
 export async function addBonusCredits(userId: string, amount: number, reason?: string, metadata?: Record<string, unknown>) {
+  if (!Number.isInteger(amount) || amount <= 0 || amount > 10_000) {
+    return { success: false, error: "Invalid bonus amount" };
+  }
   try {
     const user = await prisma.$transaction(async (transaction) => {
       const updated = await transaction.user.update({
@@ -299,7 +321,7 @@ export async function addBonusCredits(userId: string, amount: number, reason?: s
           balanceType: "bonus",
           transactionType: "shop_bonus",
           description: reason || "Shop bonus credits added",
-          metadata,
+            metadata: metadata as Prisma.InputJsonObject | undefined,
         },
       });
 
@@ -329,16 +351,8 @@ export async function getUserCredits(userId: string) {
     });
 
     if (!user) {
-      console.log(`[CREDITS] User ${userId} not found, initializing...`);
-      const initialized = await initializeUserCredits(userId);
-      return {
-        dailyCredits: initialized.dailyCredits,
-        bonusCredits: initialized.bonusCredits,
-        lifetimeCredits: initialized.lifetimeCredits,
-        creditsLastReset: new Date(),
-        aiMessagesToday: 0,
-        plan: initialized.plan,
-      };
+      console.warn(`[CREDITS] User ${userId} does not exist; refusing to create a partial account.`);
+      return null;
     }
 
     await resetCreditsIfNewDay(userId);
@@ -415,21 +429,33 @@ export async function claimDailyShopCredits(userId: string) {
       return { claim, credits: updatedUser };
     });
 
-    return { success: true, ...reward, credits: result.credits };
+    return { success: true as const, ...reward, credits: result.credits };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.startsWith("Already claimed:")) {
       const [, amount, rarity] = message.split(":");
       return {
-        success: false,
+        success: false as const,
         alreadyClaimed: true,
         amount: Number(amount || 0),
         rarity: rarity || "claimed",
         error: "You already claimed today's shop reward.",
       };
     }
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const existing = await prisma.creditShopClaim.findUnique({
+        where: { userId_claimDate: { userId, claimDate } },
+      });
+      return {
+        success: false as const,
+        alreadyClaimed: true,
+        amount: existing?.amount || 0,
+        rarity: existing?.rarity || "claimed",
+        error: "You already claimed today's shop reward.",
+      };
+    }
     console.error("[CREDITS] Daily shop claim failed:", err);
-    return { success: false, error: "Could not claim today's reward." };
+    return { success: false as const, error: "Could not claim today's reward." };
   }
 }
 

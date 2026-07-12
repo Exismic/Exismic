@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import { createClient } from "@/utils/supabase/client";
 import { useCredits } from "@/hooks/useCredits";
+import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 
 // --- Types & Interfaces ---
 export type ChatMode = "auto" | "default" | "coding" | "research" | "business" | "creative" | "fast";
@@ -312,17 +313,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem("exismic_safe_mode");
+    const stored = getFunctionalStorageItem("exismic_safe_mode");
     if (stored !== null) {
       setSafeMode(stored === "true");
     }
 
-    const storedStudentMode = localStorage.getItem("exismic_student_mode");
+    const storedStudentMode = getFunctionalStorageItem("exismic_student_mode");
     if (storedStudentMode !== null) {
       setStudentMode(storedStudentMode === "true");
     }
 
-    const storedChatMode = localStorage.getItem("exismic_chat_mode") as ChatMode | null;
+    const storedChatMode = getFunctionalStorageItem("exismic_chat_mode") as ChatMode | null;
     if (storedChatMode && ["auto", "default", "coding", "research", "business", "creative", "fast"].includes(storedChatMode)) {
       setChatMode(storedChatMode);
     }
@@ -332,10 +333,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         const nextSettings = { ...DEFAULT_AI_CHAT_SETTINGS, ...(res.data.settings || {}) };
         setChatSettings(nextSettings);
 
-        if (!localStorage.getItem("exismic_chat_mode")) {
+        if (!getFunctionalStorageItem("exismic_chat_mode")) {
           setChatMode(nextSettings.defaultChatMode);
         }
-        if (!localStorage.getItem("exismic_student_mode")) {
+        if (!getFunctionalStorageItem("exismic_student_mode")) {
           setStudentMode(nextSettings.defaultStudentMode);
         }
       })
@@ -402,13 +403,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setSafeMode(val);
-    localStorage.setItem("exismic_safe_mode", String(val));
+    setFunctionalStorageItem("exismic_safe_mode", String(val));
     toast(val ? "Safe Mode activated (NSFW Filter active)" : "Creative Mode activated (NSFW Filter relaxed)", "success");
   };
 
   const toggleStudentMode = (val: boolean) => {
     setStudentMode(val);
-    localStorage.setItem("exismic_student_mode", String(val));
+    setFunctionalStorageItem("exismic_student_mode", String(val));
     toast(
       val
         ? "Student Mode activated. Exismic will teach step-by-step."
@@ -419,7 +420,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const updateChatMode = (mode: ChatMode) => {
     setChatMode(mode);
-    localStorage.setItem("exismic_chat_mode", mode);
+    setFunctionalStorageItem("exismic_chat_mode", mode);
     const label = mode === "auto" ? "Auto" : mode === "default" ? "Default" : mode.charAt(0).toUpperCase() + mode.slice(1);
     toast(`${label} mode selected.`, "success");
   };
@@ -429,11 +430,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setChatSettings(nextSettings);
 
     if (settings.defaultChatMode) {
-      localStorage.setItem("exismic_chat_mode", settings.defaultChatMode);
+      setFunctionalStorageItem("exismic_chat_mode", settings.defaultChatMode);
       setChatMode(settings.defaultChatMode);
     }
     if (typeof settings.defaultStudentMode === "boolean") {
-      localStorage.setItem("exismic_student_mode", String(settings.defaultStudentMode));
+      setFunctionalStorageItem("exismic_student_mode", String(settings.defaultStudentMode));
       setStudentMode(settings.defaultStudentMode);
     }
 

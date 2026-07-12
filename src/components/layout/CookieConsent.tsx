@@ -1,144 +1,162 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Cookie, X, Settings2, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Cookie, Settings2, ShieldCheck, X } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
-
-type CookiePreferences = {
-  essential: boolean;
-  analytics: boolean;
-  functional: boolean;
-};
+import {
+  DEFAULT_COOKIE_PREFERENCES,
+  OPEN_COOKIE_PREFERENCES_EVENT,
+  readCookieConsent,
+  saveCookieConsent,
+  type CookiePreferences,
+} from "@/lib/cookie-consent";
 
 export function CookieConsent() {
   const [mounted, setMounted] = useState(false);
+  const [hasDecision, setHasDecision] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  
-  const [preferences, setPreferences] = useState<CookiePreferences>({
-    essential: true,
-    analytics: true,
-    functional: true
-  });
+  const [preferences, setPreferences] = useState<CookiePreferences>(
+    DEFAULT_COOKIE_PREFERENCES,
+  );
 
   useEffect(() => {
-    setMounted(true);
-    // Check if user has already made a choice
-    const savedConsent = localStorage.getItem("exismic_cookie_consent");
-    if (!savedConsent) {
-      // Delay showing banner slightly for better UX
-      const timer = setTimeout(() => setShowBanner(true), 1500);
-      return () => clearTimeout(timer);
-    } else {
-      try {
-        setPreferences(JSON.parse(savedConsent));
-      } catch (e) {}
-    }
+    let bannerTimer: number | undefined;
+    const initializeTimer = window.setTimeout(() => {
+      const savedConsent = readCookieConsent();
+      setMounted(true);
+      setHasDecision(Boolean(savedConsent));
+
+      if (savedConsent) {
+        setPreferences(savedConsent.preferences);
+      } else {
+        bannerTimer = window.setTimeout(() => setShowBanner(true), 900);
+      }
+    }, 0);
+
+    const handleOpenPreferences = () => {
+      const latestConsent = readCookieConsent();
+      setPreferences(
+        latestConsent?.preferences ?? DEFAULT_COOKIE_PREFERENCES,
+      );
+      setShowBanner(false);
+      setShowModal(true);
+    };
+
+    window.addEventListener(
+      OPEN_COOKIE_PREFERENCES_EVENT,
+      handleOpenPreferences,
+    );
+
+    return () => {
+      window.clearTimeout(initializeTimer);
+      if (bannerTimer) window.clearTimeout(bannerTimer);
+      window.removeEventListener(
+        OPEN_COOKIE_PREFERENCES_EVENT,
+        handleOpenPreferences,
+      );
+    };
   }, []);
 
-  const savePreferences = async (newPrefs: CookiePreferences) => {
-    localStorage.setItem("exismic_cookie_consent", JSON.stringify(newPrefs));
-    setPreferences(newPrefs);
+  const persistPreferences = (newPreferences: CookiePreferences) => {
+    saveCookieConsent(newPreferences);
+    setPreferences(newPreferences);
+    setHasDecision(true);
     setShowBanner(false);
     setShowModal(false);
-
-    // Save to supabase if logged in
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session?.user) {
-      try {
-        await supabase.from('users').update({
-          cookie_preferences: newPrefs
-        }).eq('id', session.user.id);
-      } catch (e) {
-        // Ignore error if schema doesn't have cookie_preferences yet
-        console.log("Could not save preferences to DB");
-      }
-    }
   };
 
   const acceptAll = () => {
-    savePreferences({ essential: true, analytics: true, functional: true });
+    persistPreferences({
+      essential: true,
+      analytics: true,
+      functional: true,
+    });
   };
 
   const rejectAll = () => {
-    savePreferences({ essential: true, analytics: false, functional: false });
+    persistPreferences(DEFAULT_COOKIE_PREFERENCES);
   };
 
-  const saveCustom = () => {
-    savePreferences(preferences);
+  const closePreferences = () => {
+    setShowModal(false);
+    if (!hasDecision) setShowBanner(true);
   };
 
   if (!mounted) return null;
 
   return (
     <>
-      {/* Mini Banner */}
       <AnimatePresence>
         {showBanner && !showModal && (
-          <motion.div 
-            initial={{ opacity: 0, y: 100 }}
+          <motion.div
+            initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-3rem)] max-w-4xl"
+            exit={{ opacity: 0, y: 80, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            className="fixed inset-x-3 bottom-3 z-[100] mx-auto w-auto max-w-4xl sm:inset-x-6 sm:bottom-6"
+            role="region"
+            aria-label="Cookie consent"
           >
-            <div className="relative p-6 md:px-8 md:py-6 rounded-3xl glass-dark border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,1)] overflow-hidden group">
-              {/* Animated background glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/5 via-transparent to-accent-cyan/5 opacity-50" />
-              
-              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                
-                {/* Content */}
-                <div className="flex items-start md:items-center gap-4">
-                  <div className="w-10 h-10 shrink-0 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center">
-                    <Cookie size={18} className="text-accent-purple" />
+            <div className="glass-dark group relative overflow-hidden rounded-2xl border border-white/10 p-5 shadow-[0_24px_80px_-20px_rgba(0,0,0,1)] sm:rounded-3xl sm:px-8 sm:py-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/10 via-transparent to-accent-cyan/10 opacity-60" />
+
+              <div className="relative z-10 flex flex-col items-start justify-between gap-5 md:flex-row md:items-center md:gap-6">
+                <div className="flex items-start gap-4 md:items-center">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05]">
+                    <Cookie size={19} className="text-accent-cyan" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-white">
-                      We value your privacy
+                  <div className="space-y-1.5 pr-6 sm:pr-0">
+                    <p className="text-sm font-bold text-white">
+                      Your privacy, your choice
                     </p>
-                    <p className="text-xs text-zinc-400 max-w-lg leading-relaxed">
-                      We use essential cookies to make Exismic work. We'd also like to use analytics to improve your experience. You can manage your preferences anytime.{" "}
-                      <Link href="/cookies" className="text-accent-cyan hover:underline underline-offset-2 transition-all">
+                    <p className="max-w-xl text-xs leading-relaxed text-zinc-400">
+                      Essential cookies keep Exismic secure. Analytics and
+                      functional storage are optional and stay off until you
+                      choose otherwise. You can change this anytime. {" "}
+                      <Link
+                        href="/cookies"
+                        className="text-accent-cyan underline-offset-2 transition-colors hover:text-white hover:underline"
+                      >
                         Cookie Policy
                       </Link>
                     </p>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto shrink-0">
-                  <button 
+                <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
+                  <button
+                    type="button"
                     onClick={rejectAll}
-                    className="flex-1 md:flex-none px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all"
+                    className="min-h-11 rounded-xl border border-white/10 px-4 text-xs font-bold text-zinc-300 transition-all hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                   >
-                    Reject All
+                    Reject optional
                   </button>
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => setShowModal(true)}
-                    className="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                    className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-bold text-white transition-all hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                   >
                     <Settings2 size={14} /> Customize
                   </button>
-                  <button 
+                  <button
+                    type="button"
                     onClick={acceptAll}
-                    className="flex-1 md:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-accent-purple to-accent-cyan text-black text-xs font-black uppercase tracking-wider hover:scale-105 transition-all shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+                    className="col-span-2 min-h-11 rounded-xl bg-gradient-to-r from-accent-purple to-accent-cyan px-6 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_24px_rgba(34,211,238,0.2)] transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:col-auto"
                   >
-                    Accept All
+                    Accept all
                   </button>
                 </div>
 
-                {/* Close Button (defaults to reject/dismiss) */}
-                <button 
+                <button
+                  type="button"
                   onClick={rejectAll}
-                  className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors md:hidden"
+                  aria-label="Reject optional cookies and close"
+                  className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-zinc-500 transition-colors hover:text-white md:hidden"
                 >
-                  <X size={16} />
+                  <X size={17} />
                 </button>
               </div>
             </div>
@@ -146,107 +164,100 @@ export function CookieConsent() {
         )}
       </AnimatePresence>
 
-      {/* Customize Modal */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <motion.div 
+          <div className="fixed inset-0 z-[200] flex items-end justify-center p-0 sm:items-center sm:p-4">
+            <motion.button
+              type="button"
+              aria-label="Close cookie preferences"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={closePreferences}
+              className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm"
             />
 
-            {/* Modal Box */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="cookie-preferences-title"
+              initial={{ opacity: 0, scale: 0.97, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md p-8 rounded-[2.5rem] glass-dark border border-white/10 shadow-2xl z-10 overflow-hidden"
+              exit={{ opacity: 0, scale: 0.97, y: 24 }}
+              className="glass-dark relative z-10 max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] border border-white/10 p-6 shadow-2xl sm:rounded-[2.5rem] sm:p-8"
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-purple to-accent-cyan" />
-              
-              <button 
-                onClick={() => setShowModal(false)}
-                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+              <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-accent-purple via-fuchsia-400 to-accent-cyan" />
+
+              <button
+                type="button"
+                onClick={closePreferences}
+                aria-label="Close cookie preferences"
+                className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-white/5 hover:text-white sm:right-6 sm:top-6"
               >
                 <X size={20} />
               </button>
 
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-2xl font-black text-white italic">Cookie Preferences</h3>
-                  <p className="text-sm text-zinc-400 mt-2">Manage how we use data to personalize your experience.</p>
+              <div className="space-y-7">
+                <div className="pr-12">
+                  <h2
+                    id="cookie-preferences-title"
+                    className="text-2xl font-black italic text-white"
+                  >
+                    Cookie Preferences
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                    Choose which optional technologies Exismic may use on this
+                    browser. Essential services always remain active.
+                  </p>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Essential */}
-                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-start gap-4">
-                    <ShieldCheck size={20} className="text-accent-purple shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">Essential</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-accent-purple bg-accent-purple/10 px-2 py-0.5 rounded-full border border-accent-purple/20">Always On</span>
-                      </div>
-                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">Strictly necessary for the platform to function and keep your session secure.</p>
-                    </div>
-                  </div>
-
-                  {/* Analytics */}
-                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-start gap-4 transition-colors">
-                    <div className="shrink-0 mt-0.5 relative">
-                      <input 
-                        type="checkbox" 
-                        id="analytics"
-                        checked={preferences.analytics}
-                        onChange={(e) => setPreferences(prev => ({ ...prev, analytics: e.target.checked }))}
-                        className="peer sr-only"
-                      />
-                      <label htmlFor="analytics" className="w-10 h-6 bg-white/10 rounded-full flex items-center peer-checked:bg-accent-cyan cursor-pointer transition-colors p-1">
-                        <div className={cn("w-4 h-4 bg-white rounded-full shadow-md transition-transform", preferences.analytics ? "translate-x-4" : "translate-x-0")} />
-                      </label>
-                    </div>
-                    <div className="flex-1">
-                      <label htmlFor="analytics" className="font-bold text-white text-sm cursor-pointer select-none block">Analytics</label>
-                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">Helps us understand user behavior so we can improve Exismic.</p>
-                    </div>
-                  </div>
-
-                  {/* Functional */}
-                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-start gap-4 transition-colors">
-                    <div className="shrink-0 mt-0.5 relative">
-                      <input 
-                        type="checkbox" 
-                        id="functional"
-                        checked={preferences.functional}
-                        onChange={(e) => setPreferences(prev => ({ ...prev, functional: e.target.checked }))}
-                        className="peer sr-only"
-                      />
-                      <label htmlFor="functional" className="w-10 h-6 bg-white/10 rounded-full flex items-center peer-checked:bg-emerald-400 cursor-pointer transition-colors p-1">
-                        <div className={cn("w-4 h-4 bg-white rounded-full shadow-md transition-transform", preferences.functional ? "translate-x-4" : "translate-x-0")} />
-                      </label>
-                    </div>
-                    <div className="flex-1">
-                      <label htmlFor="functional" className="font-bold text-white text-sm cursor-pointer select-none block">Functional</label>
-                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">Remembers your display preferences and custom settings.</p>
-                    </div>
-                  </div>
+                <div className="space-y-3">
+                  <PreferenceCard
+                    icon={<ShieldCheck size={20} />}
+                    title="Essential"
+                    description="Required for authentication, security, payments, and remembering your privacy choice."
+                    required
+                  />
+                  <PreferenceCard
+                    id="analytics"
+                    title="Analytics"
+                    description="Allows Microsoft Clarity to help us understand performance and improve Exismic."
+                    checked={preferences.analytics}
+                    onChange={(checked) =>
+                      setPreferences((current) => ({
+                        ...current,
+                        analytics: checked,
+                      }))
+                    }
+                  />
+                  <PreferenceCard
+                    id="functional"
+                    title="Functional"
+                    description="Remembers optional preferences, drafts, and tool history on this device."
+                    checked={preferences.functional}
+                    onChange={(checked) =>
+                      setPreferences((current) => ({
+                        ...current,
+                        functional: checked,
+                      }))
+                    }
+                  />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-4">
-                  <button 
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
                     onClick={rejectAll}
-                    className="py-3 rounded-xl border border-white/10 text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all"
+                    className="min-h-12 rounded-xl border border-white/10 text-xs font-bold text-zinc-300 transition-all hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                   >
-                    Reject All
+                    Reject optional
                   </button>
-                  <button 
-                    onClick={saveCustom}
-                    className="py-3 rounded-xl bg-white text-black text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                  <button
+                    type="button"
+                    onClick={() => persistPreferences(preferences)}
+                    className="min-h-12 rounded-xl bg-white text-xs font-black uppercase tracking-widest text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                   >
-                    Save Options
+                    Save choices
                   </button>
                 </div>
               </div>
@@ -255,5 +266,71 @@ export function CookieConsent() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+type PreferenceCardProps = {
+  id?: string;
+  icon?: React.ReactNode;
+  title: string;
+  description: string;
+  required?: boolean;
+  checked?: boolean;
+  onChange?: (checked: boolean) => void;
+};
+
+function PreferenceCard({
+  id,
+  icon,
+  title,
+  description,
+  required = false,
+  checked = false,
+  onChange,
+}: PreferenceCardProps) {
+  return (
+    <div className="flex min-h-24 items-start gap-4 rounded-2xl border border-white/5 bg-white/[0.025] p-4">
+      {required ? (
+        <div className="mt-0.5 shrink-0 text-accent-purple">{icon}</div>
+      ) : (
+        <div className="relative mt-0.5 shrink-0">
+          <input
+            type="checkbox"
+            id={id}
+            checked={checked}
+            onChange={(event) => onChange?.(event.target.checked)}
+            className="peer sr-only"
+          />
+          <label
+            htmlFor={id}
+            className="flex h-7 w-12 cursor-pointer items-center rounded-full bg-white/10 p-1 transition-colors peer-checked:bg-accent-cyan peer-focus-visible:ring-2 peer-focus-visible:ring-white"
+          >
+            <span
+              className={cn(
+                "h-5 w-5 rounded-full bg-white shadow-md transition-transform",
+                checked ? "translate-x-5" : "translate-x-0",
+              )}
+            />
+            <span className="sr-only">Toggle {title}</span>
+          </label>
+        </div>
+      )}
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor={id} className="text-sm font-bold text-white">
+            {title}
+          </label>
+          {required && (
+            <span className="shrink-0 rounded-full border border-accent-purple/20 bg-accent-purple/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-accent-purple">
+              Always on
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+          {description}
+        </p>
+      </div>
+    </div>
   );
 }

@@ -855,7 +855,7 @@ export function DiscordCardGenerator() {
 Discord User ID: ${activeUserId}
 
 Open index.html locally to preview it, or upload the files to GitHub Pages, Netlify, or any static host.
-Live status uses the Toolverse Discord presence service when the user shares a server with the Toolverse bot.
+Live status uses the Exismic Discord presence service when the user shares a server with the Exismic bot.
 Lanyard remains available as a fallback.
 `,
       );
@@ -1007,7 +1007,7 @@ Lanyard remains available as a fallback.
                     >
                       <span className="h-1.5 w-1.5 rounded-full bg-current" />
                       {payload.sources.presenceProvider === "official"
-                        ? "Toolverse"
+                        ? "Exismic"
                         : payload.sources.presenceProvider === "lanyard"
                           ? "Fallback"
                           : "Unavailable"}
@@ -1068,10 +1068,10 @@ Lanyard remains available as a fallback.
                       </p>
                       <p className="mt-1 text-[10px] leading-4 text-zinc-500">
                         {payload.sources.presenceProvider === "official"
-                          ? "Status and activities are coming directly from Toolverse's Discord bot."
+                          ? "Status and activities are coming directly from Exismic's Discord bot."
                           : payload.sources.officialPresenceConfigured
-                            ? "Share the Toolverse server with the bot. The card will switch automatically."
-                            : "Toolverse's Discord worker can be configured without changing this card."}
+                            ? "Share the Exismic server with the bot. The card will switch automatically."
+                            : "Exismic's Discord worker can be configured without changing this card."}
                       </p>
                       {payload.sources.presenceProvider !== "official" &&
                         payload.sources.inviteUrl && (

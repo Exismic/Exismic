@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
+import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Cropper from "react-easy-crop";
@@ -372,9 +373,7 @@ export default function AccountSettings() {
   useEffect(() => {
     async function loadPreferences() {
       try {
-        const localPreferences = typeof window !== 'undefined'
-          ? window.localStorage.getItem('exismic:user-preferences')
-          : null;
+        const localPreferences = getFunctionalStorageItem('exismic:user-preferences');
         if (localPreferences) {
           setPreferences({ ...DEFAULT_USER_PREFERENCES, ...JSON.parse(localPreferences) });
         }
@@ -385,7 +384,7 @@ export default function AccountSettings() {
         const nextPreferences = { ...DEFAULT_USER_PREFERENCES, ...data.preferences };
         setPreferences(nextPreferences);
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem('exismic:user-preferences', JSON.stringify(nextPreferences));
+          setFunctionalStorageItem('exismic:user-preferences', JSON.stringify(nextPreferences));
           window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: nextPreferences }));
           document.documentElement.dataset.highFidelityPreview = nextPreferences.highFidelityPreview ? 'true' : 'false';
         }
@@ -407,7 +406,7 @@ export default function AccountSettings() {
     setStatus(null);
 
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('exismic:user-preferences', JSON.stringify(nextPreferences));
+      setFunctionalStorageItem('exismic:user-preferences', JSON.stringify(nextPreferences));
       window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: nextPreferences }));
       document.documentElement.dataset.highFidelityPreview = nextPreferences.highFidelityPreview ? 'true' : 'false';
     }
@@ -423,7 +422,7 @@ export default function AccountSettings() {
       const savedPreferences = { ...DEFAULT_USER_PREFERENCES, ...data.preferences };
       setPreferences(savedPreferences);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('exismic:user-preferences', JSON.stringify(savedPreferences));
+        setFunctionalStorageItem('exismic:user-preferences', JSON.stringify(savedPreferences));
         window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: savedPreferences }));
         document.documentElement.dataset.highFidelityPreview = savedPreferences.highFidelityPreview ? 'true' : 'false';
       }
@@ -431,7 +430,7 @@ export default function AccountSettings() {
     } catch (error: any) {
       setPreferences(previous);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('exismic:user-preferences', JSON.stringify(previous));
+        setFunctionalStorageItem('exismic:user-preferences', JSON.stringify(previous));
         window.dispatchEvent(new CustomEvent('exismic-preferences-updated', { detail: previous }));
         document.documentElement.dataset.highFidelityPreview = previous.highFidelityPreview ? 'true' : 'false';
       }
@@ -505,7 +504,7 @@ export default function AccountSettings() {
   const handleCancelSubscription = async () => {
     try {
       setIsCancelling(true);
-      const response = await fetch('/api/razorpay/cancel', {
+      const response = await fetch('/api/payments/cancel', {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to cancel');
@@ -616,7 +615,7 @@ export default function AccountSettings() {
                                      avatarUrl={displayAvatarUrl}
                                      displayName={name || 'User'}
                                      isPro={isPro}
-                                     frameId={selectedFrame}
+                                     frameId={selectedFrame || undefined}
                                      size="xl"
                                    />
                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/inner:opacity-100 flex flex-col items-center justify-center transition-all duration-300 z-30"><Camera size={20} className="text-white mb-1" /><span className="text-[7px] font-black uppercase tracking-widest text-white">Change</span></div>
@@ -699,7 +698,7 @@ export default function AccountSettings() {
                                           avatarUrl={displayAvatarUrl}
                                            displayName={name || 'User'}
                                            isPro={isPro}
-                                           frameId={selectedFrame}
+                                           frameId={selectedFrame || undefined}
                                            size="lg"
                                         />
                                      </div>
@@ -708,7 +707,7 @@ export default function AccountSettings() {
                                         <p className="truncate text-xl font-black italic uppercase tracking-tighter text-white">
                                            {PRO_FRAMES.find((frame) => frame.id === selectedFrame)?.name || "Signature Gradient"}
                                         </p>
-                                        <p className="text-xs font-medium leading-relaxed text-zinc-500">A refined profile frame for the full Toolverse identity system.</p>
+                                        <p className="text-xs font-medium leading-relaxed text-zinc-500">A refined profile frame for the full Exismic identity system.</p>
                                      </div>
                                   </div>
 

@@ -264,7 +264,7 @@ export function Sidebar() {
                 <div suppressHydrationWarning className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-purple/10 blur-[120px] rounded-full pointer-events-none" />
 
                 {/* Logo / Branding Section - High-Octane Branding */}
-                <div className={cn("pt-12 pb-8 relative z-50 flex items-center justify-between", isCompact ? "px-4" : "px-6")}>
+                <div className={cn("pt-12 pb-8 relative z-50 flex items-center", isCompact ? "justify-center px-0" : "justify-between px-6")}>
                   <ExismicLogo size={isCompact ? 32 : 42} showText={!isCompact} />
                   
                   {!isCompact && !isProLoading && isPro && (

@@ -1,4 +1,4 @@
-import { constructMetadata } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { Metadata } from "next";
 import { Sparkles, Play, MonitorSmartphone } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = constructMetadata({
   title: "AI Screenshot to Code - Convert UI Designs to React & Tailwind",
   description: "Transform your UI screenshots into clean, production-ready React and Tailwind CSS code instantly using advanced AI vision models.",
-  canonicalUrl: "https://exismicai.online/tools/screenshot-to-code",
+  canonicalUrl: `${SITE_URL}/tools/screenshot-to-code`,
+  noIndex: true,
 });
 
 export default function ScreenshotToCodePage() {

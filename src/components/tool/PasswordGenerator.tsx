@@ -1,67 +1,95 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { 
   Copy, 
   RefreshCw, 
   Check, 
   ShieldCheck,
-  ShieldAlert,
-  Shield,
   Zap,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+type PasswordOptions = {
+  upper: boolean;
+  lower: boolean;
+  number: boolean;
+  symbol: boolean;
+};
+
+const DEFAULT_OPTIONS: PasswordOptions = {
+  upper: true,
+  lower: true,
+  number: true,
+  symbol: true,
+};
+
+function createPassword(length: number, options: PasswordOptions) {
+  const charset = {
+    upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    lower: "abcdefghijklmnopqrstuvwxyz",
+    number: "0123456789",
+    symbol: "!@#$%^&*()_+~`|}{[]:;?><,./-=",
+  };
+  const selected = (Object.keys(options) as Array<keyof PasswordOptions>)
+    .filter((key) => options[key])
+    .map((key) => charset[key]);
+
+  if (selected.length === 0) return "SELECT OPTION";
+
+  const fullCharset = selected.join("");
+  const values = new Uint32Array(length);
+  globalThis.crypto.getRandomValues(values);
+
+  // Guarantee every selected character group appears at least once.
+  const required = selected.map((characters, index) =>
+    characters[values[index] % characters.length],
+  );
+  const remaining = Array.from(values.slice(required.length), (value) =>
+    fullCharset[value % fullCharset.length],
+  );
+  const password = [...required, ...remaining];
+
+  for (let index = password.length - 1; index > 0; index -= 1) {
+    const swapIndex = values[index] % (index + 1);
+    [password[index], password[swapIndex]] = [password[swapIndex], password[index]];
+  }
+
+  return password.join("");
+}
+
+function OptionToggle({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "flex min-h-14 items-center justify-between rounded-2xl border p-5 transition-all duration-300",
+        active ? "bg-accent-purple/10 border-accent-purple/40 text-white" : "bg-zinc-900/40 border-white/5 text-zinc-500 hover:border-white/10",
+      )}
+    >
+      <span className="text-xs font-black uppercase tracking-widest">{label}</span>
+      <div className={cn("relative h-5 w-10 rounded-full transition-colors duration-300", active ? "bg-accent-purple" : "bg-zinc-800")}>
+        <motion.div animate={{ x: active ? 20 : 4 }} className="absolute top-1 h-3 w-3 rounded-full bg-white shadow-sm" />
+      </div>
+    </button>
+  );
+}
+
 export function PasswordGenerator() {
-  const [password, setPassword] = useState("");
   const [length, setLength] = useState(16);
-  const [options, setOptions] = useState({
-    upper: true,
-    lower: true,
-    number: true,
-    symbol: true,
-  });
+  const [options, setOptions] = useState<PasswordOptions>(DEFAULT_OPTIONS);
+  const [password, setPassword] = useState("GENERATING...");
   const [isCopied, setIsCopied] = useState(false);
-  const [strength, setStrength] = useState({ score: 0, label: "Empty", color: "bg-zinc-800", glow: "shadow-none" });
-
-  const generatePassword = useCallback(() => {
-    const charset = {
-      upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      lower: "abcdefghijklmnopqrstuvwxyz",
-      number: "0123456789",
-      symbol: "!@#$%^&*()_+~`|}{[]:;?><,./-="
-    };
-
-    let fullCharset = "";
-    if (options.upper) fullCharset += charset.upper;
-    if (options.lower) fullCharset += charset.lower;
-    if (options.number) fullCharset += charset.number;
-    if (options.symbol) fullCharset += charset.symbol;
-
-    if (!fullCharset) {
-      setPassword("SELECT OPTION");
-      return;
-    }
-
-    let generated = "";
-    const array = new Uint32Array(length);
-    window.crypto.getRandomValues(array);
-
-    for (let i = 0; i < length; i++) {
-      generated += fullCharset.charAt(array[i] % fullCharset.length);
-    }
-
-    setPassword(generated);
-  }, [length, options]);
-
-  // AUTO-GENERATE ON CHANGE
   useEffect(() => {
-    generatePassword();
-  }, [generatePassword]);
-
-  useEffect(() => {
-    // Advanced strength calculation
+    const frame = window.requestAnimationFrame(() => {
+      setPassword(createPassword(16, DEFAULT_OPTIONS));
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+  const strength = useMemo(() => {
     let score = 0;
     if (password.length >= 10) score += 1;
     if (password.length >= 16) score += 1;
@@ -77,37 +105,29 @@ export function PasswordGenerator() {
       { label: "ULTRA SECURE", color: "bg-accent-purple", glow: "shadow-[0_0_30px_rgba(124,58,237,0.4)]" }
     ];
 
-    const idx = Math.min(score, data.length - 1);
-    setStrength({ score: idx, ...data[idx] });
+    const index = Math.min(score, data.length - 1);
+    return { score: index, ...data[index] };
   }, [password, options]);
 
+  const generatePassword = () => setPassword(createPassword(length, options));
+
+  const updateLength = (nextLength: number) => {
+    setLength(nextLength);
+    setPassword(createPassword(nextLength, options));
+  };
+
+  const toggleOption = (key: keyof PasswordOptions) => {
+    const nextOptions = { ...options, [key]: !options[key] };
+    setOptions(nextOptions);
+    setPassword(createPassword(length, nextOptions));
+  };
+
   const copyToClipboard = () => {
-    if (password === "SELECT OPTION") return;
+    if (password === "SELECT OPTION" || password === "GENERATING...") return;
     navigator.clipboard.writeText(password);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
-
-  const OptionToggle = ({ active, label, onClick }: { active: boolean, label: string, onClick: () => void }) => (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-between p-5 rounded-2xl border transition-all duration-300",
-        active ? "bg-accent-purple/10 border-accent-purple/40 text-white" : "bg-zinc-900/40 border-white/5 text-zinc-500 hover:border-white/10"
-      )}
-    >
-      <span className="text-xs font-black uppercase tracking-widest">{label}</span>
-      <div className={cn(
-        "w-10 h-5 rounded-full relative transition-colors duration-300",
-        active ? "bg-accent-purple" : "bg-zinc-800"
-      )}>
-        <motion.div 
-          animate={{ x: active ? 20 : 4 }}
-          className="absolute top-1 w-3 h-3 rounded-full bg-white shadow-sm"
-        />
-      </div>
-    </button>
-  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -206,7 +226,7 @@ export function PasswordGenerator() {
                  min="8" 
                  max="32" 
                  value={length}
-                 onChange={(e) => setLength(parseInt(e.target.value))}
+                 onChange={(e) => updateLength(Number.parseInt(e.target.value, 10))}
                  className="w-full accent-accent-purple bg-zinc-800 rounded-full h-2 cursor-pointer appearance-none transition-all hover:h-3"
                />
             </div>
@@ -219,10 +239,10 @@ export function PasswordGenerator() {
 
          {/* Character Options */}
          <div className="md:col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <OptionToggle active={options.upper} label="Uppercase (A-Z)" onClick={() => setOptions({ ...options, upper: !options.upper })} />
-            <OptionToggle active={options.lower} label="Lowercase (a-z)" onClick={() => setOptions({ ...options, lower: !options.lower })} />
-            <OptionToggle active={options.number} label="Numbers (0-9)" onClick={() => setOptions({ ...options, number: !options.number })} />
-            <OptionToggle active={options.symbol} label="Symbols (!@#$%*)" onClick={() => setOptions({ ...options, symbol: !options.symbol })} />
+            <OptionToggle active={options.upper} label="Uppercase (A-Z)" onClick={() => toggleOption("upper")} />
+            <OptionToggle active={options.lower} label="Lowercase (a-z)" onClick={() => toggleOption("lower")} />
+            <OptionToggle active={options.number} label="Numbers (0-9)" onClick={() => toggleOption("number")} />
+            <OptionToggle active={options.symbol} label="Symbols (!@#$%*)" onClick={() => toggleOption("symbol")} />
          </div>
       </div>
 
@@ -232,7 +252,7 @@ export function PasswordGenerator() {
             <ShieldCheck size={28} />
          </div>
          <p className="text-zinc-500 text-sm leading-relaxed font-medium">
-            <strong className="text-zinc-300">Why it matters:</strong> Passwords with at least 16 characters are exponentially harder to crack. Combined with special symbols, they create a "cryptographic shield" that stays secure against modern brute-force hardware.
+            <strong className="text-zinc-300">Why it matters:</strong> Passwords with at least 16 characters are exponentially harder to crack. Combining character groups creates a stronger credential against modern brute-force hardware.
          </p>
       </div>
     </div>

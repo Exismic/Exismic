@@ -143,6 +143,8 @@ export interface Tool {
   suggestions?: string[];
   seoTitle?: string;
   seoDescription?: string;
+  seoKeywords?: string[];
+  indexable?: boolean;
 }
 
 export interface Category {
@@ -205,7 +207,7 @@ export const TOOLS: Tool[] = [
     suggestions: ["What are the best layouts for Instagram stories?","How do I add borders between images?","Can I adjust the spacing between photos?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Online Collage Maker - Create Photo Grids & Layouts Instantly" },
   { id: 'image-minecraft-skin', name: 'AI Minecraft Skin Maker', description: 'Design valid 64x64 Minecraft skins with AI prompts and preview them instantly in a 3D environment.', category: 'image', icon: 'Box' as IconName, href: '/tools/image/minecraft-skin',
     suggestions: ["Help me write a prompt for a futuristic knight","How do I fix issues with the arms/legs?","Can I upload a reference image?"], popular: true, proPowerPack: true, seoTitle: "AI Minecraft Skin Maker - Create Game-Ready 64x64 Skins", seoDescription: "Create original Minecraft-compatible skins from a prompt or reference image. Preview in 3D, regenerate body parts, and download a valid 64x64 PNG." },
-  { id: 'face-swap', name: 'Face Swap', description: 'Realistically swap faces in photos with high precision and lighting matching using AI.', category: 'image', icon: 'UserCircle2' as IconName, href: '/tools/image/face-swap',
+  { id: 'face-swap', name: 'Face Swap', description: 'Realistically swap faces in photos with high precision and lighting matching using AI.', category: 'image', icon: 'UserCircle2' as IconName, href: '/tools/image/face-swap', indexable: false,
     suggestions: ["How do I match the lighting perfectly?","What angles work best for face swapping?","Does it work with multiple faces in one photo?"], pro: true, isProTool: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "AI Face Swap Online - Realistic Face Swapping Tool Free" },
   { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: 'Create eye-catching, high-conversion YouTube thumbnails quickly with our intuitive editor.', category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail',
     suggestions: ["What makes a high-converting thumbnail?","Which fonts are best for readability on mobile?","How do I add a glow effect around my subject?"], popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design High-CTR Thumbnails Fast" },
@@ -253,7 +255,7 @@ export const TOOLS: Tool[] = [
     suggestions: ["How accurate is it with heavy accents?","Does it automatically add punctuation?","Can it differentiate between multiple speakers?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "Speech to Text Converter Online - Transcribe Audio to Text Free" },
   { id: 'audio-voice-changer', name: 'Voice Changer', description: 'Transform your voice to sound entirely different while preserving your original emotion and pacing.', category: 'audio', icon: 'Mic2' as IconName, href: '/tools/audio/voice-changer',
     suggestions: ["How do I make my voice sound like a robot?","Will it preserve my original emotion and pitch?","Does it work in real-time?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Voice Changer Online - Change Your Voice Instantly Free" },
-  { id: 'audio-music-gen', name: 'AI Music Generator', description: 'Compose completely original music tracks simply by describing the genre, mood, and instruments.', category: 'audio', icon: 'Music' as IconName, href: '/tools/audio/music-gen',
+  { id: 'audio-music-gen', name: 'AI Music Generator', description: 'Compose completely original music tracks simply by describing the genre, mood, and instruments.', category: 'audio', icon: 'Music' as IconName, href: '/tools/audio/music-gen', indexable: false,
     suggestions: ["Help me describe a lo-fi hip hop beat","How do I make the track longer?","Can I specify the tempo or BPM?"], popular: true, pro: true, isProTool: true, requiresFileUpload: false, placeholderPrompt: 'Describe what kind of music you want...', seoTitle: "AI Music Generator - Create Original Music from Text Online" },
 
   // PDF Tools
@@ -303,7 +305,7 @@ export const TOOLS: Tool[] = [
     seoTitle: "Free AI Image Generator - Create Stunning Art & Photos from Text",
     seoDescription: "The most powerful free AI image generator. Create professional art, photos, and designs simply by typing what you want to see."
   },
-  { id: 'ai-chat', name: 'AI Chat', description: "Engage in deep, conversational dialogue with an advanced AI that can answer complex questions.", category: 'ai', icon: 'MessageSquare' as IconName, href: '/tools/ai/chat',
+  { id: 'ai-chat', name: 'AI Chat', description: "Engage in deep, conversational dialogue with an advanced AI that can answer complex questions.", category: 'ai', icon: 'MessageSquare' as IconName, href: '/chat', indexable: false,
     suggestions: ["What kind of tasks can you help me with?","Can you remember context from earlier in the conversation?","How do I get you to adopt a specific persona?"], pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Chat Assistant - Smart Conversational AI with GPT Power" },
   {
     id: 'support-agent',
@@ -318,7 +320,7 @@ export const TOOLS: Tool[] = [
     seoTitle: "Exismic Support Agent - AI Customer Support Chatbot Builder",
     seoDescription: "Build a premium AI support agent for your business website. Train Exismic with FAQs, documents, policies, and product details, then embed a chatbot in minutes."
   },
-  { id: 'ai-code', name: 'Exismic Code Studio', description: 'A next-generation AI code editor and autonomous agent to build entire applications seamlessly.', category: 'ai', icon: 'Code2' as IconName, href: '/tools/ai/code',
+  { id: 'ai-code', name: 'Exismic Code Studio', description: 'A next-generation AI code editor and autonomous agent to build entire applications seamlessly.', category: 'ai', icon: 'Code2' as IconName, href: '/tools/ai/code', indexable: false,
     suggestions: ["Help me plan the architecture for a new app","How do I debug a confusing React error?","Can you explain this snippet of code to me?"], popular: true, pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Code Generator - Write & Debug Code with AI Assistant" },
   { id: 'ai-logo', name: 'AI Logo Generator', description: 'Design premium, brand-ready professional logos in seconds without any design experience.', category: 'ai', icon: 'Palette' as IconName, href: '/tools/ai/logo',
     suggestions: ["What styles are best for a tech startup?","How do I ensure the logo is minimalist?","Can I specify exact brand colors?"], pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "Free AI Logo Generator - Create Professional Logos in Seconds" },
@@ -329,6 +331,7 @@ export const TOOLS: Tool[] = [
     category: 'ai', 
     icon: 'Monitor' as IconName, 
     href: '/tools/screenshot-to-code',
+    indexable: false,
     suggestions: ["What frameworks do you support?","How accurate is the generated Tailwind CSS?","Can it handle complex interactive components?"], 
     popular: true,
     pro: true,
@@ -347,6 +350,7 @@ export const TOOLS: Tool[] = [
     category: 'productivity',
     icon: 'UserCircle2' as IconName,
     href: '/tools/discord-card',
+    indexable: false,
     suggestions: ["What image dimensions are best for the banner?","How do I add custom badges?","Can I preview how it looks on mobile vs desktop?"],
     popular: true,
     requiresFileUpload: false,

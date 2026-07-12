@@ -27,43 +27,72 @@ export default function PayPalReturnPage() {
 
     async function capturePayment() {
       const params = new URLSearchParams(window.location.search);
+      const returnedPlan = params.get("plan");
+      const subscriptionId = params.get("subscription_id") || params.get("subscriptionId");
       const token = params.get("token");
 
-      if (!token) {
-        setState({ status: "error", message: "PayPal did not return an order token." });
+      if (returnedPlan === "pro" && !subscriptionId) {
+        const message = "PayPal did not return a subscription id.";
+        setState({ status: "error", message });
+        const failedParams = new URLSearchParams({ payment: "failed", source: "paypal", reason: message });
+        window.setTimeout(() => window.location.replace(`/pro?${failedParams}`), 2200);
+        return;
+      }
+
+      if (returnedPlan !== "pro" && !token) {
+        const message = "PayPal did not return an order token.";
+        setState({ status: "error", message });
+        const failedParams = new URLSearchParams({ payment: "failed", source: "paypal", reason: message });
+        window.setTimeout(() => window.location.replace(`/shop?${failedParams}`), 2200);
         return;
       }
 
       try {
-        const response = await fetch("/api/paypal/capture", {
+        const response = await fetch(returnedPlan === "pro" ? "/api/paypal/subscription/activate" : "/api/paypal/capture", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId: token }),
+          body: JSON.stringify(returnedPlan === "pro" ? { subscriptionId } : { orderId: token }),
         });
         const data = await response.json().catch(() => null);
 
         if (cancelled) return;
 
         if (!response.ok || !data?.success) {
-          setState({
-            status: "error",
-            message: data?.error || "Exismic could not verify this PayPal payment.",
-          });
+          const message = data?.error || "Exismic could not verify this PayPal payment.";
+          setState({ status: "error", message });
+          const failedParams = new URLSearchParams({ payment: "failed", source: "paypal", reason: message });
+          window.setTimeout(() => {
+            window.location.replace(returnedPlan === "pro" ? `/pro?${failedParams}` : `/shop?${failedParams}`);
+          }, 2200);
           return;
         }
 
+        const successPlan = String(data.plan || "credits");
         setState({
           status: "success",
-          plan: String(data.plan || "credits"),
+          plan: successPlan,
           message:
-            data.plan === "pro"
-              ? "PayPal payment approved. Exismic Pro is active on your account."
-              : "PayPal payment approved. Your permanent credits were added.",
+            successPlan === "pro"
+              ? "PayPal approved. Preparing your Pro welcome..."
+              : "PayPal approved. Preparing your credit confirmation...",
         });
+
+        const redirectParams = new URLSearchParams({ payment: "success", source: "paypal" });
+        if (successPlan === "credits" && data.creditsAdded) {
+          redirectParams.set("credits", String(data.creditsAdded));
+        }
+        window.setTimeout(() => {
+          window.location.replace(successPlan === "pro" ? `/pro?${redirectParams}` : `/shop?${redirectParams}`);
+        }, 1400);
       } catch (error) {
         if (cancelled) return;
         console.error("[PayPal] Return capture failed:", error);
-        setState({ status: "error", message: "PayPal verification failed. Please try again." });
+        const message = "PayPal verification failed. Please try again.";
+        setState({ status: "error", message });
+        const failedParams = new URLSearchParams({ payment: "failed", source: "paypal", reason: message });
+        window.setTimeout(() => {
+          window.location.replace(returnedPlan === "pro" ? `/pro?${failedParams}` : `/shop?${failedParams}`);
+        }, 2200);
       }
     }
 
@@ -111,7 +140,7 @@ export default function PayPalReturnPage() {
                     </div>
                     <p className="text-lg font-black text-white">{state.message}</p>
                     <p className="mt-3 max-w-sm text-sm font-medium leading-6 text-zinc-500">
-                      Keep this tab open. Exismic is confirming the payment capture with PayPal.
+                      One moment. Exismic will bring you back automatically.
                     </p>
                   </motion.div>
                 )}
@@ -158,7 +187,7 @@ export default function PayPalReturnPage() {
               href={targetHref}
               className="mt-4 flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-white px-5 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-all hover:-translate-y-0.5 hover:bg-cyan-50"
             >
-              Continue to Exismic <ArrowRight size={15} />
+              {state.status === "loading" ? "Verifying" : state.status === "success" ? "Redirecting" : "Return to Exismic"} <ArrowRight size={15} />
             </Link>
           </div>
         </motion.div>

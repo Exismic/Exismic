@@ -55,6 +55,12 @@ export function SearchBar({ isHero = false }: SearchBarProps) {
     }).slice(0, 8);
   }, [query]);
 
+  const handleSelect = (tool: Tool) => {
+    router.push(tool.href);
+    setIsOpen(false);
+    setQuery("");
+  };
+
   useEffect(() => {
     setSelectedIndex(0);
   }, [results]);
@@ -113,12 +119,6 @@ export function SearchBar({ isHero = false }: SearchBarProps) {
       document.removeEventListener("touchstart", handleClickOutside);
     };
   }, []);
-
-  const handleSelect = (tool: Tool) => {
-    router.push(tool.href);
-    setIsOpen(false);
-    setQuery("");
-  };
 
   return (
     <div 

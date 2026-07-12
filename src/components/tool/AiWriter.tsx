@@ -33,6 +33,7 @@ const QUICK_PROMPTS = [
 
 const TONES = ["Professional", "Casual", "Funny", "Persuasive", "Creative"];
 const LENGTHS = ["Short", "Medium", "Long"];
+const WRITER_TABS: Array<"write" | "preview"> = ["write", "preview"];
 
 import { useCredits } from "@/hooks/useCredits";
 
@@ -92,9 +93,9 @@ export default function AiWriter() {
 
       const data = await response.json();
       setResult(data.content);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setResult(`Error: ${error.message || "Failed to connect to the AI system."}`);
+      setResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to the AI system."}`);
     } finally {
       setIsGenerating(false);
     }
@@ -120,10 +121,10 @@ export default function AiWriter() {
                   <div className="w-3 h-3 rounded-full bg-emerald-500/50" />
                </div>
                <div className="flex bg-white/5 p-1 rounded-xl">
-                  {["write", "preview"].map((tab) => (
+                  {WRITER_TABS.map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setActiveTab(tab as any)}
+                      onClick={() => setActiveTab(tab)}
                       className={cn(
                         "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
                         activeTab === tab ? "bg-white text-black shadow-xl" : "text-gray-500 hover:text-white"

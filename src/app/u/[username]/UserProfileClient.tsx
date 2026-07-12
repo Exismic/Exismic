@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Code2, Sparkles, Activity, Zap, Hexagon, Fingerprint, Award, Layers } from "lucide-react";
 import { AvatarWithFrame } from "@/components/ui/AvatarWithFrame";
@@ -17,7 +17,7 @@ export function UserProfileClient({ user }: UserProfileClientProps) {
   const isPro = user.plan === 'pro';
   
   // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -25,7 +25,7 @@ export function UserProfileClient({ user }: UserProfileClientProps) {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -224,7 +224,7 @@ export function UserProfileClient({ user }: UserProfileClientProps) {
               {/* Aesthetic Mocked Graph */}
               <div className="h-32 w-full flex items-end gap-2 relative z-10">
                 {Array.from({ length: 24 }).map((_, i) => {
-                  const height = Math.max(20, Math.random() * 100);
+                  const height = 20 + ((i * 37) % 81);
                   const isActive = i > 16 && i < 22;
                   return (
                     <div 

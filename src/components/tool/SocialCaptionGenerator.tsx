@@ -121,9 +121,9 @@ export function SocialCaptionGenerator() {
       const data = await response.json();
       const finalResult = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
       setCaptions(finalResult);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(err.message || "Something went wrong. Please try again.");
+      alert(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -178,7 +178,7 @@ export function SocialCaptionGenerator() {
                {/* Topic Input */}
                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">What's the topic?</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">What&apos;s the topic?</label>
                     <button 
                       onClick={handleSurpriseMe}
                       className="text-[9px] font-black text-violet-400 uppercase tracking-widest hover:text-violet-300 transition-colors"

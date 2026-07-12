@@ -40,6 +40,35 @@ function resolveProStatus(data: ProUserRecord | null) {
   return hasEntitlement && (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt > new Date());
 }
 
+let profileRequest: Promise<ProUserRecord> | null = null;
+let profileCache: { data: ProUserRecord; fetchedAt: number } | null = null;
+
+async function fetchCanonicalProfile(force = false) {
+  if (!force && profileCache && Date.now() - profileCache.fetchedAt < 15_000) {
+    return profileCache.data;
+  }
+  if (profileRequest) return profileRequest;
+
+  profileRequest = fetch("/api/user/profile", {
+    cache: "no-store",
+    credentials: "same-origin",
+  })
+    .then(async (response) => {
+      const json = await response.json();
+      if (!response.ok || !json.success || !json.user) {
+        throw new Error(json.error || "Could not verify membership");
+      }
+      const data = json.user as ProUserRecord;
+      profileCache = { data, fetchedAt: Date.now() };
+      return data;
+    })
+    .finally(() => {
+      profileRequest = null;
+    });
+
+  return profileRequest;
+}
+
 export function usePro() {
   const [isPro, setIsPro] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +76,7 @@ export function usePro() {
   const [authUser, setAuthUser] = useState<User | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
-  const loadProStatus = useCallback(async (showLoading = false) => {
+  const loadProStatus = useCallback(async (showLoading = false, force = false) => {
     if (showLoading) setIsLoading(true);
 
     try {
@@ -60,17 +89,7 @@ export function usePro() {
         return;
       }
 
-      const response = await fetch(`/api/user/profile?t=${Date.now()}`, {
-        cache: "no-store",
-        credentials: "same-origin",
-      });
-      const json = await response.json();
-
-      if (!response.ok || !json.success || !json.user) {
-        throw new Error(json.error || "Could not verify membership");
-      }
-
-      const data = json.user as ProUserRecord;
+      const data = await fetchCanonicalProfile(force);
       setUser(data);
       setIsPro(resolveProStatus(data));
     } catch (err) {
@@ -109,7 +128,7 @@ export function usePro() {
           ) {
             // Re-read the canonical server result instead of trusting a partial
             // realtime payload with database column naming.
-            void loadProStatus(false);
+            void loadProStatus(false, true);
           }
         }
       )
@@ -120,7 +139,8 @@ export function usePro() {
     };
     const refreshAfterAccountChange = () => void loadProStatus(false);
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      void loadProStatus(true);
+      profileCache = null;
+      void loadProStatus(true, true);
     });
 
     window.addEventListener("focus", refreshAfterAccountChange);
@@ -137,7 +157,7 @@ export function usePro() {
   }, [loadProStatus, supabase]);
 
   const refresh = useCallback(
-    () => loadProStatus(true),
+    () => loadProStatus(true, true),
     [loadProStatus]
   );
 
