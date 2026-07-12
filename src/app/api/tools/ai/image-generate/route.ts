@@ -4,13 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadProcessedFile } from "@/lib/server/storage";
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getDailyCreditLimit, getToolCreditCost } from "@/lib/credit-policy";
 import { requireProApiUser } from "@/lib/api-security";
-
-const STORAGE_PATH = path.join(process.cwd(), "public", "generations");
 
 function enhancePrompt(rawPrompt: string): { prompt: string; enhancedUsed: string } {
   let p = rawPrompt.trim();
@@ -341,14 +338,9 @@ export async function POST(req: NextRequest) {
       throw new Error("All generation services are currently busy. This usually happens during high traffic. Please try a different prompt or wait a minute.");
     }
 
-    // 5. Save Locally to Public Folder
-    await mkdir(STORAGE_PATH, { recursive: true });
+    // 5. Save to Supabase Storage
     const localFileName = `flux_${uuidv4()}.png`;
-    const localFilePath = path.join(STORAGE_PATH, localFileName);
-    await writeFile(localFilePath, imageBuffer);
-
-    // 6. DB Record & Credit Deduction
-    const resultUrl = `/generations/${localFileName}`;
+    const resultUrl = await uploadProcessedFile(imageBuffer, localFileName, "image/png");
     
     await prisma.userFile.create({
       data: {

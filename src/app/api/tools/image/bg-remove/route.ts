@@ -1,13 +1,9 @@
 import { NextRequest } from "next/server";
 import { withToolHandler } from "@/lib/tools-handler";
 import axios from "axios";
-import { writeFile } from "fs/promises";
-import path from "path";
 import sharp from "sharp";
 import { getEngineRoute } from "@/config/engine";
-
-// Practical local storage for results (Phase 2)
-const STORAGE_PATH = path.join(process.cwd(), "public", "results");
+import { uploadProcessedFile } from "@/lib/server/storage";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -57,10 +53,11 @@ export async function POST(req: NextRequest) {
         });
 
         const fileName = `result_modal_${context.queue}_${jobId}.png`;
-        const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, await prepareOutput(Buffer.from(modalResponse.data), context.outputTier));
+        const processedBuffer = await prepareOutput(Buffer.from(modalResponse.data), context.outputTier);
+        const publicUrl = await uploadProcessedFile(processedBuffer, fileName, "image/png");
+
         return {
-          resultUrl: `/results/${fileName}`,
+          resultUrl: publicUrl,
           metadata: {
             provider: "modal-bg-remover",
             priority: context.priority,
@@ -89,9 +86,10 @@ export async function POST(req: NextRequest) {
         });
 
         const fileName = `result_removebg_${jobId}.png`;
-        const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, await prepareOutput(Buffer.from(removeBgResponse.data), context.outputTier));
-        return { resultUrl: `/results/${fileName}` };
+        const processedBuffer = await prepareOutput(Buffer.from(removeBgResponse.data), context.outputTier);
+        const publicUrl = await uploadProcessedFile(processedBuffer, fileName, "image/png");
+
+        return { resultUrl: publicUrl };
       } catch (removeBgError: unknown) {
         console.error("remove.bg Removal Failed:", getErrorMessage(removeBgError));
       }
@@ -134,9 +132,10 @@ export async function POST(req: NextRequest) {
       });
 
       const fileName = `result_${jobId}.png`;
-      const fullPath = path.join(STORAGE_PATH, fileName);
-      await writeFile(fullPath, await prepareOutput(Buffer.from(response.data), context.outputTier));
-      return { resultUrl: `/results/${fileName}` };
+      const processedBuffer = await prepareOutput(Buffer.from(response.data), context.outputTier);
+      const publicUrl = await uploadProcessedFile(processedBuffer, fileName, "image/png");
+
+      return { resultUrl: publicUrl };
     } catch {
       console.log("Local BG removal failed, trying cloud APIs...");
     }
@@ -157,9 +156,10 @@ export async function POST(req: NextRequest) {
         });
 
         const fileName = `result_hf_${jobId}.png`;
-        const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, await prepareOutput(Buffer.from(hfResponse.data), context.outputTier));
-        return { resultUrl: `/results/${fileName}` };
+        const processedBuffer = await prepareOutput(Buffer.from(hfResponse.data), context.outputTier);
+        const publicUrl = await uploadProcessedFile(processedBuffer, fileName, "image/png");
+
+        return { resultUrl: publicUrl };
       } catch (hfError: unknown) {
         console.error("Hugging Face BG Removal Failed:", getErrorMessage(hfError));
       }

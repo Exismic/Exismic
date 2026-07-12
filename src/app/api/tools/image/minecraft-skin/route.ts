@@ -1,5 +1,3 @@
-import { mkdir, readFile, unlink, writeFile } from "fs/promises";
-import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
@@ -8,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
+import { uploadProcessedFile } from "@/lib/server/storage";
 import {
   checkRateLimit,
   getOptionalApiUser,
@@ -30,7 +29,6 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 45;
 
-const OUTPUT_DIRECTORY = path.join(process.cwd(), "public", "generations");
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const TEXT_MODEL = "llama-3.3-70b-versatile";
 const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
@@ -310,13 +308,14 @@ async function createAiDesign(
 
 async function loadBaseSkin(baseSkinUrl: string | undefined) {
   if (!baseSkinUrl) throw new Error("Generate a complete skin before regenerating individual parts.");
-  if (!/^\/generations\/minecraft_[a-z0-9-]+\.png$/i.test(baseSkinUrl)) {
+  if (!/minecraft_[a-z0-9-]+\.png$/i.test(baseSkinUrl)) {
     throw new Error("The selected base skin is invalid.");
   }
 
-  const filename = path.basename(baseSkinUrl);
-  const filePath = path.join(OUTPUT_DIRECTORY, filename);
-  const input = await readFile(filePath);
+  const response = await fetch(baseSkinUrl);
+  if (!response.ok) throw new Error("Could not load base skin from storage.");
+  const arrayBuffer = await response.arrayBuffer();
+  const input = Buffer.from(arrayBuffer);
   const image = sharp(input);
   const metadata = await image.metadata();
   if (metadata.width !== 64 || metadata.height !== 64) {
@@ -358,7 +357,6 @@ export async function PUT(request: NextRequest) {
   );
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter);
 
-  let outputPath: string | null = null;
   try {
     const parsed = editRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -380,11 +378,8 @@ export async function PUT(request: NextRequest) {
       .ensureAlpha()
       .png({ compressionLevel: 9, palette: false })
       .toBuffer();
-    await mkdir(OUTPUT_DIRECTORY, { recursive: true });
     const filename = `minecraft_${uuidv4()}.png`;
-    outputPath = path.join(OUTPUT_DIRECTORY, filename);
-    await writeFile(outputPath, png);
-    const resultUrl = `/generations/${filename}`;
+    const resultUrl = await uploadProcessedFile(png, filename, "image/png");
 
     await prisma.userFile.create({
       data: {
@@ -405,10 +400,8 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    outputPath = null;
     return NextResponse.json({ success: true, skinUrl: resultUrl });
   } catch (error) {
-    if (outputPath) await unlink(outputPath).catch(() => undefined);
     console.error("[Minecraft Skin] Pixel edit save failed:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "The edited skin could not be saved." },
@@ -505,14 +498,10 @@ export async function POST(request: NextRequest) {
       .png({ compressionLevel: 9, palette: false })
       .toBuffer();
 
-    await mkdir(OUTPUT_DIRECTORY, { recursive: true });
     const filename = `minecraft_${uuidv4()}.png`;
-    outputPath = path.join(OUTPUT_DIRECTORY, filename);
-    await writeFile(outputPath, png);
-    const resultUrl = `/generations/${filename}`;
+    const resultUrl = await uploadProcessedFile(png, filename, "image/png");
 
     if (!apiUser) {
-      outputPath = null;
       return NextResponse.json({
         success: true,
         skinUrl: resultUrl,
@@ -536,8 +525,6 @@ export async function POST(request: NextRequest) {
       `tool:minecraft-skin:${filename}`,
     );
     if (!debit.success || !debit.data) {
-      await unlink(outputPath).catch(() => undefined);
-      outputPath = null;
       return NextResponse.json(
         { error: debit.error || "Your credit balance changed. Please try again." },
         { status: 402 },
@@ -574,7 +561,6 @@ export async function POST(request: NextRequest) {
       }),
     ]);
 
-    outputPath = null;
     return NextResponse.json({
       success: true,
       skinUrl: resultUrl,
@@ -589,9 +575,6 @@ export async function POST(request: NextRequest) {
       creditsRemaining: getCreditTotal(debit.data),
     });
   } catch (error) {
-    if (outputPath) {
-      await unlink(outputPath).catch(() => undefined);
-    }
     const message = error instanceof Error ? error.message : "Skin generation failed.";
     console.error("[Minecraft Skin] Generation failed:", error);
     return NextResponse.json(

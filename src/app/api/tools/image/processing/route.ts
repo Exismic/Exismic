@@ -1,10 +1,7 @@
 import { NextRequest } from "next/server";
 import { withToolHandler } from "@/lib/tools-handler";
 import sharp from "sharp";
-import { writeFile } from "fs/promises";
-import path from "path";
-
-const STORAGE_PATH = path.join(process.cwd(), "public", "results");
+import { uploadProcessedFile } from "@/lib/server/storage";
 
 export async function POST(req: NextRequest) {
   // Extract action from URL or search params if needed, 
@@ -51,12 +48,11 @@ export async function POST(req: NextRequest) {
 
     const outputBuffer = await pipeline.toBuffer();
     const fileName = `result_${jobId}.${extension}`;
-    const fullPath = path.join(STORAGE_PATH, fileName);
-    
-    await writeFile(fullPath, outputBuffer);
+    const mimeType = extension === "jpg" ? "image/jpeg" : `image/${extension}`;
+    const publicUrl = await uploadProcessedFile(outputBuffer, fileName, mimeType);
 
     return {
-      resultUrl: `/results/${fileName}`
+      resultUrl: publicUrl
     };
   });
 }
