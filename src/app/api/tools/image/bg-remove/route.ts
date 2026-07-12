@@ -72,9 +72,9 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // 1. Try remove.bg (Highest Quality & Lightning Fast)
+    // 2. Try remove.bg (Highest Quality & Lightning Fast)
     const removeBgKey = process.env.REMOVE_BG_API_KEY;
-    if (removeBgKey && context.outputTier === "hd") {
+    if (removeBgKey) {
       try {
         console.log("Attempting background removal via remove.bg...");
         const removeBgForm = new FormData();
@@ -90,16 +90,16 @@ export async function POST(req: NextRequest) {
 
         const fileName = `result_removebg_${jobId}.png`;
         const fullPath = path.join(STORAGE_PATH, fileName);
-        await writeFile(fullPath, Buffer.from(removeBgResponse.data));
+        await writeFile(fullPath, await prepareOutput(Buffer.from(removeBgResponse.data), context.outputTier));
         return { resultUrl: `/results/${fileName}` };
       } catch (removeBgError: unknown) {
         console.error("remove.bg Removal Failed:", getErrorMessage(removeBgError));
       }
     }
 
-    // 2. Try Fal.ai (Premium & Very Fast)
+    // 3. Try Fal.ai (Premium & Very Fast)
     const falKey = process.env.FAL_KEY;
-    if (falKey && context.outputTier === "hd") {
+    if (falKey) {
       try {
         console.log("Attempting background removal via Fal.ai...");
         // Convert buffer to base64 for Fal.ai
