@@ -169,14 +169,14 @@ export async function POST(req: NextRequest) {
 
     // Optimize performance: Downscale input image to max 800px before sending to Modal/AI.
     // This prevents CPU timeouts on Modal and guarantees a processing time under 3 seconds!
-    let modalBuffer = originalBuffer;
+    let modalBuffer: any = originalBuffer;
     try {
       const metadata = await sharp(originalBuffer).metadata();
       if (metadata.width && metadata.height && (metadata.width > 800 || metadata.height > 800)) {
         console.log(`[Restorer] Downscaling large input image (${metadata.width}x${metadata.height}) to 800px to optimize API speed...`);
-        modalBuffer = (await sharp(originalBuffer)
+        modalBuffer = await sharp(originalBuffer)
           .resize(800, 800, { fit: "inside", withoutEnlargement: true })
-          .toBuffer()) as Buffer;
+          .toBuffer();
       }
     } catch (resizeErr) {
       console.error("Failed to downscale input image:", resizeErr);
