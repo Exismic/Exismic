@@ -171,10 +171,8 @@ export async function POST(req: NextRequest) {
     let resultBuffer: Buffer | null = null;
 
     try {
-      if (access.outputTier === "hd") {
-        resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale, priority });
-        if (resultBuffer) provider = priority ? "modal-priority-gfpgan-codeformer" : "modal-gfpgan-codeformer";
-      }
+      resultBuffer = await tryModalRestore({ buffer, file, strength, faces, color, sharpen, denoise, upscale, priority });
+      if (resultBuffer) provider = priority ? "modal-priority-gfpgan-codeformer" : "modal-gfpgan-codeformer";
     } catch (modalError) {
       console.error("Modal Photo Restore Failed:", getErrorMessage(modalError));
     }
