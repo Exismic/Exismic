@@ -174,9 +174,9 @@ export async function POST(req: NextRequest) {
       const metadata = await sharp(originalBuffer).metadata();
       if (metadata.width && metadata.height && (metadata.width > 800 || metadata.height > 800)) {
         console.log(`[Restorer] Downscaling large input image (${metadata.width}x${metadata.height}) to 800px to optimize API speed...`);
-        modalBuffer = await sharp(originalBuffer)
+        modalBuffer = (await sharp(originalBuffer)
           .resize(800, 800, { fit: "inside", withoutEnlargement: true })
-          .toBuffer();
+          .toBuffer()) as Buffer;
       }
     } catch (resizeErr) {
       console.error("Failed to downscale input image:", resizeErr);
