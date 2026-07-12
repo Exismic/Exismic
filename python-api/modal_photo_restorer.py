@@ -75,7 +75,7 @@ def fastapi_app() -> Callable:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
     restorer = GFPGANer(
-        model_path='GFPGANv1.3.pth',
+        model_path='/root/GFPGANv1.3.pth',
         upscale=2,
         arch='clean',
         channel_multiplier=2,
