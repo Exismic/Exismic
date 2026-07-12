@@ -40,6 +40,19 @@ app = modal.App("lumora-photo-restorer")
 )
 @modal.asgi_app(label="lumora-photo-restorer")
 def fastapi_app() -> Callable:
+    import sys
+    import types
+    import torchvision.transforms.functional as F
+    
+    # Dynamic runtime hotfix for basicsr torchvision compatibility bug
+    try:
+        import torchvision.transforms.functional_tensor
+    except ImportError:
+        logging.getLogger("lumora-photo-restorer").info("Applying torchvision.transforms.functional_tensor hotfix...")
+        m = types.ModuleType("torchvision.transforms.functional_tensor")
+        m.rgb_to_grayscale = F.rgb_to_grayscale
+        sys.modules["torchvision.transforms.functional_tensor"] = m
+
     import torch
     from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
     from fastapi.middleware.cors import CORSMiddleware
