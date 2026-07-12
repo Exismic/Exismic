@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
     if (!resultBuffer && falKey) {
       try {
         console.log("Attempting premium photo restoration via Fal.ai CodeFormer...");
-        const base64Image = `data:${file.type};base64,${buffer.toString("base64")}`;
+        const base64Image = `data:${file.type};base64,${modalBuffer.toString("base64")}`;
         const falResponse = await fetch("https://fal.run/fal-ai/codeformer", {
           method: "POST",
           headers: {
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!resultBuffer) {
-      resultBuffer = await restoreWithSharp({ buffer, strength, faces, color, sharpen, denoise, upscale });
+      resultBuffer = await restoreWithSharp({ buffer: originalBuffer, strength, faces, color, sharpen, denoise, upscale });
     }
     if (access.outputTier === "standard") {
       resultBuffer = await sharp(resultBuffer)
