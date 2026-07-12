@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     // Fallback to Fal.ai (Premium)
     const falKey = process.env.FAL_KEY;
-    if (falKey && access.outputTier === "hd") {
+    if (falKey) {
       try {
         console.log("Falling back to Fal.ai Flux Inpainting...");
         const falResponse = await fetch("https://fal.run/fal-ai/flux/dev/inpainting", {
