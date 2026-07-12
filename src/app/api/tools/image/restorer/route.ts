@@ -177,6 +177,46 @@ export async function POST(req: NextRequest) {
       console.error("Modal Photo Restore Failed:", getErrorMessage(modalError));
     }
 
+    // 2. Try Fal.ai CodeFormer (Premium Fallback)
+    const falKey = process.env.FAL_KEY;
+    if (!resultBuffer && falKey) {
+      try {
+        console.log("Attempting premium photo restoration via Fal.ai CodeFormer...");
+        const base64Image = `data:${file.type};base64,${buffer.toString("base64")}`;
+        const falResponse = await fetch("https://fal.run/fal-ai/codeformer", {
+          method: "POST",
+          headers: {
+            "Authorization": `Key ${falKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            image_url: base64Image,
+            fidelity: (strength / 100), // Map strength 10-100 to fidelity 0.1-1.0
+            face_upscale: upscale > 1 ? upscale : 2,
+            only_center_face: false,
+            aligned: false
+          }),
+          signal: AbortSignal.timeout(30000)
+        });
+
+        if (falResponse.ok) {
+          const data = await falResponse.json();
+          if (data.image && data.image.url) {
+            console.log("Fal.ai CodeFormer succeeded! Fetching result image...");
+            const imageResp = await fetch(data.image.url);
+            if (imageResp.ok) {
+              resultBuffer = Buffer.from(await imageResp.arrayBuffer());
+              provider = "fal-ai-codeformer";
+            }
+          }
+        } else {
+          console.error("Fal.ai CodeFormer API Error:", await falResponse.text());
+        }
+      } catch (falError) {
+        console.error("Fal.ai CodeFormer Photo Restore Failed:", getErrorMessage(falError));
+      }
+    }
+
     if (!resultBuffer) {
       resultBuffer = await restoreWithSharp({ buffer, strength, faces, color, sharpen, denoise, upscale });
     }
