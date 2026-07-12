@@ -30,8 +30,8 @@ export async function uploadProcessedFile(
     });
 
   // 2. If the bucket doesn't exist, create it and retry upload
-  if (error && error.message.includes("does not exist")) {
-    console.log(`[Storage] Bucket '${bucketName}' does not exist. Programmatically creating it...`);
+  if (error && (error.message.includes("does not exist") || error.message.includes("not found") || error.message.includes("Bucket not found"))) {
+    console.log(`[Storage] Bucket '${bucketName}' does not exist or was not found. Programmatically creating it...`);
     const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
       public: true,
       fileSizeLimit: 50 * 1024 * 1024, // 50MB limit
