@@ -32,5 +32,13 @@ export const defaultSchemaData = {
     name: 'Exismic',
     alternateName: ['Exismic AI', 'Exismic AI Studio'],
     url: SITE_URL,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/tools?q={search_term_string}`
+      },
+      'query-input': 'required name=search_term_string'
+    }
   },
 };
