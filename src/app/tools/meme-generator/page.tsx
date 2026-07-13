@@ -297,22 +297,24 @@ export default function MemeGenerator() {
                 {/* Template Selection */}
                 <div>
                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-4 italic">Core Template</label>
-                   <div className="grid grid-cols-5 gap-2 h-40 overflow-y-auto pr-2 custom-scrollbar mb-4">
-                      {MEME_TEMPLATES.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => {
-                            setCustomImage(null);
-                            setSelectedTemplate(t);
-                          }}
-                          className={cn(
-                            "relative aspect-square rounded-xl overflow-hidden border-2 transition-all",
-                            !customImage && selectedTemplate.id === t.id ? "border-purple-500 scale-95" : "border-transparent opacity-60 hover:opacity-100"
-                          )}
-                        >
-                           <img src={t.url.startsWith("http") ? `/api/proxy?url=${encodeURIComponent(t.url)}` : t.url} className="w-full h-full object-cover" alt={t.name} />
-                        </button>
-                      ))}
+                   <div className="h-48 overflow-y-auto pr-2 custom-scrollbar mb-4">
+                     <div className="grid grid-cols-5 gap-2">
+                       {MEME_TEMPLATES.map((t) => (
+                         <button
+                           key={t.id}
+                           onClick={() => {
+                             setCustomImage(null);
+                             setSelectedTemplate(t);
+                           }}
+                           className={cn(
+                             "relative aspect-square rounded-xl overflow-hidden border-2 transition-all",
+                             !customImage && selectedTemplate.id === t.id ? "border-purple-500 scale-95" : "border-transparent opacity-60 hover:opacity-100"
+                           )}
+                         >
+                            <img src={t.url.startsWith("http") ? `/api/proxy?url=${encodeURIComponent(t.url)}` : t.url} className="w-full h-full object-cover" alt={t.name} />
+                         </button>
+                       ))}
+                     </div>
                    </div>
 
                    {/* Custom upload area */}
