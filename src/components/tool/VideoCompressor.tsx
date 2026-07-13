@@ -69,23 +69,48 @@ export default function VideoCompressor() {
     setStatus("Encoding your video...");
     setError(null);
 
-    const formData = new FormData();
-    formData.append("video", file);
-    formData.append("quality", quality);
-    formData.append("format", format);
-
     try {
-      const response = await fetch("/api/tools/video/compressor", {
+      const fileToBase64 = (f: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(f);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+      };
+
+      const base64Data = await fileToBase64(file);
+      const baseUrl = process.env.NEXT_PUBLIC_MODAL_VIDEO_URL || "https://syedrayangames--lumora-video-tools-fastapi-app.modal.run";
+      
+      const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/compress`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          file_name: file.name,
+          file_data_base64: base64Data,
+          quality,
+          format,
+        }),
       });
-      const artifact = await readVideoResponse(
-        response,
-        `${file.name.replace(/\.[^/.]+$/, "")}-compressed.${format}`,
-      );
-      setResultUrl(artifact.url);
-      setResultFileName(artifact.fileName);
-      setCompressedSize(artifact.size);
+
+      if (!response.ok) {
+        throw new Error("The video processor is busy or returned an error.");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Failed to compress video.");
+      }
+
+      // Convert base64 data URI output to a Blob
+      const base64Response = await fetch(result.file_data_base64);
+      const blob = await base64Response.blob();
+
+      setResultUrl(URL.createObjectURL(blob));
+      setResultFileName(`${file.name.replace(/\.[^/.]+$/, "")}-compressed.${format}`);
+      setCompressedSize(blob.size);
       setStatus("Compression complete");
     } catch (error: unknown) {
       console.error("Compression error:", error);
