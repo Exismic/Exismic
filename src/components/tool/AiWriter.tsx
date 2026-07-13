@@ -304,16 +304,16 @@ export default function AiWriter() {
               </div>
            </div>
 
-           {/* Quick Stats */}
-           <div className="p-8 rounded-[3rem] bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-violet-500/20">
-              <div className="flex items-center gap-4 mb-6">
-                 <div className="p-3 bg-white/10 rounded-2xl">
-                    <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
-                 </div>
-                 <h4 className="text-sm font-black text-white uppercase tracking-widest">Llama 3.3 Engine</h4>
-              </div>
-              <p className="text-gray-400 text-xs font-medium leading-relaxed">Your content is processed by the cutting-edge Llama 3.3 70B cluster for world-class writing quality.</p>
-           </div>
+            {/* Quick Stats */}
+            <div className="p-8 rounded-[3rem] bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-violet-500/20">
+               <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                     <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
+                  </div>
+                  <h4 className="text-sm font-black text-white uppercase tracking-widest">AI Copywriting Engine</h4>
+               </div>
+               <p className="text-gray-400 text-xs font-medium leading-relaxed">Your content is processed by our high-performance language models for professional writing quality.</p>
+            </div>
         </div>
       </div>
     </div>

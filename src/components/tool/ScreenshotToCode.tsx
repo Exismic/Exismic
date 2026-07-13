@@ -280,7 +280,7 @@ export function ScreenshotToCode() {
                                  <h4 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40">Analyzing Design</h4>
                                  <div className="flex items-center justify-center gap-2">
                                     <RefreshCw size={12} className="text-violet-400 animate-spin" />
-                                    <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Engine: Llama 4 Scout</p>
+                                    <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Engine: AI Vision Scan</p>
                                  </div>
                               </div>
                            </motion.div>
@@ -433,18 +433,18 @@ export function ScreenshotToCode() {
 
                  {/* System Status */}
                  <div className="pt-8 border-t border-white/5 space-y-6">
-                    <div className="flex items-center justify-between p-6 rounded-[2.5rem] bg-violet-500/5 border border-violet-500/10">
-                       <div className="flex items-center gap-4">
-                          <div className="p-3 bg-white/5 rounded-2xl text-violet-400">
-                             <Sparkles size={20} />
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black text-white uppercase tracking-widest">Llama 4 Scout Vision</p>
-                             <p className="text-[8px] font-bold text-gray-500 uppercase mt-1">Multi-Modal AI Engine</p>
-                          </div>
-                       </div>
-                       <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                    </div>
+                     <div className="flex items-center justify-between p-6 rounded-[2.5rem] bg-violet-500/5 border border-violet-500/10">
+                        <div className="flex items-center gap-4">
+                           <div className="p-3 bg-white/5 rounded-2xl text-violet-400">
+                              <Sparkles size={20} />
+                           </div>
+                           <div>
+                              <p className="text-[10px] font-black text-white uppercase tracking-widest">AI Vision Engine</p>
+                              <p className="text-[8px] font-bold text-gray-500 uppercase mt-1">Multi-Modal AI Analyzer</p>
+                           </div>
+                        </div>
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                     </div>
 
                     <div className="p-8 rounded-[2.5rem] bg-linear-to-br from-violet-600/10 to-transparent border border-violet-500/10 space-y-4">
                        <div className="flex items-center gap-3">
