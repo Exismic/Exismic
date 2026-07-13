@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
     let outputBuffer: Buffer | null = null;
 
     // Optimize performance: Downscale standard quality inputs to 1280px before sending to Modal/AI
-    let modalBuffer = buffer;
+    let modalBuffer: any = buffer;
     try {
       if (access.outputTier === "standard") {
         modalBuffer = await sharp(buffer)
