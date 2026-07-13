@@ -242,7 +242,7 @@ export default function YouTubeThumbnailMaker() {
   });
 
   // Calculate relative drag offsets on drag end to store in state
-  const handleDragEnd = (elementRef: React.RefObject<HTMLDivElement>, setter: (pos: { x: number; y: number }) => void) => {
+  const handleDragEnd = (elementRef: React.RefObject<HTMLDivElement | null>, setter: (pos: { x: number; y: number }) => void) => {
     const container = previewContainerRef.current?.getBoundingClientRect();
     const el = elementRef.current?.getBoundingClientRect();
     if (!container || !el) return;
