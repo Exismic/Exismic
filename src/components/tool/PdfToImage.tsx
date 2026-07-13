@@ -70,13 +70,39 @@ export default function PdfToImage() {
   }, [result?.url]);
 
   useEffect(() => {
-    const checkPdfJs = setInterval(() => {
-      if (typeof pdfjsLib !== 'undefined') {
+    if (typeof window === 'undefined') return;
+    
+    const win = window as any;
+    if (typeof win.pdfjsLib !== 'undefined') {
+      setIsPdfJsLoaded(true);
+      return;
+    }
+
+    const existingScript = document.querySelector('script[src*="pdf.min.js"]');
+    if (existingScript) {
+      const interval = setInterval(() => {
+        if (typeof win.pdfjsLib !== 'undefined') {
+          setIsPdfJsLoaded(true);
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.async = true;
+    script.onload = () => {
+      if (win.pdfjsLib) {
+        win.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
         setIsPdfJsLoaded(true);
-        clearInterval(checkPdfJs);
       }
-    }, 100);
-    return () => clearInterval(checkPdfJs);
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      script.onload = null;
+    };
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -94,7 +120,11 @@ export default function PdfToImage() {
   });
 
   const handleConvert = async () => {
-    if (!file || !isPdfJsLoaded) return;
+    if (!file) return;
+    if (!isPdfJsLoaded) {
+      setError("PDF rasterization engine is still initializing. Please wait a few seconds and try again.");
+      return;
+    }
     setIsProcessing(true);
     setProgress(5);
     setStatus("Initializing PDF Engine...");

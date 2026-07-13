@@ -183,7 +183,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
       {categoryId === 'pdf' && (
         <Script 
           src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
           onLoad={() => {
             if (typeof window !== 'undefined') {
               const pdfWindow = window as Window & {
