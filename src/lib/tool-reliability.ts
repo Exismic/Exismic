@@ -59,15 +59,11 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     ],
   },
   "image-restorer": {
-    ...SERVICE_BACKED,
-    label: "AI Powered",
+    level: "unavailable",
+    label: "Maintenance",
+    headline: "Photo Restorer is temporarily offline",
     description:
-      "Photo restoration needs a configured face and detail recovery restoration provider.",
-    requirements: ["Restoration API configuration"],
-    dependencyGroups: [
-      { label: "Photo restorer endpoint", env: ["MODAL_PHOTO_RESTORER_PRIORITY_URL", "MODAL_PHOTO_RESTORER_URL", "MODAL_PHOTO_RESTORER_NORMAL_URL"] },
-      { label: "Photo restorer API key", env: ["MODAL_PHOTO_RESTORER_PRIORITY_API_KEY", "MODAL_PHOTO_RESTORER_API_KEY", "MODAL_PHOTO_RESTORER_NORMAL_API_KEY"], optional: true },
-    ],
+      "This tool is undergoing routine optimization and performance updates. It will be back online shortly.",
   },
   "image-minecraft-skin": {
     ...SERVICE_BACKED,
@@ -187,13 +183,11 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     dependencyGroups: [{ label: "Transcription provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
   "video-bg-remover": {
-    ...SERVICE_BACKED,
-    label: "Frame Accurate",
-    headline: "Transparent video output",
+    level: "unavailable",
+    label: "Maintenance",
+    headline: "Video BG Remover is temporarily offline",
     description:
-      "Exismic isolates the subject across the full clip and returns a transparent WebM while preserving available audio.",
-    requirements: ["Video processing service configuration"],
-    dependencyGroups: [{ label: "Video processing endpoint", env: ["MODAL_VIDEO_URL"] }],
+      "This tool is undergoing routine optimization and performance updates. It will be back online shortly.",
   },
   "video-trimmer": {
     ...SERVICE_BACKED,
