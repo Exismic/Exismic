@@ -76,21 +76,49 @@ export default function VideoToGif() {
 
     const gifDuration = endTime - startTime;
 
-    const formData = new FormData();
-    formData.append("video", file);
-    formData.append("start", startTime.toString());
-    formData.append("duration", gifDuration.toString());
-    formData.append("fps", fps.toString());
-    formData.append("width", width.toString());
-
     try {
-      const response = await fetch("/api/tools/video/to-gif", {
+      const fileToBase64 = (f: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(f);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+      };
+
+      const base64Data = await fileToBase64(file);
+      const baseUrl = process.env.NEXT_PUBLIC_MODAL_VIDEO_URL || "https://syedrayangames--lumora-video-tools-fastapi-app.modal.run";
+      
+      const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/to-gif`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          file_name: file.name,
+          file_data_base64: base64Data,
+          start_time: startTime,
+          duration: gifDuration,
+          fps: fps,
+          width: width,
+        }),
       });
-      const artifact = await readVideoResponse(response, "exismic-animation.gif");
-      setResultUrl(artifact.url);
-      setResultFileName(artifact.fileName);
+
+      if (!response.ok) {
+        throw new Error("The video processor is busy or returned an error.");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Failed to generate GIF.");
+      }
+
+      // Convert base64 data URI output to a Blob
+      const base64Response = await fetch(result.file_data_base64);
+      const blob = await base64Response.blob();
+
+      setResultUrl(URL.createObjectURL(blob));
+      setResultFileName(`${file.name.replace(/\.[^/.]+$/, "")}-animation.gif`);
       setStatus("GIF ready");
     } catch (err: unknown) {
       console.error(err);
