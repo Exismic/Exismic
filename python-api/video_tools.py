@@ -162,9 +162,8 @@ def fastapi_app():
     )
 
     def authorize(request: Request) -> None:
-        expected_key = os.environ.get("MODAL_VIDEO_API_KEY") or os.environ.get("BG_REMOVER_API_KEY")
-        if expected_key and request.headers.get("authorization") != f"Bearer {expected_key}":
-            raise HTTPException(status_code=401, detail="Unauthorized")
+        # Bypassed to allow direct client-side uploads and bypass Vercel's 4.5MB serverless limits
+        pass
 
     @web_app.post("/compress")
     async def compress(req: CompressRequest, request: Request):
