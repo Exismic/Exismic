@@ -44,6 +44,7 @@ export default function VideoTrimmer() {
   const [resultFileName, setResultFileName] = useState("exismic-trimmed.mp4");
   const [resultMetadata, setResultMetadata] = useState<{ duration: number; size: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredHandle, setHoveredHandle] = useState<"start" | "end">("start");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -116,6 +117,18 @@ export default function VideoTrimmer() {
         }
       }
     }
+  };
+
+  const handleTimelineMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!timelineRef.current || !metadata?.duration) return;
+    const rect = timelineRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, x / rect.width));
+    const time = pct * metadata.duration;
+    
+    const distStart = Math.abs(time - startTime);
+    const distEnd = Math.abs(time - endTime);
+    setHoveredHandle(distStart < distEnd ? "start" : "end");
   };
 
   const togglePlay = () => {
@@ -356,6 +369,7 @@ export default function VideoTrimmer() {
                     
                     <div 
                       ref={timelineRef}
+                      onMouseMove={handleTimelineMouseMove}
                       className="relative h-16 bg-white/[0.03] rounded-2xl border border-white/5 overflow-hidden group/timeline"
                     >
                       {/* Placeholder for Thumbnails (would need a library or canvas extraction) */}
@@ -403,7 +417,7 @@ export default function VideoTrimmer() {
                         }}
                         className={cn(
                           "absolute inset-0 w-full h-full opacity-0 cursor-pointer accent-blue-500",
-                          startTime > (metadata?.duration || 0) / 2 ? "z-40" : "z-30"
+                          hoveredHandle === "start" ? "z-40" : "z-30"
                         )}
                         style={{ pointerEvents: isPlaying ? 'none' : 'auto' }}
                       />
@@ -420,7 +434,7 @@ export default function VideoTrimmer() {
                         }}
                         className={cn(
                           "absolute inset-0 w-full h-full opacity-0 cursor-pointer accent-purple-500",
-                          endTime < (metadata?.duration || 0) / 2 ? "z-40" : "z-30"
+                          hoveredHandle === "end" ? "z-40" : "z-30"
                         )}
                         style={{ pointerEvents: isPlaying ? 'none' : 'auto' }}
                       />
