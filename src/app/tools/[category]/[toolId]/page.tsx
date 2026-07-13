@@ -22,6 +22,11 @@ export default async function ToolDetailPage({ params }: PageProps) {
   
   const tool = TOOLS.find(t => t.id === toolId || t.id === `${categoryId}-${toolId}`);
   const category = CATEGORIES.find(c => c.id === categoryId);
+
+  if (tool && tool.href !== `/tools/${categoryId}/${toolId}`) {
+    redirect(tool.href);
+  }
+
   const relatedTools = TOOLS.filter(t => t.category === categoryId && t.id !== tool?.id && t.indexable !== false).slice(0, 3);
 
   if (!tool || !category) {
