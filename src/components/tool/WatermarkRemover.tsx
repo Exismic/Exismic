@@ -88,6 +88,83 @@ export function WatermarkRemover() {
     setResult(null);
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
+
+  const startDrag = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent stage click from jumping the box
+    if (result) return;
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setIsDragging(true);
+    const mouseX = (e.clientX - rect.left) / rect.width;
+    const mouseY = (e.clientY - rect.top) / rect.height;
+
+    dragOffsetRef.current = {
+      x: mouseX - region.x,
+      y: mouseY - region.y,
+    };
+  };
+
+  const startResize = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent drag from triggering
+    if (result) return;
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setIsResizing(true);
+    resizeStartRef.current = {
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+      w: region.width,
+      h: region.height,
+    };
+  };
+
+  useEffect(() => {
+    if (!isDragging && !isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = stageRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const mouseX = (e.clientX - rect.left) / rect.width;
+      const mouseY = (e.clientY - rect.top) / rect.height;
+
+      if (isDragging) {
+        setRegion((current) => {
+          const newX = Math.max(0, Math.min(1 - current.width, mouseX - dragOffsetRef.current.x));
+          const newY = Math.max(0, Math.min(1 - current.height, mouseY - dragOffsetRef.current.y));
+          return { ...current, x: newX, y: newY };
+        });
+      } else if (isResizing) {
+        setRegion((current) => {
+          const deltaX = mouseX - resizeStartRef.current.x;
+          const deltaY = mouseY - resizeStartRef.current.y;
+          const newW = Math.max(0.02, Math.min(1 - current.x, resizeStartRef.current.w + deltaX));
+          const newH = Math.max(0.02, Math.min(1 - current.y, resizeStartRef.current.h + deltaY));
+          return { ...current, width: newW, height: newH };
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, isResizing]);
+
   const handleProcess = async () => {
     if (!file) return;
     setIsProcessing(true);
@@ -190,16 +267,26 @@ export function WatermarkRemover() {
                 <>
                   <img src={preview} alt="Source" className="absolute inset-0 w-full h-full object-contain" />
                   <div
-                    className="absolute border-2 border-accent-purple bg-accent-purple/15 shadow-[0_0_30px_rgba(168,85,247,0.4)] rounded-xl pointer-events-none"
+                    className="absolute border-2 border-accent-purple bg-accent-purple/15 shadow-[0_0_30px_rgba(168,85,247,0.4)] rounded-xl cursor-move group/box select-none"
                     style={{
                       left: `${region.x * 100}%`,
                       top: `${region.y * 100}%`,
                       width: `${region.width * 100}%`,
                       height: `${region.height * 100}%`,
                     }}
+                    onMouseDown={startDrag}
                   >
-                    <div className="absolute -top-9 left-0 px-3 py-1.5 rounded-full bg-accent-purple text-white text-[9px] font-black uppercase tracking-widest">
+                    <div className="absolute -top-9 left-0 px-3 py-1.5 rounded-full bg-accent-purple text-white text-[9px] font-black uppercase tracking-widest pointer-events-none select-none">
                       Removal zone
+                    </div>
+                    <div
+                      className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize flex items-end justify-end p-1 z-10"
+                      onMouseDown={startResize}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 10 10" className="text-white/60 hover:text-white transition-colors">
+                        <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" strokeWidth="2.5" />
+                        <line x1="10" y1="4" x2="4" y2="10" stroke="currentColor" strokeWidth="2.5" />
+                      </svg>
                     </div>
                   </div>
                 </>

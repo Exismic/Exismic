@@ -155,11 +155,21 @@ export async function POST(req: NextRequest) {
     let provider = "local-region-reconstruction";
     let outputBuffer: Buffer | null = null;
 
+    // Optimize performance: Downscale standard quality inputs to 1280px before sending to Modal/AI
+    let modalBuffer = buffer;
     try {
-      if (access.outputTier === "hd") {
-        outputBuffer = await tryModalWatermarkRemoval({ buffer, file, region, strength, priority });
-        if (outputBuffer) provider = priority ? "modal-priority-inpainting" : "modal-inpainting";
+      if (access.outputTier === "standard") {
+        modalBuffer = await sharp(buffer)
+          .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+          .toBuffer();
       }
+    } catch (resizeErr) {
+      console.error("Failed to downscale watermark input:", resizeErr);
+    }
+
+    try {
+      outputBuffer = await tryModalWatermarkRemoval({ buffer: modalBuffer, file, region, strength, priority });
+      if (outputBuffer) provider = priority ? "modal-priority-inpainting" : "modal-inpainting";
     } catch (modalError) {
       console.error("Modal watermark removal failed:", getErrorMessage(modalError));
     }
