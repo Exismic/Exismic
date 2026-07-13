@@ -489,7 +489,7 @@ export default function TypingSpeedTesterPage() {
                   AI Typing Lab
                 </div>
                 <div className="space-y-3">
-                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-none">
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight py-2">
                     Typing Speed Tester
                   </h1>
                   <p className="max-w-2xl text-sm sm:text-base text-zinc-400 font-medium leading-relaxed">
@@ -605,7 +605,7 @@ export default function TypingSpeedTesterPage() {
                     aria-label="Typing test input"
                   />
 
-                  <div className="relative z-10 pt-10 sm:pt-8 text-xl sm:text-2xl lg:text-3xl leading-[1.8] font-semibold text-zinc-500 select-none">
+                  <div className="relative z-10 pt-10 sm:pt-8 text-xl sm:text-2xl lg:text-3xl leading-[1.8] font-semibold text-zinc-500 select-none whitespace-pre-wrap break-words">
                     {targetText.split("").map((char, index) => {
                       const typed = input[index];
                       const isCurrent = index === input.length && status !== "finished";
@@ -625,7 +625,7 @@ export default function TypingSpeedTesterPage() {
                             isGhost && "after:absolute after:-top-5 after:left-1/2 after:h-4 after:w-px after:bg-amber-300"
                           )}
                         >
-                          {char === " " ? "\u00A0" : char}
+                          {char}
                         </span>
                       );
                     })}
