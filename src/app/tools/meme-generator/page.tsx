@@ -33,21 +33,21 @@ const MEME_TEMPLATES: MemeTemplate[] = [
   { id: "distracted", name: "Distracted Boyfriend", url: "https://i.imgflip.com/1ur9b0.jpg" },
   { id: "change-mind", name: "Change My Mind", url: "https://i.imgflip.com/24y43o.jpg" },
   { id: "two-buttons", name: "Two Buttons", url: "https://i.imgflip.com/1g8my4.jpg" },
-  { id: "batman", name: "Batman Slapping Robin", url: "https://i.imgflip.com/9ehk9.jpg" },
+  { id: "batman", name: "Batman Slapping Robin", url: "https://i.imgflip.com/9ehk.jpg" },
   { id: "spongebob", name: "Mocking Spongebob", url: "https://i.imgflip.com/1otk96.jpg" },
-  { id: "harold", name: "Hide the Pain Harold", url: "https://i.imgflip.com/gk6z4.jpg" },
+  { id: "harold", name: "Hide the Pain Harold", url: "https://i.imgflip.com/gk5el.jpg" },
   { id: "grumpy", name: "Grumpy Cat", url: "https://i.imgflip.com/8p0a.jpg" },
-  { id: "woman-yelling-cat", name: "Woman Yelling at Cat", url: "https://i.imgflip.com/3lmzyx.jpg" },
-  { id: "bern-sanders", name: "Bernie Sanders I Am Once Again", url: "https://i.imgflip.com/3q35t7.jpg" },
-  { id: "doge", name: "Buff Doge vs Cheems", url: "https://i.imgflip.com/43a45p.jpg" },
-  { id: "gigachad", name: "Gigachad", url: "https://i.imgflip.com/2fm6x.jpg" },
-  { id: "disaster-girl", name: "Disaster Girl", url: "https://i.imgflip.com/22bdq.jpg" },
-  { id: "always-has-been", name: "Always Has Been", url: "https://i.imgflip.com/43a15p.png" },
-  { id: "waiting-skeleton", name: "Waiting Skeleton", url: "https://i.imgflip.com/2fmvx.jpg" },
-  { id: "panik-kalm", name: "Panik Kalm Panik", url: "https://i.imgflip.com/3qqy6.png" },
-  { id: "leo-dicaprio", name: "Leonardo DiCaprio Laughing", url: "https://i.imgflip.com/46e43q.png" },
-  { id: "think-mark", name: "Think Mark Think", url: "https://i.imgflip.com/58ld69.png" },
-  { id: "trade-offer", name: "Trade Offer", url: "https://i.imgflip.com/51je7x.png" },
+  { id: "woman-yelling-cat", name: "Woman Yelling at Cat", url: "https://i.imgflip.com/345v97.jpg" },
+  { id: "bern-sanders", name: "Bernie Sanders I Am Once Again", url: "https://i.imgflip.com/3oevdk.jpg" },
+  { id: "doge", name: "Buff Doge vs Cheems", url: "https://i.imgflip.com/43a45p.png" },
+  { id: "gigachad", name: "Gigachad", url: "https://i.imgflip.com/51s92s.jpg" },
+  { id: "disaster-girl", name: "Disaster Girl", url: "https://i.imgflip.com/23ls.jpg" },
+  { id: "always-has-been", name: "Always Has Been", url: "https://i.imgflip.com/46e43q.png" },
+  { id: "waiting-skeleton", name: "Waiting Skeleton", url: "https://i.imgflip.com/2fm6x.jpg" },
+  { id: "panik-kalm", name: "Panik Kalm Panik", url: "https://i.imgflip.com/3qqcim.png" },
+  { id: "leo-dicaprio", name: "Leonardo DiCaprio Laughing", url: "https://i.imgflip.com/39t1o.jpg" },
+  { id: "think-mark", name: "Think Mark Think", url: "https://i.imgflip.com/58jiim.png" },
+  { id: "trade-offer", name: "Trade Offer", url: "https://i.imgflip.com/54hjww.jpg" },
 ];
 
 const FONTS = [
@@ -149,6 +149,7 @@ export default function MemeGenerator() {
         ctx.strokeText(word, textX, canvas.height - bottomOffset - i * (fontSize + 6));
         ctx.fillText(word, textX, canvas.height - bottomOffset - i * (fontSize + 6));
       });
+      setError("");
     };
     img.onerror = () => {
       setError("Failed to load meme template. Check internet connection.");
