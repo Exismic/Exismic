@@ -85,7 +85,7 @@ export async function callVideoModal(
   requestId: string,
   timeoutMs = 10 * 60 * 1000,
 ) {
-  const apiKey = process.env.MODAL_VIDEO_API_KEY;
+  const apiKey = process.env.MODAL_VIDEO_API_KEY || process.env.MODAL_IMAGE_API_KEY;
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {

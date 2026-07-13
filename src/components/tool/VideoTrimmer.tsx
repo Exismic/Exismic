@@ -105,12 +105,15 @@ export default function VideoTrimmer() {
       const time = videoRef.current.currentTime;
       setCurrentTime(time);
       
-      // Loop within the selection
-      if (time >= endTime) {
-        videoRef.current.currentTime = startTime;
-      }
-      if (time < startTime) {
-        videoRef.current.currentTime = startTime;
+      // Safe check to avoid infinite loop cycles if metadata is 0, NaN or not loaded
+      if (Number.isFinite(startTime) && Number.isFinite(endTime) && endTime > startTime) {
+        // Loop within the selection
+        if (time >= endTime) {
+          videoRef.current.currentTime = startTime;
+        }
+        if (time < startTime) {
+          videoRef.current.currentTime = startTime;
+        }
       }
     }
   };
@@ -281,6 +284,14 @@ export default function VideoTrimmer() {
                       )}
                     </button>
                   </div>
+
+                  {/* MOV Preview Warning */}
+                  {file?.name.toLowerCase().endsWith(".mov") && (
+                    <div className="absolute bottom-4 left-4 right-4 bg-yellow-500/10 border border-yellow-500/20 px-4 py-2 rounded-xl text-yellow-500 text-[11px] flex items-center gap-2 backdrop-blur-md">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>MOV playback is restricted in some browsers, but trimming & exports will still work perfectly.</span>
+                    </div>
+                  )}
 
                   {/* Top Bar Info */}
                   <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
