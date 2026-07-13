@@ -18,10 +18,18 @@ image = (
         "openai-whisper",
         "setuptools-rust",
         "python-multipart",
-        "rembg[gpu]",
+        "rembg[cpu]",
         "pillow",
         "torch",
         "numpy",
+    )
+    # Pre-download Whisper model weights during build phase
+    .run_commands(
+        "python -c \"import whisper; whisper.load_model('base')\""
+    )
+    # Pre-download Rembg U2Net model weights during build phase
+    .run_commands(
+        "python -c \"from rembg import new_session; new_session('u2net')\""
     )
 )
 
@@ -132,7 +140,11 @@ def srt_timestamp(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{milliseconds:03d}"
 
 
-@app.function(image=image, gpu="any", timeout=1200)
+@app.function(
+    image=image,
+    timeout=1200,
+    secrets=[modal.Secret.from_name("lumora-bg-remover")],
+)
 @modal.asgi_app()
 def fastapi_app():
     from fastapi import FastAPI, HTTPException, Request
@@ -150,7 +162,7 @@ def fastapi_app():
     )
 
     def authorize(request: Request) -> None:
-        expected_key = os.environ.get("MODAL_VIDEO_API_KEY")
+        expected_key = os.environ.get("MODAL_VIDEO_API_KEY") or os.environ.get("BG_REMOVER_API_KEY")
         if expected_key and request.headers.get("authorization") != f"Bearer {expected_key}":
             raise HTTPException(status_code=401, detail="Unauthorized")
 
