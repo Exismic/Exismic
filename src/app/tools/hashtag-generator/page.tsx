@@ -49,50 +49,56 @@ export default function HashtagGenerator() {
     setIsGenerating(true);
     setResults(null);
 
-    const baseTags = keywords
-      .toLowerCase()
-      .split(/[\s,]+/)
-      .map((tag) => tag.replace(/[^a-z0-9]/g, ""))
-      .filter(Boolean)
-      .slice(0, 8);
-    const phrase = baseTags.join("");
-    const platformTags: Record<Platform, string[]> = {
-      all: ["discover", "creator", "community", "newcontent"],
-      instagram: ["instagramreels", "reels", "explorepage", "instacreator"],
-      youtube: ["youtube", "youtubeshorts", "videocreator", "watchnow"],
-      tiktok: ["tiktok", "tiktokcreator", "fyp", "shortformvideo"],
-      twitter: ["twittercommunity", "thread", "buildinpublic", "conversation"],
-    };
-    const reachTags = mixTrending ? platformTags[platform] : [];
-    const nicheTags = baseTags.flatMap((tag) => [
-      tag,
-      `${tag}tips`,
-      `${tag}guide`,
-      `${tag}community`,
-      `learn${tag}`,
-    ]);
-    const longTailTags = [
-      `best${phrase}`,
-      `${phrase}ideas`,
-      `${phrase}forbeginners`,
-      `${phrase}${platform === "all" ? "content" : platform}`,
-      ...baseTags.flatMap((tag) => [`daily${tag}`, `${tag}inspiration`]),
-    ];
-    const unique = (tags: string[]) => Array.from(new Set(tags)).filter(Boolean);
-    const reachCount = mixTrending ? Math.ceil(count * 0.25) : 0;
-    const nicheCount = Math.ceil(count * 0.5);
-    const longTailCount = Math.max(0, count - reachCount - nicheCount);
-    await Promise.resolve();
+    try {
+      const baseTags = keywords
+        .toLowerCase()
+        .split(/[\s,]+/)
+        .map((tag) => tag.replace(/[^a-z0-9]/g, ""))
+        .filter(Boolean)
+        .slice(0, 8);
+      const phrase = baseTags.join("");
+      const platformTags: Record<Platform, string[]> = {
+        all: ["discover", "creator", "community", "newcontent"],
+        instagram: ["instagramreels", "reels", "explorepage", "instacreator"],
+        youtube: ["youtube", "youtubeshorts", "videocreator", "watchnow"],
+        tiktok: ["tiktok", "tiktokcreator", "fyp", "shortformvideo"],
+        twitter: ["twittercommunity", "thread", "buildinpublic", "conversation"],
+      };
+      const reachTags = mixTrending ? platformTags[platform] : [];
+      const nicheTags = baseTags.flatMap((tag) => [
+        tag,
+        `${tag}tips`,
+        `${tag}guide`,
+        `${tag}community`,
+        `learn${tag}`,
+      ]);
+      const longTailTags = [
+        `best${phrase}`,
+        `${phrase}ideas`,
+        `${phrase}forbeginners`,
+        `${phrase}${platform === "all" ? "content" : platform}`,
+        ...baseTags.flatMap((tag) => [`daily${tag}`, `${tag}inspiration`]),
+      ];
+      const unique = (tags: string[]) => Array.from(new Set(tags)).filter(Boolean);
+      const reachCount = mixTrending ? Math.ceil(count * 0.25) : 0;
+      const nicheCount = Math.ceil(count * 0.5);
+      const longTailCount = Math.max(0, count - reachCount - nicheCount);
 
-    setResults([
-      ...(mixTrending
-        ? [{ category: "Reach", icon: <TrendingUp className="w-4 h-4" />, tags: unique(reachTags).slice(0, reachCount) }]
-        : []),
-      { category: "Niche", icon: <Target className="w-4 h-4" />, tags: unique(nicheTags).slice(0, nicheCount) },
-      { category: "Long-tail", icon: <Layers className="w-4 h-4" />, tags: unique(longTailTags).slice(0, longTailCount) },
-    ].filter((group) => group.tags.length > 0));
+      // Short snappy delay to allow visual transition animation to play smoothly
+      await new Promise((resolve) => setTimeout(resolve, 400));
 
-    setIsGenerating(false);
+      setResults([
+        ...(mixTrending
+          ? [{ category: "Reach", icon: <TrendingUp className="w-4 h-4" />, tags: unique(reachTags).slice(0, reachCount) }]
+          : []),
+        { category: "Niche", icon: <Target className="w-4 h-4" />, tags: unique(nicheTags).slice(0, nicheCount) },
+        { category: "Long-tail", icon: <Layers className="w-4 h-4" />, tags: unique(longTailTags).slice(0, longTailCount) },
+      ].filter((group) => group.tags.length > 0));
+    } catch (err) {
+      console.error("Failed to generate hashtags:", err);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = (tag: string) => {
