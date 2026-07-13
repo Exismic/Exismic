@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const contentType = response.headers["content-type"] || "image/jpeg";
+    const contentType = (response.headers["content-type"] as string) || "image/jpeg";
 
     return new NextResponse(response.data, {
       status: 200,
