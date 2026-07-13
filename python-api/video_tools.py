@@ -323,6 +323,7 @@ def fastapi_app():
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
+    @web_app.post("/bg-remover")
     @web_app.post("/remove-bg")
     async def remove_bg(req: RemoveBackgroundRequest, request: Request):
         authorize(request)
