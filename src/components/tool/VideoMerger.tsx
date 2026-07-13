@@ -94,19 +94,58 @@ export default function VideoMerger() {
     setStatus("Normalizing and joining clips...");
     setError(null);
 
-    const formData = new FormData();
-    clips.forEach(clip => {
-      formData.append("clips", clip.file);
-    });
-
     try {
-      const response = await fetch("/api/tools/video/merger", {
+      const fileToBase64 = (f: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(f);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+      };
+
+      // Convert all clip files to base64 concurrently
+      const base64Clips = await Promise.all(
+        clips.map(async (clip) => {
+          const base64 = await fileToBase64(clip.file);
+          return {
+            name: clip.file.name,
+            data: base64,
+          };
+        })
+      );
+
+      const fileNames = base64Clips.map(c => c.name);
+      const fileDataList = base64Clips.map(c => c.data);
+
+      const baseUrl = process.env.NEXT_PUBLIC_MODAL_VIDEO_URL || "https://syedrayangames--lumora-video-tools-fastapi-app.modal.run";
+      
+      const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/merge`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          file_names: fileNames,
+          file_data_list: fileDataList,
+        }),
       });
-      const artifact = await readVideoResponse(response, "exismic-merged-video.mp4");
-      setResultUrl(artifact.url);
-      setResultFileName(artifact.fileName);
+
+      if (!response.ok) {
+        throw new Error("The video processor is busy or returned an error.");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Failed to merge videos.");
+      }
+
+      // Convert base64 data URI output to a Blob
+      const base64Response = await fetch(result.file_data_base64);
+      const blob = await base64Response.blob();
+
+      setResultUrl(URL.createObjectURL(blob));
+      setResultFileName("exismic-merged-video.mp4");
       setStatus("Merge complete");
     } catch (err: unknown) {
       console.error(err);
