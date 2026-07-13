@@ -1,24 +1,23 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
+import { useDropzone } from "react-dropzone";
 import {
   Laugh, 
   Download, 
-  Copy, 
   Star, 
-  Type, 
-  Maximize, 
   Layout, 
   Palette, 
   RotateCcw, 
-  ChevronRight, 
-  CheckCircle2,
-  X,
-  Search,
   Sparkles,
   RefreshCw,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Type,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
@@ -35,11 +34,29 @@ const MEME_TEMPLATES: MemeTemplate[] = [
   { id: "change-mind", name: "Change My Mind", url: "https://i.imgflip.com/24y43o.jpg" },
   { id: "two-buttons", name: "Two Buttons", url: "https://i.imgflip.com/1g8my4.jpg" },
   { id: "batman", name: "Batman Slapping Robin", url: "https://i.imgflip.com/9ehk9.jpg" },
-  { id: "simply", name: "One Does Not Simply", url: "https://i.imgflip.com/1bij.jpg" },
-  { id: "aliens", name: "Ancient Aliens", url: "https://i.imgflip.com/26am.jpg" },
-  { id: "harold", name: "Hide the Pain Harold", url: "https://i.imgflip.com/gk6z4.jpg" },
   { id: "spongebob", name: "Mocking Spongebob", url: "https://i.imgflip.com/1otk96.jpg" },
+  { id: "harold", name: "Hide the Pain Harold", url: "https://i.imgflip.com/gk6z4.jpg" },
   { id: "grumpy", name: "Grumpy Cat", url: "https://i.imgflip.com/8p0a.jpg" },
+  { id: "woman-yelling-cat", name: "Woman Yelling at Cat", url: "https://i.imgflip.com/3lmzyx.jpg" },
+  { id: "bern-sanders", name: "Bernie Sanders I Am Once Again", url: "https://i.imgflip.com/3q35t7.jpg" },
+  { id: "doge", name: "Buff Doge vs Cheems", url: "https://i.imgflip.com/43a45p.jpg" },
+  { id: "gigachad", name: "Gigachad", url: "https://i.imgflip.com/2fm6x.jpg" },
+  { id: "disaster-girl", name: "Disaster Girl", url: "https://i.imgflip.com/22bdq.jpg" },
+  { id: "always-has-been", name: "Always Has Been", url: "https://i.imgflip.com/43a15p.png" },
+  { id: "waiting-skeleton", name: "Waiting Skeleton", url: "https://i.imgflip.com/2fmvx.jpg" },
+  { id: "panik-kalm", name: "Panik Kalm Panik", url: "https://i.imgflip.com/3qqy6.png" },
+  { id: "leo-dicaprio", name: "Leonardo DiCaprio Laughing", url: "https://i.imgflip.com/46e43q.png" },
+  { id: "think-mark", name: "Think Mark Think", url: "https://i.imgflip.com/58ld69.png" },
+  { id: "trade-offer", name: "Trade Offer", url: "https://i.imgflip.com/51je7x.png" },
+];
+
+const FONTS = [
+  { id: "Impact", name: "Impact (Classic)" },
+  { id: "Arial Black", name: "Arial Black (Modern)" },
+  { id: "Comic Sans MS", name: "Comic Sans (Fun)" },
+  { id: "Courier New", name: "Courier New (Retro)" },
+  { id: "Trebuchet MS", name: "Trebuchet (Clean)" },
+  { id: "Georgia", name: "Georgia (Serif)" },
 ];
 
 export default function MemeGenerator() {
@@ -47,12 +64,32 @@ export default function MemeGenerator() {
   const [topText, setTopText] = useState("WHEN THE CODE");
   const [bottomText, setBottomText] = useState("FINALLY WORKS");
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate>(MEME_TEMPLATES[0]);
-  const [fontSize, setFontSize] = useState(40);
+  const [customImage, setCustomImage] = useState<string | null>(null);
+
+  // Typography state
+  const [fontFamily, setFontFamily] = useState("Impact");
+  const [fontSize, setFontSize] = useState(44);
   const [textColor, setTextColor] = useState("#ffffff");
-  const [isCopied, setIsCopied] = useState(false);
+  const [outlineColor, setOutlineColor] = useState("#000000");
+  const [outlineWidth, setOutlineWidth] = useState(6);
+  const [isUppercase, setIsUppercase] = useState(true);
+  const [textAlign, setTextAlign] = useState<"center" | "left" | "right">("center");
+
+  // Layout Tuning offsets
+  const [topOffset, setTopOffset] = useState(25);
+  const [bottomOffset, setBottomOffset] = useState(25);
+
   const [isFavorite, setIsFavorite] = useState(false);
+  const [error, setError] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const customUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (customUrlRef.current) URL.revokeObjectURL(customUrlRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,43 +99,93 @@ export default function MemeGenerator() {
 
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = selectedTemplate.url;
+    img.src = customImage || selectedTemplate.url;
     img.onload = () => {
-      // Set canvas size to match image aspect ratio
+      // Set canvas size matching template aspect ratio
       const aspectRatio = img.width / img.height;
       canvas.width = 600;
       canvas.height = 600 / aspectRatio;
 
-      // Draw image
+      // Draw base image
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // Setup text style
+      // Apply typography styles
       ctx.fillStyle = textColor;
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = Math.max(1, fontSize / 10);
-      ctx.textAlign = "center";
-      ctx.font = `black ${fontSize}px Impact, sans-serif`;
-      if (!ctx.font.includes("Impact")) {
-        ctx.font = `bold ${fontSize}px sans-serif`;
-      }
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = outlineWidth;
+      ctx.textAlign = textAlign;
+      
+      // Load selected font
+      ctx.font = `900 ${fontSize}px "${fontFamily}", sans-serif`;
 
-      // Draw Top Text
+      // 1. Draw Top Text
       ctx.textBaseline = "top";
-      const topWords = topText.split("\n");
+      const rawTop = isUppercase ? topText.toUpperCase() : topText;
+      const topWords = rawTop.split("\n");
+      
       topWords.forEach((word, i) => {
-        ctx.fillText(word, canvas.width / 2, 20 + i * fontSize);
-        ctx.strokeText(word, canvas.width / 2, 20 + i * fontSize);
+        let textX = canvas.width / 2;
+        if (textAlign === "left") textX = 28;
+        if (textAlign === "right") textX = canvas.width - 28;
+
+        ctx.strokeText(word, textX, topOffset + i * (fontSize + 6));
+        ctx.fillText(word, textX, topOffset + i * (fontSize + 6));
       });
 
-      // Draw Bottom Text
+      // 2. Draw Bottom Text
       ctx.textBaseline = "bottom";
-      const bottomWords = bottomText.split("\n");
+      const rawBottom = isUppercase ? bottomText.toUpperCase() : bottomText;
+      const bottomWords = rawBottom.split("\n");
+      
+      // Reverse array to draw bottom-most line at the absolute bottom
       bottomWords.reverse().forEach((word, i) => {
-        ctx.fillText(word, canvas.width / 2, canvas.height - 20 - i * fontSize);
-        ctx.strokeText(word, canvas.width / 2, canvas.height - 20 - i * fontSize);
+        let textX = canvas.width / 2;
+        if (textAlign === "left") textX = 28;
+        if (textAlign === "right") textX = canvas.width - 28;
+
+        ctx.strokeText(word, textX, canvas.height - bottomOffset - i * (fontSize + 6));
+        ctx.fillText(word, textX, canvas.height - bottomOffset - i * (fontSize + 6));
       });
     };
-  }, [topText, bottomText, selectedTemplate, fontSize, textColor]);
+    img.onerror = () => {
+      setError("Failed to load meme template. Check internet connection.");
+    };
+  }, [
+    topText, 
+    bottomText, 
+    selectedTemplate, 
+    customImage, 
+    fontSize, 
+    textColor, 
+    fontFamily, 
+    outlineColor, 
+    outlineWidth, 
+    isUppercase, 
+    textAlign, 
+    topOffset, 
+    bottomOffset
+  ]);
+
+  const onCustomDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file (JPG, PNG, or WebP).");
+      return;
+    }
+
+    if (customUrlRef.current) URL.revokeObjectURL(customUrlRef.current);
+    const url = URL.createObjectURL(file);
+    customUrlRef.current = url;
+    setCustomImage(url);
+    setError("");
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: onCustomDrop,
+    accept: { "image/*": [] },
+    multiple: false,
+  });
 
   const handleDownload = () => {
     const canvas = canvasRef.current;
@@ -111,6 +198,7 @@ export default function MemeGenerator() {
   };
 
   const handleRandom = () => {
+    setCustomImage(null);
     const randomIndex = Math.floor(Math.random() * MEME_TEMPLATES.length);
     setSelectedTemplate(MEME_TEMPLATES[randomIndex]);
   };
@@ -118,7 +206,16 @@ export default function MemeGenerator() {
   const reset = () => {
     setTopText("");
     setBottomText("");
-    setFontSize(40);
+    setCustomImage(null);
+    setFontSize(44);
+    setFontFamily("Impact");
+    setTextColor("#ffffff");
+    setOutlineColor("#000000");
+    setOutlineWidth(6);
+    setIsUppercase(true);
+    setTextAlign("center");
+    setTopOffset(25);
+    setBottomOffset(25);
   };
 
   return (
@@ -132,7 +229,7 @@ export default function MemeGenerator() {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-center md:justify-start gap-3 mb-4"
             >
-              <div className="p-2 bg-purple-600/20 rounded-xl">
+              <div className="p-2 bg-purple-600/20 rounded-xl border border-purple-500/20 shadow-lg">
                 <Laugh className="w-8 h-8 text-purple-400" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-purple-400">
@@ -143,9 +240,9 @@ export default function MemeGenerator() {
               initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
+              className="text-gray-400 text-base md:text-lg max-w-2xl font-medium"
             >
-              Create viral memes with the internet&apos;s favorite templates.
+              Create viral memes with new templates, advanced custom fonts, alignments, and outline styling.
             </motion.p>
           </div>
           
@@ -154,7 +251,7 @@ export default function MemeGenerator() {
                onClick={() => setIsFavorite(!isFavorite)}
                className={cn(
                  "p-4 rounded-2xl border transition-all duration-300",
-                 isFavorite ? "bg-purple-600 border-purple-500 text-white shadow-xl shadow-purple-600/20" : "bg-white/5 border-white/10 text-gray-500"
+                 isFavorite ? "bg-purple-600 border-purple-500 text-white shadow-xl shadow-purple-600/20 animate-pulse" : "bg-white/5 border-white/10 text-gray-500"
                )}
              >
                 <Star className={cn("w-5 h-5", isFavorite && "fill-current")} />
@@ -167,6 +264,12 @@ export default function MemeGenerator() {
              </button>
           </div>
         </header>
+
+        {error && (
+          <div className="mb-6 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-100">
+            {error}
+          </div>
+        )}
 
         <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Controls Column */}
@@ -187,76 +290,221 @@ export default function MemeGenerator() {
               </div>
 
               <div className="space-y-8">
-                {/* Template Grid */}
+                {/* Template Selection */}
                 <div>
                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-4 italic">Core Template</label>
-                   <div className="grid grid-cols-5 gap-2 h-40 overflow-y-auto pr-2 custom-scrollbar">
+                   <div className="grid grid-cols-5 gap-2 h-40 overflow-y-auto pr-2 custom-scrollbar mb-4">
                       {MEME_TEMPLATES.map((t) => (
                         <button
                           key={t.id}
-                          onClick={() => setSelectedTemplate(t)}
+                          onClick={() => {
+                            setCustomImage(null);
+                            setSelectedTemplate(t);
+                          }}
                           className={cn(
                             "relative aspect-square rounded-xl overflow-hidden border-2 transition-all",
-                            selectedTemplate.id === t.id ? "border-purple-500 scale-95" : "border-transparent opacity-60 hover:opacity-100"
+                            !customImage && selectedTemplate.id === t.id ? "border-purple-500 scale-95" : "border-transparent opacity-60 hover:opacity-100"
                           )}
                         >
                            <img src={t.url} className="w-full h-full object-cover" alt={t.name} />
                         </button>
                       ))}
                    </div>
+
+                   {/* Custom upload area */}
+                   <div
+                     {...getRootProps()}
+                     className={cn(
+                       "border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all",
+                       isDragActive ? "border-purple-400 bg-purple-500/10" : "border-white/10 bg-black/20 hover:border-white/20"
+                     )}
+                   >
+                     <input {...getInputProps()} />
+                     <div className="flex items-center justify-center gap-2">
+                       <ImageIcon className="w-4 h-4 text-gray-400" />
+                       <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300">
+                         {customImage ? "Change Uploaded Image" : "Upload Custom Template"}
+                       </span>
+                     </div>
+                     {customImage && (
+                       <button
+                         type="button"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setCustomImage(null);
+                         }}
+                         className="mt-2 text-[9px] font-black uppercase tracking-widest text-red-400 hover:text-red-300"
+                       >
+                         Remove Custom Image
+                       </button>
+                     )}
+                   </div>
                 </div>
 
                 {/* Text Inputs */}
-                <div className="space-y-4">
+                <div className="space-y-5">
                    <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 italic">Headline (Top)</label>
-                      <input 
-                        type="text" 
+                      <div className="flex items-center justify-between mb-2">
+                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block italic">Headline (Top)</label>
+                         <div className="flex gap-2">
+                           <button 
+                             onClick={() => setTextAlign("left")}
+                             className={cn("p-1 rounded hover:bg-white/5", textAlign === "left" ? "text-purple-400" : "text-gray-500")}
+                           >
+                             <AlignLeft className="w-3.5 h-3.5" />
+                           </button>
+                           <button 
+                             onClick={() => setTextAlign("center")}
+                             className={cn("p-1 rounded hover:bg-white/5", textAlign === "center" ? "text-purple-400" : "text-gray-500")}
+                           >
+                             <AlignCenter className="w-3.5 h-3.5" />
+                           </button>
+                           <button 
+                             onClick={() => setTextAlign("right")}
+                             className={cn("p-1 rounded hover:bg-white/5", textAlign === "right" ? "text-purple-400" : "text-gray-500")}
+                           >
+                             <AlignRight className="w-3.5 h-3.5" />
+                           </button>
+                         </div>
+                      </div>
+                      <textarea 
                         value={topText}
-                        onChange={(e) => setTopText(e.target.value.toUpperCase())}
-                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-purple-500 outline-none transition-all shadow-inner"
+                        onChange={(e) => setTopText(e.target.value)}
+                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-purple-500 outline-none transition-all resize-none h-16"
                         placeholder="TOP TEXT..."
                       />
                    </div>
                    <div>
                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 italic">Punchline (Bottom)</label>
-                      <input 
-                        type="text" 
+                      <textarea 
                         value={bottomText}
-                        onChange={(e) => setBottomText(e.target.value.toUpperCase())}
-                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-purple-500 outline-none transition-all shadow-inner"
+                        onChange={(e) => setBottomText(e.target.value)}
+                        className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm font-bold focus:border-purple-500 outline-none transition-all resize-none h-16"
                         placeholder="BOTTOM TEXT..."
+                      />
+                   </div>
+
+                   <div className="flex items-center justify-between p-3 bg-black/30 border border-white/10 rounded-2xl">
+                     <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Force Uppercase Text</span>
+                     <button
+                       onClick={() => setIsUppercase(!isUppercase)}
+                       className={cn(
+                         "w-12 h-6 rounded-full p-1 transition-all duration-300",
+                         isUppercase ? "bg-purple-600 flex justify-end" : "bg-zinc-800 flex justify-start"
+                       )}
+                     >
+                       <span className="w-4 h-4 rounded-full bg-white block" />
+                     </button>
+                   </div>
+                </div>
+
+                {/* Typography Selectors */}
+                <div className="pt-6 border-t border-white/5 space-y-5">
+                   <div className="grid grid-cols-2 gap-4">
+                     <div>
+                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 italic">Font Style</label>
+                       <select
+                         value={fontFamily}
+                         onChange={(e) => setFontFamily(e.target.value)}
+                         className="w-full bg-black/50 border border-white/10 rounded-2xl p-3.5 text-xs font-black uppercase tracking-wider outline-none focus:border-purple-500 cursor-pointer"
+                       >
+                         {FONTS.map(f => (
+                           <option key={f.id} value={f.id} className="bg-[#15151c] text-white">
+                             {f.name}
+                           </option>
+                         ))}
+                       </select>
+                     </div>
+                     <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Font Size</label>
+                          <span className="text-[10px] font-bold text-purple-400">{fontSize}px</span>
+                        </div>
+                        <input 
+                          type="range"
+                          min={18}
+                          max={92}
+                          value={fontSize}
+                          onChange={(e) => setFontSize(parseInt(e.target.value))}
+                          className="w-full accent-purple-500"
+                        />
+                     </div>
+                   </div>
+
+                   {/* Outline Stroke Customization */}
+                   <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Outline Thickness</label>
+                          <span className="text-[10px] font-bold text-purple-400">{outlineWidth}px</span>
+                        </div>
+                        <input 
+                          type="range"
+                          min={0}
+                          max={15}
+                          value={outlineWidth}
+                          onChange={(e) => setOutlineWidth(parseInt(e.target.value))}
+                          className="w-full accent-purple-500"
+                        />
+                     </div>
+                     <div>
+                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 italic">Outline Color</label>
+                       <div className="flex items-center gap-3 p-2 bg-black/40 rounded-2xl border border-white/10 h-11">
+                         <input 
+                           type="color" 
+                           value={outlineColor}
+                           onChange={(e) => setOutlineColor(e.target.value)}
+                           className="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-none"
+                         />
+                         <span className="text-[9px] font-black uppercase text-gray-500">{outlineColor}</span>
+                       </div>
+                     </div>
+                   </div>
+                </div>
+
+                {/* Text Positioning Offsets */}
+                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                   <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Top Margin Offset</label>
+                        <span className="text-[10px] font-bold text-purple-400">{topOffset}px</span>
+                      </div>
+                      <input 
+                        type="range"
+                        min={5}
+                        max={180}
+                        value={topOffset}
+                        onChange={(e) => setTopOffset(parseInt(e.target.value))}
+                        className="w-full accent-purple-500"
+                      />
+                   </div>
+                   <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Bottom Margin Offset</label>
+                        <span className="text-[10px] font-bold text-purple-400">{bottomOffset}px</span>
+                      </div>
+                      <input 
+                        type="range"
+                        min={5}
+                        max={180}
+                        value={bottomOffset}
+                        onChange={(e) => setBottomOffset(parseInt(e.target.value))}
+                        className="w-full accent-purple-500"
                       />
                    </div>
                 </div>
 
-                {/* Style Specs */}
-                <div className="grid grid-cols-2 gap-8 pt-6 border-t border-white/5">
-                   <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Scale</label>
-                        <span className="text-[10px] font-bold text-purple-400">{fontSize}px</span>
-                      </div>
-                      <input 
-                        type="range"
-                        min={10}
-                        max={100}
-                        value={fontSize}
-                        onChange={(e) => setFontSize(parseInt(e.target.value))}
-                        className="w-full accent-purple-500 h-1 bg-white/10 rounded-full appearance-none"
-                      />
-                   </div>
-                   <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-4 italic">Chromatic</label>
-                      <div className="flex items-center gap-4 p-3 bg-black/40 rounded-xl border border-white/5">
-                        <input 
-                          type="color" 
-                          value={textColor}
-                          onChange={(e) => setTextColor(e.target.value)}
-                          className="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-none"
-                        />
-                        <span className="text-[9px] font-black uppercase text-gray-500">{textColor}</span>
-                      </div>
+                {/* Color pickers */}
+                <div className="pt-6 border-t border-white/5">
+                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3 italic">Font Color</label>
+                   <div className="flex items-center gap-4 p-3 bg-black/40 rounded-2xl border border-white/10">
+                     <input 
+                       type="color" 
+                       value={textColor}
+                       onChange={(e) => setTextColor(e.target.value)}
+                       className="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-none"
+                     />
+                     <span className="text-[10px] font-black uppercase text-gray-400">{textColor}</span>
                    </div>
                 </div>
 
@@ -273,7 +521,7 @@ export default function MemeGenerator() {
             <div className="p-8 rounded-[2.5rem] bg-purple-500/5 border border-purple-500/10 flex gap-4">
                <Sparkles className="w-6 h-6 text-purple-400 shrink-0" />
                <p className="text-[10px] text-zinc-500 font-medium leading-relaxed uppercase tracking-tight">
-                  Our renderer uses high-precision canvas anchoring to ensure text remains crisp even on 4K displays. Use **Shift + Enter** for multi-line text.
+                  Drag the sliders to shift headings so they don't cover characters' faces! Press **Enter** in the input text areas to write multi-line captions.
                </p>
             </div>
           </div>
