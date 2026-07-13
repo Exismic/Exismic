@@ -99,7 +99,10 @@ export default function MemeGenerator() {
 
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = customImage || selectedTemplate.url;
+    const targetUrl = customImage || selectedTemplate.url;
+    img.src = targetUrl.startsWith("http")
+      ? `/api/proxy?url=${encodeURIComponent(targetUrl)}`
+      : targetUrl;
     img.onload = () => {
       // Set canvas size matching template aspect ratio
       const aspectRatio = img.width / img.height;
@@ -306,7 +309,7 @@ export default function MemeGenerator() {
                             !customImage && selectedTemplate.id === t.id ? "border-purple-500 scale-95" : "border-transparent opacity-60 hover:opacity-100"
                           )}
                         >
-                           <img src={t.url} className="w-full h-full object-cover" alt={t.name} />
+                           <img src={t.url.startsWith("http") ? `/api/proxy?url=${encodeURIComponent(t.url)}` : t.url} className="w-full h-full object-cover" alt={t.name} />
                         </button>
                       ))}
                    </div>
