@@ -134,14 +134,32 @@ export default function YouTubeThumbnailMaker() {
   const [accentColor, setAccentColor] = useState(templates.impact.accent);
   const [overlayOpacity, setOverlayOpacity] = useState(0.44);
   const [titleSize, setTitleSize] = useState(92);
+  
+  // Background Image State
   const [bgImage, setBgImage] = useState<string | null>(null);
+  
+  // Foreground Overlay / Cutout State
+  const [overlayImage, setOverlayImage] = useState<string | null>(null);
+  const [overlayPos, setOverlayPos] = useState({ x: 0.6, y: 0.2 });
+  const [overlaySize, setOverlaySize] = useState(35); // size in % of canvas width
+
+  // Draggable Text Block State
+  const [textPos, setTextPos] = useState({ x: 0.08, y: 0.22 });
+
   const [error, setError] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+
   const objectUrlRef = useRef<string | null>(null);
+  const overlayUrlRef = useRef<string | null>(null);
+
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      if (overlayUrlRef.current) URL.revokeObjectURL(overlayUrlRef.current);
     };
   }, []);
 
@@ -163,15 +181,25 @@ export default function YouTubeThumbnailMaker() {
     setBgImage(null);
   };
 
+  const clearOverlay = () => {
+    if (overlayUrlRef.current) URL.revokeObjectURL(overlayUrlRef.current);
+    overlayUrlRef.current = null;
+    setOverlayImage(null);
+  };
+
   const resetDesign = () => {
     clearImage();
+    clearOverlay();
     applyTemplate("impact");
     setSubtitle("IN 30 DAYS");
     setOverlayOpacity(0.44);
     setTitleSize(92);
+    setTextPos({ x: 0.08, y: 0.22 });
+    setOverlayPos({ x: 0.6, y: 0.2 });
+    setOverlaySize(35);
   };
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onBgDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -186,11 +214,45 @@ export default function YouTubeThumbnailMaker() {
     setError("");
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const onOverlayDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a JPG, PNG, or WebP image.");
+      return;
+    }
+
+    clearOverlay();
+    const url = URL.createObjectURL(file);
+    overlayUrlRef.current = url;
+    setOverlayImage(url);
+    setError("");
+  }, []);
+
+  const { getRootProps: getBgRootProps, getInputProps: getBgInputProps, isDragActive: isBgDragActive } = useDropzone({
+    onDrop: onBgDrop,
     accept: { "image/*": [] },
     multiple: false,
   });
+
+  const { getRootProps: getOverlayRootProps, getInputProps: getOverlayInputProps, isDragActive: isOverlayDragActive } = useDropzone({
+    onDrop: onOverlayDrop,
+    accept: { "image/*": [] },
+    multiple: false,
+  });
+
+  // Calculate relative drag offsets on drag end to store in state
+  const handleDragEnd = (elementRef: React.RefObject<HTMLDivElement>, setter: (pos: { x: number; y: number }) => void) => {
+    const container = previewContainerRef.current?.getBoundingClientRect();
+    const el = elementRef.current?.getBoundingClientRect();
+    if (!container || !el) return;
+
+    // Calculate percentage offset relative to top-left of preview card
+    const relativeX = (el.left - container.left) / container.width;
+    const relativeY = (el.top - container.top) / container.height;
+
+    setter({ x: relativeX, y: relativeY });
+  };
 
   const renderThumbnail = async () => {
     const canvas = document.createElement("canvas");
@@ -203,14 +265,17 @@ export default function YouTubeThumbnailMaker() {
       await document.fonts.ready;
     }
 
+    // 1. Draw Background Solid Color
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // 2. Draw Background Image
     if (bgImage) {
       const image = await loadImage(bgImage);
       drawCoverImage(ctx, image);
     }
 
+    // 3. Draw Background Overlay Gradients
     const baseGradient = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     baseGradient.addColorStop(0, hexToRgba(bgColor, bgImage ? overlayOpacity : 0.95));
     baseGradient.addColorStop(0.55, hexToRgba("#000000", bgImage ? Math.max(overlayOpacity - 0.08, 0.15) : 0.22));
@@ -230,6 +295,7 @@ export default function YouTubeThumbnailMaker() {
     ctx.fillStyle = lowerGlow;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // 4. Draw Grid Pattern
     ctx.save();
     ctx.globalAlpha = 0.22;
     ctx.strokeStyle = "#ffffff";
@@ -242,6 +308,7 @@ export default function YouTubeThumbnailMaker() {
     }
     ctx.restore();
 
+    // 5. Draw Canvas Border Card
     ctx.fillStyle = hexToRgba("#000000", 0.28);
     roundedRect(ctx, 64, 58, 1152, 604, 46);
     ctx.fill();
@@ -249,56 +316,77 @@ export default function YouTubeThumbnailMaker() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
+    // 6. Draw Draggable Foreground Cutout Overlay
+    if (overlayImage) {
+      const overlayImg = await loadImage(overlayImage);
+      const ow = (overlaySize / 100) * CANVAS_WIDTH;
+      const oh = (ow / overlayImg.width) * overlayImg.height; // scale height proportionally
+      const ox = overlayPos.x * CANVAS_WIDTH;
+      const oy = overlayPos.y * CANVAS_HEIGHT;
+      ctx.drawImage(overlayImg, ox, oy, ow, oh);
+    }
+
+    // 7. Draw Draggable Text Elements
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.lineJoin = "round";
+
+    // Text anchor points
+    const textX = textPos.x * CANVAS_WIDTH;
+    const textY = textPos.y * CANVAS_HEIGHT;
+
+    // Draw Badge
     const badgeText = badge.trim().toUpperCase() || "NEW VIDEO";
     ctx.font = "900 30px Arial, Helvetica, sans-serif";
     const badgeWidth = Math.min(ctx.measureText(badgeText).width + 54, 460);
-    roundedRect(ctx, 100, 100, badgeWidth, 58, 20);
+    roundedRect(ctx, textX, textY, badgeWidth, 58, 20);
     ctx.fillStyle = accentColor;
     ctx.shadowColor = hexToRgba(accentColor, 0.45);
     ctx.shadowBlur = 28;
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(badgeText, 127, 139);
+    ctx.fillText(badgeText, textX + 27, textY + 14);
 
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
+    // Wrap Title
     ctx.font = `900 ${titleSize}px Arial Black, Impact, Arial, sans-serif`;
-    ctx.lineJoin = "round";
-
     const titleLines = wrapText(ctx, title.toUpperCase() || "YOUR TITLE HERE", 930);
     const lineHeight = titleSize * 0.92;
-    let titleY = 192;
+    let currentY = textY + 84; // Start title under badge
 
     for (const line of titleLines) {
       ctx.strokeStyle = hexToRgba("#000000", 0.58);
       ctx.lineWidth = 18;
-      ctx.strokeText(line, 96, titleY);
+      ctx.strokeText(line, textX, currentY);
       ctx.fillStyle = textColor;
       ctx.shadowColor = hexToRgba("#000000", 0.42);
       ctx.shadowBlur = 18;
-      ctx.fillText(line, 96, titleY);
+      ctx.fillText(line, textX, currentY);
       ctx.shadowBlur = 0;
-      titleY += lineHeight;
+      currentY += lineHeight;
     }
 
+    // Draw Subtitle
     const sub = subtitle.trim().toUpperCase();
     if (sub) {
       ctx.font = "900 48px Arial Black, Impact, Arial, sans-serif";
       ctx.strokeStyle = hexToRgba("#000000", 0.62);
       ctx.lineWidth = 10;
-      ctx.strokeText(sub, 100, 542);
+      ctx.strokeText(sub, textX, currentY + 12);
       ctx.fillStyle = subtitleColor;
-      ctx.fillText(sub, 100, 542);
+      ctx.fillText(sub, textX, currentY + 12);
+      currentY += 60;
     }
 
+    // Draw decorative bottom bars relative to text block
     ctx.fillStyle = accentColor;
-    roundedRect(ctx, 100, 626, 190, 14, 7);
+    roundedRect(ctx, textX, currentY + 20, 190, 14, 7);
     ctx.fill();
     ctx.fillStyle = subtitleColor;
-    roundedRect(ctx, 306, 626, 92, 14, 7);
+    roundedRect(ctx, textX + 206, currentY + 20, 92, 14, 7);
     ctx.fill();
 
+    // Resolution label
     ctx.font = "900 24px Arial, Helvetica, sans-serif";
     ctx.fillStyle = hexToRgba("#ffffff", 0.9);
     ctx.textAlign = "right";
@@ -341,7 +429,7 @@ export default function YouTubeThumbnailMaker() {
               </h1>
             </motion.div>
             <p className="text-gray-400 text-base md:text-lg max-w-2xl font-medium">
-              Build a sharp 1280x720 thumbnail with real PNG export.
+              Create highly engaging, conversion-optimized thumbnails. Drag elements around freely!
             </p>
           </div>
 
@@ -482,17 +570,18 @@ export default function YouTubeThumbnailMaker() {
                   </label>
                 </div>
 
+                {/* Upload Background Image */}
                 <div
-                  {...getRootProps()}
+                  {...getBgRootProps()}
                   className={cn(
                     "relative border-2 border-dashed rounded-[1.5rem] p-6 text-center transition-all cursor-pointer bg-black/20",
-                    isDragActive ? "border-cyan-400 bg-cyan-500/10" : "border-white/10 hover:border-white/25"
+                    isBgDragActive ? "border-cyan-400 bg-cyan-500/10" : "border-white/10 hover:border-white/25"
                   )}
                 >
-                  <input {...getInputProps()} />
+                  <input {...getBgInputProps()} />
                   <ImageIcon className="w-7 h-7 text-gray-500 mx-auto mb-3" />
                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
-                    {bgImage ? "Change Background Image" : "Drop Background Image"}
+                    {bgImage ? "Change Background Image" : "Upload Background Image"}
                   </p>
                   <p className="mt-2 text-[11px] text-gray-600">JPG, PNG, or WebP</p>
                   {bgImage && (
@@ -509,6 +598,54 @@ export default function YouTubeThumbnailMaker() {
                     </button>
                   )}
                 </div>
+
+                {/* Upload Custom Cutout Overlay */}
+                <div className="space-y-4 pt-5 border-t border-white/10">
+                  <div
+                    {...getOverlayRootProps()}
+                    className={cn(
+                      "relative border-2 border-dashed rounded-[1.5rem] p-6 text-center transition-all cursor-pointer bg-black/20",
+                      isOverlayDragActive ? "border-cyan-400 bg-cyan-500/10" : "border-white/10 hover:border-white/25"
+                    )}
+                  >
+                    <input {...getOverlayInputProps()} />
+                    <Sparkles className="w-7 h-7 text-gray-500 mx-auto mb-3" />
+                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                      {overlayImage ? "Change Cutout Overlay" : "Upload Cutout / Overlay"}
+                    </p>
+                    <p className="mt-2 text-[11px] text-gray-600">Upload transparent PNG (face, product, logo)</p>
+                    {overlayImage && (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          clearOverlay();
+                        }}
+                        className="absolute top-3 right-3 p-2 bg-black/60 border border-white/10 rounded-full hover:text-red-300 transition-colors"
+                        aria-label="Remove overlay image"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {overlayImage && (
+                    <label className="block pt-2">
+                      <span className="mb-3 flex items-center justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                        <span>Overlay Size</span>
+                        <span className="text-white">{overlaySize}%</span>
+                      </span>
+                      <input
+                        type="range"
+                        min="15"
+                        max="80"
+                        value={overlaySize}
+                        onChange={(e) => setOverlaySize(Number(e.target.value))}
+                        className="w-full accent-cyan-400"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             </section>
           </aside>
@@ -517,7 +654,7 @@ export default function YouTubeThumbnailMaker() {
             <div className="flex items-center justify-between px-2 md:px-5">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">Live 16:9 Preview</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">Live 16:9 Preview (Drag to position)</span>
               </div>
               <div className="flex items-center gap-4 text-gray-500">
                 <Monitor className="w-4 h-4" />
@@ -528,78 +665,118 @@ export default function YouTubeThumbnailMaker() {
 
             <div className="relative group">
               <motion.div
+                ref={previewContainerRef}
                 layout
                 style={{ backgroundColor: bgColor }}
                 className="relative aspect-video w-full overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.75)]"
               >
+                {/* 1. Background Image */}
                 {bgImage && (
                   <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}>
                     <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }} />
                   </div>
                 )}
+                
+                {/* 2. Decorative elements */}
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-black/10 to-black/80" />
                 <div className="absolute -top-1/3 -right-1/4 h-full w-full rounded-full blur-[90px] opacity-40" style={{ backgroundColor: accentColor }} />
                 <div className="absolute -bottom-1/3 -left-1/4 h-2/3 w-2/3 rounded-full blur-[90px] opacity-25" style={{ backgroundColor: subtitleColor }} />
+                <div className="absolute inset-[5%] rounded-[2rem] border border-white/15 bg-black/20 pointer-events-none" />
 
-                <div className="absolute inset-[5%] rounded-[2rem] border border-white/15 bg-black/20" />
-                <div className="absolute inset-0 flex flex-col justify-center p-[7%]">
-                  <div className="max-w-[82%]">
-                    <div
-                      className="mb-[3%] inline-flex max-w-full rounded-xl px-4 py-2 text-[clamp(0.55rem,1.6vw,1.3rem)] font-black uppercase tracking-[0.14em] text-white shadow-[0_0_34px_rgba(0,0,0,0.35)]"
-                      style={{ backgroundColor: accentColor }}
-                    >
-                      <span className="truncate">{badge || "NEW VIDEO"}</span>
-                    </div>
-                    <h2
-                      className="max-w-full break-words font-black uppercase leading-[0.88] tracking-normal drop-shadow-[0_12px_16px_rgba(0,0,0,0.5)]"
+                {/* 3. Draggable Custom Foreground Overlay */}
+                {overlayImage && (
+                  <motion.div
+                    ref={overlayRef}
+                    drag
+                    dragMomentum={false}
+                    dragElastic={0}
+                    dragConstraints={previewContainerRef}
+                    onDragEnd={() => handleDragEnd(overlayRef, setOverlayPos)}
+                    className="absolute cursor-move select-none z-10 active:scale-[1.02]"
+                    style={{
+                      left: `${overlayPos.x * 100}%`,
+                      top: `${overlayPos.y * 100}%`,
+                      width: `${overlaySize}%`,
+                    }}
+                  >
+                    <img src={overlayImage} alt="Cutout" className="w-full h-auto object-contain pointer-events-none" />
+                  </motion.div>
+                )}
+
+                {/* 4. Draggable Text Container */}
+                <motion.div
+                  ref={textRef}
+                  drag
+                  dragMomentum={false}
+                  dragElastic={0}
+                  dragConstraints={previewContainerRef}
+                  onDragEnd={() => handleDragEnd(textRef, setTextPos)}
+                  className="absolute cursor-move select-none p-4 rounded-[2rem] hover:bg-white/[0.02] active:bg-white/[0.04] z-20"
+                  style={{
+                    left: `${textPos.x * 100}%`,
+                    top: `${textPos.y * 100}%`,
+                    maxWidth: "75%",
+                  }}
+                >
+                  <div
+                    className="mb-4 inline-flex max-w-full rounded-xl px-4 py-2 text-[clamp(0.55rem,1.6vw,1.3rem)] font-black uppercase tracking-[0.14em] text-white shadow-[0_0_34px_rgba(0,0,0,0.35)]"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    <span>{badge || "NEW VIDEO"}</span>
+                  </div>
+                  
+                  <h2
+                    className="max-w-full break-words font-black uppercase leading-[0.88] tracking-normal drop-shadow-[0_12px_16px_rgba(0,0,0,0.5)]"
+                    style={{
+                      color: textColor,
+                      fontSize: `clamp(2.2rem, ${titleSize / 13}vw, ${titleSize}px)`,
+                      fontFamily: "Arial Black, Impact, Arial, sans-serif",
+                      WebkitTextStroke: "0.03em rgba(0,0,0,0.36)",
+                    }}
+                  >
+                    {title || "YOUR TITLE HERE"}
+                  </h2>
+                  
+                  {subtitle && (
+                    <p
+                      className="mt-3 font-black uppercase leading-none tracking-normal drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)]"
                       style={{
-                        color: textColor,
-                        fontSize: `clamp(2rem, ${titleSize / 13}vw, ${titleSize}px)`,
+                        color: subtitleColor,
+                        fontSize: "clamp(1.1rem, 3.3vw, 3rem)",
                         fontFamily: "Arial Black, Impact, Arial, sans-serif",
-                        WebkitTextStroke: "0.03em rgba(0,0,0,0.36)",
+                        WebkitTextStroke: "0.04em rgba(0,0,0,0.35)",
                       }}
                     >
-                      {title || "YOUR TITLE HERE"}
-                    </h2>
-                    {subtitle && (
-                      <p
-                        className="mt-[3%] font-black uppercase leading-none tracking-normal drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)]"
-                        style={{
-                          color: subtitleColor,
-                          fontSize: "clamp(1rem, 3.3vw, 3rem)",
-                          fontFamily: "Arial Black, Impact, Arial, sans-serif",
-                          WebkitTextStroke: "0.04em rgba(0,0,0,0.35)",
-                        }}
-                      >
-                        {subtitle}
-                      </p>
-                    )}
-                    <div className="mt-[4%] flex items-center gap-3">
-                      <span className="h-2.5 w-28 rounded-full" style={{ backgroundColor: accentColor }} />
-                      <span className="h-2.5 w-14 rounded-full" style={{ backgroundColor: subtitleColor }} />
-                    </div>
+                      {subtitle}
+                    </p>
+                  )}
+                  
+                  <div className="mt-5 flex items-center gap-3">
+                    <span className="h-2.5 w-28 rounded-full" style={{ backgroundColor: accentColor }} />
+                    <span className="h-2.5 w-14 rounded-full" style={{ backgroundColor: subtitleColor }} />
                   </div>
-                  <div className="absolute bottom-[7%] right-[7%] text-xs md:text-sm font-black text-white/80">1280 x 720</div>
-                </div>
+                </motion.div>
+
+                <div className="absolute bottom-[7%] right-[7%] text-xs md:text-sm font-black text-white/80 pointer-events-none">1280 x 720</div>
               </motion.div>
-              <div className="absolute -inset-4 bg-cyan-500/5 blur-[90px] -z-10 rounded-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="absolute -inset-4 bg-cyan-500/5 blur-[90px] -z-10 rounded-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
                 <Sparkles className="mb-3 h-5 w-5 text-yellow-300" />
-                <h3 className="text-xs font-black uppercase tracking-widest">Readable Text</h3>
-                <p className="mt-2 text-xs leading-relaxed text-gray-500">Large, bold title treatment stays visible on small YouTube cards.</p>
+                <h3 className="text-xs font-black uppercase tracking-widest">Interactive Drags</h3>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">Drag the title block and foreground cutout anywhere inside the preview bounds.</p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
                 <Zap className="mb-3 h-5 w-5 text-cyan-300" />
-                <h3 className="text-xs font-black uppercase tracking-widest">Instant Export</h3>
-                <p className="mt-2 text-xs leading-relaxed text-gray-500">Downloads a real 1280x720 transparent-safe PNG from canvas.</p>
+                <h3 className="text-xs font-black uppercase tracking-widest">Transparent Overlay</h3>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">Upload custom PNG cutouts (e.g. face reaction, gaming character) on top of the background.</p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
                 <Palette className="mb-3 h-5 w-5 text-violet-300" />
-                <h3 className="text-xs font-black uppercase tracking-widest">Custom Style</h3>
-                <p className="mt-2 text-xs leading-relaxed text-gray-500">Templates, color controls, title scale, image upload, and overlay strength all work live.</p>
+                <h3 className="text-xs font-black uppercase tracking-widest">16:9 Canvas Sync</h3>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">The high-res export engine automatically reads element coordinates for perfect pixel-perfect PNG downloads.</p>
               </div>
             </div>
           </section>
