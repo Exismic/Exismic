@@ -157,8 +157,8 @@ def fastapi_app():
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=False,
-        allow_methods=["POST"],
-        allow_headers=["Authorization", "Content-Type", "X-Lumora-Request-Id"],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     def authorize(request: Request) -> None:
