@@ -20,6 +20,10 @@ import {
   Upload,
   WandSparkles,
   X,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -132,6 +136,113 @@ function saveBlob(blob: Blob, fileName: string) {
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+
+function CustomAudioPlayer({ src, accent }: { src: string; accent: string }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handleDurationChange = () => setDuration(audio.duration);
+    const handleEnded = () => setIsPlaying(false);
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("durationchange", handleDurationChange);
+    audio.addEventListener("ended", handleEnded);
+
+    // Sync state on src change
+    setIsPlaying(false);
+    setCurrentTime(0);
+
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("durationchange", handleDurationChange);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [src]);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(() => {});
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const val = parseFloat(e.target.value);
+    audio.currentTime = val;
+    setCurrentTime(val);
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time) || !isFinite(time)) return "0:00";
+    const m = Math.floor(time / 60);
+    const s = Math.floor(time % 60);
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="flex items-center gap-3.5 rounded-xl bg-white/[0.02] border border-white/5 p-3.5 w-full backdrop-blur-md">
+      <audio ref={audioRef} src={src} preload="metadata" />
+      
+      {/* Play / Pause button */}
+      <button
+        type="button"
+        onClick={togglePlay}
+        className={cn(
+          "flex size-9 items-center justify-center rounded-lg bg-linear-to-r text-white hover:brightness-110 active:scale-95 transition-all shrink-0 shadow-lg",
+          accent
+        )}
+      >
+        {isPlaying ? <Pause className="size-4 fill-white" /> : <Play className="size-4 fill-white ml-0.5" />}
+      </button>
+
+      {/* Timing */}
+      <span className="text-xs font-mono text-zinc-400 shrink-0 select-none">
+        {formatTime(currentTime)} / {formatTime(duration)}
+      </span>
+
+      {/* Progress Slider */}
+      <input
+        type="range"
+        min="0"
+        max={duration || 0}
+        step="0.05"
+        value={currentTime}
+        onChange={handleScrub}
+        className="flex-1 h-1 rounded-full bg-white/10 accent-cyan-300 cursor-pointer appearance-none focus:outline-none"
+      />
+
+      {/* Volume Mute */}
+      <button
+        type="button"
+        onClick={toggleMute}
+        className="flex size-8 items-center justify-center rounded-lg text-zinc-400 hover:text-white transition-colors shrink-0"
+      >
+        {isMuted ? <VolumeX className="size-4 text-red-400" /> : <Volume2 className="size-4" />}
+      </button>
+    </div>
+  );
 }
 
 export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
@@ -599,12 +710,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
                           <Download className="size-4" />
                         </button>
                       </div>
-                      <audio
-                        controls
-                        preload="metadata"
-                        src={track.url}
-                        className="h-10 w-full accent-cyan-300"
-                      />
+                      <CustomAudioPlayer src={track.url} accent={config.accent} />
                     </motion.div>
                   ))}
                 </div>
@@ -653,12 +759,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
                       <p className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-600">
                         Original
                       </p>
-                      <audio
-                        controls
-                        preload="metadata"
-                        src={sourceUrl}
-                        className="h-10 w-full"
-                      />
+                      <CustomAudioPlayer src={sourceUrl} accent={config.accent} />
                     </div>
                   )}
                   <button
