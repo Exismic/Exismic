@@ -67,34 +67,65 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing concept art image url/data." }, { status: 400 });
       }
 
-      console.log(`[Text-to-3D] Reconstructing 3D mesh (BG Removal: ${removeBg}, Marching Cubes: ${resolution})`);
+      console.log(`[Text-to-3D] Reconstructing 3D mesh via InstantMesh (BG Removal: ${removeBg})`);
+
+      // 1. Convert base64 imageUrl to Node Blob on the server to prevent fetch limitations
+      const base64Data = imageUrl.split(",")[1];
+      const buffer = Buffer.from(base64Data, "base64");
+      const blob = new Blob([buffer], { type: "image/png" });
 
       const connectOptions = hfToken ? { token: hfToken as `hf_${string}` } : {};
 
-      // 1. Connect to stabilityai/TripoSR space
-      const app = await Client.connect("stabilityai/TripoSR", connectOptions);
+      // 2. Connect to TencentARC/InstantMesh space
+      const app = await Client.connect("TencentARC/InstantMesh", connectOptions);
 
-      // 2. Call `/preprocess` to crop and strip backgrounds
-      console.log("[Text-to-3D] Running TripoSR Preprocess...");
-      const preprocessed: any = await app.predict("/preprocess", [
-        imageUrl,
-        removeBg,
-        parseFloat(foregroundRatio) || 0.85
-      ]);
+      const rootUrl = app.config?.root || "";
 
-      const preprocessedImage = preprocessed?.data?.[0];
-      if (!preprocessedImage) {
-        throw new Error("Failed to preprocess the concept art image.");
+      // 3. Upload the Blob file to the Gradio space hosting server first
+      console.log("[Text-to-3D] Uploading Blob to Gradio server...");
+      const uploadRes = await app.upload_files(rootUrl, [blob]);
+      if (!uploadRes.files || uploadRes.files.length === 0) {
+        throw new Error("Failed to upload concept art to 3D server.");
       }
 
-      // 3. Call `/generate` to create 3D assets
-      console.log("[Text-to-3D] Executing 3D Mesh Generation...");
-      const result: any = await app.predict("/generate", [
+      const uploadedFilePath = uploadRes.files[0];
+      const filePayload = {
+        path: uploadedFilePath,
+        url: `${rootUrl}/file=${uploadedFilePath}`,
+        orig_name: "concept.png",
+        meta: { _type: "gradio.FileData" }
+      };
+
+      // Step 3.1: Preprocess (Isolate background)
+      console.log("[Text-to-3D] Step 1: Preprocessing...");
+      const preprocessRes: any = await app.predict("/preprocess", [
+        filePayload,
+        !!removeBg
+      ]);
+      const preprocessedImage = preprocessRes?.data?.[0];
+      if (!preprocessedImage) {
+        throw new Error("Failed to isolate the object background.");
+      }
+
+      // Step 3.2: Generate Multiview Images (inputs: [6, 11, 10])
+      console.log("[Text-to-3D] Step 2: Generating Multiview Images (generate_mvs)...");
+      const mvsRes: any = await app.predict("/generate_mvs", [
         preprocessedImage,
-        parseInt(resolution) || 256
+        50, // Sample Steps (Slider 30-75)
+        42  // Seed Value (Number)
+      ]);
+      const mvsData = mvsRes?.data?.[0];
+      if (!mvsData) {
+        throw new Error("Failed to generate multiview shapes.");
+      }
+
+      // Step 3.3: Make 3D Model (inputs: [32])
+      console.log("[Text-to-3D] Step 3: Reconstructing 3D mesh (make3d)...");
+      const make3dRes: any = await app.predict("/make3d", [
+        mvsData
       ]);
 
-      const resultList = result?.data;
+      const resultList = make3dRes?.data;
       if (!resultList || resultList.length < 2) {
         throw new Error("3D model generator did not return valid mesh links.");
       }
