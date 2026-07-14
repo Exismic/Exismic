@@ -338,6 +338,14 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     requirements: ["Groq API credentials"],
     dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
+  "qr-generator": {
+    level: "operational",
+    label: "AI Powered",
+    headline: "Artistic controlnet diffusion",
+    description: "Exismic generates high-contrast QR codes and blends them with Stable Diffusion artwork via Hugging Face's serverless GPU inference pipeline.",
+    requirements: [],
+    dependencyGroups: [],
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {

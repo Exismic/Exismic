@@ -431,6 +431,28 @@ export const TOOLS: Tool[] = [
       "summarize youtube video ai"
     ]
   },
+  {
+    id: 'qr-generator',
+    name: 'Artistic AI QR Code',
+    description: 'Transform standard black-and-white QR codes into scannable, beautiful generative AI artwork.',
+    category: 'ai',
+    icon: 'QrCode' as IconName,
+    href: '/tools/qr-generator',
+    suggestions: ["Medieval castle oil painting","Cyberpunk neon street at night","Steampunk clockwork gear pattern"],
+    popular: true,
+    proPowerPack: true,
+    requiresFileUpload: false,
+    placeholderPrompt: 'Describe the art style you want (e.g. medieval castle on a hill, oil painting)...',
+    seoTitle: "Free Artistic AI QR Code Generator - Custom QR Art Online",
+    seoDescription: "Generate stunning scannable AI QR codes for free. Blend URLs with Stable Diffusion art using our free QR Code ControlNet generator.",
+    seoKeywords: [
+      "artistic ai qr code",
+      "ai qr code generator",
+      "stable diffusion qr code",
+      "controlnet qr code monster",
+      "custom qr art generator"
+    ]
+  },
 
   // Productivity Tools
   {
