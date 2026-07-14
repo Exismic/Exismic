@@ -529,9 +529,9 @@ export default function AmbientMixer() {
             accentColor="text-purple-400"
             steps={AUD_STEPS}
             stats={musicStreamUrl ? [
-              { label: "Audio Engine", value: "HTML5 Web Audio API" },
-              { label: "AI Music Model", value: "Meta MusicGen" },
-              { label: "Sound channels", value: "6 Active Streams" }
+              { label: "Mixing Console", value: "Exismic Studio Console" },
+              { label: "Acoustic Latent", value: "Exismic Music Engine" },
+              { label: "Channels Mixed", value: "6 Stereo Tracks" }
             ] : []}
           />
 
