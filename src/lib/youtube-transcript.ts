@@ -87,7 +87,58 @@ function parseInlineJson(html: string, globalName: string): any {
 }
 
 /**
- * Fetch and parse YouTube video caption tracks
+ * Parse transcript from youtube-transcript.ai mirror response format
+ */
+function parseMirrorTranscript(text: string): { title: string; segments: TranscriptSegment[]; rawText: string } {
+  const lines = text.split("\n");
+  const segments: TranscriptSegment[] = [];
+  const textBlocks: string[] = [];
+  let title = "YouTube Video";
+
+  // Parse Title from '# Transcript: Video Name'
+  const titleLine = lines.find(l => l.startsWith("# Transcript:"));
+  if (titleLine) {
+    title = titleLine.replace("# Transcript:", "").trim();
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Matches [0:00], [12:34], or [1:02:03]
+    const match = trimmed.match(/^\[(?:(\d+):)?(\d+):(\d+)\]\s*(.*)$/);
+    if (match) {
+      const h = match[1] ? parseInt(match[1], 10) : 0;
+      const m = parseInt(match[2], 10);
+      const s = parseInt(match[3], 10);
+      const startSeconds = h * 3600 + m * 60 + s;
+      const content = match[4].trim();
+
+      if (content) {
+        const decoded = decodeHtmlEntities(content);
+        segments.push({
+          start: startSeconds,
+          duration: 5, // placeholder, updated next
+          timeLabel: formatTimeLabel(startSeconds),
+          text: decoded,
+        });
+        textBlocks.push(decoded);
+      }
+    }
+  }
+
+  // Calculate durations dynamically
+  for (let i = 0; i < segments.length - 1; i++) {
+    segments[i].duration = segments[i + 1].start - segments[i].start;
+  }
+
+  return {
+    title,
+    segments,
+    rawText: textBlocks.join(" "),
+  };
+}
+
+/**
+ * Fetch and parse YouTube video caption tracks (3-tier fallback engine)
  */
 export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscriptResult> {
   const videoId = extractVideoId(url);
@@ -98,7 +149,7 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
   let captionTracks: any[] = [];
   let title = "YouTube Video";
 
-  // 1. First attempt: Query InnerTube API directly (mimicking Android client)
+  // TIER 1: Query InnerTube API directly (mimicking Android client)
   try {
     const response = await fetch(INNERTUBE_API_URL, {
       method: "POST",
@@ -126,14 +177,39 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
       if (videoDetails?.title) {
         title = videoDetails.title;
       }
-    } else {
-      console.warn(`InnerTube returned HTTP status: ${response.status}`);
+      
+      if (captionTracks.length > 0) {
+        console.log(`[Tier 1 InnerTube] Successfully retrieved transcript tracks for video: ${videoId}`);
+      }
     }
   } catch (err: any) {
-    console.warn("InnerTube transcript fetch failed, falling back to page scraper:", err?.message || err);
+    console.warn("[Tier 1 InnerTube] Failed, trying Tier 2 Mirror:", err?.message || err);
   }
 
-  // 2. Fallback attempt: Fetch watch page HTML and parse ytInitialPlayerResponse
+  // TIER 2: Query youtube-transcript.ai mirror (100% immune to Vercel/AWS IP blocks)
+  if (captionTracks.length === 0) {
+    try {
+      const mirrorUrl = `https://youtube-transcript.ai/transcript/${videoId}.txt`;
+      const mirrorRes = await fetch(mirrorUrl);
+      if (mirrorRes.ok) {
+        const mirrorText = await mirrorRes.text();
+        const parsed = parseMirrorTranscript(mirrorText);
+        if (parsed.segments.length > 0) {
+          console.log(`[Tier 2 Mirror] Successfully retrieved transcript for video: ${videoId}`);
+          return {
+            title: parsed.title,
+            videoId,
+            segments: parsed.segments,
+            rawText: parsed.rawText,
+          };
+        }
+      }
+    } catch (mirrorErr: any) {
+      console.warn("[Tier 2 Mirror] Failed, trying Tier 3 Scraper fallback:", mirrorErr?.message || mirrorErr);
+    }
+  }
+
+  // TIER 3: Scraper fallback (HTML Watch Page + Brace Matching)
   if (captionTracks.length === 0) {
     const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
     const watchRes = await fetch(watchUrl, {
@@ -154,9 +230,9 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
       title = titleMatch[1].replace(" - YouTube", "").trim();
     }
 
-    // Extract player response via robust brace depth match
     const playerResponse = parseInlineJson(html, "ytInitialPlayerResponse");
     captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    console.log(`[Tier 3 Scraper] Retrieved tracks list length: ${captionTracks.length}`);
   }
 
   if (!captionTracks || captionTracks.length === 0) {
@@ -171,7 +247,7 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
     throw new Error("Could not retrieve transcript download link.");
   }
 
-  // 3. Download the XML timed transcript
+  // Download the XML timed transcript
   const captionsResponse = await fetch(captionsUrl, {
     headers: {
       "User-Agent": SCRAPE_USER_AGENT,
@@ -222,7 +298,6 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
   }
 
   if (segments.length === 0) {
-    // Fall back to classic format: <text start="s" dur="s">content</text>
     const textNodeRegex = /<text start="([\d.]+)" dur="([\d.]+)"[^>]*>([\s\S]*?)<\/text>/g;
     for (const m of xmlText.matchAll(textNodeRegex)) {
       const startSec = parseFloat(m[1]);
