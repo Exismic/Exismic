@@ -453,7 +453,7 @@ export const TOOLS: Tool[] = [
       "custom qr art generator"
     ]
   },
-  {
+/*  {
     id: 'text-to-3d',
     name: 'Text-to-3D Generator',
     description: 'Transform your text descriptions into fully textured, interactive 3D model meshes (GLB format).',
@@ -475,7 +475,7 @@ export const TOOLS: Tool[] = [
       "create glb mesh from text",
       "3d asset generator free"
     ]
-  },
+  },*/
   {
     id: 'ambient-mixer',
     name: 'Cinematic Ambient Mixer',
