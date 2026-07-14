@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
-import potrace from "potrace";
+
+// WORKAROUND: Jimp v1 exports its main constructor class inside a nested namespace export.
+// Older libraries like potrace do require('jimp') expecting the constructor directly, 
+// causing "Right-hand side of 'instanceof' is not callable" errors.
+// We intercept Node's require cache and override it before potrace loads.
+try {
+  const jimpModule = require("jimp");
+  if (jimpModule && !jimpModule.prototype && jimpModule.Jimp) {
+    const mockJimp = jimpModule.Jimp;
+    Object.assign(mockJimp, jimpModule); // copy helper namespace functions
+    const resolvedPath = require.resolve("jimp");
+    require.cache[resolvedPath] = {
+      id: resolvedPath,
+      filename: resolvedPath,
+      loaded: true,
+      exports: mockJimp,
+      paths: [],
+      children: [],
+      parent: null
+    } as any;
+  }
+} catch (e) {
+  console.warn("Could not patch Jimp module resolution:", e);
+}
+
+// Load potrace dynamically after the patch is in place
+const potrace = require("potrace");
 
 /**
  * Image Vectorizer (Raster to SVG converter) API Route
@@ -52,7 +78,7 @@ export async function POST(req: NextRequest) {
           background,
           turnPolicy,
         },
-        (err, svgString) => {
+        (err: any, svgString: string) => {
           if (err) {
             reject(err);
           } else {
