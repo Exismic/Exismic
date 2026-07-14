@@ -1,5 +1,3 @@
-import { YoutubeTranscript } from "youtube-transcript";
-
 export interface TranscriptSegment {
   start: number;
   duration: number;
@@ -13,6 +11,12 @@ export interface YouTubeTranscriptResult {
   segments: TranscriptSegment[];
   rawText: string;
 }
+
+const INNERTUBE_API_URL = "https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
+const INNERTUBE_CLIENT_VERSION = "20.10.38";
+const INNERTUBE_USER_AGENT = `com.google.android.youtube/${INNERTUBE_CLIENT_VERSION} (Linux; U; Android 14)`;
+
+const SCRAPE_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36,gzip(gfe)";
 
 /**
  * Extract YouTube Video ID from any standard link
@@ -46,11 +50,49 @@ function decodeHtmlEntities(html: string): string {
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
     .replace(/&#x2F;/g, "/")
-    .replace(/&nbsp;/g, " ");
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)));
 }
 
 /**
- * Fetch and parse YouTube video caption tracks using standard library
+ * Extract JSON object assigned to a global variable in inline script tags
+ */
+function parseInlineJson(html: string, globalName: string): any {
+  // Matches "var Name = {", "window['Name'] = {", "window.Name = {", or "Name = {"
+  const regex = new RegExp(`(?:var\\s+|window\\[['"]|window\\.)?${globalName}(?:['"]\\])?\\s*=\\s*({.+?});`);
+  const match = html.match(regex);
+  if (match && match[1]) {
+    try {
+      return JSON.parse(match[1]);
+    } catch (e) {
+      // Fallback manual match bracket depth parse
+      const startToken = match[0].split("{")[0];
+      const startIndex = html.indexOf(startToken);
+      if (startIndex !== -1) {
+        const jsonStart = startIndex + startToken.length - 1;
+        let depth = 0;
+        for (let i = jsonStart; i < html.length; i++) {
+          if (html[i] === "{") depth++;
+          else if (html[i] === "}") {
+            depth--;
+            if (depth === 0) {
+              try {
+                return JSON.parse(html.slice(jsonStart, i + 1));
+              } catch {
+                return null;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Fetch and parse YouTube video caption tracks
  */
 export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscriptResult> {
   const videoId = extractVideoId(url);
@@ -58,63 +100,152 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
     throw new Error("Invalid YouTube URL. Please provide a valid video link.");
   }
 
-  // 1. Fetch the watch page HTML to extract the Video Title
-  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  let captionTracks: any[] = [];
   let title = "YouTube Video";
+
+  // 1. First attempt: Query InnerTube API directly (mimicking Android client)
   try {
-    const watchResponse = await fetch(watchUrl, {
+    const response = await fetch(INNERTUBE_API_URL, {
+      method: "POST",
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Content-Type": "application/json",
+        "User-Agent": INNERTUBE_USER_AGENT,
       },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: "ANDROID",
+            clientVersion: INNERTUBE_CLIENT_VERSION,
+            hl: "en",
+            gl: "US",
+          },
+        },
+        videoId: videoId,
+      }),
     });
-    if (watchResponse.ok) {
-      const html = await watchResponse.text();
-      const titleMatch = html.match(/<title>([\s\S]*?)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        title = titleMatch[1].replace(" - YouTube", "").trim();
+
+    if (response.ok) {
+      const data = await response.json();
+      captionTracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+      const videoDetails = data?.videoDetails;
+      if (videoDetails?.title) {
+        title = videoDetails.title;
       }
     }
-  } catch (titleError) {
-    console.error("Failed to parse video title, using default:", titleError);
+  } catch (err) {
+    console.warn("InnerTube transcript fetch failed, falling back to page scraper:", err);
   }
 
-  // 2. Fetch the transcript using youtube-transcript package
-  let rawSegments: any[] = [];
-  try {
-    // Attempt to retrieve English transcript first
-    rawSegments = await YoutubeTranscript.fetchTranscript(videoId, { lang: "en" });
-  } catch (enError) {
-    console.warn("English transcript not found, fetching default available track:", enError);
-    try {
-      // Fallback to whatever track is default/available
-      rawSegments = await YoutubeTranscript.fetchTranscript(videoId);
-    } catch (anyError: any) {
-      throw new Error(`Failed to fetch video subtitles: ${anyError.message || "No captions available for this video."}`);
+  // 2. Fallback attempt: Fetch watch page HTML and parse ytInitialPlayerResponse
+  if (captionTracks.length === 0) {
+    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const watchRes = await fetch(watchUrl, {
+      headers: {
+        "User-Agent": SCRAPE_USER_AGENT,
+      },
+    });
+
+    if (!watchRes.ok) {
+      throw new Error(`Failed to load YouTube watch page (Status ${watchRes.status})`);
     }
+
+    const html = await watchRes.text();
+
+    // Parse title
+    const titleMatch = html.match(/<title>([\s\S]*?)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+      title = titleMatch[1].replace(" - YouTube", "").trim();
+    }
+
+    // Extract player response
+    const playerResponse = parseInlineJson(html, "ytInitialPlayerResponse");
+    captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
   }
 
-  if (!rawSegments || rawSegments.length === 0) {
-    throw new Error("Transcript returned empty lines.");
+  if (!captionTracks || captionTracks.length === 0) {
+    throw new Error("Transcripts are disabled or unavailable for this video.");
   }
 
-  // 3. Format and clean segments
+  // Find preferred English track or fallback to first available
+  const preferredTrack = captionTracks.find((t: any) => t.languageCode === "en") || captionTracks[0];
+  const captionsUrl = preferredTrack.baseUrl;
+
+  if (!captionsUrl) {
+    throw new Error("Could not retrieve transcript download link.");
+  }
+
+  // 3. Download the XML timed transcript
+  const captionsResponse = await fetch(captionsUrl, {
+    headers: {
+      "User-Agent": SCRAPE_USER_AGENT,
+    },
+  });
+
+  if (!captionsResponse.ok) {
+    throw new Error("Failed to download caption tracks from YouTube servers.");
+  }
+
+  const xmlText = await captionsResponse.ok ? await captionsResponse.text() : "";
+  if (!xmlText) {
+    throw new Error("Subtitles download returned empty response.");
+  }
+
   const segments: TranscriptSegment[] = [];
   const textBlocks: string[] = [];
 
-  for (const seg of rawSegments) {
-    const startSeconds = seg.offset / 1000;
-    const durSeconds = seg.duration / 1000;
-    const cleanText = decodeHtmlEntities(seg.text.replace(/<[^>]*>/g, "").trim());
-
+  // Parse XML (supports both srv3 format <p t="..."> and classic format <text start="...">)
+  const pRegex = /<p\s+t="(\d+)"\s+d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g;
+  let match;
+  while ((match = pRegex.exec(xmlText)) !== null) {
+    const startMs = parseInt(match[1], 10);
+    const durMs = parseInt(match[2], 10);
+    const inner = match[3];
+    
+    let text = "";
+    const sRegex = /<s[^>]*>([^<]*)<\/s>/g;
+    let sMatch;
+    while ((sMatch = sRegex.exec(inner)) !== null) {
+      text += sMatch[1];
+    }
+    if (!text) {
+      text = inner.replace(/<[^>]+>/g, "");
+    }
+    
+    const cleanText = decodeHtmlEntities(text.trim());
     if (cleanText) {
+      const startSec = startMs / 1000;
       segments.push({
-        start: startSeconds,
-        duration: durSeconds,
-        timeLabel: formatTimeLabel(startSeconds),
+        start: startSec,
+        duration: durMs / 1000,
+        timeLabel: formatTimeLabel(startSec),
         text: cleanText,
       });
       textBlocks.push(cleanText);
     }
+  }
+
+  if (segments.length === 0) {
+    // Fall back to classic format: <text start="s" dur="s">content</text>
+    const textNodeRegex = /<text start="([\d.]+)" dur="([\d.]+)"[^>]*>([\s\S]*?)<\/text>/g;
+    for (const m of xmlText.matchAll(textNodeRegex)) {
+      const startSec = parseFloat(m[1]);
+      const durSec = parseFloat(m[2]);
+      const cleanText = decodeHtmlEntities(m[3].replace(/<[^>]*>/g, "").trim());
+
+      if (cleanText) {
+        segments.push({
+          start: startSec,
+          duration: durSec,
+          timeLabel: formatTimeLabel(startSec),
+          text: cleanText,
+        });
+        textBlocks.push(cleanText);
+      }
+    }
+  }
+
+  if (segments.length === 0) {
+    throw new Error("Transcript tracks were fetched but contained no readable text data.");
   }
 
   return {
