@@ -257,6 +257,30 @@ export const TOOLS: Tool[] = [
     suggestions: ["How do I make my voice sound like a robot?","Will it preserve my original emotion and pitch?","Does it work in real-time?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Voice Changer Online - Change Your Voice Instantly Free" },
   { id: 'audio-music-gen', name: 'AI Music Generator', description: 'Compose completely original music tracks simply by describing the genre, mood, and instruments.', category: 'audio', icon: 'Music' as IconName, href: '/tools/audio/music-gen', indexable: false,
     suggestions: ["Help me describe a lo-fi hip hop beat","How do I make the track longer?","Can I specify the tempo or BPM?"], popular: true, pro: true, isProTool: true, requiresFileUpload: false, placeholderPrompt: 'Describe what kind of music you want...', seoTitle: "AI Music Generator - Create Original Music from Text Online" },
+  {
+    id: 'sfx-generator',
+    name: 'AI Sound Effects',
+    description: 'Generate high-quality custom sound effects for videos, games, or apps using text prompts.',
+    category: 'audio',
+    icon: 'AudioWaveform' as IconName,
+    href: '/tools/sfx-generator',
+    suggestions: ["What description works best for sci-fi laser sound?","Can I specify the echo or reverb length?","How do I make a retro 8-bit jump sound?"],
+    popular: true,
+    requiresFileUpload: false,
+    placeholderPrompt: 'Describe the sound effect you want (e.g., retro 8-bit game jump, sword clash)...',
+    seoTitle: "Free AI Sound Effects Generator - Create Audio SFX Online",
+    seoDescription: "Instantly generate custom, royalty-free sound effects using AI. Enter any description to create game assets, video effects, and audio clips.",
+    seoKeywords: [
+      "ai sound effects generator",
+      "free sfx generator",
+      "text to sound effects",
+      "royalty free sound effects ai",
+      "game sound effects generator",
+      "foley sound effect maker online",
+      "free sound effects creator",
+      "elevenlabs sound effects generator"
+    ]
+  },
 
   // PDF Tools
   { id: 'pdf-merger', name: 'PDF Merger', description: 'Combine multiple PDF documents into a single, beautifully organized file with ease.', category: 'pdf', icon: 'Layers' as IconName, href: '/tools/pdf/merger',
@@ -408,8 +432,19 @@ export const TOOLS: Tool[] = [
     proPowerPack: true,
     requiresFileUpload: true,
     acceptedFileTypes: ['application/pdf'],
-    seoTitle: "Free AI Resume Scanner & ATS Analyzer - Optimize Your Resume",
-    seoDescription: "Upload your resume and a job description to instantly get an ATS score, identify missing keywords, and get tailored AI-driven suggestions to land more interviews."
+    seoTitle: "Free AI Resume Scanner & ATS Checker Online | Exismic",
+    seoDescription: "Upload your PDF resume and target job description to get a free ATS compatibility score. Match key terms, find missing keywords, and optimize your resume to pass corporate filters.",
+    seoKeywords: [
+      "ats resume checker",
+      "free ats scanner",
+      "resume optimizer for job description",
+      "ats compatibility check",
+      "resume ats score online",
+      "how to make resume ats friendly",
+      "free resume scanner",
+      "ats resume analyzer",
+      "job match resume checker"
+    ]
   },
   { 
     id: 'invoice-generator', 

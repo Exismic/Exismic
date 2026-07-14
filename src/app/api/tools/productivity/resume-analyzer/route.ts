@@ -28,7 +28,7 @@ function extractJson(content: string) {
   }
 }
 
-async function callGroq(messages: GroqMessage[]) {
+async function callGroq(messages: GroqMessage[], jsonMode = true) {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
   const keys = rawKeys.split(",").map((key) => key.trim()).filter(Boolean);
   if (!keys.length) {
@@ -38,9 +38,9 @@ async function callGroq(messages: GroqMessage[]) {
   const body = {
     model: MODEL,
     messages,
-    temperature: 0.2,
+    temperature: jsonMode ? 0.2 : 0.65,
     max_tokens: 2200,
-    response_format: { type: "json_object" },
+    ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
   };
 
   let lastError: unknown = null;
@@ -73,6 +73,28 @@ async function callGroq(messages: GroqMessage[]) {
   }
 
   throw lastError instanceof Error ? lastError : new Error("All Groq keys failed.");
+}
+
+function buildJobDescriptionPrompt(resumeText: string) {
+  return `Based on the following candidate's resume, determine their primary field of work (e.g. frontend developer, graphic designer, product manager) and experience level.
+  Then, generate a typical, highly realistic corporate Job Description that this candidate would target.
+
+  Format the response as clean, raw text with the following outline:
+  Target Job Title: [Role Name]
+  
+  About the Role:
+  [Describe typical company environment and role goals]
+  
+  Key Responsibilities:
+  - [4 to 6 typical responsibilities]
+  
+  Required Skills & Qualifications:
+  - [4 to 6 core tech skills / qualifications]
+
+  Resume Content:
+  ${resumeText}
+
+  Return ONLY the generated job description. Do not write any conversational preamble, notes, or intros.`;
 }
 
 function buildAtsPrompt(resumeText: string, jobDescription: string) {
@@ -112,15 +134,11 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const action = formData.get("action") as string | null;
     const rawJobDescription = formData.get("jobDescription") as string | null;
 
     if (!file || file.size === 0) {
       return NextResponse.json({ error: "Please upload a valid PDF resume file." }, { status: 400 });
-    }
-
-    const jobDescription = sanitizeText(rawJobDescription || "", "", 8000);
-    if (jobDescription.length < 20) {
-      return NextResponse.json({ error: "Please provide a target job description (at least 20 characters)." }, { status: 400 });
     }
 
     // Parse the PDF buffer using pdf-parse
@@ -131,8 +149,23 @@ export async function POST(req: NextRequest) {
     });
 
     const resumeText = sanitizeText(pdfData.text, "", 10000);
-    if (resumeText.length < 100) {
-      return NextResponse.json({ error: "Your resume contains too little readable text. Please ensure it is not scanned/image-only." }, { status: 400 });
+    if (!resumeText.trim()) {
+      return NextResponse.json({ error: "Your resume does not contain any readable text. Please ensure it is not scanned/image-only." }, { status: 400 });
+    }
+
+    if (action === "generate-job-description") {
+      const systemPrompt = "You are a corporate recruiter drafting a job post targeting suitable applicants. Return only the job description.";
+      const userPrompt = buildJobDescriptionPrompt(resumeText);
+      const completion = await callGroq([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ], false);
+      return NextResponse.json({ success: true, jobDescription: completion });
+    }
+
+    const jobDescription = sanitizeText(rawJobDescription || "", "", 8000);
+    if (jobDescription.length < 20) {
+      return NextResponse.json({ error: "Please provide a target job description (at least 20 characters)." }, { status: 400 });
     }
 
     const systemPrompt = "You are Exismic AI, an expert ATS parsing and corporate hiring consultant. Return clean, valid JSON only.";
@@ -141,7 +174,7 @@ export async function POST(req: NextRequest) {
     const completion = await callGroq([
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
-    ]);
+    ], true);
 
     const result = extractJson(completion);
     return NextResponse.json({ success: true, result });

@@ -309,6 +309,14 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     requirements: ["Language model credentials"],
     dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
+  "sfx-generator": {
+    ...SERVICE_BACKED,
+    label: "AI Powered",
+    headline: "Sound effects generation",
+    description: "Exismic interfaces with ElevenLabs audio models to generate high-fidelity sound clips from your text descriptions.",
+    requirements: ["ElevenLabs API credentials"],
+    dependencyGroups: [{ label: "Voice synthesis engine", env: ["ELEVENLABS_API_KEY"] }],
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {
