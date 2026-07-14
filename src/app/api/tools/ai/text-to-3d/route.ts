@@ -28,22 +28,25 @@ export async function POST(req: NextRequest) {
 
       console.log(`[Text-to-3D] Generating 2D Concept Art for: "${prompt}"`);
 
-      // 1. Call Hugging Face Serverless Inference API with Axios using sdxl-turbo for real-time <1s responses
-      const modelUrl = "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo";
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (hfToken) {
-        headers["Authorization"] = `Bearer ${hfToken}`;
+      // 1. Connect to ap123/SDXL-Lightning space via Gradio Client
+      const connectOptions = hfToken ? { token: hfToken as `hf_${string}` } : {};
+      const app = await Client.connect("ap123/SDXL-Lightning", connectOptions);
+
+      console.log("[Text-to-3D] Querying SDXL-Lightning Space...");
+      const result: any = await app.predict("/generate_image", [
+        prompt,
+        "4-Step" // Inference steps: 1-Step, 2-Step, 4-Step, 8-Step
+      ]);
+
+      const conceptImageUrl = result?.data?.[0]?.url;
+      if (!conceptImageUrl) {
+        throw new Error("Failed to generate concept art from SDXL-Lightning.");
       }
 
-      console.log("[Text-to-3D] Querying sdxl-turbo via Axios...");
-      const response = await axios.post(modelUrl, {
-        inputs: prompt
-      }, {
-        headers,
-        responseType: "arraybuffer"
-      });
-
-      const base64Image = Buffer.from(response.data).toString("base64");
+      // 2. Fetch the generated image and convert it to base64
+      console.log("[Text-to-3D] Fetching generated concept image...");
+      const imageRes = await axios.get(conceptImageUrl, { responseType: "arraybuffer" });
+      const base64Image = Buffer.from(imageRes.data).toString("base64");
       const dataUrl = `data:image/png;base64,${base64Image}`;
 
       return NextResponse.json({ image: dataUrl });
