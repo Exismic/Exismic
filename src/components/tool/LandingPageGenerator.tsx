@@ -229,7 +229,7 @@ export default function LandingPageGenerator() {
                     >
                       <div className="p-6 pt-0 border-t border-white/5 mt-6 space-y-4">
                         <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 block">Design Style Tone</label>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {[
                             { id: "modern", name: "Modern Dark", desc: "Dark mode SaaS look" },
                             { id: "minimalist", name: "Clean Light", desc: "Sleek, bright tech style" },
@@ -373,7 +373,7 @@ export default function LandingPageGenerator() {
                             width: viewport === "desktop" ? "100%" : viewport === "tablet" ? "768px" : "375px" 
                           }}
                           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                          className="h-[550px] overflow-hidden rounded-2xl bg-[#08080a] shadow-2xl relative"
+                          className="h-[550px] max-w-full overflow-hidden rounded-2xl bg-[#08080a] shadow-2xl relative"
                         >
                           <iframe 
                             srcDoc={htmlOutput}
