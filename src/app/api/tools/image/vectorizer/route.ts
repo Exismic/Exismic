@@ -1,35 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
+import sharp from "sharp";
 
-// WORKAROUND: Jimp v1 exports its main constructor class inside a nested namespace export.
-// Older libraries like potrace do require('jimp') expecting the constructor directly, 
-// causing "Right-hand side of 'instanceof' is not callable" errors.
-// We intercept Node's require cache and override it before potrace loads.
-try {
-  const jimpModule = require("jimp");
-  if (jimpModule && !jimpModule.prototype && jimpModule.Jimp) {
-    const mockJimp = jimpModule.Jimp;
-    Object.assign(mockJimp, jimpModule); // copy helper namespace functions
-    const resolvedPath = require.resolve("jimp");
-    require.cache[resolvedPath] = {
-      id: resolvedPath,
-      filename: resolvedPath,
-      loaded: true,
-      exports: mockJimp,
-      paths: [],
-      children: [],
-      parent: null
-    } as any;
-  }
-} catch (e) {
-  console.warn("Could not patch Jimp module resolution:", e);
-}
-
-// Load potrace dynamically after the patch is in place
-const potrace = require("potrace");
+// Import Potrace classes directly
+const Potrace = require("potrace").Potrace;
+const Bitmap = require("potrace/lib/types/Bitmap");
 
 /**
  * Image Vectorizer (Raster to SVG converter) API Route
+ * Bypasses Jimp using sharp for high-performance pixel extraction.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -62,31 +41,59 @@ export async function POST(req: NextRequest) {
     const turnVal = formData.get("turnPolicy");
     const turnPolicy = typeof turnVal === "string" ? turnVal.trim() : "minority";
 
-    // Convert uploaded file into a node buffer
+    // Convert uploaded file into a buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     console.log(`Vectorizing file: "${file.name}" (Threshold: ${threshold}, Color: ${color}, BG: ${background}, Policy: ${turnPolicy})`);
 
-    // Promisify the potrace tracing algorithm
-    const svgContent = await new Promise<string>((resolve, reject) => {
-      potrace.trace(
-        buffer,
-        {
-          threshold,
-          color,
-          background,
-          turnPolicy,
-        },
-        (err: any, svgString: string) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(svgString);
-          }
-        }
-      );
+    // 1. Extract raw pixels, width, and height using sharp
+    const { data: rawPixels, info } = await sharp(buffer)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const { width, height, channels } = info;
+
+    // 2. Instantiate Potrace's internal Bitmap class
+    const bitmap = new Bitmap(width, height);
+
+    // 3. Convert raw RGB/RGBA pixels to grayscale luminance values
+    for (let i = 0; i < bitmap.size; i++) {
+      const idx = i * channels;
+      const r = rawPixels[idx];
+      const g = rawPixels[idx + 1];
+      const b = rawPixels[idx + 2];
+      
+      // Blend background (assuming white background behind transparency)
+      let opacity = 1;
+      if (channels === 4) {
+        opacity = rawPixels[idx + 3] / 255;
+      }
+      
+      const blendedR = 255 + (r - 255) * opacity;
+      const blendedG = 255 + (g - 255) * opacity;
+      const blendedB = 255 + (b - 255) * opacity;
+      
+      // Grayscale luminance formula: 0.2126 * R + 0.7152 * G + 0.0722 * B
+      const lum = 0.2126 * blendedR + 0.7152 * blendedG + 0.0722 * blendedB;
+      bitmap.data[i] = Math.round(lum);
+    }
+
+    // 4. Instantiate Potrace and trace the bitmap directly
+    const traceInstance = new Potrace({
+      threshold,
+      color,
+      background,
+      turnPolicy,
     });
+
+    // Manually assign computed luminance data to bypass potrace's internal Jimp loaders
+    traceInstance._luminanceData = bitmap;
+    traceInstance._imageLoaded = true;
+    traceInstance._processed = false;
+
+    // 5. Get the SVG output string
+    const svgContent = traceInstance.getSVG();
 
     return new NextResponse(svgContent, {
       headers: {
