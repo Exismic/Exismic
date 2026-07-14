@@ -203,6 +203,28 @@ export const TOOLS: Tool[] = [
     suggestions: ["Can it fix heavily blurred faces?","How does it handle torn or damaged photos?","Will it add color to black and white photos?"], proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "AI Photo Restorer Online - Fix Old, Blurry or Damaged Photos Free" },
   { id: 'watermark-remover', name: 'Watermark Remover', description: "Seamlessly remove watermarks, text, or logos from your images without leaving any traces.", category: 'image', icon: 'Wand2' as IconName, href: '/tools/image/watermark-remover',
     suggestions: ["Can it remove large transparent text?","Will the removed area look blurry?","How does it handle watermarks on complex backgrounds?"], proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Watermark Remover Online - Remove Text & Logos from Images" },
+  {
+    id: 'svg-vectorizer',
+    name: 'Image Vectorizer',
+    description: 'Convert bitmap images like JPG and PNG into scalable vector graphics (SVG) using server-side contour tracing.',
+    category: 'image',
+    icon: 'Maximize' as IconName,
+    href: '/tools/image/vectorizer',
+    suggestions: ["How do I vectorize a logo?","Can I download the SVG directly?","What are the best image parameters for tracing?"],
+    requiresFileUpload: true,
+    acceptedFileTypes: ['image/*'],
+    seoTitle: "Free Image to Vector SVG Converter Online | Exismic",
+    seoDescription: "Instantly convert JPG, PNG, and WEBP images into editable, scalable vector graphics (SVG). Fast, free, and runs entirely in your browser session.",
+    seoKeywords: [
+      "image to vector converter",
+      "convert png to svg free",
+      "convert jpg to svg",
+      "vectorize image online",
+      "free vectorizer",
+      "png to vector svg",
+      "raster to vector trace"
+    ]
+  },
   { id: 'image-collage', name: 'Collage Maker', description: 'Combine multiple photos into beautiful, customizable collage layouts for social media or printing.', category: 'image', icon: 'LayoutGrid' as IconName, href: '/tools/image/collage',
     suggestions: ["What are the best layouts for Instagram stories?","How do I add borders between images?","Can I adjust the spacing between photos?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Online Collage Maker - Create Photo Grids & Layouts Instantly" },
   { id: 'image-minecraft-skin', name: 'AI Minecraft Skin Maker', description: 'Design valid 64x64 Minecraft skins with AI prompts and preview them instantly in a 3D environment.', category: 'image', icon: 'Box' as IconName, href: '/tools/image/minecraft-skin',

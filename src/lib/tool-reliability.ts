@@ -317,6 +317,11 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     requirements: ["ElevenLabs API credentials"],
     dependencyGroups: [{ label: "Voice synthesis engine", env: ["ELEVENLABS_API_KEY"] }],
   },
+  "svg-vectorizer": {
+    ...SERVER_PROCESSED,
+    headline: "Raster-to-Vector Tracing",
+    description: "Exismic runs vector contour tracing locally on the server to convert your PNG/JPG bitmaps into fully scalable SVG graphics.",
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {
