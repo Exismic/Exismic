@@ -387,6 +387,28 @@ export const TOOLS: Tool[] = [
     seoTitle: "AI Screenshot to Code - Convert UI Designs to React & Tailwind Online",
     seoDescription: "The most powerful AI screenshot to code converter. Transform UI designs, website screenshots, and hand-drawn sketches into production-ready React and Tailwind CSS code."
   },
+  {
+    id: 'landing-page-generator',
+    name: 'AI Landing Page',
+    description: 'Instantly generate fully styled, responsive landing page drafts and HTML templates from text prompts.',
+    category: 'ai',
+    icon: 'Layout' as IconName,
+    href: '/tools/landing-page-generator',
+    suggestions: ["Dark-themed SaaS dashboard","Fitness tracker app landing page","Creative agency portfolio website"],
+    popular: true,
+    proPowerPack: true,
+    requiresFileUpload: false,
+    placeholderPrompt: 'Describe the landing page you want to generate (e.g., modern dark themed SaaS dashboard)...',
+    seoTitle: "Free AI Landing Page Generator - Create HTML Templates Online",
+    seoDescription: "Generate professional, responsive landing page drafts instantly with AI. Customize with prompts, preview in real time, and copy code.",
+    seoKeywords: [
+      "ai landing page generator",
+      "generate html template ai",
+      "free website generator",
+      "prompt to landing page",
+      "free html template maker"
+    ]
+  },
 
   // Productivity Tools
   {

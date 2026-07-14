@@ -322,6 +322,14 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     headline: "Raster-to-Vector Tracing",
     description: "Exismic runs vector contour tracing locally on the server to convert your PNG/JPG bitmaps into fully scalable SVG graphics.",
   },
+  "landing-page-generator": {
+    ...SERVICE_BACKED,
+    label: "AI Powered",
+    headline: "Page synthesis engine",
+    description: "Exismic queries Groq's high-performance LLMs to construct clean, modular, and fully styled Tailwind HTML templates from your prompts.",
+    requirements: ["Groq API credentials"],
+    dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {
