@@ -453,6 +453,28 @@ export const TOOLS: Tool[] = [
       "custom qr art generator"
     ]
   },
+  {
+    id: 'ambient-mixer',
+    name: 'Cinematic Ambient Mixer',
+    description: 'Mix custom ambient soundscapes for study, work, or relaxation combined with AI-generated backing loops.',
+    category: 'audio',
+    icon: 'Music' as IconName,
+    href: '/tools/ambient-mixer',
+    suggestions: ["Cyberpunk coffee shop in the rain","Lofi beats on a spaceship library","Warm fireplace in a cozy cabin study"],
+    popular: true,
+    proPowerPack: true,
+    requiresFileUpload: false,
+    placeholderPrompt: 'Describe the style of background music you want (e.g. relaxing lofi piano, retro synthwave ambient)...',
+    seoTitle: "Free Cinematic Ambient Mixer - Custom Audio Soundscapes",
+    seoDescription: "Create the perfect audio atmosphere for studying or relaxing. Blend rain, fire, and cafe sounds with custom AI-generated music loops.",
+    seoKeywords: [
+      "ambient soundscape mixer",
+      "relaxing study sounds",
+      "ai music generator",
+      "custom ambient noise machine",
+      "ambient soundboard mixer"
+    ]
+  },
 
   // Productivity Tools
   {
