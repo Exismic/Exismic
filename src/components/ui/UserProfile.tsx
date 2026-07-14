@@ -111,7 +111,7 @@ export function UserProfile({
           {/* Name & Plan Info with luxurious high-contrast typography */}
           {!isCompact && (
             <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-              <div className="text-[14.5px] font-black font-sans text-zinc-100 tracking-wide leading-none truncate group-hover:text-white transition-colors duration-300 drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.6)]">
+              <div className="text-[14.5px] font-black font-sans text-zinc-100 tracking-wide leading-normal py-0.5 truncate group-hover:text-white transition-colors duration-300 drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.6)]">
                 <PremiumName name={displayName} isPro={isPro} gradientId={gradientId} />
               </div>
               <div className="flex items-center gap-1.5">
@@ -162,7 +162,7 @@ export function UserProfile({
         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1200 ease-out pointer-events-none" />
 
         <div className="hidden md:flex flex-col items-end justify-center min-w-0 pr-1 space-y-1">
-          <span className="text-xs font-sans tracking-wide leading-none truncate uppercase">
+          <span className="text-xs font-sans tracking-wide leading-normal py-0.5 truncate uppercase">
             <PremiumName name={displayName.split(" ")[0]} isPro={isPro} gradientId={gradientId} className="font-extrabold text-zinc-100 group-hover:text-white transition-colors duration-300" />
           </span>
           {isPro ? (
@@ -216,7 +216,7 @@ export function UserProfile({
       </div>
       
       <div className="space-y-2 relative z-10">
-        <h3 className="text-2xl font-sans tracking-wide uppercase leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+        <h3 className="text-2xl font-sans tracking-wide uppercase leading-normal py-0.5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
           <PremiumName name={displayName} isPro={isPro} gradientId={gradientId} className="font-extrabold text-white tracking-tighter" />
         </h3>
         <p className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase opacity-80 select-all font-mono bg-white/[0.02] border border-white/5 px-3 py-1 rounded-md">{email}</p>

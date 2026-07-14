@@ -96,7 +96,7 @@ export function Footer() {
                 Your Exismic workspace
               </span>
             </div>
-            <h2 className="mt-5 bg-[linear-gradient(100deg,#fff_0%,#f5f3ff_46%,#d8b4fe_72%,#a5f3fc_100%)] bg-clip-text text-[clamp(2.25rem,5vw,4.5rem)] font-black leading-[0.92] tracking-[-0.045em] text-transparent">
+            <h2 className="mt-5 bg-[linear-gradient(100deg,#fff_0%,#f5f3ff_46%,#d8b4fe_72%,#a5f3fc_100%)] bg-clip-text text-[clamp(2.25rem,5vw,4.5rem)] font-black leading-[1.1] pb-2 tracking-[-0.045em] text-transparent">
               Make something worth shipping.
             </h2>
             <p className="mt-5 max-w-2xl text-sm font-medium leading-7 text-zinc-500 sm:text-base">

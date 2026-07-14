@@ -77,7 +77,7 @@ export function PremiumName({ name, isPro, gradientId, className }: PremiumNameP
   return (
     <span 
       className={cn(
-        "font-black tracking-tight",
+        "inline-block font-black tracking-tight pb-1 pr-1",
         activeGradient.class,
         cleanedClassName
       )}
