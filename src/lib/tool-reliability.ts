@@ -330,6 +330,14 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     requirements: ["Groq API credentials"],
     dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
+  "youtube-summarizer": {
+    ...SERVICE_BACKED,
+    label: "AI Powered",
+    headline: "Video parsing & analysis",
+    description: "Exismic downloads caption tracks directly from YouTube and uses Groq Llama-3.3 LLMs to transcribe, summarize, and draft content summaries.",
+    requirements: ["Groq API credentials"],
+    dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {

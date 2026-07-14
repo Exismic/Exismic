@@ -409,6 +409,28 @@ export const TOOLS: Tool[] = [
       "free html template maker"
     ]
   },
+  {
+    id: 'youtube-summarizer',
+    name: 'YouTube AI Summarizer',
+    description: 'Convert any YouTube video URL into a comprehensive blog post, social media thread, or bulleted summary notes instantly.',
+    category: 'ai',
+    icon: 'Youtube' as IconName,
+    href: '/tools/youtube-summarizer',
+    suggestions: ["How to build a SaaS startup in 2026","Figma to Next.js full design tutorial","Intro to quantum computing"],
+    popular: true,
+    proPowerPack: true,
+    requiresFileUpload: false,
+    placeholderPrompt: 'Paste your YouTube video link here (e.g. https://www.youtube.com/watch?v=...)',
+    seoTitle: "Free YouTube AI Summarizer - Convert Video to Blog Post Online",
+    seoDescription: "Transcribe and summarize YouTube videos instantly. Generate SEO-optimized blog posts, summaries, and social threads using AI for free.",
+    seoKeywords: [
+      "youtube ai summarizer",
+      "convert video to blog post",
+      "youtube transcript downloader",
+      "youtube to blog post generator",
+      "summarize youtube video ai"
+    ]
+  },
 
   // Productivity Tools
   {
