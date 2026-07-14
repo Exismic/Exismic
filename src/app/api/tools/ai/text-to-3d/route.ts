@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import { Client } from "@gradio/client";
+import axios from "axios";
 
 /**
  * Text-to-3D Model Generator API Route
@@ -27,34 +28,22 @@ export async function POST(req: NextRequest) {
 
       console.log(`[Text-to-3D] Generating 2D Concept Art for: "${prompt}"`);
 
-      // Call Hugging Face Serverless Inference API for fast Stable Diffusion XL generation
-      const modelUrl = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+      // 1. Call Hugging Face Serverless Inference API with Axios using sdxl-turbo for real-time <1s responses
+      const modelUrl = "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo";
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (hfToken) {
         headers["Authorization"] = `Bearer ${hfToken}`;
       }
 
-      const response = await fetch(modelUrl, {
-        method: "POST",
+      console.log("[Text-to-3D] Querying sdxl-turbo via Axios...");
+      const response = await axios.post(modelUrl, {
+        inputs: prompt
+      }, {
         headers,
-        body: JSON.stringify({ 
-          inputs: prompt,
-          parameters: {
-            negative_prompt: "blurry, low quality, dark background, complex scene, shadows, text, signature",
-            num_inference_steps: 30,
-            guidance_scale: 7.5
-          }
-        })
+        responseType: "arraybuffer"
       });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("[Text-to-3D SDXL Error]:", errText);
-        throw new Error("Hugging Face image model is currently busy. Please try again in a few seconds.");
-      }
-
-      const buffer = await response.arrayBuffer();
-      const base64Image = Buffer.from(buffer).toString("base64");
+      const base64Image = Buffer.from(response.data).toString("base64");
       const dataUrl = `data:image/png;base64,${base64Image}`;
 
       return NextResponse.json({ image: dataUrl });
