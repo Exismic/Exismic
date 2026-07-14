@@ -454,6 +454,29 @@ export const TOOLS: Tool[] = [
     ]
   },
   {
+    id: 'text-to-3d',
+    name: 'Text-to-3D Generator',
+    description: 'Transform your text descriptions into fully textured, interactive 3D model meshes (GLB format).',
+    category: 'ai',
+    icon: 'Box' as IconName,
+    href: '/tools/text-to-3d',
+    suggestions: ["Chibi knight toy with gold shield","Cyberpunk futuristic laser gun","Cute miniature bonsai tree on table"],
+    popular: true,
+    proPowerPack: true,
+    requiresFileUpload: false,
+    placeholderPrompt: 'Describe the 3D model you want to generate (e.g. chibi knight toy with sword)...',
+    seoTitle: "Free Text-to-3D Model Generator Online | Exismic",
+    seoDescription: "Instantly convert text prompts into textured 3D meshes (GLB/OBJ). Use our free AI 3D object generator built on Stable Diffusion and TripoSR.",
+    seoKeywords: [
+      "text to 3d generator",
+      "convert text to 3d mesh",
+      "free ai 3d generator",
+      "triposr online generator",
+      "create glb mesh from text",
+      "3d asset generator free"
+    ]
+  },
+  {
     id: 'ambient-mixer',
     name: 'Cinematic Ambient Mixer',
     description: 'Mix custom ambient soundscapes for study, work, or relaxation combined with AI-generated backing loops.',

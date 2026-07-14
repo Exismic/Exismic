@@ -354,6 +354,14 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     requirements: [],
     dependencyGroups: [],
   },
+  "text-to-3d": {
+    level: "operational",
+    label: "AI Powered",
+    headline: "Generative 3D reconstruction",
+    description: "Exismic converts text prompts into 2D concept art and uses Stability AI's TripoSR model to construct fully textured, interactive 3D model meshes.",
+    requirements: [],
+    dependencyGroups: [],
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {
