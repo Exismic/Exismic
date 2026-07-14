@@ -396,6 +396,21 @@ export const TOOLS: Tool[] = [
     seoTitle: "AI Resume Builder - Create Professional ATS Resumes Online",
     seoDescription: "The most powerful AI resume builder. Create professional, ATS-friendly resumes in minutes with AI content suggestions and modern templates."
   },
+  {
+    id: 'resume-analyzer',
+    name: 'AI Resume Scanner',
+    description: 'Analyze your resume against any job description, check ATS compatibility, and get actionable improvement recommendations.',
+    category: 'productivity',
+    icon: 'FileSearch' as IconName,
+    href: '/tools/resume-analyzer',
+    suggestions: ["How do I improve my resume's ATS match score?","Which keywords am I missing for this job description?","Is my resume format standard and readable?"],
+    popular: true,
+    proPowerPack: true,
+    requiresFileUpload: true,
+    acceptedFileTypes: ['application/pdf'],
+    seoTitle: "Free AI Resume Scanner & ATS Analyzer - Optimize Your Resume",
+    seoDescription: "Upload your resume and a job description to instantly get an ATS score, identify missing keywords, and get tailored AI-driven suggestions to land more interviews."
+  },
   { 
     id: 'invoice-generator', 
     name: 'Invoice Generator', 

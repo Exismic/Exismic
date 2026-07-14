@@ -301,6 +301,14 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
   "productivity-palette": CLIENT_ONLY,
   "productivity-json": CLIENT_ONLY,
   "hashtag-generator": CLIENT_ONLY,
+  "resume-analyzer": {
+    ...SERVICE_BACKED,
+    label: "AI Powered",
+    headline: "ATS resume compatibility scan",
+    description: "Exismic extracts text from your resume and matches it against your target job description using custom Llama model analysis.",
+    requirements: ["Language model credentials"],
+    dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
+  },
 };
 
 export function getToolReliability(toolId: string): ToolReliability {
