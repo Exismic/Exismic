@@ -405,9 +405,9 @@ export default function LandingPageGenerator() {
             accentColor="text-accent-blue"
             steps={AUD_STEPS}
             stats={prompt ? [
-              { label: "Synthesis engine", value: "Groq Llama-3.3" },
-              { label: "CSS Framework", value: "Tailwind CDN" },
-              { label: "Format", value: "Single HTML" }
+              { label: "Synthesis engine", value: "Exismic Layout Engine" },
+              { label: "CSS Framework", value: "Tailwind CSS" },
+              { label: "Format", value: "Standalone HTML" }
             ] : []}
           />
 

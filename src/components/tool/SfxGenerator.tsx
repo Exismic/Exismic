@@ -303,7 +303,7 @@ export default function SfxGenerator() {
             steps={AUD_STEPS}
             stats={prompt ? [
               { label: "Duration", value: `${duration.toFixed(1)}s` },
-              { label: "API Provider", value: "ElevenLabs" },
+              { label: "Synthesis Engine", value: "Exismic Foley Engine" },
               { label: "Format", value: "WAV Audio" }
             ] : []}
           />
