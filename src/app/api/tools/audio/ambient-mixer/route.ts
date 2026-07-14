@@ -28,8 +28,12 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Ambient Mixer] Generating music loops for: "${prompt}" (Seed: ${numericSeed}, Duration: ${numericDuration}s)`);
 
+    // Retrieve free Hugging Face token if configured in .env
+    const hfToken = process.env.HF_TOKEN || process.env.HUGGINGFACE_TOKEN || "";
+    const connectOptions = hfToken ? { token: hfToken as `hf_${string}` } : {};
+
     // 1. Connect to active Hugging Face MusicGen Space
-    const app = await Client.connect("sanchit-gandhi/musicgen-streaming");
+    const app = await Client.connect("sanchit-gandhi/musicgen-streaming", connectOptions);
 
     // 2. Predict on `/generate_audio`
     // Inputs: [Prompt (textbox), Length (slider), Interval (slider), Seed (slider)]
@@ -54,8 +58,15 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("[Ambient Mixer Route Error]:", error);
+    
+    // Friendly error helper for Hugging Face quota limit warnings
+    let message = error?.message || "Failed to generate AI background music loop.";
+    if (message.includes("ZeroGPU quota")) {
+      message = "You have exceeded the free anonymous GPU quota for today. To fix this permanently, please add a free Hugging Face token ('HF_TOKEN') to your project environment variables.";
+    }
+
     return NextResponse.json({ 
-      error: error?.message || "Failed to generate AI background music loop. GPU workers may be busy, please try again." 
+      error: message 
     }, { status: 500 });
   }
 }

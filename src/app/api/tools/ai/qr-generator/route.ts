@@ -36,10 +36,12 @@ export async function POST(req: NextRequest) {
       ? parseInt(seed, 10)
       : Math.floor(Math.random() * 1000000000);
 
-    console.log(`[QR Generator] Generating QR for "${url}" with prompt: "${prompt}" (Seed: ${numericSeed})`);
+    // Retrieve free Hugging Face token if configured in .env
+    const hfToken = process.env.HF_TOKEN || process.env.HUGGINGFACE_TOKEN || "";
+    const connectOptions = hfToken ? { token: hfToken as `hf_${string}` } : {};
 
     // 1. Connect to Hugging Face Gradio Space
-    const app = await Client.connect("huggingface-projects/QR-code-AI-art-generator");
+    const app = await Client.connect("huggingface-projects/QR-code-AI-art-generator", connectOptions);
 
     // 2. Submit prediction parameters
     const prediction: any = await app.predict("/inference", {
