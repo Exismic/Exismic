@@ -56,34 +56,29 @@ function decodeHtmlEntities(html: string): string {
 }
 
 /**
- * Extract JSON object assigned to a global variable in inline script tags
+ * Robust brace matching parser to extract JSON structures from HTML script blocks
  */
 function parseInlineJson(html: string, globalName: string): any {
-  // Matches "var Name = {", "window['Name'] = {", "window.Name = {", or "Name = {"
-  const regex = new RegExp(`(?:var\\s+|window\\[['"]|window\\.)?${globalName}(?:['"]\\])?\\s*=\\s*({.+?});`);
-  const match = html.match(regex);
-  if (match && match[1]) {
-    try {
-      return JSON.parse(match[1]);
-    } catch (e) {
-      // Fallback manual match bracket depth parse
-      const startToken = match[0].split("{")[0];
-      const startIndex = html.indexOf(startToken);
-      if (startIndex !== -1) {
-        const jsonStart = startIndex + startToken.length - 1;
-        let depth = 0;
-        for (let i = jsonStart; i < html.length; i++) {
-          if (html[i] === "{") depth++;
-          else if (html[i] === "}") {
-            depth--;
-            if (depth === 0) {
-              try {
-                return JSON.parse(html.slice(jsonStart, i + 1));
-              } catch {
-                return null;
-              }
-            }
-          }
+  const index = html.indexOf(globalName);
+  if (index === -1) return null;
+
+  // Locate the first opening brace '{' after the variable declaration
+  const startBraceIndex = html.indexOf("{", index);
+  if (startBraceIndex === -1) return null;
+
+  let depth = 0;
+  for (let i = startBraceIndex; i < html.length; i++) {
+    if (html[i] === "{") {
+      depth++;
+    } else if (html[i] === "}") {
+      depth--;
+      if (depth === 0) {
+        try {
+          const rawJson = html.slice(startBraceIndex, i + 1);
+          return JSON.parse(rawJson);
+        } catch (e) {
+          console.error(`[parseInlineJson] JSON parse exception for ${globalName}:`, e);
+          return null;
         }
       }
     }
@@ -131,9 +126,11 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
       if (videoDetails?.title) {
         title = videoDetails.title;
       }
+    } else {
+      console.warn(`InnerTube returned HTTP status: ${response.status}`);
     }
-  } catch (err) {
-    console.warn("InnerTube transcript fetch failed, falling back to page scraper:", err);
+  } catch (err: any) {
+    console.warn("InnerTube transcript fetch failed, falling back to page scraper:", err?.message || err);
   }
 
   // 2. Fallback attempt: Fetch watch page HTML and parse ytInitialPlayerResponse
@@ -146,7 +143,7 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
     });
 
     if (!watchRes.ok) {
-      throw new Error(`Failed to load YouTube watch page (Status ${watchRes.status})`);
+      throw new Error(`YouTube watch page fetch failed with status ${watchRes.status}`);
     }
 
     const html = await watchRes.text();
@@ -157,7 +154,7 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
       title = titleMatch[1].replace(" - YouTube", "").trim();
     }
 
-    // Extract player response
+    // Extract player response via robust brace depth match
     const playerResponse = parseInlineJson(html, "ytInitialPlayerResponse");
     captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
   }
@@ -185,7 +182,7 @@ export async function getYouTubeTranscript(url: string): Promise<YouTubeTranscri
     throw new Error("Failed to download caption tracks from YouTube servers.");
   }
 
-  const xmlText = await captionsResponse.ok ? await captionsResponse.text() : "";
+  const xmlText = await captionsResponse.text();
   if (!xmlText) {
     throw new Error("Subtitles download returned empty response.");
   }
