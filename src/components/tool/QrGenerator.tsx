@@ -381,14 +381,14 @@ export default function QrGenerator() {
                 <div className="flex items-center justify-center p-6 bg-zinc-950 border border-white/5 rounded-3xl relative z-10 min-h-[400px]">
                   {activeMockup === "none" && (
                     /* Standard view */
-                    <motion.div layout className="relative w-80 h-80 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                    <motion.div layout className="relative w-80 h-80 max-w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
                       <img src={resultImage} alt="Artistic QR Code" className="w-full h-full object-cover" />
                     </motion.div>
                   )}
 
                   {activeMockup === "phone" && (
                     /* Smartphone screen mock */
-                    <motion.div layout className="relative w-64 h-[450px] bg-zinc-900 rounded-[2.5rem] border-4 border-zinc-800 shadow-2xl p-6 flex flex-col justify-between items-center text-center overflow-hidden">
+                    <motion.div layout className="relative w-64 max-w-full h-[450px] bg-zinc-900 rounded-[2.5rem] border-4 border-zinc-800 shadow-2xl p-6 flex flex-col justify-between items-center text-center overflow-hidden">
                       <div className="w-16 h-4 bg-zinc-800 rounded-full mb-4" /> {/* camera notch */}
                       <div className="space-y-2 mt-4">
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-purple-400">Scanned Brand</h5>
@@ -406,10 +406,10 @@ export default function QrGenerator() {
 
                   {activeMockup === "card" && (
                     /* Business card view */
-                    <motion.div layout className="w-96 h-56 rounded-2xl bg-zinc-900 border border-amber-500/10 shadow-2xl p-8 flex justify-between items-center relative overflow-hidden group">
+                    <motion.div layout className="w-full max-w-md h-auto min-h-56 rounded-2xl bg-zinc-900 border border-amber-500/10 shadow-2xl p-6 md:p-8 flex flex-col sm:flex-row justify-between items-center gap-6 relative overflow-hidden group">
                       {/* gold metallic reflection accent */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/[0.02] rotate-45 pointer-events-none" />
-                      <div className="space-y-4">
+                      <div className="space-y-4 text-center sm:text-left">
                         <div className="space-y-1">
                           <h4 className="text-xs font-black uppercase tracking-wider text-white">Alexander Thorne</h4>
                           <p className="text-[8px] font-black text-amber-500/80 uppercase tracking-widest">Creative Director</p>
@@ -427,7 +427,7 @@ export default function QrGenerator() {
 
                   {activeMockup === "frame" && (
                     /* Gallery Frame View */
-                    <motion.div layout className="relative w-80 h-96 bg-zinc-900 rounded-lg shadow-2xl p-10 flex flex-col justify-between items-center border border-zinc-800">
+                    <motion.div layout className="relative w-80 h-96 max-w-full bg-zinc-900 rounded-lg shadow-2xl p-10 flex flex-col justify-between items-center border border-zinc-800">
                       {/* Museum styled frame */}
                       <div className="w-full h-64 bg-white p-6 border-8 border-zinc-950 shadow-inner flex items-center justify-center">
                         <div className="w-full h-full rounded shadow-md overflow-hidden relative">
@@ -454,9 +454,9 @@ export default function QrGenerator() {
             accentColor="text-purple-400"
             steps={AUD_STEPS}
             stats={resultImage ? [
-              { label: "Diffusion Client", value: "@gradio/client" },
-              { label: "ControlNet Model", value: "QR Code Monster" },
-              { label: "Inference Speed", value: "Free HF GPU" }
+              { label: "Processing Engine", value: "Exismic Art Latent" },
+              { label: "Vector Matrix", value: "Exismic QR-Control v2" },
+              { label: "GPU Acceleration", value: "Cloud Grid (Instant)" }
             ] : []}
           />
 
