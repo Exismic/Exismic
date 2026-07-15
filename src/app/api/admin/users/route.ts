@@ -77,10 +77,33 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { userId, plan, role, dailyCredits, bonusCredits, status } = body;
+    const { userId, plan, role, dailyCredits, bonusCredits, status, action, giftType, giftAmount } = body;
 
     if (!userId) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    }
+
+    if (action === "send-gift") {
+      if (!giftType || !giftAmount || giftAmount <= 0) {
+        return NextResponse.json({ error: "Invalid gift parameter values" }, { status: 400 });
+      }
+
+      const giftTitle = giftType === "credits" ? "🎁 Admin Gift: Bonus Credits!" : "🎁 Admin Gift: Pro Tier Access!";
+      const giftMsg = giftType === "credits"
+        ? `You've been rewarded +${giftAmount} bonus credits by our administration panel. Claim them below.`
+        : `You've been rewarded ${giftAmount} days of premium Pro membership access by our administration panel. Claim below.`;
+      const giftNotificationType = `claim:${giftType}:${giftAmount}`;
+
+      await prisma.notification.create({
+        data: {
+          userId,
+          title: giftTitle,
+          message: giftMsg,
+          type: giftNotificationType,
+        }
+      });
+
+      return NextResponse.json({ success: true });
     }
 
     const updateData: any = {};

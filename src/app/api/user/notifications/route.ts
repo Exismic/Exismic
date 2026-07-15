@@ -49,6 +49,78 @@ export async function POST(req: NextRequest) {
       await prisma.notification.deleteMany({
         where: { userId: user.id },
       });
+    } else if (action === "claim") {
+      if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      
+      const notification = await prisma.notification.findFirst({
+        where: { id, userId: user.id },
+      });
+
+      if (!notification) {
+        return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+      }
+
+      if (!notification.type.startsWith("claim:")) {
+        return NextResponse.json({ error: "This notification is not claimable" }, { status: 400 });
+      }
+
+      const parts = notification.type.split(":");
+      const rewardType = parts[1]; // "credits" or "pro"
+      const amount = parseInt(parts[2], 10) || 0;
+
+      if (rewardType === "credits" && amount > 0) {
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: user.id },
+            data: {
+              bonusCredits: { increment: amount },
+              lifetimeCredits: { increment: amount },
+            },
+          });
+
+          await tx.creditTransaction.create({
+            data: {
+              userId: user.id,
+              amount: amount,
+              balanceType: "bonus",
+              transactionType: "admin_reward",
+              description: `Claimed admin reward: +${amount} credits`,
+            },
+          });
+
+          await tx.notification.delete({
+            where: { id },
+          });
+        });
+      } else if (rewardType === "pro" && amount > 0) {
+        const userRecord = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { planExpiresAt: true, plan: true },
+        });
+
+        let currentExpiry = userRecord?.planExpiresAt ? new Date(userRecord.planExpiresAt) : new Date();
+        if (currentExpiry < new Date()) {
+          currentExpiry = new Date();
+        }
+        const newExpiry = new Date(currentExpiry.getTime() + amount * 24 * 60 * 60 * 1000);
+
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: user.id },
+            data: {
+              plan: "pro",
+              planExpiresAt: newExpiry,
+              subscriptionStatus: "active",
+            },
+          });
+
+          await tx.notification.delete({
+            where: { id },
+          });
+        });
+      } else {
+        return NextResponse.json({ error: "Invalid claimable reward type" }, { status: 400 });
+      }
     } else {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }

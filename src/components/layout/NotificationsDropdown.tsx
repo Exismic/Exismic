@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useId, useCallback } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle } from "lucide-react";
+import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -20,6 +20,7 @@ export function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = useMemo(() => createClient(), []);
   const instanceId = useId().replace(/:/g, "");
@@ -262,6 +263,42 @@ export function NotificationsDropdown() {
                           </span>
                        </div>
                        <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">{n.message}</p>
+                       {n.type.startsWith("claim:") && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              setClaimingId(n.id);
+                              try {
+                                const response = await fetch("/api/user/notifications", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ action: "claim", id: n.id }),
+                                });
+                                const data = await response.json();
+                                if (response.ok && data.success) {
+                                  setNotifications(prev => prev.filter(item => item.id !== n.id));
+                                  window.location.reload();
+                                } else {
+                                  alert(data.error || "Failed to claim reward.");
+                                }
+                              } catch (err) {
+                                console.error(err);
+                              } finally {
+                                setClaimingId(null);
+                              }
+                            }}
+                            disabled={claimingId === n.id}
+                            className="mt-2 w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1"
+                          >
+                            {claimingId === n.id ? (
+                              <>
+                                <Loader2 size={10} className="animate-spin" /> Claiming...
+                              </>
+                            ) : (
+                              "Claim Reward"
+                            )}
+                          </button>
+                        )}
                     </div>
 
                     {!n.read && (

@@ -15,6 +15,7 @@ export async function updateSession(request: NextRequest) {
     "/changelog",
     "/privacy-policy",
     "/terms-of-service",
+    "/appeal",
   ]);
 
   const isPublicRoute =

@@ -145,6 +145,12 @@ export default function AdminPage() {
   });
   const [submittingUserEdit, setSubmittingUserEdit] = useState(false);
 
+  // Gift Rewards States
+  const [giftType, setGiftType] = useState("credits");
+  const [giftAmount, setGiftAmount] = useState(100);
+  const [sendingGift, setSendingGift] = useState(false);
+  const [giftSuccess, setGiftSuccess] = useState("");
+
   // Tickets Tab State
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [ticketSearch, setTicketSearch] = useState("");
@@ -368,6 +374,13 @@ export default function AdminPage() {
     });
   };
 
+  const closeEditModal = () => {
+    setEditingUser(null);
+    setGiftSuccess("");
+    setGiftAmount(100);
+    setGiftType("credits");
+  };
+
   const handleSaveUserEdit = async () => {
     if (!editingUser) return;
     setSubmittingUserEdit(true);
@@ -380,12 +393,41 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         await loadUsers(userPage, userSearch, userPlanFilter, userRoleFilter);
-        setEditingUser(null);
+        closeEditModal();
       }
     } catch (err) {
       console.error(err);
     } finally {
       setSubmittingUserEdit(false);
+    }
+  };
+
+  const handleSendGift = async () => {
+    if (!editingUser || giftAmount <= 0) return;
+    setSendingGift(true);
+    setGiftSuccess("");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: editingUser.id,
+          action: "send-gift",
+          giftType,
+          giftAmount,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setGiftSuccess(`Successfully dispatched claimable ${giftType} notification!`);
+        setGiftAmount(100);
+      } else {
+        alert(data.error || "Failed to dispatch gift.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSendingGift(false);
     }
   };
 
@@ -770,7 +812,9 @@ export default function AdminPage() {
                                 <td className="px-6 py-4">
                                   <span className={cn(
                                     "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                                    u.status === "suspended" ? "bg-red-500/10 border border-red-500/20 text-red-400" : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                                    u.status === "suspended" && "bg-red-500/10 border border-red-500/20 text-red-400",
+                                    u.status === "suspicious" && "bg-amber-500/10 border border-amber-500/20 text-amber-400",
+                                    (u.status === "active" || !u.status) && "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                                   )}>{u.status || "active"}</span>
                                 </td>
                                 <td className="px-6 py-4 text-xs font-black text-zinc-300">{u.dailyCredits}</td>
@@ -1619,7 +1663,7 @@ export default function AdminPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setEditingUser(null)}
+              onClick={closeEditModal}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             
@@ -1627,7 +1671,7 @@ export default function AdminPage() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative max-w-md w-full bg-[#0b0c12]/95 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-xl space-y-6"
+              className="relative max-w-md w-full bg-[#0b0c12]/95 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-xl space-y-6 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -1636,7 +1680,7 @@ export default function AdminPage() {
                   <p className="text-[10px] text-zinc-500 font-semibold">{editingUser.email}</p>
                 </div>
                 <button
-                  onClick={() => setEditingUser(null)}
+                  onClick={closeEditModal}
                   className="p-2 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all active:scale-95"
                 >
                   <X size={14} />
@@ -1676,6 +1720,7 @@ export default function AdminPage() {
                     className="w-full bg-white/[0.02] border border-white/5 text-xs font-bold rounded-xl px-4 py-3.5 text-white outline-hidden cursor-pointer"
                   >
                     <option value="active" className="bg-[#0b0c12]">Active</option>
+                    <option value="suspicious" className="bg-[#0b0c12]">Suspicious</option>
                     <option value="suspended" className="bg-[#0b0c12]">Suspended (Access Banned)</option>
                   </select>
                 </div>
@@ -1698,6 +1743,55 @@ export default function AdminPage() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, bonusCredits: parseInt(e.target.value) || 0 }))}
                     className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-bold rounded-xl px-4 py-3.5 text-white outline-hidden"
                   />
+                </div>
+
+                {/* Direct Gifting Claimable Rewards Section */}
+                <div className="border-t border-white/5 pt-4 space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-accent-purple tracking-wider">Gift Claimable Reward</label>
+                    <p className="text-[9px] text-zinc-500 font-semibold leading-relaxed">Send a claimable voucher notification directly to their user inbox.</p>
+                  </div>
+                  {giftSuccess && (
+                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                      {giftSuccess}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] text-zinc-500 font-bold uppercase">Voucher Type</span>
+                      <select
+                        value={giftType}
+                        onChange={(e) => setGiftType(e.target.value)}
+                        className="w-full bg-white/[0.02] border border-white/5 text-[11px] font-bold rounded-lg px-3 py-2 text-white outline-none cursor-pointer"
+                      >
+                        <option value="credits" className="bg-[#0b0c12] text-white">Credits</option>
+                        <option value="pro" className="bg-[#0b0c12] text-white">Pro Access</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] text-zinc-500 font-bold uppercase">{giftType === "credits" ? "Amount (Credits)" : "Duration (Days)"}</span>
+                      <input
+                        type="number"
+                        value={giftAmount}
+                        onChange={(e) => setGiftAmount(parseInt(e.target.value) || 0)}
+                        min={1}
+                        className="w-full bg-white/[0.02] border border-white/5 text-[11px] font-bold rounded-lg px-3 py-2 text-white outline-none"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSendGift}
+                    disabled={sendingGift || giftAmount <= 0}
+                    className="w-full py-3 rounded-xl bg-accent-purple hover:bg-purple-400 text-black text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  >
+                    {sendingGift ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin" /> Dispatching...
+                      </>
+                    ) : (
+                      "Dispatch Gift Notification"
+                    )}
+                  </button>
                 </div>
               </div>
 

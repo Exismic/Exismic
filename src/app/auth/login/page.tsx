@@ -548,6 +548,20 @@ export default function AuthPage() {
           </Link>
         </div>
 
+        {errorParam === "suspended" && (
+          <div className="mb-6 p-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs font-semibold space-y-2 relative overflow-hidden">
+            <div className="flex items-center gap-2 text-red-400 font-bold uppercase tracking-wider text-[10px]">
+              <AlertCircle size={14} /> Account Suspended
+            </div>
+            <p className="leading-relaxed">
+              This account has been suspended due to violations of Exismic terms of service.
+            </p>
+            <p className="text-zinc-400 text-[10px] leading-relaxed">
+              If you believe this is a mistake, you can <Link href="/appeal" className="text-purple-400 hover:underline font-bold">submit a ban appeal form</Link> for review.
+            </p>
+          </div>
+        )}
+
         {/* Central Auth Container */}
         <div className="relative">
           <div className="absolute -inset-[1px] bg-gradient-to-b from-white/10 to-transparent rounded-[2rem] pointer-events-none" />
