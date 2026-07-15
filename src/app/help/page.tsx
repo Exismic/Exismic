@@ -1,10 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft, ChevronDown, ImagePlus, CheckCircle, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft, ChevronDown, ImagePlus, CheckCircle, X, Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { submitContactRequest } from "@/app/actions/contact";
+import { submitContactRequest, getActiveSupportTicket } from "@/app/actions/contact";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,10 @@ export default function HelpPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Active ticket checking state
+  const [activeTicket, setActiveTicket] = useState<any>(null);
+  const [checkingActiveTicket, setCheckingActiveTicket] = useState(false);
+
   // Prefill logged-in user profile details
   useEffect(() => {
     async function loadUserSession() {
@@ -44,6 +48,23 @@ export default function HelpPage() {
     }
     loadUserSession();
   }, [supabase]);
+
+  // Check active unresolved ticket when email is loaded
+  useEffect(() => {
+    if (!email) return;
+    async function checkTicket() {
+      setCheckingActiveTicket(true);
+      try {
+        const ticket = await getActiveSupportTicket(email);
+        setActiveTicket(ticket);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setCheckingActiveTicket(false);
+      }
+    }
+    checkTicket();
+  }, [email]);
 
   // Load transactions in background for billing inquiries
   useEffect(() => {
@@ -215,6 +236,20 @@ export default function HelpPage() {
                 {errorMsg && (
                   <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-center gap-3">
                     <X size={16} /> {errorMsg}
+                  </div>
+                )}
+
+                {activeTicket && (
+                  <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-semibold space-y-2">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider text-[10px]">
+                      <AlertTriangle size={14} /> Active Ticket Pending
+                    </div>
+                    <p className="leading-relaxed">
+                      You already have an active request: <strong className="text-white">"{activeTicket.subject}"</strong> (Status: <span className="uppercase text-amber-400 font-black">{activeTicket.status}</span>) submitted on {new Date(activeTicket.createdAt).toLocaleDateString()}.
+                    </p>
+                    <p className="text-zinc-400 text-[10px]">
+                      To maintain support quality, users are limited to one active ticket at a time. You will be able to file another once this is marked resolved by our administrators.
+                    </p>
                   </div>
                 )}
                 
@@ -476,7 +511,7 @@ export default function HelpPage() {
                     </div>
 
                     <div className="pt-6">
-                      <button disabled={isSubmitting} type="submit" className="relative group/btn w-full h-16 rounded-xl bg-white/[0.05] border border-white/10 text-white font-black text-sm uppercase tracking-[0.3em] overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                      <button disabled={isSubmitting || checkingActiveTicket || !!activeTicket} type="submit" className="relative group/btn w-full h-16 rounded-xl bg-white/[0.05] border border-white/10 text-white font-black text-sm uppercase tracking-[0.3em] overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]">
                         {/* Dynamic energetic background sweep */}
                         <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0)_100%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
                         
@@ -484,11 +519,18 @@ export default function HelpPage() {
                         <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/20 via-accent-cyan/20 to-accent-purple/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" />
                         
                         <span className="relative z-10 flex items-center justify-center gap-3 drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)]">
-                          {isSubmitting ? (
+                          {checkingActiveTicket ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="w-5 h-5 animate-spin text-white" />
+                              Checking ticket status...
+                            </span>
+                          ) : isSubmitting ? (
                             <span className="flex items-center gap-2">
                               <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 
                               Sending...
                             </span>
+                          ) : activeTicket ? (
+                            <span>Submission Locked</span>
                           ) : (
                             <>Submit Request <Send size={18} className="transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" /></>
                           )}

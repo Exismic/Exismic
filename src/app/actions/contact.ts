@@ -10,6 +10,28 @@ const EMAIL_DOMAIN = process.env.EMAIL_SENDER_DOMAIN?.trim() || 'exismic.xyz';
 const SUPPORT_SENDER = `Exismic Support <support@${EMAIL_DOMAIN}>`;
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
+export async function getActiveSupportTicket(email: string) {
+  try {
+    if (!email) return null;
+    const ticket = await prisma.supportTicket.findFirst({
+      where: {
+        email: { equals: email, mode: 'insensitive' },
+        status: { not: 'resolved' }
+      },
+      select: {
+        id: true,
+        subject: true,
+        status: true,
+        createdAt: true
+      }
+    });
+    return ticket;
+  } catch (err) {
+    console.error("Failed to query active ticket:", err);
+    return null;
+  }
+}
+
 export async function submitContactRequest(formData: FormData) {
   try {
     const name = formData.get("name") as string;
@@ -20,6 +42,18 @@ export async function submitContactRequest(formData: FormData) {
 
     if (!name || !email || !subject || !message) {
       return { error: "All required fields must be filled out." };
+    }
+
+    // Check for existing unresolved ticket
+    const activeTicket = await prisma.supportTicket.findFirst({
+      where: {
+        email: { equals: email, mode: 'insensitive' },
+        status: { not: 'resolved' }
+      }
+    });
+
+    if (activeTicket) {
+      return { error: "You already have an active unresolved support ticket. Please wait until our team resolves your current ticket before submitting another." };
     }
 
     const webhookUrl = process.env.DISCORD_SUPPORT_WEBHOOK_URL;
