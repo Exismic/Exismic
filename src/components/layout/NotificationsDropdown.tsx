@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useId } from "react";
+import { useState, useRef, useEffect, useMemo, useId, useCallback } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,21 +40,21 @@ export function NotificationsDropdown() {
   }, [supabase]);
 
   // Fetch Initial Notifications & Subscribe to Changes
+  const fetchNotifications = useCallback(async () => {
+    if (!session?.user?.id) return;
+    try {
+      const response = await fetch(`/api/user/notifications?t=${Date.now()}`, { cache: "no-store" });
+      const json = await response.json();
+      if (response.ok && json.success && json.data) {
+        setNotifications(json.data);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch notifications:", err);
+    }
+  }, [session]);
+
   useEffect(() => {
     if (!session?.user?.id) return;
-
-    const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from('Notification')
-        .select('*')
-        .eq('userId', session.user.id)
-        .order('createdAt', { ascending: false })
-        .limit(10);
-
-      if (!error && data) {
-        setNotifications(data);
-      }
-    };
 
     fetchNotifications();
 
@@ -84,7 +84,7 @@ export function NotificationsDropdown() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [instanceId, session, supabase]);
+  }, [instanceId, session, supabase, fetchNotifications]);
 
   // Close on outside click
   useEffect(() => {
@@ -98,38 +98,49 @@ export function NotificationsDropdown() {
   }, []);
 
   const markAsRead = async (id: string) => {
-    const { error } = await supabase
-      .from('Notification')
-      .update({ read: true })
-      .eq('id', id);
-    
-    if (!error) {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    try {
+      const response = await fetch("/api/user/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "mark-read", id }),
+      });
+      if (response.ok) {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      }
+    } catch (err) {
+      console.warn("Failed to mark notification as read:", err);
     }
   };
 
   const markAllRead = async () => {
     if (!session?.user?.id) return;
-    const { error } = await supabase
-      .from('Notification')
-      .update({ read: true })
-      .eq('userId', session.user.id)
-      .eq('read', false);
-    
-    if (!error) {
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    try {
+      const response = await fetch("/api/user/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "mark-all-read" }),
+      });
+      if (response.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }
+    } catch (err) {
+      console.warn("Failed to mark all notifications as read:", err);
     }
   };
 
   const clearAll = async () => {
     if (!session?.user?.id) return;
-    const { error } = await supabase
-      .from('Notification')
-      .delete()
-      .eq('userId', session.user.id);
-    
-    if (!error) {
-      setNotifications([]);
+    try {
+      const response = await fetch("/api/user/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear-all" }),
+      });
+      if (response.ok) {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.warn("Failed to clear notifications:", err);
     }
   };
 
@@ -145,11 +156,19 @@ export function NotificationsDropdown() {
     return then.toLocaleDateString();
   };
 
+  const toggleDropdown = () => {
+    const nextOpenStatus = !isOpen;
+    setIsOpen(nextOpenStatus);
+    if (nextOpenStatus && session?.user?.id) {
+      fetchNotifications();
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button 
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={hasUnread ? "Open notifications, unread items available" : "Open notifications"}

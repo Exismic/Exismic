@@ -4,6 +4,7 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { getServerSiteUrl } from "@/lib/site-url";
 import { sendWelcomeEmailOnce } from "@/lib/welcome-email";
+import { createNotification } from "@/lib/notifications";
 import {
   createOAuthLinkRequestAction,
   isOAuthProviderApproved,
@@ -229,6 +230,12 @@ export async function GET(request: Request) {
       Date.now() - authCreatedAt <= NEW_ACCOUNT_WINDOW_MS;
 
     if (appUserCreated || authIdentityIsNew) {
+      await createNotification(
+        userId,
+        "Welcome to Exismic!",
+        "Thank you for signing up! You have been granted 50 free credits. Let's start building!",
+        "success"
+      );
       const welcomeResult = await sendWelcomeEmailOnce(email);
       if (welcomeResult === "failed") {
         console.error("[Auth] Welcome email could not be delivered:", email);
