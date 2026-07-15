@@ -241,6 +241,44 @@ export function useCredits() {
       const json = await response.json();
 
       if (json.success) {
+        // Optimistically deduct locally immediately for zero latency feedback
+        const currentDaily = useCreditStore.getState().state?.dailyCredits ?? 0;
+        const currentBonus = useCreditStore.getState().state?.bonusCredits ?? 0;
+        const currentLifetime = useCreditStore.getState().state?.lifetimeCredits ?? 0;
+
+        let remaining = amount;
+        let newDaily = currentDaily;
+        let newBonus = currentBonus;
+        let newLifetime = currentLifetime;
+
+        if (newDaily >= remaining) {
+          newDaily -= remaining;
+          remaining = 0;
+        } else {
+          remaining -= newDaily;
+          newDaily = 0;
+        }
+
+        if (remaining > 0) {
+          if (newBonus >= remaining) {
+            newBonus -= remaining;
+            remaining = 0;
+          } else {
+            remaining -= newBonus;
+            newBonus = 0;
+          }
+        }
+
+        if (remaining > 0) {
+          newLifetime = Math.max(0, newLifetime - remaining);
+        }
+
+        updateState({
+          dailyCredits: newDaily,
+          bonusCredits: newBonus,
+          lifetimeCredits: newLifetime
+        });
+
         showNotification(`${amount} credits deducted`, 'info');
         return true;
       } else {
@@ -320,7 +358,7 @@ export function useCredits() {
     refreshCredits: () => {
       // Force fetch by skipping state check
       if (userId) {
-        setLoading(true);
+        // Fetch in background to allow smooth number count animation without skeleton flash
         fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' })
           .then(res => res.json())
           .then(json => {
@@ -336,7 +374,7 @@ export function useCredits() {
                 todayClaim: json.data.todayClaim || null,
               });
             }
-          }).finally(() => setLoading(false));
+          });
       }
     },
     countdown
