@@ -131,6 +131,10 @@ export default function AuthPage() {
   useEffect(() => {
     if (errorParam === 'suspended') {
       setError("This account has been suspended due to violations of Exismic terms of service.");
+      const supabase = createClient();
+      supabase.auth.signOut().then(() => {
+        // Clear local credentials cache
+      });
     }
   }, [errorParam]);
 

@@ -18,7 +18,9 @@ export function useAuth(redirectOnLogin: string | null = '/dashboard') {
       if (mounted) {
         setUser(session?.user ?? null);
         setLoading(false);
-        if (session?.user && redirectOnLogin) {
+        
+        const isSuspended = typeof window !== 'undefined' && window.location.search.includes('error=suspended');
+        if (session?.user && redirectOnLogin && !isSuspended) {
           setIsRedirecting(true);
           router.push(redirectOnLogin);
         }
@@ -31,7 +33,8 @@ export function useAuth(redirectOnLogin: string | null = '/dashboard') {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (mounted) {
         setUser(session?.user ?? null);
-        if (event === 'SIGNED_IN' && redirectOnLogin) {
+        const isSuspended = typeof window !== 'undefined' && window.location.search.includes('error=suspended');
+        if (event === 'SIGNED_IN' && redirectOnLogin && !isSuspended) {
           setIsRedirecting(true);
           router.push(redirectOnLogin);
         } else if (event === 'SIGNED_OUT') {
