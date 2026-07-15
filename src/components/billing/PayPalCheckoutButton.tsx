@@ -70,7 +70,7 @@ export function PayPalCheckoutButton({ planId, marketOverride, clientId }: { pla
       {resolvedClientId && (
         <Script
           src={`https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(resolvedClientId)}&currency=USD&intent=capture`}
-          strategy="lazyOnload"
+          strategy="afterInteractive"
           onLoad={() => setScriptReady(true)}
         />
       )}

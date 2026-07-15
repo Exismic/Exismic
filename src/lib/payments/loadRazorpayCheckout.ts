@@ -68,3 +68,17 @@ export function loadRazorpayCheckout(timeoutMs = 15000): Promise<RazorpayConstru
   window.__exismicRazorpayPromise = checkoutPromise;
   return checkoutPromise;
 }
+
+// Background preload on browser idle / load to ensure 0ms latency when clicked
+if (typeof window !== "undefined") {
+  const runPreload = () => {
+    if (!window.Razorpay && !window.__exismicRazorpayPromise) {
+      loadRazorpayCheckout().catch(() => {});
+    }
+  };
+  if (document.readyState === "complete") {
+    runPreload();
+  } else {
+    window.addEventListener("load", runPreload, { once: true });
+  }
+}

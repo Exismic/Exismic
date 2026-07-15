@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Script from "next/script";
 import { Loader2 } from "lucide-react";
 import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
+import { loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 
 type RazorpayResponse = {
   razorpay_order_id?: string;
@@ -12,19 +12,7 @@ type RazorpayResponse = {
   razorpay_signature: string;
 };
 
-type RazorpayConstructor = new (options: Record<string, unknown>) => {
-  open: () => void;
-  on: (event: string, handler: (response: unknown) => void) => void;
-};
-
-declare global {
-  interface Window {
-    Razorpay?: RazorpayConstructor;
-  }
-}
-
 export function RazorpayCheckoutButton({ planId, marketOverride }: { planId: string; marketOverride: "IN" | "GLOBAL" }) {
-  const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +20,8 @@ export function RazorpayCheckoutButton({ planId, marketOverride }: { planId: str
     setLoading(true);
     setError(null);
     try {
-      if (!loaded || !window.Razorpay) throw new Error("Razorpay checkout is still loading.");
+      const Razorpay = await loadRazorpayCheckout();
+      
       const orderResponse = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,8 +57,8 @@ export function RazorpayCheckoutButton({ planId, marketOverride }: { planId: str
         checkoutOptions.order_id = orderData.razorpayOrderId;
       }
 
-      const razorpay = new window.Razorpay(checkoutOptions);
-      razorpay.on("payment.failed", (failure) => {
+      const razorpay = new Razorpay(checkoutOptions);
+      razorpay.on("payment.failed", (failure: unknown) => {
         console.error("[Billing] Razorpay failed", failure);
         reportPaymentFailure(orderData.orderId, failure);
         setError("Payment failed or was cancelled.");
@@ -85,7 +74,6 @@ export function RazorpayCheckoutButton({ planId, marketOverride }: { planId: str
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" onLoad={() => setLoaded(true)} />
       <button
         type="button"
         onClick={startCheckout}
@@ -99,4 +87,3 @@ export function RazorpayCheckoutButton({ planId, marketOverride }: { planId: str
     </>
   );
 }
-
