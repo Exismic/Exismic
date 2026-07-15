@@ -118,7 +118,15 @@ export async function PATCH(request: Request) {
 
     const updateData: any = {};
 
-    if (plan !== undefined) updateData.plan = plan;
+    if (plan !== undefined) {
+      updateData.plan = plan;
+      if (plan === "free") {
+        updateData.subscriptionStatus = "none";
+        updateData.planExpiresAt = null;
+      } else if (plan === "pro") {
+        updateData.subscriptionStatus = "active";
+      }
+    }
     if (role !== undefined) updateData.role = role;
     if (status !== undefined) updateData.status = status;
     
