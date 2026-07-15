@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type React from "react";
 import type { Metadata } from "next";
-import { AlertTriangle, BarChart3, LockKeyhole, Mail, Shield, SlidersHorizontal, WalletCards } from "lucide-react";
+import { BarChart3, Mail, Shield, SlidersHorizontal, WalletCards } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { isAdminConfigured, isAdminEmail } from "@/lib/admin";
+import { isAdminEmail } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -14,81 +15,25 @@ export const metadata: Metadata = {
   },
 };
 
-function AdminGateCard({
-  icon,
-  title,
-  message,
-  action,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  message: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <main className="min-h-screen bg-[#020202] px-6 py-24 text-white">
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_0%,rgba(124,58,237,0.16),transparent_32%),radial-gradient(circle_at_90%_10%,rgba(6,182,212,0.10),transparent_30%)]" />
-      <div className="relative z-10 mx-auto max-w-xl rounded-[2rem] border border-white/10 bg-white/[0.035] p-8 text-center shadow-[0_40px_120px_rgba(0,0,0,0.45)]">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-black/30 text-purple-200">
-          {icon}
-        </div>
-        <h1 className="text-2xl font-black uppercase tracking-tight">{title}</h1>
-        <p className="mt-3 text-sm font-semibold leading-relaxed text-zinc-500">{message}</p>
-        {action && <div className="mt-6">{action}</div>}
-      </div>
-    </main>
-  );
-}
-
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  let dbUser = null;
-  if (user?.id) {
-    dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { role: true },
-    });
+  if (!user?.email) {
+    redirect("/auth/login?returnUrl=/admin");
   }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true },
+  });
 
   const hasAdminRole = dbUser?.role === "admin";
-  const hasAdminEmail = isAdminEmail(user?.email);
+  const hasAdminEmail = isAdminEmail(user.email);
   const isAuthorized = hasAdminRole || hasAdminEmail;
 
-  if (!isAdminConfigured() && !hasAdminRole) {
-    return (
-      <AdminGateCard
-        icon={<AlertTriangle size={30} />}
-        title="Admin Not Configured"
-        message="Set ADMIN_EMAILS in your environment with the exact email addresses allowed to access Exismic admin pages."
-      />
-    );
-  }
-
-  if (!user?.email) {
-    return (
-      <AdminGateCard
-        icon={<LockKeyhole size={30} />}
-        title="Admin Sign In Required"
-        message="This dashboard is private. Sign in with an admin account to continue."
-        action={
-          <Link href="/auth/login?returnUrl=/admin" className="inline-flex rounded-2xl bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-black transition hover:bg-zinc-200">
-            Sign In
-          </Link>
-        }
-      />
-    );
-  }
-
   if (!isAuthorized) {
-    return (
-      <AdminGateCard
-        icon={<Shield size={30} />}
-        title="Admin Access Denied"
-        message="Your account is signed in, but you do not have administrator privileges."
-      />
-    );
+    redirect("/");
   }
 
   return (
