@@ -139,3 +139,34 @@ export async function POST(req: Request) {
     return new NextResponse(JSON.stringify({ error: getErrorMessage(error) }), { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const supabaseServer = await createClient();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+
+    if (!user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return new NextResponse("Missing id parameter", { status: 400 });
+    }
+
+    // Verify ownership before deleting
+    const item = await prisma.userFile.findUnique({ where: { id } });
+    if (!item || item.userId !== user.id) {
+      return new NextResponse("Not Found or Unauthorized", { status: 404 });
+    }
+
+    await prisma.userFile.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[HISTORY_DELETE]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}

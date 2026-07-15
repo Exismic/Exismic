@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Download, 
@@ -12,7 +12,9 @@ import {
   Play, 
   AudioWaveform,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Trash2,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -83,21 +85,24 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
   const [items, setItems] = useState<ProcessedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState(readHistoryPreferences);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  
   const supabase = createClient();
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const response = await fetch(`/api/files/history?limit=${limit}`);
-        if (response.ok) {
-          const data = await response.json();
-          setItems(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch history:", error);
+  const loadHistory = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/files/history?limit=${limit}`);
+      if (response.ok) {
+        const data = await response.json();
+        setItems(data);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    }
+  }, [limit]);
 
+  useEffect(() => {
     const getSession = async () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
@@ -133,7 +138,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
       subscription.unsubscribe();
       window.removeEventListener("exismic-preferences-updated", handlePreferencesUpdate);
     };
-  }, [limit, supabase]);
+  }, [supabase, loadHistory]);
 
   useEffect(() => {
     if (!preferences.autoRefreshHistory) return;
@@ -153,6 +158,19 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
     return () => window.clearInterval(refreshTimer);
   }, [limit, preferences.autoRefreshHistory]);
 
+  const deleteItem = async (id: string) => {
+    try {
+      const response = await fetch(`/api/files/history?id=${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setItems(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (error) {
+      console.error("Failed to delete history item:", error);
+    }
+  };
+
   const getToolInfo = (toolId: string) => {
     const normalizedToolId = normalizeHistoryToolType(toolId);
     const tool = TOOLS.find(t => t.id === normalizedToolId);
@@ -161,6 +179,13 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
       href: tool?.href || "/tools"
     };
   };
+
+  // Filter items based on search and category inputs
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.originalName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || item.fileType.toLowerCase().includes(selectedCategory);
+    return matchesSearch && matchesCategory;
+  });
 
   if (loading) {
     return (
@@ -251,16 +276,67 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
         )}
       </div>
 
+      {/* Interactive Search and Filter Badges */}
+      {fullPage && (
+        <div className="flex flex-col xl:flex-row items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-3xl backdrop-blur-md relative z-30">
+          <div className="relative flex-1 w-full">
+            <input 
+              type="text" 
+              placeholder="Search by filename..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-11 bg-white/5 border border-white/10 hover:border-white/15 focus:border-[#7c3aed]/50 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(124,58,237,0.15)] rounded-2xl pl-11 pr-4 text-xs font-bold text-white placeholder-zinc-500 outline-none transition-all"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+              <Search size={16} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+            {[
+              { id: "all", label: "All" },
+              { id: "image", label: "Images" },
+              { id: "audio", label: "Audios" },
+              { id: "video", label: "Videos" },
+              { id: "pdf", label: "Documents" },
+            ].map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all",
+                  selectedCategory === cat.id 
+                    ? "bg-white text-black font-black" 
+                    : "bg-white/[0.03] border border-white/5 text-zinc-400 hover:text-white hover:bg-white/5"
+                )}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="relative group/container w-full">
         <div className="pb-8 md:pb-12 w-full">
-          <div className={cn(
-            "grid gap-6 items-stretch w-full",
-            fullPage 
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          )}>
+          {filteredItems.length === 0 ? (
+            <div className="w-full text-center py-20 bg-white/[0.01] border border-white/5 rounded-[2.5rem] backdrop-blur-md">
+              <div className="w-16 h-16 rounded-full bg-zinc-950/80 border border-white/5 flex items-center justify-center mx-auto text-zinc-700 mb-5 shadow-inner">
+                <History size={26} />
+              </div>
+              <h4 className="text-lg font-black uppercase italic tracking-tighter text-white">No creations found</h4>
+              <p className="text-xs font-semibold text-zinc-500 mt-2 max-w-sm mx-auto">
+                No files match this category or your search term. Try selecting another tab or running some AI tools to fill your library!
+              </p>
+            </div>
+          ) : (
+            <div className={cn(
+              "grid gap-6 items-stretch w-full",
+              fullPage 
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            )}>
             <AnimatePresence mode="popLayout">
-              {(fullPage ? items : items.slice(0, 3)).map((item, i) => {
+              {(fullPage ? filteredItems : filteredItems.slice(0, 3)).map((item, i) => {
                 const toolInfo = getToolInfo(item.toolType);
                 const downloadableUrl = isDownloadableResultUrl(item.resultUrl)
                   ? item.resultUrl
@@ -275,12 +351,13 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ 
-                      duration: 0.6, 
-                      delay: i * 0.1,
+                      duration: 0.4, 
+                      delay: i * 0.05,
                       type: "spring",
-                      stiffness: 100
+                      stiffness: 140,
+                      damping: 18
                     }}
-                    className="w-full h-full p-2 sm:p-2.5 rounded-[2rem] md:rounded-[2.5rem] bg-[#050508]/80 backdrop-blur-2xl border border-white/10 group hover:border-white/20 hover:shadow-[0_20px_60px_rgba(168,85,247,0.2)] transition-all duration-500 relative touch-manipulation overflow-hidden shadow-xl hover:-translate-y-2 flex flex-col"
+                    className="w-full h-full p-2 sm:p-2.5 rounded-[2rem] md:rounded-[2.5rem] bg-[#050508]/80 backdrop-blur-2xl border border-white/10 group hover:border-white/20 hover:shadow-[0_20px_60px_rgba(124,58,237,0.15)] transition-all duration-500 relative touch-manipulation overflow-hidden shadow-xl hover:-translate-y-2 flex flex-col"
                   >
                     <div className="absolute -inset-1 bg-gradient-to-r from-accent-purple via-accent-cyan to-accent-blue rounded-[3rem] blur opacity-0 group-hover:opacity-20 transition duration-1000 animate-gradient-x bg-[length:200%_auto] z-[-1]" />
                     <div className="absolute inset-0 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-accent-purple/0 to-accent-blue/0 group-hover:from-accent-purple/10 group-hover:to-accent-blue/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -313,6 +390,19 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                         </div>
                       )}
 
+                      {/* Trash Delete Button - Always visible with clean, premium styling */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deleteItem(item.id);
+                        }}
+                        className="absolute top-4 left-4 z-20 p-2.5 rounded-xl bg-black/60 hover:bg-rose-950/80 border border-white/10 hover:border-rose-500/30 text-zinc-400 hover:text-rose-400 backdrop-blur-xl transition-all duration-300 active:scale-90 shadow-md"
+                        title="Delete from history"
+                      >
+                        <Trash2 size={13} strokeWidth={2.5} />
+                      </button>
+
                       <div className="absolute top-4 right-4 z-20">
                         <div className={cn(
                           "flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-xl border",
@@ -332,7 +422,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                     </div>
 
-                    <div className="p-4 sm:p-5 md:p-6 space-y-4 md:space-y-5">
+                    <div className="p-4 sm:p-5 md:p-6 space-y-4 md:space-y-5 flex-1 flex flex-col justify-between">
                       <div className="flex flex-col space-y-1">
                         <p className="text-white font-black text-sm break-words line-clamp-2 uppercase italic tracking-tight mb-1 group-hover:text-accent-purple transition-colors">
                           {item.originalName}
@@ -380,6 +470,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
               })}
             </AnimatePresence>
           </div>
+          )}
         </div>
       </div>
 

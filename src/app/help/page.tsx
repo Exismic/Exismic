@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft, ChevronDown, ImagePlus, CheckCircle, X } from "lucide-react";
+import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft, ChevronDown, ImagePlus, CheckCircle, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { submitContactRequest } from "@/app/actions/contact";
@@ -21,6 +21,14 @@ export default function HelpPage() {
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   
+  // Transaction fields state
+  const [transactionId, setTransactionId] = useState("");
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(false);
+  const [transactionError, setTransactionError] = useState("");
+  const [isValidatingTransaction, setIsValidatingTransaction] = useState(false);
+  const [isTransactionVerified, setIsTransactionVerified] = useState(false);
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,6 +45,58 @@ export default function HelpPage() {
     loadUserSession();
   }, [supabase]);
 
+  // Load transactions in background for billing inquiries
+  useEffect(() => {
+    if (subject === "Billing Inquiry" && user && transactions.length === 0) {
+      const fetchUserTransactions = async () => {
+        setIsTransactionsLoading(true);
+        try {
+          const res = await fetch("/api/user/transactions");
+          const json = await res.json();
+          if (res.ok && json.success) {
+            setTransactions(json.data);
+          }
+        } catch (error) {
+          console.error("Failed to load user transactions:", error);
+        } finally {
+          setIsTransactionsLoading(false);
+        }
+      };
+      fetchUserTransactions();
+    }
+  }, [subject, user, transactions.length]);
+
+  const validateTransactionId = async (ref: string) => {
+    const trimmed = ref.trim();
+    if (!trimmed) {
+      setTransactionError("Transaction Reference ID is required for billing inquiries.");
+      setIsTransactionVerified(false);
+      return false;
+    }
+    
+    setIsValidatingTransaction(true);
+    setTransactionError("");
+    try {
+      const res = await fetch(`/api/user/transactions/validate?ref=${encodeURIComponent(trimmed)}`);
+      const json = await res.json();
+      if (res.ok && json.success && json.isValid) {
+        setIsTransactionVerified(true);
+        setTransactionError("");
+        return true;
+      } else {
+        setTransactionError("Transaction reference not found. Please verify the ID or select a recent purchase.");
+        setIsTransactionVerified(false);
+        return false;
+      }
+    } catch (error) {
+      setTransactionError("Validation failed. Please try again.");
+      setIsTransactionVerified(false);
+      return false;
+    } finally {
+      setIsValidatingTransaction(false);
+    }
+  };
+
   const isReadOnly = !!user;
 
   const subjects = ["General Support", "Billing Inquiry", "Bug Report", "Feature Request"];
@@ -47,15 +107,28 @@ export default function HelpPage() {
       setErrorMsg("Please fill out all required fields.");
       return;
     }
-    
+
     setIsSubmitting(true);
     setErrorMsg("");
+
+    if (subject === "Billing Inquiry") {
+      const isValid = isTransactionVerified || await validateTransactionId(transactionId);
+      if (!isValid) {
+        setErrorMsg("A valid Transaction Reference ID is required for billing inquiries.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+    
+    const finalMessage = subject === "Billing Inquiry"
+      ? `[Transaction Reference: ${transactionId}]\n\n${message}`
+      : message;
     
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
     formData.append("subject", subject);
-    formData.append("message", message);
+    formData.append("message", finalMessage);
     if (imageFile) {
       formData.append("image", imageFile);
     }
@@ -261,6 +334,90 @@ export default function HelpPage() {
                         </AnimatePresence>
                       </div>
                     </div>
+
+                    {/* Dynamic Transaction ID & Validation input */}
+                    <AnimatePresence>
+                      {subject === "Billing Inquiry" && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-4 overflow-hidden"
+                        >
+                          <div className="space-y-2.5 relative group/input">
+                            <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors">Transaction Reference / Order ID</label>
+                            <div className="relative flex items-center">
+                              <input 
+                                required 
+                                value={transactionId} 
+                                onChange={e => {
+                                  setTransactionId(e.target.value);
+                                  setIsTransactionVerified(false);
+                                  setTransactionError("");
+                                }} 
+                                onBlur={() => validateTransactionId(transactionId)}
+                                type="text" 
+                                placeholder="e.g. mock_pay_123 or pay_abc789" 
+                                className={cn(
+                                  "w-full h-14 bg-white/5 border rounded-xl pl-4 pr-12 text-sm font-medium transition-all duration-300 outline-none text-white",
+                                  transactionError 
+                                    ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_25px_rgba(239,68,68,0.15)]" 
+                                    : isTransactionVerified 
+                                      ? "border-emerald-500/50 focus:border-emerald-500 focus:shadow-[0_0_25px_rgba(16,185,129,0.15)]" 
+                                      : "border-white/10 hover:border-white/20 hover:bg-white/[0.07] focus:border-accent-purple/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(168,85,247,0.15)]"
+                                )} 
+                              />
+                              <div className="absolute right-4 flex items-center gap-2">
+                                {isValidatingTransaction && <Loader2 className="w-5 h-5 animate-spin text-accent-purple" />}
+                                {!isValidatingTransaction && isTransactionVerified && <CheckCircle size={18} className="text-emerald-400" />}
+                              </div>
+                            </div>
+                            {transactionError && (
+                              <p className="text-xs font-semibold text-red-400 mt-1">{transactionError}</p>
+                            )}
+                          </div>
+
+                          {/* Quick Purchase Selector Dropdown */}
+                          {user && (isTransactionsLoading || transactions.length > 0) && (
+                            <div className="space-y-2.5">
+                              <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">Quick-select your recent purchase:</label>
+                              {isTransactionsLoading ? (
+                                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                                  <Loader2 size={12} className="animate-spin text-accent-purple" /> Loading payments...
+                                </div>
+                              ) : (
+                                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
+                                  {transactions.map(tx => {
+                                    const date = new Date(tx.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                                    const ref = tx.transactionReference || tx.providerPaymentId || tx.id;
+                                    const label = `${tx.kind === 'pro_subscription' || tx.kind === 'pro_renewal' ? 'PRO' : 'Credits'} - ${(tx.amount / 100).toFixed(2)} ${tx.currency} (${date})`;
+                                    return (
+                                      <button
+                                        key={tx.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setTransactionId(ref);
+                                          setIsTransactionVerified(true);
+                                          setTransactionError("");
+                                        }}
+                                        className={cn(
+                                          "px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border",
+                                          transactionId === ref
+                                            ? "bg-accent-purple border-accent-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                            : "bg-white/[0.03] border-white/5 text-zinc-400 hover:text-white hover:bg-white/5"
+                                        )}
+                                      >
+                                        {label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Message Textarea */}
                     <div className="space-y-2.5 relative group/input">
