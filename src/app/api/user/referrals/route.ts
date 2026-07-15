@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
-function generateReferralCode(email: string) {
-  const prefix = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6);
+function generateReferralCode(seed: string) {
+  const cleanSeed = seed.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  const prefix = (cleanSeed.slice(0, 6) || "EXISM").padEnd(6, "X").slice(0, 6);
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `${prefix}${rand}`;
 }
@@ -18,7 +19,7 @@ export async function GET() {
 
     let dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { referralCode: true, email: true },
+      select: { referralCode: true, email: true, name: true, id: true },
     });
 
     if (!dbUser) {
@@ -26,12 +27,13 @@ export async function GET() {
     }
 
     // Generate referral code if missing
-    if (!dbUser.referralCode && dbUser.email) {
-      const code = generateReferralCode(dbUser.email);
+    if (!dbUser.referralCode) {
+      const seed = dbUser.email || dbUser.name || dbUser.id || "EXISMIC";
+      const code = generateReferralCode(seed);
       dbUser = await prisma.user.update({
         where: { id: user.id },
         data: { referralCode: code },
-        select: { referralCode: true, email: true },
+        select: { referralCode: true, email: true, name: true, id: true },
       });
     }
 

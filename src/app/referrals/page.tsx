@@ -47,19 +47,21 @@ export default function ReferralsPage() {
   }, []);
 
   const getReferralLink = () => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && referralCode) {
       return `${window.location.origin}?ref=${referralCode}`;
     }
-    return `https://exismic.com?ref=${referralCode}`;
+    return referralCode ? `https://exismic.com?ref=${referralCode}` : "";
   };
 
   const handleCopyLink = () => {
+    if (!referralCode) return;
     navigator.clipboard.writeText(getReferralLink());
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const handleCopyCode = () => {
+    if (!referralCode) return;
     navigator.clipboard.writeText(referralCode);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
@@ -145,10 +147,15 @@ export default function ReferralsPage() {
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <p className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Commission Rate</p>
-                    <h3 className="text-3xl font-black text-white italic tracking-tight">10%</h3>
+                    <h3 className="text-3xl font-black text-white italic tracking-tight">
+                      {totalReferred > 0 ? "10%" : "0%"}
+                    </h3>
+                    <p className="text-[9px] font-bold text-zinc-500 mt-1">
+                      {totalReferred > 0 ? "Active Tier" : "Invite friends to unlock 10%"}
+                    </p>
                   </div>
                   <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-emerald-400">
-                    <TrendingUp size={20} />
+                    <TrendingUp size={20} className={totalReferred > 0 ? "text-emerald-400" : "text-zinc-600"} />
                   </div>
                 </div>
               </div>
@@ -175,15 +182,16 @@ export default function ReferralsPage() {
                     <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500">Copy Referral Link</span>
                     <div className="relative flex items-center bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 hover:border-white/15 transition-all">
                       <span className="text-xs font-semibold text-zinc-400 overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px] sm:max-w-xs md:max-w-[400px] lg:max-w-[180px] xl:max-w-[260px]">
-                        {getReferralLink()}
+                        {referralCode ? getReferralLink() : "Generating link..."}
                       </span>
                       <button
                         onClick={handleCopyLink}
+                        disabled={!referralCode}
                         className={cn(
                           "ml-auto p-2 rounded-lg transition-all",
                           copiedLink 
                             ? "bg-emerald-500 text-black" 
-                            : "bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95"
+                            : "bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                         )}
                       >
                         {copiedLink ? <Check size={14} /> : <Copy size={14} />}
@@ -196,15 +204,16 @@ export default function ReferralsPage() {
                     <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500">Or Share Code</span>
                     <div className="relative flex items-center bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 hover:border-white/15 transition-all">
                       <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
-                        {referralCode}
+                        {referralCode || "Generating code..."}
                       </span>
                       <button
                         onClick={handleCopyCode}
+                        disabled={!referralCode}
                         className={cn(
                           "ml-auto p-2 rounded-lg transition-all",
                           copiedCode 
                             ? "bg-emerald-500 text-black" 
-                            : "bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95"
+                            : "bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                         )}
                       >
                         {copiedCode ? <Check size={14} /> : <Copy size={14} />}
