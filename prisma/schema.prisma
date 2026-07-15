@@ -42,6 +42,7 @@ model User {
   referralsAsReferrer    Referral[]              @relation("Referrer")
   referralAsReferred     Referral?               @relation("Referred")
   accounts               Account[]
+  promoRedemptions       PromoRedemption[]
   chatSessions           ChatSession[]
   codeProjects           CodeProject[]
   favorites              Favorite[]
@@ -463,4 +464,51 @@ model Referral {
 
   @@index([referrerId])
   @@map("referrals")
+}
+
+model SupportTicket {
+  id            String    @id @default(cuid())
+  name          String
+  email         String
+  subject       String
+  message       String    @db.Text
+  status        String    @default("open") // "open" | "replied" | "resolved"
+  attachmentUrl String?   @map("attachment_url")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("support_tickets")
+}
+
+model PromoCode {
+  id              String            @id @default(cuid())
+  code            String            @unique
+  bonusCredits    Int               @default(0) @map("bonus_credits")
+  maxRedemptions  Int               @default(100) @map("max_redemptions")
+  redemptionCount Int               @default(0) @map("redemption_count")
+  expiresAt       DateTime?         @map("expires_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  redemptions     PromoRedemption[]
+
+  @@map("promo_codes")
+}
+
+model PromoRedemption {
+  id         String    @id @default(cuid())
+  promoId    String    @map("promo_id")
+  userId     String    @map("user_id")
+  redeemedAt DateTime  @default(now()) @map("redeemed_at")
+  promo      PromoCode @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([promoId, userId])
+  @@map("promo_redemptions")
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
 }

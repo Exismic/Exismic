@@ -2,6 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
   const publicPages = new Set([
     "/",
     "/about",
@@ -35,14 +38,14 @@ export async function updateSession(request: NextRequest) {
   if (isPublicRoute) {
     return NextResponse.next({
       request: {
-        headers: request.headers,
+        headers: requestHeaders,
       },
     });
   }
 
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   });
 
@@ -60,7 +63,7 @@ export async function updateSession(request: NextRequest) {
           );
           response = NextResponse.next({
             request: {
-              headers: request.headers,
+              headers: requestHeaders,
             },
           });
           cookiesToSet.forEach(({ name, value, options }) =>

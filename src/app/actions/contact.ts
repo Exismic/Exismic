@@ -3,6 +3,8 @@
 import crypto from 'crypto';
 import { getSupportAutoReplyHtml } from '@/emails/SupportAutoReply';
 import { resend } from '@/lib/resend';
+import { prisma } from '@/lib/prisma';
+import { uploadProcessedFile } from '@/lib/server/storage';
 
 const EMAIL_DOMAIN = process.env.EMAIL_SENDER_DOMAIN?.trim() || 'exismic.xyz';
 const SUPPORT_SENDER = `Exismic Support <support@${EMAIL_DOMAIN}>`;
@@ -35,6 +37,31 @@ export async function submitContactRequest(formData: FormData) {
       return { error: 'Attachments must be images smaller than 5 MB.' };
     }
 
+    // 1. Upload attachment to Supabase Storage if present
+    let attachmentUrl: string | null = null;
+    if (image && image.size > 0) {
+      try {
+        const bytes = await image.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const cleanFileName = image.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const fileName = `support-tickets/ticket-${Date.now()}-${cleanFileName}`;
+        attachmentUrl = await uploadProcessedFile(buffer, fileName, image.type);
+      } catch (uploadError) {
+        console.error("Failed to upload ticket attachment:", uploadError);
+      }
+    }
+
+    // 2. Write ticket record to Database
+    const ticket = await prisma.supportTicket.create({
+      data: {
+        name,
+        email,
+        subject,
+        message,
+        attachmentUrl,
+      }
+    });
+
     const payload = new FormData();
     
     // Determine color based on subject
@@ -47,6 +74,7 @@ export async function submitContactRequest(formData: FormData) {
       title: `📬 New Support Request: ${subject}`,
       color: color,
       fields: [
+        { name: "Ticket ID", value: ticket.id, inline: false },
         { name: "Name", value: name, inline: true },
         { name: "Email", value: email, inline: true },
         { name: "Message", value: message, inline: false },
@@ -55,11 +83,12 @@ export async function submitContactRequest(formData: FormData) {
       footer: { text: "Exismic Support Terminal" }
     };
 
-    if (image && image.size > 0) {
-      embed.fields.push({ name: "Attachment", value: "Image attached below", inline: false });
-      // Tell discord the image is attached as a file
-      (embed as any).image = { url: `attachment://${image.name}` };
-      payload.append("file[0]", image);
+    if (attachmentUrl) {
+      embed.fields.push({ name: "Attachment", value: `[View Attachment](${attachmentUrl})`, inline: false });
+      if (image) {
+        payload.append("file[0]", image);
+        (embed as any).image = { url: `attachment://${image.name}` };
+      }
     }
 
     payload.append("payload_json", JSON.stringify({ embeds: [embed] }));
