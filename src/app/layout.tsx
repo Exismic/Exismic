@@ -55,8 +55,13 @@ export default async function RootLayout({
       isMaintenance = maintenanceCfg?.value === "true";
 
       if (session?.user?.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: session.user.id },
+        const dbUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { id: session.user.id },
+              { email: session.user.email ? { equals: session.user.email, mode: "insensitive" } : undefined },
+            ].filter(Boolean) as any,
+          },
           select: { role: true, status: true },
         });
         isAdmin = dbUser?.role === "admin";

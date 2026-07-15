@@ -73,6 +73,18 @@ export async function GET(request: Request) {
       return redirectToLogin(request, "missing_identity");
     }
 
+    const dbUserStatusCheck = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
+      select: { status: true }
+    });
+
+    if (dbUserStatusCheck?.status === "suspended") {
+      await supabase.auth.signOut();
+      const url = new URL("/auth/login", siteUrl);
+      url.searchParams.set("error", "suspended");
+      return NextResponse.redirect(url);
+    }
+
     const provider = getOAuthProvider(authUser.app_metadata?.provider);
     const identities = authUser.identities || [];
     const currentProviderIdentity = provider

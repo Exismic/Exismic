@@ -432,6 +432,13 @@ export async function signUpAction(formData: FormData) {
     return { error: "Enter a valid email address." };
   }
 
+  const dbUser = await prisma.user.findUnique({
+    where: { email }
+  });
+  if (dbUser?.status === "suspended") {
+    return { error: "This account has been suspended due to violations of Exismic terms of service." };
+  }
+
   const passwordError = validatePasswordStrength(password);
   if (passwordError) {
     return { error: passwordError };
@@ -611,6 +618,13 @@ export async function signInAction(formData: FormData) {
 
   if (!isValidEmail(email)) {
     return { error: "Enter a valid email address.", field: "email" as const };
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { email }
+  });
+  if (dbUser?.status === "suspended") {
+    return { error: "This account has been suspended due to violations of Exismic terms of service.", field: "credentials" as const };
   }
 
   if (!password) {

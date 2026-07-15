@@ -56,6 +56,16 @@ export async function submitContactRequest(formData: FormData) {
       return { error: "You already have an active unresolved support ticket. Please wait until our team resolves your current ticket before submitting another." };
     }
 
+    if (subject === "Ban Appeal") {
+      const targetUser = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+        select: { status: true }
+      });
+      if (!targetUser || targetUser.status !== "suspended") {
+        return { error: "This email address is not currently suspended or does not exist." };
+      }
+    }
+
     const webhookUrl = process.env.DISCORD_SUPPORT_WEBHOOK_URL;
     if (!webhookUrl) {
       console.error('DISCORD_SUPPORT_WEBHOOK_URL is not configured.');
