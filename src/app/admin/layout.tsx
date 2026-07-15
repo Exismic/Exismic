@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { AlertTriangle, BarChart3, LockKeyhole, Mail, Shield, SlidersHorizontal, WalletCards } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { isAdminConfigured, isAdminEmail } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -43,7 +44,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!isAdminConfigured()) {
+  let dbUser = null;
+  if (user?.id) {
+    dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { role: true },
+    });
+  }
+
+  const hasAdminRole = dbUser?.role === "admin";
+  const hasAdminEmail = isAdminEmail(user?.email);
+  const isAuthorized = hasAdminRole || hasAdminEmail;
+
+  if (!isAdminConfigured() && !hasAdminRole) {
     return (
       <AdminGateCard
         icon={<AlertTriangle size={30} />}
@@ -58,9 +71,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminGateCard
         icon={<LockKeyhole size={30} />}
         title="Admin Sign In Required"
-        message="This dashboard is private. Sign in with an email listed in ADMIN_EMAILS to continue."
+        message="This dashboard is private. Sign in with an admin account to continue."
         action={
-          <Link href="/auth/login?returnUrl=/admin/system" className="inline-flex rounded-2xl bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-black transition hover:bg-zinc-200">
+          <Link href="/auth/login?returnUrl=/admin" className="inline-flex rounded-2xl bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-black transition hover:bg-zinc-200">
             Sign In
           </Link>
         }
@@ -68,12 +81,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
 
-  if (!isAdminEmail(user.email)) {
+  if (!isAuthorized) {
     return (
       <AdminGateCard
         icon={<Shield size={30} />}
         title="Admin Access Denied"
-        message="Your account is signed in, but this email is not listed in ADMIN_EMAILS."
+        message="Your account is signed in, but you do not have administrator privileges."
       />
     );
   }
@@ -82,7 +95,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-[#020202] text-white">
       <div className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <Link href="/admin/system" className="flex items-center gap-3">
+          <Link href="/admin" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-purple-300/20 bg-purple-300/10 text-purple-200">
               <Shield size={19} />
             </div>
@@ -94,9 +107,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <nav className="flex gap-2 overflow-x-auto pb-1 lg:pb-0">
             {[
-              { href: "/admin/system", label: "System", icon: BarChart3 },
-              { href: "/admin/system#tools", label: "Tools", icon: SlidersHorizontal },
-              { href: "/admin/system#email", label: "Email", icon: Mail },
+              { href: "/admin", label: "Dashboard", icon: BarChart3 },
+              { href: "/admin/system", label: "System Config", icon: SlidersHorizontal },
+              { href: "/admin/system#email", label: "Email Logs", icon: Mail },
               { href: "/admin/system#payments", label: "Payments", icon: WalletCards },
             ].map((item) => (
               <Link
