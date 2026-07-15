@@ -3,10 +3,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, MessageSquare, Mail, HelpCircle, Sparkles, Send, Zap, Shield, User, FileText, AlignLeft, ChevronDown, ImagePlus, CheckCircle, X } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { submitContactRequest } from "@/app/actions/contact";
+import { createClient } from "@/utils/supabase/client";
+import { cn } from "@/lib/utils";
 
 export default function HelpPage() {
+  const supabase = useMemo(() => createClient(), []);
+  const [user, setUser] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -19,6 +23,21 @@ export default function HelpPage() {
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Prefill logged-in user profile details
+  useEffect(() => {
+    async function loadUserSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        setName(session.user.user_metadata?.full_name || session.user.user_metadata?.name || "");
+        setEmail(session.user.email || "");
+      }
+    }
+    loadUserSession();
+  }, [supabase]);
+
+  const isReadOnly = !!user;
 
   const subjects = ["General Support", "Billing Inquiry", "Bug Report", "Feature Request"];
 
@@ -144,23 +163,61 @@ export default function HelpPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {/* Name Input */}
                       <div className="space-y-2.5 relative group/input">
-                        <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors group-focus-within/input:text-white">Name</label>
+                        <label className={cn(
+                          "text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors",
+                          !isReadOnly && "group-focus-within/input:text-white"
+                        )}>Name</label>
                         <div className="relative flex items-center">
-                          <div className="absolute left-4 text-zinc-500 transition-colors group-focus-within/input:text-accent-cyan">
+                          <div className={cn(
+                            "absolute left-4 text-zinc-500 transition-colors",
+                            !isReadOnly && "group-focus-within/input:text-accent-cyan"
+                          )}>
                             <User size={18} />
                           </div>
-                          <input required value={name} onChange={e => setName(e.target.value)} type="text" placeholder="John Doe" className="w-full h-14 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/[0.07] rounded-xl pl-12 pr-4 text-sm font-medium text-white placeholder-zinc-600 outline-none focus:border-accent-cyan/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(34,211,238,0.15)] transition-all duration-300" />
+                          <input 
+                            required 
+                            value={name} 
+                            onChange={e => !isReadOnly && setName(e.target.value)} 
+                            type="text" 
+                            placeholder="John Doe" 
+                            readOnly={isReadOnly}
+                            className={cn(
+                              "w-full h-14 bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 text-sm font-medium transition-all duration-300 outline-none",
+                              isReadOnly 
+                                ? "text-zinc-400 bg-white/[0.02] border-white/5 cursor-not-allowed select-none" 
+                                : "text-white hover:border-white/20 hover:bg-white/[0.07] focus:border-accent-cyan/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(34,211,238,0.15)]"
+                            )} 
+                          />
                         </div>
                       </div>
                       
                       {/* Email Input */}
                       <div className="space-y-2.5 relative group/input">
-                        <label className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors group-focus-within/input:text-white">Email Address</label>
+                        <label className={cn(
+                          "text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 transition-colors",
+                          !isReadOnly && "group-focus-within/input:text-white"
+                        )}>Email Address</label>
                         <div className="relative flex items-center">
-                          <div className="absolute left-4 text-zinc-500 transition-colors group-focus-within/input:text-accent-purple">
+                          <div className={cn(
+                            "absolute left-4 text-zinc-500 transition-colors",
+                            !isReadOnly && "group-focus-within/input:text-accent-purple"
+                          )}>
                             <Mail size={18} />
                           </div>
-                          <input required value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="john@example.com" className="w-full h-14 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/[0.07] rounded-xl pl-12 pr-4 text-sm font-medium text-white placeholder-zinc-600 outline-none focus:border-accent-purple/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(168,85,247,0.15)] transition-all duration-300" />
+                          <input 
+                            required 
+                            value={email} 
+                            onChange={e => !isReadOnly && setEmail(e.target.value)} 
+                            type="email" 
+                            placeholder="john@example.com" 
+                            readOnly={isReadOnly}
+                            className={cn(
+                              "w-full h-14 bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 text-sm font-medium transition-all duration-300 outline-none",
+                              isReadOnly 
+                                ? "text-zinc-400 bg-white/[0.02] border-white/5 cursor-not-allowed select-none" 
+                                : "text-white hover:border-white/20 hover:bg-white/[0.07] focus:border-accent-purple/50 focus:bg-white/10 focus:shadow-[0_0_25px_rgba(168,85,247,0.15)]"
+                            )} 
+                          />
                         </div>
                       </div>
                     </div>
