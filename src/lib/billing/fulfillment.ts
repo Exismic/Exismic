@@ -218,16 +218,69 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
       }
     }
 
+    // Process referral commission (10% credit bonus)
+    let commissionAwarded = null;
+    const referral = await tx.referral.findUnique({
+      where: { referredId: order.userId }
+    });
+
+    if (referral) {
+      const purchasedCredits = order.credits > 0 ? order.credits : (order.planId === "pro" ? 1000 : 0);
+      const commissionCredits = Math.round(purchasedCredits * 0.1);
+
+      if (commissionCredits > 0) {
+        // Update referrer user's credits
+        await tx.user.update({
+          where: { id: referral.referrerId },
+          data: {
+            bonusCredits: { increment: commissionCredits },
+            lifetimeCredits: { increment: commissionCredits },
+          }
+        });
+
+        // Record transaction log for referrer
+        await tx.creditTransaction.create({
+          data: {
+            userId: referral.referrerId,
+            amount: commissionCredits,
+            balanceType: "bonus",
+            transactionType: "referral_commission",
+            description: `Earned 10% referral commission from a friend's purchase`,
+            metadata: {
+              referredId: order.userId,
+              referredOrderId: order.id,
+              referredPlanId: order.planId,
+            }
+          }
+        });
+
+        commissionAwarded = {
+          referrerId: referral.referrerId,
+          amount: commissionCredits,
+        };
+      }
+    }
+
     return {
       order: paidOrder,
       alreadyProcessed: false,
       transactionReference: paymentTransaction.transactionReference,
       plan,
       currentPeriodEnd,
+      commissionAwarded,
     };
   });
 
   if (!result.alreadyProcessed && result.plan) {
+    if (result.commissionAwarded) {
+      await createNotification(
+        result.commissionAwarded.referrerId,
+        "Referral Commission Applied!",
+        `You received +${result.commissionAwarded.amount} bonus credits from your referred friend's purchase!`,
+        "success"
+      );
+    }
+
     const dbUser = await prisma.user.findUnique({
       where: { id: result.order.userId },
       select: { email: true },

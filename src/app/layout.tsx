@@ -15,6 +15,7 @@ import { CookieConsent } from "@/components/layout/CookieConsent";
 import { ProfileThemeProvider } from "@/components/providers/ProfileThemeProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConsentAwareAnalytics } from "@/components/providers/ConsentAwareAnalytics";
+import { ReferralTracker } from "@/components/layout/ReferralTracker";
 
 import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
 
@@ -50,6 +51,7 @@ export default async function RootLayout({
               <ProfileThemeProvider>
                 <I18nProvider>
                   <AppShell hasSession={Boolean(session)}>{children}</AppShell>
+                  <ReferralTracker />
                   <ConsentAwareAnalytics />
                   <CookieConsent />
                 </I18nProvider>

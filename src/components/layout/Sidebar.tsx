@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Clock,
-  Crown
+  Crown,
+  Users
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -162,6 +163,7 @@ export function Sidebar() {
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
     { name: t('common.history'), icon: Clock, href: '/history', accent: 'text-blue-400', glow: 'rgba(96, 165, 250, 0.5)' },
     { name: t('common.pro'), icon: Sparkles, href: '/pro', accent: 'text-accent-purple', glow: 'rgba(168, 85, 247, 0.5)' },
+    { name: t('common.referrals', 'Referrals'), icon: Users, href: '/referrals', accent: 'text-emerald-400', glow: 'rgba(16, 185, 129, 0.5)' },
   ];
 
   const catGlows: Record<string, string> = {

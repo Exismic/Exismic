@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSiteUrl } from "@/lib/site-url";
 import { sendWelcomeEmailOnce } from "@/lib/welcome-email";
 import { createNotification } from "@/lib/notifications";
+import { cookies } from "next/headers";
 import {
   createOAuthLinkRequestAction,
   isOAuthProviderApproved,
@@ -156,8 +157,59 @@ export async function GET(request: Request) {
     }
 
     let appUserCreated = false;
+    let isReferredSignup = false;
+    let referrerId: string | null = null;
+    let isSuspicious = false;
 
     if (!existingUser) {
+      const cookieStore = await cookies();
+      const referralCodeCookie = cookieStore.get("exismic_referral")?.value;
+      let referrerUser = null;
+
+      if (referralCodeCookie) {
+        referrerUser = await prisma.user.findFirst({
+          where: {
+            referralCode: { equals: referralCodeCookie.trim(), mode: "insensitive" }
+          }
+        });
+      }
+
+      if (referrerUser) {
+        // Anti-Fraud check: Email similarity (plus addressing / alias bypass)
+        const getNormalizedEmail = (emailStr: string) => {
+          const parts = emailStr.toLowerCase().split("@");
+          if (parts.length !== 2) return emailStr;
+          const name = parts[0].split("+")[0];
+          return `${name}@${parts[1]}`;
+        };
+        const referrerNormalizedEmail = getNormalizedEmail(referrerUser.email || "");
+        const signupNormalizedEmail = getNormalizedEmail(email);
+
+        // Anti-Fraud check: IP Address device matching
+        const reqIp = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || 
+                      request.headers.get("x-real-ip")?.trim() || 
+                      null;
+
+        const referrerDevice = await prisma.trustedLoginDevice.findFirst({
+          where: { userId: referrerUser.id },
+          select: { lastIp: true }
+        });
+        const referrerIp = referrerDevice?.lastIp;
+
+        const isSelfReferralEmail = referrerNormalizedEmail === signupNormalizedEmail;
+        const isSelfReferralIp = !!(referrerIp && reqIp && referrerIp === reqIp);
+
+        if (isSelfReferralEmail || isSelfReferralIp) {
+          isSuspicious = true;
+        }
+      }
+
+      // Generate a clean, unique referral code
+      const prefix = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6);
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      const myReferralCode = `${prefix}${rand}`;
+      const hasReferralPayout = referrerUser && !isSuspicious;
+
       await prisma.user.create({
         data: {
           id: userId,
@@ -167,15 +219,75 @@ export async function GET(request: Request) {
           discordUserId: discordUserId ? String(discordUserId) : null,
           discordUsername: discordUsername ? String(discordUsername) : null,
           dailyCredits: 50,
-          bonusCredits: 0,
-          lifetimeCredits: 0,
+          bonusCredits: hasReferralPayout ? 50 : 0,
+          lifetimeCredits: hasReferralPayout ? 50 : 0,
           plan: "free",
           creditsLastReset: new Date(),
           aiMessagesToday: 0,
           aiMessagesReset: new Date(),
+          referralCode: myReferralCode,
         },
       });
+
       appUserCreated = true;
+
+      if (referrerUser) {
+        isReferredSignup = true;
+        referrerId = referrerUser.id;
+
+        // 1. Create the referral relation mapping
+        await prisma.referral.create({
+          data: {
+            referrerId: referrerUser.id,
+            referredId: userId,
+            status: isSuspicious ? "flagged_self_referral" : "registered",
+            rewardClaimed: !isSuspicious,
+          }
+        });
+
+        if (!isSuspicious) {
+          // 2. Award credits to the referrer
+          await prisma.user.update({
+            where: { id: referrerUser.id },
+            data: {
+              bonusCredits: { increment: 50 },
+              lifetimeCredits: { increment: 50 },
+            }
+          });
+
+          // 3. Record transaction logs for both parties
+          await prisma.creditTransaction.create({
+            data: {
+              userId: referrerUser.id,
+              amount: 50,
+              balanceType: "bonus",
+              transactionType: "referral_reward",
+              description: `Referral bonus for inviting ${userName}`,
+            }
+          });
+
+          await prisma.creditTransaction.create({
+            data: {
+              userId: userId,
+              amount: 50,
+              balanceType: "bonus",
+              transactionType: "referral_signup",
+              description: `Bonus credits for signing up via referral link`,
+            }
+          });
+
+          // 4. Send welcome notifications to the referrer
+          await createNotification(
+            referrerUser.id,
+            "Referral Reward Applied!",
+            `Your friend ${userName} signed up using your link! You received +50 bonus credits.`,
+            "success"
+          );
+        }
+
+        // Delete referral cookie
+        cookieStore.delete("exismic_referral");
+      }
     } else {
       // Existing profile identity is authoritative. OAuth must never silently
       // replace the user's chosen name, profile picture, frame, or theme.
@@ -230,12 +342,30 @@ export async function GET(request: Request) {
       Date.now() - authCreatedAt <= NEW_ACCOUNT_WINDOW_MS;
 
     if (appUserCreated || authIdentityIsNew) {
-      await createNotification(
-        userId,
-        "Welcome to Exismic!",
-        "Thank you for signing up! You have been granted 50 free credits. Let's start building!",
-        "success"
-      );
+      if (isReferredSignup) {
+        if (isSuspicious) {
+          await createNotification(
+            userId,
+            "Referral Ineligible",
+            "This account is ineligible for referral bonuses (same device or network detected).",
+            "warning"
+          );
+        } else {
+          await createNotification(
+            userId,
+            "Referral Bonus Applied!",
+            `You received +50 bonus credits for joining via a referral link. Happy creating!`,
+            "success"
+          );
+        }
+      } else {
+        await createNotification(
+          userId,
+          "Welcome to Exismic!",
+          "Thank you for signing up! You have been granted 50 free credits. Let's start building!",
+          "success"
+        );
+      }
       const welcomeResult = await sendWelcomeEmailOnce(email);
       if (welcomeResult === "failed") {
         console.error("[Auth] Welcome email could not be delivered:", email);
