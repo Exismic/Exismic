@@ -5,6 +5,14 @@ import { createClient } from '@/utils/supabase/client';
 import { PRICING_CONFIG } from '@/config/pricing';
 import { create } from 'zustand';
 
+declare global {
+  interface Window {
+    __exismicFetchIntercepted?: boolean;
+    __exismicXhrIntercepted?: boolean;
+    refreshExismicCredits?: () => void;
+  }
+}
+
 export interface CreditState {
   dailyCredits: number;
   bonusCredits: number;
@@ -82,6 +90,84 @@ export function useCredits() {
     userId, state, loading, showUpsell, notification, countdown,
     setUserId, setState, updateState, setLoading, setShowUpsell, setNotification, setCountdown
   } = store;
+
+  // Memoized background refresh function
+  const refreshCredits = useCallback(() => {
+    if (useCreditStore.getState().userId) {
+      fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' })
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.data) {
+            setState({
+              dailyCredits: json.data.dailyCredits,
+              bonusCredits: json.data.bonusCredits || 0,
+              lifetimeCredits: json.data.lifetimeCredits,
+              creditsLastReset: json.data.lastReset || new Date().toISOString(),
+              aiMessagesToday: json.data.aiMessagesToday || 0,
+              aiMessagesReset: new Date().toISOString(),
+              plan: json.data.plan || 'free',
+              todayClaim: json.data.todayClaim || null,
+            });
+          }
+        });
+    }
+  }, [setState]);
+
+  // Expose reload hook globally for interceptors to invoke
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.refreshExismicCredits = refreshCredits;
+    }
+  }, [refreshCredits]);
+
+  // Global HTTP Request Interceptors (Intercepts both native Fetch and Axios XHR)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Intercept native window.fetch calls
+    if (!window.__exismicFetchIntercepted) {
+      window.__exismicFetchIntercepted = true;
+      const originalFetch = window.fetch;
+      window.fetch = async function (...args) {
+        const response = await originalFetch.apply(this, args);
+        try {
+          const url = typeof args[0] === "string" ? args[0] : (args[0] as any)?.url || "";
+          if (url.includes("/api/tools/") && response.ok) {
+            setTimeout(() => {
+              if (window.refreshExismicCredits) window.refreshExismicCredits();
+            }, 800);
+          }
+        } catch (err) {
+          console.warn("[Credits Intercept Fetch Error]:", err);
+        }
+        return response;
+      };
+    }
+
+    // 2. Intercept XMLHttpRequests (Axios triggers XHR in client browser)
+    if (!window.__exismicXhrIntercepted) {
+      window.__exismicXhrIntercepted = true;
+      const originalOpen = XMLHttpRequest.prototype.open;
+      const originalSend = XMLHttpRequest.prototype.send;
+
+      XMLHttpRequest.prototype.open = function (this: XMLHttpRequest, method: string, url: string | URL, ...args: any[]) {
+        (this as any).__exismicUrl = typeof url === "string" ? url : url.toString();
+        return (originalOpen as any).apply(this, [method, url, ...args]);
+      };
+
+      XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, ...args: any[]) {
+        this.addEventListener("load", () => {
+          const url = (this as any).__exismicUrl || "";
+          if (url.includes("/api/tools/") && this.status >= 200 && this.status < 300) {
+            setTimeout(() => {
+              if (window.refreshExismicCredits) window.refreshExismicCredits();
+            }, 800);
+          }
+        });
+        return (originalSend as any).apply(this, args);
+      };
+    }
+  }, []);
 
   // Robust session and countdown initialization for every hook instance
   useEffect(() => {
@@ -355,28 +441,7 @@ export function useCredits() {
     setShowUpsell,
     notification,
     toast: showNotification,
-    refreshCredits: () => {
-      // Force fetch by skipping state check
-      if (userId) {
-        // Fetch in background to allow smooth number count animation without skeleton flash
-        fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' })
-          .then(res => res.json())
-          .then(json => {
-            if (json.success && json.data) {
-              setState({
-                dailyCredits: json.data.dailyCredits,
-                bonusCredits: json.data.bonusCredits || 0,
-                lifetimeCredits: json.data.lifetimeCredits,
-                creditsLastReset: json.data.lastReset || new Date().toISOString(),
-                aiMessagesToday: json.data.aiMessagesToday || 0,
-                aiMessagesReset: new Date().toISOString(),
-                plan: json.data.plan || 'free',
-                todayClaim: json.data.todayClaim || null,
-              });
-            }
-          });
-      }
-    },
+    refreshCredits,
     countdown
   };
 }
