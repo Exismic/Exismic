@@ -26,7 +26,12 @@ import {
   Calendar,
   AlertTriangle,
   Play,
-  Settings
+  Settings,
+  Megaphone,
+  Clock,
+  Globe,
+  FileText,
+  Ban
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -50,6 +55,7 @@ interface AdminUser {
   bonusCredits: number;
   createdAt: string;
   image: string | null;
+  status: string;
 }
 
 interface SupportTicket {
@@ -89,10 +95,36 @@ interface PromoCode {
   createdAt: string;
 }
 
+interface SystemLog {
+  id: string;
+  level: string;
+  source: string;
+  message: string;
+  stack: string | null;
+  createdAt: string;
+}
+
+interface ReferralLog {
+  id: string;
+  referrerId: string;
+  referredId: string;
+  status: string;
+  rewardClaimed: boolean;
+  createdAt: string;
+  referrer: {
+    name: string | null;
+    email: string | null;
+  };
+  referred: {
+    name: string | null;
+    email: string | null;
+  };
+}
+
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [activeTab, setActiveTab] = useState("users"); // "users" | "tickets" | "activity" | "promos" | "config"
+  const [activeTab, setActiveTab] = useState("users"); // "users" | "tickets" | "activity" | "promos" | "announcements" | "referrals" | "logs" | "config"
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   // Users Directory Tab State
@@ -109,6 +141,7 @@ export default function AdminPage() {
     role: "user",
     dailyCredits: 50,
     bonusCredits: 0,
+    status: "active",
   });
   const [submittingUserEdit, setSubmittingUserEdit] = useState(false);
 
@@ -138,6 +171,28 @@ export default function AdminPage() {
   });
   const [creatingPromo, setCreatingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
+
+  // Announcements Tab State
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [newAnnouncement, setNewAnnouncement] = useState({
+    title: "",
+    content: "",
+    type: "info",
+  });
+  const [creatingAnnouncement, setCreatingAnnouncement] = useState(false);
+  const [announcementError, setAnnouncementError] = useState("");
+
+  // Referrals Tab State
+  const [referrals, setReferrals] = useState<ReferralLog[]>([]);
+  const [referralPage, setReferralPage] = useState(1);
+  const [referralTotalPages, setReferralTotalPages] = useState(1);
+  const [referralTotal, setReferralTotal] = useState(0);
+
+  // Logs Tab State
+  const [logs, setLogs] = useState<SystemLog[]>([]);
+  const [logPage, setLogPage] = useState(1);
+  const [logTotalPages, setLogTotalPages] = useState(1);
+  const [clearingLogs, setClearingLogs] = useState(false);
 
   // Config Tab State
   const [configs, setConfigs] = useState<Record<string, string>>({});
@@ -181,10 +236,16 @@ export default function AdminPage() {
       loadActivity(filePage);
     } else if (activeTab === "promos") {
       loadPromos();
+    } else if (activeTab === "announcements") {
+      loadAnnouncements();
+    } else if (activeTab === "referrals") {
+      loadReferrals(referralPage);
+    } else if (activeTab === "logs") {
+      loadLogs(logPage);
     } else if (activeTab === "config") {
       loadConfigs();
     }
-  }, [activeTab, userPage, userSearch, userPlanFilter, userRoleFilter, ticketPage, ticketSearch, ticketStatusFilter, filePage, authorized]);
+  }, [activeTab, userPage, userSearch, userPlanFilter, userRoleFilter, ticketPage, ticketSearch, ticketStatusFilter, filePage, referralPage, logPage, authorized]);
 
   // Loaders
   async function loadUsers(page: number, query: string, plan: string, role: string) {
@@ -242,6 +303,47 @@ export default function AdminPage() {
     }
   }
 
+  async function loadAnnouncements() {
+    try {
+      const res = await fetch("/api/admin/announcements");
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAnnouncements(data.announcements);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadReferrals(page: number) {
+    try {
+      const res = await fetch(`/api/admin/referrals?page=${page}&limit=15`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReferrals(data.referrals);
+        setReferralTotal(data.total);
+        setReferralTotalPages(data.totalPages);
+        setReferralPage(data.page);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadLogs(page: number) {
+    try {
+      const res = await fetch(`/api/admin/logs?page=${page}&limit=25`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setLogs(data.logs);
+        setLogTotalPages(data.totalPages);
+        setLogPage(data.page);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function loadConfigs() {
     try {
       const res = await fetch("/api/admin/configs");
@@ -262,6 +364,7 @@ export default function AdminPage() {
       role: user.role,
       dailyCredits: user.dailyCredits,
       bonusCredits: user.bonusCredits,
+      status: user.status || "active",
     });
   };
 
@@ -283,6 +386,74 @@ export default function AdminPage() {
       console.error(err);
     } finally {
       setSubmittingUserEdit(false);
+    }
+  };
+
+  // Announcements Handlers
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingAnnouncement(true);
+    setAnnouncementError("");
+    try {
+      const res = await fetch("/api/admin/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAnnouncement),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setNewAnnouncement({ title: "", content: "", type: "info" });
+        await loadAnnouncements();
+      } else {
+        setAnnouncementError(data.error || "Failed to create announcement.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCreatingAnnouncement(false);
+    }
+  };
+
+  const handleToggleAnnouncement = async (id: string, active: boolean) => {
+    try {
+      const res = await fetch("/api/admin/announcements", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, active }),
+      });
+      if (res.ok) {
+        await loadAnnouncements();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/announcements?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        await loadAnnouncements();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Logs Handlers
+  const handleClearLogs = async () => {
+    setClearingLogs(true);
+    try {
+      const res = await fetch("/api/admin/logs", { method: "DELETE" });
+      if (res.ok) {
+        setLogs([]);
+        setLogPage(1);
+        setLogTotalPages(1);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setClearingLogs(false);
     }
   };
 
@@ -473,9 +644,12 @@ export default function AdminPage() {
             <div className="flex overflow-x-auto gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md max-w-fit scrollbar-none">
               {[
                 { id: "users", label: "Users Directory", icon: Users },
+                { id: "announcements", label: "Announcements", icon: Megaphone },
                 { id: "tickets", label: "Support Tickets", icon: Ticket },
                 { id: "activity", label: "Moderation Logs", icon: Eye },
                 { id: "promos", label: "Promo Codes", icon: Coins },
+                { id: "referrals", label: "Referrals", icon: Clock },
+                { id: "logs", label: "System Logs", icon: FileText },
                 { id: "config", label: "System Config", icon: Settings },
               ].map((tab) => (
                 <button
@@ -559,6 +733,7 @@ export default function AdminPage() {
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Creator</th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Plan</th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Role</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Status</th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Daily Credits</th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Bonus Credits</th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Edit</th>
@@ -591,6 +766,12 @@ export default function AdminPage() {
                                     "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
                                     u.role === "admin" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "bg-white/5 border border-white/5 text-zinc-400"
                                   )}>{u.role}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={cn(
+                                    "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                                    u.status === "suspended" ? "bg-red-500/10 border border-red-500/20 text-red-400" : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                                  )}>{u.status || "active"}</span>
                                 </td>
                                 <td className="px-6 py-4 text-xs font-black text-zinc-300">{u.dailyCredits}</td>
                                 <td className="px-6 py-4 text-xs font-black text-zinc-300">{u.bonusCredits}</td>
@@ -1117,6 +1298,314 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
+
+              {/* TAB 6: BROADCAST ANNOUNCEMENTS */}
+              {activeTab === "announcements" && (
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  {/* Create Announcement Form */}
+                  <div className="lg:col-span-2 p-8 rounded-[2.5rem] bg-[#0b0c12]/60 border border-white/5 backdrop-blur-md space-y-6 max-h-fit">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-accent-purple">Broadcast Banners</span>
+                      <h3 className="text-xl font-black text-white uppercase italic tracking-tight">Create Alert</h3>
+                    </div>
+
+                    <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+                      {announcementError && (
+                        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold flex items-center gap-2">
+                          <AlertTriangle size={14} /> {announcementError}
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-zinc-500">Alert Title</label>
+                        <input
+                          type="text"
+                          placeholder="E.G. NEW SYSTEM UPGRADE"
+                          value={newAnnouncement.title}
+                          onChange={(e) => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))}
+                          required
+                          className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-zinc-500">Alert Message</label>
+                        <textarea
+                          placeholder="Write announcement body message here..."
+                          value={newAnnouncement.content}
+                          onChange={(e) => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
+                          required
+                          rows={4}
+                          className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-semibold rounded-xl p-4 text-white placeholder-zinc-500 outline-none resize-none leading-relaxed"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-zinc-500">Alert Banner Type</label>
+                        <select
+                          value={newAnnouncement.type}
+                          onChange={(e) => setNewAnnouncement(prev => ({ ...prev, type: e.target.value }))}
+                          className="w-full bg-white/[0.02] border border-white/5 text-xs font-bold rounded-xl px-4 py-3.5 text-white outline-none cursor-pointer"
+                        >
+                          <option value="info" className="bg-[#0b0c12]">Information (Purple Glow)</option>
+                          <option value="warning" className="bg-[#0b0c12]">Warning Alert (Amber Glow)</option>
+                          <option value="success" className="bg-[#0b0c12]">Success Notice (Emerald Glow)</option>
+                        </select>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={creatingAnnouncement}
+                        className="w-full py-4 rounded-xl bg-accent-purple text-black text-xs font-black uppercase tracking-wider hover:bg-purple-400 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {creatingAnnouncement ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin" /> Publishing...
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={13} /> Publish Announcement
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Announcements List */}
+                  <div className="lg:col-span-3 space-y-4">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Broadcast History</h3>
+                      <p className="text-xs text-zinc-500">Manage all announcements displayed to platform users.</p>
+                    </div>
+
+                    <div className="border border-white/5 bg-[#0b0c12]/40 rounded-[2rem] overflow-hidden backdrop-blur-md">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-white/5 bg-white/[0.01]">
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Alert</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Type</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Status</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Delete</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {announcements.length === 0 ? (
+                              <tr>
+                                <td colSpan={4} className="text-center py-12 text-zinc-500 text-xs font-bold">No announcements published.</td>
+                              </tr>
+                            ) : (
+                              announcements.map((a) => (
+                                <tr key={a.id} className="hover:bg-white/[0.01] transition-colors">
+                                  <td className="px-6 py-4 flex flex-col gap-1 max-w-[250px]">
+                                    <span className="text-xs font-black uppercase tracking-wider text-white leading-tight">{a.title}</span>
+                                    <span className="text-[10px] text-zinc-400 font-semibold leading-relaxed line-clamp-2">{a.content}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className={cn(
+                                      "inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
+                                      a.type === "info" && "bg-purple-500/10 border border-purple-500/20 text-purple-400",
+                                      a.type === "warning" && "bg-amber-500/10 border border-amber-500/20 text-amber-400",
+                                      a.type === "success" && "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                                    )}>{a.type}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <button
+                                      onClick={() => handleToggleAnnouncement(a.id, !a.active)}
+                                      className={cn(
+                                        "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border active:scale-95 transition-all",
+                                        a.active
+                                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black"
+                                          : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
+                                      )}
+                                    >
+                                      {a.active ? "Active" : "Inactive"}
+                                    </button>
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <button
+                                      onClick={() => handleDeleteAnnouncement(a.id)}
+                                      className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all active:scale-95"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 7: REFERRALS AUDITOR */}
+              {activeTab === "referrals" && (
+                <div className="space-y-6">
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Affiliate Tree Auditor</h3>
+                    <p className="text-xs text-zinc-500">Track registration invite conversions and credit commission rewards ({referralTotal} total invite relationships).</p>
+                  </div>
+
+                  <div className="border border-white/5 bg-[#0b0c12]/40 rounded-[2rem] overflow-hidden backdrop-blur-md">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/5 bg-white/[0.01]">
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Referrer (Invited By)</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Referee (New Account)</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Invite Status</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Commission Granted</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Timestamp</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {referrals.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="text-center py-16 text-zinc-500 text-xs font-bold">No referral logs registered.</td>
+                            </tr>
+                          ) : (
+                            referrals.map((ref) => (
+                              <tr key={ref.id} className="hover:bg-white/[0.01] transition-colors text-xs font-semibold">
+                                <td className="px-6 py-4 flex flex-col gap-0.5">
+                                  <span className="text-white font-bold">{ref.referrer?.name || "Explorer"}</span>
+                                  <span className="text-[10px] text-zinc-500">{ref.referrer?.email}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-white font-bold">{ref.referred?.name || "New User"}</span>
+                                    <span className="text-[10px] text-zinc-500">{ref.referred?.email}</span>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={cn(
+                                    "inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
+                                    ref.status === "registered" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "bg-white/5 border border-white/5 text-zinc-500"
+                                  )}>{ref.status}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={cn(
+                                    "inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
+                                    ref.rewardClaimed ? "bg-accent-purple/10 border border-accent-purple/20 text-accent-purple" : "bg-white/5 border border-white/5 text-zinc-500"
+                                  )}>
+                                    {ref.rewardClaimed ? "Claimed (+10%)" : "Pending"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-[10px] text-zinc-500 font-medium">
+                                  {new Date(ref.createdAt).toLocaleString()}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {referralTotalPages > 1 && (
+                      <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 bg-white/[0.01]">
+                        <span className="text-[10px] font-bold text-zinc-500">Page {referralPage} of {referralTotalPages}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setReferralPage(p => Math.max(p - 1, 1))}
+                            disabled={referralPage === 1}
+                            className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronLeft size={14} />
+                          </button>
+                          <button
+                            onClick={() => setReferralPage(p => Math.min(p + 1, referralTotalPages))}
+                            disabled={referralPage === referralTotalPages}
+                            className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 8: SYSTEM LOGS AUDITOR */}
+              {activeTab === "logs" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">System Logs Auditor</h3>
+                      <p className="text-xs text-zinc-500">Monitor server exceptions, payment webhooks, and credit errors in real time.</p>
+                    </div>
+
+                    <button
+                      onClick={handleClearLogs}
+                      disabled={clearingLogs || logs.length === 0}
+                      className="px-5 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black uppercase tracking-wider hover:bg-red-500 hover:text-black active:scale-95 transition-all flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                    >
+                      {clearingLogs ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" /> Clearing console...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 size={13} /> Clear Console Logs
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="border border-white/5 bg-[#08080c] rounded-[2rem] overflow-hidden backdrop-blur-md p-6 font-mono text-[11px] leading-relaxed space-y-4 max-h-[600px] overflow-y-auto">
+                    {logs.length === 0 ? (
+                      <div className="text-center py-20 text-zinc-600 font-bold uppercase tracking-widest font-sans text-xs">Console is completely clean. No exceptions logged.</div>
+                    ) : (
+                      logs.map((log) => (
+                        <div key={log.id} className="border-b border-white/5 pb-4 last:border-b-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className={cn(
+                              "px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider leading-none",
+                              log.level === "error" && "bg-red-500/20 text-red-400",
+                              log.level === "warning" && "bg-amber-500/20 text-amber-400",
+                              log.level === "info" && "bg-blue-500/20 text-blue-400"
+                            )}>{log.level}</span>
+                            <span className="text-zinc-500 font-bold">[{new Date(log.createdAt).toLocaleString()}]</span>
+                            <span className="text-purple-400 font-bold">SRC: {log.source}</span>
+                          </div>
+                          <div className="text-zinc-300 whitespace-pre-wrap font-semibold break-all leading-normal">
+                            {log.message}
+                          </div>
+                          {log.stack && (
+                            <pre className="text-[10px] text-zinc-600 bg-white/[0.01] p-3 rounded-lg overflow-x-auto select-all max-h-[150px]">
+                              {log.stack}
+                            </pre>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {logTotalPages > 1 && (
+                    <div className="flex items-center justify-between border border-white/5 px-6 py-4 bg-[#0b0c12]/40 rounded-3xl backdrop-blur-md">
+                      <span className="text-[10px] font-bold text-zinc-500">Page {logPage} of {logTotalPages}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setLogPage(p => Math.max(p - 1, 1))}
+                          disabled={logPage === 1}
+                          className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <button
+                          onClick={() => setLogPage(p => Math.min(p + 1, logTotalPages))}
+                          disabled={logPage === logTotalPages}
+                          className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1125,7 +1614,7 @@ export default function AdminPage() {
       {/* Edit User Modal Overlay */}
       <AnimatePresence>
         {editingUser && (
-          <div className="fixed inset-0 z-150 flex items-center justify-center px-6">
+          <div className="fixed inset-0 z-[150] flex items-center justify-center px-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1176,6 +1665,18 @@ export default function AdminPage() {
                   >
                     <option value="user" className="bg-[#0b0c12]">User</option>
                     <option value="admin" className="bg-[#0b0c12]">Admin</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-zinc-500">Account status</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full bg-white/[0.02] border border-white/5 text-xs font-bold rounded-xl px-4 py-3.5 text-white outline-hidden cursor-pointer"
+                  >
+                    <option value="active" className="bg-[#0b0c12]">Active</option>
+                    <option value="suspended" className="bg-[#0b0c12]">Suspended (Access Banned)</option>
                   </select>
                 </div>
 

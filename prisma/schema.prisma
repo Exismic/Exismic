@@ -55,6 +55,7 @@ model User {
   trustedLoginChallenges TrustedLoginChallenge[]
   creditTransactions     CreditTransaction[]
   creditShopClaims       CreditShopClaim[]
+  status                 String                  @default("active")
 }
 
 model CreditTransaction {
@@ -511,4 +512,26 @@ model SystemConfig {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("system_configs")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  type      String   @default("info") // "info" | "warning" | "success"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("announcements")
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     String   @default("error") // "info" | "warning" | "error"
+  source    String
+  message   String   @db.Text
+  stack     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("system_logs")
 }

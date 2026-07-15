@@ -47,6 +47,7 @@ export async function GET(request: Request) {
           bonusCredits: true,
           createdAt: true,
           image: true,
+          status: true,
         },
         orderBy: { createdAt: "desc" },
         skip,
@@ -76,7 +77,7 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { userId, plan, role, dailyCredits, bonusCredits } = body;
+    const { userId, plan, role, dailyCredits, bonusCredits, status } = body;
 
     if (!userId) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
@@ -86,6 +87,7 @@ export async function PATCH(request: Request) {
 
     if (plan !== undefined) updateData.plan = plan;
     if (role !== undefined) updateData.role = role;
+    if (status !== undefined) updateData.status = status;
     
     if (dailyCredits !== undefined) {
       const parsedVal = parseInt(dailyCredits, 10);
@@ -110,6 +112,7 @@ export async function PATCH(request: Request) {
         plan: true,
         dailyCredits: true,
         bonusCredits: true,
+        status: true,
       },
     });
 

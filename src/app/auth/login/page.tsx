@@ -106,6 +106,7 @@ export default function AuthPage() {
   const [trustedExpiresAt, setTrustedExpiresAt] = useState("");
   const searchParams = useSearchParams();
   const authErrorCode = searchParams.get('authError');
+  const errorParam = searchParams.get('error');
   const linkToken = searchParams.get('link') || '';
   const requestedReturnUrl = searchParams.get('returnUrl');
   const returnUrl =
@@ -126,6 +127,12 @@ export default function AuthPage() {
       return () => clearTimeout(timer);
     }
   }, [success, error]);
+
+  useEffect(() => {
+    if (errorParam === 'suspended') {
+      setError("This account has been suspended due to violations of Exismic terms of service.");
+    }
+  }, [errorParam]);
 
   useEffect(() => {
     if (!authErrorCode) return;

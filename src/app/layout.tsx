@@ -22,6 +22,8 @@ import { constructMetadata } from "@/lib/seo";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { Wrench } from "lucide-react";
+import { redirect } from "next/navigation";
+import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
 
 export const metadata: Metadata = constructMetadata();
 
@@ -37,11 +39,13 @@ export default async function RootLayout({
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
 
-  // 2. Do not run maintenance checks on auth or API requests
+  // 2. Do not run maintenance/suspension checks on auth or API requests
   const isAuthRoute = pathname.startsWith("/auth") || pathname.startsWith("/api");
 
   let isMaintenance = false;
   let isAdmin = false;
+  let isSuspended = false;
+  let activeAnnouncements: any[] = [];
 
   if (!isAuthRoute) {
     try {
@@ -53,13 +57,26 @@ export default async function RootLayout({
       if (session?.user?.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: session.user.id },
-          select: { role: true },
+          select: { role: true, status: true },
         });
         isAdmin = dbUser?.role === "admin";
+        isSuspended = dbUser?.status === "suspended";
       }
+
+      // Fetch active site announcements
+      activeAnnouncements = await prisma.announcement.findMany({
+        where: { active: true },
+        orderBy: { createdAt: "desc" },
+      });
     } catch (dbError) {
       console.error("[MAINTENANCE_CHECK_ERROR]", dbError);
     }
+  }
+
+  // 3. Kick out suspended users
+  if (isSuspended) {
+    await supabase.auth.signOut();
+    redirect("/auth/login?error=suspended");
   }
 
   // 3. Render upgrade screen if mode is active and user lacks privilege
@@ -130,6 +147,7 @@ export default async function RootLayout({
             <SessionProvider>
               <ProfileThemeProvider>
                 <I18nProvider>
+                  <AnnouncementBanner announcements={activeAnnouncements} />
                   <AppShell hasSession={Boolean(session)}>{children}</AppShell>
                   <ReferralTracker />
                   <ConsentAwareAnalytics />
