@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Clock,
   Crown,
-  Users
+  Users,
+  ShieldCheck
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -307,6 +308,18 @@ export function Sidebar() {
                            />
                          );
                        })}
+                        {!isProLoading && dbUser?.role === 'admin' && (
+                          <SidebarItem 
+                              key="/admin"
+                              name="Admin Center"
+                              icon={ShieldCheck}
+                              href="/admin"
+                              isActive={pathname === "/admin"}
+                              accentColor="text-red-400"
+                              glowColor="rgba(239, 68, 68, 0.5)"
+                              isCompact={isCompact}
+                          />
+                        )}
                     </motion.div>
 
                     {/* Categories Group */}

@@ -26,6 +26,7 @@ export interface ProUserRecord {
   aiGenerationsUsed?: number;
   aiGenerationsLimit?: number;
   nextResetDate?: string | Date | null;
+  role?: string | null;
 }
 
 function resolveProStatus(data: ProUserRecord | null) {

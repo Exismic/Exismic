@@ -16,6 +16,7 @@ model User {
   emailVerified          DateTime?
   image                  String?
   plan                   String                  @default("free")
+  role                   String                  @default("user")
   subscriptionId         String?
   aiGenerationsUsed      Int                     @default(0)
   aiGenerationsLimit     Int                     @default(50)
