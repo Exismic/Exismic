@@ -1,12 +1,11 @@
 import { ChatProvider } from "@/components/providers/ChatProvider";
-import type { Metadata } from "next";
+import { constructMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export const metadata = constructMetadata({
+  title: "AI Chat Assistant - Chat with Multiple LLM Models | Exismic",
+  description: "Interact with advanced AI models including GPT, Claude, and Llama in a unified chat interface with multi-modal attachments.",
+  canonicalUrl: "/chat",
+});
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   return (
