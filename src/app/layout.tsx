@@ -15,6 +15,7 @@ import { CookieConsent } from "@/components/layout/CookieConsent";
 import { ProfileThemeProvider } from "@/components/providers/ProfileThemeProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConsentAwareAnalytics } from "@/components/providers/ConsentAwareAnalytics";
+import { Analytics } from "@vercel/analytics/react";
 import { ReferralTracker } from "@/components/layout/ReferralTracker";
 
 import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
@@ -156,6 +157,7 @@ export default async function RootLayout({
                   <AppShell hasSession={Boolean(session)}>{children}</AppShell>
                   <ReferralTracker />
                   <ConsentAwareAnalytics />
+                  <Analytics />
                   <CookieConsent />
                 </I18nProvider>
               </ProfileThemeProvider>
