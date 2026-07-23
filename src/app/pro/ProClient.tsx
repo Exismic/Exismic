@@ -899,47 +899,7 @@ export function ProClient() {
                   </span>
                 </div>
 
-                {/* Redeem Voucher Field */}
-                <div className="mt-6 pt-5 border-t border-white/[0.07] space-y-3">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-purple-300">Have a voucher code?</p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="ENTER PROMO CODE..."
-                      id="voucherInput"
-                      className="flex-1 bg-white/[0.02] border border-white/5 hover:border-white/10 focus:border-accent-purple/40 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 outline-hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const input = document.getElementById("voucherInput") as HTMLInputElement;
-                        const code = input?.value;
-                        if (!code?.trim()) return;
-                        
-                        try {
-                          const res = await fetch("/api/user/promos/redeem", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ code }),
-                          });
-                          const data = await res.json();
-                          if (res.ok && data.success) {
-                            setToast({ message: `Successfully redeemed! Received +${data.bonusCredits} credits.`, type: "success" });
-                            if (input) input.value = "";
-                            void refresh();
-                          } else {
-                            setToast({ message: data.error || "Failed to redeem code.", type: "error" });
-                          }
-                        } catch {
-                          setToast({ message: "Voucher system offline.", type: "error" });
-                        }
-                      }}
-                      className="px-5 py-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500 hover:text-black text-xs font-black uppercase tracking-wider transition-all active:scale-95"
-                    >
-                      Redeem
-                    </button>
-                  </div>
-                </div>
+
               </div>
             </motion.div>
           </div>
