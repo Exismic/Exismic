@@ -168,7 +168,7 @@ export const Loader = ({
               <motion.div
                 animate={{ y: [-2, 2, -2] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10 p-4 rounded-2xl bg-zinc-950/60 border border-white/10 shadow-[0_0_30px_rgba(168,85,247,0.2)]"
+                className="relative z-10"
               >
                 <ExismicMark size={72} />
               </motion.div>
