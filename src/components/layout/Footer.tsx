@@ -176,7 +176,7 @@ export function Footer() {
             </p>
             <div className="mt-7 flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.16em] text-zinc-600">
               <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
-              Built and operated by Raxstdioz LLC
+              Built and operated by Exismic
             </div>
           </div>
 
@@ -208,7 +208,7 @@ export function Footer() {
         <div className="relative flex flex-col gap-6 border-t border-white/[0.07] py-8 text-center md:flex-row md:items-center md:justify-between md:text-left">
           <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 sm:gap-6">
             <p className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-700">
-              &copy; 2026 Raxstdioz LLC. All rights reserved.
+              &copy; 2026 Exismic. All rights reserved.
             </p>
             <span className="hidden h-3 w-px bg-white/[0.08] sm:block" />
             <div className="flex items-center gap-4 text-zinc-600">

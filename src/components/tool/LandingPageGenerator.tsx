@@ -33,7 +33,7 @@ const PRESETS = [
 const AUD_STEPS = [
   { title: "Describe Concept", desc: "Type what your landing page is about (e.g. 'SaaS analytics platform' or 'personal portfolio')." },
   { title: "Select Style", desc: "Choose your primary theme preset (Dark SaaS, Minimalist Light, or Gradient Creative)." },
-  { title: "Generate Code", desc: "Groq's Llama model writes a complete HTML/CSS page styled with Tailwind CDN." },
+  { title: "Generate Code", desc: "AI writes a clean, responsive HTML/CSS page styled with modern CSS." },
   { title: "Test & Export", desc: "Toggle viewport sizes (mobile, tablet, desktop) and export the code." }
 ];
 
@@ -63,7 +63,7 @@ export default function LandingPageGenerator() {
 
   const simulateProgress = () => {
     setProgress(5);
-    setStatus("Initializing page architect...");
+    setStatus("Preparing page generator...");
     
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -72,15 +72,15 @@ export default function LandingPageGenerator() {
           return 96;
         }
         if (prev > 75) {
-          setStatus("Generating sections: Pricing & FAQs...");
+          setStatus("Generating sections and content...");
           return prev + 1;
         }
         if (prev > 45) {
-          setStatus("Structuring visual layout grids...");
+          setStatus("Building layout and design grid...");
           return prev + 2;
         }
         if (prev > 20) {
-          setStatus("Injecting Tailwind utility classes...");
+          setStatus("Applying modern styling and colors...");
           return prev + 4;
         }
         return prev + 6;
@@ -268,7 +268,7 @@ export default function LandingPageGenerator() {
                   )}
                 >
                   <Sparkles size={16} />
-                  {isProcessing ? "Synthesizing Layout..." : "Generate Landing Page"}
+                  {isProcessing ? "Generating Page..." : "Generate Landing Page"}
                 </button>
               </div>
             </div>

@@ -558,7 +558,7 @@ export function BackgroundRemover() {
                           : isPro ? "Processing with Priority..." : mode === "bg-remove" ? "Removing background..." : "Erasing object..."}
                       </h3>
                       <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                        {batchFiles.length > 1 && isPro ? `${batchProgress}% complete - ZIP export ready after processing` : mode === "bg-remove" ? "Generating high-quality cutout" : "Synthesizing realistic background"}
+                        {batchFiles.length > 1 && isPro ? `${batchProgress}% complete - ZIP export ready after processing` : mode === "bg-remove" ? "Generating high-quality cutout" : "Generating realistic background"}
                       </p>
                    </div>
                 </div>

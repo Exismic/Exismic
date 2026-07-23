@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { 
   Zap, 
   Infinity as InfinityIcon,
@@ -35,25 +35,41 @@ import {
   Video,
   Music,
   Trash2,
-  Wand2
+  Wand2,
+  HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ToolCard } from "@/components/ui/ToolCard";
 import GradientText from "@/components/ui/GradientText";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { InteractivePlayground } from "@/components/tool/InteractivePlayground";
 
 export function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isIndia, setIsIndia] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsIndia(getIsIndia()), 0);
-    return () => window.clearTimeout(timer);
+    let active = true;
+    fetch("/api/billing/market", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (active) {
+          setIsIndia(data.countryCode === "UNKNOWN" ? getIsIndia() : data.market === "IN");
+        }
+      })
+      .catch(() => {
+        if (active) setIsIndia(getIsIndia());
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const proPrice = isIndia ? `Rs ${PRICING_CONFIG.PRO_PLAN.INR}` : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
+  const proPriceVal = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const proPrice = isIndia ? `Rs ${proPriceVal}` : `$${proPriceVal}`;
   const launchComparePrice = isIndia ? "Rs 999" : "$14.99";
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -136,29 +152,76 @@ export function LandingPage() {
               </Link>
             </div>
 
-            <div className="pt-12 flex flex-col items-center gap-4 opacity-40">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#020202] bg-zinc-800" />
-                  ))}
+            <div className="pt-16 flex flex-col items-center gap-6">
+              {/* Creator Avatars & Social Proof */}
+              <div className="flex items-center gap-3 bg-white/[0.01] border border-white/[0.03] px-4 py-2 rounded-2xl backdrop-blur-sm shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <div className="flex -space-x-2.5">
+                  <img
+                    src="/avatars/marcus.png"
+                    alt="Creator avatar"
+                    className="w-8 h-8 rounded-full border-2 border-[#020202] object-cover ring-1 ring-white/10 hover:scale-110 hover:z-10 transition-transform duration-200"
+                  />
+                  <img
+                    src="/avatars/alena.png"
+                    alt="Creator avatar"
+                    className="w-8 h-8 rounded-full border-2 border-[#020202] object-cover ring-1 ring-white/10 hover:scale-110 hover:z-10 transition-transform duration-200"
+                  />
+                  <img
+                    src="/avatars/julian.png"
+                    alt="Creator avatar"
+                    className="w-8 h-8 rounded-full border-2 border-[#020202] object-cover ring-1 ring-white/10 hover:scale-110 hover:z-10 transition-transform duration-200"
+                  />
+                  <div className="w-8 h-8 rounded-full border-2 border-[#020202] bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-[10px] font-black text-white ring-1 ring-white/10 hover:scale-110 hover:z-10 transition-transform duration-200">
+                    +9k
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Trusted by 10,000+ creators</span>
+                
+                <div className="h-4 w-[1px] bg-white/10" />
+
+                <span className="text-[11px] font-semibold tracking-wider text-zinc-300">
+                  Trusted by{" "}
+                  <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">
+                    10,000+
+                  </span>{" "}
+                  creators
+                </span>
               </div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-600">No credit card required to start</p>
+
+              {/* No Credit Card Badge */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/[0.05] backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                <ShieldCheck size={13} className="text-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400">
+                  No credit card required to start
+                </span>
+              </div>
             </div>
           </motion.div>
         </div>
 
         {/* Scroll Indicator */}
         <motion.div 
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-12 flex flex-col items-center gap-2 opacity-20"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-12 flex flex-col items-center gap-3 cursor-pointer group"
+          onClick={() => {
+            document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
+          }}
         >
-          <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent" />
+          <span className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-500 group-hover:text-purple-400 transition-colors">
+            Scroll to explore
+          </span>
+          <div className="w-6 h-10 rounded-full border border-zinc-800 group-hover:border-purple-500/50 flex justify-center p-1.5 transition-colors shadow-[0_0_20px_rgba(168,85,247,0.05)]">
+            <motion.div 
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              className="w-1 h-1.5 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+            />
+          </div>
         </motion.div>
       </section>
+
+      {/* Interactive Sandbox Section */}
+      <InteractivePlayground />
 
       {/* 3. POPULAR TOOLS SHOWCASE */}
       <section id="explore" className="py-40 px-6 max-w-7xl mx-auto w-full relative">
@@ -246,11 +309,15 @@ export function LandingPage() {
       </section>
 
       {/* 4. WHY EXISMIC (BENEFITS) */}
-      <section className="py-40 px-6 relative bg-zinc-950/30 border-y border-white/[0.04]">
-         <div className="max-w-7xl mx-auto w-full">
+      <section className="py-40 px-6 relative bg-zinc-950/30 border-y border-white/[0.04] overflow-hidden">
+         {/* Background Ambient Glows */}
+         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
+         <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+         <div className="max-w-7xl mx-auto w-full relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
                <div className="space-y-10">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.15),inset_0_0_12px_rgba(168,85,247,0.1)]">
                      <Cpu size={28} />
                   </div>
                   <div className="space-y-4">
@@ -258,50 +325,36 @@ export function LandingPage() {
                       ELITE <br />
                       <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400">PERFORMANCE.</span>
                     </h2>
-                    <p className="text-lg text-zinc-500 font-medium leading-relaxed max-w-lg">
+                    <p className="text-lg text-zinc-400 font-medium leading-relaxed max-w-lg">
                       We've bridged the gap between complex AI research and professional creative workflows. One platform, unlimited possibilities.
                     </p>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8">
-                    <BenefitItem icon={ZapIcon} title="Warp Speed" desc="Proprietary hardware acceleration for instant processing." />
-                    <BenefitItem icon={InfinityIcon} title="Unlimited Pro" desc="Zero caps for subscribers. Total creative freedom." />
-                    <BenefitItem icon={Lock} title="Privacy First" desc="Secure, encrypted processing. Your data stays yours." />
-                    <BenefitItem icon={Layers} title="Unified Flow" desc="Every tool you need in a single, cohesive interface." />
-                  </div>
                </div>
-               
-               <div className="relative aspect-square md:aspect-video lg:aspect-square rounded-[3rem] bg-gradient-to-br from-zinc-900 to-black border border-white/10 overflow-hidden group">
-                  <div className="absolute inset-0 bg-linear-to-br from-purple-600/10 to-cyan-600/5 opacity-50" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-xl group-hover:scale-110 transition-transform">
-                      <Play className="text-white fill-white translate-x-0.5" size={24} />
-                    </div>
-                  </div>
-                  <div className="absolute bottom-8 left-8 right-8 p-6 rounded-2xl bg-black/40 backdrop-blur-md border border-white/5">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white">AI Neural Engine v4.0</p>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Active nodes: 1,420 • Latency: 12ms</p>
-                      </div>
-                      <div className="flex gap-1">
-                        {[1,2,3,4,5].map(i => <div key={i} className="w-1 h-3 bg-purple-500/40 rounded-full" />)}
-                      </div>
-                    </div>
-                  </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <BenefitItem icon={ZapIcon} title="Warp Speed" desc="Proprietary hardware acceleration for instant processing." />
+                  <BenefitItem icon={InfinityIcon} title="Unlimited Pro" desc="Zero caps for subscribers. Total creative freedom." />
+                  <BenefitItem icon={Lock} title="Privacy First" desc="Secure, encrypted processing. Your data stays yours." />
+                  <BenefitItem icon={Layers} title="Unified Flow" desc="Every tool you need in a single, cohesive interface." />
                </div>
             </div>
          </div>
       </section>
 
       {/* 5. TESTIMONIALS */}
-      <section className="py-48 px-6 max-w-7xl mx-auto w-full relative">
-        <div className="text-center mb-32 space-y-4">
-          <div className="text-purple-400 flex items-center justify-center gap-1">
-            {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="currentColor" />)}
+      <section className="py-48 px-6 max-w-7xl mx-auto w-full relative overflow-hidden">
+        {/* Background Ambient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/[0.03] rounded-full blur-[150px] pointer-events-none" />
+
+        <div className="text-center mb-32 space-y-6 relative z-10">
+          <div className="text-purple-400 flex items-center justify-center gap-1.5 bg-purple-500/5 border border-purple-500/10 px-4 py-1.5 rounded-full w-fit mx-auto shadow-[0_0_20px_rgba(168,85,247,0.05)]">
+            {[1,2,3,4,5].map(i => (
+              <Star key={i} size={11} fill="currentColor" className="text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]" />
+            ))}
+            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-purple-300 ml-1.5">5.0 Star Rated</span>
           </div>
-          <h2 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">
-            Loved by <span className="text-zinc-600 italic font-medium">Creators.</span>
+          <h2 className="text-5xl md:text-7xl font-black text-white tracking-tight uppercase leading-[0.9]">
+            Loved by <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-400 to-cyan-400 font-serif italic font-medium lowercase">creators.</span>
           </h2>
         </div>
 
@@ -327,57 +380,114 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* 5.5 FAQ ACCORDION SECTION */}
+      <FaqAccordion />
+
       {/* 6. PRICING TEASER */}
-      <section className="py-40 px-6 relative">
-         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-12 bg-zinc-950/40 p-16 md:p-32 rounded-[4rem] border border-white/[0.06] overflow-hidden group">
-            {/* Background Glows */}
-            <div className="absolute top-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full group-hover:bg-purple-600/20 transition-all duration-700" />
-            
-            <div className="relative z-10 space-y-12">
-              <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-white/[0.02] border border-white/5 w-fit mx-auto">
-                  <Crown size={12} className="text-purple-400" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Elite Access</span>
-                </div>
-                <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-[0.85]">
-                   UNLIMITED <br />
-                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400">PRO POWER.</span>
-                </h2>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 max-w-2xl mx-auto text-left">
-                 {['Unlimited AI Usage', '4K Ultra-HD Output', 'Priority Rendering', 'No Ads or Watermarks', 'Commercial License', 'VIP 24/7 Support'].map(feat => (
-                   <div key={feat} className="flex items-center gap-3">
-                     <div className="w-5 h-5 rounded-full bg-purple-500/10 flex items-center justify-center">
-                        <CheckCircle2 size={12} className="text-purple-400" />
-                     </div>
-                     <span className="text-zinc-500 font-bold uppercase tracking-widest text-[9px]">{feat}</span>
+      <section className="py-24 sm:py-36 px-4 sm:px-6 relative overflow-hidden">
+         {/* Background ambient lighting */}
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06)_0%,rgba(99,102,241,0.03)_50%,transparent_75%)] rounded-full blur-[140px] pointer-events-none" />
+
+         <div className="max-w-4xl mx-auto relative z-10">
+           
+           {/* Glassmorphic Pricing Card Frame */}
+           <div className="p-[1.5px] sm:p-[2px] rounded-3xl sm:rounded-[3.5rem] bg-gradient-to-b from-purple-500/30 via-indigo-500/20 via-cyan-500/20 to-purple-500/30 shadow-[0_30px_100px_rgba(0,0,0,0.9),0_0_50px_rgba(168,85,247,0.1)]">
+             <div className="bg-[#070811]/95 p-6 sm:p-14 md:p-20 rounded-[22px] sm:rounded-[3.3rem] backdrop-blur-2xl border border-white/[0.06] text-center space-y-10 sm:space-y-12 relative overflow-hidden group">
+               
+               {/* Internal ambient corner glows */}
+               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent group-hover:via-purple-500/70 transition-all duration-700" />
+               <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-gradient-to-br from-purple-500/15 via-indigo-500/10 to-cyan-500/5 blur-[100px] rounded-full pointer-events-none group-hover:scale-110 transition-transform duration-700" />
+               
+               <div className="relative z-10 space-y-8 sm:space-y-10">
+                 
+                 {/* Top Badge & Header */}
+                 <div className="space-y-4 sm:space-y-5">
+                   <div className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/30 text-purple-300 w-fit mx-auto shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+                      <Crown size={13} className="text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.5)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-300">All-Access Pass</span>
                    </div>
-                 ))}
-              </div>
-              
-              <div className="pt-8 space-y-6">
-                 <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-3">
-                       <span className="text-zinc-700 line-through text-xl font-bold">{launchComparePrice}</span>
-                       <span className="text-white text-6xl font-black tracking-tighter">{proPrice}<span className="text-lg text-zinc-600 font-bold">/mo</span></span>
+
+                   <h2 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight uppercase leading-[0.96]">
+                      UNLIMITED <br />
+                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 font-serif italic font-medium lowercase">pro power.</span>
+                   </h2>
+
+                   <p className="text-zinc-400 font-medium text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
+                     Unlock every AI tool, high-speed rendering, 4K export, and priority GPU processing with zero hidden caps.
+                   </p>
+                 </div>
+
+                 {/* Feature Matrix Grid */}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 max-w-2xl mx-auto text-left py-2">
+                    {[
+                      { text: 'Unlimited AI Studio Access', desc: 'No daily limits or hidden generation caps' },
+                      { text: '4K Ultra-HD Output', desc: 'Export high-res images and audio stems' },
+                      { text: 'Priority Server Queue', desc: 'Hardware accelerated GPU processing' },
+                      { text: 'No Ads or Watermarks', desc: 'Clean professional outputs ready to use' },
+                      { text: 'Full Commercial License', desc: '100% royalty-free for commercial work' },
+                      { text: 'VIP Priority Support', desc: 'Dedicated 24/7 priority customer support' }
+                    ].map(feat => (
+                      <div key={feat.text} className="p-3.5 rounded-2xl bg-zinc-950/60 border border-white/[0.04] hover:border-purple-500/30 transition-all duration-300 flex items-start gap-3 group/item">
+                        <div className="w-6 h-6 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center shrink-0 text-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.15)] group-hover/item:scale-110 transition-transform">
+                           <CheckCircle2 size={13} />
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-white font-bold text-xs block group-hover/item:text-purple-300 transition-colors">{feat.text}</span>
+                          <span className="text-zinc-500 text-[10px] block leading-tight font-medium">{feat.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                 </div>
+                 
+                 {/* Price Display & CTA Section */}
+                 <div className="pt-4 space-y-6 sm:space-y-8 border-t border-white/[0.06]">
+                    
+                    <div className="flex flex-col items-center gap-2">
+                       <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/25 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-purple-300 mb-1">
+                          <Zap size={10} className="text-purple-400 animate-pulse" />
+                          <span>50% Launch Discount</span>
+                       </div>
+
+                       <div className="flex items-baseline justify-center gap-3">
+                          <span className="text-zinc-500 line-through text-lg sm:text-2xl font-bold tracking-tight">
+                            {launchComparePrice}
+                          </span>
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-purple-200 text-5xl sm:text-7xl font-black tracking-tight drop-shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+                            {proPrice}
+                          </span>
+                          <span className="text-zinc-400 text-xs sm:text-sm font-bold tracking-normal uppercase">
+                            / month
+                          </span>
+                       </div>
+
+                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+                         Simple Monthly Subscription • Cancel Anytime
+                       </p>
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600 italic">
-                      Limited time launch pricing - {isIndia ? "INR checkout" : "USD checkout"}
-                    </p>
+
+                    {/* CTA Button */}
+                    <div className="space-y-4">
+                      <Link href="/pro" className="inline-block w-full max-w-md">
+                         <button className="w-full h-15 sm:h-16 px-8 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white font-black uppercase tracking-[0.2em] text-xs sm:text-sm hover:shadow-[0_0_40px_rgba(168,85,247,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 relative overflow-hidden group/btn cursor-pointer">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-out" />
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                              <span>Unlock Pro Access Now</span>
+                              <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                            </span>
+                         </button>
+                      </Link>
+
+                      {/* Trust Badges */}
+                      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 opacity-70 text-zinc-400 text-[10px] font-mono">
+                         <TrustBadge icon={<Lock size={12} className="text-purple-400" />} text="256-Bit Encrypted Checkout" />
+                         <TrustBadge icon={<RefreshCcw size={12} className="text-purple-400" />} text="Cancel Anytime in 1-Click" />
+                      </div>
+                    </div>
+
                  </div>
-                 <Link href="/pro">
-                    <button className="h-20 px-16 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_-10px_rgba(124,58,237,0.4)]">
-                       Unlock Pro Access Now
-                    </button>
-                 </Link>
-                 <div className="flex items-center justify-center gap-6 opacity-40">
-                    <TrustBadge icon={<Lock size={12} />} text="Secure Checkout" />
-                    <TrustBadge icon={<RefreshCcw size={12} />} text="Cancel Anytime" />
-                 </div>
-              </div>
-            </div>
+               </div>
+             </div>
+           </div>
          </div>
       </section>
 
@@ -387,12 +497,24 @@ export function LandingPage() {
 
 function BenefitItem({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
   return (
-    <div className="space-y-3 group">
-      <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
-        <Icon size={20} />
+    <div className="p-6 rounded-3xl bg-zinc-950/40 hover:bg-zinc-900/30 border border-white/[0.03] hover:border-purple-500/25 backdrop-blur-md transition-all duration-300 relative overflow-hidden group shadow-lg hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+      {/* Internal ambient corner glow */}
+      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-500/10 to-transparent blur-xl pointer-events-none rounded-full transition-opacity duration-300 group-hover:opacity-100 opacity-30" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-cyan-500/5 to-transparent blur-xl pointer-events-none rounded-full transition-opacity duration-300 group-hover:opacity-100 opacity-20" />
+      
+      <div className="relative z-10 space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/5 to-cyan-500/5 group-hover:from-purple-500/15 group-hover:to-cyan-500/15 border border-white/[0.06] group-hover:border-purple-500/30 text-zinc-400 group-hover:text-purple-400 flex items-center justify-center transition-all duration-300 shadow-[inset_0_0_12px_rgba(255,255,255,0.01)]">
+          <Icon size={22} className="transition-transform duration-300 group-hover:scale-110" />
+        </div>
+        <div className="space-y-1.5">
+          <h4 className="text-white font-black uppercase tracking-wider text-xs transition-colors duration-300 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-purple-200 group-hover:bg-clip-text">
+            {title}
+          </h4>
+          <p className="text-xs text-zinc-500 leading-relaxed font-medium transition-colors duration-300 group-hover:text-zinc-300">
+            {desc}
+          </p>
+        </div>
       </div>
-      <h4 className="text-white font-black uppercase tracking-widest text-xs">{title}</h4>
-      <p className="text-[11px] text-zinc-600 font-medium leading-relaxed uppercase tracking-tight group-hover:text-zinc-500 transition-colors">{desc}</p>
     </div>
   );
 }
@@ -401,20 +523,28 @@ function TestimonialCard({ quote, author, role, avatar }: { quote: string; autho
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-      className="p-10 rounded-[3rem] bg-zinc-900/20 border border-white/[0.04] backdrop-blur-sm relative group hover:bg-zinc-900/40 transition-all duration-500"
+      viewport={{ once: true }}
+      className="p-8 rounded-[2rem] bg-gradient-to-b from-white/[0.02] to-transparent border border-white/[0.03] hover:border-purple-500/20 backdrop-blur-md transition-all duration-500 relative group overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_60px_-15px_rgba(168,85,247,0.06)]"
     >
-      <Quote className="absolute top-8 right-8 text-white/5" size={48} />
+      {/* Sleek light sweep/glow overlays */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute -right-8 -top-8 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+
+      <Quote className="absolute top-6 right-6 text-purple-500/10 group-hover:text-purple-500/20 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110" size={44} />
+      
       <div className="relative z-10 space-y-8">
-        <p className="text-lg text-zinc-300 font-medium italic leading-relaxed">
+        <p className="text-base text-zinc-300 group-hover:text-white transition-colors duration-500 font-medium italic leading-relaxed">
           "{quote}"
         </p>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-black text-[10px]">
-            {avatar}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 p-[1.5px] shadow-[0_0_15px_rgba(168,85,247,0.25)] group-hover:shadow-[0_0_20px_rgba(168,85,247,0.45)] transition-all duration-500">
+            <div className="w-full h-full rounded-full bg-zinc-950 flex items-center justify-center text-white font-black text-[10px] tracking-wider">
+              {avatar}
+            </div>
           </div>
-          <div>
-            <h4 className="text-white font-bold text-sm tracking-tight">{author}</h4>
-            <p className="text-zinc-600 text-[9px] font-bold uppercase tracking-widest">{role}</p>
+          <div className="space-y-0.5">
+            <h4 className="text-white font-bold text-sm tracking-tight group-hover:text-purple-300 transition-colors duration-500">{author}</h4>
+            <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest transition-colors duration-500 group-hover:text-zinc-400">{role}</p>
           </div>
         </div>
       </div>
@@ -451,4 +581,82 @@ function RefreshCcw(props: any) {
       <path d="M16 16h5v5" />
     </svg>
   )
+}
+
+function FaqAccordion() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      q: "Is Exismic free to use?",
+      a: "Yes, Exismic offers a generous free tier for all our tools, including our flagship background remover and AI image generator."
+    },
+    {
+      q: "What AI tools does Exismic offer?",
+      a: "Exismic provides over 50+ AI tools including AI Image Generation, Background Removal, Vocal Separation, PDF Processing, and AI Writing."
+    },
+    {
+      q: "Do I need a credit card to sign up?",
+      a: "No credit card is required to start using Exismic's free tools."
+    },
+    {
+      q: "Can I cancel my subscription anytime?",
+      a: "Absolutely. You can cancel your Pro plan anytime directly from your account billing settings with a single click. You will keep your Pro benefits until the end of your billing period."
+    },
+    {
+      q: "Is my uploaded data safe and private?",
+      a: "Yes, security and privacy are our top priorities. All uploaded files are securely encrypted and automatically processed. We never sell your files or use them for training external AI models."
+    }
+  ];
+
+  return (
+    <section className="py-32 px-6 max-w-4xl mx-auto w-full relative">
+      <div className="flex flex-col items-center mb-16 text-center space-y-4">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">
+          <HelpCircle size={12} />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Support</span>
+        </div>
+        <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight uppercase leading-[0.9]">
+          Frequently Asked <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-400 to-cyan-400">Questions</span>
+        </h2>
+      </div>
+
+      <div className="space-y-4">
+        {faqs.map((faq, idx) => {
+          const isOpen = openIndex === idx;
+          return (
+            <div 
+              key={idx} 
+              className="border border-white/[0.04] bg-zinc-950/40 rounded-2xl overflow-hidden transition-all duration-300 hover:border-purple-500/20"
+            >
+              <button
+                onClick={() => setOpenIndex(isOpen ? null : idx)}
+                className="w-full flex items-center justify-between p-6 text-left text-white font-bold text-sm md:text-base hover:bg-white/[0.01] transition-colors cursor-pointer"
+              >
+                <span>{faq.q}</span>
+                <span className={cn("text-zinc-500 transition-transform duration-300", isOpen ? "rotate-45 text-purple-400" : "")}>
+                  <Plus size={20} />
+                </span>
+              </button>
+              
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                  >
+                    <div className="p-6 pt-0 text-zinc-400 text-xs md:text-sm font-medium leading-relaxed border-t border-white/[0.02]">
+                      {faq.a}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
 }

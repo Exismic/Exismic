@@ -486,7 +486,7 @@ export function CollageMaker() {
                      className="w-full py-6 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-4xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
                    >
                      {isGenerating ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
-                     {isGenerating ? "Synthesizing Layers..." : "Generate Masterpiece"}
+                     {isGenerating ? "Building Collage..." : "Generate Masterpiece"}
                    </button>
                    {error && (
                      <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-bold leading-relaxed">

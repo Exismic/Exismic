@@ -673,9 +673,9 @@ export default function ShopPage() {
                               </>
                             )}
                             <div className="relative z-20 flex items-center gap-2 text-[11px] sm:text-[12px]">
-                              {isProcessingId === pack.id ? <Loader2 size={16} className="animate-spin text-cyan-400" /> : paymentsEnabled ? (
+                              {isProcessingId === pack.id ? <Loader2 size={16} className="animate-spin text-cyan-400" /> : (
                                 <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,1)] group-hover:text-cyan-50">{pack.priceLabel}</span>
-                              ) : "Live checkout soon"}
+                              )}
                               {paymentsEnabled && !isProcessingId && <ArrowRight size={14} className="text-cyan-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />}
                             </div>
                           </div>

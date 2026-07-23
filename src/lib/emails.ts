@@ -279,7 +279,7 @@ const PREMIUM_DARK_THEME = (content: string) => `
                 <a href="${SITE_URL}/support" class="footer-link">Support</a>
                 <a href="${SITE_URL}/privacy-policy" class="footer-link">Privacy</a>
             </div>
-            <p>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</p>
+            <p>&copy; 2026 Exismic. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -392,7 +392,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic AI<br>You are receiving this email because your Exismic Pro membership was activated.<br>&copy; ${new Date().getFullYear()} Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic AI<br>You are receiving this email because your Exismic Pro membership was activated.<br>&copy; ${new Date().getFullYear()} Exismic. All rights reserved.</div>
             </td>
           </tr>
         </table>
@@ -702,7 +702,7 @@ export function renderTransactionalEmail({
                 <a href="${SITE_URL}/support" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Exismic AI<br>Built for secure, focused creative work.<br>&copy; ${new Date().getFullYear()} Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin:18px auto 0; max-width:430px; color:#5f6b80; font-size:12px; line-height:1.65;">Exismic AI<br>Built for secure, focused creative work.<br>&copy; ${new Date().getFullYear()} Exismic. All rights reserved.</div>
             </td>
           </tr>
         </table>
@@ -891,7 +891,7 @@ export async function sendWelcomeEmail(email: string, idempotencyKey?: string) {
                 <a href="${SITE_URL}/help" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Support</a>
                 <a href="${SITE_URL}/privacy-policy" style="color:#94a3b8; text-decoration:none; margin:0 10px;">Privacy</a>
               </div>
-              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic Ai<br>You are receiving this email because you created a Exismic account.<br>&copy; 2025 Raxstdioz LLC. All Rights Reserved.</div>
+              <div style="margin-top:18px; color:#475569; font-size:12px; line-height:1.6;">Exismic Ai<br>You are receiving this email because you created a Exismic account.<br>&copy; 2026 Exismic. All rights reserved.</div>
             </td>
           </tr>
         </table>

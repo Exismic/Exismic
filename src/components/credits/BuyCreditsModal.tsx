@@ -327,7 +327,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                             ) : selectedTier && paymentsEnabled ? (
                                <><Zap size={16} className="text-cyan-400 group-hover:text-white transition-colors duration-300 animate-pulse" /> <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,1)] group-hover:text-cyan-50">Complete checkout</span> <ArrowRight size={16} className="text-cyan-400 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" /></>
                             ) : (
-                               <span className="font-black text-zinc-400 tracking-widest">Live checkout soon</span>
+                               <span className="font-black text-zinc-400 tracking-widest">Select a credit pack</span>
                             )}
                           </div>
                         </div>

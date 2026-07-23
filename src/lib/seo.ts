@@ -41,7 +41,7 @@ export function constructMetadata({
     description,
     applicationName: 'Exismic',
     creator: 'Exismic',
-    publisher: 'Raxstdioz LLC',
+    publisher: 'Exismic',
     category: 'technology',
     formatDetection: {
       email: false,

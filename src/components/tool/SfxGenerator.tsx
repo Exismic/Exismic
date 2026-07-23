@@ -65,11 +65,11 @@ export default function SfxGenerator() {
           return 95;
         }
         if (prev > 70) {
-          setStatus("Reconstructing high-fidelity audio signals...");
+          setStatus("Refining audio quality...");
           return prev + 1;
         }
         if (prev > 40) {
-          setStatus("Synthesizing audio waveform layers...");
+          setStatus("Generating sound effects...");
           return prev + 3;
         }
         return prev + 6;
@@ -252,7 +252,7 @@ export default function SfxGenerator() {
                   )}
                 >
                   <Sparkles size={16} />
-                  {isProcessing ? "Synthesizing..." : "Generate Sound Effect"}
+                  {isProcessing ? "Generating..." : "Generate Sound Effect"}
                 </button>
               </div>
             </div>

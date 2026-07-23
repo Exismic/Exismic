@@ -486,7 +486,7 @@ export function ProClient() {
                         {/* Button content */}
                         <div className="relative z-20 flex items-center gap-3 text-[11px]">
                           {loading ? <Loader2 size={18} className="animate-spin text-purple-400" /> : <Crown size={18} className="text-purple-400 group-hover:text-white transition-colors duration-300 animate-pulse" />}
-                          <span className="bg-[linear-gradient(110deg,#fff,#e9d5ff,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{paymentsEnabled ? "Unlock Pro" : "Live checkout soon"}</span>
+                          <span className="bg-[linear-gradient(110deg,#fff,#e9d5ff,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Unlock Pro</span>
                           {!loading && paymentsEnabled && <ArrowRight size={16} className="text-purple-400 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" />}
                         </div>
                       </div>
@@ -872,7 +872,7 @@ export function ProClient() {
                         <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.25),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
                         <div className="relative z-20 flex items-center gap-3 text-[11px]">
                           {loading ? <Loader2 size={18} className="animate-spin text-purple-400" /> : <Crown size={18} className="text-purple-400 group-hover:text-white transition-colors duration-300 animate-pulse" />}
-                          <span className="bg-[linear-gradient(110deg,#fff,#e9d5ff,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{paymentsEnabled ? "Start Pro" : "Live checkout soon"}</span>
+                          <span className="bg-[linear-gradient(110deg,#fff,#e9d5ff,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Start Pro</span>
                           {!loading && paymentsEnabled && <ArrowRight size={16} className="text-purple-400 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" />}
                         </div>
                       </div>

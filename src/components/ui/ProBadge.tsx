@@ -63,7 +63,7 @@ export function ProBadge({
       whileTap={{ scale: 0.98 }}
       aria-label={`${visual.label} membership`}
       className={cn(
-        "group/pro relative isolate inline-flex overflow-hidden p-px font-outfit font-black uppercase select-none",
+        "group/pro relative isolate inline-flex items-center self-center overflow-hidden p-px font-outfit font-black uppercase select-none shrink-0",
         dimensions.shell,
         glow && "shadow-[0_10px_28px_rgba(0,0,0,0.35),0_0_20px_rgba(124,58,237,0.12)]",
         className
