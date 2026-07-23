@@ -16,6 +16,7 @@ import { ProfileThemeProvider } from "@/components/providers/ProfileThemeProvide
 import { AppShell } from "@/components/layout/AppShell";
 import { ConsentAwareAnalytics } from "@/components/providers/ConsentAwareAnalytics";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ReferralTracker } from "@/components/layout/ReferralTracker";
 
 import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
@@ -158,6 +159,7 @@ export default async function RootLayout({
                   <ReferralTracker />
                   <ConsentAwareAnalytics />
                   <Analytics />
+                  <SpeedInsights />
                   <CookieConsent />
                 </I18nProvider>
               </ProfileThemeProvider>
