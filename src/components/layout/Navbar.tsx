@@ -462,7 +462,7 @@ export function Navbar() {
                   <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/80 via-purple-400/80 to-fuchsia-400/80 p-[1px] transition-all" />
 
                   {/* Glassmorphic Inner Pill Container */}
-                  <div className="relative flex h-full items-center gap-2.5 rounded-full bg-[#06070e]/92 pl-2 pr-3 backdrop-blur-2xl border border-white/[0.12] transition-colors duration-300 group-hover/vault:bg-[#090b16]/95 group-hover/vault:border-cyan-300/40">
+                  <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full bg-[#06070e]/92 pl-2 pr-3 backdrop-blur-2xl border border-white/[0.12] transition-colors duration-300 group-hover/vault:bg-[#090b16]/95 group-hover/vault:border-cyan-300/40">
                     {/* Ambient Glow & Reflection Sweep */}
                     <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_15%_50%,rgba(56,189,248,0.25),transparent_45%),radial-gradient(circle_at_85%_50%,rgba(168,85,247,0.2),transparent_40%)]" />
                     <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] transition-transform duration-1000 group-hover/vault:translate-x-56" />

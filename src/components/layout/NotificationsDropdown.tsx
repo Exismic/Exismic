@@ -7,6 +7,7 @@ import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle, Loader2, Gift, ArrowRi
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
+import { useCredits } from "@/hooks/useCredits";
 
 interface Notification {
   id: string;
@@ -26,6 +27,7 @@ export function NotificationsDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = useMemo(() => createClient(), []);
   const instanceId = useId().replace(/:/g, "");
+  const { todayClaim } = useCredits();
 
   useEffect(() => {
     try {
@@ -42,7 +44,8 @@ export function NotificationsDropdown() {
     }
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length + (isDailyClaimAvailable && session ? 1 : 0);
+  const isBonusUnclaimed = Boolean(session && !todayClaim && isDailyClaimAvailable);
+  const unreadCount = notifications.filter(n => !n.read).length + (isBonusUnclaimed ? 1 : 0);
   const hasUnread = unreadCount > 0;
 
   // Fetch Session
@@ -216,8 +219,8 @@ export function NotificationsDropdown() {
         {/* Floating Unread Count Badge */}
         {unreadCount > 0 && (
           <div className="absolute -right-1.5 -top-1.5 z-30 flex items-center justify-center">
-            <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 blur-[2px] opacity-80 animate-pulse" />
-            <span className="relative flex h-5 min-w-[20px] items-center justify-center rounded-full border border-white/30 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-400 px-1.5 text-[9.5px] font-black text-white shadow-[0_2px_10px_rgba(236,72,153,0.6)]">
+            <span className="absolute -inset-0.5 rounded-full bg-rose-500 blur-[2px] opacity-75 animate-pulse" />
+            <span className="relative flex h-5 min-w-[20px] items-center justify-center rounded-full border border-rose-300/40 bg-rose-500 px-1.5 text-[9.5px] font-black text-white shadow-[0_0_12px_rgba(244,63,94,0.8)]">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           </div>
@@ -262,7 +265,7 @@ export function NotificationsDropdown() {
 
             {/* List */}
             <div className="max-h-[min(420px,calc(100dvh-10rem))] overflow-y-auto no-scrollbar py-2">
-              {session && isDailyClaimAvailable && (
+              {isBonusUnclaimed && (
                 <Link
                   href="/shop"
                   onClick={() => setIsOpen(false)}
