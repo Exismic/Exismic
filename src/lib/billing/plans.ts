@@ -71,8 +71,8 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     credits: 5000,
     interval: "one_time",
     prices: {
-      IN: { amount: 1999, currency: "INR", symbol: "₹", gateway: "razorpay" },
-      GLOBAL: { amount: 24.99, currency: "USD", symbol: "$", gateway: "paypal" },
+      IN: { amount: 1499, currency: "INR", symbol: "₹", gateway: "razorpay" },
+      GLOBAL: { amount: 19.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["5,000 permanent credits", "Best for bulk jobs", "Support tracking invoice"],
   },
