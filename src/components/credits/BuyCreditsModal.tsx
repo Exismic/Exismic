@@ -158,7 +158,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
   return (
     <AnimatePresence>
       {isOpen && (
-        <div key="buy-credits-modal" className="fixed inset-0 z-[150] flex items-end justify-center p-3 sm:items-center sm:p-6">
+        <div key="buy-credits-modal" className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 md:p-8 pt-16 sm:pt-20">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -174,7 +174,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
             role="dialog"
             aria-modal="true"
             aria-label="Buy credits"
-            className="glass-dark relative max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/5 p-4 shadow-4xl sm:rounded-[3rem] sm:p-8 md:p-12"
+            className="glass-dark relative max-h-[calc(100vh-5rem)] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/10 p-5 shadow-4xl sm:rounded-[3rem] sm:p-8 md:p-12 my-auto"
           >
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-accent-purple/10 blur-[120px] pointer-events-none" />

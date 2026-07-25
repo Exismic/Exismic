@@ -114,7 +114,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-end justify-center bg-[#030303]/90 p-3 backdrop-blur-xl sm:items-center sm:p-6">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#030303]/90 p-3 sm:p-6 pt-16 sm:pt-20 backdrop-blur-xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

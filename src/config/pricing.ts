@@ -36,8 +36,8 @@ export const PRICING_CONFIG = {
       billingPlanId: 'ultimate',
       credits: 5000,
       bonusCredits: 1000,
-      priceUSD: 24.99,
-      priceINR: 1999,
+      priceUSD: 19.99,
+      priceINR: 1499,
       label: 'Studio Power',
       color: 'gold',
       icon: 'Crown'
