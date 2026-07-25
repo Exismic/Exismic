@@ -129,15 +129,24 @@ export function InteractivePlayground() {
       if (musicEl) musicEl.pause();
     } else {
       setIsPlaying(true);
+      if (vocalEl && musicEl) {
+        // Sync playhead positions before starting
+        musicEl.currentTime = vocalEl.currentTime;
+      }
       if (vocalEl) {
         vocalEl.volume = vocalVolume / 100;
         vocalEl.muted = vocalMuted || vocalVolume === 0;
-        vocalEl.play().catch((err) => console.error("Vocal audio error:", err));
+        vocalEl.play().catch((err) => {
+          console.error("Vocal audio error:", err);
+          setIsPlaying(false);
+        });
       }
       if (musicEl) {
         musicEl.volume = musicVolume / 100;
         musicEl.muted = musicMuted || musicVolume === 0;
-        musicEl.play().catch((err) => console.error("Music audio error:", err));
+        musicEl.play().catch((err) => {
+          console.error("Music audio error:", err);
+        });
       }
     }
   };
@@ -1023,8 +1032,14 @@ export function InteractivePlayground() {
                   <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-white/10 relative cursor-pointer"
                        onClick={(e) => {
                          const rect = e.currentTarget.getBoundingClientRect();
-                         const p = ((e.clientX - rect.left) / rect.width) * 100;
-                         setAudioProgress(p);
+                         const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                         setAudioProgress(p * 100);
+                         if (vocalAudioRef.current && vocalAudioRef.current.duration) {
+                           vocalAudioRef.current.currentTime = p * vocalAudioRef.current.duration;
+                         }
+                         if (musicAudioRef.current && musicAudioRef.current.duration) {
+                           musicAudioRef.current.currentTime = p * musicAudioRef.current.duration;
+                         }
                        }}>
                     <div 
                       className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-cyan-400 rounded-full transition-all"

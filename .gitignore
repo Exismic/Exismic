@@ -52,7 +52,9 @@ dev.db
 
 # scratch
 /scratch/
-/public/generations/
+/public/generations/*
+!/public/generations/sandbox_*
+!/public/generations/macarena_*
 /public/results/
 /public/uploads/
 /get_user_status.ts
