@@ -1003,14 +1003,114 @@ export default function AccountSettings() {
                 )}
                 {activeTab === 'security' && (
                    <div className="space-y-8">
-                      <TrustedLoginSetup />
-                      <section className="glass-dark relative space-y-8 overflow-hidden rounded-[2rem] border border-white/5 p-5 sm:p-8 lg:space-y-12 lg:rounded-[3rem] lg:p-12">
-                         <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[80px] pointer-events-none" /><div className="space-y-4"><h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Security Infrastructure</h3><p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Protect your creative assets and identity</p></div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <div className="space-y-6"><div className="w-16 h-16 rounded-[1.5rem] bg-white/5 flex items-center justify-center text-white"><Lock size={32} /></div><div className="space-y-4"><h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Update Password</h4><p className="text-[11px] font-medium text-zinc-500 leading-relaxed uppercase tracking-tight">We will send a secure reset link to your registered email address.</p><button onClick={handleResetPassword} disabled={isResetting} className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[9px] hover:bg-white hover:text-black transition-all flex items-center gap-3">{isResetting ? <Loader2 size={14} className="animate-spin" /> : "Request Reset Link"}<ArrowRight size={14} /></button></div></div>
-                            <div className="space-y-6"><div className="w-16 h-16 rounded-[1.5rem] bg-white/5 flex items-center justify-center text-white"><ShieldCheck size={32} /></div><div className="space-y-4"><h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Multi-Factor Auth</h4><p className="text-[11px] font-medium text-zinc-500 leading-relaxed uppercase tracking-tight">Add an extra layer of security to your account using 2FA.</p><button className="px-8 py-4 rounded-xl bg-zinc-900 border border-white/5 text-zinc-600 font-black uppercase tracking-widest text-[9px] cursor-not-allowed italic">Coming Soon</button></div></div>
-                         </div>
-                      </section>
+                      <TrustedLoginSetup /> 
+                      <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-[#07070d]/90 p-6 sm:p-10 lg:p-12 shadow-[0_30px_90px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
+                          {/* Ambient Atmospheric Glows */}
+                          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-cyan-500/10 blur-[110px]" />
+                          <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-purple-500/10 blur-[110px]" />
+                          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.06),transparent_60%)]" />
+
+                          {/* Header */}
+                          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-8 border-b border-white/[0.06]">
+                             <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                                      <ShieldCheck size={18} />
+                                   </div>
+                                   <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">Cyber Protection System</span>
+                                </div>
+                                <h3 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white drop-shadow-sm">
+                                   Security Infrastructure
+                                </h3>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">
+                                   Protect your creative assets, encryption keys, and identity
+                                </p>
+                             </div>
+
+                             <div className="flex items-center gap-2.5 self-start sm:self-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                                <span>System Shield Active</span>
+                             </div>
+                          </div>
+
+                          {/* Cards Grid */}
+                          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+                             {/* Password Card */}
+                             <div className="group relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.02] p-8 transition-all duration-500 hover:border-cyan-500/30 hover:bg-white/[0.04] hover:shadow-[0_20px_50px_rgba(6,182,212,0.12)]">
+                                <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-500/10 blur-[60px] transition-all duration-500 group-hover:bg-cyan-500/20" />
+                                
+                                <div className="relative z-10 space-y-6">
+                                   <div className="flex items-center justify-between">
+                                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-500 group-hover:scale-110">
+                                         <Lock size={28} />
+                                      </div>
+                                      <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-cyan-300">
+                                         256-Bit SSL
+                                      </span>
+                                   </div>
+
+                                   <div className="space-y-2">
+                                      <h4 className="text-2xl font-black italic uppercase tracking-tight text-white">Update Password</h4>
+                                      <p className="text-xs font-medium text-zinc-400 leading-relaxed">
+                                         Send an encrypted password reset authorization email to <span className="text-white font-bold">{user.email}</span>.
+                                      </p>
+                                   </div>
+
+                                   <button
+                                      onClick={handleResetPassword}
+                                      disabled={isResetting}
+                                      className="group/btn relative isolate flex min-h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_10px_30px_rgba(6,182,212,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_15px_40px_rgba(6,182,212,0.4)] disabled:opacity-50"
+                                   >
+                                      {isResetting ? (
+                                         <Loader2 size={16} className="animate-spin" />
+                                      ) : (
+                                         <>
+                                            <span>Request Reset Authorization</span>
+                                            <ArrowRight size={14} className="transition-transform group-hover/btn:translate-x-1" />
+                                         </>
+                                      )}
+                                   </button>
+                                </div>
+                             </div>
+
+                             {/* Multi-Factor Auth Card */}
+                             <div className="group relative overflow-hidden rounded-[2rem] border border-purple-500/20 bg-gradient-to-b from-purple-500/[0.04] to-white/[0.01] p-8 transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)]">
+                                <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-purple-500/10 blur-[60px] transition-all duration-500 group-hover:bg-purple-500/20" />
+                                
+                                <div className="relative z-10 space-y-6">
+                                   <div className="flex items-center justify-between">
+                                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-purple-500/30 bg-purple-500/15 text-purple-300 shadow-[0_0_25px_rgba(168,85,247,0.2)] transition-all duration-500 group-hover:scale-110">
+                                         <ShieldCheck size={28} />
+                                      </div>
+                                      <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/30 bg-purple-400/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                                         <Sparkles size={10} className="animate-pulse" />
+                                         Phase 2 • Vault
+                                      </span>
+                                   </div>
+
+                                   <div className="space-y-2">
+                                      <div className="flex items-center gap-3">
+                                         <h4 className="text-2xl font-black italic uppercase tracking-tight text-white">Multi-Factor Auth</h4>
+                                      </div>
+                                      <p className="text-xs font-medium text-zinc-400 leading-relaxed">
+                                         Add double-layer biometric & TOTP authenticator protection to guard your account against unauthorized logins.
+                                      </p>
+                                   </div>
+
+                                   <div className="flex items-center justify-between gap-4 pt-2">
+                                      <div className="flex items-center gap-2">
+                                         <div className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-ping" />
+                                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-300/80">TOTP & FIDO2 Supported</span>
+                                      </div>
+
+                                      <span className="rounded-xl border border-purple-500/30 bg-purple-950/60 px-5 py-3 text-[9px] font-black uppercase tracking-[0.22em] text-purple-300 shadow-inner italic select-none">
+                                         Coming Soon
+                                      </span>
+                                   </div>
+                                </div>
+                             </div>
+                          </div>
+                       </section>
                    </div>
                 )}
                 {activeTab === 'billing' && (
