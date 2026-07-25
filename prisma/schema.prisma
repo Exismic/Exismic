@@ -29,6 +29,8 @@ model User {
   bonusCredits           Int                     @default(0) @map("bonus_credits")
   dailyCredits           Int                     @default(50) @map("daily_credits")
   lifetimeCredits        Int                     @default(0) @map("lifetime_credits")
+  dailyStreak            Int                     @default(0) @map("daily_streak")
+  lastClaimDate          DateTime?               @map("last_claim_date") @db.Date
   planExpiresAt          DateTime?               @map("plan_expires_at")
   subscriptionStatus     String                  @default("none") @map("subscription_status")
   customAvatarUrl        String?                 @map("custom_avatar_url")

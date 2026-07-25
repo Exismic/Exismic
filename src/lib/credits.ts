@@ -347,6 +347,8 @@ export async function getUserCredits(userId: string) {
         creditsLastReset: true,
         aiMessagesToday: true,
         plan: true,
+        dailyStreak: true,
+        lastClaimDate: true,
       },
     });
 
@@ -366,6 +368,8 @@ export async function getUserCredits(userId: string) {
         creditsLastReset: true,
         aiMessagesToday: true,
         plan: true,
+        dailyStreak: true,
+        lastClaimDate: true,
       },
     });
   } catch (err) {
@@ -376,8 +380,6 @@ export async function getUserCredits(userId: string) {
 
 export async function claimDailyShopCredits(userId: string) {
   const claimDate = getTodayInIndia();
-
-  const reward = rollDailyShopReward();
 
   try {
     const result = await prisma.$transaction(async (transaction) => {
@@ -394,42 +396,80 @@ export async function claimDailyShopCredits(userId: string) {
         throw new Error(`Already claimed:${existing.amount}:${existing.rarity}`);
       }
 
+      const user = await transaction.user.findUnique({
+        where: { id: userId },
+        select: { dailyStreak: true, lastClaimDate: true }
+      });
+
+      const yesterday = new Date(claimDate);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      let newStreak = 1;
+      if (user?.lastClaimDate) {
+        const lastDate = new Date(user.lastClaimDate);
+        if (lastDate.getTime() === yesterday.getTime()) {
+          newStreak = (user.dailyStreak || 0) + 1;
+        }
+      }
+
+      let reward = rollDailyShopReward();
+      // Milestone bonus at 7 days: guarantee at least rare drop if roll was common/uncommon
+      if (newStreak % 7 === 0 && (reward.rarity === "common" || reward.rarity === "uncommon")) {
+        reward = { rarity: "rare", amount: 50, type: "temporary" };
+      }
+
+      // Calculate streak boost multiplier (+5% per streak day, max +35% at day 7+)
+      const streakMultiplier = 1 + Math.min(newStreak - 1, 7) * 0.05;
+      const finalAmount = Math.round(reward.amount * streakMultiplier);
+
       const claim = await transaction.creditShopClaim.create({
         data: {
           userId,
           claimDate,
-          amount: reward.amount,
+          amount: finalAmount,
           rarity: reward.rarity,
         },
       });
 
       const updatedUser = await transaction.user.update({
         where: { id: userId },
-        data: reward.type === "permanent"
-          ? { lifetimeCredits: { increment: reward.amount } }
-          : { bonusCredits: { increment: reward.amount } },
+        data: {
+          dailyStreak: newStreak,
+          lastClaimDate: claimDate,
+          ...(reward.type === "permanent"
+            ? { lifetimeCredits: { increment: finalAmount } }
+            : { bonusCredits: { increment: finalAmount } }),
+        },
         select: {
           dailyCredits: true,
           bonusCredits: true,
           lifetimeCredits: true,
+          dailyStreak: true,
         },
       });
 
       await transaction.creditTransaction.create({
         data: {
           userId,
-          amount: reward.amount,
+          amount: finalAmount,
           balanceType: reward.type === "permanent" ? "permanent" : "bonus",
           transactionType: "shop_bonus",
-          description: `Daily shop reward: ${reward.rarity} (${reward.type})`,
-          metadata: { rarity: reward.rarity, type: reward.type, claimId: claim.id },
+          description: `Daily shop reward (${newStreak}-day streak): ${reward.rarity} (${reward.type})`,
+          metadata: { rarity: reward.rarity, type: reward.type, streak: newStreak, claimId: claim.id },
         },
       });
 
-      return { claim, credits: updatedUser };
+      return { claim, credits: updatedUser, streak: newStreak, finalAmount, reward };
     });
 
-    return { success: true as const, ...reward, credits: result.credits };
+    return {
+      success: true as const,
+      rarity: result.reward.rarity,
+      amount: result.finalAmount,
+      type: result.reward.type,
+      streak: result.streak,
+      credits: result.credits,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.startsWith("Already claimed:")) {

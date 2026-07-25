@@ -67,8 +67,8 @@ export function LandingPage() {
   }, []);
 
   const proPriceVal = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
-  const proPrice = isIndia ? `Rs ${proPriceVal}` : `$${proPriceVal}`;
-  const launchComparePrice = isIndia ? "Rs 999" : "$14.99";
+  const proPrice = isIndia ? `₹${proPriceVal}` : `$${proPriceVal}`;
+  const launchComparePrice = isIndia ? "₹999" : "$14.99";
 
   const { scrollYProgress } = useScroll({
     target: containerRef,

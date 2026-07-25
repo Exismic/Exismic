@@ -22,6 +22,7 @@ export async function updateSession(request: NextRequest) {
     publicPages.has(request.nextUrl.pathname) ||
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/api/auth') ||
+    request.nextUrl.pathname.startsWith('/api/og') ||
     request.nextUrl.pathname.startsWith('/api/tools') ||
     request.nextUrl.pathname === '/api/user/favorites' ||
     request.nextUrl.pathname.startsWith('/api/billing/market') ||

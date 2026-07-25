@@ -78,7 +78,7 @@ export function ManageSubscriptionModal({
   });
   const isIndia = isHydrated && getIsIndia();
   const planPrice = isIndia
-    ? `Rs ${PRICING_CONFIG.PRO_PLAN.INR}`
+    ? `₹${PRICING_CONFIG.PRO_PLAN.INR}`
     : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
 
   useEffect(() => {

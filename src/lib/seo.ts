@@ -19,7 +19,7 @@ function resolveSiteUrl() {
 }
 
 export const SITE_URL = resolveSiteUrl();
-export const SEO_INDEXING_ENABLED = process.env.SEO_INDEXING_ENABLED === "true";
+export const SEO_INDEXING_ENABLED = process.env.SEO_INDEXING_ENABLED !== "false";
 
 export function constructMetadata({
   title = "Exismic - All-in-One AI Tools | Image, Video, Audio & More",
@@ -115,9 +115,12 @@ export function getToolMetadata(toolId: string, categoryId?: string) {
   );
   if (!tool) return constructMetadata();
 
+  const ogImageUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(tool.name)}&category=${encodeURIComponent(tool.category)}&description=${encodeURIComponent(tool.description)}`;
+
   return constructMetadata({
     title: tool.seoTitle || `${tool.name} - Free AI Powered Online Tool | Exismic`,
     description: tool.seoDescription || tool.description,
+    image: ogImageUrl,
     canonicalUrl: `${SITE_URL}${tool.href}`,
     noIndex: tool.indexable === false,
     keywords: tool.seoKeywords || [
@@ -134,9 +137,12 @@ export function getCategoryMetadata(categoryId: string) {
   const category = CATEGORIES.find(c => c.id === categoryId);
   if (!category) return constructMetadata();
 
+  const ogImageUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(category.name)}&category=Collection&description=${encodeURIComponent(category.description)}`;
+
   return constructMetadata({
     title: `${category.name} - Professional AI Tools Online | Exismic`,
     description: `Access our elite suite of AI-powered ${category.name.toLowerCase()}. ${category.description} Free, fast, and studio-grade results.`,
+    image: ogImageUrl,
     canonicalUrl: `${SITE_URL}/category/${category.id}`,
     keywords: [
       category.name.toLowerCase(),

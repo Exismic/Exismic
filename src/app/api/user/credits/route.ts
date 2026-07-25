@@ -48,6 +48,7 @@ export async function GET() {
         aiMessagesToday: credits.aiMessagesToday,
         plan: credits.plan,
         lastReset: credits.creditsLastReset,
+        dailyStreak: credits.dailyStreak || 0,
         todayClaim: todayClaim || null,
       }
     }, {

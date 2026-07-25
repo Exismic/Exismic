@@ -18,7 +18,7 @@ export function getUserCountry(req: NextRequest) {
 
 export function getMarketFromCountry(countryCode?: string | null): Market {
   return countryCode?.toUpperCase() === "IN"
-    ? { market: "IN", currency: "INR", gateway: "razorpay", symbol: "Rs" }
+    ? { market: "IN", currency: "INR", gateway: "razorpay", symbol: "₹" }
     : { market: "GLOBAL", currency: "USD", gateway: "paypal", symbol: "$" };
 }
 

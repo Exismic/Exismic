@@ -216,7 +216,7 @@ export function ProClient() {
   }, [paymentStatus, paymentReason, router]);
 
   const isIndia = market === "IN";
-  const currencySymbol = isIndia ? "Rs " : "$";
+  const currencySymbol = isIndia ? "₹" : "$";
   const priceDisplay = isIndia
     ? PRICING_CONFIG.PRO_PLAN.INR.toString()
     : PRICING_CONFIG.PRO_PLAN.USD.toString();

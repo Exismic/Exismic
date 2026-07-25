@@ -56,7 +56,7 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
   const isPro = plan === "pro";
   const isOutOfCredits = credits <= 0;
   const proPrice = isIndia
-    ? `Rs ${PRICING_CONFIG.PRO_PLAN.INR}`
+    ? `₹${PRICING_CONFIG.PRO_PLAN.INR}`
     : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
 
   React.useEffect(() => {

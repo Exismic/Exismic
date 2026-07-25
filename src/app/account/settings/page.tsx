@@ -34,6 +34,7 @@ import {
   Loader2,
   RefreshCcw,
   ArrowRight,
+  Flame,
   Image as ImageIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -147,7 +148,7 @@ export default function AccountSettings() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const { credits, dailyCredits, bonusCredits, lifetimeCredits, messagesUsed, isPro, refreshCredits } = useCredits();
+  const { credits, dailyCredits, bonusCredits, lifetimeCredits, messagesUsed, isPro, todayClaim, dailyStreak, refreshCredits } = useCredits();
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -950,18 +951,26 @@ export default function AccountSettings() {
                                   <Gift size={24} />
                                </div>
                                <div>
-                                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-500/70 group-hover:text-cyan-400 transition-colors">Bonus Reserve</p>
-                                  <h4 className="mt-1 text-3xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-400 drop-shadow-sm">
-                                    {bonusCredits} <span className="text-2xl text-cyan-200/50">CREDITS</span>
-                                  </h4>
-                                  <p className="mt-1 text-xs font-medium text-zinc-500">Shop rewards stack separately from your daily allowance and permanent reserve.</p>
-                               </div>
+                                   <div className="flex items-center gap-3">
+                                     <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-500/70 group-hover:text-cyan-400 transition-colors">Bonus Reserve</p>
+                                     {Boolean(dailyStreak) && (
+                                       <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                                         <Flame size={12} className="text-amber-400 animate-pulse fill-amber-400/30" />
+                                         {dailyStreak} Day Streak
+                                       </span>
+                                     )}
+                                   </div>
+                                   <h4 className="mt-1 text-3xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-400 drop-shadow-sm">
+                                     {bonusCredits} <span className="text-2xl text-cyan-200/50">CREDITS</span>
+                                   </h4>
+                                   <p className="mt-1 text-xs font-medium text-zinc-500">Shop rewards stack separately from your daily allowance and permanent reserve.</p>
+                                </div>
                             </div>
                             <Link href="/shop" className="group/btn relative isolate inline-flex min-h-[52px] items-center justify-center gap-2 overflow-hidden rounded-[14px] border border-cyan-500/20 bg-[linear-gradient(115deg,rgba(34,211,238,0.1),rgba(34,211,238,0.02))] px-6 text-[10px] font-black uppercase tracking-widest text-cyan-100 shadow-[0_10px_30px_rgba(34,211,238,0.1)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:bg-cyan-400/10 hover:text-white hover:shadow-[0_20px_50px_rgba(34,211,238,0.25)] active:scale-95">
                               <span className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(34,211,238,0.6),transparent)] opacity-50" />
                               <span className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(34,211,238,0.1),transparent)] opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
                               <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
-                                Claim Daily Reward <ArrowRight size={14} className="text-cyan-400 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:text-cyan-300" />
+                                {todayClaim ? "Open Shop" : "Claim Daily Reward"} <ArrowRight size={14} className="text-cyan-400 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:text-cyan-300" />
                               </span>
                             </Link>
                          </div>

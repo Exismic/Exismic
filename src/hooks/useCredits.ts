@@ -21,6 +21,7 @@ export interface CreditState {
   aiMessagesToday: number;
   aiMessagesReset: string;
   plan: 'free' | 'pro';
+  dailyStreak?: number;
   todayClaim?: { amount: number; rarity: string; type?: "temporary" | "permanent" } | null;
 }
 
@@ -106,6 +107,7 @@ export function useCredits() {
               aiMessagesToday: json.data.aiMessagesToday || 0,
               aiMessagesReset: new Date().toISOString(),
               plan: json.data.plan || 'free',
+              dailyStreak: json.data.dailyStreak || 0,
               todayClaim: json.data.todayClaim || null,
             });
           }
@@ -261,6 +263,7 @@ export function useCredits() {
           aiMessagesToday: data.aiMessagesToday || 0,
           aiMessagesReset: new Date().toISOString(),
           plan: data.plan || 'free',
+          dailyStreak: data.dailyStreak || 0,
           todayClaim: data.todayClaim || null,
         });
       } else {
@@ -431,6 +434,7 @@ export function useCredits() {
     messagesUsed: state?.aiMessagesToday ?? 0,
     plan: state?.plan ?? 'free',
     isPro: state?.plan === 'pro',
+    dailyStreak: state?.dailyStreak ?? 0,
     todayClaim: state?.todayClaim ?? null,
     loading,
     userId,

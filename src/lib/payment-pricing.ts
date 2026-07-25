@@ -12,7 +12,7 @@ export function getProPrice(currency: CheckoutCurrency) {
   return {
     amount,
     amountMinor: Math.round(amount * 100),
-    display: currency === "INR" ? `Rs ${amount}` : `$${amount}`,
+    display: currency === "INR" ? `₹${amount}` : `$${amount}`,
     currency,
   };
 }
@@ -30,7 +30,7 @@ export function getCreditPackagePrice(tierId: string | undefined, currency: Chec
     tier,
     amount,
     amountMinor: Math.round(amount * 100),
-    display: currency === "INR" ? `Rs ${amount}` : `$${amount}`,
+    display: currency === "INR" ? `₹${amount}` : `$${amount}`,
     currency,
   };
 }

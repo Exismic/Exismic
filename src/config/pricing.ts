@@ -59,7 +59,7 @@ export function getIsIndia() {
 
 export function formatPrice(amount: number, currency: 'USD' | 'INR') {
   if (currency === 'INR') {
-    return `Rs ${amount}`;
+    return `₹${amount}`;
   }
   return `$${amount}`;
 }

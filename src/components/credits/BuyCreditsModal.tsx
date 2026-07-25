@@ -283,7 +283,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                             <div className="text-center pt-4">
                                <div className="flex flex-col items-center">
                                  <span className="text-xl font-black text-white italic">
-                                   {isIndia ? `Rs ${tier.priceINR}` : `$${tier.priceUSD}`}
+                                   {isIndia ? `₹${tier.priceINR}` : `$${tier.priceUSD}`}
                                  </span>
                                  <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{gatewayName} checkout</span>
                                </div>

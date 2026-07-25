@@ -12,6 +12,7 @@ import {
   Crown,
   Diamond,
   ExternalLink,
+  Flame,
   Gift,
   Info,
   Loader2,
@@ -80,6 +81,7 @@ export default function ShopPage() {
     isPro,
     countdown,
     todayClaim,
+    dailyStreak,
     refreshCredits,
     toast,
   } = useCredits();
@@ -158,7 +160,7 @@ export default function ShopPage() {
 
   const formattedPacks = useMemo<CreditPack[]>(() => PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
     ...pack,
-    priceLabel: isIndia ? `Rs ${pack.priceINR}` : `$${pack.priceUSD}`,
+    priceLabel: isIndia ? `₹${pack.priceINR}` : `$${pack.priceUSD}`,
     style: packStyles[pack.color as keyof typeof packStyles] || packStyles.blue,
   })), [isIndia]);
 
@@ -380,7 +382,15 @@ export default function ShopPage() {
             <div className="relative">
               <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100/80">Free daily shop reward</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100/80">Free daily shop reward</p>
+                    {Boolean(dailyStreak) && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                        <Flame size={12} className="text-amber-400 animate-pulse fill-amber-400/30" />
+                        {dailyStreak} Day Streak (+{Math.min((dailyStreak ?? 1) - 1, 7) * 5}% Boost)
+                      </span>
+                    )}
+                  </div>
                   <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">Open today&apos;s reward</h2>
                 </div>
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-fuchsia-300/20 bg-fuchsia-300/[0.08] text-fuchsia-100">

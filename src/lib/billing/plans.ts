@@ -23,7 +23,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     credits: 50,
     interval: "free",
     prices: {
-      IN: { amount: 0, currency: "INR", symbol: "Rs", gateway: "none" },
+      IN: { amount: 0, currency: "INR", symbol: "₹", gateway: "none" },
       GLOBAL: { amount: 0, currency: "USD", symbol: "$", gateway: "none" },
     },
     features: ["Starter credits", "Core tools", "Standard processing"],
@@ -35,7 +35,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     credits: 500,
     interval: "one_time",
     prices: {
-      IN: { amount: 299, currency: "INR", symbol: "Rs", gateway: "razorpay" },
+      IN: { amount: 299, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 3.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["500 permanent credits", "Instant account update", "Secure checkout"],
@@ -47,7 +47,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     credits: 1500,
     interval: "one_time",
     prices: {
-      IN: { amount: 699, currency: "INR", symbol: "Rs", gateway: "razorpay" },
+      IN: { amount: 699, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 8.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["1,500 permanent credits", "Best everyday value", "Secure checkout"],
@@ -59,7 +59,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     credits: 500,
     interval: "month",
     prices: {
-      IN: { amount: 499, currency: "INR", symbol: "Rs", gateway: "razorpay" },
+      IN: { amount: 499, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 6.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["Pro membership", "500 daily credits", "Priority processing", "Commercial exports"],
@@ -71,7 +71,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     credits: 5000,
     interval: "one_time",
     prices: {
-      IN: { amount: 1999, currency: "INR", symbol: "Rs", gateway: "razorpay" },
+      IN: { amount: 1999, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 24.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["5,000 permanent credits", "Best for bulk jobs", "Support tracking invoice"],
@@ -91,7 +91,7 @@ export function getPlanPrice(planId: BillingPlanId, market: BillingMarket) {
     market,
     ...price,
     amountMinor: Math.round(price.amount * 100),
-    display: price.currency === "INR" ? `Rs ${price.amount}` : `$${price.amount}`,
+    display: price.currency === "INR" ? `₹${price.amount}` : `$${price.amount}`,
   };
 }
 

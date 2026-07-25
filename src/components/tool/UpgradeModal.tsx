@@ -36,7 +36,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const supabase = createClient();
   const minimumAmount = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
   const currencyLabel = isIndia ? "INR" : "USD";
-  const currencyPrefix = isIndia ? "Rs" : "$";
+  const currencyPrefix = isIndia ? "₹" : "$";
 
   useEffect(() => {
     setIsIndia(getIsIndia());
