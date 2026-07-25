@@ -192,22 +192,35 @@ export function NotificationsDropdown() {
         aria-haspopup="dialog"
         aria-label={hasUnread ? "Open notifications, unread items available" : "Open notifications"}
         className={cn(
-          "group relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border backdrop-blur-2xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-95",
+          "group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-95",
           isOpen
-            ? "border-cyan-300/25 bg-cyan-300/[0.08] text-cyan-100 shadow-[0_0_28px_rgba(34,211,238,0.11),inset_0_1px_0_rgba(255,255,255,0.08)]"
-            : "border-white/[0.09] bg-[#08080d]/84 text-zinc-400 shadow-[0_16px_45px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.055)] hover:border-purple-300/20 hover:bg-[#0a0a11] hover:text-white"
+            ? "border-cyan-300/40 bg-cyan-300/[0.12] text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
+            : "border-white/[0.12] bg-[#06070e]/92 text-zinc-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] backdrop-blur-2xl hover:border-cyan-300/40 hover:bg-[#0a0c16] hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.18)]"
         )}
       >
+        {/* Inner background radial glow clipped within border */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,rgba(168,85,247,0.16),transparent_45%),radial-gradient(circle_at_80%_85%,rgba(34,211,238,0.1),transparent_42%)]"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_30%_20%,rgba(168,85,247,0.2),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(34,211,238,0.15),transparent_45%)]"
         />
-        <Bell size={17} strokeWidth={2.2} className={cn("relative z-10 transition-transform duration-300", !isOpen && "group-hover:-rotate-12")} />
+
+        <Bell 
+          size={18} 
+          strokeWidth={2.2} 
+          className={cn(
+            "relative z-10 transition-transform duration-300",
+            isOpen ? "text-cyan-200" : "text-zinc-300 group-hover:rotate-12 group-hover:text-cyan-200"
+          )} 
+        />
         
+        {/* Floating Unread Count Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 z-20 flex h-5 min-w-[20px] items-center justify-center rounded-full border border-pink-500/40 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 px-1 text-[9px] font-black text-white shadow-[0_0_15px_rgba(236,72,153,0.8)] animate-pulse">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
+          <div className="absolute -right-1.5 -top-1.5 z-30 flex items-center justify-center">
+            <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 blur-[2px] opacity-80 animate-pulse" />
+            <span className="relative flex h-5 min-w-[20px] items-center justify-center rounded-full border border-white/30 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-400 px-1.5 text-[9.5px] font-black text-white shadow-[0_2px_10px_rgba(236,72,153,0.6)]">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          </div>
         )}
       </button>
 
