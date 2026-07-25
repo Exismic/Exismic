@@ -255,14 +255,21 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                             </div>
 
                             <div className="space-y-1">
-                               <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 italic">{tier.label}</h4>
+                               <div className="flex items-center justify-between">
+                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 italic">{tier.label}</h4>
+                                 {tier.bonusCredits > 0 && (
+                                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300">
+                                     +{tier.bonusCredits} Bonus
+                                   </span>
+                                 )}
+                               </div>
                                <div className="flex items-baseline gap-2">
                                   <span className={cn(
                                     "bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent text-5xl font-black italic",
                                     tier.color === 'blue' ? "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]" :
                                     tier.color === 'purple' ? "bg-[linear-gradient(110deg,#fff,#c084fc,#06b6d4,#fff)] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" :
                                     "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]"
-                                  )}>{tier.credits}</span>
+                                  )}>{tier.credits + (tier.bonusCredits || 0)}</span>
                                   <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">PERM</span>
                                </div>
                             </div>

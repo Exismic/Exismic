@@ -124,6 +124,8 @@ export async function verifyRazorpayPayment(
     return { success: false, error: "Payment amount does not match the selected package." };
   }
 
+  const totalCreditsToGrant = tier.credits + (tier.bonusCredits || 0);
+
   try {
     const result = await prisma.$transaction(async (transaction) => {
       const existing = await transaction.paymentTransaction.findUnique({
@@ -140,20 +142,20 @@ export async function verifyRazorpayPayment(
           transactionReference: generateTransactionReference("credits"),
           amount: expectedPrice.amountMinor,
           currency,
-          metadata: { credits: creditsToAdd, source: "shop" },
+          metadata: { credits: totalCreditsToGrant, baseCredits: tier.credits, bonusCredits: tier.bonusCredits || 0, source: "shop" },
         },
       });
       await transaction.user.update({
         where: { id: userId },
-        data: { lifetimeCredits: { increment: creditsToAdd } },
+        data: { lifetimeCredits: { increment: totalCreditsToGrant } },
       });
       await transaction.creditTransaction.create({
         data: {
           userId,
-          amount: creditsToAdd,
+          amount: totalCreditsToGrant,
           balanceType: "permanent",
           transactionType: "purchase",
-          description: `Shop purchase: ${creditsToAdd} permanent credits`,
+          description: `Shop purchase: ${totalCreditsToGrant} permanent credits (${tier.credits} base + ${tier.bonusCredits || 0} bonus)`,
           metadata: {
             provider: "razorpay",
             providerPaymentId: razorpay_payment_id,

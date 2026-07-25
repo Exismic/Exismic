@@ -35,6 +35,16 @@ export function getCreditPackagePrice(tierId: string | undefined, currency: Chec
   };
 }
 
+export function getTotalPackageCredits(tier: (typeof PRICING_CONFIG.CREDIT_PACKAGES)[number]) {
+  return tier.credits + (tier.bonusCredits || 0);
+}
+
 export function getCreditPackageByCredits(credits: number) {
-  return PRICING_CONFIG.CREDIT_PACKAGES.find((tier) => tier.credits === credits) || null;
+  return (
+    PRICING_CONFIG.CREDIT_PACKAGES.find(
+      (tier) =>
+        tier.credits === credits ||
+        tier.credits + (tier.bonusCredits || 0) === credits
+    ) || null
+  );
 }
