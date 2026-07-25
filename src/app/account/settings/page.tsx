@@ -1333,6 +1333,12 @@ export default function AccountSettings() {
                                  frame.glowStyles
                               )} />
 
+                              {(frame as { isNew?: boolean }).isNew && (
+                                 <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 text-black text-[7.5px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.6)] animate-pulse border border-emerald-300/50">
+                                    NEW
+                                 </div>
+                              )}
+
                               <div className="relative scale-125 my-4 transition-transform duration-500 group-hover/frame:scale-135">
                                  <AvatarWithFrame 
                                     avatarUrl={displayAvatarUrl}
@@ -1458,6 +1464,12 @@ export default function AccountSettings() {
                                  "absolute -inset-10 rounded-[2.5rem] opacity-0 group-hover/gradient:opacity-100 transition-opacity duration-500 blur-2xl -z-10 bg-gradient-to-br",
                                  gradient.previewGlow
                               )} />
+
+                              {(gradient as { isNew?: boolean }).isNew && (
+                                 <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 text-black text-[7.5px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.6)] animate-pulse border border-emerald-300/50">
+                                    NEW
+                                 </div>
+                              )}
 
                               <div className="text-xl font-black tracking-tight my-4">
                                  <PremiumName name="BMR.EZ" isPro={true} gradientId={gradient.id} className="text-xl font-black uppercase" />

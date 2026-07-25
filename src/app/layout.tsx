@@ -25,6 +25,7 @@ import { prisma } from "@/lib/prisma";
 import { Wrench } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
+import { MaintenanceScreen } from "@/components/layout/MaintenanceScreen";
 
 export const metadata: Metadata = constructMetadata();
 
@@ -41,9 +42,9 @@ export default async function RootLayout({
   const pathname = headersList.get("x-pathname") || "";
 
   // 2. Do not run maintenance/suspension checks on auth or API requests
-  const isAuthRoute = pathname.startsWith("/auth") || pathname.startsWith("/api");
+  const isAuthRoute = pathname.startsWith("/auth") || pathname.startsWith("/api") || pathname.startsWith("/maintenance");
 
-  let isMaintenance = false;
+  let isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "true";
   let isAdmin = false;
   let isSuspended = false;
   let activeAnnouncements: any[] = [];
@@ -53,7 +54,9 @@ export default async function RootLayout({
       const maintenanceCfg = await prisma.systemConfig.findUnique({
         where: { key: "maintenance_mode" },
       });
-      isMaintenance = maintenanceCfg?.value === "true";
+      if (maintenanceCfg?.value === "true") {
+        isMaintenance = true;
+      }
 
       if (session?.user?.id) {
         const dbUser = await prisma.user.findFirst({
@@ -91,44 +94,12 @@ export default async function RootLayout({
       <html lang="en" className="dark" suppressHydrationWarning>
         <head>
           <link rel="manifest" href="/manifest.json" />
-          <meta name="theme-color" content="#030303" />
+          <meta name="theme-color" content="#030408" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         </head>
-        <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white bg-[#030303] flex items-center justify-center min-h-screen relative px-6 overflow-hidden`} suppressHydrationWarning>
-          <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] bg-accent-purple/5 blur-[120px] rounded-full pointer-events-none" />
-          <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-accent-cyan/5 blur-[120px] rounded-full pointer-events-none" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
-
-          <div className="relative max-w-lg w-full bg-[#0b0c12]/80 border border-white/5 p-8 sm:p-12 rounded-[3.5rem] text-center backdrop-blur-2xl shadow-2xl space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-accent-purple/10 border border-accent-purple/20 flex items-center justify-center mx-auto text-accent-purple relative overflow-hidden">
-              <div className="absolute inset-0 bg-accent-purple/25 blur-md" />
-              <Wrench size={26} className="relative z-10 animate-pulse" />
-            </div>
-            
-            <div className="space-y-3">
-              <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">System Upgrade</h1>
-              <p className="text-transparent bg-clip-text bg-linear-to-r from-accent-purple to-accent-cyan text-xs font-black uppercase tracking-widest">
-                Exismic Creative Studio
-              </p>
-            </div>
-
-            <p className="text-zinc-400 text-sm leading-relaxed font-semibold">
-              We are currently performing scheduled maintenance to deploy advanced creative features. We will be back online shortly. Thank you for your patience!
-            </p>
-
-            <div className="pt-5 border-t border-white/5 flex items-center justify-between">
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600">
-                Status: Temporary Hold
-              </span>
-              <a 
-                href="/auth/login" 
-                className="text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
-              >
-                Admin Access &rarr;
-              </a>
-            </div>
-          </div>
+        <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white bg-[#030408]`} suppressHydrationWarning>
+          <MaintenanceScreen />
         </body>
       </html>
     );

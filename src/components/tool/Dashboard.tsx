@@ -58,6 +58,8 @@ type StatCardProps = {
   progress?: number;
   loading?: boolean;
   isPro?: boolean;
+  href?: string;
+  badge?: ReactNode;
 };
 
 const CREATIVE_SUITE: DashboardAction[] = [
@@ -374,12 +376,13 @@ export function Dashboard() {
               loading={statsLoading}
            />
            <StatCard 
-              label="Pro Status" 
+              label="Status" 
               value={isPro ? "PRO" : "FREE"} 
               icon={isPro ? Crown : ShieldCheck}
               color={isPro ? "purple" : "zinc"}
               loading={statsLoading}
               isPro={isPro}
+              href="/pro/benefits"
            />
         </section>
 
@@ -589,43 +592,44 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }: StatCardProps) {
-  return (
+function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, href, badge }: StatCardProps) {
+  const cardContent = (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className={cn(
-        "group relative isolate min-h-[160px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] bg-[linear-gradient(145deg,rgba(12,10,24,0.95),rgba(4,7,12,0.98)_55%,rgba(4,13,17,0.95))] backdrop-blur-2xl border border-white/5 hover:border-white/10 transition-all duration-500 overflow-hidden touch-manipulation hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(0,0,0,0.6)] shadow-xl",
-        isPro && "border-accent-purple/20 shadow-[0_0_30px_rgba(168,85,247,0.1)]"
+        "group relative isolate min-h-[160px] p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] bg-[linear-gradient(145deg,rgba(14,12,28,0.92),rgba(6,9,16,0.96)_55%,rgba(5,15,20,0.92))] backdrop-blur-2xl border border-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden touch-manipulation hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(0,0,0,0.7)] shadow-xl",
+        isPro && "border-purple-500/30 shadow-[0_0_35px_rgba(168,85,247,0.15)] hover:border-purple-500/50"
       )}
     >
       {loading ? (
-        <div className="absolute inset-0 bg-zinc-950/40 animate-pulse z-40" />
+        <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-pulse z-40" />
       ) : null}
 
       {/* Premium Accents */}
-      <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30 transition-opacity duration-500 group-hover:opacity-50" />
+      <div className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] opacity-20 transition-opacity duration-500 group-hover:opacity-40" />
       <div className={cn(
-        "absolute -bottom-10 -right-10 w-48 h-48 blur-[80px] opacity-0 group-hover:opacity-30 transition-all duration-700",
+        "absolute -bottom-10 -right-10 w-48 h-48 blur-[80px] opacity-10 group-hover:opacity-35 transition-all duration-700 pointer-events-none",
         color === "purple" && "bg-purple-500",
         color === "cyan" && "bg-cyan-400",
         color === "amber" && "bg-amber-400",
-        color === "gold" && "bg-amber-300"
+        color === "gold" && "bg-amber-300",
+        color === "zinc" && "bg-zinc-500"
       )} />
 
       {isPro && (
-        <div className="absolute -inset-1 bg-accent-purple/5 blur-2xl animate-pulse pointer-events-none" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/10 via-indigo-600/10 to-cyan-500/10 blur-2xl animate-pulse pointer-events-none" />
       )}
 
-      <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-20">
+      <div className="flex items-center justify-between mb-5 sm:mb-7 relative z-20">
          <div className={cn(
-           "relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border bg-[linear-gradient(115deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005))] shadow-lg transition-all duration-500 group-hover:scale-110",
-           color === "purple" ? "text-accent-purple shadow-[0_0_30px_rgba(168,85,247,0.1)] border-purple-500/20 group-hover:border-purple-500/40 group-hover:bg-purple-500/10" : 
-           color === "cyan" ? "text-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.1)] border-cyan-500/20 group-hover:border-cyan-500/40 group-hover:bg-cyan-500/10" : 
-           color === "amber" ? "text-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.1)] border-amber-500/20 group-hover:border-amber-500/40 group-hover:bg-amber-500/10" : 
-           color === "gold" ? "text-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.1)] border-amber-400/20 group-hover:border-amber-400/40 group-hover:bg-amber-400/10" : "text-zinc-500 border-white/10"
+           "relative flex h-13 w-13 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-b from-white/[0.07] to-white/[0.01] shadow-inner transition-all duration-500 group-hover:scale-110",
+           color === "purple" ? "text-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.2)] border-purple-500/30 group-hover:border-purple-400/60 group-hover:bg-purple-500/15" : 
+           color === "cyan" ? "text-cyan-400 shadow-[0_0_25px_rgba(0,255,255,0.2)] border-cyan-500/30 group-hover:border-cyan-400/60 group-hover:bg-cyan-500/15" : 
+           color === "amber" ? "text-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.2)] border-amber-500/30 group-hover:border-amber-400/60 group-hover:bg-amber-500/15" : 
+           color === "gold" ? "text-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.2)] border-amber-400/30 group-hover:border-amber-300/60 group-hover:bg-amber-400/15" : "text-zinc-400 border-white/10 bg-zinc-900/50"
          )}>
             <Icon size={24} />
          </div>
@@ -633,25 +637,49 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro }:
          {progress !== undefined && (
             <div className="relative w-12 h-12 flex items-center justify-center">
                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
-                  <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                  <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3.5" fill="transparent" className="text-white/5" />
+                  <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3.5" fill="transparent" 
                      strokeDasharray={125} strokeDashoffset={125 - Math.min(progress, 100) * 1.25}
                      strokeLinecap="round"
-                     className={cn(color === "cyan" ? "text-cyan-400" : "text-accent-purple", "transition-all duration-1000 ease-out")} 
+                     className={cn(color === "cyan" ? "text-cyan-400" : "text-purple-400", "transition-all duration-1000 ease-out")} 
                   />
                </svg>
             </div>
          )}
+
+         {badge ? (
+           badge
+         ) : isPro && (label === "Status" || label === "Pro Status") ? (
+           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-[10px] font-bold text-purple-300 tracking-wide shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+             <span className="relative flex h-1.5 w-1.5">
+               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-400"></span>
+             </span>
+             ACTIVE
+           </div>
+         ) : !isPro && (label === "Status" || label === "Pro Status") ? (
+           <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800/80 border border-white/10 text-[10px] font-bold text-zinc-400 tracking-wide">
+             FREE TIER
+           </div>
+         ) : href ? (
+           <ArrowUpRight size={16} className="text-zinc-500 group-hover:text-white transition-colors" />
+         ) : null}
       </div>
       
       <div className="space-y-1 relative z-20">
-         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 group-hover:text-zinc-400 transition-colors break-words">{label}</p>
+         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 group-hover:text-zinc-300 transition-colors break-words">{label}</p>
          <h3 className="text-3xl sm:text-4xl font-black bg-gradient-to-br from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent tracking-tight break-words">
-            {isPro && label === "Pro Status" ? (
-              <GradientText className="from-accent-purple to-accent-blue cyber-neon-glow drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">PRO</GradientText>
+            {(isPro && (label === "Status" || label === "Pro Status")) ? (
+              <GradientText className="from-purple-400 via-fuchsia-300 to-cyan-300 cyber-neon-glow drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">PRO</GradientText>
             ) : value}
          </h3>
       </div>
     </motion.div>
   );
+
+  if (href) {
+    return <Link href={href} className="block group/link">{cardContent}</Link>;
+  }
+
+  return cardContent;
 }

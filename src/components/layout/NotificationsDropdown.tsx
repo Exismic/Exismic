@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef, useEffect, useMemo, useId, useCallback } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle, Loader2 } from "lucide-react";
+import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle, Loader2, Gift, ArrowRight, Coins, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -21,11 +22,28 @@ export function NotificationsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [isDailyClaimAvailable, setIsDailyClaimAvailable] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = useMemo(() => createClient(), []);
   const instanceId = useId().replace(/:/g, "");
 
-  const hasUnread = notifications.some(n => !n.read);
+  useEffect(() => {
+    try {
+      const lastClaim = localStorage.getItem("exismic_vip_daily_claim");
+      if (lastClaim) {
+        const lastDate = new Date(lastClaim).toDateString();
+        const todayDate = new Date().toDateString();
+        if (lastDate === todayDate) {
+          setIsDailyClaimAvailable(false);
+        }
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.read).length + (isDailyClaimAvailable && session ? 1 : 0);
+  const hasUnread = unreadCount > 0;
 
   // Fetch Session
   useEffect(() => {
@@ -186,11 +204,10 @@ export function NotificationsDropdown() {
         />
         <Bell size={17} strokeWidth={2.2} className={cn("relative z-10 transition-transform duration-300", !isOpen && "group-hover:-rotate-12")} />
         
-        {hasUnread && (
-          <>
-            <span className="absolute right-2.5 top-2.5 z-10 h-2 w-2 rounded-full border-2 border-[#08080d] bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 animate-ping rounded-full bg-cyan-300 opacity-60" />
-          </>
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 z-20 flex h-5 min-w-[20px] items-center justify-center rounded-full border border-pink-500/40 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 px-1 text-[9px] font-black text-white shadow-[0_0_15px_rgba(236,72,153,0.8)] animate-pulse">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
         )}
       </button>
 
@@ -231,7 +248,30 @@ export function NotificationsDropdown() {
             </div>
 
             {/* List */}
-            <div className="max-h-[min(400px,calc(100dvh-10rem))] overflow-y-auto no-scrollbar py-2">
+            <div className="max-h-[min(420px,calc(100dvh-10rem))] overflow-y-auto no-scrollbar py-2">
+              {session && isDailyClaimAvailable && (
+                <Link
+                  href="/shop"
+                  onClick={() => setIsOpen(false)}
+                  className="mx-2 mb-3 flex items-center justify-between gap-3 rounded-2xl border border-amber-400/30 bg-[linear-gradient(135deg,rgba(245,158,11,0.14),rgba(168,85,247,0.12))] p-3.5 shadow-[0_0_20px_rgba(245,158,11,0.18)] transition-all hover:scale-[1.02] hover:border-amber-400/70 group/daily-banner"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.4)]">
+                      <Gift size={18} className="animate-bounce" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-black uppercase tracking-wider text-amber-200">Daily Bonus Ready!</p>
+                        <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-[8px] font-black text-amber-300 border border-amber-400/40">CLAIM</span>
+                      </div>
+                      <p className="text-[10px] font-medium text-zinc-400">Tap to open your daily shop vault reward</p>
+                    </div>
+                  </div>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-400 text-black shadow-md transition-transform group-hover/daily-banner:translate-x-0.5">
+                    <ArrowRight size={14} />
+                  </div>
+                </Link>
+              )}
               {!session ? (
                 <div className="p-12 text-center text-zinc-500 text-xs font-medium uppercase tracking-widest">
                   Sign in to see notifications

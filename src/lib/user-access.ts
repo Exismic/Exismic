@@ -18,6 +18,12 @@ export const ALLOWED_AVATAR_FRAMES = new Set([
   'cyan-beast',
   'royal-purple',
   'futuristic-hex',
+  'emerald-viper',
+  'diamond-ice',
+  'solar-flare',
+  'hyper-violet',
+  'aurora-borealis',
+  'obsidian-onyx',
 ]);
 
 export const ALLOWED_NAME_GRADIENTS = new Set([
@@ -28,6 +34,12 @@ export const ALLOWED_NAME_GRADIENTS = new Set([
   'royal-crimson',
   'void-blue',
   'sunset-flame',
+  'diamond-glacier',
+  'emerald-matrix',
+  'solar-supernova',
+  'hyper-fuchsia',
+  'electric-amber',
+  'stealth-silver',
 ]);
 
 export const ALLOWED_PROFILE_THEMES = new Set([

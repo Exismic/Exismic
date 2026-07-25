@@ -18,7 +18,9 @@ import {
   LogOut,
   ChevronDown,
   BookOpen,
-  CreditCard
+  CreditCard,
+  Coins,
+  ShoppingBag
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
@@ -165,11 +167,13 @@ export function Navbar() {
     { name: "Tools", href: "#", isDropdown: true },
     { name: "AI Chat", href: "/chat" },
     { name: "Code Studio", href: "/tools/ai/code" },
+    { name: "Shop", href: "/shop" },
     { name: "Explore", href: "/tools" },
   ];
 
   const loggedOutLinks: NavLink[] = [
     { name: "Tools", href: "/tools" },
+    { name: "Shop", href: "/shop" },
     { name: "Pricing", href: "/pro" },
     { name: "Blog", href: "/blog" },
   ];
@@ -192,6 +196,8 @@ export function Navbar() {
         return MessageSquare;
       case "Code Studio":
         return Code2;
+      case "Shop":
+        return Coins;
       case "Explore":
         return Sparkles;
       case "Pricing":
@@ -204,7 +210,7 @@ export function Navbar() {
   };
 
   const isNavLinkActive = (link: NavLink) => {
-    if (link.name === "Tools" && link.isDropdown) {
+    if (link.isDropdown) {
       const isSpecializedWorkspace =
         pathname.startsWith("/tools/ai/chat") ||
         pathname.startsWith("/tools/ai/code") ||
@@ -435,22 +441,6 @@ export function Navbar() {
           {/* Right Side: Search, Credits, Pro Badge, Profile */}
           <div className="hidden md:flex items-center gap-4 relative z-50">
             {/* Search lives on the left side of the desktop header. */}
-            <div 
-              onClick={handleSearchClick}
-              className="hidden"
-              title="Global AI Search & Commands (Ctrl+K)"
-            >
-              <Search size={14} className="text-zinc-500 shrink-0" />
-              <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500 truncate">
-                Search tools, commands...
-              </span>
-              <div className="ml-auto flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-zinc-950/80 border border-white/5 text-[8px] font-black tracking-widest text-zinc-500 uppercase">
-                <span className="font-mono">⌘</span>
-                <span className="font-mono pl-0.5">K</span>
-              </div>
-            </div>
-
-            {/* Search lives on the left side of the desktop header. */}
             <button 
               onClick={handleSearchClick}
               className="hidden"
@@ -461,19 +451,36 @@ export function Navbar() {
 
             {session ? (
               <div className="flex items-center gap-3">
-                {/* 1. Credits Pill */}
-                <div 
-                  onClick={() => setShowUpsell(true)}
-                  className="group/vault relative flex h-10 cursor-pointer items-center gap-2.5 overflow-hidden rounded-full border border-white/10 bg-[#07070c]/80 pl-2.5 pr-4 shadow-[0_12px_30px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-300/35 hover:bg-[#0a0a12] hover:shadow-[0_15px_40px_rgba(34,211,238,0.14)] active:scale-95"
+                {/* 1. Ultra Premium Cyber Vault Pill */}
+                <Link 
+                  href="/shop"
+                  title="Open Credit Shop Vault & Claim Daily Bonus"
+                  className="group/vault relative flex h-10 cursor-pointer items-center gap-3 rounded-full p-[1px] shadow-[0_10px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(34,211,238,0.15)] transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_15px_45px_rgba(34,211,238,0.35),0_0_30px_rgba(168,85,247,0.25)] active:scale-95"
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_80%_50%,rgba(34,211,238,0.15),transparent_30%)] opacity-70" />
-                  <div className="pointer-events-none absolute inset-y-0 -left-10 w-10 skew-x-[-18deg] bg-white/10 blur-sm transition-transform duration-1000 group-hover/vault:translate-x-44" />
-                  <CreditTokenIcon />
-                  <span className="relative z-10 flex items-center gap-1.5 text-xs font-black tracking-tight text-white uppercase">
-                    <span suppressHydrationWarning className="animate-gradient-x bg-linear-to-r from-cyan-200 via-white to-purple-300 bg-[length:220%_100%] bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(34,211,238,0.15)]">{credits.toLocaleString()}</span>
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500/80">Credits</span>
-                  </span>
-                </div>
+                  {/* Glowing Animated Outer Border Ring */}
+                  <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/50 via-purple-500/50 to-fuchsia-500/50 opacity-70 blur-[2px] transition-all duration-500 group-hover/vault:opacity-100 group-hover/vault:blur-[4px]" />
+                  <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/80 via-purple-400/80 to-fuchsia-400/80 p-[1px] transition-all" />
+
+                  {/* Glassmorphic Inner Pill Container */}
+                  <div className="relative flex h-full items-center gap-2.5 rounded-full bg-[#06070e]/92 pl-2 pr-3 backdrop-blur-2xl border border-white/[0.12] transition-colors duration-300 group-hover/vault:bg-[#090b16]/95 group-hover/vault:border-cyan-300/40">
+                    {/* Ambient Glow & Reflection Sweep */}
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_15%_50%,rgba(56,189,248,0.25),transparent_45%),radial-gradient(circle_at_85%_50%,rgba(168,85,247,0.2),transparent_40%)]" />
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] transition-transform duration-1000 group-hover/vault:translate-x-56" />
+
+                    <CreditTokenIcon size="sm" />
+
+                    {/* Numerical Credit Balance */}
+                    <span suppressHydrationWarning className="relative z-10 font-mono text-xs font-black tracking-tight tabular-nums bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.4)]">
+                      {credits.toLocaleString()}
+                    </span>
+
+                    {/* Sleek Vault Tag Badge */}
+                    <span className="relative z-10 flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.2)] transition-all duration-300 group-hover/vault:border-cyan-300 group-hover/vault:bg-cyan-400/25 group-hover/vault:text-white group-hover/vault:shadow-[0_0_14px_rgba(34,211,238,0.5)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,1)] animate-pulse" />
+                      VAULT
+                    </span>
+                  </div>
+                </Link>
 
                 {/* 2. Pro Badge */}
                 {isPro && (
@@ -540,7 +547,12 @@ export function Navbar() {
 
                         {/* Navigation Actions */}
                         <div className="space-y-1">
-                          <Link href="/account/settings" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
+                          <Link href="/shop" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
+                            <Coins size={14} className="text-amber-400" />
+                            <span>Credit Shop Vault</span>
+                            <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
+                          </Link>
+                          <Link href="/account/settings" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
                             <Settings size={14} />
                             <span>Account Settings</span>
                           </Link>
@@ -553,7 +565,7 @@ export function Navbar() {
                               <span>Manage Subscription</span>
                             </button>
                           ) : (
-                            <Link href="/pro" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-accent-purple hover:text-white hover:bg-accent-purple/10 transition-all text-xs font-black uppercase tracking-wider">
+                            <Link href="/pro" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-accent-purple hover:text-white hover:bg-accent-purple/10 transition-all text-xs font-black uppercase tracking-wider">
                               <Crown size={14} />
                               <span>Upgrade to Pro</span>
                             </Link>
@@ -627,9 +639,7 @@ export function Navbar() {
                   aria-expanded={userDropdownOpen}
                   className={cn(
                     "group/mobile-profile relative flex h-12 w-12 items-center justify-center rounded-2xl border bg-[#08080d]/88 shadow-[0_14px_34px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all active:scale-95",
-                    userDropdownOpen
-                      ? "border-purple-300/35 shadow-[0_0_30px_rgba(168,85,247,0.16)]"
-                      : "border-white/[0.09]",
+                    userDropdownOpen && "border-purple-500/40 bg-purple-500/10"
                   )}
                 >
                   <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.18),transparent_48%),radial-gradient(circle_at_82%_82%,rgba(34,211,238,0.12),transparent_42%)]" />
@@ -649,13 +659,13 @@ export function Navbar() {
                     <>
                       <motion.button
                         type="button"
-                        aria-label="Close profile menu"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setUserDropdownOpen(false)}
-                        className="fixed inset-0 top-20 z-[150] cursor-default bg-black/70 backdrop-blur-[3px]"
+                        className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-xs"
                       />
+
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -663,108 +673,114 @@ export function Navbar() {
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                         className="fixed inset-x-3 top-[4.75rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[1.75rem] border border-white/[0.12] bg-[#07070c] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)]"
                       >
-                      <span className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.16),transparent_40%),radial-gradient(circle_at_90%_22%,rgba(34,211,238,0.1),transparent_38%)]" />
+                        <span className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.16),transparent_40%),radial-gradient(circle_at_90%_22%,rgba(34,211,238,0.1),transparent_38%)]" />
 
-                      <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-2 pb-4 pt-2">
-                        <AvatarWithFrame
-                          avatarUrl={avatarUrl}
-                          displayName={fullName}
-                          isPro={isPro}
-                          frameId={localFrameId || undefined}
-                          size="md"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <PremiumName
-                            name={fullName.toUpperCase()}
+                        <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-2 pb-4 pt-2">
+                          <AvatarWithFrame
+                            avatarUrl={avatarUrl}
+                            displayName={fullName}
                             isPro={isPro}
-                            gradientId={localGradientId}
-                            className="block truncate text-sm font-black"
+                            frameId={localFrameId || undefined}
+                            size="md"
                           />
-                          <p className="mt-1 truncate text-[10px] font-semibold text-zinc-500">
-                            {session.user.email}
-                          </p>
-                          <div className="mt-2">
-                            {isPro ? (
-                              <ProBadge size="sm" />
-                            ) : (
-                              <span className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                                Exismic Explorer
-                              </span>
-                            )}
+                          <div className="min-w-0 flex-1">
+                            <PremiumName
+                              name={fullName.toUpperCase()}
+                              isPro={isPro}
+                              gradientId={localGradientId}
+                              className="block truncate text-sm font-black"
+                            />
+                            <p className="mt-1 truncate text-[10px] font-semibold text-zinc-500">
+                              {session?.user?.email}
+                            </p>
+                            <div className="mt-2">
+                              {isPro ? (
+                                <ProBadge size="sm" />
+                              ) : (
+                                <span className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                                  Exismic Explorer
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="relative grid grid-cols-2 gap-2 py-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setUserDropdownOpen(false);
-                            setShowUpsell(true);
-                          }}
-                          className="flex min-h-16 items-center gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 text-left transition-colors active:bg-cyan-300/[0.08]"
-                        >
-                          <CreditTokenIcon />
-                          <span className="min-w-0">
-                            <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Credits</span>
-                            <span className="mt-1 block truncate text-xs font-black text-white">{credits.toLocaleString()}</span>
-                          </span>
-                        </button>
-                        <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-purple-300/10 bg-purple-300/[0.035] px-3">
-                          <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
-                          <span className="min-w-0">
-                            <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Membership</span>
-                            <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Exismic Pro" : "Free"}</span>
-                          </span>
+                        <div className="relative grid grid-cols-2 gap-2 py-3">
+                          <Link
+                            href="/shop"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex min-h-16 items-center gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 text-left transition-colors active:bg-cyan-300/[0.08]"
+                          >
+                            <CreditTokenIcon />
+                            <span className="min-w-0">
+                              <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Credits</span>
+                              <span className="mt-1 block truncate text-xs font-black text-white">{credits.toLocaleString()}</span>
+                            </span>
+                          </Link>
+                          <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-purple-300/10 bg-purple-300/[0.035] px-3">
+                            <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
+                            <span className="min-w-0">
+                              <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Membership</span>
+                              <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Exismic Pro" : "Free"}</span>
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="relative grid gap-1.5">
-                        <Link
-                          href="/"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
-                        >
-                          <LayoutDashboard size={16} className="text-cyan-300" />
-                          Dashboard
-                          <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
-                        </Link>
-                        <Link
-                          href="/account/settings"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
-                        >
-                          <Settings size={16} className="text-purple-300" />
-                          Settings & Security
-                          <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setUserDropdownOpen(false);
-                            if (isPro) setIsManageModalOpen(true);
-                            else router.push("/pro");
-                          }}
-                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
-                        >
-                          <CreditCard size={16} className="text-fuchsia-300" />
-                          {isPro ? "Manage Membership" : "Explore Pro"}
-                          <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
-                        </button>
-                        <div className="mx-3 h-px bg-white/[0.06]" />
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setUserDropdownOpen(false);
-                            await supabase.auth.signOut();
-                            router.push("/");
-                          }}
-                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-red-400/80 transition-colors active:bg-red-500/[0.08]"
-                        >
-                          <LogOut size={16} />
-                          Sign Out
-                        </button>
-                      </div>
+                        <div className="relative grid gap-1.5">
+                          <Link
+                            href="/shop"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10"
+                          >
+                            <Coins size={16} className="text-amber-400" />
+                            Credit Shop Vault
+                            <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
+                          </Link>
+                          <Link
+                            href="/"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                          >
+                            <LayoutDashboard size={16} className="text-cyan-300" />
+                            Dashboard
+                            <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                          </Link>
+                          <Link
+                            href="/account/settings"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                          >
+                            <Settings size={16} className="text-purple-300" />
+                            Settings & Security
+                            <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserDropdownOpen(false);
+                              if (isPro) setIsManageModalOpen(true);
+                              else router.push("/pro");
+                            }}
+                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                          >
+                            <CreditCard size={16} className="text-fuchsia-300" />
+                            {isPro ? "Manage Membership" : "Explore Pro"}
+                            <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                          </button>
+                          <div className="mx-3 h-px bg-white/[0.06]" />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setUserDropdownOpen(false);
+                              await supabase.auth.signOut();
+                              router.push("/");
+                            }}
+                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-red-400/80 transition-colors active:bg-red-500/[0.08]"
+                          >
+                            <LogOut size={16} />
+                            Sign Out
+                          </button>
+                        </div>
                       </motion.div>
                     </>
                   )}
