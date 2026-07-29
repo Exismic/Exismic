@@ -254,7 +254,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
               <History size={24} />
             </div>
             <div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 uppercase italic leading-none drop-shadow-md">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 uppercase italic leading-normal inline-block pr-6 py-1 drop-shadow-md">
                 {fullPage ? "All saved results" : "Your recent work"}
               </h2>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mt-2">

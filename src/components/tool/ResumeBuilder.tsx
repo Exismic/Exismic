@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import { usePro } from "@/hooks/usePro";
 import { getFunctionalStorageItem, removeFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import {
@@ -750,6 +751,9 @@ export function ResumeBuilder() {
           </div>
         </section>
       </div>
+
+      {/* Smart Workflow Tool Recommendations */}
+      <ToolSuggestions currentToolId="resume-builder" categoryId="productivity" />
     </div>
   );
 }

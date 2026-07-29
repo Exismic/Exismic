@@ -464,80 +464,13 @@ export function Dashboard() {
              ))}
           </div>
         </section>
-        {/* 5. RECENT ACTIVITY & INSIGHTS */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 pt-8 border-t border-white/5">
-           <div className="lg:col-span-2 space-y-8">
-              <div className="flex items-center gap-3">
-                 <History className="text-zinc-600" size={20} />
-                 <h3 className="text-2xl font-black text-white tracking-tight">Recent Activity</h3>
-              </div>
-              <RecentlyProcessed />
+        {/* 5. RECENT ACTIVITY */}
+        <section className="space-y-8 pt-8 border-t border-white/5">
+           <div className="flex items-center gap-3">
+              <History className="text-zinc-600" size={20} />
+              <h3 className="text-2xl font-black text-white tracking-tight">Recent Activity</h3>
            </div>
-
-           <div className="space-y-8">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-xl bg-accent-purple/10 border border-accent-purple/20 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                   <Zap className="text-accent-purple animate-pulse" size={18} />
-                 </div>
-                 <h3 className="text-2xl font-black text-white tracking-tight">System Updates</h3>
-              </div>
-              
-              <div className="space-y-5">
-                 <Link href="/tools/image/mc-skin-generator">
-                   <motion.div 
-                     whileHover={{ scale: 1.02, y: -4 }}
-                     className="relative p-6 sm:p-8 rounded-[2rem] bg-zinc-950/80 backdrop-blur-2xl border border-emerald-500/20 space-y-5 cursor-pointer group overflow-hidden shadow-2xl hover:border-emerald-400/50 hover:shadow-[0_20px_60px_rgba(16,185,129,0.2)] transition-all duration-700"
-                   >
-                      {/* Insane Animated Glow */}
-                      <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-[2.5rem] blur opacity-30 group-hover:opacity-70 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
-                      <div className="absolute inset-0 bg-[#050606]/90 backdrop-blur-3xl rounded-[2rem] z-0" />
-                      <div className="absolute -top-10 -right-10 w-48 h-48 bg-emerald-500/20 blur-[60px] rounded-full group-hover:scale-150 group-hover:bg-emerald-400/30 transition-all duration-1000" />
-                      
-                      <div className="relative z-10 space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                           <Sparkles size={10} className="animate-pulse" /> Trending Now
-                        </div>
-                        <div className="space-y-2">
-                          <h4 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-100 via-white to-emerald-300 tracking-tight drop-shadow-sm">Minecraft AI Skin Gen</h4>
-                          <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">Generate unique, ultra-detailed custom Minecraft skins from simple text prompts. Stand out on any server instantly.</p>
-                        </div>
-                        
-                        <div className="pt-2">
-                          <div className="relative w-fit flex items-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 text-teal-950 font-black text-[10px] uppercase tracking-widest shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:shadow-[0_10px_40px_rgba(16,185,129,0.6)] transition-all overflow-hidden group/btn">
-                            <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-[shine_2s_infinite]" />
-                            <span className="relative z-10">Try it now</span>
-                            <ArrowUpRight size={14} className="relative z-10 ml-1 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                          </div>
-                        </div>
-                      </div>
-                   </motion.div>
-                 </Link>
-
-                 {!isPro && (
-                   <div className="relative p-6 sm:p-8 rounded-[2rem] bg-[#050508]/80 backdrop-blur-2xl border border-amber-500/20 space-y-6 overflow-hidden group hover:border-amber-400/50 hover:shadow-[0_0_50px_rgba(245,158,11,0.2)] transition-all duration-700">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-[2.5rem] blur opacity-20 group-hover:opacity-50 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
-                      <div className="absolute inset-0 bg-[#050508]/90 backdrop-blur-3xl rounded-[2rem] z-0" />
-                      <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-1000" />
-                      
-                      <div className="space-y-4 relative z-10">
-                         <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-                           <Crown className="text-amber-400 w-7 h-7 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
-                         </div>
-                         <div className="space-y-1.5">
-                           <h4 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 tracking-tight drop-shadow-sm">Go Pro.</h4>
-                           <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">Unlock priority processing, unlimited 4K exports, and all premium AI models.</p>
-                         </div>
-                      </div>
-                      <Link href="/pro" className="block relative z-10 pt-2">
-                         <button className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-amber-950 font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_10px_40px_rgba(245,158,11,0.6)] hover:scale-[1.02] active:scale-95 transition-all overflow-hidden group/btn">
-                            <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-[shine_2s_infinite]" />
-                            <span className="relative z-10">Upgrade Now</span>
-                         </button>
-                      </Link>
-                   </div>
-                 )}
-              </div>
-           </div>
+           <RecentlyProcessed />
         </section>
 
         {/* 6. FAVORITES SECTION */}
@@ -545,7 +478,7 @@ export function Dashboard() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
                <Star className="text-amber-400 fill-amber-400/20" size={24} />
-               <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter">Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 drop-shadow-sm">Favorites</span></h2>
+               <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter">Your <span className="inline-block pr-3 py-0.5 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 drop-shadow-sm">Favorites</span></h2>
             </div>
             {favorites.length > 0 && (
               <div className="flex items-center gap-4">

@@ -11,11 +11,12 @@ import {
   Palette, 
   Gauge, 
   Filter,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
 
-type ChangeType = "feature" | "fix" | "ui" | "perf";
+type ChangeType = "feature" | "fix" | "ui" | "perf" | "sec";
 
 interface ChangeItem {
   type: ChangeType;
@@ -50,6 +51,12 @@ const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: st
     badgeClass: "bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_12px_rgba(244,63,94,0.15)]",
     dotClass: "bg-rose-400"
   },
+  sec: {
+    label: "Security",
+    icon: ShieldCheck,
+    badgeClass: "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_12px_rgba(245,158,11,0.15)]",
+    dotClass: "bg-amber-400"
+  },
   perf: {
     label: "Performance",
     icon: Gauge,
@@ -60,11 +67,36 @@ const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: st
 
 const RELEASES: Release[] = [
   {
-    version: "v1.1.0",
+    version: "v1.1",
+    date: "July 2026",
+    title: "Major Platform Update",
+    tagline: "Added 25+ new tools, fixed UI layouts, bug fixes, and improved security hardening.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        text: "Added 25+ brand new AI-powered tools and expanded workspace suite tools."
+      },
+      {
+        type: "ui",
+        text: "Fixed UI component scaling, responsive container alignment, and dark theme polish."
+      },
+      {
+        type: "fix",
+        text: "Resolved interface layout glitches, modal state locking, and input handling edge cases."
+      },
+      {
+        type: "sec",
+        text: "Improved platform security with hardened API endpoints, rate limiting, and token sanitization."
+      }
+    ]
+  },
+  {
+    version: "v1.0.5",
     date: "July 2026",
     title: "Platform Update",
     tagline: "New interactive tools, UI visual upgrades, and bug fixes.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
@@ -130,6 +162,7 @@ export default function ChangelogPage() {
     { id: "feature", label: "Updates", icon: Sparkles },
     { id: "ui", label: "UI Updates", icon: Palette },
     { id: "fix", label: "Bug Fixes", icon: Bug },
+    { id: "sec", label: "Security", icon: ShieldCheck },
     { id: "perf", label: "Performance", icon: Gauge }
   ];
 

@@ -77,9 +77,9 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden border-t border-white/[0.06] bg-[#020204]" suppressHydrationWarning>
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] [background-size:52px_52px] [mask-image:linear-gradient(to_bottom,black,transparent_72%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:52px_52px] [mask-image:linear-gradient(to_bottom,black_0%,black_85%,transparent_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-purple-400/70 to-cyan-300/70" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[linear-gradient(115deg,rgba(124,58,237,0.08),transparent_38%,rgba(34,211,238,0.055)_74%,transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(124,58,237,0.08),transparent_40%,rgba(34,211,238,0.055)_80%,transparent)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
         <motion.section
@@ -90,9 +90,10 @@ export function Footer() {
           className="grid items-center gap-8 border-b border-white/[0.07] py-14 md:grid-cols-[1fr_auto] md:py-20"
         >
           <div className="max-w-3xl">
-            <div className="inline-flex min-h-8 items-center gap-2 rounded-full border border-purple-300/15 bg-purple-300/[0.055] px-3">
-              <Sparkles size={11} className="text-cyan-300" />
-              <span className="text-[8px] font-black uppercase tracking-[0.24em] text-zinc-400">
+            <div className="relative overflow-hidden inline-flex min-h-8 items-center gap-2 rounded-full border border-purple-400/40 bg-gradient-to-r from-purple-500/20 via-cyan-500/15 to-purple-500/20 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+              <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+              <Sparkles size={12} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+              <span className="relative z-10 text-purple-200 drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]">
                 Your Exismic workspace
               </span>
             </div>
@@ -166,16 +167,16 @@ export function Footer() {
                 <p className="text-lg font-black tracking-[-0.02em] text-white">
                   Exismic<span className="text-cyan-300">.</span>
                 </p>
-                <p className="mt-0.5 text-[8px] font-black uppercase tracking-[0.25em] text-zinc-600">
+                <p className="mt-0.5 text-[9px] font-black uppercase tracking-[0.25em] text-cyan-300">
                   AI Studio
                 </p>
               </div>
             </Link>
-            <p className="mt-5 max-w-sm text-sm font-medium leading-7 text-zinc-600">
+            <p className="mt-5 max-w-sm text-sm font-medium leading-relaxed text-zinc-300">
               A practical creative platform for AI, media, documents, code, and everyday work.
             </p>
-            <div className="mt-7 flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.16em] text-zinc-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
+            <div className="mt-6 flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
               Built and operated by Exismic
             </div>
           </div>
@@ -183,13 +184,13 @@ export function Footer() {
           <nav className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4" aria-label="Footer navigation">
             {FOOTER_LINKS.map((section) => (
               <div key={section.title}>
-                <h3 className="text-[8px] font-black uppercase tracking-[0.25em] text-zinc-600">{section.title}</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">{section.title}</h3>
                 <ul className="mt-5 space-y-3.5">
                   {section.links.map((link) => (
                     <li key={link.name}>
                       <Link
                         href={link.href}
-                        className="group inline-flex min-h-6 items-center gap-1.5 text-xs font-semibold text-zinc-500 transition-colors hover:text-white"
+                        className="group inline-flex min-h-6 items-center gap-1.5 text-xs font-bold text-zinc-300 transition-colors hover:text-white"
                       >
                         {link.name}
                         <ArrowUpRight
@@ -207,37 +208,40 @@ export function Footer() {
 
         <div className="relative flex flex-col gap-6 border-t border-white/[0.07] py-8 text-center md:flex-row md:items-center md:justify-between md:text-left">
           <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 sm:gap-6">
-            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-700">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
               &copy; 2026 Exismic. All rights reserved.
             </p>
-            <span className="hidden h-3 w-px bg-white/[0.08] sm:block" />
-            <div className="flex items-center gap-4 text-zinc-600">
-              <a href="#" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="transition-all duration-300 hover:text-white hover:scale-110">
-                <XIcon size={14} />
+            <span className="hidden h-3.5 w-px bg-white/20 sm:block" />
+            <div className="flex items-center gap-4 text-zinc-400">
+              <a href="#" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="transition-all duration-300 hover:text-cyan-300 hover:scale-110 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
+                <XIcon size={16} />
               </a>
-              <a href="#" target="_blank" rel="noreferrer" aria-label="Instagram" className="transition-all duration-300 hover:text-pink-400 hover:scale-110">
-                <InstagramIcon size={14} />
+              <a href="#" target="_blank" rel="noreferrer" aria-label="Instagram" className="transition-all duration-300 hover:text-pink-400 hover:scale-110 drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]">
+                <InstagramIcon size={16} />
               </a>
-              <a href="#" target="_blank" rel="noreferrer" aria-label="GitHub" className="transition-all duration-300 hover:text-white hover:scale-110">
-                <GithubIcon size={14} />
+              <a href="#" target="_blank" rel="noreferrer" aria-label="GitHub" className="transition-all duration-300 hover:text-purple-300 hover:scale-110 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]">
+                <GithubIcon size={16} />
               </a>
             </div>
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
-            <Link href="/privacy-policy" className="text-[8px] font-black uppercase tracking-[0.16em] text-zinc-700 transition-colors hover:text-zinc-400">
+            <Link href="/privacy-policy" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-white">
               Privacy
             </Link>
-            <Link href="/terms-of-service" className="text-[8px] font-black uppercase tracking-[0.16em] text-zinc-700 transition-colors hover:text-zinc-400">
+            <Link href="/terms-of-service" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-white">
               Terms
             </Link>
-            <Link href="/help" className="text-[8px] font-black uppercase tracking-[0.16em] text-zinc-700 transition-colors hover:text-zinc-400">
+            <Link href="/help" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-white">
               Support
             </Link>
-            <span className="hidden h-3 w-px bg-white/[0.08] sm:block" />
-            <span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-[8px] font-black uppercase tracking-[0.19em] text-transparent">
-              Exismic Ai Studio
-            </span>
+            <span className="hidden h-3.5 w-px bg-white/20 sm:block" />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 shadow-sm">
+              <Sparkles size={11} className="text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+              <span className="bg-gradient-to-r from-cyan-200 via-white to-purple-300 bg-clip-text text-[10px] font-black uppercase tracking-[0.2em] text-transparent">
+                Exismic AI Studio
+              </span>
+            </div>
           </div>
         </div>
       </div>

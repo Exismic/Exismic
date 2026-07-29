@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ICON_MAP, type IconName } from "@/data/tools";
-import { ArrowRight, Crown, Star, Zap } from "lucide-react";
+import { ArrowRight, Crown, Star, Zap, Flame } from "lucide-react";
 import { toggleFavorite } from "@/app/actions/favorites";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -84,7 +84,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
           "border border-white/5",
           unavailable && "opacity-85",
           isPro 
-            ? "bg-zinc-950/60 border-amber-500/20 shadow-[inset_0_1px_2px_rgba(245,158,11,0.1),0_0_15px_rgba(245,158,11,0.05)] hover:border-amber-400/60 hover:shadow-[0_0_50px_rgba(245,158,11,0.25)]" 
+            ? "bg-zinc-950/80 border-amber-400/40 shadow-[inset_0_1px_1px_rgba(245,158,11,0.25),0_0_25px_rgba(245,158,11,0.15)] hover:border-amber-300/80 hover:shadow-[0_0_55px_rgba(245,158,11,0.4)]" 
             : cn("bg-zinc-950/50 hover:bg-zinc-900/60 transition-all duration-500 border", style.cardBorder),
           "md:group-hover:scale-[1.03] active:scale-[0.99]"
         )}>
@@ -96,27 +96,50 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             )} />
           </div>
 
-          {/* Background Glows removed for cleaner look, handled by card border shadow */}
+          {/* Category-Themed Ambient Background Visuals */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
+            {/* Top-Left Category Glowing Mesh Aura */}
+            <div className={cn(
+              "absolute -top-12 -left-12 w-64 h-64 rounded-full blur-[70px] transition-all duration-700 opacity-30 group-hover:opacity-60 group-hover:scale-125",
+              isPro ? "bg-amber-500/25 group-hover:bg-amber-400/50" : style.aura
+            )} />
+
+            {/* Bottom-Right Category Soft Secondary Glow */}
+            <div className={cn(
+              "absolute -bottom-16 -right-16 w-56 h-56 rounded-full blur-[80px] transition-all duration-700 opacity-20 group-hover:opacity-40",
+              isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura
+            )} />
+
+            {/* Micro Dot Matrix Watermark Pattern */}
+            <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.04] group-hover:opacity-[0.09] transition-opacity duration-500" />
+
+            {/* Giant Background Watermark Category Icon */}
+            <div className="absolute -top-6 -right-6 opacity-[0.04] group-hover:opacity-[0.09] transition-all duration-700 group-hover:scale-110 group-hover:-rotate-6 pointer-events-none">
+              <Icon size={160} strokeWidth={1} className={cn("transition-colors duration-500", isPro ? "text-amber-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]" : style.iconGlow)} />
+            </div>
+          </div>
 
           {/* Badges & Favorite - Organized Layout */}
           <div className="absolute top-4 right-4 sm:top-5 sm:right-5 md:top-6 md:right-6 flex flex-col items-end gap-2 sm:gap-3 z-20">
             <div className="flex max-w-[calc(100vw-7rem)] flex-wrap justify-end gap-1.5 sm:gap-2">
                {popular && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 backdrop-blur-md border border-amber-500/20 text-[8px] font-black uppercase tracking-widest text-amber-500">
-                  <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-                  Popular
+                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/50 text-[9px] font-black uppercase tracking-[0.16em] text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                  <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+                  <Flame size={10} className="relative z-10 text-amber-400 fill-amber-400 animate-pulse shrink-0" />
+                  <span className="relative z-10">Popular</span>
                 </div>
               )}
               {proPowerPack && !isPro && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400/10 backdrop-blur-md border border-cyan-300/20 text-[8px] font-black uppercase tracking-widest text-cyan-200">
-                  <Zap size={9} className="fill-cyan-200" />
-                  Pro Boost
+                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-blue-500/20 backdrop-blur-md border border-cyan-300/50 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                  <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+                  <Zap size={10} className="relative z-10 fill-cyan-300 text-cyan-300 shrink-0" />
+                  <span className="relative z-10">Pro Boost</span>
                 </div>
               )}
               {isPro && (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 backdrop-blur-md border border-amber-400/40 text-[8px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                  <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-                  <Crown size={9} className="relative z-10 fill-amber-200 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]" />
+                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 backdrop-blur-md border border-amber-300/60 text-[9px] font-black uppercase tracking-[0.16em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.35)]">
+                  <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+                  <Crown size={10} className="relative z-10 fill-amber-300 text-amber-300 shrink-0" />
                   <span className="relative z-10">Pro</span>
                 </div>
               )}
@@ -193,15 +216,15 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
           {/* Premium Button CTA */}
           <div className="mt-6 sm:mt-8">
             <div className={cn(
-              "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-widest text-[9px] sm:text-[10px] transition-all duration-500 relative overflow-hidden",
+              "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu",
               isPro 
-                ? "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-amber-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:scale-[1.02] group-hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] border border-amber-300/50" 
-                : cn("group-hover:scale-[1.02] border shadow-lg", style.buttonGrad)
+                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:scale-[1.02] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]" 
+                : cn("group-hover:scale-[1.02]", style.buttonGrad)
             )}>
-              <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
+              <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
               <span className="relative z-10 flex items-center gap-2 sm:gap-3">
                 {unavailable ? "View status" : "Launch Tool"}
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5" />
+                <ArrowRight size={15} className="transition-transform group-hover:translate-x-1.5" />
               </span>
             </div>
           </div>

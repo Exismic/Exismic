@@ -474,10 +474,11 @@ export function Navbar() {
                       {credits.toLocaleString()}
                     </span>
 
-                    {/* Sleek Vault Tag Badge */}
-                    <span className="relative z-10 flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.2)] transition-all duration-300 group-hover/vault:border-cyan-300 group-hover/vault:bg-cyan-400/25 group-hover/vault:text-white group-hover/vault:shadow-[0_0_14px_rgba(34,211,238,0.5)]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,1)] animate-pulse" />
-                      VAULT
+                    {/* Sleek Ultra-Premium Cyber Vault Tag Badge */}
+                    <span className="relative overflow-hidden z-10 flex items-center gap-1.5 rounded-full border border-cyan-300/60 bg-gradient-to-r from-cyan-500/25 via-fuchsia-500/20 to-indigo-500/25 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 group-hover/vault:border-cyan-200 group-hover/vault:text-white group-hover/vault:shadow-[0_0_22px_rgba(34,211,238,0.65)]">
+                      <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
+                      <Sparkles size={10} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0" />
+                      <span className="relative z-10 drop-shadow-[0_0_6px_rgba(34,211,238,0.6)]">VAULT</span>
                     </span>
                   </div>
                 </Link>

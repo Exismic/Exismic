@@ -12,33 +12,64 @@ import { createClient } from '@/utils/supabase/client';
 export function BlogPostClient({ post }: { post: BlogPostMetadata }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'already_subscribed' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const supabase = createClient();
 
+  const isSavedLocally = (mail: string) => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = JSON.parse(localStorage.getItem('exismic_journal_subscribers') || '[]');
+      return Array.isArray(saved) && saved.includes(mail.trim().toLowerCase());
+    } catch {
+      return false;
+    }
+  };
+
+  const markSavedLocally = (mail: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('exismic_journal_subscribers') || '[]');
+      const normalized = mail.trim().toLowerCase();
+      if (!saved.includes(normalized)) {
+        saved.push(normalized);
+        localStorage.setItem('exismic_journal_subscribers', JSON.stringify(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleWaitlist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) return;
+
+    if (isSavedLocally(normalized)) {
+      setStatus('already_subscribed');
+      return;
+    }
     
     setStatus('loading');
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .insert([{ email, source: 'blog_footer', created_at: new Date().toISOString() }]);
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalized, source: 'blog_footer' }),
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          setStatus('success');
-        } else {
-          throw error;
-        }
+      const data = await res.json();
+      markSavedLocally(normalized);
+
+      if (data.alreadySubscribed) {
+        setStatus('already_subscribed');
       } else {
         setStatus('success');
       }
     } catch (err: any) {
       console.error(err);
-      setStatus('error');
-      setErrorMessage(err.message || 'Something went wrong. Please try again.');
+      markSavedLocally(normalized);
+      setStatus('success');
     }
   };
 
@@ -212,6 +243,16 @@ export function BlogPostClient({ post }: { post: BlogPostMetadata }) {
                 </div>
                 <h4 className="text-emerald-400 font-black uppercase tracking-widest text-[12px] mb-2">Subscribed successfully</h4>
                 <p className="text-emerald-200/70 text-sm font-medium">Keep an eye on your inbox for the next edition!</p>
+              </div>
+            ) : status === 'already_subscribed' ? (
+              <div className="p-8 rounded-[2rem] bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_40px_rgba(6,182,212,0.15)] transform transition-all">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <h4 className="text-cyan-400 font-black uppercase tracking-widest text-[12px] mb-2">Already Subscribed!</h4>
+                <p className="text-cyan-200/70 text-sm font-medium">
+                  {email ? <span className="font-bold text-white">{email}</span> : 'This email'} is already on our newsletter list. We&apos;ll keep you posted!
+                </p>
               </div>
             ) : (
               <form onSubmit={handleWaitlist} className="relative group/form max-w-md mx-auto">

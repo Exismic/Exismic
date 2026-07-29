@@ -56,6 +56,7 @@ import { ToolQualitySelector } from "@/components/tool/ToolQualitySelector";
 import { isQualityUpgradeableTool } from "@/lib/tool-quality-policy";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { SITE_URL } from "@/lib/seo";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 
 interface ToolDetailClientProps {
   tool: Tool;
@@ -488,6 +489,8 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
           )}
        </div>
 
+       {/* Smart Workflow Tool Recommendations */}
+       <ToolSuggestions currentToolId={tool.id} categoryId={categoryId} />
     </div>
   );
 

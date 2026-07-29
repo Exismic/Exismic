@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import axios from "axios";
 
 interface ScanResult {
@@ -577,6 +578,9 @@ export default function ResumeAnalyzer() {
           )}
         </div>
       </div>
+
+      {/* Smart Workflow Tool Recommendations */}
+      <ToolSuggestions currentToolId="resume-analyzer" categoryId="productivity" />
 
       {/* Global analysis loader overlay */}
       <AnimatePresence>

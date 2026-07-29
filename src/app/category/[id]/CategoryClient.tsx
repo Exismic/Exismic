@@ -3,11 +3,15 @@
 import { TOOLS, CATEGORIES, ICON_MAP } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles, Rocket, Clock, MessageSquare, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import CategoryHeading from "@/components/ui/CategoryHeading";
+import CategoryBackground from "@/components/ui/CategoryBackground";
 import { useState, useEffect } from "react";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
+import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
+import { cn } from "@/lib/utils";
+import { SuggestToolModal } from "@/components/modals/SuggestToolModal";
 
 interface CategoryClientProps {
   categoryId: string;
@@ -15,6 +19,7 @@ interface CategoryClientProps {
 
 export function CategoryClient({ categoryId }: CategoryClientProps) {
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -46,6 +51,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
   }
 
   const Icon = ICON_MAP[category.icon];
+  const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -90,23 +96,80 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
         ))}
       </motion.div>
 
-      {categoryTools.length === 0 && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="py-20 sm:py-28 md:py-32 px-5 text-center glass-dark border border-dashed border-white/10 rounded-[2rem] md:rounded-[3rem]"
-        >
-          <p className="text-zinc-600 font-bold uppercase tracking-widest">No tools found for this category yet.</p>
-        </motion.div>
-      )}
+      {/* MORE TO COME SHOWCASE BANNER */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={cn(
+          "relative overflow-hidden p-6 sm:p-8 md:p-10 rounded-[2rem] sm:rounded-[2.5rem] bg-[#07070e]/80 backdrop-blur-2xl transition-all duration-500 group mt-10 sm:mt-14 border",
+          animStyle.cardBorder
+        )}
+      >
+        {/* Dynamic Category Ambient Aura */}
+        <div className={cn("pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-[90px] transition-all duration-700 opacity-60 group-hover:opacity-100", animStyle.aura)} />
+        <div className={cn("pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-[90px] transition-all duration-700 opacity-40 group-hover:opacity-75", animStyle.aura)} />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-      {/* Dynamic Ambient Background */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[#020202]">
-        <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.25),transparent_70%)] blur-[100px] mix-blend-screen" />
-        <div className="absolute -bottom-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.25),transparent_70%)] blur-[100px] mix-blend-screen" />
-        <div className="absolute top-[20%] left-[10%] w-[50%] h-[50%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(236,72,153,0.15),transparent_70%)] blur-[100px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay" />
-      </div>
+        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between lg:gap-10">
+          <div className="space-y-3.5 max-w-xl">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className={cn("inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg", animStyle.badge)}>
+                <Sparkles size={11} className="animate-pulse" />
+                More To Come
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-[10px] font-bold uppercase tracking-widest text-zinc-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                {category.name} Suite
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight uppercase italic leading-snug">
+                More tools on the <span className={cn("inline-block pr-3 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]", animStyle.textGrad)}>horizon.</span>
+              </h3>
+              <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">
+                We continuously drop new tools, creators, and workflow enhancements. Have a specific generator or feature you want to see here next?
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] font-bold text-zinc-300 flex items-center gap-1.5">
+                <Rocket size={11} className="text-purple-400" /> Community Driven
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] font-bold text-zinc-300 flex items-center gap-1.5">
+                <Clock size={11} className="text-cyan-400" /> Frequent Updates
+              </span>
+            </div>
+          </div>
+
+          <div className="shrink-0 pt-2 md:pt-0">
+            <button
+              onClick={() => setIsSuggestModalOpen(true)}
+              className={cn(
+                "group/btn relative inline-flex min-h-12 w-full sm:w-auto items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-2xl text-white font-black text-xs uppercase tracking-widest transition-all overflow-hidden touch-manipulation hover:scale-[1.02] active:scale-[0.98]",
+                animStyle.buttonGrad
+              )}
+            >
+              <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg] animate-[shine_3s_infinite]" />
+              <MessageSquare size={15} className="relative z-10 text-white" />
+              <span className="relative z-10">Suggest A Tool</span>
+              <ArrowRight size={14} className="relative z-10 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Suggest Tool Interactive Modal */}
+      <SuggestToolModal
+        isOpen={isSuggestModalOpen}
+        onClose={() => setIsSuggestModalOpen(false)}
+        defaultCategory={categoryId}
+      />
+
+      {/* Dynamic Themed Category Ambient Background */}
+      <CategoryBackground categoryId={categoryId} />
     </div>
   );
 }

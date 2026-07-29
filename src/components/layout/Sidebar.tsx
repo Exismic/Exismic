@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, ICON_MAP } from "@/data/tools";
+import { CATEGORIES, TOOLS, ICON_MAP, type Category } from "@/data/tools";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { 
   LayoutDashboard, 
@@ -13,6 +13,8 @@ import {
   Sparkles,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  ArrowRight,
   Clock,
   Crown,
   Users,
@@ -123,6 +125,190 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
         )}
       </motion.div>
     </Link>
+  );
+}
+
+interface CategoryDropdownProps {
+  category: Category;
+  catName: string;
+  pathname: string;
+  catGlow: string;
+  isCompact?: boolean;
+}
+
+const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; text: string; hoverShadow: string }> = {
+  pdf: {
+    bg: "bg-red-500/10 hover:bg-red-500/20",
+    border: "border-red-500/30 hover:border-red-400/60",
+    text: "text-red-300 group-hover/viewall:text-red-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(239,68,68,0.25)]"
+  },
+  image: {
+    bg: "bg-cyan-500/10 hover:bg-cyan-500/20",
+    border: "border-cyan-500/30 hover:border-cyan-400/60",
+    text: "text-cyan-300 group-hover/viewall:text-cyan-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+  },
+  audio: {
+    bg: "bg-pink-500/10 hover:bg-pink-500/20",
+    border: "border-pink-500/30 hover:border-pink-400/60",
+    text: "text-pink-300 group-hover/viewall:text-pink-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(236,72,153,0.25)]"
+  },
+  video: {
+    bg: "bg-violet-500/10 hover:bg-violet-500/20",
+    border: "border-violet-500/30 hover:border-violet-400/60",
+    text: "text-violet-300 group-hover/viewall:text-violet-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(139,92,246,0.25)]"
+  },
+  ai: {
+    bg: "bg-amber-500/10 hover:bg-amber-500/20",
+    border: "border-amber-500/30 hover:border-amber-400/60",
+    text: "text-amber-300 group-hover/viewall:text-amber-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+  },
+  productivity: {
+    bg: "bg-emerald-500/10 hover:bg-emerald-500/20",
+    border: "border-emerald-500/30 hover:border-emerald-400/60",
+    text: "text-emerald-300 group-hover/viewall:text-emerald-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+  },
+  business: {
+    bg: "bg-orange-500/10 hover:bg-orange-500/20",
+    border: "border-orange-500/30 hover:border-orange-400/60",
+    text: "text-orange-300 group-hover/viewall:text-orange-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(255,153,51,0.25)]"
+  },
+  seo: {
+    bg: "bg-cyan-500/10 hover:bg-cyan-500/20",
+    border: "border-cyan-500/30 hover:border-cyan-400/60",
+    text: "text-cyan-300 group-hover/viewall:text-cyan-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(34,211,238,0.25)]"
+  },
+  developer: {
+    bg: "bg-lime-500/10 hover:bg-lime-500/20",
+    border: "border-lime-500/30 hover:border-lime-400/60",
+    text: "text-lime-300 group-hover/viewall:text-lime-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(163,230,53,0.25)]"
+  },
+  student: {
+    bg: "bg-amber-500/10 hover:bg-amber-500/20",
+    border: "border-amber-500/30 hover:border-amber-400/60",
+    text: "text-amber-300 group-hover/viewall:text-amber-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(251,191,36,0.25)]"
+  }
+};
+
+function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: CategoryDropdownProps) {
+  const Icon = ICON_MAP[category.icon] || Sparkles;
+  
+  const categoryTools = useMemo(() => {
+    const list = TOOLS.filter(t => t.category === category.id);
+    return list.sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0)).slice(0, 3);
+  }, [category.id]);
+
+  const viewStyle = CATEGORY_VIEW_ALL_STYLES[category.id] || CATEGORY_VIEW_ALL_STYLES.student;
+
+  const isCategoryActive = pathname === `/category/${category.id}` || categoryTools.some(t => pathname === t.href);
+  const [isOpen, setIsOpen] = useState(isCategoryActive);
+
+  useEffect(() => {
+    if (isCategoryActive) setIsOpen(true);
+  }, [isCategoryActive]);
+
+  if (isCompact) {
+    return (
+      <SidebarItem 
+        name={catName}
+        icon={Icon}
+        href={`/category/${category.id}`}
+        isActive={isCategoryActive}
+        accentColor={category.color}
+        glowColor={catGlow}
+        isCompact={true}
+      />
+    );
+  }
+
+  return (
+    <div className="relative group/cat space-y-1">
+      <div className="flex items-center justify-between group">
+        <div className="flex-1 min-w-0">
+          <SidebarItem 
+            name={catName}
+            icon={Icon}
+            href={`/category/${category.id}`}
+            isActive={isCategoryActive}
+            accentColor={category.color}
+            glowColor={catGlow}
+            isCompact={false}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen((prev) => !prev);
+          }}
+          className="p-2 text-zinc-500 hover:text-white transition-colors rounded-xl hover:bg-white/5 mr-1"
+          aria-label={`Toggle ${catName} tools`}
+        >
+          <ChevronDown
+            size={14}
+            className={cn("transition-transform duration-300", isOpen && "rotate-180")}
+          />
+        </button>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden pl-5 pr-2 space-y-1 border-l border-white/10 ml-6 my-1"
+          >
+            {categoryTools.map((tool) => {
+              const ToolIcon = ICON_MAP[tool.icon] || Sparkles;
+              const isToolActive = pathname === tool.href;
+
+              return (
+                <Link key={tool.id} href={tool.href}>
+                  <div className={cn(
+                    "flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group/tool",
+                    isToolActive
+                      ? "bg-white/10 text-white border border-white/10 shadow-sm"
+                      : "text-zinc-400 hover:text-white hover:bg-white/5"
+                  )}>
+                    <ToolIcon size={14} className={cn("shrink-0 transition-transform group-hover/tool:scale-110", isToolActive ? "text-amber-400" : "text-zinc-500 group-hover/tool:text-zinc-200")} />
+                    <span className="truncate">{tool.name}</span>
+                  </div>
+                </Link>
+              );
+            })}
+
+            <Link href={`/category/${category.id}`}>
+              <div className={cn(
+                "relative overflow-hidden flex items-center justify-between px-3.5 py-2.5 mt-2 rounded-xl border text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 group/viewall",
+                viewStyle.bg,
+                viewStyle.border,
+                viewStyle.text,
+                "hover:scale-[1.02] active:scale-[0.98]",
+                viewStyle.hoverShadow
+              )}>
+                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+                <span className="relative z-10">
+                  View All Tools
+                </span>
+                <ArrowRight size={13} className="relative z-10 transition-transform group-hover/viewall:translate-x-1" />
+              </div>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -289,10 +475,10 @@ export function Sidebar() {
                        {!isCompact && (
                          <div className="flex items-center justify-between px-6 mb-4">
                             <div className="flex items-center gap-2">
-                               <LayoutDashboard size={10} className="text-zinc-800" />
-                               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700">Explore</p>
+                               <LayoutDashboard size={12} className="text-accent-purple drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+                               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-zinc-400">Explore</p>
                             </div>
-                            <div className="w-12 h-px bg-zinc-900/50" />
+                            <div className="w-14 h-px bg-gradient-to-r from-accent-purple/40 to-transparent" />
                          </div>
                        )}
                        {topItems.map((item) => {
@@ -329,34 +515,23 @@ export function Sidebar() {
                        {!isCompact && (
                          <div className="flex items-center justify-between px-6 mb-4">
                             <div className="flex items-center gap-2">
-                               <Sparkles size={10} className="text-accent-purple" />
-                               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700">Studio Tools</p>
+                               <Sparkles size={12} className="text-accent-purple drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">Studio Tools</p>
                             </div>
-                            <div className="w-12 h-px bg-zinc-900/50" />
+                            <div className="w-14 h-px bg-gradient-to-r from-accent-purple/50 to-transparent" />
                          </div>
                        )}
                        {CATEGORIES.map((cat) => {
-                          const Icon = ICON_MAP[cat.icon];
-                          const isActive = pathname === `/category/${cat.id}`;
                           const catName = t(`nav.${cat.id.replace(/-/g, '_')}_tools`, cat.name);
                           return (
-                            <div key={cat.id} className="relative group/cat">
-                              <SidebarItem 
-                                name={catName}
-                                icon={Icon}
-                                href={`/category/${cat.id}`}
-                                isActive={isActive}
-                                accentColor={cat.color}
-                                glowColor={catGlows[cat.id]}
-                                isCompact={isCompact}
-                              />
-                              {!isCompact && cat.id === 'ai' && (
-                                <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-accent-purple/10 border border-accent-purple/20 shadow-[0_0_10px_rgba(168,85,247,0.2)] z-30">
-                                   <Crown size={8} className="text-accent-purple" fill="currentColor" />
-                                   <span className="text-[7px] font-black text-accent-purple uppercase tracking-widest">PRO</span>
-                                </div>
-                              )}
-                            </div>
+                            <CategoryDropdown
+                              key={cat.id}
+                              category={cat}
+                              catName={catName}
+                              pathname={pathname}
+                              catGlow={catGlows[cat.id]}
+                              isCompact={isCompact}
+                            />
                           );
                        })}
                     </motion.div>

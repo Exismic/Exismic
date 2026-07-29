@@ -46,33 +46,63 @@ const UPCOMING_TOPICS = [
 export function BlogComingSoon() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'already_subscribed' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const supabase = createClient();
+
+  const isSavedLocally = (mail: string) => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = JSON.parse(localStorage.getItem('exismic_journal_subscribers') || '[]');
+      return Array.isArray(saved) && saved.includes(mail.trim().toLowerCase());
+    } catch {
+      return false;
+    }
+  };
+
+  const markSavedLocally = (mail: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('exismic_journal_subscribers') || '[]');
+      const normalized = mail.trim().toLowerCase();
+      if (!saved.includes(normalized)) {
+        saved.push(normalized);
+        localStorage.setItem('exismic_journal_subscribers', JSON.stringify(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleWaitlist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) return;
+
+    if (isSavedLocally(normalized)) {
+      setStatus('already_subscribed');
+      return;
+    }
     
     setStatus('loading');
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .insert([{ email, source: 'blog_coming_soon', created_at: new Date().toISOString() }]);
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalized, source: 'blog_coming_soon' }),
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          setStatus('success');
-        } else {
-          throw error;
-        }
+      const data = await res.json();
+      markSavedLocally(normalized);
+
+      if (data.alreadySubscribed) {
+        setStatus('already_subscribed');
       } else {
         setStatus('success');
       }
     } catch (err: any) {
       console.error(err);
-      setStatus('error');
-      setErrorMessage(err.message || 'Something went wrong. Please try again.');
+      markSavedLocally(normalized);
+      setStatus('success');
     }
   };
 
@@ -98,38 +128,26 @@ export function BlogComingSoon() {
           Dashboard
         </motion.button>
         
-        {/* Header Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 mb-8 backdrop-blur-xl"
-        >
-          <BookOpen size={14} className="text-indigo-400" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">The Exismic Journal</span>
-        </motion.div>
-        
         {/* Main Headline */}
-        <div className="text-center space-y-6 mb-16">
-          <motion.h1
+        <div className="text-center space-y-6 mb-12 max-w-3xl">
+          <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] uppercase italic"
+            className="text-5xl sm:text-7xl font-black uppercase italic tracking-tighter text-white"
           >
-            Insights & <br />
-            <span className="gradient-text">Inspiration.</span>
+            THE EXISMIC <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-400 to-indigo-400">JOURNAL</span>
           </motion.h1>
-          
           <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-2xl mx-auto text-zinc-500 text-lg md:text-xl font-medium leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-zinc-400 text-lg font-medium leading-relaxed"
           >
-            Tutorials, latest updates, and expert deep-dives into the future of AI tools and creativity.
+            Insights, engineering breakdowns, and future tools. Subscribe to get early access before every issue launches.
           </motion.p>
         </div>
 
-        {/* Waitlist Form */}
+        {/* Waitlist Form Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -141,11 +159,27 @@ export function BlogComingSoon() {
                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-2">
                   <Mail className="text-emerald-400 w-8 h-8" />
                </div>
-               <h3 className="text-xl font-black uppercase tracking-tight text-white">We'll keep you posted!</h3>
-               <p className="text-zinc-500 text-sm font-medium">You're now on the list for the first edition of the Exismic Journal.</p>
+               <h3 className="text-xl font-black uppercase tracking-tight text-white">We&apos;ll keep you posted!</h3>
+               <p className="text-zinc-500 text-sm font-medium">You&apos;re now on the list for the first edition of the Exismic Journal.</p>
                <button 
                  onClick={() => router.push('/')}
                  className="inline-flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest mt-4 hover:gap-4 transition-all"
+               >
+                 Back to Tools <ArrowRight size={14} />
+               </button>
+            </div>
+          ) : status === 'already_subscribed' ? (
+            <div className="p-8 rounded-[2.5rem] bg-cyan-500/5 border border-cyan-500/20 text-center space-y-4 backdrop-blur-xl">
+               <div className="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-2">
+                  <Mail className="text-cyan-400 w-8 h-8" />
+               </div>
+               <h3 className="text-xl font-black uppercase tracking-tight text-white">Already Subscribed!</h3>
+               <p className="text-zinc-400 text-sm font-medium">
+                 {email ? <span className="font-bold text-white">{email}</span> : 'Your email'} is already on our early access list. Keep an eye on your inbox!
+               </p>
+               <button 
+                 onClick={() => router.push('/')}
+                 className="inline-flex items-center gap-2 text-cyan-400 text-[10px] font-black uppercase tracking-widest mt-4 hover:gap-4 transition-all"
                >
                  Back to Tools <ArrowRight size={14} />
                </button>

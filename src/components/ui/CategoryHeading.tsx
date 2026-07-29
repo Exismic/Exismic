@@ -15,6 +15,19 @@ interface CategoryHeadingProps {
   className?: string;
 }
 
+const CATEGORY_LABEL_STYLES: Record<string, { text: string; sparkle: string }> = {
+  pdf: { text: "text-red-300", sparkle: "text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" },
+  image: { text: "text-cyan-300", sparkle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" },
+  audio: { text: "text-pink-300", sparkle: "text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" },
+  video: { text: "text-violet-300", sparkle: "text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)]" },
+  ai: { text: "text-indigo-300", sparkle: "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" },
+  productivity: { text: "text-emerald-300", sparkle: "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" },
+  business: { text: "text-orange-300", sparkle: "text-orange-400 drop-shadow-[0_0_8px_rgba(255,153,51,0.8)]" },
+  seo: { text: "text-cyan-300", sparkle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" },
+  developer: { text: "text-lime-300", sparkle: "text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.8)]" },
+  student: { text: "text-amber-300", sparkle: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" },
+};
+
 const CategoryHeading: React.FC<CategoryHeadingProps> = ({
   icon: Icon,
   title,
@@ -24,6 +37,7 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
   className
 }) => {
   const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
+  const labelStyle = CATEGORY_LABEL_STYLES[categoryId] || { text: "text-zinc-300", sparkle: "text-white/70" };
 
   return (
     <div className={cn("relative space-y-12", className)}>
@@ -44,8 +58,11 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
           
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <Sparkles size={12} className={isPro ? "text-amber-400" : "text-white/50"} />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">
+              <Sparkles size={12} className={isPro ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" : labelStyle.sparkle} />
+              <p className={cn(
+                "text-[10px] font-black uppercase tracking-[0.35em]",
+                isPro ? "text-amber-300" : labelStyle.text
+              )}>
                 {isPro ? "Premium Pro Series" : "Essential Creative Suite"}
               </p>
             </div>

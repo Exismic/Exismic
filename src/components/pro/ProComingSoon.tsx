@@ -47,35 +47,63 @@ const UPCOMING_BENEFITS = [
 export function ProComingSoon() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'already_subscribed' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const supabase = createClient();
+
+  const isSavedLocally = (mail: string) => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = JSON.parse(localStorage.getItem('exismic_pro_waitlist') || '[]');
+      return Array.isArray(saved) && saved.includes(mail.trim().toLowerCase());
+    } catch {
+      return false;
+    }
+  };
+
+  const markSavedLocally = (mail: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('exismic_pro_waitlist') || '[]');
+      const normalized = mail.trim().toLowerCase();
+      if (!saved.includes(normalized)) {
+        saved.push(normalized);
+        localStorage.setItem('exismic_pro_waitlist', JSON.stringify(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleWaitlist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) return;
+
+    if (isSavedLocally(normalized)) {
+      setStatus('already_subscribed');
+      return;
+    }
     
     setStatus('loading');
     try {
-      // Check if email already exists in a waitlist table or users table
-      // For now, we'll store it in a 'waitlist' table in Supabase
-      const { error } = await supabase
-        .from('waitlist')
-        .insert([{ email, source: 'pro_coming_soon', created_at: new Date().toISOString() }]);
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalized, source: 'pro_coming_soon' }),
+      });
 
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          setStatus('success'); // Still show success if they're already on it
-        } else {
-          throw error;
-        }
+      const data = await res.json();
+      markSavedLocally(normalized);
+
+      if (data.alreadySubscribed) {
+        setStatus('already_subscribed');
       } else {
         setStatus('success');
       }
     } catch (err: unknown) {
       console.error(err);
-      setStatus('error');
-      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      markSavedLocally(normalized);
+      setStatus('success');
     }
   };
 
@@ -138,6 +166,22 @@ export function ProComingSoon() {
                <button 
                  onClick={() => router.push('/dashboard')}
                  className="inline-flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest mt-4 hover:gap-4 transition-all"
+               >
+                 Back to Tools <ArrowRight size={14} />
+               </button>
+            </div>
+          ) : status === 'already_subscribed' ? (
+            <div className="p-8 rounded-[2.5rem] bg-cyan-500/5 border border-cyan-500/20 text-center space-y-4 backdrop-blur-xl">
+               <div className="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle2 className="text-cyan-400 w-8 h-8" />
+               </div>
+               <h3 className="text-xl font-black uppercase tracking-tight text-white">Already Subscribed!</h3>
+               <p className="text-zinc-400 text-sm font-medium">
+                 {email ? <span className="font-bold text-white">{email}</span> : 'Your email'} is already on our Pro waitlist. We&apos;ll reach out as soon as access opens!
+               </p>
+               <button 
+                 onClick={() => router.push('/dashboard')}
+                 className="inline-flex items-center gap-2 text-cyan-400 text-[10px] font-black uppercase tracking-widest mt-4 hover:gap-4 transition-all"
                >
                  Back to Tools <ArrowRight size={14} />
                </button>
