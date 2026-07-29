@@ -1,4 +1,4 @@
-// Build Trigger: 2026-04-30T21:27
+// Build Trigger: 2026-07-29T10:48:00Z
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
