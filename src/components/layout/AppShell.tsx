@@ -7,6 +7,7 @@ import { MagicCommandPalette } from "@/components/layout/MagicCommandPalette";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { GlobalToolAssistant } from "@/components/tool/GlobalToolAssistant";
+import { WelcomeModal } from "@/components/modals/WelcomeModal";
 import { createClient } from "@/utils/supabase/client";
 
 type AppShellProps = {
@@ -155,6 +156,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
       </div>
       {!isAuthRoute ? <MagicCommandPalette /> : null}
       {!isAuthRoute ? <GlobalToolAssistant /> : null}
+      {!isAuthRoute && clientHasSession ? <WelcomeModal /> : null}
     </>
   );
 }

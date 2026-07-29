@@ -38,6 +38,7 @@ export async function GET() {
       bonus_credits: dbUser.bonusCredits,
       lifetime_credits: dbUser.lifetimeCredits,
       ai_messages_today: dbUser.aiMessagesToday,
+      has_seen_welcome: dbUser.hasSeenWelcome,
     };
 
     return NextResponse.json({

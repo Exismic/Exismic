@@ -587,7 +587,8 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
           dailyCredits: 50,
           bonusCredits: 0,
           lifetimeCredits: 0,
-          plan: 'free'
+          plan: 'free',
+          hasSeenWelcome: false,
         }
       });
     }

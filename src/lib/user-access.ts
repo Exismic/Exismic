@@ -77,6 +77,7 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
       creditsLastReset: new Date(),
       aiMessagesToday: 0,
       aiMessagesReset: new Date(),
+      hasSeenWelcome: false,
     },
   });
 }

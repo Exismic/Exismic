@@ -57,6 +57,7 @@ model User {
   trustedLoginChallenges TrustedLoginChallenge[]
   creditTransactions     CreditTransaction[]
   creditShopClaims       CreditShopClaim[]
+  hasSeenWelcome         Boolean                 @default(true) @map("has_seen_welcome")
   status                 String                  @default("active")
 }
 

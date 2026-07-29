@@ -238,6 +238,7 @@ export async function GET(request: Request) {
           aiMessagesToday: 0,
           aiMessagesReset: new Date(),
           referralCode: myReferralCode,
+          hasSeenWelcome: false,
         },
       });
 
@@ -382,6 +383,10 @@ export async function GET(request: Request) {
       if (welcomeResult === "failed") {
         console.error("[Auth] Welcome email could not be delivered:", email);
       }
+
+      const targetUrl = new URL(next, siteUrl);
+      targetUrl.searchParams.set("welcome", "true");
+      return NextResponse.redirect(targetUrl);
     }
 
     return NextResponse.redirect(new URL(next, siteUrl));
