@@ -47,10 +47,10 @@ function resolveProStatus(data: ProUserRecord | null) {
   return hasEntitlement && (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt > new Date());
 }
 
-let profileRequest: Promise<ProUserRecord> | null = null;
+let profileRequest: Promise<ProUserRecord | null> | null = null;
 let profileCache: { data: ProUserRecord; fetchedAt: number } | null = null;
 
-async function fetchCanonicalProfile(force = false) {
+async function fetchCanonicalProfile(force = false): Promise<ProUserRecord | null> {
   if (!force && profileCache && Date.now() - profileCache.fetchedAt < 15_000) {
     return profileCache.data;
   }
@@ -61,14 +61,16 @@ async function fetchCanonicalProfile(force = false) {
     credentials: "same-origin",
   })
     .then(async (response) => {
+      if (!response.ok) return null;
       const json = await response.json();
-      if (!response.ok || !json.success || !json.user) {
-        throw new Error(json.error || "Could not verify membership");
+      if (!json.success || !json.user) {
+        return null;
       }
       const data = json.user as ProUserRecord;
       profileCache = { data, fetchedAt: Date.now() };
       return data;
     })
+    .catch(() => null)
     .finally(() => {
       profileRequest = null;
     });
@@ -97,11 +99,14 @@ export function usePro() {
       }
 
       const data = await fetchCanonicalProfile(force);
-      setUser(data);
-      setIsPro(resolveProStatus(data));
+      if (data) {
+        setUser(data);
+        setIsPro(resolveProStatus(data));
+      } else {
+        setUser(null);
+        setIsPro(false);
+      }
     } catch (err) {
-      // Keep the last verified entitlement during a transient request failure.
-      // A failed refresh must never make an active member look like a Free user.
       console.error("usePro status refresh error:", err);
     } finally {
       setIsLoading(false);
