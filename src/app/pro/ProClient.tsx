@@ -234,7 +234,9 @@ export function ProClient() {
       })
     : null;
 
-  const handleUpgradeClick = () => {
+  const [selectedPlanId, setSelectedPlanId] = useState<"pro" | "pro_stacker" | "pro_stacking_addon">("pro_stacker");
+
+  const handleUpgradeClick = (planId: "pro" | "pro_stacker" | "pro_stacking_addon" = "pro_stacker") => {
     if (!paymentsEnabled) {
       setToast({ message: PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE, type: "info" });
       return;
@@ -243,6 +245,7 @@ export function ProClient() {
       router.push("/auth/login");
       return;
     }
+    setSelectedPlanId(planId);
     setIsTermsModalOpen(true);
   };
 
@@ -252,7 +255,7 @@ export function ProClient() {
       const response = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: "pro", marketOverride: market }),
+        body: JSON.stringify({ planId: selectedPlanId, marketOverride: market }),
       });
       const data = await response.json().catch(() => null);
 
@@ -454,67 +457,97 @@ export function ProClient() {
 
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 {isPro ? (
-                  <button
-                    type="button"
-                    onClick={() => (isSubscriptionCancelled ? router.push("/tools") : setIsModalOpen(true))}
-                    className="group relative flex min-h-14 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-white px-6 text-xs font-black uppercase tracking-[0.16em] text-black shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-100 active:translate-y-0"
-                  >
-                    <CheckCircle2 size={17} />
-                    {isSubscriptionCancelled ? "Continue with Pro" : "Manage membership"}
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                  </button>
-                ) : (
-                  <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
+                  <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
-                      onClick={handleUpgradeClick}
-                      disabled={loading || !paymentsEnabled}
-                      className="group relative flex h-14 w-full sm:w-auto items-center justify-center overflow-hidden rounded-full p-[1.5px] font-black uppercase tracking-[0.25em] text-white shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)] transition-all duration-500 hover:shadow-[0_0_60px_-15px_rgba(168,85,247,0.8)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-wait disabled:opacity-50"
+                      onClick={() => (isSubscriptionCancelled ? router.push("/tools") : setIsModalOpen(true))}
+                      className="group relative flex min-h-14 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-white px-6 text-xs font-black uppercase tracking-[0.16em] text-black shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-100 active:translate-y-0"
                     >
-                      {/* Animated gradient border */}
-                      <span className="absolute inset-0 bg-[linear-gradient(110deg,#a855f7,#3b82f6,#a855f7,#06b6d4)] bg-[length:300%_auto] animate-gradient-x" />
-                      
-                      {/* Core button background */}
-                      <div className="relative z-10 flex h-full w-full items-center justify-center gap-3 rounded-full bg-[#030303] px-8 transition-all duration-500 group-hover:bg-transparent">
-                        
-                        {/* Continuous Idle Shine */}
-                        <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
-
-                        {/* Sweeping shine effect on hover */}
-                        <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.25),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
-                        
-                        {/* Button content */}
-                        <div className="relative z-20 flex items-center gap-3 text-[11px]">
-                          {loading ? <Loader2 size={18} className="animate-spin text-purple-400" /> : <Crown size={18} className="text-purple-400 group-hover:text-white transition-colors duration-300 animate-pulse" />}
-                          <span className="bg-[linear-gradient(110deg,#fff,#e9d5ff,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Unlock Pro</span>
-                          {!loading && paymentsEnabled && <ArrowRight size={16} className="text-purple-400 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" />}
-                        </div>
-                      </div>
+                      <CheckCircle2 size={17} />
+                      {isSubscriptionCancelled ? "Continue with Pro" : "Manage membership"}
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </button>
+                    {!(user as { hasCreditStacking?: boolean; has_credit_stacking?: boolean } | null)?.hasCreditStacking && !(user as { hasCreditStacking?: boolean; has_credit_stacking?: boolean } | null)?.has_credit_stacking && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpgradeClick("pro_stacking_addon")}
+                        disabled={loading || !paymentsEnabled}
+                        className="group relative flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-2xl border border-cyan-400/40 bg-cyan-500/10 px-6 text-xs font-black uppercase tracking-[0.16em] text-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-500/20 active:translate-y-0"
+                      >
+                        <Sparkles size={16} className="text-cyan-400 animate-pulse" />
+                        <span>Add Credit Stacking ({isIndia ? "₹199" : "$2.99"}/mo)</span>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 w-full">
+                    <div className="grid w-full gap-4 sm:grid-cols-2">
+                      {/* Option 1: Pro Standard */}
+                      <div
+                        onClick={() => handleUpgradeClick("pro")}
+                        className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border border-white/15 bg-white/[0.03] p-5 backdrop-blur-md transition-all duration-300 hover:border-purple-400/50 hover:bg-purple-500/[0.06] hover:-translate-y-1"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300">Standard Tier</span>
+                            <span className="text-lg font-black text-white">{isIndia ? "₹499" : "$6.99"}<span className="text-[10px] text-zinc-500 font-bold">/mo</span></span>
+                          </div>
+                          <h3 className="mt-2 text-base font-black text-white">Pro Standard</h3>
+                          <p className="mt-1 text-xs text-zinc-400 leading-relaxed">500 daily credits, priority mode & commercial rights. Resets daily.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro"); }}
+                          disabled={loading || !paymentsEnabled}
+                          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-[11px] font-black uppercase tracking-[0.16em] text-white transition-all group-hover:border-purple-400/40 group-hover:bg-purple-500/20"
+                        >
+                          Select Pro Standard
+                        </button>
+                      </div>
 
+                      {/* Option 2: Pro Stacker (Bundle - Recommended) */}
+                      <div
+                        onClick={() => handleUpgradeClick("pro_stacker")}
+                        className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/50 bg-gradient-to-b from-cyan-500/10 via-purple-500/10 to-transparent p-5 backdrop-blur-md shadow-[0_0_35px_rgba(6,182,212,0.2)] transition-all duration-300 hover:border-cyan-300 hover:shadow-[0_0_50px_rgba(6,182,212,0.35)] hover:-translate-y-1"
+                      >
+                        <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 px-3 py-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-md">
+                          Best Value Bundle
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 flex items-center gap-1">
+                              <Crown size={12} className="text-cyan-400" /> Pro + Stacking
+                            </span>
+                            <span className="text-lg font-black text-cyan-200">{isIndia ? "₹599" : "$8.99"}<span className="text-[10px] text-zinc-400 font-bold">/mo</span></span>
+                          </div>
+                          <h3 className="mt-2 text-base font-black text-white flex items-center gap-2">
+                            Pro Stacker <Sparkles size={14} className="text-cyan-400" />
+                          </h3>
+                          <p className="mt-1 text-xs text-cyan-100/80 leading-relaxed">500 daily credits + <strong className="text-cyan-300">Bank unused credits (2,500 max cap)</strong> + 250 instant vault bonus.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro_stacker"); }}
+                          disabled={loading || !paymentsEnabled}
+                          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-md transition-all group-hover:brightness-110"
+                        >
+                          <Crown size={14} /> Unlock Pro Stacker
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
-
-                <div className="flex items-baseline gap-2 px-1">
-                  <span className="text-3xl font-black tracking-tight text-white">
-                    {currencySymbol}
-                    {priceDisplay}
-                  </span>
-                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-600">
-                    per month
-                  </span>
-                </div>
               </div>
 
               {paymentsEnabled ? (
-                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-600">
-                  <span className="flex items-center gap-2">
-                    <Lock size={11} /> Secure checkout
+                <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[9px] font-black uppercase tracking-[0.16em]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
+                    <ShieldCheck size={11} className="text-cyan-400" /> Secure checkout
                   </span>
-                  <span className="flex items-center gap-2">
-                    <RefreshCcw size={11} /> Cancel anytime
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-zinc-300">
+                    <RefreshCcw size={11} className="text-zinc-400" /> Cancel anytime
                   </span>
-                  <span>{isIndia ? "Billed through Razorpay" : "Billed in USD through PayPal"}</span>
+                  <span className="text-zinc-500">{isIndia ? "Billed through Razorpay" : "Billed in USD through PayPal"}</span>
                 </div>
               ) : (
                 <div className="mt-5 flex max-w-xl items-start gap-3 rounded-2xl border border-amber-300/20 bg-amber-300/[0.055] px-4 py-3 text-amber-100">
@@ -862,7 +895,7 @@ export function ProClient() {
                   <div>
                     <button
                       type="button"
-                      onClick={handleUpgradeClick}
+                      onClick={() => handleUpgradeClick("pro_stacker")}
                       disabled={loading || !paymentsEnabled}
                       className="group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-full p-[1.5px] font-black uppercase tracking-[0.25em] text-white shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)] transition-all duration-500 hover:shadow-[0_0_60px_-15px_rgba(168,85,247,0.8)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-wait disabled:opacity-50"
                     >
@@ -890,11 +923,11 @@ export function ProClient() {
                   </div>
                 )}
 
-                <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/[0.07] pt-5 text-[9px] font-black uppercase tracking-[0.14em] text-zinc-600">
-                  <span className="flex items-center gap-2">
-                    <Lock size={11} /> Secure checkout
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.07] pt-5 text-[9px] font-black uppercase tracking-[0.14em]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
+                    <ShieldCheck size={11} className="text-cyan-400" /> Secure checkout
                   </span>
-                  <span className="flex items-center justify-end gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-zinc-400">
                     <RefreshCcw size={11} /> Cancel anytime
                   </span>
                 </div>

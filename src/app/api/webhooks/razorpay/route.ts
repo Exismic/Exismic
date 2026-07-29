@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       await prisma.user.updateMany({
         where: { subscriptionId: providerOrderId },
         data: {
-          ...(active ? { plan: "pro", dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS, aiGenerationsLimit: 1000 } : {}),
+          ...(active ? { plan: "pro", dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS, aiGenerationsLimit: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS } : {}),
           subscriptionStatus: active ? "active" : "past_due",
           ...(periodEnd ? { planExpiresAt: periodEnd } : {}),
         },

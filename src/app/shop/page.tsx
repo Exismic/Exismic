@@ -376,36 +376,43 @@ export default function ShopPage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-[linear-gradient(145deg,rgba(124,58,237,0.13),rgba(255,255,255,0.035)_48%,rgba(34,211,238,0.08))] p-5 shadow-[0_28px_100px_rgba(0,0,0,0.5)] sm:p-7"
+            className="relative overflow-hidden rounded-[2.25rem] border border-white/[0.14] bg-[#07080f]/98 p-5 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_60px_rgba(34,211,238,0.1)] backdrop-blur-2xl sm:p-7"
           >
-            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
-            <div className="relative">
+            {/* Background Grid & Ambient Glow */}
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(34,211,238,0.12),rgba(15,23,42,0))]" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400" />
+
+            <div className="relative z-10">
               <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100/80">Free daily shop reward</p>
-                    {Boolean(dailyStreak) && (
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">Free daily shop reward</p>
+                    {Boolean(dailyStreak) && dailyStreak > 0 ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
                         <Flame size={12} className="text-amber-400 animate-pulse fill-amber-400/30" />
-                        {dailyStreak} Day Streak (+{Math.min((dailyStreak ?? 1) - 1, 7) * 5}% Boost)
+                        {dailyStreak} Day Streak (+{Math.min(dailyStreak - 1, 7) * 5}% Boost)
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700/50 bg-zinc-800/40 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                        <Flame size={12} className="text-zinc-500" />
+                        0 Day Streak (+0% Boost)
                       </span>
                     )}
                   </div>
                   <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">Open today&apos;s reward</h2>
                 </div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-fuchsia-300/20 bg-fuchsia-300/[0.08] text-fuchsia-100">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/30 bg-gradient-to-b from-cyan-400/20 to-cyan-500/5 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.25)]">
                   <Gift size={26} />
                 </div>
               </div>
 
-
-
-              <div className="relative mt-5 overflow-hidden rounded-[2rem] border border-white/10 bg-[#05050a]/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <div className="relative mt-5 overflow-hidden rounded-[2rem] border border-white/[0.12] bg-[#04050a]/90 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
                 <motion.div
                   aria-hidden="true"
                   animate={claimStage === "opening" ? { opacity: [0.16, 0.42, 0.16], scale: [1, 1.08, 1] } : { opacity: 0.18, scale: 1 }}
                   transition={{ duration: 1.15, repeat: claimStage === "opening" ? Infinity : 0, ease: "easeInOut" }}
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.24),transparent_35%),radial-gradient(circle_at_70%_30%,rgba(168,85,247,0.22),transparent_36%)]"
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.24),transparent_35%),radial-gradient(circle_at_70%_30%,rgba(16,185,129,0.22),transparent_36%)]"
                 />
                 <div className="relative grid gap-5 md:grid-cols-[180px_1fr] md:items-center">
                   <div className="relative mx-auto flex h-44 w-44 items-center justify-center">
@@ -449,7 +456,7 @@ export default function ShopPage() {
                         }}
                         className={cn(
                           "absolute inset-4 rounded-full blur-xl",
-                          claimResult?.rarity === "legendary" ? "bg-amber-400" : claimResult?.rarity === "epic" ? "bg-purple-400" : "bg-cyan-400"
+                          claimResult?.rarity === "legendary" ? "bg-amber-400" : claimResult?.rarity === "epic" ? "bg-cyan-400" : "bg-emerald-400"
                         )}
                       />
                     )}
@@ -463,7 +470,7 @@ export default function ShopPage() {
                       className={cn(
                         "absolute inset-0 rounded-[2.5rem] opacity-90 blur-lg",
                         claimResult?.rarity === "legendary" && claimStage === "opening" ? "bg-[conic-gradient(from_0deg,transparent,#fcd34d,#f59e0b,#fff,#f59e0b,transparent)]" :
-                        "bg-[conic-gradient(from_0deg,transparent,#22d3ee,#a855f7,#fff,#22d3ee,transparent)]"
+                        "bg-[conic-gradient(from_0deg,transparent,#22d3ee,#10b981,#fff,#22d3ee,transparent)]"
                       )}
                     />
                     <motion.div
@@ -484,10 +491,10 @@ export default function ShopPage() {
                         { duration: 0.5, ease: "easeInOut" }
                       }
                       className={cn(
-                        "relative flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-[2rem] border bg-gradient-to-br from-[#12121a] to-[#050508] shadow-[0_0_45px_rgba(0,0,0,0.8)] backdrop-blur-xl",
+                        "relative flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-[2rem] border bg-gradient-to-br from-[#121422] via-[#090b14] to-[#04050a] shadow-[0_0_45px_rgba(0,0,0,0.95)] backdrop-blur-xl",
                         claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? "border-amber-400/60 shadow-[0_0_60px_rgba(251,191,36,0.3)]" :
                         claimResult?.rarity === "legendary" ? "border-amber-400/40" :
-                        claimResult ? "border-white/20" : "border-white/10"
+                        claimResult ? "border-cyan-400/30 shadow-[0_0_30px_rgba(34,211,238,0.2)]" : "border-white/15"
                       )}
                     >
                       {claimStage === "opening" && (
@@ -513,30 +520,30 @@ export default function ShopPage() {
                       )}
 
                       {/* Glass effect layers */}
-                      <div className="absolute inset-x-2 top-2 h-1/3 rounded-full bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none blur-[1px]" />
-                      <div className="absolute inset-0 rounded-[2rem] shadow-[inset_0_0_30px_rgba(255,255,255,0.02)] pointer-events-none" />
+                      <div className="absolute inset-x-2 top-2 h-1/3 rounded-full bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none blur-[1px]" />
+                      <div className="absolute inset-0 rounded-[2rem] shadow-[inset_0_0_30px_rgba(255,255,255,0.03)] pointer-events-none" />
 
                       <div className={cn(
-                        "relative flex h-24 w-24 items-center justify-center rounded-[1.3rem] border bg-black/60 shadow-[inset_0_2px_20px_rgba(255,255,255,0.04)] backdrop-blur-md",
-                        claimResult?.rarity === "legendary" ? "border-amber-400/30 shadow-[0_0_25px_rgba(251,191,36,0.15)]" : "border-white/10"
+                        "relative flex h-24 w-24 items-center justify-center rounded-[1.3rem] border bg-black/70 shadow-[inset_0_2px_20px_rgba(255,255,255,0.05)] backdrop-blur-md",
+                        claimResult?.rarity === "legendary" ? "border-amber-400/30 shadow-[0_0_25px_rgba(251,191,36,0.15)]" : "border-white/15"
                       )}>
                         {claimStage === "opening" ? (
                           <Loader2 size={36} className={cn(
                             "animate-spin", 
                             claimResult?.rarity === "legendary" ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" : 
-                            claimResult?.rarity === "epic" ? "text-purple-400" : "text-cyan-100"
+                            "text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
                           )} />
                         ) : claimResult ? (
                           <span className={cn(
                             "text-4xl font-black italic tracking-tighter bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent pr-2",
                             claimResult.type === "permanent" 
                               ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_15px_rgba(244,63,94,0.6)]" 
-                              : "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.6)]"
+                              : "bg-[linear-gradient(110deg,#fff,#38bdf8,#22d3ee,#fff)] drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]"
                           )}>
                             +{claimResult.amount}
                           </span>
                         ) : (
-                          <Gift size={38} className="text-white/80 drop-shadow-md" />
+                          <Gift size={38} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
                         )}
                       </div>
                     </motion.div>
@@ -560,23 +567,20 @@ export default function ShopPage() {
                   </div>
 
                   <div className="text-center md:text-left">
-                    <p className={cn(
-                      "text-[10px] font-black uppercase tracking-[0.24em]",
-                      claimResult ? getRewardVisual(claimResult.rarity).color : "text-cyan-100/70"
-                    )}>
-                      {claimStage === "opening" ? "Reward charging" : claimResult ? `${claimResult.rarity} reward unlocked` : "Daily bonus reward"}
-                    </p>
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                      <span>{claimStage === "opening" ? "Reward charging" : claimResult ? `${claimResult.rarity} reward unlocked` : "Daily bonus reward"}</span>
+                    </div>
                     <h3 className={cn(
                       "mt-2 text-2xl font-black uppercase tracking-tight sm:text-3xl",
                       claimResult?.type === "permanent" 
                         ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" 
                         : claimResult
-                          ? "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]"
+                          ? "bg-[linear-gradient(110deg,#fff,#a5f3fc,#38bdf8,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]"
                           : "text-white"
                     )}>
                       {claimStage === "opening" ? "Opening your reward..." : claimResult ? `+${claimResult.amount} ${claimResult.type === "permanent" ? "permanent" : claimResult.type === "temporary" ? "temporary" : ""} credits`.trim() : "Tap once. Reveal your bonus."}
                     </h3>
-                    <p className="mt-3 text-sm font-medium leading-6 text-zinc-500">
+                    <p className="mt-3 text-xs font-medium leading-relaxed text-zinc-400">
                       {claimResult
                         ? claimResult.type === "permanent" 
                           ? "Added to your permanent lifetime balance. These credits never expire and will always be available."
@@ -593,13 +597,13 @@ export default function ShopPage() {
                 onClick={handleClaimDailyReward}
                 disabled={claiming || claimLocked}
                 className={cn(
-                  "mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.22em] transition-all",
+                  "mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.22em] transition-all duration-200",
                   claimLocked
-                    ? "border border-emerald-300/15 bg-emerald-300/[0.065] text-emerald-100"
-                    : "bg-[linear-gradient(135deg,#a855f7,#2563eb_52%,#22d3ee)] text-white shadow-[0_20px_55px_rgba(37,99,235,0.22)] hover:-translate-y-0.5 hover:brightness-110"
+                    ? "border border-emerald-400/30 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.12)]"
+                    : "border border-white/80 bg-white text-black shadow-[0_0_35px_rgba(255,255,255,0.35)] hover:bg-zinc-100 hover:shadow-[0_0_45px_rgba(255,255,255,0.5)] hover:scale-[1.01] active:scale-[0.98]"
                 )}
               >
-                {claiming ? <Loader2 size={18} className="animate-spin" /> : claimLocked ? <CheckCircle2 size={18} /> : <Gift size={18} />}
+                {claiming ? <Loader2 size={18} className="animate-spin" /> : claimLocked ? <CheckCircle2 size={18} className="text-emerald-400" /> : <Gift size={18} />}
                 {claiming ? "Opening reward" : claimLocked ? `New reward in ${countdown || "..."}` : "Claim free reward"}
               </button>
             </div>
@@ -611,14 +615,9 @@ export default function ShopPage() {
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-600">Permanent credits</p>
                 <h2 className="mt-1 text-3xl font-black uppercase tracking-tight text-white">Credit packs</h2>
               </div>
-              <span
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em]",
-                  "border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-100",
-                )}
-              >
-                <CreditCard size={12} />
-                {gatewayName} checkout
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.15)] backdrop-blur-md">
+                <ShieldCheck size={13} className="text-cyan-400" />
+                <span>{gatewayName} Checkout</span>
               </span>
             </div>
 

@@ -43,10 +43,11 @@ async function runSerializable<T>(operation: () => Promise<T>) {
 
 export function getCreditTotal(credits: {
   dailyCredits?: number | null;
+  stackedCredits?: number | null;
   bonusCredits?: number | null;
   lifetimeCredits?: number | null;
 }) {
-  return (credits.dailyCredits ?? 0) + (credits.bonusCredits ?? 0) + (credits.lifetimeCredits ?? 0);
+  return (credits.dailyCredits ?? 0) + (credits.stackedCredits ?? 0) + (credits.bonusCredits ?? 0) + (credits.lifetimeCredits ?? 0);
 }
 
 export async function resetCreditsIfNewDay(userId: string) {
@@ -208,29 +209,32 @@ export async function deductCredits(
 
         const user = await transaction.user.findUnique({
           where: { id: userId },
-          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+          select: { dailyCredits: true, stackedCredits: true, bonusCredits: true, lifetimeCredits: true },
         });
         if (!user) throw new Error("User not found");
 
-        const totalAvailable = getCreditTotal(user);
+        const totalAvailable = (user.dailyCredits ?? 0) + (user.stackedCredits ?? 0) + (user.bonusCredits ?? 0) + (user.lifetimeCredits ?? 0);
         if (totalAvailable < amount) throw new Error(`Insufficient credits:${totalAvailable}`);
 
         const dailySpend = Math.min(user.dailyCredits, amount);
         const afterDaily = amount - dailySpend;
-        const bonusSpend = Math.min(user.bonusCredits, afterDaily);
-        const permanentSpend = afterDaily - bonusSpend;
+        const stackedSpend = Math.min(user.stackedCredits || 0, afterDaily);
+        const afterStacked = afterDaily - stackedSpend;
+        const bonusSpend = Math.min(user.bonusCredits, afterStacked);
+        const permanentSpend = afterStacked - bonusSpend;
 
         const balances = await transaction.user.update({
           where: { id: userId },
           data: {
             dailyCredits: user.dailyCredits - dailySpend,
+            stackedCredits: (user.stackedCredits || 0) - stackedSpend,
             bonusCredits: user.bonusCredits - bonusSpend,
             lifetimeCredits: user.lifetimeCredits - permanentSpend,
           },
-          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+          select: { dailyCredits: true, stackedCredits: true, bonusCredits: true, lifetimeCredits: true },
         });
 
-        const spent = { dailySpend, bonusSpend, permanentSpend };
+        const spent = { dailySpend, stackedSpend, bonusSpend, permanentSpend };
         await transaction.creditTransaction.create({
           data: {
             ...(operationId ? { id: operationId } : {}),
@@ -336,6 +340,27 @@ export async function addBonusCredits(userId: string, amount: number, reason?: s
   }
 }
 
+export function calculateEffectiveStreak(
+  dailyStreak?: number | null,
+  lastClaimDate?: Date | string | null
+): number {
+  if (!dailyStreak || !lastClaimDate) return 0;
+
+  const today = getTodayInIndia();
+  const lastDate = new Date(lastClaimDate);
+  if (Number.isNaN(lastDate.getTime())) return 0;
+
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const lastUtc = Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate());
+
+  const diffInDays = Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000));
+
+  if (diffInDays === 0 || diffInDays === 1) {
+    return dailyStreak;
+  }
+  return 0;
+}
+
 export async function getUserCredits(userId: string) {
   try {
     const user = await prisma.user.findUnique({
@@ -359,7 +384,7 @@ export async function getUserCredits(userId: string) {
 
     await resetCreditsIfNewDay(userId);
 
-    return prisma.user.findUnique({
+    const updatedUser = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         dailyCredits: true,
@@ -372,6 +397,15 @@ export async function getUserCredits(userId: string) {
         lastClaimDate: true,
       },
     });
+
+    if (!updatedUser) return null;
+
+    const effectiveStreak = calculateEffectiveStreak(updatedUser.dailyStreak, updatedUser.lastClaimDate);
+
+    return {
+      ...updatedUser,
+      dailyStreak: effectiveStreak,
+    };
   } catch (err) {
     console.error(`[CREDITS] Error getting credits for ${userId}:`, err);
     return null;
@@ -401,14 +435,22 @@ export async function claimDailyShopCredits(userId: string) {
         select: { dailyStreak: true, lastClaimDate: true }
       });
 
-      const yesterday = new Date(claimDate);
-      yesterday.setDate(yesterday.getDate() - 1);
-
+      const todayUtc = Date.UTC(claimDate.getUTCFullYear(), claimDate.getUTCMonth(), claimDate.getUTCDate());
       let newStreak = 1;
+
       if (user?.lastClaimDate) {
         const lastDate = new Date(user.lastClaimDate);
-        if (lastDate.getTime() === yesterday.getTime()) {
-          newStreak = (user.dailyStreak || 0) + 1;
+        if (!Number.isNaN(lastDate.getTime())) {
+          const lastUtc = Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate());
+          const diffInDays = Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000));
+
+          if (diffInDays === 1) {
+            newStreak = (user.dailyStreak || 0) + 1;
+          } else if (diffInDays === 0) {
+            newStreak = user.dailyStreak || 1;
+          } else {
+            newStreak = 1;
+          }
         }
       }
 

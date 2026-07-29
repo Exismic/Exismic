@@ -7,15 +7,8 @@ import { PRICING_CONFIG } from '@/config/pricing'
  * 
  * This endpoint should be called daily at 12:00 AM IST
  * Configure in vercel.json with cron schedule
- * 
- * Requires Authorization header with CRON_SECRET
- * 
- * Example:
- * curl -X POST https://your-domain.com/api/cron/reset-credits \
- *   -H "Authorization: Bearer YOUR_CRON_SECRET"
  */
 export async function POST(request: NextRequest) {
-  // Verify the request is from Vercel Cron
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   const expectedAuth = cronSecret ? `Bearer ${cronSecret}` : null
@@ -32,12 +25,9 @@ export async function POST(request: NextRequest) {
 
   try {
     console.log('[CRON] ⏰ Starting daily credit reset...')
-    console.log(`[CRON] Current time (IST): ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })}`)
-
-    // Get current time
     const now = new Date()
 
-    // Expire cancelled Pro memberships after their paid-through date.
+    // 1. Expire cancelled Pro memberships after their paid-through date
     const expiredProResult = await prisma.user.updateMany({
       where: {
         plan: 'pro',
@@ -56,7 +46,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Reset FREE users (50 credits)
+    // 2. Reset FREE users (50 credits)
     const freeResult = await prisma.user.updateMany({
       where: { plan: 'free' },
       data: {
@@ -68,7 +58,42 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Reset PRO users to the configured daily allowance. Cancelled users keep Pro until planExpiresAt.
+    // 3. Rollover unused daily credits for PRO users who have Credit Stacking enabled
+    const proStackingUsers = await prisma.user.findMany({
+      where: {
+        plan: 'pro',
+        hasCreditStacking: true,
+        OR: [
+          { planExpiresAt: null },
+          { planExpiresAt: { gt: now } },
+          { subscriptionStatus: 'active' },
+        ],
+      },
+      select: {
+        id: true,
+        dailyCredits: true,
+        stackedCredits: true,
+        maxStackedCredits: true,
+      },
+    })
+
+    let stackedCount = 0
+    for (const user of proStackingUsers) {
+      const unusedDaily = Math.max(0, user.dailyCredits)
+      if (unusedDaily > 0) {
+        const cap = user.maxStackedCredits || 2500
+        const newStacked = Math.min(cap, user.stackedCredits + unusedDaily)
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            stackedCredits: newStacked,
+          },
+        })
+        stackedCount++
+      }
+    }
+
+    // 4. Reset PRO users to standard daily allowance (500 credits)
     const proDaily = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
     const proResult = await prisma.user.updateMany({
       where: {
@@ -89,10 +114,9 @@ export async function POST(request: NextRequest) {
     })
 
     const duration = Date.now() - start
-    const successMessage = `✅ Daily credit reset completed: ${freeResult.count} free users (50 credits), ${proResult.count} pro users (${proDaily} credits) in ${duration}ms`
+    const successMessage = `✅ Daily credit reset completed: ${freeResult.count} free users (50 credits), ${proResult.count} pro users (${proDaily} credits), ${stackedCount} users banked stacked credits in ${duration}ms`
 
     console.log('[CRON]', successMessage)
-    console.log('[CRON] Reset timestamp:', now.toISOString())
 
     return NextResponse.json({
       success: true,
@@ -100,12 +124,12 @@ export async function POST(request: NextRequest) {
       stats: {
         freeUsersReset: freeResult.count,
         proUsersReset: proResult.count,
+        proUsersStacked: stackedCount,
         expiredProUsersDowngraded: expiredProResult.count,
         creditsPerFreeUser: 50,
         creditsPerProUser: proDaily,
         duration: `${duration}ms`,
         resetTime: now.toISOString(),
-        resetTimeIST: now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
       }
     }, { status: 200 })
   } catch (err) {
@@ -113,7 +137,6 @@ export async function POST(request: NextRequest) {
     const errorMessage = String(err)
     
     console.error('[CRON] ❌ Error during credit reset:', err)
-    console.error('[CRON] Duration before error:', `${duration}ms`)
 
     return NextResponse.json(
       {
@@ -127,13 +150,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Optional: GET endpoint for testing/monitoring
- * Returns the last reset status
- */
 export async function GET(request: NextRequest) {
   try {
-    // Optional: Check if request is authorized
     const authHeader = request.headers.get('authorization')
     const isAuthorized = Boolean(process.env.CRON_SECRET) && authHeader === `Bearer ${process.env.CRON_SECRET}`
 
@@ -141,24 +159,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get some stats about user credits
     const userStats = await prisma.user.groupBy({
       by: ['plan'],
       _count: true
     })
 
-    const stats = {
-      timestamp: new Date().toISOString(),
-      users: userStats.reduce((acc, stat) => {
-        acc[stat.plan] = stat._count
-        return acc
-      }, {} as Record<string, number>),
-      authorized: isAuthorized
-    }
-
     return NextResponse.json({
       message: 'Cron endpoint is running',
-      stats,
+      stats: {
+        timestamp: new Date().toISOString(),
+        users: userStats.reduce((acc, stat) => {
+          acc[stat.plan] = stat._count
+          return acc
+        }, {} as Record<string, number>),
+        authorized: isAuthorized
+      },
       nextReset: {
         description: 'Daily reset runs at 12:00 AM IST',
         cronExpression: '30 18 * * *',
