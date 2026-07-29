@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
     }
 
     const deviceTokenHash = hashDeviceToken(parsed.data.deviceToken);
-    const emailOwner = await prisma.trustedLoginDevice.findUnique({
-      where: { loginEmail: selectedEmail },
+    const emailOwner = await prisma.trustedLoginDevice.findFirst({
+      where: { loginEmail: selectedEmail, userId: { not: user.id } },
       select: { userId: true },
     });
     if (emailOwner && emailOwner.userId !== user.id) {
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const device = await prisma.trustedLoginDevice.upsert({
-      where: { userId: user.id },
+      where: { deviceTokenHash },
       update: {
         loginEmail: selectedEmail,
         deviceTokenHash,

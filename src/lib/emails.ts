@@ -750,6 +750,126 @@ export async function sendAuthOTP(email: string, otp: string) {
   }
 }
 
+export async function sendDeviceVerificationOtpEmail(
+  email: string,
+  otp: string,
+  details: { deviceName: string; ip: string; time: string }
+) {
+  try {
+    const safeDeviceName = escapeEmailText(details.deviceName);
+    const safeIp = escapeEmailText(details.ip);
+    const safeTime = escapeEmailText(details.time);
+
+    const { error } = await sendTrackedEmail('device_verify_otp', email, {
+      from: SENDER_NOREPLY,
+      to: email,
+      subject: 'Exismic Security: Verify Your New Device',
+      html: renderTransactionalEmail({
+        preheader: `Use verification code ${otp} to authorize your device.`,
+        badge: 'New Device Verification',
+        title: 'Verify <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">New Device Sign-in</span>',
+        body: `We detected a sign-in attempt from an unrecognized device (${safeDeviceName}). Enter the 6-digit code below to authorize this device.`,
+        content: `
+          <div style="margin:4px auto 24px; display:inline-block; padding:1px; border-radius:30px; background:linear-gradient(135deg, rgba(168,85,247,0.92), rgba(34,211,238,0.68), rgba(244,114,182,0.48)); box-shadow:0 0 64px rgba(124,58,237,0.32), 0 0 32px rgba(6,182,212,0.16);">
+            <div style="border-radius:29px; background:linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)); padding:28px 34px; border:1px solid rgba(255,255,255,0.11);">
+              <div style="font-size:52px; line-height:1; font-weight:950; letter-spacing:10px; color:#ffffff; font-family:'SFMono-Regular','Consolas','Courier New',monospace; text-shadow:0 0 28px rgba(167,139,250,0.52);">${otp}</div>
+              <div style="margin-top:14px; color:#67e8f9; font-size:10px; line-height:1; font-weight:900; letter-spacing:2px; text-transform:uppercase;">Device Verification Code</div>
+            </div>
+          </div>
+
+          <div style="max-width:480px; margin:0 auto 24px; text-align:left; border-radius:22px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.03); padding:20px;">
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px; color:#7d8aa3; margin-bottom:12px;">Sign-in Request Details</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:6px 0; color:#8792a8; font-size:13px;">Device / Browser</td>
+                <td align="right" style="padding:6px 0; color:#ffffff; font-size:13px; font-weight:700;">${safeDeviceName}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.06); color:#8792a8; font-size:13px;">IP Address</td>
+                <td align="right" style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.06); color:#ffffff; font-size:13px; font-weight:700;">${safeIp}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.06); color:#8792a8; font-size:13px;">Time</td>
+                <td align="right" style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.06); color:#ffffff; font-size:13px; font-weight:700;">${safeTime}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="max-width:480px; margin:0 auto; border-radius:20px; border:1px solid rgba(245,158,11,0.25); background:rgba(245,158,11,0.08); padding:16px; text-align:left;">
+            <p style="margin:0; color:#fbbf24; font-size:12px; line-height:1.6; font-weight:600;">If you did not attempt to sign in, someone else may have your password. Change your password immediately to protect your account.</p>
+          </div>
+        `,
+        footerNote: 'This code expires in 10 minutes.',
+      }),
+    });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Device OTP email failed:', error);
+    return false;
+  }
+}
+
+export async function sendLoginSecurityAlertEmail(
+  email: string,
+  details: { deviceName: string; ip: string; time: string }
+) {
+  try {
+    const safeDeviceName = escapeEmailText(details.deviceName);
+    const safeIp = escapeEmailText(details.ip);
+    const safeTime = escapeEmailText(details.time);
+
+    const { error } = await sendTrackedEmail('login_security_alert', email, {
+      from: SENDER_NOREPLY,
+      to: email,
+      subject: 'Security Alert: New Sign-in to your Exismic Account',
+      html: renderTransactionalEmail({
+        preheader: `Account sign-in detected from ${safeDeviceName} (${safeIp}).`,
+        badge: 'Security Notification',
+        title: 'New Sign-in Alert',
+        body: `Your Exismic account was signed into from a browser or device.`,
+        content: `
+          <div style="max-width:480px; margin:0 auto 24px; text-align:left; border-radius:22px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.03); padding:22px;">
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.3px; color:#22d3ee; margin-bottom:14px;">Sign-in Activity Summary</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:8px 0; color:#8792a8; font-size:13px;">Account</td>
+                <td align="right" style="padding:8px 0; color:#ffffff; font-size:13px; font-weight:700;">${escapeEmailText(email)}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); color:#8792a8; font-size:13px;">Device & Browser</td>
+                <td align="right" style="padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); color:#ffffff; font-size:13px; font-weight:700;">${safeDeviceName}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); color:#8792a8; font-size:13px;">IP Address</td>
+                <td align="right" style="padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); color:#ffffff; font-size:13px; font-weight:700;">${safeIp}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); color:#8792a8; font-size:13px;">Timestamp</td>
+                <td align="right" style="padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); color:#ffffff; font-size:13px; font-weight:700;">${safeTime}</td>
+              </tr>
+            </table>
+          </div>
+
+          <a href="${SITE_URL}/account/settings?tab=security" style="display:block; width:100%; max-width:420px; margin:0 auto; border-radius:18px; background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:16px 0; font-size:14px; font-weight:900; box-shadow:0 14px 40px rgba(124,58,237,0.28);">Review Security & Password</a>
+        `,
+        footerNote: 'If this was you, no action is needed. If you did not authorize this login, reset your password immediately.',
+      }),
+    });
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Security alert email failed:', error);
+    return false;
+  }
+}
+
 export async function sendMagicLinkEmail(email: string, magicLink: string) {
   try {
     const { error } = await sendTrackedEmail('magic_link', email, {

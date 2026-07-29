@@ -1,7 +1,24 @@
 "use server";
 
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { sendAuthOTP, sendResetPasswordEmail, sendMagicLinkEmail, sendPasswordChangedEmail } from "@/lib/emails";
+import {
+  sendAuthOTP,
+  sendResetPasswordEmail,
+  sendMagicLinkEmail,
+  sendPasswordChangedEmail,
+  sendDeviceVerificationOtpEmail,
+  sendLoginSecurityAlertEmail,
+} from "@/lib/emails";
+import {
+  checkIsDeviceTrusted,
+  createDeviceVerificationOtp,
+  verifyDeviceOtpCode,
+  registerTrustedDevice,
+  extractClientIp,
+  parseUserAgent,
+  DEVICE_TOKEN_COOKIE_NAME,
+} from "@/lib/device-security";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { v4 as uuidv4 } from 'uuid';
@@ -318,7 +335,7 @@ export async function sendMagicLinkAction(formData: FormData) {
     return { error: "Enter a valid email address." };
   }
 
-  const trustedDevice = await prisma.trustedLoginDevice.findUnique({
+  const trustedDevice = await prisma.trustedLoginDevice.findFirst({
     where: { loginEmail: email },
     select: {
       status: true,
@@ -632,7 +649,7 @@ export async function signInAction(formData: FormData) {
     return { error: "Enter your password.", field: "password" as const };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -654,7 +671,167 @@ export async function signInAction(formData: FormData) {
     return { error: "We couldn't sign you in right now. Please try again shortly." };
   }
 
+  // Device Security & Multi-Device OTP Check
+  const reqHeaders = await headers();
+  const reqCookies = await cookies();
+  const clientIp = extractClientIp(reqHeaders);
+  const userAgent = reqHeaders.get("user-agent") || "";
+  const rawDeviceToken = reqCookies.get(DEVICE_TOKEN_COOKIE_NAME)?.value;
+  const userId = authData.user?.id || dbUser?.id;
+
+  if (userId) {
+    const { isTrusted, device } = await checkIsDeviceTrusted(userId, email, rawDeviceToken, clientIp);
+
+    if (!isTrusted) {
+      // Sign out transient session until device is verified via 6-digit OTP
+      await supabase.auth.signOut();
+
+      const otpResult = await createDeviceVerificationOtp(email, userId, clientIp, userAgent);
+      const timeStr = new Date().toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+
+      const sent = await sendDeviceVerificationOtpEmail(email, otpResult.otp, {
+        deviceName: otpResult.deviceName,
+        ip: clientIp,
+        time: timeStr,
+      });
+
+      if (!sent) {
+        return { error: "Could not send device verification code right now. Please try again." };
+      }
+
+      return {
+        requireDeviceOtp: true,
+        challengeId: otpResult.challengeId,
+        email,
+        deviceName: otpResult.deviceName,
+      };
+    } else {
+      // Device is trusted — trigger security alert email in background
+      const timeStr = new Date().toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+      const deviceName = device?.deviceName || parseUserAgent(userAgent).deviceName;
+      void sendLoginSecurityAlertEmail(email, {
+        deviceName,
+        ip: clientIp,
+        time: timeStr,
+      }).catch((err) => console.error("[Auth] Security alert email error:", err));
+    }
+  }
+
   return { success: true };
+}
+
+export async function verifyDeviceOtpAction(
+  email: string,
+  challengeId: string,
+  otpCode: string,
+  password: string,
+) {
+  const emailLower = email.trim().toLowerCase();
+  const cleanOtp = otpCode.trim();
+
+  if (!isValidEmail(emailLower) || !/^\d{6}$/.test(cleanOtp)) {
+    return { error: "Enter the complete 6-digit verification code." };
+  }
+
+  const result = await verifyDeviceOtpCode(emailLower, challengeId, cleanOtp);
+  if (!result.valid || !result.userId) {
+    return { error: result.error || "Invalid or expired verification code." };
+  }
+
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: emailLower,
+    password,
+  });
+
+  if (signInError) {
+    return { error: "Authentication session expired. Please sign in again." };
+  }
+
+  const reqHeaders = await headers();
+  const clientIp = extractClientIp(reqHeaders);
+  const userAgent = reqHeaders.get("user-agent") || "";
+
+  // Register device as trusted
+  const deviceReg = await registerTrustedDevice(
+    result.userId,
+    emailLower,
+    userAgent,
+    clientIp,
+  );
+
+  // Set HTTP-only device token cookie
+  const cookieStore = await cookies();
+  cookieStore.set(DEVICE_TOKEN_COOKIE_NAME, deviceReg.rawDeviceToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    expires: deviceReg.expiresAt,
+  });
+
+  // Send security login alert email
+  const timeStr = new Date().toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  void sendLoginSecurityAlertEmail(emailLower, {
+    deviceName: deviceReg.deviceName,
+    ip: clientIp,
+    time: timeStr,
+  }).catch((err) => console.error("[Auth] Security alert email error:", err));
+
+  return { success: true };
+}
+
+export async function resendDeviceOtpAction(
+  email: string,
+  challengeId: string,
+) {
+  const emailLower = email.trim().toLowerCase();
+  if (!isValidEmail(emailLower)) {
+    return { error: "Enter a valid email address." };
+  }
+
+  const limit = await checkRateLimit(emailLower, "otp_verification");
+  if (!limit.allowed) {
+    return { error: limit.error || AUTH_EMAIL_RATE_LIMIT_MESSAGE };
+  }
+
+  const reqHeaders = await headers();
+  const clientIp = extractClientIp(reqHeaders);
+  const userAgent = reqHeaders.get("user-agent") || "";
+
+  const dbUser = await prisma.user.findUnique({ where: { email: emailLower } });
+  if (!dbUser) {
+    return { error: "User account not found." };
+  }
+
+  const otpResult = await createDeviceVerificationOtp(emailLower, dbUser.id, clientIp, userAgent);
+  const timeStr = new Date().toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  const sent = await sendDeviceVerificationOtpEmail(emailLower, otpResult.otp, {
+    deviceName: otpResult.deviceName,
+    ip: clientIp,
+    time: timeStr,
+  });
+
+  if (!sent) {
+    return { error: "Could not send verification code. Please try again." };
+  }
+
+  await recordRateLimit(emailLower, "otp_verification");
+
+  return { success: true, challengeId: otpResult.challengeId };
 }
 
 export async function forgotPasswordAction(email: string) {
@@ -739,13 +916,29 @@ export async function updatePasswordAction(email: string, token: string, passwor
     return { error: passwordError };
   }
 
+  // Check if new password is identical to existing password
+  try {
+    const supabase = await createClient();
+    const { data: testAuth, error: testAuthError } = await supabase.auth.signInWithPassword({
+      email: emailLower,
+      password: password,
+    });
+
+    if (!testAuthError && testAuth?.user) {
+      await supabase.auth.signOut();
+      return { error: "You cannot use your previous password. Please choose a new, unique password." };
+    }
+  } catch (err) {
+    console.warn("[Auth] Could not check prior password match:", err);
+  }
+
   try {
     const supabaseAdmin = createAdminClient();
     const authUserId = await getAuthUserIdForEmail(emailLower);
 
     if (!authUserId) return { error: "User not found." };
 
-    const consumedToken = await prisma.verificationToken.deleteMany({
+    const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         identifier: emailLower,
         token,
@@ -755,7 +948,7 @@ export async function updatePasswordAction(email: string, token: string, passwor
       },
     });
 
-    if (consumedToken.count !== 1) {
+    if (!verificationToken) {
       return { error: "Reset link has expired or is invalid. Please request a new one." };
     }
 
@@ -765,9 +958,16 @@ export async function updatePasswordAction(email: string, token: string, passwor
     });
 
     if (error) {
-      console.error("[Auth] Password update failed after token consumption:", error.message);
+      console.error("[Auth] Password update failed:", error.message);
       return { error: "Password reset failed. Please request a new reset link." };
     }
+
+    await prisma.verificationToken.deleteMany({
+      where: {
+        identifier: emailLower,
+        token,
+      },
+    });
 
     const alertSent = await sendPasswordChangedEmail(emailLower);
     if (!alertSent) {

@@ -33,6 +33,8 @@ import {
   signUpAction,
   signInAction,
   verifyOtpAction,
+  verifyDeviceOtpAction,
+  resendDeviceOtpAction,
   forgotPasswordAction,
   resendOtpAction,
   getOAuthLinkRequestAction,
@@ -72,6 +74,7 @@ type AuthState =
   | 'magic'
   | 'forgot'
   | 'verify'
+  | 'verifyDeviceOtp'
   | 'link'
   | 'linkVerify'
   | 'success';
@@ -127,6 +130,12 @@ export default function AuthPage() {
   const [trustedBrowserToken, setTrustedBrowserToken] = useState("");
   const [trustedDeviceName, setTrustedDeviceName] = useState("");
   const [trustedExpiresAt, setTrustedExpiresAt] = useState("");
+  
+  // Unrecognized Device OTP verification state
+  const [deviceChallengeId, setDeviceChallengeId] = useState("");
+  const [deviceUnrecognizedName, setDeviceUnrecognizedName] = useState("");
+  const [storedPassword, setStoredPassword] = useState("");
+  const [deviceOtp, setDeviceOtp] = useState(["", "", "", "", "", ""]);
   
   // Interactive UI helpers
   const [showPassword, setShowPassword] = useState(false);
@@ -332,7 +341,15 @@ export default function AuthPage() {
     try {
       if (state === 'signin') {
         const result = await signInAction(formData);
-        if (result?.error) {
+        if (result?.requireDeviceOtp) {
+          setEmail(result.email || formEmail);
+          setDeviceChallengeId(result.challengeId || "");
+          setDeviceUnrecognizedName(result.deviceName || "Unrecognized Device");
+          setStoredPassword(formPassword);
+          setDeviceOtp(["", "", "", "", "", ""]);
+          setState('verifyDeviceOtp');
+          setSuccess(`Security Check: A 6-digit verification code was sent to ${result.email}.`);
+        } else if (result?.error) {
           setError(result.error);
           if (result.field === 'email') {
             setFieldErrors({ email: result.error });
@@ -481,6 +498,57 @@ export default function AuthPage() {
       }
     } catch {
       setError("Verification failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyDeviceOtp = async () => {
+    setIsLoading(true);
+    setError(null);
+    const otpString = deviceOtp.join("");
+    if (otpString.length < 6) {
+      setError("Please enter the complete 6-digit verification code.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await verifyDeviceOtpAction(
+        email,
+        deviceChallengeId,
+        otpString,
+        storedPassword,
+      );
+
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setState('success');
+        setIsRedirectingState(true);
+        setStoredPassword("");
+        window.location.replace(returnUrl);
+      }
+    } catch {
+      setError("Device verification failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendDeviceOtp = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await resendDeviceOtpAction(email, deviceChallengeId);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        if (result.challengeId) setDeviceChallengeId(result.challengeId);
+        setSuccess("A new verification code has been sent to your email!");
+      }
+    } catch {
+      setError("Could not resend verification code.");
     } finally {
       setIsLoading(false);
     }
@@ -1187,6 +1255,89 @@ export default function AuthPage() {
                     </p>
                   </motion.div>
 
+                ) : state === 'verifyDeviceOtp' ? (
+
+                  /* ------------------------------------------------------------- */
+                  /* STATE: VERIFY DEVICE OTP (NEW DEVICE AUTHORIZATION)           */
+                  /* ------------------------------------------------------------- */
+                  <motion.div 
+                    key="verify-device-screen"
+                    initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
+                    className="space-y-6"
+                  >
+                    <button 
+                      type="button"
+                      onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
+                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      <ArrowLeft size={14} /> Back to Sign In
+                    </button>
+
+                    <div className="space-y-2">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-400/30 bg-purple-400/10 text-purple-300 text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                        <ShieldCheck size={13} className="text-purple-400" /> New Device Security Check
+                      </div>
+                      <h2 className="text-2xl font-black tracking-tight text-white">Authorize New Device</h2>
+                      <p className="text-zinc-400 text-xs leading-relaxed font-normal">
+                        We sent a 6-digit verification code to <span className="text-white font-semibold">{email}</span> to authorize <span className="text-cyan-300 font-semibold">{deviceUnrecognizedName}</span>.
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between gap-2 py-2">
+                      {deviceOtp.map((digit, i) => (
+                        <input
+                          key={i}
+                          id={`device-otp-${i}`}
+                          type="text"
+                          inputMode="numeric"
+                          value={digit}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 1);
+                            const newOtp = [...deviceOtp];
+                            newOtp[i] = val;
+                            setDeviceOtp(newOtp);
+                            if (val && i < 5) {
+                              document.getElementById(`device-otp-${i + 1}`)?.focus();
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Backspace' && !deviceOtp[i] && i > 0) {
+                              document.getElementById(`device-otp-${i - 1}`)?.focus();
+                            }
+                          }}
+                          className="w-11 h-14 bg-black/60 border border-white/10 rounded-xl text-center text-xl font-bold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all font-mono"
+                        />
+                      ))}
+                    </div>
+
+                    <button 
+                      onClick={handleVerifyDeviceOtp}
+                      disabled={isLoading}
+                      className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-black text-xs uppercase tracking-wider hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="animate-spin text-white" size={16} />
+                          <span>Verifying Device...</span>
+                        </div>
+                      ) : (
+                        <>Verify Device & Sign In <ShieldCheck size={16} /></>
+                      )}
+                    </button>
+
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <button 
+                        type="button" 
+                        onClick={handleResendDeviceOtp}
+                        disabled={isLoading}
+                        className="text-purple-400 hover:text-purple-300 font-bold transition-colors cursor-pointer"
+                      >
+                        Resend code
+                      </button>
+                      <span className="text-zinc-500 font-normal">Code expires in 10 minutes</span>
+                    </div>
+                  </motion.div>
+
                 ) : (
 
                   /* ------------------------------------------------------------- */
@@ -1323,6 +1474,7 @@ export default function AuthPage() {
                             required
                             autoComplete="email"
                             placeholder="Email address"
+                            defaultValue={email}
                             onChange={() => {
                               if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
                             }}

@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     );
     if (!limiter.allowed) return rateLimitResponse(limiter.retryAfter);
 
-    const device = await prisma.trustedLoginDevice.findUnique({
-      where: { loginEmail: email },
+    const device = await prisma.trustedLoginDevice.findFirst({
+      where: { loginEmail: email, status: "active" },
     });
 
     if (
