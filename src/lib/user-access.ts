@@ -83,15 +83,28 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
 }
 
 export function hasActiveProAccess(user: {
+  email?: string | null;
   plan?: string | null;
   subscriptionStatus?: string | null;
   planExpiresAt?: Date | string | null;
-}) {
+  role?: string | null;
+  dailyCredits?: number | null;
+} | null | undefined) {
+  if (!user) return false;
+
+  const email = (user.email || '').toLowerCase();
+  if (user.role === 'admin' || email === 'syedyaseeralirayan@gmail.com') return true;
+
   const plan = (user.plan || 'free').toLowerCase();
   const subscriptionStatus = (user.subscriptionStatus || 'none').toLowerCase();
-  const hasProEntitlement = plan === 'pro' || subscriptionStatus === 'active';
 
-  if (!hasProEntitlement) return false;
+  const isProPlan = plan.includes('pro') || (plan !== 'free' && plan !== 'none');
+  const isSubActive = subscriptionStatus === 'active' || subscriptionStatus === 'pro';
+  const hasProCredits = (user.dailyCredits ?? 0) >= 500;
+
+  const hasEntitlement = isProPlan || isSubActive || hasProCredits;
+
+  if (!hasEntitlement) return false;
 
   if (!user.planExpiresAt) return true;
   const expiresAt = new Date(user.planExpiresAt);

@@ -96,12 +96,11 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
     const plan = getBillingPlan(order.planId);
     if (!plan) throw new Error("Unknown billing plan.");
 
-    const isProPlan = plan.id === "pro" || plan.id === "pro_stacker";
-    const isStackingAddon = plan.id === "pro_stacking_addon";
-    const currentPeriodEnd = isProPlan || isStackingAddon ? periodEnd || periodEndFor("pro") : null;
+    const isProPlan = plan.id === "pro";
+    const currentPeriodEnd = isProPlan ? periodEnd || periodEndFor("pro") : null;
     const existingMeta = order.metadata && typeof order.metadata === "object" ? order.metadata as Record<string, unknown> : {};
     const resolvedProviderPaymentId = providerPaymentId || order.providerPaymentId || `${order.gateway}_${order.id}`;
-    const transactionKind = isProPlan ? "pro_subscription" : isStackingAddon ? "pro_stacking_addon" : "credit_purchase";
+    const transactionKind = isProPlan ? "pro_subscription" : "credit_purchase";
     const transactionMetadata = {
       billingOrderId: order.id,
       planId: plan.id,
@@ -149,23 +148,22 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
       where: { userId: order.userId },
       update: {
         planId: isProPlan ? plan.id : "pro",
-        status: isProPlan || isStackingAddon ? "active" : "paid",
-        ...(isProPlan || isStackingAddon ? {} : { credits: { increment: order.credits } }),
+        status: isProPlan ? "active" : "paid",
+        ...(isProPlan ? {} : { credits: { increment: order.credits } }),
         currentPeriodEnd,
         lastPaymentOrderId: order.id,
       },
       create: {
         userId: order.userId,
         planId: plan.id,
-        status: isProPlan || isStackingAddon ? "active" : "paid",
-        credits: isProPlan || isStackingAddon ? 0 : order.credits,
+        status: isProPlan ? "active" : "paid",
+        credits: isProPlan ? 0 : order.credits,
         currentPeriodEnd,
         lastPaymentOrderId: order.id,
       },
     });
 
     if (isProPlan) {
-      const enablesStacking = plan.id === "pro_stacker";
       await tx.user.upsert({
         where: { id: order.userId },
         update: {
@@ -175,8 +173,6 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
           planExpiresAt: currentPeriodEnd,
           dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS,
           aiGenerationsLimit: 1000,
-          hasCreditStacking: enablesStacking,
-          ...(enablesStacking ? { stackedCredits: { increment: 250 } } : {}),
         },
         create: {
           id: order.userId,
@@ -186,19 +182,8 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
           planExpiresAt: currentPeriodEnd,
           dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS,
           aiGenerationsLimit: 1000,
-          hasCreditStacking: enablesStacking,
-          stackedCredits: enablesStacking ? 250 : 0,
           bonusCredits: 0,
           lifetimeCredits: 0,
-        },
-      });
-    } else if (isStackingAddon) {
-      await tx.user.update({
-        where: { id: order.userId },
-        data: {
-          hasCreditStacking: true,
-          stackedCredits: { increment: 250 },
-          stackingExpiresAt: currentPeriodEnd,
         },
       });
     } else {

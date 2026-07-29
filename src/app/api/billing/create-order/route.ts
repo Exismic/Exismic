@@ -152,13 +152,9 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       select: { plan: true, subscriptionStatus: true, planExpiresAt: true },
     });
-    const isProSubscriptionPlan = plan.id === "pro" || plan.id === "pro_stacker";
+    const isProSubscriptionPlan = plan.id === "pro";
     if (isProSubscriptionPlan && dbUser && hasActiveProAccess(dbUser)) {
       return NextResponse.json({ error: "Your Pro membership is already active." }, { status: 409 });
-    }
-
-    if (plan.id === "pro_stacking_addon" && (!dbUser || !hasActiveProAccess(dbUser))) {
-      return NextResponse.json({ error: "Credit Stacking Add-On requires an active Pro membership." }, { status: 400 });
     }
 
     const recentOrderCount = await prisma.paymentOrder.count({

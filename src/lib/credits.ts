@@ -43,11 +43,10 @@ async function runSerializable<T>(operation: () => Promise<T>) {
 
 export function getCreditTotal(credits: {
   dailyCredits?: number | null;
-  stackedCredits?: number | null;
   bonusCredits?: number | null;
   lifetimeCredits?: number | null;
 }) {
-  return (credits.dailyCredits ?? 0) + (credits.stackedCredits ?? 0) + (credits.bonusCredits ?? 0) + (credits.lifetimeCredits ?? 0);
+  return (credits.dailyCredits ?? 0) + (credits.bonusCredits ?? 0) + (credits.lifetimeCredits ?? 0);
 }
 
 export async function resetCreditsIfNewDay(userId: string) {
@@ -209,32 +208,29 @@ export async function deductCredits(
 
         const user = await transaction.user.findUnique({
           where: { id: userId },
-          select: { dailyCredits: true, stackedCredits: true, bonusCredits: true, lifetimeCredits: true },
+          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
         });
         if (!user) throw new Error("User not found");
 
-        const totalAvailable = (user.dailyCredits ?? 0) + (user.stackedCredits ?? 0) + (user.bonusCredits ?? 0) + (user.lifetimeCredits ?? 0);
+        const totalAvailable = getCreditTotal(user);
         if (totalAvailable < amount) throw new Error(`Insufficient credits:${totalAvailable}`);
 
         const dailySpend = Math.min(user.dailyCredits, amount);
         const afterDaily = amount - dailySpend;
-        const stackedSpend = Math.min(user.stackedCredits || 0, afterDaily);
-        const afterStacked = afterDaily - stackedSpend;
-        const bonusSpend = Math.min(user.bonusCredits, afterStacked);
-        const permanentSpend = afterStacked - bonusSpend;
+        const bonusSpend = Math.min(user.bonusCredits, afterDaily);
+        const permanentSpend = afterDaily - bonusSpend;
 
         const balances = await transaction.user.update({
           where: { id: userId },
           data: {
             dailyCredits: user.dailyCredits - dailySpend,
-            stackedCredits: (user.stackedCredits || 0) - stackedSpend,
             bonusCredits: user.bonusCredits - bonusSpend,
             lifetimeCredits: user.lifetimeCredits - permanentSpend,
           },
-          select: { dailyCredits: true, stackedCredits: true, bonusCredits: true, lifetimeCredits: true },
+          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
         });
 
-        const spent = { dailySpend, stackedSpend, bonusSpend, permanentSpend };
+        const spent = { dailySpend, bonusSpend, permanentSpend };
         await transaction.creditTransaction.create({
           data: {
             ...(operationId ? { id: operationId } : {}),

@@ -7,19 +7,6 @@ export const PRICING_CONFIG = {
     DAILY_CREDITS: 500,
     IS_PRO_LIVE: true,
   },
-  PRO_STACKER_BUNDLE: {
-    USD: 8.99,
-    INR: 599,
-    DAILY_CREDITS: 500,
-    MAX_STACKED_CAP: 2500,
-    WELCOME_BONUS: 250,
-  },
-  PRO_STACKING_ADDON: {
-    USD: 2.99,
-    INR: 199,
-    MAX_STACKED_CAP: 2500,
-    WELCOME_BONUS: 250,
-  },
   CREDIT_PACKAGES: [
     {
       id: 'tier_1',

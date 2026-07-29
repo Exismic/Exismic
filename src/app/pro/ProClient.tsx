@@ -463,77 +463,40 @@ export function ProClient() {
                       onClick={() => (isSubscriptionCancelled ? router.push("/tools") : setIsModalOpen(true))}
                       className="group relative flex min-h-14 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-white px-6 text-xs font-black uppercase tracking-[0.16em] text-black shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-100 active:translate-y-0"
                     >
-                      <CheckCircle2 size={17} />
+                      <CheckCircle2 size={17} className="text-emerald-500" />
                       {isSubscriptionCancelled ? "Continue with Pro" : "Manage membership"}
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </button>
-                    {!(user as { hasCreditStacking?: boolean; has_credit_stacking?: boolean } | null)?.hasCreditStacking && !(user as { hasCreditStacking?: boolean; has_credit_stacking?: boolean } | null)?.has_credit_stacking && (
-                      <button
-                        type="button"
-                        onClick={() => handleUpgradeClick("pro_stacking_addon")}
-                        disabled={loading || !paymentsEnabled}
-                        className="group relative flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-2xl border border-cyan-400/40 bg-cyan-500/10 px-6 text-xs font-black uppercase tracking-[0.16em] text-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-500/20 active:translate-y-0"
-                      >
-                        <Sparkles size={16} className="text-cyan-400 animate-pulse" />
-                        <span>Add Credit Stacking ({isIndia ? "₹199" : "$2.99"}/mo)</span>
-                      </button>
-                    )}
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-4 w-full">
-                    <div className="grid w-full gap-4 sm:grid-cols-2">
-                      {/* Option 1: Pro Standard */}
-                      <div
-                        onClick={() => handleUpgradeClick("pro")}
-                        className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border border-white/15 bg-white/[0.03] p-5 backdrop-blur-md transition-all duration-300 hover:border-purple-400/50 hover:bg-purple-500/[0.06] hover:-translate-y-1"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300">Standard Tier</span>
-                            <span className="text-lg font-black text-white">{isIndia ? "₹499" : "$6.99"}<span className="text-[10px] text-zinc-500 font-bold">/mo</span></span>
-                          </div>
-                          <h3 className="mt-2 text-base font-black text-white">Pro Standard</h3>
-                          <p className="mt-1 text-xs text-zinc-400 leading-relaxed">500 daily credits, priority mode & commercial rights. Resets daily.</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro"); }}
-                          disabled={loading || !paymentsEnabled}
-                          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-[11px] font-black uppercase tracking-[0.16em] text-white transition-all group-hover:border-purple-400/40 group-hover:bg-purple-500/20"
-                        >
-                          Select Pro Standard
-                        </button>
+                  <div className="flex flex-col gap-4 w-full max-w-md">
+                    <div
+                      onClick={() => handleUpgradeClick("pro")}
+                      className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border-2 border-purple-500/40 bg-gradient-to-b from-purple-500/10 via-cyan-500/5 to-transparent p-6 backdrop-blur-md shadow-[0_0_35px_rgba(168,85,247,0.2)] transition-all duration-300 hover:border-purple-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.35)] hover:-translate-y-1"
+                    >
+                      <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-purple-500 to-cyan-400 px-3 py-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-md">
+                        Unlimited Access
                       </div>
-
-                      {/* Option 2: Pro Stacker (Bundle - Recommended) */}
-                      <div
-                        onClick={() => handleUpgradeClick("pro_stacker")}
-                        className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/50 bg-gradient-to-b from-cyan-500/10 via-purple-500/10 to-transparent p-5 backdrop-blur-md shadow-[0_0_35px_rgba(6,182,212,0.2)] transition-all duration-300 hover:border-cyan-300 hover:shadow-[0_0_50px_rgba(6,182,212,0.35)] hover:-translate-y-1"
-                      >
-                        <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 px-3 py-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-md">
-                          Best Value Bundle
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300 flex items-center gap-1">
+                            <Crown size={13} className="text-purple-400" /> Pro Tier
+                          </span>
+                          <span className="text-xl font-black text-white">{isIndia ? "₹499" : "$6.99"}<span className="text-[10px] text-zinc-400 font-bold">/mo</span></span>
                         </div>
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 flex items-center gap-1">
-                              <Crown size={12} className="text-cyan-400" /> Pro + Stacking
-                            </span>
-                            <span className="text-lg font-black text-cyan-200">{isIndia ? "₹599" : "$8.99"}<span className="text-[10px] text-zinc-400 font-bold">/mo</span></span>
-                          </div>
-                          <h3 className="mt-2 text-base font-black text-white flex items-center gap-2">
-                            Pro Stacker <Sparkles size={14} className="text-cyan-400" />
-                          </h3>
-                          <p className="mt-1 text-xs text-cyan-100/80 leading-relaxed">500 daily credits + <strong className="text-cyan-300">Bank unused credits (2,500 max cap)</strong> + 250 instant vault bonus.</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro_stacker"); }}
-                          disabled={loading || !paymentsEnabled}
-                          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-md transition-all group-hover:brightness-110"
-                        >
-                          <Crown size={14} /> Unlock Pro Stacker
-                        </button>
+                        <h3 className="mt-2 text-lg font-black text-white flex items-center gap-2">
+                          Exismic Pro <Sparkles size={16} className="text-purple-400" />
+                        </h3>
+                        <p className="mt-1 text-xs text-zinc-300 leading-relaxed">500 daily credits, priority mode processing & commercial rights. Resets daily.</p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro"); }}
+                        disabled={loading || !paymentsEnabled}
+                        className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all group-hover:brightness-110 group-hover:shadow-[0_0_35px_rgba(168,85,247,0.5)]"
+                      >
+                        <Crown size={15} /> Unlock Exismic Pro
+                      </button>
                     </div>
                   </div>
                 )}

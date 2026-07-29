@@ -58,40 +58,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 3. Rollover unused daily credits for PRO users who have Credit Stacking enabled
-    const proStackingUsers = await prisma.user.findMany({
-      where: {
-        plan: 'pro',
-        hasCreditStacking: true,
-        OR: [
-          { planExpiresAt: null },
-          { planExpiresAt: { gt: now } },
-          { subscriptionStatus: 'active' },
-        ],
-      },
-      select: {
-        id: true,
-        dailyCredits: true,
-        stackedCredits: true,
-        maxStackedCredits: true,
-      },
-    })
 
-    let stackedCount = 0
-    for (const user of proStackingUsers) {
-      const unusedDaily = Math.max(0, user.dailyCredits)
-      if (unusedDaily > 0) {
-        const cap = user.maxStackedCredits || 2500
-        const newStacked = Math.min(cap, user.stackedCredits + unusedDaily)
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            stackedCredits: newStacked,
-          },
-        })
-        stackedCount++
-      }
-    }
 
     // 4. Reset PRO users to standard daily allowance (500 credits)
     const proDaily = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
@@ -114,7 +81,7 @@ export async function POST(request: NextRequest) {
     })
 
     const duration = Date.now() - start
-    const successMessage = `✅ Daily credit reset completed: ${freeResult.count} free users (50 credits), ${proResult.count} pro users (${proDaily} credits), ${stackedCount} users banked stacked credits in ${duration}ms`
+    const successMessage = `✅ Daily credit reset completed: ${freeResult.count} free users (50 credits), ${proResult.count} pro users (${proDaily} credits) in ${duration}ms`
 
     console.log('[CRON]', successMessage)
 
@@ -124,7 +91,6 @@ export async function POST(request: NextRequest) {
       stats: {
         freeUsersReset: freeResult.count,
         proUsersReset: proResult.count,
-        proUsersStacked: stackedCount,
         expiredProUsersDowngraded: expiredProResult.count,
         creditsPerFreeUser: 50,
         creditsPerProUser: proDaily,

@@ -1,4 +1,4 @@
-export type BillingPlanId = "free" | "starter" | "creator" | "pro" | "pro_stacker" | "pro_stacking_addon" | "ultimate";
+export type BillingPlanId = "free" | "starter" | "creator" | "pro" | "ultimate";
 export type BillingMarket = "IN" | "GLOBAL";
 export type BillingGateway = "none" | "razorpay" | "paypal";
 
@@ -54,7 +54,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
   },
   pro: {
     id: "pro",
-    name: "Pro Standard",
+    name: "Exismic Pro",
     description: "Monthly Pro access with priority creative capacity.",
     credits: 500,
     interval: "month",
@@ -63,41 +63,6 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
       GLOBAL: { amount: 6.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["Pro membership", "500 daily credits", "Priority processing", "Commercial exports"],
-  },
-  pro_stacker: {
-    id: "pro_stacker",
-    name: "Pro Stacker",
-    description: "Pro access + automatic daily credit rollover vault (2,500 max cap).",
-    credits: 500,
-    interval: "month",
-    prices: {
-      IN: { amount: 599, currency: "INR", symbol: "₹", gateway: "razorpay" },
-      GLOBAL: { amount: 8.99, currency: "USD", symbol: "$", gateway: "paypal" },
-    },
-    features: [
-      "Pro membership",
-      "500 daily credits",
-      "Automatic credit stacking (2,500 max cap)",
-      "Priority processing",
-      "Commercial exports",
-      "+250 Instant Vault Bonus",
-    ],
-  },
-  pro_stacking_addon: {
-    id: "pro_stacking_addon",
-    name: "Credit Stacking Add-On",
-    description: "Add-on for existing Pro members to bank unused daily credits.",
-    credits: 0,
-    interval: "month",
-    prices: {
-      IN: { amount: 199, currency: "INR", symbol: "₹", gateway: "razorpay" },
-      GLOBAL: { amount: 2.99, currency: "USD", symbol: "$", gateway: "paypal" },
-    },
-    features: [
-      "Bank unused daily credits",
-      "Up to 2,500 max vault capacity",
-      "+250 Instant Vault Bonus",
-    ],
   },
   ultimate: {
     id: "ultimate",

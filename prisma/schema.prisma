@@ -33,10 +33,6 @@ model User {
   lastClaimDate          DateTime?               @map("last_claim_date") @db.Date
   planExpiresAt          DateTime?               @map("plan_expires_at")
   subscriptionStatus     String                  @default("none") @map("subscription_status")
-  hasCreditStacking      Boolean                 @default(false) @map("has_credit_stacking")
-  stackedCredits         Int                     @default(0) @map("stacked_credits")
-  maxStackedCredits      Int                     @default(2500) @map("max_stacked_credits")
-  stackingExpiresAt      DateTime?               @map("stacking_expires_at")
   customAvatarUrl        String?                 @map("custom_avatar_url")
   themePreference        String?                 @map("theme_preference")
   avatarFrame            String?                 @map("avatar_frame")
