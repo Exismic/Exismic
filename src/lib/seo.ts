@@ -13,7 +13,7 @@ interface MetadataProps {
 }
 
 function resolveSiteUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || "https://exismic.xyz";
+  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || "https://www.exismic.xyz";
   const withProtocol = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
   return withProtocol.trim().replace(/\/+$/, "");
 }
