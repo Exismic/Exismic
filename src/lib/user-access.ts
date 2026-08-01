@@ -62,9 +62,22 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
     },
   });
 
-  if (existing) return existing;
+  if (existing) {
+    if (existing.id !== sessionUser.id && email && existing.email === email) {
+      try {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { id: sessionUser.id },
+        });
+        existing.id = sessionUser.id;
+      } catch (err) {
+        console.warn('[getOrCreateUser] Could not sync user ID:', err);
+      }
+    }
+    return existing;
+  }
 
-  return prisma.user.create({
+  const newUser = await prisma.user.create({
     data: {
       id: sessionUser.id,
       email,
@@ -80,6 +93,14 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
       hasSeenWelcome: false,
     },
   });
+
+  if (email) {
+    import('@/lib/welcome-email')
+      .then(({ sendWelcomeEmailOnce }) => sendWelcomeEmailOnce(email))
+      .catch((err) => console.warn('[UserAccess] Welcome email trigger error:', err));
+  }
+
+  return newUser;
 }
 
 export function hasActiveProAccess(user: {

@@ -30,15 +30,37 @@ async function sendTrackedEmail(
   options?: EmailRequestOptions,
 ) {
   try {
-    const response = await resend.emails.send(payload, options) as {
+    let response = await resend.emails.send(payload, options) as {
       data?: unknown;
-      error?: string | { message?: string } | null;
+      error?: string | { message?: string; name?: string; statusCode?: number } | null;
     };
-    const errorMessage = response.error
+
+    let errorMessage = response.error
       ? typeof response.error === 'string'
         ? response.error
         : response.error.message || 'Resend rejected the email'
       : undefined;
+
+    // Auto-fallback if the custom domain is not yet verified in Resend dashboard
+    if (errorMessage && (errorMessage.includes('not verified') || errorMessage.includes('domain'))) {
+      console.warn(`[Email] Domain unverified in Resend. Retrying ${channel} with onboarding@resend.dev fallback...`);
+      const fallbackPayload = {
+        ...payload,
+        from: payload.from?.includes('<')
+          ? payload.from.replace(/<[^>]+>/, '<onboarding@resend.dev>')
+          : 'Exismic <onboarding@resend.dev>',
+      };
+
+      const fallbackResponse = await resend.emails.send(fallbackPayload, options) as {
+        data?: unknown;
+        error?: string | { message?: string } | null;
+      };
+
+      if (!fallbackResponse.error) {
+        response = fallbackResponse;
+        errorMessage = undefined;
+      }
+    }
 
     recordEmailEvent({
       channel,

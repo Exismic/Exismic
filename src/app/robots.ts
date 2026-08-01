@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 import { SEO_INDEXING_ENABLED, SITE_URL } from "@/lib/seo";
 
+export const revalidate = 86400;
+
 export default function robots(): MetadataRoute.Robots {
+
   const base = {
     rules: {
       userAgent: "*",

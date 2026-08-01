@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { getUserCredits } from '@/lib/credits'
+import { getOrCreateUser } from '@/lib/user-access'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +19,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userId = user.id
+    const dbUser = await getOrCreateUser(user)
+    const userId = dbUser.id
     const credits = await getUserCredits(userId)
 
     if (!credits) {

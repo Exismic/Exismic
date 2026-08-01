@@ -1,6 +1,6 @@
 import { TOOLS, CATEGORIES } from "@/data/tools";
 import { ToolDetailClient } from "./ToolDetailClient";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadata, getToolJsonLd } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
 
@@ -33,7 +33,14 @@ export default async function ToolDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const jsonLd = getToolJsonLd(tool, category);
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ToolDetailClient 
         tool={tool} 
         category={category} 
@@ -41,5 +48,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
         categoryId={categoryId} 
         toolId={toolId} 
       />
+    </>
   );
 }
+

@@ -196,6 +196,12 @@ const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; tex
     border: "border-amber-500/30 hover:border-amber-400/60",
     text: "text-amber-300 group-hover/viewall:text-amber-200",
     hoverShadow: "shadow-[0_0_15px_rgba(251,191,36,0.25)]"
+  },
+  creator: {
+    bg: "bg-rose-500/10 hover:bg-rose-500/20",
+    border: "border-rose-500/30 hover:border-rose-400/60",
+    text: "text-rose-300 group-hover/viewall:text-rose-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(244,63,94,0.25)]"
   }
 };
 

@@ -36,7 +36,11 @@ import {
   Terminal,
   Code2,
   Binary,
-  Key
+  Key,
+  Share2,
+  Film,
+  Clapperboard,
+  MessageSquare
 } from "lucide-react";
 
 interface CategoryBackgroundProps {
@@ -62,6 +66,8 @@ const ALL_CATEGORY_PARTICLES = [
   { icon: SearchCode, color: "rgba(34, 211, 238, 0.4)" },
   { icon: BrainCircuit, color: "rgba(245, 158, 11, 0.4)" },
   { icon: Palette, color: "rgba(168, 85, 247, 0.4)" },
+  { icon: Share2, color: "rgba(244, 63, 94, 0.4)" },
+  { icon: Clapperboard, color: "rgba(244, 63, 94, 0.4)" }
 ];
 
 const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: string }> = {
@@ -104,6 +110,10 @@ const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: st
   developer: {
     icons: [Terminal, Code2, Binary, Key],
     color: "rgba(163, 230, 53, 0.4)"
+  },
+  creator: {
+    icons: [Share2, Video, Clapperboard, MessageSquare, Sparkles, Film, Layers],
+    color: "rgba(244, 63, 94, 0.4)"
   }
 };
 

@@ -65,14 +65,17 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
     
     const updateTime = () => {
       const now = new Date();
-      const target = new Date();
-      target.setUTCHours(6, 30, 0, 0); // 12 PM IST
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const nowInIst = new Date(now.getTime() + istOffsetMs);
       
-      if (now.getTime() >= target.getTime()) {
-        target.setUTCDate(target.getUTCDate() + 1);
-      }
+      // Calculate next Midnight IST (00:00:00 IST)
+      const nextMidnightIstUtc = Date.UTC(
+        nowInIst.getUTCFullYear(),
+        nowInIst.getUTCMonth(),
+        nowInIst.getUTCDate() + 1
+      ) - istOffsetMs;
       
-      const diff = target.getTime() - now.getTime();
+      const diff = Math.max(0, nextMidnightIstUtc - now.getTime());
       const h = Math.floor(diff / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);

@@ -284,6 +284,20 @@ export function useCredits() {
     }
   }, [userId, fetchCredits, setLoading]);
 
+  // Window focus listener to keep credits fresh
+  useEffect(() => {
+    if (typeof window === "undefined" || !userId) return;
+
+    const onFocus = () => {
+      refreshCredits();
+    };
+
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [userId, refreshCredits]);
+
   // Real-time listener specifically for the current user
   useEffect(() => {
     if (!userId) return;

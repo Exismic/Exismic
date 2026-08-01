@@ -374,8 +374,7 @@ export async function getUserCredits(userId: string) {
     });
 
     if (!user) {
-      console.warn(`[CREDITS] User ${userId} does not exist; refusing to create a partial account.`);
-      return null;
+      await initializeUserCredits(userId);
     }
 
     await resetCreditsIfNewDay(userId);

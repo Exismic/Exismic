@@ -109,5 +109,15 @@ export const CATEGORY_ANIM_STYLES: Record<string, CategoryAnimStyle> = {
     textGrad: "bg-[linear-gradient(110deg,#fbbf24_0%,#ffffff_45%,#a855f7_70%,#6366f1_100%)] drop-shadow-[0_2px_18px_rgba(251,191,36,0.35)]",
     cardBorder: "border-amber-500/25 shadow-[inset_0_1px_2px_rgba(251,191,36,0.12),0_0_15px_rgba(168,85,247,0.08)] hover:border-purple-400/70 hover:shadow-[0_0_50px_rgba(168,85,247,0.3)]",
     badge: "bg-gradient-to-r from-amber-500/20 to-purple-500/20 border-amber-400/40 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.3)] fill-amber-200 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]"
+  },
+  creator: {
+    aura: "bg-rose-500/25 group-hover:bg-purple-500/45",
+    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(244,63,94,0.5)_25%,rgba(168,85,247,0.5)_50%,transparent_75%)]",
+    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(244,63,94,0.95)_25%,rgba(168,85,247,0.95)_50%,transparent_75%)]",
+    iconGlow: "text-rose-300 drop-shadow-[0_0_10px_rgba(244,63,94,0.7)] group-hover:text-purple-200 group-hover:drop-shadow-[0_0_20px_rgba(168,85,247,0.95)]",
+    buttonGrad: "bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(244,63,94,0.35)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
+    textGrad: "bg-[linear-gradient(110deg,#fb7185_0%,#ffffff_45%,#e879f9_70%,#c084fc_100%)] drop-shadow-[0_2px_18px_rgba(244,63,94,0.35)]",
+    cardBorder: "border-rose-500/25 shadow-[inset_0_1px_2px_rgba(244,63,94,0.12),0_0_15px_rgba(168,85,247,0.08)] hover:border-purple-400/70 hover:shadow-[0_0_50px_rgba(168,85,247,0.3)]",
+    badge: "bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-rose-400/40 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.3)] fill-rose-200 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]"
   }
 };

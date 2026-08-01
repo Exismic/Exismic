@@ -115,7 +115,7 @@ async function main() {
     ["password_changed", () => sendPasswordChangedEmail(to)],
     ["support_auto_reply", async () => {
       const response = await resend.emails.send({
-        from: `Exismic Support <support@${emailDomain}>`,
+        from: `Exismic Support <onboarding@resend.dev>`,
         to,
         replyTo: `support@${emailDomain}`,
         subject: "We received your request: Email design test",

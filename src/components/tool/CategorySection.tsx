@@ -79,7 +79,7 @@ export function CategorySection() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
         >
           {CATEGORIES.map((cat) => {
-            const Icon = ICON_MAP[cat.icon];
+            const Icon = ICON_MAP[cat.icon] || ICON_MAP.Sparkles;
             const style = CATEGORY_ANIM_STYLES[cat.id] || CATEGORY_ANIM_STYLES.ai;
             return (
               <motion.div

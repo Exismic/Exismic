@@ -26,6 +26,7 @@ const CATEGORY_LABEL_STYLES: Record<string, { text: string; sparkle: string }> =
   seo: { text: "text-cyan-300", sparkle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" },
   developer: { text: "text-lime-300", sparkle: "text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.8)]" },
   student: { text: "text-amber-300", sparkle: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" },
+  creator: { text: "text-rose-300", sparkle: "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]" },
 };
 
 const CategoryHeading: React.FC<CategoryHeadingProps> = ({

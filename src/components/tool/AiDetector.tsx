@@ -50,10 +50,14 @@ export default function AiDetector() {
         const isAiLikely = hasAiPattern || (words.length > 12 && avgWordLen > 5.5);
         if (isAiLikely) aiSentenceCount++;
 
+        const sentenceScore = isAiLikely
+          ? Math.min(98, Math.max(70, Math.round(75 + (hasAiPattern ? 15 : 0) + (avgWordLen > 6 ? 10 : 0))))
+          : Math.min(30, Math.max(5, Math.round(12 + Math.min(10, Math.abs(words.length - 8)))));
+
         return {
           text: sent,
           isAi: isAiLikely,
-          score: isAiLikely ? Math.floor(Math.random() * 20 + 78) : Math.floor(Math.random() * 25 + 10)
+          score: sentenceScore
         };
       });
 

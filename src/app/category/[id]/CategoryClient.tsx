@@ -50,7 +50,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
     );
   }
 
-  const Icon = ICON_MAP[category.icon];
+  const Icon = ICON_MAP[category.icon] || ICON_MAP.Sparkles;
   const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
 
   const containerVariants = {

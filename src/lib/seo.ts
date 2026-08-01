@@ -153,3 +153,106 @@ export function getCategoryMetadata(categoryId: string) {
     ],
   });
 }
+
+export function getToolJsonLd(tool: any, category?: any) {
+  const toolUrl = `${SITE_URL}${tool.href}`;
+  const categoryName = category?.name || tool.category || 'AI Tools';
+  
+  const softwareSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: tool.name,
+    description: tool.seoDescription || tool.description,
+    url: toolUrl,
+    applicationCategory: categoryName,
+    operatingSystem: 'Any',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    author: {
+      '@type': 'Organization',
+      name: 'Exismic',
+      url: SITE_URL,
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${SITE_URL}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Tools',
+        item: `${SITE_URL}/tools`,
+      },
+      ...(category ? [{
+        '@type': 'ListItem',
+        position: 3,
+        name: category.name,
+        item: `${SITE_URL}/category/${category.id}`,
+      }] : []),
+      {
+        '@type': 'ListItem',
+        position: category ? 4 : 3,
+        name: tool.name,
+        item: toolUrl,
+      },
+    ],
+  };
+
+  return [softwareSchema, breadcrumbSchema];
+}
+
+export function getCategoryJsonLd(category: any) {
+  const categoryUrl = `${SITE_URL}/category/${category.id}`;
+  
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: category.name,
+    description: category.description,
+    url: categoryUrl,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Exismic',
+      url: SITE_URL,
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${SITE_URL}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Categories',
+        item: `${SITE_URL}/tools`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: category.name,
+        item: categoryUrl,
+      },
+    ],
+  };
+
+  return [collectionSchema, breadcrumbSchema];
+}
+

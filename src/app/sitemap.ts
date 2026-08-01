@@ -3,10 +3,13 @@ import { CATEGORIES, TOOLS } from "@/data/tools";
 import { BLOG_POSTS } from "@/lib/blog-data";
 import { SEO_INDEXING_ENABLED, SITE_URL } from "@/lib/seo";
 
+export const revalidate = 86400; // Cache sitemap for 24 hours to prevent fetch timeouts
+
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!SEO_INDEXING_ENABLED) return [];
 
   const now = new Date();
+
 
   const staticPages: MetadataRoute.Sitemap = [
     {

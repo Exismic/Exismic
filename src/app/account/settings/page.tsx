@@ -523,17 +523,17 @@ export default function AccountSettings() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const nowInIst = new Date(now.getTime() + istOffsetMs);
       
-      // Daily reset is at 12:00 PM IST, which is 06:30 AM UTC
-      const target = new Date();
-      target.setUTCHours(6, 30, 0, 0);
+      // Calculate next Midnight IST (00:00:00 IST)
+      const nextMidnightIstUtc = Date.UTC(
+        nowInIst.getUTCFullYear(),
+        nowInIst.getUTCMonth(),
+        nowInIst.getUTCDate() + 1
+      ) - istOffsetMs;
       
-      // If current time is past today's reset time, next reset is tomorrow
-      if (now.getTime() >= target.getTime()) {
-        target.setUTCDate(target.getUTCDate() + 1);
-      }
-      
-      const diff = target.getTime() - now.getTime();
+      const diff = Math.max(0, nextMidnightIstUtc - now.getTime());
       
       const h = Math.floor(diff / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
