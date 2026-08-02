@@ -93,10 +93,12 @@ export async function POST(req: NextRequest) {
       });
 
       if (targetEmail) {
+        const isPro = order.planId === "pro";
         await sendGiftCardApprovedEmail(targetEmail, {
           planName,
           orderId: order.id,
           credits: order.credits,
+          isPro,
         }).catch((err) => console.error("Failed sending approval email:", err));
       }
 

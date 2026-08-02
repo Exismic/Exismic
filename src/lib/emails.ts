@@ -1170,24 +1170,44 @@ export async function sendPasswordChangedEmail(email: string) {
   }
 }
 
-export async function sendGiftCardApprovedEmail(email: string, details: { planName: string; orderId: string; credits?: number }) {
+export async function sendGiftCardApprovedEmail(
+  email: string, 
+  details: { planName: string; orderId: string; credits?: number; isPro?: boolean }
+) {
   try {
+    const isPro = details.isPro || details.planName.toLowerCase().includes("pro");
+
+    const innerContent = isPro ? `
+      <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(167,139,250,0.3); background:linear-gradient(135deg, rgba(167,139,250,0.12), rgba(56,189,248,0.05)); padding:20px; text-align:left;">
+        <p style="margin:0 0 10px; color:#ffffff; font-size:15px; font-weight:900;">Exismic Pro Membership Active!</p>
+        <ul style="margin:0; padding-left:18px; color:#cbd5e1; font-size:12px; line-height:1.7;">
+          <li>✦ <strong>${PRO_DAILY_CREDITS_LABEL} Daily Credits</strong> (restores every 24 hours)</li>
+          <li>✦ <strong>Priority GPU Queue</strong> & Maximum Generation Speed</li>
+          <li>✦ <strong>GPT-4o & Claude 3.5 Sonnet Access</strong></li>
+          <li>✦ <strong>Commercial Usage License</strong></li>
+        </ul>
+      </div>
+      <a href="${SITE_URL}/pro" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(139,92,246,0.34);">Start Using Exismic Pro</a>
+    ` : `
+      <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(52,211,153,0.3); background:linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.05)); padding:20px; text-align:center;">
+        <p style="margin:0; color:#b7f7d3; font-size:14px; font-weight:700;">Your credit pack is now active on your Exismic account!</p>
+        ${details.credits ? `<p style="margin:8px 0 0; color:#ffffff; font-size:20px; font-weight:900;">+${details.credits.toLocaleString()} Permanent Credits Granted</p>` : ''}
+      </div>
+      <a href="${SITE_URL}/tools" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#10b981,#059669,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(16,185,129,0.34);">Start Using Exismic</a>
+    `;
+
     const { error } = await sendTrackedEmail('gift_card_approved', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: '🎉 Your Gift Card Payment Was Approved!',
+      subject: isPro ? '🎉 Your Exismic Pro Gift Card Was Approved!' : '🎉 Your Gift Card Payment Was Approved!',
       html: renderTransactionalEmail({
         preheader: `Your gift card payment for ${details.planName} has been approved and unlocked!`,
         badge: 'Payment Approved',
-        title: 'Gift Card <span style="background:linear-gradient(90deg,#34d399,#10b981,#ffffff); -webkit-background-clip:text; background-clip:text; color:#34d399;">Approved!</span>',
+        title: isPro 
+          ? 'Pro Membership <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Activated!</span>'
+          : 'Gift Card <span style="background:linear-gradient(90deg,#34d399,#10b981,#ffffff); -webkit-background-clip:text; background-clip:text; color:#34d399;">Approved!</span>',
         body: `Great news! Your gift card submission for <strong>${escapeEmailText(details.planName)}</strong> (Order #${escapeEmailText(details.orderId.slice(-8))}) has been verified and approved.`,
-        content: `
-          <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(52,211,153,0.3); background:linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.05)); padding:20px; text-align:center;">
-            <p style="margin:0; color:#b7f7d3; font-size:14px; font-weight:700;">Your purchase is now active on your Exismic account!</p>
-            ${details.credits ? `<p style="margin:8px 0 0; color:#ffffff; font-size:18px; font-weight:900;">+${details.credits.toLocaleString()} Credits Granted</p>` : ''}
-          </div>
-          <a href="${SITE_URL}/tools" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#10b981,#059669,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(16,185,129,0.34);">Start Using Exismic</a>
-        `,
+        content: innerContent,
         footerNote: "Thank you for choosing Exismic! Contact support if you have any questions.",
       }),
     });
