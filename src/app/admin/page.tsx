@@ -31,7 +31,9 @@ import {
   Clock,
   Globe,
   FileText,
-  Ban
+  Ban,
+  RefreshCw,
+  CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -204,6 +206,49 @@ export default function AdminPage() {
   const [configs, setConfigs] = useState<Record<string, string>>({});
   const [updatingConfigKey, setUpdatingConfigKey] = useState<string | null>(null);
 
+  // Gift Cards Queue Tab State
+  const [giftCardQueue, setGiftCardQueue] = useState<any[]>([]);
+  const [loadingGiftCards, setLoadingGiftCards] = useState(false);
+  const [processingGiftId, setProcessingGiftId] = useState<string | null>(null);
+  const [rejectReasonMap, setRejectReasonMap] = useState<Record<string, string>>({});
+
+  async function loadGiftCardsQueue() {
+    setLoadingGiftCards(true);
+    try {
+      const res = await fetch("/api/admin/gift-cards/queue");
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setGiftCardQueue(data.orders || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingGiftCards(false);
+    }
+  }
+
+  async function handleFulfillGiftCard(orderId: string, action: "approve" | "reject") {
+    setProcessingGiftId(orderId);
+    try {
+      const reason = rejectReasonMap[orderId] || "Code invalid or already redeemed.";
+      const res = await fetch("/api/admin/gift-cards/fulfill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, action, rejectionReason: reason }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await loadGiftCardsQueue();
+      } else {
+        alert(data.error || "Failed to process gift card action.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProcessingGiftId(null);
+    }
+  }
+
   // Check auth and initial stats on mount
   useEffect(() => {
     async function initAdmin() {
@@ -248,6 +293,8 @@ export default function AdminPage() {
       loadReferrals(referralPage);
     } else if (activeTab === "logs") {
       loadLogs(logPage);
+    } else if (activeTab === "giftcards") {
+      loadGiftCardsQueue();
     } else if (activeTab === "config") {
       loadConfigs();
     }
@@ -686,6 +733,7 @@ export default function AdminPage() {
             <div className="flex overflow-x-auto gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md max-w-fit scrollbar-none">
               {[
                 { id: "users", label: "Users Directory", icon: Users },
+                { id: "giftcards", label: "Gift Cards Queue", icon: Ticket },
                 { id: "announcements", label: "Announcements", icon: Megaphone },
                 { id: "tickets", label: "Support Tickets", icon: Ticket },
                 { id: "activity", label: "Moderation Logs", icon: Eye },
@@ -856,6 +904,137 @@ export default function AdminPage() {
                       )}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* TAB: GIFT CARDS QUEUE */}
+              {activeTab === "giftcards" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-black uppercase italic tracking-tighter text-white flex items-center gap-2">
+                        <Ticket size={20} className="text-amber-400" />
+                        <span>Gift Cards Verification Queue</span>
+                      </h3>
+                      <p className="text-xs text-zinc-500">
+                        Review, approve, or reject user gift code submissions (Minecoins, Google Play, Xbox, Amazon).
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={loadGiftCardsQueue}
+                      disabled={loadingGiftCards}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-white transition-all max-w-fit"
+                    >
+                      <RefreshCw size={14} className={loadingGiftCards ? "animate-spin" : ""} />
+                      <span>Refresh Queue</span>
+                    </button>
+                  </div>
+
+                  {loadingGiftCards ? (
+                    <div className="py-16 text-center space-y-3 bg-[#0b0c12]/60 border border-white/5 rounded-3xl">
+                      <Loader2 size={24} className="animate-spin text-amber-400 mx-auto" />
+                      <p className="text-xs text-zinc-400 font-medium">Fetching pending gift card submissions...</p>
+                    </div>
+                  ) : giftCardQueue.length === 0 ? (
+                    <div className="py-16 text-center space-y-3 bg-[#0b0c12]/60 border border-white/5 rounded-3xl">
+                      <CheckCircle2 size={32} className="text-emerald-400 mx-auto" />
+                      <h4 className="text-sm font-bold text-white uppercase tracking-wider">Queue is Empty</h4>
+                      <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+                        No pending gift card verification requests right now. All submissions have been processed!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-4">
+                      {giftCardQueue.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-6 rounded-3xl bg-[#0b0c12]/80 border border-white/10 backdrop-blur-md space-y-4 hover:border-amber-500/30 transition-all"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-4">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                                  {item.giftCardType || "Gift Card"}
+                                </span>
+                                <span className="text-xs font-black text-white">{item.planName}</span>
+                              </div>
+                              <p className="text-xs text-zinc-400 mt-1 font-medium">
+                                Submitted by: <strong className="text-white">{item.userName}</strong> ({item.userEmail})
+                              </p>
+                            </div>
+
+                            <div className="text-right">
+                              <span className="text-[10px] text-zinc-500 font-mono block">Order #{item.id.slice(-8)}</span>
+                              <span className="text-[10px] text-zinc-400 font-medium">
+                                {new Date(item.submittedAt).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Submitted Code Display */}
+                          <div className="bg-black/60 p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Submitted Code</span>
+                              <span className="font-mono text-base font-black text-amber-300 tracking-widest select-all">
+                                {item.giftCardCode}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(item.giftCardCode);
+                                alert("Code copied to clipboard!");
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-zinc-300 hover:text-white transition-all text-center shrink-0"
+                            >
+                              Copy Code
+                            </button>
+                          </div>
+
+                          {/* Optional Rejection Reason */}
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                              Rejection Reason (If Declining)
+                            </label>
+                            <input
+                              type="text"
+                              value={rejectReasonMap[item.id] || ""}
+                              onChange={(e) =>
+                                setRejectReasonMap((prev) => ({ ...prev, [item.id]: e.target.value }))
+                              }
+                              placeholder="Code was invalid, expired, or already redeemed."
+                              className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-red-500/50"
+                            />
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                              type="button"
+                              disabled={processingGiftId === item.id}
+                              onClick={() => handleFulfillGiftCard(item.id, "reject")}
+                              className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-300 text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-2"
+                            >
+                              {processingGiftId === item.id ? <Loader2 size={14} className="animate-spin" /> : <Ban size={14} />}
+                              <span>Decline & Reject</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={processingGiftId === item.id}
+                              onClick={() => handleFulfillGiftCard(item.id, "approve")}
+                              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-xs font-black uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                            >
+                              {processingGiftId === item.id ? <Loader2 size={14} className="animate-spin text-black" /> : <CheckCircle2 size={14} />}
+                              <span>Approve & Unlock User Item</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
