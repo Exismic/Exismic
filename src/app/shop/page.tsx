@@ -725,6 +725,7 @@ export default function ShopPage() {
         price={selectedPack?.priceLabel}
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={isProcessingId !== null}
+        planId={selectedPack?.billingPlanId || selectedPack?.id || "starter"}
       />
       <PaymentSuccessModal
         isOpen={showPaymentSuccess}

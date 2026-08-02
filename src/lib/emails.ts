@@ -1169,3 +1169,58 @@ export async function sendPasswordChangedEmail(email: string) {
     return false;
   }
 }
+
+export async function sendGiftCardApprovedEmail(email: string, details: { planName: string; orderId: string; credits?: number }) {
+  try {
+    const { error } = await sendTrackedEmail('gift_card_approved', email, {
+      from: SENDER_PAYMENT,
+      to: email,
+      subject: '🎉 Your Gift Card Payment Was Approved!',
+      html: renderTransactionalEmail({
+        preheader: `Your gift card payment for ${details.planName} has been approved and unlocked!`,
+        badge: 'Payment Approved',
+        title: 'Gift Card <span style="background:linear-gradient(90deg,#34d399,#10b981,#ffffff); -webkit-background-clip:text; background-clip:text; color:#34d399;">Approved!</span>',
+        body: `Great news! Your gift card submission for <strong>${escapeEmailText(details.planName)}</strong> (Order #${escapeEmailText(details.orderId.slice(-8))}) has been verified and approved.`,
+        content: `
+          <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(52,211,153,0.3); background:linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.05)); padding:20px; text-align:center;">
+            <p style="margin:0; color:#b7f7d3; font-size:14px; font-weight:700;">Your purchase is now active on your Exismic account!</p>
+            ${details.credits ? `<p style="margin:8px 0 0; color:#ffffff; font-size:18px; font-weight:900;">+${details.credits.toLocaleString()} Credits Granted</p>` : ''}
+          </div>
+          <a href="${SITE_URL}/tools" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#10b981,#059669,#06b6d4); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(16,185,129,0.34);">Start Using Exismic</a>
+        `,
+        footerNote: "Thank you for choosing Exismic! Contact support if you have any questions.",
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('Gift card approved email error:', err);
+    return false;
+  }
+}
+
+export async function sendGiftCardRejectedEmail(email: string, details: { planName: string; orderId: string; reason?: string }) {
+  try {
+    const { error } = await sendTrackedEmail('gift_card_rejected', email, {
+      from: SENDER_PAYMENT,
+      to: email,
+      subject: 'Gift Card Submission Update',
+      html: renderTransactionalEmail({
+        preheader: `Update regarding your gift card submission for ${details.planName}`,
+        badge: 'Verification Update',
+        title: 'Gift Card <span style="background:linear-gradient(90deg,#f87171,#ef4444,#ffffff); -webkit-background-clip:text; background-clip:text; color:#f87171;">Declined</span>',
+        body: `We reviewed your gift card submission for <strong>${escapeEmailText(details.planName)}</strong> (Order #${escapeEmailText(details.orderId.slice(-8))}). Unfortunately, the code could not be verified or redeemed.`,
+        content: `
+          <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(239,68,68,0.25); background:linear-gradient(135deg, rgba(239,68,68,0.10), rgba(255,255,255,0.02)); padding:18px;">
+            <p style="margin:0; color:#fca5a5; font-size:13px; font-weight:700;">Reason: ${escapeEmailText(details.reason || 'Code was invalid, expired, or already redeemed.')}</p>
+          </div>
+          <p style="color:#a1a1aa; font-size:12px; line-height:1.6; text-align:center;">Please check your gift code for typos or try checking out using Razorpay or PayPal.</p>
+        `,
+        footerNote: "Contact Exismic support if you believe this code was declined in error.",
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('Gift card rejected email error:', err);
+    return false;
+  }
+}

@@ -978,6 +978,7 @@ export function ProClient() {
         price={`${currencySymbol}${priceDisplay}/mo`}
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={loading}
+        planId="pro"
       />
     </div>
   );

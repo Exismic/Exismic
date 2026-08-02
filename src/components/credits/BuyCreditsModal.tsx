@@ -11,7 +11,8 @@ import {
   Crown,
   Loader2,
   CreditCard,
-  ExternalLink
+  ExternalLink,
+  Ticket
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -20,6 +21,7 @@ import GradientText from "@/components/ui/GradientText";
 import { cn } from "@/lib/utils";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
+import { GiftCardPaymentModal } from "@/components/modals/GiftCardPaymentModal";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
@@ -44,6 +46,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
   const [lastCreditsAdded, setLastCreditsAdded] = useState(0);
   const [failureReason, setFailureReason] = useState<string | undefined>();
   const [isIndia, setIsIndia] = useState(false);
@@ -339,6 +342,18 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                           </div>
                         </div>
                      </button>
+
+                     {/* Gift Card Option */}
+                     {paymentsEnabled && selectedTier && (
+                       <button
+                         onClick={() => setShowGiftModal(true)}
+                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all shadow-md shadow-amber-500/5"
+                       >
+                         <Ticket className="w-4 h-4 text-amber-400" />
+                         <span>Pay with Gift Card (Minecoins, Play, Xbox)</span>
+                       </button>
+                     )}
+
                      <div className="flex items-center gap-4 text-zinc-700">
                         <ShieldCheck size={14} />
                         <span className="text-[8px] font-black uppercase tracking-widest italic">Secure checkout</span>
@@ -349,6 +364,20 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
             </div>
           </motion.div>
         </div>
+      )}
+
+      {showGiftModal && selectedTier && (
+        <GiftCardPaymentModal
+          isOpen={showGiftModal}
+          onClose={() => setShowGiftModal(false)}
+          planId={selectedTier}
+          planName={CREDIT_TIERS.find(t => t.id === selectedTier)?.label || "Credit Pack"}
+          priceDisplay={
+            isIndia 
+              ? `₹${CREDIT_TIERS.find(t => t.id === selectedTier)?.priceINR}`
+              : `$${CREDIT_TIERS.find(t => t.id === selectedTier)?.priceUSD}`
+          }
+        />
       )}
 
       {showSuccess && (
