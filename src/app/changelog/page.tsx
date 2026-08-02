@@ -67,11 +67,44 @@ const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: st
 
 const RELEASES: Release[] = [
   {
+    version: "v1.2",
+    date: "August 2026",
+    title: "August System & Feature Update",
+    tagline: "Introduced alternative payment methods (Gift Cards), new AI tools suite, UI enhancements, modal layout fixes, and admin verification queue.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        text: "New Payment Methods: Added Gift Card checkout options (Minecoins, Google Play, Xbox, Amazon) with length validation and user order history tracking."
+      },
+      {
+        type: "feature",
+        text: "New AI Tools Suite: Launched new specialized AI tools across coding, image processing, business calculations, and creator workflows."
+      },
+      {
+        type: "ui",
+        text: "UI Improvements: Universal Modal Portal architecture fixing all overlay z-index stacking contexts and eliminating top navbar/search bar clipping."
+      },
+      {
+        type: "ui",
+        text: "Admin Verification Queue: Integrated dedicated Gift Cards Queue in the Admin Control Panel with 1-click approval, instant email receipts, and fulfillment."
+      },
+      {
+        type: "fix",
+        text: "Bug Fixes: Resolved search bar overlay bleeding, fixed transactional email template formatting for Pro activations, and patched mobile modal positioning."
+      },
+      {
+        type: "perf",
+        text: "Performance & Reliability: Optimized client-side bundle hydration and real-time user credit state synchronization."
+      }
+    ]
+  },
+  {
     version: "v1.1",
     date: "July 2026",
     title: "Major Platform Update",
     tagline: "Added 25+ new tools, fixed UI layouts, bug fixes, and improved security hardening.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
