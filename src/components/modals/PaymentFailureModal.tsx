@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, RefreshCcw, ArrowLeft } from "lucide-react";
 import GradientText from "@/components/ui/GradientText";
+import { Portal } from "@/components/ui/Portal";
 
 interface PaymentFailureModalProps {
   isOpen: boolean;
@@ -13,7 +14,8 @@ interface PaymentFailureModalProps {
 
 export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: PaymentFailureModalProps) {
   return (
-    <AnimatePresence>
+    <Portal>
+      <AnimatePresence>
       {isOpen && (
         <div key="payment-failure-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6">
           {/* Backdrop */}
@@ -97,6 +99,7 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
         </div>
       )}
     </AnimatePresence>
+  </Portal>
   );
 }
 

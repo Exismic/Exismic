@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Portal } from "@/components/ui/Portal";
 
 type InvoiceType = "pro" | "credits";
 
@@ -168,16 +169,17 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
-          />
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+            />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.94, y: 24 }}
@@ -363,7 +365,8 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </Portal>
   );
 }
 

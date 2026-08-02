@@ -6,6 +6,7 @@ import { Sparkles, Zap, Flame, Command, Rocket, X, ArrowRight, CheckCircle2 } fr
 import confetti from "canvas-confetti";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { Portal } from "@/components/ui/Portal";
 
 export function WelcomeModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -118,8 +119,9 @@ export function WelcomeModal() {
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <Portal>
+      <AnimatePresence>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -231,5 +233,6 @@ export function WelcomeModal() {
         </motion.div>
       </div>
     </AnimatePresence>
+  </Portal>
   );
 }

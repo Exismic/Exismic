@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { Portal } from "@/components/ui/Portal";
 
 export const GIFT_CARD_BRANDS = [
   { 
@@ -265,9 +266,10 @@ export function PaymentTermsModal({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div key="payment-terms-modal" className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 pt-16 sm:pt-20 overflow-y-auto">
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <div key="payment-terms-modal" className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 pt-16 sm:pt-20 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -760,5 +762,6 @@ export function PaymentTermsModal({
         </div>
       )}
     </AnimatePresence>
+  </Portal>
   );
 }

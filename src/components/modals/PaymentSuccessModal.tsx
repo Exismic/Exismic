@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import GradientText from "@/components/ui/GradientText";
 import { cn } from "@/lib/utils";
+import { Portal } from "@/components/ui/Portal";
 
 interface PaymentSuccessModalProps {
   isOpen: boolean;
@@ -44,9 +45,10 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
   }, [isOpen, onClose]);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div key="payment-success-modal" className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <div key="payment-success-modal" className="fixed inset-0 z-[200] flex items-end justify-center p-3 sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -128,5 +130,6 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
         </div>
       )}
     </AnimatePresence>
+  </Portal>
   );
 }

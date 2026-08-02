@@ -18,6 +18,7 @@ import type { LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCredits } from "@/hooks/useCredits";
 import GradientText from "@/components/ui/GradientText";
+import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
@@ -159,8 +160,9 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
         <div key="buy-credits-modal" className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 md:p-8 pt-16 sm:pt-20">
           <motion.div
             initial={{ opacity: 0 }}
@@ -407,6 +409,7 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
         />
       )}
     </AnimatePresence>
+  </Portal>
   );
 }
 

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { createClient } from "@/utils/supabase/client";
+import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 
@@ -112,8 +113,9 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#030303]/90 p-3 sm:p-6 pt-16 sm:pt-20 backdrop-blur-xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
@@ -261,5 +263,6 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
         </div>
       )}
     </AnimatePresence>
+  </Portal>
   );
 }
