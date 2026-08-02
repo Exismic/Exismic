@@ -69,33 +69,33 @@ const RELEASES: Release[] = [
   {
     version: "v1.2",
     date: "August 2026",
-    title: "August System & Feature Update",
-    tagline: "Introduced alternative payment methods (Gift Cards), new AI tools suite, UI enhancements, modal layout fixes, and admin verification queue.",
+    title: "August Platform & Feature Update",
+    tagline: "New flexible payment options, UI visual refinements, expanded AI tools suite, and performance optimizations.",
     isLatest: true,
     changes: [
       {
         type: "feature",
-        text: "New Payment Methods: Added Gift Card checkout options (Minecoins, Google Play, Xbox, Amazon) with length validation and user order history tracking."
+        text: "Flexible Payment Options: Pay for Pro memberships and Credit Packs using popular gift cards (Minecoins, Google Play, Xbox, Amazon) with live status tracking."
       },
       {
         type: "feature",
-        text: "New AI Tools Suite: Launched new specialized AI tools across coding, image processing, business calculations, and creator workflows."
+        text: "Expanded AI Tools Suite: Unlocked new AI tools for coding, image editing, content creation, and business calculators."
       },
       {
         type: "ui",
-        text: "UI Improvements: Universal Modal Portal architecture fixing all overlay z-index stacking contexts and eliminating top navbar/search bar clipping."
-      },
-      {
-        type: "ui",
-        text: "Admin Verification Queue: Integrated dedicated Gift Cards Queue in the Admin Control Panel with 1-click approval, instant email receipts, and fulfillment."
+        text: "Polished UI & Overlay Navigation: Enhanced modal styling, smoother backdrop lighting, and seamless full-screen overlay navigation."
       },
       {
         type: "fix",
-        text: "Bug Fixes: Resolved search bar overlay bleeding, fixed transactional email template formatting for Pro activations, and patched mobile modal positioning."
+        text: "Improved Email Receipts: Upgraded confirmation emails for Pro membership activations with full benefit summaries."
+      },
+      {
+        type: "fix",
+        text: "Layout & Display Fixes: Resolved overlay display alignment and mobile header responsiveness across all screen sizes."
       },
       {
         type: "perf",
-        text: "Performance & Reliability: Optimized client-side bundle hydration and real-time user credit state synchronization."
+        text: "Speed & Stability Boost: Faster tool loading speeds, smoother animations, and real-time credit balance syncing."
       }
     ]
   },
