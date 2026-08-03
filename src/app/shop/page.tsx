@@ -347,25 +347,39 @@ export default function ShopPage() {
             </p>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-6">
-            <div className="flex items-center justify-between gap-4">
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-white/[0.07] via-white/[0.02] to-black/60 p-6 shadow-[0_32px_100px_rgba(0,0,0,0.7),0_0_60px_rgba(124,58,237,0.15)] backdrop-blur-3xl sm:p-8">
+            {/* Ambient glows inside card */}
+            <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-cyan-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-12 h-52 w-52 rounded-full bg-purple-500/20 blur-3xl" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400" />
+
+            <div className="relative z-10 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-500">Total balance</p>
-                <p className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">{credits.toLocaleString()}</p>
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.24em] text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+                  <Coins size={12} className="animate-pulse text-cyan-300" />
+                  <span>Vault Balance</span>
+                </div>
+                <p className="mt-2 bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-5xl font-black tracking-tight text-transparent drop-shadow-[0_0_35px_rgba(34,211,238,0.25)] sm:text-6xl">
+                  {credits.toLocaleString()}
+                </p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-100 shadow-[0_0_45px_rgba(34,211,238,0.12)]">
-                <Coins size={28} />
+              <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-300/30 bg-gradient-to-br from-cyan-400/20 via-purple-500/15 to-transparent text-cyan-100 shadow-[0_0_50px_rgba(34,211,238,0.25)] backdrop-blur-md">
+                <Coins size={34} className="drop-shadow-[0_0_15px_rgba(34,211,238,0.9)]" />
               </div>
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-2">
+
+            <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
               {[
-                ["Daily", dailyCredits],
-                ["Bonus", bonusCredits],
-                ["Permanent", purchasedCredits],
-              ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-2xl border border-white/[0.07] bg-black/25 p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-600">{label}</p>
-                  <p className="mt-1 text-lg font-black text-white">{Number(value).toLocaleString()}</p>
+                { label: "Daily", value: dailyCredits, icon: Zap, color: "text-amber-400 border-amber-400/20 bg-amber-400/5", glow: "shadow-[0_0_20px_rgba(251,191,36,0.1)]" },
+                { label: "Bonus", value: bonusCredits, icon: Sparkles, color: "text-purple-400 border-purple-400/20 bg-purple-400/5", glow: "shadow-[0_0_20px_rgba(168,85,247,0.1)]" },
+                { label: "Permanent", value: purchasedCredits, icon: Crown, color: "text-cyan-400 border-cyan-400/20 bg-cyan-400/5", glow: "shadow-[0_0_20px_rgba(34,211,238,0.1)]" },
+              ].map(({ label, value, icon: Icon, color, glow }) => (
+                <div key={label} className={cn("rounded-2xl border p-3.5 backdrop-blur-md transition-all duration-300 hover:scale-[1.03] hover:border-white/30", color, glow)}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[8px] font-black uppercase tracking-[0.2em] opacity-90">{label}</p>
+                    <Icon size={13} className="opacity-90" />
+                  </div>
+                  <p className="mt-1.5 text-xl font-black tracking-tight text-white">{Number(value).toLocaleString()}</p>
                 </div>
               ))}
             </div>
@@ -609,19 +623,19 @@ export default function ShopPage() {
             </div>
           </motion.div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-600">Permanent credits</p>
-                <h2 className="mt-1 text-3xl font-black uppercase tracking-tight text-white">Credit packs</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Permanent reserve</p>
+                <h2 className="mt-1 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">Credit packs</h2>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.15)] backdrop-blur-md">
-                <ShieldCheck size={13} className="text-cyan-400" />
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-gradient-to-r from-cyan-400/15 to-purple-500/10 px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.2)] backdrop-blur-md">
+                <ShieldCheck size={14} className="text-cyan-300 animate-pulse" />
                 <span>{gatewayName} Checkout</span>
               </span>
             </div>
 
-            <div className="grid gap-4">
+            <div className="grid gap-5">
               {formattedPacks.map((pack, index) => {
                 const Icon = pack.style.icon;
                 return (
@@ -631,50 +645,60 @@ export default function ShopPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.07 }}
                     className={cn(
-                      "relative overflow-hidden rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-1 shadow-2xl",
-                      pack.style.glow,
-                      pack.popular && "border-cyan-300/30"
+                      "group relative overflow-hidden rounded-[2.25rem] border bg-gradient-to-r from-[#0d0e1b]/98 via-[#080913]/98 to-[#04050a]/98 p-1.5 shadow-[0_24px_70px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl transition-all duration-300 hover:-translate-y-1",
+                      pack.popular 
+                        ? "border-2 border-purple-400/80 shadow-[0_0_40px_rgba(168,85,247,0.35)] hover:border-fuchsia-300 hover:shadow-[0_0_60px_rgba(217,70,239,0.5)]"
+                        : "border-white/15 hover:border-cyan-400/60 hover:shadow-[0_0_45px_rgba(34,211,238,0.25)]"
                     )}
                   >
-                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", pack.style.gradient)} />
-                    {pack.popular && (
-                      <div className="absolute right-5 top-0 rounded-b-xl bg-gradient-to-r from-cyan-300 to-violet-300 px-3 py-1 text-[8px] font-black uppercase tracking-[0.16em] text-black">
-                        Best value
-                      </div>
-                    )}
-                    <div className="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-white">
-                          <Icon size={28} />
+                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-90", pack.style.gradient)} />
+                    
+                    {/* Top edge neon beam */}
+                    <div className={cn(
+                      "absolute inset-x-0 top-0 h-[2px]",
+                      pack.popular ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 shadow-[0_0_18px_rgba(217,70,239,0.9)]" :
+                      pack.color === "gold" ? "bg-gradient-to-r from-amber-400 via-rose-400 to-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.7)]" :
+                      "bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 opacity-70"
+                    )} />
+
+                    <div className="relative z-10 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-4.5">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-gradient-to-br from-white/10 via-black/40 to-black/80 text-white shadow-xl backdrop-blur-md transition-all duration-300 group-hover:scale-105 group-hover:border-cyan-400/40">
+                          <Icon size={30} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">{pack.label}</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{pack.label}</p>
                             {pack.bonusCredits > 0 && (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
-                                <Sparkles size={10} /> +{pack.bonusCredits.toLocaleString()} Bonus
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.2)]">
+                                <Sparkles size={10} className="animate-pulse" /> +{pack.bonusCredits.toLocaleString()} Bonus
+                              </span>
+                            )}
+                            {pack.popular && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/25 via-fuchsia-500/25 to-pink-500/25 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.35)] backdrop-blur-md">
+                                <Sparkles size={10} className="text-fuchsia-300 animate-pulse fill-fuchsia-300/30" /> Best Value
                               </span>
                             )}
                           </div>
-                          <h3 className={cn("mt-1 text-4xl font-black bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent", pack.style.numberGradient)}>
+                          <h3 className={cn("mt-1 text-4xl font-black bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent sm:text-5xl", pack.style.numberGradient)}>
                             {(pack.credits + (pack.bonusCredits || 0)).toLocaleString()}{" "}
-                            <span className="text-sm font-bold text-zinc-500 drop-shadow-none">credits</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 drop-shadow-none">credits</span>
                           </h3>
-                          <p className="mt-1 flex items-center gap-2 text-xs font-semibold text-zinc-500">
-                            <ShieldCheck size={13} className="text-emerald-300" />
+                          <p className="mt-1 flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                            <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
                             {pack.bonusCredits > 0 ? `${pack.credits.toLocaleString()} base + ${pack.bonusCredits.toLocaleString()} bonus (never expires)` : "Permanent balance, never expires"}
                           </p>
                         </div>
                       </div>
 
-                      <div className="grid gap-2 sm:min-w-[180px]">
+                      <div className="grid gap-2 sm:min-w-[190px]">
                         <button
                           onClick={() => handlePurchaseClick(pack)}
                           disabled={isProcessingId !== null || !paymentsEnabled}
                           className={cn(
-                            "group relative flex min-h-12 items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.2em] transition-all duration-500",
+                            "group relative flex min-h-13 items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.2em] transition-all duration-500 cursor-pointer",
                             paymentsEnabled
-                              ? "text-white shadow-[0_0_25px_-5px_rgba(34,211,238,0.4)] hover:shadow-[0_0_40px_-10px_rgba(34,211,238,0.6)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95"
+                              ? "text-white shadow-[0_0_30px_-5px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_-5px_rgba(34,211,238,0.7)] hover:scale-[1.02] active:scale-95"
                               : "text-zinc-500 opacity-60 cursor-not-allowed"
                           )}
                         >
@@ -682,20 +706,20 @@ export default function ShopPage() {
                             <span className="absolute inset-0 bg-[linear-gradient(110deg,#06b6d4,#3b82f6,#a855f7,#06b6d4)] bg-[length:300%_auto] animate-gradient-x" />
                           )}
                           <div className={cn(
-                            "relative z-10 flex h-full w-full items-center justify-center gap-2 rounded-2xl px-5 transition-all duration-500",
-                            paymentsEnabled ? "bg-[#030303] group-hover:bg-transparent" : "bg-white/[0.04] border border-white/10"
+                            "relative z-10 flex h-full w-full items-center justify-center gap-2.5 rounded-2xl px-6 transition-all duration-500",
+                            paymentsEnabled ? "bg-[#030305] group-hover:bg-transparent" : "bg-white/[0.04] border border-white/10"
                           )}>
                             {paymentsEnabled && (
                               <>
-                                <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
-                                <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.25),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
+                                <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
+                                <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.3),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
                               </>
                             )}
-                            <div className="relative z-20 flex items-center gap-2 text-[11px] sm:text-[12px]">
+                            <div className="relative z-20 flex items-center gap-2.5 text-xs">
                               {isProcessingId === pack.id ? <Loader2 size={16} className="animate-spin text-cyan-400" /> : (
-                                <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,1)] group-hover:text-cyan-50">{pack.priceLabel}</span>
+                                <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,1)] group-hover:text-cyan-50">{pack.priceLabel}</span>
                               )}
-                              {paymentsEnabled && !isProcessingId && <ArrowRight size={14} className="text-cyan-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />}
+                              {paymentsEnabled && !isProcessingId && <ArrowRight size={15} className="text-cyan-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />}
                             </div>
                           </div>
                         </button>
@@ -706,12 +730,14 @@ export default function ShopPage() {
               })}
             </div>
 
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 text-sm font-medium leading-6 text-zinc-500">
-              <div className="mb-2 flex items-center gap-2 text-zinc-300">
-                <Info size={16} className="text-cyan-300" />
-                <span className="text-[10px] font-black uppercase tracking-[0.18em]">Spend order</span>
+            <div className="relative overflow-hidden rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-950/20 via-black/50 to-purple-950/20 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+              <div className="mb-2 flex items-center gap-2.5 text-cyan-300">
+                <Info size={18} className="text-cyan-400" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Spend order hierarchy</span>
               </div>
-              Exismic spends daily credits first, then bonus credits, then permanent credits. Your free shop reward never reduces your normal daily allowance.
+              <p className="text-xs font-medium leading-relaxed text-zinc-300">
+                Exismic spends daily credits first, then bonus credits, then permanent credits. Your free daily shop reward never reduces your normal allowance.
+              </p>
             </div>
           </div>
         </section>

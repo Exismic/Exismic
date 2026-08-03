@@ -170,7 +170,33 @@ export async function POST(req: NextRequest) {
     const allowMarketOverride = process.env.NODE_ENV !== "production";
     const marketInfo = resolveMarket(req, allowMarketOverride ? body.marketOverride : null);
     const market = marketInfo.market as BillingMarket;
-    const price = getPlanPrice(plan.id, market);
+    const basePrice = getPlanPrice(plan.id, market);
+
+    // Check for active retention discount to apply 30% price reduction on Pro subscription
+    let finalAmountMinor = basePrice.amountMinor;
+    let appliedRetentionDiscount = false;
+
+    if (isProSubscriptionPlan) {
+      const activeRetentionOrder = await prisma.paymentOrder.findFirst({
+        where: {
+          userId: user.id,
+          gateway: "retention_discount",
+          status: "applied",
+        },
+      });
+
+      if (activeRetentionOrder) {
+        finalAmountMinor = Math.round(basePrice.amountMinor * 0.7);
+        appliedRetentionDiscount = true;
+      }
+    }
+
+    const price = {
+      ...basePrice,
+      amountMinor: finalAmountMinor,
+      amount: finalAmountMinor / 100,
+    };
+
     const localMockPayments = shouldUseLocalMockPayments(req);
     const effectiveGateway = localMockPayments ? "mock" : price.gateway;
     const configurationError = localMockPayments ? null : productionConfigurationError(price.gateway, plan.id);
@@ -195,6 +221,7 @@ export async function POST(req: NextRequest) {
         metadata: {
           countryCode: marketInfo.countryCode,
           displayAmount: price.display,
+          appliedRetentionDiscount,
         },
       },
     });

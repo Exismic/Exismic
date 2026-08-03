@@ -12,7 +12,9 @@ import {
   ShieldCheck,
   XCircle,
   RefreshCcw,
-  Sparkles
+  Sparkles,
+  Users,
+  FileText
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -20,76 +22,94 @@ import { cn } from "@/lib/utils";
 const SECTIONS = [
   {
     id: "acceptance",
-    title: "1. Acceptance of Terms",
+    title: "1. Acceptance of Terms & Eligibility",
     icon: <CheckCircle size={24} />,
     color: "text-accent-purple",
     bg: "bg-accent-purple/10",
     glow: "shadow-[0_0_30px_rgba(168,85,247,0.3)]",
-    content: "By accessing or using the Exismic platform, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, you may not access the platform or use any services."
+    content: "By accessing or using the Exismic platform, you agree to be bound by these Terms of Service. You represent that you are at least 13 years of age (or 18 where required to form a legally binding contract) and have the legal capacity to enter into this agreement."
   },
   {
     id: "conduct",
-    title: "2. User Conduct",
+    title: "2. User Conduct & Acceptable Use",
     icon: <AlertCircle size={24} />,
     color: "text-accent-cyan",
     bg: "bg-accent-cyan/10",
     glow: "shadow-[0_0_30px_rgba(34,211,238,0.3)]",
-    content: "You agree to use Exismic responsibly and legally. You shall not attempt to reverse engineer our AI models, use automated scraping tools, distribute malicious content, or use the service for any illegal activities."
+    content: "You agree to use Exismic responsibly and legally. You shall not attempt to reverse engineer AI models, deploy automated scraping bots, generate illegal or harmful content, bypass platform security features, or disrupt platform infrastructure."
   },
   {
     id: "ip",
-    title: "3. Intellectual Property",
+    title: "3. Intellectual Property & AI Commercial Rights",
     icon: <Lightbulb size={24} />,
     color: "text-amber-400",
     bg: "bg-amber-400/10",
     glow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]",
-    content: "You retain all ownership rights to the original content you submit and the generations you create using Exismic. Exismic retains all intellectual property rights to the underlying platform, AI architectures, and user interface."
+    content: "You retain 100% full commercial ownership rights over the original media you upload and all AI outputs generated through your active account on Exismic. Exismic retains all proprietary rights, trademarks, and intellectual property in the underlying software, platform code, and UI architecture."
   },
   {
     id: "payments",
-    title: "4. Pro Subscriptions & Payments",
+    title: "4. Pro Subscriptions & Recurring Billing",
     icon: <CreditCard size={24} />,
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
     glow: "shadow-[0_0_30px_rgba(52,211,153,0.3)]",
-    content: "Exismic Pro subscriptions are billed in advance on a recurring basis. All fees are non-refundable unless legally required. You may cancel your subscription at any time, and you will retain access until the end of your current billing cycle."
+    content: "Exismic Pro subscriptions are billed in advance on a recurring monthly or annual basis via secure PCI-DSS compliant payment gateways. You may cancel your subscription at any time via account settings, and you will retain full access until the end of your prepaid billing period."
+  },
+  {
+    id: "refunds",
+    title: "5. Statutory Withdrawal & Refund Policy",
+    icon: <RefreshCcw size={24} />,
+    color: "text-teal-400",
+    bg: "bg-teal-400/10",
+    glow: "shadow-[0_0_30px_rgba(45,212,191,0.3)]",
+    content: "Where legally mandated (such as EU/UK consumer protection laws), you retain a 14-day statutory right of withdrawal from initial subscription purchases, provided no subscription credits have been substantially consumed. Credit pack purchases and consumed processing fees are non-refundable."
   },
   {
     id: "privacy",
-    title: "5. Data & Privacy",
+    title: "6. Data Privacy & Compliance",
     icon: <ShieldCheck size={24} />,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
     glow: "shadow-[0_0_30px_rgba(96,165,250,0.3)]",
-    content: "Your privacy is critical to us. Our data collection and usage practices are governed by our Privacy Policy. By using Exismic, you agree to the terms outlined in our Privacy Policy.",
+    content: "Your privacy is paramount. Data collection, session storage, and security standards are strictly governed by our official Privacy Policy. By using Exismic, you consent to data processing in accordance with our Privacy Policy.",
     link: { text: "Read Privacy Policy", url: "/privacy-policy" }
   },
   {
+    id: "dmca",
+    title: "7. DMCA & Copyright Takedowns",
+    icon: <FileText size={24} />,
+    color: "text-fuchsia-400",
+    bg: "bg-fuchsia-400/10",
+    glow: "shadow-[0_0_30px_rgba(232,121,249,0.3)]",
+    content: "We respect intellectual property rights. If you believe your copyrighted work has been infringed on Exismic, please submit a formal written notice containing proof of ownership to legal@exismic.xyz for prompt investigation."
+  },
+  {
     id: "termination",
-    title: "6. Termination",
+    title: "8. Account Termination",
     icon: <XCircle size={24} />,
     color: "text-rose-400",
     bg: "bg-rose-400/10",
     glow: "shadow-[0_0_30px_rgba(251,113,133,0.3)]",
-    content: "We reserve the right to suspend or terminate your account at our sole discretion, without notice or liability, for any reason, including but not limited to a breach of these Terms of Service."
+    content: "We reserve the right to suspend or terminate accounts that breach these Terms of Service, engage in fraudulent activity, or misuse platform resources, without prior notice or liability."
   },
   {
     id: "liability",
-    title: "7. Limitation of Liability",
+    title: "9. Limitation of Liability",
     icon: <Scale size={24} />,
     color: "text-indigo-400",
     bg: "bg-indigo-400/10",
     glow: "shadow-[0_0_30px_rgba(129,140,248,0.3)]",
-    content: "Exismic is provided 'as is' without warranties of any kind. In no event shall Exismic or its directors, employees, or partners be liable for any indirect, incidental, or consequential damages arising from your use of the platform."
+    content: "Exismic is provided on an 'AS IS' and 'AS AVAILABLE' basis. To the maximum extent permitted by law, Exismic and its operators disclaim all warranties and shall not be liable for indirect, incidental, or consequential damages resulting from service usage."
   },
   {
     id: "changes",
-    title: "8. Changes to Terms",
+    title: "10. Modifications to Terms",
     icon: <RefreshCcw size={24} />,
     color: "text-zinc-400",
     bg: "bg-zinc-400/10",
     glow: "shadow-[0_0_30px_rgba(161,161,170,0.3)]",
-    content: "We reserve the right to modify these terms at any time. We will notify you of significant changes via email or an in-app notice. Your continued use of Exismic after such changes constitutes acceptance of the new terms."
+    content: "We reserve the right to modify these terms at any time. Notice of material revisions will be provided via email or in-app notifications. Continued platform usage following published modifications constitutes full acceptance."
   }
 ];
 
@@ -159,10 +179,10 @@ export default function TermsPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-zinc-400 font-medium text-lg">
                 <p className="flex items-center gap-2">
                   <Sparkles size={16} className="text-accent-cyan animate-pulse" />
-                  Fair and transparent.
+                  Fair and transparent legal agreement.
                 </p>
                 <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-white/20" />
-                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: May 19, 2026</p>
+                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: August 2026</p>
               </div>
             </div>
           </header>
@@ -243,11 +263,11 @@ export default function TermsPage() {
               Need Clarification?
             </h3>
             <p className="text-zinc-400 font-medium max-w-xl mx-auto text-lg">
-              If you have any questions about these terms or our practices, please don't hesitate to reach out to our legal team.
+              If you have any legal questions or inquiries regarding our terms, our legal counsel is available to assist you.
             </p>
             <div className="pt-6">
-              <a href="mailto:legal@exismic.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-                Contact Legal Team <ArrowUpRight size={18} />
+              <a href="mailto:legal@exismic.xyz" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                Contact Legal Team (legal@exismic.xyz) <ArrowUpRight size={18} />
               </a>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { PRICING_CONFIG } from "@/config/pricing";
+import { sendAdminGiftCardReviewEmail } from "@/lib/emails";
 
 function validateCodeLength(type: string, rawCode: string): { isValid: boolean; error?: string } {
   const sanitized = rawCode.replace(/[\s-]/g, "").toUpperCase();
@@ -97,6 +98,60 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Notify admins via in-app notifications and email
+    try {
+      const adminUsers = await prisma.user.findMany({
+        where: {
+          OR: [
+            { role: "admin" },
+            { role: "superadmin" },
+            { email: "syedyaseeralirayan@gmail.com" },
+          ],
+        },
+        select: { id: true, email: true },
+      });
+
+      // 1. Create in-app Notification for each admin account
+      if (adminUsers.length > 0) {
+        const notificationData = adminUsers.map((admin) => ({
+          userId: admin.id,
+          title: "🎁 New Gift Card Review Request",
+          message: `User ${user.email || "Unknown"} submitted a ${giftCardType.toUpperCase()} gift card for ${planName} (Order #${paymentOrder.id.slice(0, 8)}).`,
+          type: "warning",
+        }));
+
+        await prisma.notification.createMany({
+          data: notificationData,
+        }).catch((err) => {
+          console.error("[GiftCardSubmit] Failed to create admin notifications:", err);
+        });
+      }
+
+      // 2. Dispatch email to syedyaseeralirayan@gmail.com and any additional admin emails
+      const adminEmails = new Set<string>();
+      adminEmails.add("syedyaseeralirayan@gmail.com");
+      adminUsers.forEach((admin) => {
+        if (admin.email) adminEmails.add(admin.email.toLowerCase());
+      });
+
+      for (const targetAdminEmail of Array.from(adminEmails)) {
+        sendAdminGiftCardReviewEmail({
+          orderId: paymentOrder.id,
+          userEmail: user.email || "Unknown User",
+          userId: user.id,
+          giftCardType,
+          giftCardCode: cleanCode,
+          planName,
+          credits,
+          adminEmail: targetAdminEmail,
+        }).catch((err) => {
+          console.error(`[GiftCardSubmit] Failed to send review email to ${targetAdminEmail}:`, err);
+        });
+      }
+    } catch (notifyErr) {
+      console.error("[GiftCardSubmit] Error notifying admin:", notifyErr);
+    }
 
     return NextResponse.json({
       success: true,

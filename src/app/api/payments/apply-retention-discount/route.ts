@@ -33,6 +33,40 @@ export async function POST() {
       );
     }
 
+    // Check if user has already claimed a retention discount
+    const existingDiscountOrder = await prisma.paymentOrder.findFirst({
+      where: {
+        userId: dbUser.id,
+        gateway: "retention_discount",
+      },
+    });
+
+    if (existingDiscountOrder) {
+      return NextResponse.json(
+        { error: "You have already claimed your 30% retention discount for this account." },
+        { status: 400 }
+      );
+    }
+
+    // Record retention discount order for audit and future billing discount calculation
+    await prisma.paymentOrder.create({
+      data: {
+        userId: dbUser.id,
+        planId: "pro",
+        market: "GLOBAL",
+        currency: "USD",
+        amount: 0,
+        gateway: "retention_discount",
+        status: "applied",
+        credits: 0,
+        metadata: {
+          discountPercent: 30,
+          appliedAt: new Date().toISOString(),
+          consumed: false,
+        },
+      },
+    });
+
     // Upsert UserBilling record to ensure subscription remains active
     await prisma.userBilling.upsert({
       where: { userId: dbUser.id },

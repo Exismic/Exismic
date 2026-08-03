@@ -76,7 +76,8 @@ export function ManageSubscriptionModal({
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [discountAppliedSuccess, setDiscountAppliedSuccess] = useState(false);
   const [localCancelled, setLocalCancelled] = useState(false);
-  
+  const [hasUsedDiscount, setHasUsedDiscount] = useState(false);
+
   const [fallbackBillingDate] = useState(
     () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   );
@@ -113,6 +114,16 @@ export function ManageSubscriptionModal({
 
   useEffect(() => {
     if (!isOpen) return;
+
+    // Check if user has already used their 30% retention discount
+    fetch("/api/payments/retention-status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.hasUsedDiscount) {
+          setHasUsedDiscount(true);
+        }
+      })
+      .catch((err) => console.warn("[ManageSubscriptionModal] Could not fetch discount status:", err));
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -162,7 +173,11 @@ export function ManageSubscriptionModal({
       const data = await res.json();
       if (data.success) {
         setDiscountAppliedSuccess(true);
+        setHasUsedDiscount(true);
       } else {
+        if (data.error?.includes("already claimed") || data.error?.includes("already used")) {
+          setHasUsedDiscount(true);
+        }
         alert(data.error || "Failed to apply retention offer.");
       }
     } catch (err) {
@@ -594,7 +609,11 @@ export function ManageSubscriptionModal({
                         disabled={!selectedReason}
                         onClick={() => {
                           sendFeedbackToDiscord();
-                          setStep("save_offer");
+                          if (hasUsedDiscount) {
+                            setStep("confirm");
+                          } else {
+                            setStep("save_offer");
+                          }
                         }}
                         className="group relative flex min-h-12 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl border border-white/80 bg-white px-5 text-xs font-black uppercase tracking-[0.16em] text-black shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-200 hover:bg-zinc-100 hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:scale-[1.015] active:scale-[0.98] disabled:opacity-35 disabled:pointer-events-none"
                       >

@@ -470,29 +470,20 @@ export function Navbar() {
                     <CreditTokenIcon size="sm" />
 
                     {/* Numerical Credit Balance */}
-                    <span suppressHydrationWarning className="relative z-10 font-mono text-xs font-black tracking-tight tabular-nums bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.4)]">
+                    <span suppressHydrationWarning className="relative z-10 font-sans text-sm font-black tracking-tight tabular-nums text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
                       {credits.toLocaleString()}
                     </span>
 
                     {/* Sleek Ultra-Premium Cyber Vault Tag Badge */}
-                    <span className="relative overflow-hidden z-10 flex items-center gap-1.5 rounded-full border border-cyan-300/60 bg-gradient-to-r from-cyan-500/25 via-fuchsia-500/20 to-indigo-500/25 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 group-hover/vault:border-cyan-200 group-hover/vault:text-white group-hover/vault:shadow-[0_0_22px_rgba(34,211,238,0.65)]">
-                      <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
-                      <Sparkles size={10} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0" />
-                      <span className="relative z-10 drop-shadow-[0_0_6px_rgba(34,211,238,0.6)]">VAULT</span>
+                    <span className="relative overflow-hidden z-10 flex items-center gap-1.5 rounded-full border border-cyan-400/35 bg-gradient-to-r from-cyan-500/20 via-purple-500/15 to-indigo-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_15px_rgba(34,211,238,0.25)] backdrop-blur-md transition-all duration-300 group-hover/vault:border-cyan-300 group-hover/vault:shadow-[0_0_22px_rgba(34,211,238,0.55)] group-hover/vault:scale-[1.03]">
+                      <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
+                      <Sparkles size={11} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0 animate-pulse" />
+                      <span className="relative z-10 font-sans font-black tracking-[0.2em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">VAULT</span>
                     </span>
                   </div>
                 </Link>
 
-                {/* 2. Pro Badge */}
-                {isPro && (
-                  <button 
-                    onClick={() => setIsManageModalOpen(true)}
-                    className="outline-none hover:scale-105 active:scale-95 transition-transform duration-300"
-                    title="Manage Subscription"
-                  >
-                    <ProBadge size="md" />
-                  </button>
-                )}
+
 
                 {/* 3. User Avatar and Custom Dropdown */}
                 <div className="relative" ref={userDropdownRef}>

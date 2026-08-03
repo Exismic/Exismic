@@ -43,84 +43,206 @@ interface SidebarItemProps {
   glowColor?: string;
   onClick?: () => void;
   isCompact?: boolean;
+  rightElement?: React.ReactNode;
 }
 
-function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-accent-purple", glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact }: SidebarItemProps) {
+const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
+  "/": "bg-gradient-to-b from-purple-400 via-pink-400 to-indigo-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
+  "/shop": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-500 shadow-[0_0_14px_rgba(245,158,11,0.9)]",
+  "/favorites": "bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(251,191,36,0.9)]",
+  "/history": "bg-gradient-to-b from-blue-400 via-cyan-400 to-indigo-400 shadow-[0_0_14px_rgba(96,165,250,0.9)]",
+  "/referrals": "bg-gradient-to-b from-emerald-400 via-teal-400 to-green-500 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
+  "/admin": "bg-gradient-to-b from-rose-400 via-red-500 to-orange-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
+  "/pro": "bg-gradient-to-b from-purple-300 via-pink-300 to-cyan-300 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
+
+  "/category/image": "bg-gradient-to-b from-cyan-300 via-sky-400 to-blue-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
+  "/category/video": "bg-gradient-to-b from-violet-400 via-fuchsia-400 to-purple-500 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
+  "/category/audio": "bg-gradient-to-b from-pink-400 via-rose-400 to-purple-500 shadow-[0_0_14px_rgba(236,72,153,0.9)]",
+  "/category/pdf": "bg-gradient-to-b from-orange-400 via-amber-500 to-red-500 shadow-[0_0_14px_rgba(249,115,22,0.9)]",
+  "/category/ai": "bg-gradient-to-b from-amber-300 via-yellow-400 to-purple-400 shadow-[0_0_14px_rgba(250,204,21,0.9)]",
+  "/category/productivity": "bg-gradient-to-b from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
+  "/category/developer": "bg-gradient-to-b from-lime-400 via-emerald-400 to-teal-500 shadow-[0_0_14px_rgba(163,230,53,0.9)]",
+  "/category/creator": "bg-gradient-to-b from-rose-400 via-pink-400 to-purple-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
+};
+
+const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: string; text: string }> = {
+  "/": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-purple-500/15 group-hover:via-purple-950/20 group-hover:to-transparent",
+    border: "group-hover:border-purple-400/35",
+    glow: "rgba(168,85,247,0.5)",
+    text: "group-hover:text-purple-200"
+  },
+  "/shop": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
+    border: "group-hover:border-amber-400/35",
+    glow: "rgba(245,158,11,0.5)",
+    text: "group-hover:text-amber-200"
+  },
+  "/favorites": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-yellow-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
+    border: "group-hover:border-yellow-400/35",
+    glow: "rgba(251,191,36,0.5)",
+    text: "group-hover:text-yellow-200"
+  },
+  "/history": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-blue-500/15 group-hover:via-blue-950/20 group-hover:to-transparent",
+    border: "group-hover:border-blue-400/35",
+    glow: "rgba(96,165,250,0.5)",
+    text: "group-hover:text-blue-200"
+  },
+  "/referrals": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-emerald-500/15 group-hover:via-emerald-950/20 group-hover:to-transparent",
+    border: "group-hover:border-emerald-400/35",
+    glow: "rgba(16,185,129,0.5)",
+    text: "group-hover:text-emerald-200"
+  },
+  "/admin": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-rose-500/15 group-hover:via-rose-950/20 group-hover:to-transparent",
+    border: "group-hover:border-rose-400/35",
+    glow: "rgba(244,63,94,0.5)",
+    text: "group-hover:text-rose-200"
+  },
+  "/category/image": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-cyan-500/15 group-hover:via-cyan-950/20 group-hover:to-transparent",
+    border: "group-hover:border-cyan-400/35",
+    glow: "rgba(34,211,238,0.5)",
+    text: "group-hover:text-cyan-200"
+  },
+  "/category/video": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-violet-500/15 group-hover:via-violet-950/20 group-hover:to-transparent",
+    border: "group-hover:border-violet-400/35",
+    glow: "rgba(168,85,247,0.5)",
+    text: "group-hover:text-violet-200"
+  },
+  "/category/audio": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-pink-500/15 group-hover:via-pink-950/20 group-hover:to-transparent",
+    border: "group-hover:border-pink-400/35",
+    glow: "rgba(236,72,153,0.5)",
+    text: "group-hover:text-pink-200"
+  },
+  "/category/pdf": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-orange-500/15 group-hover:via-orange-950/20 group-hover:to-transparent",
+    border: "group-hover:border-orange-400/35",
+    glow: "rgba(249,115,22,0.5)",
+    text: "group-hover:text-orange-200"
+  },
+  "/category/ai": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
+    border: "group-hover:border-amber-400/35",
+    glow: "rgba(250,204,21,0.5)",
+    text: "group-hover:text-amber-200"
+  },
+  "/category/productivity": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-emerald-500/15 group-hover:via-emerald-950/20 group-hover:to-transparent",
+    border: "group-hover:border-emerald-400/35",
+    glow: "rgba(16,185,129,0.5)",
+    text: "group-hover:text-emerald-200"
+  },
+};
+
+function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-accent-purple", glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact, rightElement }: SidebarItemProps) {
+  const indicatorGradient = CATEGORY_INDICATOR_GRADIENTS[href] || "bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]";
+  const hoverStyle = CATEGORY_HOVER_STYLES[href] || {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-purple-500/12 group-hover:via-purple-900/10 group-hover:to-transparent",
+    border: "group-hover:border-purple-400/35",
+    glow: glowColor,
+    text: "group-hover:text-purple-200"
+  };
+
   return (
     <Link href={href} onClick={onClick}>
       <motion.div
         whileHover="hover"
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
         className={cn(
-          "relative h-[52px] flex items-center rounded-2xl transition-all duration-300 group mb-1",
-          isCompact ? "justify-center w-[52px] mx-auto px-0" : "gap-3.5 px-5",
-          isActive ? "text-white" : "text-zinc-500 hover:text-zinc-200"
+          "relative h-[52px] flex items-center rounded-2xl transition-all duration-300 group mb-1.5",
+          isCompact ? "justify-center w-[52px] mx-auto px-0" : "gap-3.5 px-4",
+          isActive ? "text-white" : "text-zinc-400 hover:text-white"
         )}
       >
-        {/* Active Background - Glassmorphic Depth */}
+        {/* Active Background - Luminous Glassmorphic Depth */}
         {isActive && (
           <motion.div 
             layoutId="sidebarActiveBg"
-            className="absolute inset-0 bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] -z-10"
+            className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent backdrop-blur-xl rounded-2xl border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.1)] -z-10"
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
         )}
         
-        {/* Hover Glow Background */}
-        <div className="absolute inset-0 bg-white/[0.02] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity -z-20" />
+        {/* Ultra-Premium Category Hover Background for Inactive */}
+        {!isActive && (
+          <div className={cn(
+            "absolute inset-0 rounded-2xl border border-transparent backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 -z-20 shadow-[0_4px_20px_rgba(0,0,0,0.4)]",
+            hoverStyle.bg,
+            hoverStyle.border
+          )} />
+        )}
 
-        {/* Active Left Accent Indicator - Cinematic Glow */}
+        {/* Active Left Accent Bar - Category Specific Glowing Gradient */}
         {isActive && (
           <motion.div 
             layoutId="sidebarActiveBar"
-            className={cn(
-              "absolute left-0 w-1 h-6 rounded-r-full shadow-[0_0_15px_rgba(168,85,247,0.5)] z-20",
-              accentColor.includes('purple') ? "bg-accent-purple" : "bg-current"
-            )}
-            style={{ backgroundColor: !accentColor.includes('purple') ? glowColor.replace('0.5', '0.8') : undefined }}
+            className={cn("absolute left-0 w-1.5 h-6 rounded-r-full z-20", indicatorGradient)}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
         )}
 
-        <div className="relative">
+        {/* Inactive Hover Micro Left Indicator Bar */}
+        {!isActive && (
+          <div className={cn(
+            "absolute left-0 w-1 h-5 rounded-r-full opacity-0 group-hover:opacity-100 transition-all duration-300 z-20",
+            indicatorGradient
+          )} />
+        )}
+
+        {/* Icon Container with Glass Box */}
+        <div className="relative shrink-0">
           <motion.div
             variants={{
               hover: { scale: 1.1, y: -1 }
             }}
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
             className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-              isActive ? "bg-zinc-900 border border-white/10" : "bg-transparent"
+              "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300",
+              isActive 
+                ? "bg-gradient-to-br from-purple-500/25 via-purple-800/30 to-indigo-900/40 border border-purple-400/40 text-purple-200 shadow-[0_0_16px_rgba(168,85,247,0.35)]" 
+                : "bg-white/[0.02] border border-white/5 group-hover:border-white/20 text-zinc-400 group-hover:text-white shadow-sm"
             )}
           >
-            <Icon size={18} className={cn("transition-colors duration-300", isActive ? accentColor : "group-hover:text-white")} />
+            <Icon size={17} className={cn("transition-all duration-300", isActive ? "text-purple-200 drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]" : "group-hover:scale-110", hoverStyle.text)} />
           </motion.div>
           
-          {/* Dynamic Icon Glow */}
+          {/* Dynamic Ambient Icon Glow */}
           <div 
-            className="absolute inset-0 blur-lg opacity-0 group-hover:opacity-30 transition-opacity -z-10 scale-150" 
-            style={{ backgroundColor: glowColor }} 
+            className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-300 -z-10 scale-175 rounded-full pointer-events-none" 
+            style={{ backgroundColor: hoverStyle.glow }} 
           />
         </div>
 
         {!isCompact && (
           <span 
             className={cn(
-              "text-[13px] font-black tracking-tight transition-all duration-300 whitespace-nowrap overflow-hidden",
-              isActive ? "text-white" : "group-hover:text-zinc-100"
+              "text-[13.5px] font-black tracking-wide transition-all duration-300 whitespace-nowrap overflow-hidden select-none group-hover:translate-x-0.5",
+              isActive ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" : "text-zinc-300 group-hover:text-white"
             )}
           >
-            {name === 'Go Pro' ? <GradientText className="text-[13px] font-black tracking-tight">{name}</GradientText> : name}
+            {name === 'Go Pro' ? <GradientText className="text-[13.5px] font-black tracking-wide">{name}</GradientText> : name}
           </span>
         )}
         
-        {isActive && !isCompact && (
+        {!isCompact && rightElement && (
+          <div className="ml-auto shrink-0 relative z-30">
+            {rightElement}
+          </div>
+        )}
+
+        {isActive && !isCompact && !rightElement && (
           <motion.div 
-            initial={{ opacity: 0, x: -5 }}
+            initial={{ opacity: 0, x: -4 }}
             animate={{ opacity: 1, x: 0 }}
-            className="ml-auto opacity-20"
+            className="ml-auto text-purple-400 opacity-60 group-hover:opacity-100 transition-opacity"
           >
-            <ChevronRight size={12} />
+            <ChevronRight size={13} />
           </motion.div>
         )}
       </motion.div>
@@ -238,34 +360,32 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
 
   return (
     <div className="relative group/cat space-y-1">
-      <div className="flex items-center justify-between group">
-        <div className="flex-1 min-w-0">
-          <SidebarItem 
-            name={catName}
-            icon={Icon}
-            href={`/category/${category.id}`}
-            isActive={isCategoryActive}
-            accentColor={category.color}
-            glowColor={catGlow}
-            isCompact={false}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen((prev) => !prev);
-          }}
-          className="p-2 text-zinc-500 hover:text-white transition-colors rounded-xl hover:bg-white/5 mr-1"
-          aria-label={`Toggle ${catName} tools`}
-        >
-          <ChevronDown
-            size={14}
-            className={cn("transition-transform duration-300", isOpen && "rotate-180")}
-          />
-        </button>
-      </div>
+      <SidebarItem 
+        name={catName}
+        icon={Icon}
+        href={`/category/${category.id}`}
+        isActive={isCategoryActive}
+        accentColor={category.color}
+        glowColor={catGlow}
+        isCompact={false}
+        rightElement={
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen((prev) => !prev);
+            }}
+            className="p-1.5 flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-200 cursor-pointer active:scale-90 opacity-60 group-hover/cat:opacity-100"
+            aria-label={`Toggle ${catName} tools`}
+          >
+            <ChevronDown
+              size={14}
+              className={cn("transition-transform duration-300", isOpen && "rotate-180 text-purple-300")}
+            />
+          </button>
+        }
+      />
 
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -274,7 +394,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden pl-5 pr-2 space-y-1 border-l border-white/10 ml-6 my-1"
+            className="overflow-hidden pl-4 pr-1 space-y-1.5 border-l-2 border-purple-500/20 ml-6 my-1.5"
           >
             {categoryTools.map((tool) => {
               const ToolIcon = ICON_MAP[tool.icon] || Sparkles;
@@ -283,12 +403,12 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
               return (
                 <Link key={tool.id} href={tool.href}>
                   <div className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group/tool",
+                    "flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group/tool select-none",
                     isToolActive
-                      ? "bg-white/10 text-white border border-white/10 shadow-sm"
-                      : "text-zinc-400 hover:text-white hover:bg-white/5"
+                      ? "bg-gradient-to-r from-purple-500/20 via-indigo-500/15 to-transparent text-white border border-purple-400/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                      : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}>
-                    <ToolIcon size={14} className={cn("shrink-0 transition-transform group-hover/tool:scale-110", isToolActive ? "text-amber-400" : "text-zinc-500 group-hover/tool:text-zinc-200")} />
+                    <ToolIcon size={14} className={cn("shrink-0 transition-transform group-hover/tool:scale-110", isToolActive ? "text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.8)]" : "text-zinc-500 group-hover/tool:text-purple-300")} />
                     <span className="truncate">{tool.name}</span>
                   </div>
                 </Link>
@@ -474,17 +594,17 @@ export function Sidebar() {
                 </div>
 
                 {/* Nav Groups */}
-                <nav suppressHydrationWarning className="flex-1 px-4 py-2 space-y-10 overflow-y-auto no-scrollbar relative z-10">
+                <nav suppressHydrationWarning className="flex-1 px-4 py-2 space-y-3 overflow-y-auto no-scrollbar relative z-10">
                   <LayoutGroup>
                     {/* Main Menu */}
                     <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1">
                        {!isCompact && (
-                         <div className="flex items-center justify-between px-6 mb-4">
+                         <div className="flex items-center justify-between px-4 mb-3 pt-2">
                             <div className="flex items-center gap-2">
-                               <LayoutDashboard size={12} className="text-accent-purple drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-                               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-zinc-400">Explore</p>
+                               <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                               <p className="text-[10px] font-black uppercase tracking-[0.35em] bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">EXPLORE</p>
                             </div>
-                            <div className="w-14 h-px bg-gradient-to-r from-accent-purple/40 to-transparent" />
+                            <div className="w-12 h-px bg-gradient-to-r from-purple-500/40 to-transparent" />
                          </div>
                        )}
                        {topItems.map((item) => {
@@ -517,14 +637,14 @@ export function Sidebar() {
                     </motion.div>
 
                     {/* Categories Group */}
-                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1 pt-4">
+                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1 pt-1">
                        {!isCompact && (
-                         <div className="flex items-center justify-between px-6 mb-4">
+                         <div className="flex items-center justify-between px-4 mb-2 pt-1">
                             <div className="flex items-center gap-2">
-                               <Sparkles size={12} className="text-accent-purple drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">Studio Tools</p>
+                               <Sparkles size={12} className="text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-pulse" />
+                               <p className="text-[10px] font-black uppercase tracking-[0.35em] bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">STUDIO TOOLS</p>
                             </div>
-                            <div className="w-14 h-px bg-gradient-to-r from-accent-purple/50 to-transparent" />
+                            <div className="w-16 h-px bg-gradient-to-r from-purple-500/50 via-cyan-500/30 to-transparent" />
                          </div>
                        )}
                        {CATEGORIES.map((cat) => {
@@ -556,7 +676,7 @@ export function Sidebar() {
                       <CreditTokenIcon size="md" />
                       <div className="space-y-0.5">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 leading-none">Credits</p>
-                        <h4 className="animate-gradient-x mt-1 bg-linear-to-r from-cyan-200 via-white to-purple-300 bg-[length:220%_100%] bg-clip-text text-sm font-black leading-none text-transparent">
+                        <h4 className="mt-1 text-sm font-black leading-none text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
                           {isCreditsLoading ? "..." : credits.toLocaleString()}
                         </h4>
                       </div>

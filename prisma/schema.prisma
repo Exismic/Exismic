@@ -538,3 +538,23 @@ model SystemLog {
 
   @@map("system_logs")
 }
+
+model ToolErrorLog {
+  id           String   @id @default(cuid())
+  toolId       String   @map("tool_id")
+  toolName     String   @map("tool_name")
+  userId       String?  @map("user_id")
+  userEmail    String?  @map("user_email")
+  errorMessage String   @map("error_message") @db.Text
+  errorStack   String?  @map("error_stack") @db.Text
+  status       String   @default("unresolved") // unresolved | investigating | resolved
+  metadata     Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([toolId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("tool_error_logs")
+}

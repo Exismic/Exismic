@@ -13,7 +13,9 @@ import {
   Cookie,
   Globe,
   RefreshCcw,
-  Sparkles
+  Sparkles,
+  Users,
+  FileText
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -21,75 +23,93 @@ import { cn } from "@/lib/utils";
 const SECTIONS = [
   {
     id: "your-data",
-    title: "1. Your Data",
+    title: "1. Data Collection & Minimization",
     icon: <Database size={24} />,
     color: "text-accent-purple",
     bg: "bg-accent-purple/10",
     glow: "shadow-[0_0_30px_rgba(168,85,247,0.3)]",
-    content: "We only collect information that is strictly necessary to run your account and provide you with our services. This primarily includes your email address, basic profile details, and the files you process through our tools."
+    content: "We adhere strictly to data minimization principles. We only collect information essential for account operation and service delivery—specifically your email address, basic profile authentication details, and the inputs/files you directly submit to our tools."
   },
   {
     id: "collection",
-    title: "2. How We Collect Data",
+    title: "2. How We Collect Information",
     icon: <Search size={24} />,
     color: "text-accent-cyan",
     bg: "bg-accent-cyan/10",
     glow: "shadow-[0_0_30px_rgba(34,211,238,0.3)]",
-    content: "Data is collected directly from you when you register for an account, interact with our services, or contact our support team. We also collect basic telemetry data automatically to ensure our platform runs smoothly and securely."
+    content: "Data is gathered directly when you register an account, upload assets, or communicate with our support desk. Anonymous technical telemetry (IP address, browser type, performance metrics) is automatically logged to maintain operational integrity and prevent fraud."
   },
   {
     id: "usage",
-    title: "3. How We Use Your Data",
+    title: "3. AI Processing & Zero Training Guarantee",
     icon: <Activity size={24} />,
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
     glow: "shadow-[0_0_30px_rgba(52,211,153,0.3)]",
-    content: "Your information is used exclusively to power your Exismic experience. We process your files in real-time to deliver the requested AI generation, maintain your account security, and communicate important service updates. We do not use your data to train public AI models."
+    content: "Your inputs are processed in real time solely to fulfill your tool requests. Exismic guarantees that your private uploads, personal documents, and generated assets are NEVER sold, shared, or used to train or fine-tune public AI models."
   },
   {
     id: "security",
-    title: "4. Security",
+    title: "4. Encryption & Server Security",
     icon: <Lock size={24} />,
     color: "text-rose-400",
     bg: "bg-rose-400/10",
     glow: "shadow-[0_0_30px_rgba(251,113,133,0.3)]",
-    content: "We employ industry-leading encryption protocols for data both at rest and in transit. Your files are processed securely and are automatically purged from our temporary processing servers shortly after your session ends."
+    content: "All data transfers are protected with TLS 1.3 encryption, and data at rest is encrypted using AES-256 standards. Temporary files uploaded for conversion or AI processing are automatically purged from our servers within 1 hour following session completion."
   },
   {
     id: "rights",
-    title: "5. Your Rights",
+    title: "5. User Rights (GDPR & CCPA)",
     icon: <UserCheck size={24} />,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
     glow: "shadow-[0_0_30px_rgba(96,165,250,0.3)]",
-    content: "You retain full control over your personal data. You have the right to access, modify, export, or permanently delete your information at any time. Our account settings provide intuitive tools to exercise these rights instantly."
+    content: "Under GDPR, CCPA, and global privacy laws, you maintain full control over your personal information. You have the right to request a complete copy of your data, update your account information, or request permanent deletion of your account at any time."
   },
   {
     id: "cookies",
-    title: "6. Cookies",
+    title: "6. Cookies & Telemetry",
     icon: <Cookie size={24} />,
     color: "text-amber-400",
     bg: "bg-amber-400/10",
     glow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]",
-    content: "We use essential cookies to keep you logged in and secure your sessions. We also use minimal analytics cookies to understand how our platform is used and improve our features. You can manage your cookie preferences through your browser settings."
+    content: "We use essential cookies strictly required for secure authentication and session management. We do not use invasive cross-site tracking cookies. You may manage or disable non-essential cookies via your browser settings."
   },
   {
     id: "third-parties",
-    title: "7. Third Parties",
+    title: "7. Infrastructure Partners",
     icon: <Globe size={24} />,
     color: "text-indigo-400",
     bg: "bg-indigo-400/10",
     glow: "shadow-[0_0_30px_rgba(129,140,248,0.3)]",
-    content: "We never sell your personal information. We only share data with trusted infrastructure partners (such as secure hosting providers and payment processors) who are bound by strict confidentiality agreements to facilitate our services."
+    content: "We do not sell personal data. Data is shared exclusively with audited sub-processors necessary for infrastructure (cloud hosting, database management, and PCI-DSS compliant payment gateways) under strict contractual confidentiality terms."
+  },
+  {
+    id: "age",
+    title: "8. Age Requirement & Eligibility",
+    icon: <Users size={24} />,
+    color: "text-teal-400",
+    bg: "bg-teal-400/10",
+    glow: "shadow-[0_0_30px_rgba(45,212,191,0.3)]",
+    content: "Exismic is intended for users who are at least 13 years of age (or 18 in jurisdictions where required for binding contracts). We do not knowingly collect personal information from children under 13."
+  },
+  {
+    id: "dmca",
+    title: "9. Copyright & Intellectual Property",
+    icon: <FileText size={24} />,
+    color: "text-fuchsia-400",
+    bg: "bg-fuchsia-400/10",
+    glow: "shadow-[0_0_30px_rgba(232,121,249,0.3)]",
+    content: "If you believe content hosted or generated on Exismic infringes upon your copyright, please contact our legal team at legal@exismic.xyz with a formal takedown request containing proof of ownership."
   },
   {
     id: "changes",
-    title: "8. Changes to Policy",
+    title: "10. Policy Updates",
     icon: <RefreshCcw size={24} />,
     color: "text-zinc-400",
     bg: "bg-zinc-400/10",
     glow: "shadow-[0_0_30px_rgba(161,161,170,0.3)]",
-    content: "We may update this policy periodically to reflect changes in our services or legal requirements. We will notify you of any significant changes via email or an in-app announcement before they take effect."
+    content: "We reserve the right to modify this policy as necessary to remain compliant with evolving regulations. Significant updates will be communicated via email or prominent platform notifications prior to taking effect."
   }
 ];
 
@@ -98,7 +118,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-[#030303] text-white selection:bg-accent-purple/30 pb-32 relative overflow-hidden font-sans">
       {/* 1. Cinematic Animated Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-white/10 to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         
         {/* Animated Glowing Orbs */}
         <motion.div 
@@ -162,7 +182,7 @@ export default function PrivacyPage() {
                   Your security is our priority.
                 </p>
                 <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-white/20" />
-                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: May 19, 2026</p>
+                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: August 2026</p>
               </div>
             </div>
           </header>
@@ -236,11 +256,11 @@ export default function PrivacyPage() {
               Have questions about your privacy?
             </h3>
             <p className="text-zinc-400 font-medium max-w-xl mx-auto text-lg">
-              Our dedicated privacy team is always here to help you understand how your data is handled.
+              Our dedicated privacy team is available to assist you with any data protection or privacy inquiries.
             </p>
             <div className="pt-6">
-              <a href="mailto:privacy@exismic.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-                Contact Privacy Team <ArrowUpRight size={18} />
+              <a href="mailto:privacy@exismic.xyz" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                Contact Privacy Team (privacy@exismic.xyz) <ArrowUpRight size={18} />
               </a>
             </div>
           </div>

@@ -62,6 +62,10 @@ async function sendTrackedEmail(
       }
     }
 
+    if (response.error) {
+      console.error(`[Email] sendTrackedEmail error (${channel}):`, response.error);
+    }
+
     recordEmailEvent({
       channel,
       recipient,
@@ -72,6 +76,7 @@ async function sendTrackedEmail(
     return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Email provider request failed';
+    console.error(`[Email] sendTrackedEmail exception (${channel}):`, error);
     recordEmailEvent({
       channel,
       recipient,
@@ -82,21 +87,21 @@ async function sendTrackedEmail(
   }
 }
 
-const PREMIUM_DARK_THEME = (content: string) => `
+const PREMIUM_DARK_THEME = (content: string, preheaderText = 'Exismic Account Notification') => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exismic Notification</title>
+    <meta name="color-scheme" content="dark">
+    <meta name="supported-color-schemes" content="dark">
+    <title>Exismic</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
-        
         body {
             margin: 0;
             padding: 0;
             background-color: #030306;
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #ffffff;
             -webkit-font-smoothing: antialiased;
         }
@@ -105,102 +110,86 @@ const PREMIUM_DARK_THEME = (content: string) => `
             table-layout: fixed;
             background-color: #030306;
             background-image:
-              radial-gradient(circle at 16% 0%, rgba(168,85,247,0.28), transparent 32%),
-              radial-gradient(circle at 88% 12%, rgba(34,211,238,0.18), transparent 30%),
-              radial-gradient(circle at 50% 100%, rgba(236,72,153,0.12), transparent 36%);
-            padding: 44px 16px 60px;
+              radial-gradient(circle at 16% 0%, rgba(168,85,247,0.25), transparent 35%),
+              radial-gradient(circle at 88% 12%, rgba(34,211,238,0.18), transparent 32%);
+            padding: 40px 16px 50px;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background: linear-gradient(145deg, rgba(16,16,24,0.94), rgba(6,8,13,0.96));
+            background: #090a14;
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 34px;
+            border-radius: 28px;
             overflow: hidden;
-            box-shadow: 0 36px 120px rgba(0,0,0,0.62), 0 0 64px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+            box-shadow: 0 32px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
         }
         .header {
-            padding: 38px 0 30px;
+            padding: 32px 0 20px;
             text-align: center;
-            background: radial-gradient(circle at 50% 0%, rgba(124,58,237,0.34), transparent 58%);
+            background: radial-gradient(circle at 50% 0%, rgba(124,58,237,0.28), transparent 60%);
         }
-        .mark-wrap {
+        .logo-pill {
             display: inline-block;
             padding: 1px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, #a855f7, #22d3ee, #f472b6);
-            box-shadow: 0 0 48px rgba(168,85,247,0.34), 0 0 30px rgba(34,211,238,0.16);
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(168,85,247,0.7), rgba(34,211,238,0.5));
         }
-        .mark {
-            width: 54px;
-            height: 54px;
-            border-radius: 21px;
-            background: linear-gradient(145deg, #070811, #151428);
-            color: #ffffff;
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: -1px;
+        .logo-inner {
+            border-radius: 19px;
+            background: #070810;
+            padding: 12px 24px;
+            border: 1px solid rgba(255,255,255,0.12);
         }
-        .logo {
-            margin-top: 16px;
-            font-size: 28px;
+        .logo-text {
+            font-size: 22px;
             font-weight: 900;
-            letter-spacing: -0.8px;
+            letter-spacing: -0.5px;
             color: #ffffff;
-            text-decoration: none;
             text-transform: uppercase;
-            text-shadow: 0 0 28px rgba(168,85,247,0.42);
         }
         .logo-dot {
             color: #22d3ee;
         }
         .content {
-            padding: 0 40px 42px;
+            padding: 0 36px 38px;
         }
         .hero-section {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
         .status-badge {
             display: inline-block;
-            padding: 8px 15px;
-            background: rgba(34,211,238,0.11);
-            border: 1px solid rgba(34,211,238,0.28);
+            padding: 7px 16px;
+            background: rgba(34,211,238,0.12);
+            border: 1px solid rgba(34,211,238,0.3);
             color: #67e8f9;
             border-radius: 100px;
             font-size: 11px;
             font-weight: 800;
-            letter-spacing: 1.6px;
+            letter-spacing: 1.8px;
             text-transform: uppercase;
-            margin-bottom: 24px;
-            box-shadow: 0 0 28px rgba(34,211,238,0.10);
+            margin-bottom: 20px;
         }
         h1 {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 900;
-            line-height: 1.08;
-            margin: 0 0 16px;
-            letter-spacing: -1.7px;
-            background: linear-gradient(90deg, #ffffff, #c4b5fd, #67e8f9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            line-height: 1.15;
+            margin: 0 0 14px;
+            letter-spacing: -1px;
+            color: #ffffff;
         }
         p {
             color: #a7b0c2;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.6;
-            margin: 0 0 24px;
+            margin: 0 0 20px;
         }
         .info-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025));
+            background: rgba(255, 255, 255, 0.035);
             border: 1px solid rgba(255, 255, 255, 0.10);
-            border-radius: 22px;
+            border-radius: 20px;
             padding: 24px;
-            margin-bottom: 32px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+            margin-bottom: 28px;
         }
         .info-grid {
             display: table;
@@ -221,74 +210,67 @@ const PREMIUM_DARK_THEME = (content: string) => `
             font-weight: 800;
         }
         .info-value {
-            font-size: 15px;
+            font-size: 14px;
             color: #f8fafc;
             text-align: right;
             font-weight: 800;
         }
-        .benefit-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            color: #cbd5e1;
-            font-size: 14px;
-        }
-        .benefit-icon {
-            color: #67e8f9;
-            margin-right: 12px;
-            font-size: 18px;
-        }
         .cta-button {
             display: block;
-            background: linear-gradient(90deg, #8b5cf6, #06b6d4);
-            color: #ffffff;
+            background: linear-gradient(90deg, #7c3aed, #0284c7);
+            color: #ffffff !important;
             text-align: center;
             padding: 16px 32px;
-            border-radius: 18px;
+            border-radius: 16px;
             text-decoration: none;
             font-weight: 900;
             font-size: 15px;
-            margin-top: 8px;
-            box-shadow: 0 18px 48px rgba(124,58,237,0.30), 0 0 24px rgba(6,182,212,0.16);
+            margin-top: 12px;
+            box-shadow: 0 14px 40px rgba(124,58,237,0.35);
         }
         .footer {
             text-align: center;
-            padding: 40px 0;
-            color: #475569;
-            font-size: 13px;
+            padding: 32px 0 10px;
+            color: #64748b;
+            font-size: 12px;
         }
         .footer-links {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .footer-link {
-            color: #64748b;
+            color: #94a3b8;
             text-decoration: none;
             margin: 0 10px;
         }
         .accent-text {
-            color: #67e8f9;
-            font-weight: 600;
+            color: #38bdf8;
+            font-weight: 800;
         }
         @media only screen and (max-width: 620px) {
             .wrapper { padding: 24px 10px 32px !important; }
-            .container { border-radius: 24px !important; }
-            .header { padding: 30px 0 24px !important; }
-            .content { padding: 0 20px 32px !important; }
-            h1 { font-size: 32px !important; line-height: 1.1 !important; letter-spacing: -1px !important; }
-            .info-card { padding: 19px !important; border-radius: 18px !important; }
+            .container { border-radius: 20px !important; }
+            .header { padding: 24px 0 18px !important; }
+            .content { padding: 0 20px 28px !important; }
+            h1 { font-size: 26px !important; }
+            .info-card { padding: 18px !important; border-radius: 16px !important; }
             .info-cell { display: block !important; width: 100% !important; text-align: left !important; }
-            .info-value { padding-top: 4px !important; padding-bottom: 12px !important; word-break: break-word !important; }
+            .info-value { padding-top: 4px !important; padding-bottom: 10px !important; word-break: break-word !important; }
             .cta-button { box-sizing: border-box !important; width: 100% !important; padding-left: 16px !important; padding-right: 16px !important; }
-            .footer-link { display: inline-block !important; margin: 5px 7px !important; }
         }
     </style>
 </head>
 <body>
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent; font-size:1px; line-height:1px; mso-hide:all;">
+      ${preheaderText}
+    </div>
     <div class="wrapper">
         <div class="container">
             <div class="header">
-                <div class="mark-wrap"><div class="mark">E</div></div>
-                <div class="logo">Exismic<span class="logo-dot">.</span></div>
+                <div class="logo-pill">
+                    <div class="logo-inner">
+                        <span class="logo-text">Exismic<span class="logo-dot">.</span></span>
+                    </div>
+                </div>
             </div>
             <div class="content">
                 ${content}
@@ -561,18 +543,18 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
     const { error } = await sendTrackedEmail('credits_purchased', email, {
       from: SENDER_PAYMENT,
       to: email,
-      subject: 'Credits added to your Exismic account',
+      subject: `+${details.credits.toLocaleString()} Credits added to your Exismic account`,
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
             <div class="status-badge">CREDITS ADDED</div>
-            <h1>Power <span class="accent-text" style="color: #00e5ff;">Refueled.</span></h1>
-            <p>Your permanent reserve has been topped up. These credits never expire and will be used whenever your daily allowance runs out.</p>
+            <h1>Power <span class="accent-text" style="color: #38bdf8;">Refueled.</span></h1>
+            <p>Your permanent credit reserve has been topped up. These credits never expire and will be used whenever your daily allowance runs out.</p>
         </div>
         
         <div class="info-card">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 48px; font-weight: 800; color: #00e5ff;">${details.credits}</div>
-                <div style="font-size: 12px; color: #64748b; letter-spacing: 2px; font-weight: 600;">PERMANENT CREDITS</div>
+            <div style="text-align: center; margin-bottom: 24px; padding: 22px 0; background: rgba(56, 189, 248, 0.08); border-radius: 18px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                <div style="font-size: 52px; font-weight: 950; color: #38bdf8; letter-spacing: -1px; line-height: 1;">+${details.credits.toLocaleString()}</div>
+                <div style="font-size: 11px; color: #94a3b8; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-top: 8px;">PERMANENT CREDITS</div>
             </div>
             <div class="info-grid">
                 <div class="info-row">
@@ -586,8 +568,8 @@ export async function sendCreditsPurchasedEmail(email: string, details: {
             </div>
         </div>
         
-        <a href="${SITE_URL}/dashboard" class="cta-button">Resume Creation</a>
-      `),
+        <a href="${SITE_URL}/dashboard" class="cta-button">Resume Creation &rarr;</a>
+      `, `Your permanent credit reserve has been topped up with +${details.credits.toLocaleString()} credits. (Invoice #${details.invoiceId})`),
     }, { idempotencyKey: `credits-purchased/${details.invoiceId}` });
     if (error) {
       console.error('Resend error:', error);
@@ -683,16 +665,9 @@ export function renderTransactionalEmail({
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; max-width:660px;">
           <tr>
             <td align="center" style="padding-bottom:20px;">
-              <div style="display:inline-block; padding:1px; border-radius:30px; background:linear-gradient(135deg, rgba(168,85,247,0.92), rgba(34,211,238,0.70), rgba(244,114,182,0.58)); box-shadow:0 0 72px rgba(124,58,237,0.34), 0 0 36px rgba(6,182,212,0.16);">
-                <div style="border-radius:29px; background:rgba(8,8,14,0.94); padding:14px 22px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="padding-right:12px;">
-                        <div style="width:42px; height:42px; border-radius:16px; background:linear-gradient(145deg,#0b0c16,#171428); border:1px solid rgba(255,255,255,0.12); color:#ffffff; text-align:center; line-height:42px; font-size:24px; font-weight:900; box-shadow:inset 0 1px 0 rgba(255,255,255,0.09);">E</div>
-                      </td>
-                      <td style="font-size:24px; line-height:1; font-weight:900; letter-spacing:-0.7px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 22px rgba(168,85,247,0.55);">Exismic<span style="color:#22d3ee;">.</span></td>
-                    </tr>
-                  </table>
+              <div style="display:inline-block; padding:1px; border-radius:22px; background:linear-gradient(135deg, rgba(168,85,247,0.8), rgba(34,211,238,0.6)); box-shadow:0 0 45px rgba(124,58,237,0.25);">
+                <div style="border-radius:21px; background:#070810; padding:12px 26px; border:1px solid rgba(255,255,255,0.12);">
+                  <div style="font-size:22px; line-height:1; font-weight:900; letter-spacing:-0.5px; text-transform:uppercase; color:#ffffff; text-shadow:0 0 20px rgba(168,85,247,0.5);">Exismic<span style="color:#22d3ee;">.</span></div>
                 </div>
               </div>
             </td>
@@ -1244,3 +1219,72 @@ export async function sendGiftCardRejectedEmail(email: string, details: { planNa
     return false;
   }
 }
+
+export async function sendAdminGiftCardReviewEmail(details: {
+  orderId: string;
+  userEmail: string;
+  userName?: string | null;
+  userId: string;
+  giftCardType: string;
+  giftCardCode: string;
+  planName: string;
+  credits: number;
+  submittedAt?: string;
+  adminEmail?: string;
+}) {
+  try {
+    const adminEmail = details.adminEmail || 'syedyaseeralirayan@gmail.com';
+    const safeUserEmail = escapeEmailText(details.userEmail);
+    const safePlanName = escapeEmailText(details.planName);
+    const safeCode = escapeEmailText(details.giftCardCode);
+    const safeType = escapeEmailText(details.giftCardType.toUpperCase());
+    const safeOrderId = escapeEmailText(details.orderId);
+
+    const { error } = await sendTrackedEmail('admin_gift_card_review', adminEmail, {
+      from: SENDER_PAYMENT,
+      to: adminEmail,
+      subject: `[Admin Alert] New Gift Card Review Request - ${safeType} (${safePlanName})`,
+      html: renderTransactionalEmail({
+        preheader: `New gift card payment submission from ${safeUserEmail} requires review.`,
+        badge: 'Admin Action Required',
+        title: 'New <span style="background:linear-gradient(90deg,#fbbf24,#f59e0b,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fbbf24;">Gift Card Submission</span>',
+        body: `A user has submitted a gift card payment for manual verification. Please review and redeem the code below.`,
+        content: `
+          <div style="max-width:480px; margin:0 auto 20px; border-radius:24px; border:1px solid rgba(251,191,36,0.3); background:linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.04)); padding:22px; text-align:left;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:6px 0; color:#9ca3af; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Submitted By</td>
+                <td align="right" style="padding:6px 0; color:#ffffff; font-size:13px; font-weight:800;">${safeUserEmail}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); color:#9ca3af; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Plan / Package</td>
+                <td align="right" style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); color:#fbbf24; font-size:13px; font-weight:800;">${safePlanName} (${details.credits} Credits)</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); color:#9ca3af; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Brand / Type</td>
+                <td align="right" style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); color:#ffffff; font-size:13px; font-weight:800;">${safeType}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); color:#9ca3af; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Order ID</td>
+                <td align="right" style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); color:#d1d5db; font-size:12px; font-family:monospace;">#${safeOrderId.slice(-8)}</td>
+              </tr>
+            </table>
+            
+            <div style="margin-top:18px; padding:14px; border-radius:16px; background:rgba(0,0,0,0.5); border:1px solid rgba(251,191,36,0.4); text-align:center;">
+              <div style="font-size:11px; color:#fbbf24; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px;">Gift Card Code</div>
+              <div style="font-size:20px; font-weight:900; font-family:monospace; color:#ffffff; letter-spacing:2px; user-select:all;">${safeCode}</div>
+            </div>
+          </div>
+          
+          <a href="${SITE_URL}/admin" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#f59e0b,#d97706,#b45309); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(245,158,11,0.34);">Open Admin Queue</a>
+        `,
+        footerNote: "This alert was automatically generated because a user submitted a gift card code for verification.",
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('Admin gift card review email error:', err);
+    return false;
+  }
+}
+

@@ -348,8 +348,12 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                      {/* Gift Card Option */}
                      {paymentsEnabled && selectedTier && (
                        <button
-                         onClick={() => setShowGiftModal(true)}
-                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all shadow-md shadow-amber-500/5"
+                         type="button"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setShowGiftModal(true);
+                         }}
+                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all shadow-md shadow-amber-500/5 cursor-pointer relative z-20"
                        >
                          <Ticket className="w-4 h-4 text-amber-400" />
                          <span>Pay with Gift Card (Minecoins, Play, Xbox)</span>

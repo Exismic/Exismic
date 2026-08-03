@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { Settings, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VerifiedTick } from "../ui/VerifiedTick";
 import { AvatarWithFrame } from "./AvatarWithFrame";
@@ -93,8 +93,8 @@ export function UserProfile({
             
             {/* Active Status Beacon - Emerald/Cyan Pulsing Indicator */}
             <span className={cn(
-              "absolute -top-1 -right-1 border-[2.5px] border-[#07070b] rounded-full z-20 shadow-md flex items-center justify-center",
-              isCompact ? "w-2.5 h-2.5" : "w-3.5 h-3.5",
+              "absolute -top-1 -right-1 border-[2px] border-[#07070b] rounded-full z-20 shadow-md flex items-center justify-center",
+              isCompact ? "w-2.5 h-2.5" : "w-3 h-3",
               isPro 
                 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" 
                 : "bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.6)]"
@@ -104,8 +104,6 @@ export function UserProfile({
                 isPro ? "bg-emerald-400" : "bg-cyan-400"
               )} />
             </span>
-
-            {!isCompact && <VerifiedTick className="absolute -bottom-2 -right-2 z-20 shadow-lg" size="sm" />}
           </div>
 
           {/* Name & Plan Info with luxurious high-contrast typography */}
@@ -114,12 +112,19 @@ export function UserProfile({
               <div className="text-[13.5px] font-black font-sans text-zinc-100 tracking-wide leading-tight truncate group-hover:text-white transition-colors duration-300 drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.6)]">
                 <PremiumName name={displayName} isPro={isPro} gradientId={gradientId} />
               </div>
-              <div className="flex items-center">
+
+              {/* Subtext Title - Ultra Premium Single Line Tag for Pro Users */}
+              <div className="flex items-center min-w-0">
                 {isPro ? (
-                  <ProBadge size="sm" className="shrink-0" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 border border-purple-400/35 shadow-[0_0_12px_rgba(168,85,247,0.25)] whitespace-nowrap shrink-0">
+                    <Crown size={9.5} className="text-purple-300 fill-purple-300/40 shrink-0" />
+                    <span className="text-[8.5px] font-black tracking-[0.15em] uppercase text-purple-200 whitespace-nowrap drop-shadow-[0_0_6px_rgba(168,85,247,0.4)]">
+                      EXISMIC PRO
+                    </span>
+                  </div>
                 ) : (
-                  <span className="text-[9px] font-extrabold text-zinc-500 tracking-[0.15em] leading-none uppercase select-none">
-                    {subtext}
+                  <span className="text-[9px] font-extrabold text-zinc-500 tracking-[0.15em] leading-none uppercase select-none whitespace-nowrap">
+                    EXISMIC EXPLORER
                   </span>
                 )}
               </div>
@@ -161,12 +166,14 @@ export function UserProfile({
         {/* Shine reflect on navbar trigger too! */}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1200 ease-out pointer-events-none" />
 
-        <div className="hidden md:flex flex-col items-end justify-center min-w-0 pr-1 gap-1">
+        <div className="hidden md:flex flex-col items-end justify-center min-w-0 pr-1 gap-0.5">
           <span className="text-xs font-sans tracking-wide leading-tight truncate uppercase">
             <PremiumName name={displayName.split(" ")[0]} isPro={isPro} gradientId={gradientId} className="font-extrabold text-zinc-100 group-hover:text-white transition-colors duration-300" />
           </span>
           {isPro ? (
-            <ProBadge size="sm" className="shrink-0" />
+            <span className="text-[8px] font-black tracking-wider leading-none uppercase bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_6px_rgba(168,85,247,0.4)]">
+              PRO MEMBER
+            </span>
           ) : (
             <span className="text-[8px] font-extrabold text-zinc-500 tracking-wider leading-none uppercase">
               EXPLORER

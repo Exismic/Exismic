@@ -106,6 +106,19 @@ interface SystemLog {
   createdAt: string;
 }
 
+interface ToolErrorLog {
+  id: string;
+  toolId: string;
+  toolName: string;
+  userId: string | null;
+  userEmail: string | null;
+  errorMessage: string;
+  errorStack: string | null;
+  status: string;
+  metadata: any;
+  createdAt: string;
+}
+
 interface ReferralLog {
   id: string;
   referrerId: string;
@@ -202,6 +215,18 @@ export default function AdminPage() {
   const [logTotalPages, setLogTotalPages] = useState(1);
   const [clearingLogs, setClearingLogs] = useState(false);
 
+  // Tool Errors Tab State
+  const [toolErrors, setToolErrors] = useState<ToolErrorLog[]>([]);
+  const [toolErrorPage, setToolErrorPage] = useState(1);
+  const [toolErrorTotalPages, setToolErrorTotalPages] = useState(1);
+  const [toolErrorTotal, setToolErrorTotal] = useState(0);
+  const [toolErrorSearch, setToolErrorSearch] = useState("");
+  const [toolErrorToolFilter, setToolErrorToolFilter] = useState("all");
+  const [toolErrorStatusFilter, setToolErrorStatusFilter] = useState("all");
+  const [availableTools, setAvailableTools] = useState<{ toolId: string; toolName: string }[]>([]);
+  const [selectedToolError, setSelectedToolError] = useState<ToolErrorLog | null>(null);
+  const [updatingErrorStatus, setUpdatingErrorStatus] = useState<string | null>(null);
+
   // Config Tab State
   const [configs, setConfigs] = useState<Record<string, string>>({});
   const [updatingConfigKey, setUpdatingConfigKey] = useState<string | null>(null);
@@ -248,6 +273,70 @@ export default function AdminPage() {
       setProcessingGiftId(null);
     }
   }
+
+  async function loadToolErrors(page: number, query: string, toolId: string, status: string) {
+    try {
+      const res = await fetch(`/api/admin/tool-errors?page=${page}&limit=20&search=${encodeURIComponent(query)}&toolId=${toolId}&status=${status}`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setToolErrors(data.logs);
+        setToolErrorTotal(data.total);
+        setToolErrorTotalPages(data.totalPages);
+        setToolErrorPage(data.page);
+        if (data.uniqueTools) setAvailableTools(data.uniqueTools);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const handleUpdateToolErrorStatus = async (id: string, newStatus: string) => {
+    setUpdatingErrorStatus(id);
+    try {
+      const res = await fetch("/api/admin/tool-errors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (selectedToolError?.id === id) {
+          setSelectedToolError(prev => prev ? { ...prev, status: newStatus } : null);
+        }
+        await loadToolErrors(toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingErrorStatus(null);
+    }
+  };
+
+  const handleDeleteToolError = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/tool-errors?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (selectedToolError?.id === id) setSelectedToolError(null);
+        await loadToolErrors(toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClearToolErrors = async (action: "clear_resolved" | "clear_all") => {
+    if (!confirm(action === "clear_all" ? "Are you sure you want to delete ALL tool error logs?" : "Clear all resolved error logs?")) return;
+    try {
+      const res = await fetch(`/api/admin/tool-errors?action=${action}`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await loadToolErrors(1, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Check auth and initial stats on mount
   useEffect(() => {
@@ -297,8 +386,10 @@ export default function AdminPage() {
       loadGiftCardsQueue();
     } else if (activeTab === "config") {
       loadConfigs();
+    } else if (activeTab === "tool_errors") {
+      loadToolErrors(toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter);
     }
-  }, [activeTab, userPage, userSearch, userPlanFilter, userRoleFilter, ticketPage, ticketSearch, ticketStatusFilter, filePage, referralPage, logPage, authorized]);
+  }, [activeTab, userPage, userSearch, userPlanFilter, userRoleFilter, ticketPage, ticketSearch, ticketStatusFilter, filePage, referralPage, logPage, toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter, authorized]);
 
   // Loaders
   async function loadUsers(page: number, query: string, plan: string, role: string) {
@@ -734,6 +825,7 @@ export default function AdminPage() {
               {[
                 { id: "users", label: "Users Directory", icon: Users },
                 { id: "giftcards", label: "Gift Cards Queue", icon: Ticket },
+                { id: "tool_errors", label: "Tool Error Logs", icon: AlertTriangle },
                 { id: "announcements", label: "Announcements", icon: Megaphone },
                 { id: "tickets", label: "Support Tickets", icon: Ticket },
                 { id: "activity", label: "Moderation Logs", icon: Eye },
@@ -1829,6 +1921,202 @@ export default function AdminPage() {
                   )}
                 </div>
               )}
+
+              {/* TAB: TOOL ERROR LOGS */}
+              {activeTab === "tool_errors" && (
+                <div className="space-y-6">
+                  {/* Top Control Header & Filters */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0b0c12]/60 border border-white/5 p-6 rounded-3xl backdrop-blur-md">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                        <AlertTriangle size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-white italic tracking-tight">AI Tool Error Logs</h3>
+                        <p className="text-[10px] text-zinc-500 font-semibold">Real-time runtime failures captured across client and server tool calls.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        onClick={() => loadToolErrors(toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter)}
+                        className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
+                      >
+                        <RefreshCw size={13} />
+                        Refresh
+                      </button>
+                      <button
+                        onClick={() => handleClearToolErrors("clear_resolved")}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400 hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+                      >
+                        <CheckCircle2 size={13} />
+                        Clear Resolved
+                      </button>
+                      <button
+                        onClick={() => handleClearToolErrors("clear_all")}
+                        className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs font-bold text-rose-400 hover:bg-rose-500/20 transition-all flex items-center gap-2"
+                      >
+                        <Trash2 size={13} />
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filter Toolbar */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="relative">
+                      <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <input
+                        type="text"
+                        placeholder="Search by tool, user email, error..."
+                        value={toolErrorSearch}
+                        onChange={(e) => setToolErrorSearch(e.target.value)}
+                        className="w-full bg-[#0b0c12]/60 border border-white/5 pl-10 pr-4 py-3 rounded-2xl text-xs font-bold text-white placeholder:text-zinc-600 outline-none focus:border-accent-purple/40 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <select
+                        value={toolErrorToolFilter}
+                        onChange={(e) => setToolErrorToolFilter(e.target.value)}
+                        className="w-full bg-[#0b0c12]/60 border border-white/5 px-4 py-3 rounded-2xl text-xs font-bold text-white outline-none cursor-pointer"
+                      >
+                        <option value="all" className="bg-[#0b0c12]">All Tools</option>
+                        {availableTools.map(t => (
+                          <option key={t.toolId} value={t.toolId} className="bg-[#0b0c12]">
+                            {t.toolName || t.toolId}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <select
+                        value={toolErrorStatusFilter}
+                        onChange={(e) => setToolErrorStatusFilter(e.target.value)}
+                        className="w-full bg-[#0b0c12]/60 border border-white/5 px-4 py-3 rounded-2xl text-xs font-bold text-white outline-none cursor-pointer"
+                      >
+                        <option value="all" className="bg-[#0b0c12]">All Statuses</option>
+                        <option value="unresolved" className="bg-[#0b0c12]">Unresolved</option>
+                        <option value="investigating" className="bg-[#0b0c12]">Investigating</option>
+                        <option value="resolved" className="bg-[#0b0c12]">Resolved</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Errors Table */}
+                  <div className="bg-[#0b0c12]/60 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-md">
+                    {toolErrors.length === 0 ? (
+                      <div className="p-12 text-center space-y-3">
+                        <CheckCircle2 size={36} className="text-emerald-400 mx-auto opacity-80" />
+                        <h4 className="text-sm font-black uppercase text-zinc-300">No Tool Errors Captured</h4>
+                        <p className="text-xs text-zinc-500">All tools are operating smoothly without logged runtime exceptions.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-white/[0.02] border-b border-white/5 text-[9px] font-black uppercase tracking-wider text-zinc-500">
+                            <tr>
+                              <th className="py-4 px-6">Status</th>
+                              <th className="py-4 px-6">Tool</th>
+                              <th className="py-4 px-6">User</th>
+                              <th className="py-4 px-6">Error Message</th>
+                              <th className="py-4 px-6">Timestamp</th>
+                              <th className="py-4 px-6 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5 font-medium">
+                            {toolErrors.map((log) => (
+                              <tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
+                                <td className="py-4 px-6">
+                                  <span className={cn(
+                                    "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border inline-block",
+                                    log.status === "resolved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                                    log.status === "investigating" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                                    "bg-rose-500/10 text-rose-400 border-rose-500/20 animate-pulse"
+                                  )}>
+                                    {log.status}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <span className="font-bold text-white block">{log.toolName}</span>
+                                  <span className="text-[10px] text-zinc-500 font-mono">{log.toolId}</span>
+                                </td>
+                                <td className="py-4 px-6 text-zinc-400">
+                                  {log.userEmail ? (
+                                    <span className="font-semibold text-zinc-300">{log.userEmail}</span>
+                                  ) : (
+                                    <span className="text-zinc-600 italic">Anonymous</span>
+                                  )}
+                                </td>
+                                <td className="py-4 px-6 max-w-xs truncate text-rose-300 font-mono text-[11px]">
+                                  {log.errorMessage}
+                                </td>
+                                <td className="py-4 px-6 text-zinc-500 text-[10px] whitespace-nowrap">
+                                  {new Date(log.createdAt).toLocaleString()}
+                                </td>
+                                <td className="py-4 px-6 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={() => setSelectedToolError(log)}
+                                      className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-zinc-300 hover:text-white transition-all"
+                                      title="Inspect Stack & Metadata"
+                                    >
+                                      <Eye size={13} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateToolErrorStatus(log.id, log.status === "resolved" ? "unresolved" : "resolved")}
+                                      disabled={updatingErrorStatus === log.id}
+                                      className={cn(
+                                        "p-2 rounded-xl border transition-all",
+                                        log.status === "resolved" 
+                                          ? "bg-zinc-800 border-white/5 text-zinc-400 hover:text-white"
+                                          : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
+                                      )}
+                                      title={log.status === "resolved" ? "Re-open" : "Mark as Resolved"}
+                                    >
+                                      <CheckCircle2 size={13} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteToolError(log.id)}
+                                      className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-all"
+                                      title="Delete Log Entry"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {toolErrorTotalPages > 1 && (
+                    <div className="flex items-center justify-between border border-white/5 px-6 py-4 bg-[#0b0c12]/40 rounded-3xl backdrop-blur-md">
+                      <span className="text-[10px] font-bold text-zinc-500">Page {toolErrorPage} of {toolErrorTotalPages} ({toolErrorTotal} total errors)</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setToolErrorPage(p => Math.max(p - 1, 1))}
+                          disabled={toolErrorPage === 1}
+                          className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <button
+                          onClick={() => setToolErrorPage(p => Math.min(p + 1, toolErrorTotalPages))}
+                          disabled={toolErrorPage === toolErrorTotalPages}
+                          className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1981,6 +2269,93 @@ export default function AdminPage() {
               >
                 {submittingUserEdit ? "Applying settings..." : "Save Changes"}
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Tool Error Inspector Modal */}
+      <AnimatePresence>
+        {selectedToolError && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center px-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedToolError(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative max-w-2xl w-full bg-[#0b0c12]/95 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-xl space-y-6 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-rose-400">Tool Runtime Failure Inspector</span>
+                  <h4 className="text-xl font-black text-white italic tracking-tight">{selectedToolError.toolName}</h4>
+                  <p className="text-[10px] text-zinc-500 font-mono">Tool ID: {selectedToolError.toolId} | {new Date(selectedToolError.createdAt).toLocaleString()}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedToolError(null)}
+                  className="p-2 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase">User Identity</span>
+                    <p className="text-xs font-bold text-white">{selectedToolError.userEmail || "Anonymous User"}</p>
+                    {selectedToolError.userId && <p className="text-[10px] text-zinc-600 font-mono">{selectedToolError.userId}</p>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {["unresolved", "investigating", "resolved"].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => handleUpdateToolErrorStatus(selectedToolError.id, st)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all border cursor-pointer",
+                          selectedToolError.status === st 
+                            ? "bg-accent-purple text-black border-accent-purple font-black" 
+                            : "bg-white/5 border-white/5 text-zinc-400 hover:text-white"
+                        )}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-rose-400">Error Message</label>
+                  <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs font-mono text-rose-200 select-all leading-relaxed">
+                    {selectedToolError.errorMessage}
+                  </div>
+                </div>
+
+                {selectedToolError.errorStack && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-400">Stack Trace</label>
+                    <pre className="p-4 rounded-2xl bg-[#050609] border border-white/5 text-[11px] font-mono text-zinc-400 overflow-x-auto select-all max-h-60">
+                      {selectedToolError.errorStack}
+                    </pre>
+                  </div>
+                )}
+
+                {selectedToolError.metadata && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-400">Input Payload / Metadata</label>
+                    <pre className="p-4 rounded-2xl bg-[#050609] border border-white/5 text-[11px] font-mono text-cyan-300 overflow-x-auto select-all max-h-48">
+                      {JSON.stringify(selectedToolError.metadata, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
         )}

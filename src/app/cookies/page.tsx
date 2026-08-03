@@ -307,8 +307,8 @@ export default function CookiesPage() {
               If you have any concerns regarding how we use cookies, please don&apos;t hesitate to reach out to our privacy team.
             </p>
             <div className="pt-6">
-              <a href="mailto:privacy@exismic.ai" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-                Contact Privacy Team <ArrowUpRight size={18} />
+              <a href="mailto:privacy@exismic.xyz" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                Contact Privacy Team (privacy@exismic.xyz) <ArrowUpRight size={18} />
               </a>
             </div>
           </div>

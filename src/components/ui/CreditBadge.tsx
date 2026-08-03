@@ -136,11 +136,11 @@ export function CreditBadge() {
               <CreditTokenIcon />
               
               <div className="relative z-10 flex items-center">
-                <span suppressHydrationWarning className="flex items-center gap-1.5 text-xs font-black tracking-tight text-white uppercase">
-                  <span className="animate-gradient-x bg-linear-to-r from-cyan-200 via-white to-purple-300 bg-[length:220%_100%] bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(34,211,238,0.15)]">
+                <span suppressHydrationWarning className="flex items-center gap-1.5 text-sm font-black tracking-tight text-white">
+                  <span className="font-sans font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
                     {displayedCredits.toLocaleString()}
                   </span>
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500/80">Credits</span>
+                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Credits</span>
                 </span>
               </div>
             </button>
