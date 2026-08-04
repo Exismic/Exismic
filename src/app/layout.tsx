@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
 
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AppLoader } from "@/components/providers/AppLoader";
@@ -23,7 +23,6 @@ import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
 import { constructMetadata } from "@/lib/seo";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { Wrench } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
 import { MaintenanceScreen } from "@/components/layout/MaintenanceScreen";
@@ -35,51 +34,40 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-
   // 1. Resolve request route path from middleware header
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
-
-  // 2. Do not run maintenance/suspension checks on auth or API requests
   const isAuthRoute = pathname.startsWith("/auth") || pathname.startsWith("/api") || pathname.startsWith("/maintenance");
 
-  let isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "true";
+  const supabase = await createClient();
+
+  // 2. PARALLELIZE Auth session and database config queries concurrently via Promise.all
+  const [sessionResult, maintenanceCfg, activeAnnouncements] = await Promise.all([
+    supabase.auth.getSession().catch(() => ({ data: { session: null } })),
+    !isAuthRoute
+      ? prisma.systemConfig.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null)
+      : null,
+    !isAuthRoute
+      ? prisma.announcement.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } }).catch(() => [])
+      : [],
+  ]);
+
+  const session = sessionResult?.data?.session || null;
+  let isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "true" || maintenanceCfg?.value === "true";
   let isAdmin = false;
   let isSuspended = false;
-  let activeAnnouncements: any[] = [];
 
-  if (!isAuthRoute) {
+  // 3. Fast indexed user role check if user is logged in
+  if (!isAuthRoute && session?.user?.id) {
     try {
-      const maintenanceCfg = await prisma.systemConfig.findUnique({
-        where: { key: "maintenance_mode" },
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true, status: true },
       });
-      if (maintenanceCfg?.value === "true") {
-        isMaintenance = true;
-      }
-
-      if (session?.user?.id) {
-        const dbUser = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { id: session.user.id },
-              { email: session.user.email ? { equals: session.user.email, mode: "insensitive" } : undefined },
-            ].filter(Boolean) as any,
-          },
-          select: { role: true, status: true },
-        });
-        isAdmin = dbUser?.role === "admin";
-        isSuspended = dbUser?.status === "suspended";
-      }
-
-      // Fetch active site announcements
-      activeAnnouncements = await prisma.announcement.findMany({
-        where: { active: true },
-        orderBy: { createdAt: "desc" },
-      });
+      isAdmin = dbUser?.role === "admin";
+      isSuspended = dbUser?.status === "suspended";
     } catch (dbError) {
-      console.error("[MAINTENANCE_CHECK_ERROR]", dbError);
+      console.error("[USER_ROLE_CHECK_ERROR]", dbError);
     }
   }
 
