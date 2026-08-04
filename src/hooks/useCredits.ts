@@ -460,6 +460,7 @@ export function useCredits() {
     notification,
     toast: showNotification,
     refreshCredits,
+    updateState,
     countdown
   };
 }

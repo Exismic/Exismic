@@ -83,6 +83,7 @@ export default function ShopPage() {
     todayClaim,
     dailyStreak,
     refreshCredits,
+    updateState,
     toast,
   } = useCredits();
   const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
@@ -193,9 +194,23 @@ export default function ShopPage() {
       // Set result early so the opening animation knows what's coming
       setClaimResult(result);
       
-      // Build suspense! Legendary rewards take longer to open with intense animations
-      const suspenseTime = result.rarity === "legendary" ? 3000 : result.rarity === "epic" ? 1800 : 1000;
-      await new Promise((resolve) => setTimeout(resolve, suspenseTime));
+      // INSTANT OPTIMISTIC UPDATE: Update credits state immediately in UI without waiting for network re-fetch
+      if (data.credits) {
+        updateState({
+          dailyCredits: data.credits.dailyCredits,
+          bonusCredits: data.credits.bonusCredits,
+          lifetimeCredits: data.credits.lifetimeCredits,
+          todayClaim: result,
+        });
+      } else {
+        updateState({
+          bonusCredits: bonusCredits + result.amount,
+          todayClaim: result,
+        });
+      }
+
+      // Snappy reveal animation (150ms instead of 1000-3000ms delay)
+      await new Promise((resolve) => setTimeout(resolve, 150));
       
       setClaimStage("revealed");
       setClaimLocked(true);
