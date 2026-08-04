@@ -13,8 +13,12 @@ interface MetadataProps {
 }
 
 function resolveSiteUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || "https://www.exismic.xyz";
-  const withProtocol = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.NODE_ENV === "production" && configured?.includes("localhost")) {
+    return "https://www.exismic.xyz";
+  }
+  const rawUrl = configured || process.env.VERCEL_PROJECT_PRODUCTION_URL || "https://www.exismic.xyz";
+  const withProtocol = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
   return withProtocol.trim().replace(/\/+$/, "");
 }
 
