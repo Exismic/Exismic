@@ -559,34 +559,53 @@ export default function AccountSettings() {
 
   return (
     <div suppressHydrationWarning className="min-h-screen bg-[#030303] text-white selection:bg-purple-500/30 overflow-x-hidden">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.05)_0%,transparent_70%)]" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02]" />
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-[radial-gradient(ellipse_at_top,rgba(147,51,234,0.15)_0%,rgba(59,130,246,0.08)_40%,transparent_70%)] blur-[100px]" />
+        <div className="absolute top-1/3 -left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-10 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.025]" />
       </div>
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-24">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10 lg:mb-16">
-           <Link href="/" className="group flex min-h-11 items-center gap-3 text-zinc-500 hover:text-white transition-all">
-              <div className="w-10 h-10 rounded-2xl glass-dark border border-white/5 flex items-center justify-center group-hover:border-white/20 transition-all">
-                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10 lg:mb-14">
+           <Link href="/" className="group flex min-h-11 items-center gap-3 text-zinc-400 hover:text-white transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:border-purple-500/40 group-hover:bg-purple-500/10 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all">
+                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform text-zinc-300 group-hover:text-purple-400" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.4em]">Exit Terminal</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] group-hover:tracking-[0.4em] transition-all">Exit Terminal</span>
            </Link>
            <div className="flex items-center gap-4">
-              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="min-h-11 px-6 py-2.5 rounded-full glass-dark border border-white/5 text-zinc-500 font-black uppercase tracking-widest text-[9px] hover:text-red-500 hover:border-red-500/20 transition-all">Sign Out</button>
+              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="min-h-11 px-6 py-2.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest text-[9px] hover:bg-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all cursor-pointer">Sign Out</button>
            </div>
         </div>
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-10 2xl:gap-12">
           <div className="space-y-6 xl:col-span-3 xl:space-y-8">
              <div className="space-y-2">
-                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Settings</h2>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Account Infrastructure</p>
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white drop-shadow-sm">Settings</h2>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400/80">Account Infrastructure</p>
              </div>
-             <nav className="flex gap-2 overflow-x-auto pb-2 xl:block xl:space-y-2 xl:overflow-visible xl:pb-0">
+             <nav className="flex gap-2 overflow-x-auto pb-2 xl:block xl:space-y-2.5 xl:overflow-visible xl:pb-0">
                 {navigation.map((item) => (
-                   <button key={item.id} onClick={() => setActiveTab(item.id as TabType)} className={cn("group flex min-h-12 shrink-0 items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300 xl:w-full xl:gap-4 xl:px-6 xl:py-4", activeTab === item.id ? "bg-white/[0.05] border border-white/10 text-white shadow-2xl" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02] border border-transparent")}>
-                     <item.icon size={18} className={cn("transition-all", activeTab === item.id ? "text-accent-purple" : "group-hover:scale-110")} />
-                     <span className="font-black uppercase tracking-widest text-[10px]">{item.label}</span>
-                     {activeTab === item.id && <motion.div layoutId="nav-glow" className="ml-auto w-1 h-1 rounded-full bg-accent-purple shadow-[0_0_10px_#7c3aed]" />}
+                   <button 
+                     key={item.id} 
+                     onClick={() => setActiveTab(item.id as TabType)} 
+                     className={cn(
+                       "group relative flex min-h-13 shrink-0 items-center gap-3 rounded-2xl px-4 py-3.5 transition-all duration-300 xl:w-full xl:gap-4 xl:px-6 xl:py-4 cursor-pointer overflow-hidden", 
+                       activeTab === item.id 
+                         ? "bg-gradient-to-r from-purple-600/20 via-indigo-600/15 to-purple-900/10 border border-purple-500/30 text-white shadow-[0_0_25px_rgba(168,85,247,0.2)] backdrop-blur-xl" 
+                         : "text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent hover:border-white/10"
+                     )}
+                   >
+                     {activeTab === item.id && (
+                       <motion.div 
+                         layoutId="active-tab-accent" 
+                         className="absolute left-0 top-2 bottom-2 w-1.5 rounded-r-full bg-gradient-to-b from-purple-400 to-indigo-500 shadow-[0_0_12px_#7c3aed]" 
+                       />
+                     )}
+                     <item.icon size={18} className={cn("transition-all duration-300", activeTab === item.id ? "text-purple-400 scale-110 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "text-zinc-500 group-hover:text-zinc-300 group-hover:scale-110")} />
+                     <span className="font-black uppercase tracking-widest text-[10px] sm:text-[11px]">{item.label}</span>
+                     {activeTab === item.id && (
+                       <motion.div layoutId="nav-glow" className="ml-auto w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_10px_#a855f7] animate-pulse" />
+                     )}
                    </button>
                 ))}
              </nav>
@@ -594,24 +613,26 @@ export default function AccountSettings() {
           <div className="min-w-0 space-y-8 xl:col-span-9">
              <AnimatePresence>
                 {status && (
-                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={cn("mb-8 flex items-start justify-between gap-3 rounded-2xl border p-4 backdrop-blur-2xl sm:items-center sm:p-5", status.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
+                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={cn("mb-8 flex items-start justify-between gap-3 rounded-2xl border p-4 backdrop-blur-2xl sm:items-center sm:p-5 shadow-lg", status.type === 'success' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.15)]" : "bg-red-500/10 border-red-500/30 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.15)]")}>
                      <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-                        {status.type === 'success' ? <CheckCircle2 size={18} className="shrink-0" /> : <AlertCircle size={18} className="shrink-0" />}
+                        {status.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 text-emerald-400" /> : <AlertCircle size={18} className="shrink-0 text-red-400" />}
                         <span className="break-words text-[10px] font-black uppercase leading-5 tracking-wider sm:tracking-widest">{status.message}</span>
                      </div>
-                     <button onClick={() => setStatus(null)} aria-label="Dismiss message" className="flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-xl hover:bg-white/5"><X size={16} /></button>
+                     <button onClick={() => setStatus(null)} aria-label="Dismiss message" className="flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-xl hover:bg-white/10 transition-colors cursor-pointer"><X size={16} /></button>
                    </motion.div>
                 )}
              </AnimatePresence>
              <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }} className="space-y-8">
                 {activeTab === 'profile' && (
                    <div className="space-y-8">
-                      <section className="glass-dark border border-white/5 rounded-[2rem] md:rounded-[3rem] p-5 sm:p-8 md:p-12 relative overflow-hidden">
-                         <div className="absolute top-0 right-0 w-64 h-64 bg-accent-purple/5 blur-[80px] pointer-events-none" />
+                      <section className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3rem] border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-purple-500/[0.03] p-6 sm:p-8 md:p-12 backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.6)]">
+                         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+                         <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
+                         
                          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 relative z-10">
                              <div className="relative group/avatar flex flex-col items-center">
-                                <div className="absolute -inset-2 bg-linear-to-tr from-accent-purple to-accent-cyan rounded-full opacity-20 blur-md group-hover/avatar:opacity-40 transition-opacity duration-700" />
-                                <div onClick={() => !isUploading && fileInputRef.current?.click()} className="relative cursor-pointer group/inner shadow-4xl rounded-[26px] overflow-hidden">
+                                <div className="absolute -inset-3 bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 rounded-full opacity-30 blur-lg group-hover/avatar:opacity-60 transition-opacity duration-700 animate-pulse" />
+                                <div onClick={() => !isUploading && fileInputRef.current?.click()} className="relative cursor-pointer group/inner shadow-2xl rounded-[30px] overflow-hidden border border-white/20">
                                    <AvatarWithFrame 
                                      avatarUrl={displayAvatarUrl}
                                      displayName={name || 'User'}
@@ -619,46 +640,69 @@ export default function AccountSettings() {
                                      frameId={selectedFrame || undefined}
                                      size="xl"
                                    />
-                                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/inner:opacity-100 flex flex-col items-center justify-center transition-all duration-300 z-30"><Camera size={20} className="text-white mb-1" /><span className="text-[7px] font-black uppercase tracking-widest text-white">Change</span></div>
+                                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/inner:opacity-100 flex flex-col items-center justify-center transition-all duration-300 z-30 backdrop-blur-xs">
+                                     <Camera size={22} className="text-purple-300 mb-1 animate-bounce" />
+                                     <span className="text-[8px] font-black uppercase tracking-widest text-white">Change Avatar</span>
+                                   </div>
                                 </div>
                                 <input type="file" ref={fileInputRef} onChange={onFileChange} className="hidden" accept="image/*" />
                              </div>
-                             <div className="flex-1 w-full space-y-8">
+
+                             <div className="flex-1 w-full space-y-7">
                                <div className="space-y-2">
                                   <div className="flex flex-wrap items-center gap-3">
-                                     <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white min-w-0 break-words">
+                                     <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white min-w-0 break-words drop-shadow-md">
                                         <PremiumName name={name || 'Anonymous User'} isPro={isPro} gradientId={selectedGradient} />
                                      </h2>
-                                     <div suppressHydrationWarning className={cn("px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest", isPro ? "bg-accent-purple/10 text-accent-purple border border-accent-purple/20 shadow-[0_0_15px_rgba(168,85,247,0.3)]" : "bg-zinc-800 text-zinc-500")}>{isPro ? "Pro Member" : "Free Tier"}</div>
+                                     <div suppressHydrationWarning className={cn("px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg", isPro ? "bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-purple-300 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.2)]" : "bg-white/10 text-zinc-400 border border-white/10")}>
+                                       {isPro ? "★ Pro VIP Member" : "Free Tier Explorer"}
+                                     </div>
                                   </div>
-                                  <p className="text-sm font-medium text-zinc-500">{user.email}</p>
+                                  <p className="text-xs font-semibold text-zinc-400">{user.email}</p>
                                </div>
-                               <div className="space-y-3">
-                                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-600 ml-1">Full Name</label>
+
+                               <div className="space-y-2.5">
+                                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/80 ml-1">Full Name</label>
                                   <div className="relative group">
-                                     <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-white transition-colors" size={18} />
-                                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-white focus:bg-white/[0.05] focus:border-white/10 outline-none transition-all" />
+                                     <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-purple-400 transition-colors" size={20} />
+                                     <input 
+                                       type="text" 
+                                       value={name} 
+                                       onChange={(e) => setName(e.target.value)} 
+                                       className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-white focus:bg-black/60 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all shadow-inner" 
+                                       placeholder="Enter your full name"
+                                     />
                                   </div>
-                                </div>
-                               <div className="space-y-3">
-                                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-600 ml-1">Email Address</label>
+                               </div>
+
+                               <div className="space-y-2.5">
+                                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Email Address</label>
                                   <div className="relative">
-                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" size={18} />
-                                     <input type="text" value={user.email} readOnly className="w-full bg-white/[0.01] border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-zinc-600 cursor-not-allowed" />
+                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={20} />
+                                     <input 
+                                       type="text" 
+                                       value={user.email} 
+                                       readOnly 
+                                       className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-zinc-500 cursor-not-allowed select-none" 
+                                     />
                                   </div>
-                                </div>
-                               <button onClick={handleUpdateProfile} disabled={isUpdating || name === (user.user_metadata?.full_name || "")} className="flex min-h-12 w-full sm:w-auto items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                                  {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                  Sync Profile
-                                </button>
+                               </div>
+
+                               <button 
+                                 onClick={handleUpdateProfile} 
+                                 disabled={isUpdating || name === (user.user_metadata?.full_name || "")} 
+                                 className="group relative isolate flex min-h-13 w-full sm:w-auto items-center justify-center gap-3 px-10 py-4.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
+                               >
+                                  {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} className="group-hover:scale-110 transition-transform" />}
+                                  <span>Sync Profile</span>
+                               </button>
                              </div>
-                          </div>
-                      </section>
+                         </div>
+                       </section>
 
                       {/* Pro Customization Section */}
                       {isPro && (
                       <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.025] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:p-6">
-                         <div className="absolute inset-px rounded-[2.45rem] bg-linear-to-br from-white/[0.08] via-transparent to-white/[0.03] pointer-events-none" />
                          <div className="absolute -top-24 left-10 h-56 w-56 rounded-full bg-purple-500/10 blur-[90px] pointer-events-none" />
                          <div className="absolute -bottom-28 right-10 h-60 w-60 rounded-full bg-cyan-400/8 blur-[95px] pointer-events-none" />
 
