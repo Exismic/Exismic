@@ -33,10 +33,15 @@ import {
   FileText,
   Ban,
   RefreshCw,
-  CheckCircle2
+  CheckCircle2,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AnnouncementCard } from "@/components/layout/AnnouncementBanner";
+
+
+
 
 interface AdminStats {
   totalUsers: number;
@@ -202,6 +207,13 @@ export default function AdminPage() {
   });
   const [creatingAnnouncement, setCreatingAnnouncement] = useState(false);
   const [announcementError, setAnnouncementError] = useState("");
+  const [previewAnnouncement, setPreviewAnnouncement] = useState<{
+    title: string;
+    content: string;
+    type: string;
+    active?: boolean;
+  } | null>(null);
+
 
   // Referrals Tab State
   const [referrals, setReferrals] = useState<ReferralLog[]>([]);
@@ -1616,140 +1628,213 @@ export default function AdminPage() {
 
               {/* TAB 6: BROADCAST ANNOUNCEMENTS */}
               {activeTab === "announcements" && (
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  {/* Create Announcement Form */}
-                  <div className="lg:col-span-2 p-8 rounded-[2.5rem] bg-[#0b0c12]/60 border border-white/5 backdrop-blur-md space-y-6 max-h-fit">
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-accent-purple">Broadcast Banners</span>
-                      <h3 className="text-xl font-black text-white uppercase italic tracking-tight">Create Alert</h3>
-                    </div>
-
-                    <form onSubmit={handleCreateAnnouncement} className="space-y-4">
-                      {announcementError && (
-                        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold flex items-center gap-2">
-                          <AlertTriangle size={14} /> {announcementError}
-                        </div>
-                      )}
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-zinc-500">Alert Title</label>
-                        <input
-                          type="text"
-                          placeholder="E.G. NEW SYSTEM UPGRADE"
-                          value={newAnnouncement.title}
-                          onChange={(e) => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))}
-                          required
-                          className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 outline-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-zinc-500">Alert Message</label>
-                        <textarea
-                          placeholder="Write announcement body message here..."
-                          value={newAnnouncement.content}
-                          onChange={(e) => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
-                          required
-                          rows={4}
-                          className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-semibold rounded-xl p-4 text-white placeholder-zinc-500 outline-none resize-none leading-relaxed"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-zinc-500">Alert Banner Type</label>
-                        <select
-                          value={newAnnouncement.type}
-                          onChange={(e) => setNewAnnouncement(prev => ({ ...prev, type: e.target.value }))}
-                          className="w-full bg-white/[0.02] border border-white/5 text-xs font-bold rounded-xl px-4 py-3.5 text-white outline-none cursor-pointer"
-                        >
-                          <option value="info" className="bg-[#0b0c12]">Information (Purple Glow)</option>
-                          <option value="warning" className="bg-[#0b0c12]">Warning Alert (Amber Glow)</option>
-                          <option value="success" className="bg-[#0b0c12]">Success Notice (Emerald Glow)</option>
-                        </select>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={creatingAnnouncement}
-                        className="w-full py-4 rounded-xl bg-accent-purple text-black text-xs font-black uppercase tracking-wider hover:bg-purple-400 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                <div className="space-y-6">
+                  {/* Floating Test Banner Overlay */}
+                  <AnimatePresence>
+                    {previewAnnouncement && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -30, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        className="fixed top-16 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%_-2rem)] max-w-4xl space-y-2 pointer-events-auto"
                       >
-                        {creatingAnnouncement ? (
-                          <>
-                            <Loader2 size={13} className="animate-spin" /> Publishing...
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={13} /> Publish Announcement
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  </div>
+                        <div className="flex items-center justify-between px-4 py-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white rounded-t-2xl text-[10px] font-black uppercase tracking-widest shadow-lg border border-purple-400/30">
+                          <span className="flex items-center gap-2">
+                            <Sparkles size={12} className="animate-pulse text-amber-300" /> 
+                            Live Platform Announcement Preview Mode
+                          </span>
+                          <button 
+                            onClick={() => setPreviewAnnouncement(null)}
+                            className="hover:bg-white/20 px-2 py-0.5 rounded-lg transition text-[9px] font-bold"
+                          >
+                            Close Preview ✕
+                          </button>
+                        </div>
 
-                  {/* Announcements List */}
-                  <div className="lg:col-span-3 space-y-4">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Broadcast History</h3>
-                      <p className="text-xs text-zinc-500">Manage all announcements displayed to platform users.</p>
+                        <AnnouncementCard
+                          announcement={previewAnnouncement}
+                          onDismiss={() => setPreviewAnnouncement(null)}
+                          isPreview={true}
+                          className="rounded-t-none border-t-0 shadow-[0_25px_60px_rgba(0,0,0,0.85)]"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    {/* Create Announcement Form */}
+                    <div className="lg:col-span-2 p-8 rounded-[2.5rem] bg-[#0b0c12]/60 border border-white/5 backdrop-blur-md space-y-6 max-h-fit">
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-accent-purple">Broadcast Banners</span>
+                        <h3 className="text-xl font-black text-white uppercase italic tracking-tight">Create Alert</h3>
+                      </div>
+
+                      <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+                        {announcementError && (
+                          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold flex items-center gap-2">
+                            <AlertTriangle size={14} /> {announcementError}
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Alert Title</label>
+                          <input
+                            type="text"
+                            placeholder="E.G. NEW SYSTEM UPGRADE"
+                            value={newAnnouncement.title}
+                            onChange={(e) => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))}
+                            required
+                            className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 outline-none"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Alert Message</label>
+                          <textarea
+                            placeholder="Write announcement body message here..."
+                            value={newAnnouncement.content}
+                            onChange={(e) => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
+                            required
+                            rows={4}
+                            className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-xs font-semibold rounded-xl p-4 text-white placeholder-zinc-500 outline-none resize-none leading-relaxed"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Alert Banner Type</label>
+                          <select
+                            value={newAnnouncement.type}
+                            onChange={(e) => setNewAnnouncement(prev => ({ ...prev, type: e.target.value }))}
+                            className="w-full bg-white/[0.02] border border-white/5 text-xs font-bold rounded-xl px-4 py-3.5 text-white outline-none cursor-pointer"
+                          >
+                            <option value="info" className="bg-[#0b0c12]">Information (Purple Glow)</option>
+                            <option value="warning" className="bg-[#0b0c12]">Warning Alert (Amber Glow)</option>
+                            <option value="success" className="bg-[#0b0c12]">Success Notice (Emerald Glow)</option>
+                          </select>
+                        </div>
+
+                        {/* LIVE PREVIEW BOX */}
+                        <div className="space-y-2 pt-2 border-t border-white/5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                              <Eye size={12} /> Live Preview
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewAnnouncement({
+                                title: newAnnouncement.title || "E.G. NEW SYSTEM UPGRADE",
+                                content: newAnnouncement.content || "Write announcement body message above to preview...",
+                                type: newAnnouncement.type,
+                              })}
+                              className="text-[9px] font-black uppercase tracking-wider text-accent-purple hover:underline flex items-center gap-1 bg-purple-500/10 border border-purple-500/20 px-2.5 py-1 rounded-lg transition hover:bg-purple-500/20"
+                            >
+                              <Play size={10} /> Test Overlay
+                            </button>
+                          </div>
+
+                          <AnnouncementCard
+                            announcement={{
+                              title: newAnnouncement.title || "E.G. NEW SYSTEM UPGRADE",
+                              content: newAnnouncement.content || "Your announcement body text will render here live as you type.",
+                              type: newAnnouncement.type,
+                            }}
+                            isPreview={true}
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={creatingAnnouncement}
+                          className="w-full py-4 rounded-xl bg-accent-purple text-black text-xs font-black uppercase tracking-wider hover:bg-purple-400 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {creatingAnnouncement ? (
+                            <>
+                              <Loader2 size={13} className="animate-spin" /> Publishing...
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={13} /> Publish Announcement
+                            </>
+                          )}
+                        </button>
+                      </form>
                     </div>
 
-                    <div className="border border-white/5 bg-[#0b0c12]/40 rounded-[2rem] overflow-hidden backdrop-blur-md">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="border-b border-white/5 bg-white/[0.01]">
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Alert</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Type</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Status</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Delete</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-white/5">
-                            {announcements.length === 0 ? (
-                              <tr>
-                                <td colSpan={4} className="text-center py-12 text-zinc-500 text-xs font-bold">No announcements published.</td>
+                    {/* Announcements List */}
+                    <div className="lg:col-span-3 space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Broadcast History</h3>
+                        <p className="text-xs text-zinc-500">Manage all announcements displayed to platform users.</p>
+                      </div>
+
+                      <div className="border border-white/5 bg-[#0b0c12]/40 rounded-[2rem] overflow-hidden backdrop-blur-md">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="border-b border-white/5 bg-white/[0.01]">
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Alert</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Type</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Status</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Actions</th>
                               </tr>
-                            ) : (
-                              announcements.map((a) => (
-                                <tr key={a.id} className="hover:bg-white/[0.01] transition-colors">
-                                  <td className="px-6 py-4 flex flex-col gap-1 max-w-[250px]">
-                                    <span className="text-xs font-black uppercase tracking-wider text-white leading-tight">{a.title}</span>
-                                    <span className="text-[10px] text-zinc-400 font-semibold leading-relaxed line-clamp-2">{a.content}</span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className={cn(
-                                      "inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
-                                      a.type === "info" && "bg-purple-500/10 border border-purple-500/20 text-purple-400",
-                                      a.type === "warning" && "bg-amber-500/10 border border-amber-500/20 text-amber-400",
-                                      a.type === "success" && "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                                    )}>{a.type}</span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <button
-                                      onClick={() => handleToggleAnnouncement(a.id, !a.active)}
-                                      className={cn(
-                                        "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border active:scale-95 transition-all",
-                                        a.active
-                                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black"
-                                          : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
-                                      )}
-                                    >
-                                      {a.active ? "Active" : "Inactive"}
-                                    </button>
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    <button
-                                      onClick={() => handleDeleteAnnouncement(a.id)}
-                                      className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all active:scale-95"
-                                    >
-                                      <Trash2 size={12} />
-                                    </button>
-                                  </td>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {announcements.length === 0 ? (
+                                <tr>
+                                  <td colSpan={4} className="text-center py-12 text-zinc-500 text-xs font-bold">No announcements published.</td>
                                 </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
+                              ) : (
+                                announcements.map((a) => (
+                                  <tr key={a.id} className="hover:bg-white/[0.01] transition-colors">
+                                    <td className="px-6 py-4 flex flex-col gap-1 max-w-[250px]">
+                                      <span className="text-xs font-black uppercase tracking-wider text-white leading-tight">{a.title}</span>
+                                      <span className="text-[10px] text-zinc-400 font-semibold leading-relaxed line-clamp-2">{a.content}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <span className={cn(
+                                        "inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
+                                        a.type === "info" && "bg-purple-500/10 border border-purple-500/20 text-purple-400",
+                                        a.type === "warning" && "bg-amber-500/10 border border-amber-500/20 text-amber-400",
+                                        a.type === "success" && "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                                      )}>{a.type}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <button
+                                        onClick={() => handleToggleAnnouncement(a.id, !a.active)}
+                                        className={cn(
+                                          "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border active:scale-95 transition-all",
+                                          a.active
+                                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black"
+                                            : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
+                                        )}
+                                      >
+                                        {a.active ? "Active" : "Inactive"}
+                                      </button>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <button
+                                          onClick={() => setPreviewAnnouncement(a)}
+                                          title="Preview Announcement"
+                                          className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500 hover:text-black transition-all active:scale-95 flex items-center gap-1 text-[10px] font-bold"
+                                        >
+                                          <Eye size={12} />
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteAnnouncement(a.id)}
+                                          title="Delete Announcement"
+                                          className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all active:scale-95"
+                                        >
+                                          <Trash2 size={12} />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   </div>

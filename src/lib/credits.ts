@@ -4,23 +4,29 @@ import { Prisma } from "@prisma/client";
 
 function getMostRecentResetTimestamp(): Date {
   const now = new Date();
-  const istOffsetMs = 5.5 * 60 * 60 * 1000;
-  const nowInIst = new Date(now.getTime() + istOffsetMs);
-  const currentIstMidnightUtc =
-    Date.UTC(
-      nowInIst.getUTCFullYear(),
-      nowInIst.getUTCMonth(),
-      nowInIst.getUTCDate(),
-    ) - istOffsetMs;
-  return new Date(currentIstMidnightUtc);
+  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const nowIst = new Date(istString);
+  if (nowIst.getHours() < 12) {
+    nowIst.setDate(nowIst.getDate() - 1);
+  }
+  nowIst.setHours(12, 0, 0, 0);
+  return nowIst;
 }
 
 export function getTodayInIndia() {
-  const nowInIst = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  const now = new Date();
+  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const nowIst = new Date(istString);
+
+  // Daily giftbox reward resets at 12:00 PM IST (noon)
+  if (nowIst.getHours() < 12) {
+    nowIst.setDate(nowIst.getDate() - 1);
+  }
+
   return new Date(Date.UTC(
-    nowInIst.getUTCFullYear(),
-    nowInIst.getUTCMonth(),
-    nowInIst.getUTCDate(),
+    nowIst.getFullYear(),
+    nowIst.getMonth(),
+    nowIst.getDate(),
   ));
 }
 

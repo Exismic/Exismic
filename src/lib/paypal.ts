@@ -182,6 +182,40 @@ export async function createPayPalOrder({
   return { order, approvalUrl };
 }
 
+export async function capturePayPalOrder(orderId: string) {
+  const accessToken = await getPayPalAccessToken();
+  const response = await fetch(`${getPayPalApiBase()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    cache: "no-store",
+  });
+
+  const capture = (await response.json().catch(() => null)) as PayPalCaptureResponse | null;
+  if (!response.ok || !capture?.id) {
+    console.error("[PayPal] Capture failed", capture);
+    throw new Error("Could not capture PayPal order.");
+  }
+
+  return capture;
+}
+
+export function getPayPalCapture(capture: PayPalCaptureResponse) {
+  const purchaseUnit = capture.purchase_units?.[0];
+  const paymentCapture = purchaseUnit?.payments?.captures?.[0];
+
+  return {
+    purchaseUnit,
+    paymentCapture,
+    captureId: paymentCapture?.id || capture.id,
+    status: paymentCapture?.status || capture.status,
+    currency: paymentCapture?.amount?.currency_code || purchaseUnit?.amount?.currency_code,
+    amount: Number(paymentCapture?.amount?.value || purchaseUnit?.amount?.value || 0),
+  };
+}
 
 export type PayPalSubscriptionResponse = {
   id: string;
@@ -211,7 +245,7 @@ async function createPayPalProduct(accessToken: string) {
     },
     body: JSON.stringify({
       name: "Exismic Pro",
-      description: "Monthly Exismic Pro membership",
+      description: "Exismic Pro membership",
       type: "SERVICE",
       category: "SOFTWARE",
     }),
@@ -227,7 +261,7 @@ async function createPayPalProduct(accessToken: string) {
   return product.id;
 }
 
-async function createPayPalPlan(accessToken: string, amount: number, currency: CheckoutCurrency) {
+async function createPayPalPlan(accessToken: string, amount: number, currency: CheckoutCurrency, intervalUnit: "MONTH" | "YEAR" = "MONTH") {
   const productId = await createPayPalProduct(accessToken);
   const response = await fetch(`${getPayPalApiBase()}/v1/billing/plans`, {
     method: "POST",
@@ -238,12 +272,12 @@ async function createPayPalPlan(accessToken: string, amount: number, currency: C
     },
     body: JSON.stringify({
       product_id: productId,
-      name: `Exismic Pro ${currency} Monthly`,
-      description: "Monthly Exismic Pro membership",
+      name: `Exismic Pro ${currency} ${intervalUnit === "YEAR" ? "Yearly" : "Monthly"}`,
+      description: `${intervalUnit === "YEAR" ? "Yearly" : "Monthly"} Exismic Pro membership`,
       status: "ACTIVE",
       billing_cycles: [
         {
-          frequency: { interval_unit: "MONTH", interval_count: 1 },
+          frequency: { interval_unit: intervalUnit, interval_count: 1 },
           tenure_type: "REGULAR",
           sequence: 1,
           total_cycles: 0,
@@ -273,19 +307,19 @@ async function createPayPalPlan(accessToken: string, amount: number, currency: C
   return plan.id;
 }
 
-export async function resolvePayPalProPlanId(amount: number, currency: CheckoutCurrency) {
-  const configured = currency === "USD"
-    ? process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID
-    : process.env.PAYPAL_PRO_PLAN_ID_INR || process.env.PAYPAL_PRO_PLAN_ID;
+export async function resolvePayPalProPlanId(amount: number, currency: CheckoutCurrency, intervalUnit: "MONTH" | "YEAR" = "MONTH") {
+  const configured = intervalUnit === "YEAR"
+    ? (currency === "USD" ? process.env.PAYPAL_PRO_YEARLY_PLAN_ID_USD || process.env.PAYPAL_PRO_YEARLY_PLAN_ID : process.env.PAYPAL_PRO_YEARLY_PLAN_ID_INR || process.env.PAYPAL_PRO_YEARLY_PLAN_ID)
+    : (currency === "USD" ? process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID : process.env.PAYPAL_PRO_PLAN_ID_INR || process.env.PAYPAL_PRO_PLAN_ID);
 
   if (configured) return configured;
 
   if (getPayPalMode() === "live") {
-    throw new Error("PayPal Pro subscription plan is not configured.");
+    throw new Error(`PayPal Pro ${intervalUnit === "YEAR" ? "yearly" : "monthly"} subscription plan is not configured.`);
   }
 
   const accessToken = await getPayPalAccessToken();
-  return createPayPalPlan(accessToken, amount, currency);
+  return createPayPalPlan(accessToken, amount, currency, intervalUnit);
 }
 
 export async function createPayPalSubscription({
@@ -298,7 +332,8 @@ export async function createPayPalSubscription({
   cancelUrl: string;
 }) {
   const accessToken = await getPayPalAccessToken();
-  const planId = await resolvePayPalProPlanId(context.amount, context.currency);
+  const intervalUnit = context.tierId === "pro_yearly" ? "YEAR" : "MONTH";
+  const planId = await resolvePayPalProPlanId(context.amount, context.currency, intervalUnit);
 
   const response = await fetch(`${getPayPalApiBase()}/v1/billing/subscriptions`, {
     method: "POST",
@@ -376,39 +411,4 @@ export async function cancelPayPalSubscription(subscriptionId: string, reason = 
   }
 
   return true;
-}
-
-export async function capturePayPalOrder(orderId: string) {
-  const accessToken = await getPayPalAccessToken();
-  const response = await fetch(`${getPayPalApiBase()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-    },
-    cache: "no-store",
-  });
-
-  const capture = (await response.json().catch(() => null)) as PayPalCaptureResponse | null;
-  if (!response.ok || !capture?.id) {
-    console.error("[PayPal] Capture failed", capture);
-    throw new Error("Could not capture PayPal order.");
-  }
-
-  return capture;
-}
-
-export function getPayPalCapture(capture: PayPalCaptureResponse) {
-  const purchaseUnit = capture.purchase_units?.[0];
-  const paymentCapture = purchaseUnit?.payments?.captures?.[0];
-
-  return {
-    purchaseUnit,
-    paymentCapture,
-    captureId: paymentCapture?.id || capture.id,
-    status: paymentCapture?.status || capture.status,
-    currency: paymentCapture?.amount?.currency_code || purchaseUnit?.amount?.currency_code,
-    amount: Number(paymentCapture?.amount?.value || purchaseUnit?.amount?.value || 0),
-  };
 }

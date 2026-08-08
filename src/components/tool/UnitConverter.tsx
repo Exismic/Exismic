@@ -126,34 +126,46 @@ export function UnitConverter() {
     setFromValue(result);
   };
 
-  const UnitSelect = ({ value, onChange, units }: { value: string; onChange: (value: string) => void; units: Unit[]; label: string }) => {
+  const UnitSelect = ({ value, onChange, units }: { value: string; onChange: (value: string) => void; units: Unit[]; label?: string }) => {
     const [open, setOpen] = useState(false);
     const active = units.find((unit) => unit.value === value);
+
     return (
-      <div className="relative flex-1">
+      <div className="relative flex-1 z-30">
         <button 
           type="button"
           onClick={() => setOpen(!open)}
-          className="w-full h-16 px-6 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between hover:bg-white/10 transition-all text-sm font-bold text-zinc-300 group"
+          className="w-full h-16 px-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:bg-white/10 transition-all text-sm font-bold text-zinc-100 group shadow-md active:scale-[0.99]"
         >
-          <span>{active?.label}</span>
-          <ChevronDown className={cn("text-zinc-500 transition-transform", open && "rotate-180")} size={18} />
+          <span className="truncate">{active?.label}</span>
+          <ChevronDown className={cn("text-zinc-400 transition-transform duration-300 shrink-0 ml-2", open && "rotate-180 text-cyan-400")} size={18} />
         </button>
+
         <AnimatePresence>
           {open && (
             <>
-              <div className="fixed inset-0 z-100" onClick={() => setOpen(false)} />
+              <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
               <motion.div 
-                initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                className="absolute left-0 right-0 mt-2 p-2 rounded-2xl glass-dark border border-white/10 shadow-4xl z-110 max-h-[250px] overflow-y-auto"
+                initial={{ opacity: 0, y: -8, scale: 0.96 }} 
+                animate={{ opacity: 1, y: 0, scale: 1 }} 
+                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bottom-full mb-2 left-0 right-0 p-2 rounded-2xl bg-[#0b0c16]/95 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50 max-h-[220px] overflow-y-auto backdrop-blur-2xl space-y-1"
               >
                 {units.map((u) => (
                   <button 
                     key={u.value} 
+                    type="button"
                     onClick={() => { onChange(u.value); setOpen(false); }}
-                    className={cn("w-full p-4 rounded-xl text-left text-xs font-bold transition-all", value === u.value ? "bg-accent-purple text-white" : "text-zinc-500 hover:bg-white/5 hover:text-white")}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between",
+                      value === u.value 
+                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg" 
+                        : "text-zinc-300 hover:bg-white/10 hover:text-white"
+                    )}
                   >
-                    {u.label}
+                    <span>{u.label}</span>
+                    {value === u.value && <Check size={14} className="text-white shrink-0" />}
                   </button>
                 ))}
               </motion.div>
@@ -167,8 +179,8 @@ export function UnitConverter() {
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-20">
       {/* 1. Main Conversion Card */}
-      <div className="p-8 md:p-12 rounded-[3.5rem] glass-dark border border-white/5 relative shadow-3xl overflow-hidden">
-         <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-accent-purple/50 to-accent-blue/50" />
+      <div className="p-8 md:p-12 rounded-[3.5rem] glass-dark border border-white/5 relative shadow-3xl">
+         <div className="absolute top-0 left-0 w-full h-1.5 rounded-t-[3.5rem] bg-gradient-to-r from-accent-purple/60 via-cyan-400/60 to-accent-blue/60" />
          
          <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
             {/* Convert From */}

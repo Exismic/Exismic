@@ -114,7 +114,8 @@ export function hasActiveProAccess(user: {
   if (!user) return false;
 
   const email = (user.email || '').toLowerCase();
-  if (user.role === 'admin' || email === 'syedyaseeralirayan@gmail.com') return true;
+  if (user.role === 'admin' || email === 'syedyaseeralirayan@gmail.com' || email === 'syedrayan.dev@gmail.com') return true;
+
 
   const plan = (user.plan || 'free').toLowerCase();
   const subscriptionStatus = (user.subscriptionStatus || 'none').toLowerCase();

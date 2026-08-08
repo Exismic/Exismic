@@ -279,13 +279,12 @@ export function LandingPage() {
             pro 
           />
           <ToolCard 
-            id="video-bg-remover" 
-            name="AI Video Studio" 
-            description="Remove and replace video backgrounds instantly without any manual work or green screens." 
+            id="video-trimmer" 
+            name="AI Video Trimmer" 
+            description="Precisely cut, trim, and adjust the duration of your video clips with ease." 
             category="video" 
             icon="Video" 
-            href="/tools/video/bg-remover" 
-            pro 
+            href="/tools/video/trimmer" 
           />
           <ToolCard 
             id="pdf-ocr" 

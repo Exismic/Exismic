@@ -217,9 +217,15 @@ export function ProClient() {
 
   const isIndia = market === "IN";
   const currencySymbol = isIndia ? "₹" : "$";
+  const [billingInterval] = useState<"monthly" | "yearly">("monthly");
+  const [selectedPlanId, setSelectedPlanId] = useState<"pro" | "pro_yearly">("pro");
+
+  const currentProConfig = PRICING_CONFIG.PRO_PLAN;
   const priceDisplay = isIndia
-    ? PRICING_CONFIG.PRO_PLAN.INR.toString()
-    : PRICING_CONFIG.PRO_PLAN.USD.toString();
+    ? currentProConfig.INR.toLocaleString("en-IN")
+    : currentProConfig.USD.toString();
+  const priceSuffix = "/mo";
+
   const currencyCode = isIndia ? "INR" : "USD";
   const gatewayName = isIndia ? "Razorpay" : "PayPal";
   const profileName = String((user as { fullName?: string; name?: string } | null)?.fullName || (user as { fullName?: string; name?: string } | null)?.name || authUser?.user_metadata?.full_name || "Exismic user");
@@ -234,9 +240,9 @@ export function ProClient() {
       })
     : null;
 
-  const [selectedPlanId, setSelectedPlanId] = useState<"pro" | "pro_stacker" | "pro_stacking_addon">("pro_stacker");
 
-  const handleUpgradeClick = (planId: "pro" | "pro_stacker" | "pro_stacking_addon" = "pro_stacker") => {
+  const handleUpgradeClick = (planId?: "pro" | "pro_yearly" | "pro_stacker" | "pro_stacking_addon") => {
+    const targetPlanId = planId || "pro";
     if (!paymentsEnabled) {
       setToast({ message: PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE, type: "info" });
       return;
@@ -245,7 +251,7 @@ export function ProClient() {
       router.push("/auth/login");
       return;
     }
-    setSelectedPlanId(planId);
+    setSelectedPlanId(targetPlanId as "pro" | "pro_yearly");
     setIsTermsModalOpen(true);
   };
 
@@ -470,12 +476,13 @@ export function ProClient() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4 w-full max-w-md">
+                    {/* Active Plan Selection Card */}
                     <div
                       onClick={() => handleUpgradeClick("pro")}
                       className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border-2 border-purple-500/40 bg-gradient-to-b from-purple-500/10 via-cyan-500/5 to-transparent p-6 backdrop-blur-md shadow-[0_0_35px_rgba(168,85,247,0.2)] transition-all duration-300 hover:border-purple-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.35)] hover:-translate-y-1"
                     >
                       <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-purple-500 to-cyan-400 px-3 py-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-md">
-                        Unlimited Access
+                        Monthly Access
                       </div>
                       <div>
                         <div className="flex items-center justify-between">
@@ -975,11 +982,12 @@ export function ProClient() {
         onClose={() => setIsTermsModalOpen(false)}
         onConfirm={handleUpgradeConfirm}
         type="pro"
-        price={`${currencySymbol}${priceDisplay}/mo`}
+        price={`${currencySymbol}${priceDisplay}${priceSuffix}`}
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={loading}
-        planId="pro"
+        planId={selectedPlanId}
       />
+
     </div>
   );
 }

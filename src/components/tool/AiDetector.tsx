@@ -83,7 +83,7 @@ export default function AiDetector() {
               AI Content Detector
             </h1>
             <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Detect ChatGPT, Claude, and Gemini generated text with sentence-level perplexity and burstiness analysis.
+              Detect AI-generated text with sentence-level perplexity and burstiness analysis.
             </p>
           </div>
         </div>

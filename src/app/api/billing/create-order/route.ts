@@ -21,7 +21,10 @@ function getRazorpayClient() {
   return new Razorpay({ key_id: keyId, key_secret: keySecret });
 }
 
-function getRazorpayProPlanId() {
+function getRazorpayProPlanId(isYearly = false) {
+  if (isYearly) {
+    return process.env.RAZORPAY_PRO_YEARLY_PLAN_ID_INR || process.env.RAZORPAY_PRO_YEARLY_PLAN_ID;
+  }
   return process.env.RAZORPAY_PRO_PLAN_ID_INR || process.env.RAZORPAY_PRO_PLAN_ID;
 }
 
@@ -44,7 +47,7 @@ function mockApprovalUrl(req: NextRequest, orderId: string, planId: string, cred
   const origin = req.nextUrl.origin;
   const params = new URLSearchParams({
     order: orderId,
-    type: planId === "pro" ? "pro" : "credits",
+    type: (planId === "pro" || planId === "pro_yearly") ? "pro" : "credits",
     credits: String(credits),
   });
   return `${origin}/api/billing/mock/complete?${params.toString()}`;
@@ -76,7 +79,9 @@ function productionConfigurationError(gateway: "razorpay" | "paypal" | "none", p
   if (gateway === "razorpay") {
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) return "Razorpay checkout is not configured.";
     if (!process.env.RAZORPAY_WEBHOOK_SECRET) return "Razorpay payment confirmation is not configured.";
-    if (planId === "pro" && !getRazorpayProPlanId()) return "Razorpay Pro billing is not configured.";
+    if ((planId === "pro" || planId === "pro_yearly") && !getRazorpayProPlanId(planId === "pro_yearly")) {
+      return "Razorpay Pro billing is not configured.";
+    }
   }
 
   if (gateway === "paypal") {
@@ -85,30 +90,35 @@ function productionConfigurationError(gateway: "razorpay" | "paypal" | "none", p
     if (planId === "pro" && !(process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID)) {
       return "PayPal Pro billing is not configured.";
     }
+    if (planId === "pro_yearly" && !(process.env.PAYPAL_PRO_YEARLY_PLAN_ID_USD || process.env.PAYPAL_PRO_YEARLY_PLAN_ID)) {
+      return "PayPal Pro Yearly billing is not configured.";
+    }
   }
 
   return null;
 }
+
 async function createRazorpayProSubscription(
   razorpay: ReturnType<typeof getRazorpayClient>,
   paymentOrderId: string,
   userId: string,
   price: ReturnType<typeof getPlanPrice>,
+  isYearly = false,
 ) {
-  let planId = getRazorpayProPlanId();
+  let planId = getRazorpayProPlanId(isYearly);
   const subscriptionApi = razorpay as RazorpaySubscriptionApi;
 
   if (!planId) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("Razorpay Pro subscription plan is not configured.");
+      throw new Error(`Razorpay Pro ${isYearly ? "yearly" : "monthly"} subscription plan is not configured.`);
     }
 
     const plan = await subscriptionApi.plans.create({
-      period: "monthly",
+      period: isYearly ? "yearly" : "monthly",
       interval: 1,
       item: {
-        name: "Exismic Pro Monthly",
-        description: "Monthly Exismic Pro membership",
+        name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}`,
+        description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership`,
         amount: price.amountMinor,
         currency: price.currency,
       },
@@ -121,15 +131,13 @@ async function createRazorpayProSubscription(
 
   return subscriptionApi.subscriptions.create({
     plan_id: planId,
-    // Razorpay requires a bounded cycle count. Thirty years behaves like an
-    // ongoing monthly subscription while still allowing cancellation anytime.
-    total_count: 360,
+    total_count: isYearly ? 30 : 360,
     quantity: 1,
     customer_notify: 1,
     notes: {
       billingOrderId: paymentOrderId,
       userId,
-      planId: "pro",
+      planId: isYearly ? "pro_yearly" : "pro",
       market: "IN",
     },
   });
@@ -152,7 +160,7 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       select: { plan: true, subscriptionStatus: true, planExpiresAt: true },
     });
-    const isProSubscriptionPlan = plan.id === "pro";
+    const isProSubscriptionPlan = plan.id === "pro" || plan.id === "pro_yearly";
     if (isProSubscriptionPlan && dbUser && hasActiveProAccess(dbUser)) {
       return NextResponse.json({ error: "Your Pro membership is already active." }, { status: 409 });
     }
@@ -256,7 +264,7 @@ export async function POST(req: NextRequest) {
       const razorpay = getRazorpayClient();
 
       if (isProSubscriptionPlan) {
-        const razorpaySubscription = await createRazorpayProSubscription(razorpay, paymentOrder.id, user.id, price);
+        const razorpaySubscription = await createRazorpayProSubscription(razorpay, paymentOrder.id, user.id, price, plan.id === "pro_yearly");
 
         await prisma.paymentOrder.update({
           where: { id: paymentOrder.id },

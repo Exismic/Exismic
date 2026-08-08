@@ -36,7 +36,7 @@ const AUD_STEPS = [
   { title: "Paste Video Link", desc: "Paste any YouTube link (e.g., watch page URL or shortened youtu.be link)." },
   { title: "Choose Format", desc: "Select if you want a detailed Blog Post, a Social Thread, or Study Notes." },
   { title: "Transcribe", desc: "Exismic downloads the caption track and cleans the timing details." },
-  { title: "AI Analysis", desc: "Llama-3 processes the transcript to draft your high-value summaries." }
+  { title: "AI Analysis", desc: "Exismic AI processes the transcript to draft your high-value summaries." }
 ];
 
 type OutputFormat = "summary" | "blog" | "thread" | "transcript";

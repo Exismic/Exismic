@@ -50,9 +50,9 @@ export async function POST(req: NextRequest) {
     let credits = 0;
     let planName = "Custom Package";
 
-    if (planId === "pro") {
-      credits = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS;
-      planName = "Exismic Pro Membership";
+    if (planId === "pro" || planId === "pro_yearly") {
+      credits = planId === "pro_yearly" ? PRICING_CONFIG.PRO_YEARLY_PLAN.DAILY_CREDITS : PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS;
+      planName = planId === "pro_yearly" ? "Exismic Pro Yearly Membership" : "Exismic Pro Membership";
     } else {
       const tier = PRICING_CONFIG.CREDIT_PACKAGES.find((t) => t.id === planId || t.billingPlanId === planId);
       if (tier) {
@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
         planName = tier.label;
       }
     }
+
 
     // Check recent submissions limit (prevent spamming codes)
     const recentSubmissions = await prisma.paymentOrder.count({

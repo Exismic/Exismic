@@ -44,7 +44,7 @@ interface ScanResult {
 const RUN_STEPS = [
   { title: "Upload CV", desc: "Select or drop your current PDF resume to begin the extraction process." },
   { title: "Paste Target Job", desc: "Copy and paste the exact description of the role you are targeting." },
-  { title: "Run ATS Scan", desc: "Llama 3 reads formatting, experience metrics, and keyword matches." },
+  { title: "Run ATS Scan", desc: "Exismic AI reads formatting, experience metrics, and keyword matches." },
   { title: "Review Report", desc: "Optimize your resume using custom recommendations to bypass filters." }
 ];
 

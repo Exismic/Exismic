@@ -314,7 +314,7 @@ export function PaymentTermsModal({
                 Secure Checkout
               </h2>
               <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200 shadow-sm">
-                <span>{type === "pro" ? "Exismic Pro Membership" : packName || "Credit Pack"}</span>
+                <span>{type === "pro" ? (planId === "pro_yearly" ? "Exismic Pro Yearly Membership" : "Exismic Pro Membership") : packName || "Credit Pack"}</span>
                 {price && (
                   <>
                     <span className="text-cyan-400/50">•</span>
@@ -399,9 +399,10 @@ export function PaymentTermsModal({
                           <div className="flex items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 text-xs text-zinc-300">
                             <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-[9px] font-bold text-cyan-300">1</span>
                             <span>
-                              <strong className="text-white font-bold">Automatic Renewal:</strong> Your Pro subscription automatically renews monthly. Cancel anytime in account settings.
+                              <strong className="text-white font-bold">Automatic Renewal:</strong> Your Pro subscription automatically renews {planId === "pro_yearly" ? "annually (yearly)" : "monthly"}. Cancel anytime in account settings.
                             </span>
                           </div>
+
                           <div className="flex items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 text-xs text-zinc-300">
                             <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-[9px] font-bold text-cyan-300">2</span>
                             <span>

@@ -7,15 +7,21 @@ export function normalizeCheckoutCurrency(currency?: string): CheckoutCurrency {
   return currency === "INR" ? "INR" : "USD";
 }
 
-export function getProPrice(currency: CheckoutCurrency) {
-  const amount = currency === "INR" ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+export function getProPrice(currency: CheckoutCurrency, planId?: string) {
+  const isYearly = planId === "pro_yearly";
+  const planConfig = isYearly ? PRICING_CONFIG.PRO_YEARLY_PLAN : PRICING_CONFIG.PRO_PLAN;
+  const amount = currency === "INR" ? planConfig.INR : planConfig.USD;
+  const interval = isYearly ? "yr" : "mo";
+  const displayAmount = currency === "INR" ? `₹${amount.toLocaleString("en-IN")}/${interval}` : `$${amount}/${interval}`;
   return {
     amount,
     amountMinor: Math.round(amount * 100),
-    display: currency === "INR" ? `₹${amount}` : `$${amount}`,
+    display: displayAmount,
     currency,
+    interval,
   };
 }
+
 
 export function getCreditPackage(tierId?: string) {
   return PRICING_CONFIG.CREDIT_PACKAGES.find((tier) => tier.id === tierId) || null;

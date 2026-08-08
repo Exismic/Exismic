@@ -7,6 +7,12 @@ export const PRICING_CONFIG = {
     DAILY_CREDITS: 500,
     IS_PRO_LIVE: true,
   },
+  PRO_YEARLY_PLAN: {
+    USD: 59.99,
+    INR: 4499,
+    DAILY_CREDITS: 500,
+    IS_PRO_LIVE: true,
+  },
   CREDIT_PACKAGES: [
     {
       id: 'tier_1',

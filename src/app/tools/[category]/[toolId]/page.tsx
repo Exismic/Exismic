@@ -3,6 +3,7 @@ import { ToolDetailClient } from "./ToolDetailClient";
 import { getToolMetadata, getToolJsonLd } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
+import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 
 interface PageProps {
   params: Promise<{ category: string; toolId: string }>;
@@ -48,7 +49,16 @@ export default async function ToolDetailPage({ params }: PageProps) {
         categoryId={categoryId} 
         toolId={toolId} 
       />
+      <ToolSeoSection
+        toolName={tool.name}
+        toolDescription={tool.seoDescription || tool.description}
+        categoryName={category.name}
+        categoryId={category.id}
+        toolSlug={tool.href}
+        keywords={tool.seoKeywords}
+      />
     </>
   );
 }
+
 

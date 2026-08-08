@@ -81,11 +81,12 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
       <Link href={href} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
         <div className={cn(
           "relative h-full min-h-[260px] flex flex-col p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
-          "border border-white/5",
+          "before:absolute before:inset-x-0 before:top-0 before:h-[1.5px] before:bg-gradient-to-r before:transition-all before:duration-500 z-10",
+          "after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-white/5 after:pointer-events-none z-0",
           unavailable && "opacity-85",
           isPro 
-            ? "bg-zinc-950/80 border-amber-400/40 shadow-[inset_0_1px_1px_rgba(245,158,11,0.25),0_0_25px_rgba(245,158,11,0.15)] hover:border-amber-300/80 hover:shadow-[0_0_55px_rgba(245,158,11,0.4)]" 
-            : cn("bg-zinc-950/50 hover:bg-zinc-900/60 transition-all duration-500 border", style.cardBorder),
+            ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90 border-amber-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_25px_rgba(245,158,11,0.2)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.45)] before:from-amber-500/0 before:via-amber-300/90 before:to-amber-500/0" 
+            : cn("bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90 transition-all duration-500 border", style.cardBorder, style.topBeam),
           "md:group-hover:scale-[1.03] active:scale-[0.99]"
         )}>
           {/* Shine Animation Layer */}

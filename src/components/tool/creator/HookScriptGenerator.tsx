@@ -96,7 +96,7 @@ export default function HookScriptGenerator() {
             AI Video Hook & Script Generator
           </h2>
           <p className="text-neutral-400 text-sm sm:text-base max-w-2xl">
-            Generate high-retention 15-60s video hooks, timestamped voiceover scripts, and visual directions optimized for TikTok, Shorts, and Reels using Llama 3.3 70B AI intelligence.
+            Generate high-retention 15-60s video hooks, timestamped voiceover scripts, and visual directions optimized for TikTok, Shorts, and Reels using Exismic AI intelligence.
           </p>
         </div>
       </div>

@@ -30,12 +30,16 @@ interface UpgradeModalProps {
 type Step = "input" | "processing" | "success" | "failure";
 
 export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
+  const [billingCycle] = useState<"monthly" | "yearly">("monthly");
   const [amount, setAmount] = useState("");
   const [isIndia, setIsIndia] = useState(false);
   const [step, setStep] = useState<Step>("input");
   const [error, setError] = useState("");
   const supabase = createClient();
-  const minimumAmount = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+
+  const minimumMonthly = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const minimumYearly = isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR : PRICING_CONFIG.PRO_YEARLY_PLAN.USD;
+  const minimumAmount = billingCycle === "yearly" ? minimumYearly : minimumMonthly;
   const currencyLabel = isIndia ? "INR" : "USD";
   const currencyPrefix = isIndia ? "₹" : "$";
 
@@ -54,7 +58,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
   const handleTestPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const val = parseFloat(amount);
+    const val = parseFloat(amount || minimumAmount.toString());
     
     if (isNaN(val)) {
         setError("Please enter a valid amount");
@@ -101,7 +105,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             setStep("input");
         }
     } else {
-        setError(`Minimum amount for Pro is ${currencyPrefix} ${minimumAmount}`);
+        setError(`Minimum amount for Pro ${billingCycle === "yearly" ? "Yearly" : "Monthly"} is ${currencyPrefix} ${minimumAmount}`);
         setStep("failure");
     }
   };
@@ -168,6 +172,11 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Unlock <span className="text-accent-purple">Pro</span></h2>
                                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Membership purchase</p>
+                            </div>
+
+                            {/* Plan Pricing Label */}
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs font-black uppercase text-center text-zinc-300">
+                              Monthly Subscription ({currencyPrefix}{minimumMonthly}/mo)
                             </div>
 
                             <form onSubmit={handleTestPayment} className="space-y-6">

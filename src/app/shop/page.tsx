@@ -30,6 +30,7 @@ import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
 import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
+import { DailyRewardLootBox } from "@/components/reward/DailyRewardLootBox";
 
 const rarityRows = [
   { name: "Common", amount: "10", chance: "Base", color: "text-zinc-300", dot: "bg-zinc-300", aura: "from-zinc-300/25 to-white/5" },
@@ -405,237 +406,17 @@ export default function ShopPage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-[2.25rem] border border-white/[0.14] bg-[#07080f]/98 p-5 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_60px_rgba(34,211,238,0.1)] backdrop-blur-2xl sm:p-7"
+            className="relative"
           >
-            {/* Background Grid & Ambient Glow */}
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(34,211,238,0.12),rgba(15,23,42,0))]" />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400" />
-
-            <div className="relative z-10">
-              <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">Free daily shop reward</p>
-                    {Boolean(dailyStreak) && dailyStreak > 0 ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
-                        <Flame size={12} className="text-amber-400 animate-pulse fill-amber-400/30" />
-                        {dailyStreak} Day Streak (+{Math.min(dailyStreak - 1, 7) * 5}% Boost)
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700/50 bg-zinc-800/40 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-zinc-400">
-                        <Flame size={12} className="text-zinc-500" />
-                        0 Day Streak (+0% Boost)
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">Open today&apos;s reward</h2>
-                </div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/30 bg-gradient-to-b from-cyan-400/20 to-cyan-500/5 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.25)]">
-                  <Gift size={26} />
-                </div>
-              </div>
-
-              <div className="relative mt-5 overflow-hidden rounded-[2rem] border border-white/[0.12] bg-[#04050a]/90 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
-                <motion.div
-                  aria-hidden="true"
-                  animate={claimStage === "opening" ? { opacity: [0.16, 0.42, 0.16], scale: [1, 1.08, 1] } : { opacity: 0.18, scale: 1 }}
-                  transition={{ duration: 1.15, repeat: claimStage === "opening" ? Infinity : 0, ease: "easeInOut" }}
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.24),transparent_35%),radial-gradient(circle_at_70%_30%,rgba(16,185,129,0.22),transparent_36%)]"
-                />
-                <div className="relative grid gap-5 md:grid-cols-[180px_1fr] md:items-center">
-                  <div className="relative mx-auto flex h-44 w-44 items-center justify-center">
-                    <AnimatePresence>
-                      {claimStage === "revealed" && claimResult && (
-                        <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={
-                            claimResult.rarity === "legendary" && claimResult.type === "permanent" ? { scale: [0.8, 1.5, 1.2], opacity: [0, 1, 1], rotate: 360 } :
-                            claimResult.rarity === "legendary" ? { scale: [0.8, 1.3, 1.1], opacity: [0, 1, 1], rotate: 180 } :
-                            claimResult.rarity === "epic" ? { scale: [0.8, 1.25, 1.15], opacity: [0, 1, 1] } :
-                            { scale: 1.25, opacity: 1 }
-                          }
-                          transition={
-                            claimResult.rarity === "legendary" && claimResult.type === "permanent" ? { duration: 4, repeat: Infinity, ease: "linear" } :
-                            claimResult.rarity === "legendary" ? { duration: 6, repeat: Infinity, ease: "linear" } :
-                            claimResult.rarity === "epic" ? { duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" } :
-                            { duration: 0.6, ease: "easeOut" }
-                          }
-                          className={cn(
-                            "absolute inset-4 rounded-[2rem] bg-gradient-to-br opacity-90 blur-[35px]",
-                            getRewardVisual(claimResult.rarity).aura
-                          )}
-                        />
-                      )}
-                    </AnimatePresence>
-
-                    {claimStage === "opening" && (
-                      <motion.div
-                        animate={
-                          claimResult?.rarity === "legendary" 
-                            ? { scale: [1, 1.8, 2.5], opacity: [0, 0.9, 0] } 
-                            : claimResult?.rarity === "epic" 
-                            ? { scale: [1, 1.5, 2], opacity: [0, 0.7, 0] } 
-                            : { scale: [1, 1.4, 1.8], opacity: [0, 0.6, 0] }
-                        }
-                        transition={{ 
-                          duration: claimResult?.rarity === "legendary" ? 0.4 : claimResult?.rarity === "epic" ? 0.8 : 1.2, 
-                          repeat: Infinity, 
-                          ease: "easeOut" 
-                        }}
-                        className={cn(
-                          "absolute inset-4 rounded-full blur-xl",
-                          claimResult?.rarity === "legendary" ? "bg-amber-400" : claimResult?.rarity === "epic" ? "bg-cyan-400" : "bg-emerald-400"
-                        )}
-                      />
-                    )}
-                    <motion.div
-                      animate={claimStage === "opening" ? { rotate: 360 } : { rotate: 0 }}
-                      transition={{ 
-                        duration: claimStage === "opening" && claimResult?.rarity === "legendary" ? 0.5 : claimStage === "opening" ? 3 : 0, 
-                        repeat: claimStage === "opening" ? Infinity : 0, 
-                        ease: "linear" 
-                      }}
-                      className={cn(
-                        "absolute inset-0 rounded-[2.5rem] opacity-90 blur-lg",
-                        claimResult?.rarity === "legendary" && claimStage === "opening" ? "bg-[conic-gradient(from_0deg,transparent,#fcd34d,#f59e0b,#fff,#f59e0b,transparent)]" :
-                        "bg-[conic-gradient(from_0deg,transparent,#22d3ee,#10b981,#fff,#22d3ee,transparent)]"
-                      )}
-                    />
-                    <motion.div
-                      animate={
-                        claimStage === "opening" && claimResult?.rarity === "legendary" ? { scale: [1, 1.15, 1], rotate: [0, -4, 4, -4, 4, 0] } : 
-                        claimStage === "opening" && claimResult?.rarity === "epic" ? { scale: [1, 1.1, 1], rotate: [0, -2, 2, 0] } : 
-                        claimStage === "opening" ? { scale: [1, 1.05, 1] } : 
-                        claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? { scale: [0.8, 1.15, 1], y: [0, -10, 0], rotate: [0, -2, 2, -2, 2, 0] } :
-                        claimStage === "revealed" && claimResult?.rarity === "legendary" ? { scale: [0.8, 1.15, 1], y: [0, -5, 0] } :
-                        claimStage === "revealed" ? { scale: [0.8, 1.15, 1] } : { scale: 1 }
-                      }
-                      transition={
-                        claimStage === "opening" && claimResult?.rarity === "legendary" ? { duration: 0.3, repeat: Infinity, ease: "linear" } : 
-                        claimStage === "opening" && claimResult?.rarity === "epic" ? { duration: 0.6, repeat: Infinity, ease: "linear" } : 
-                        claimStage === "opening" ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : 
-                        claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? { duration: 2, repeat: Infinity, repeatType: "reverse" } :
-                        claimStage === "revealed" && claimResult?.rarity === "legendary" ? { duration: 3, repeat: Infinity, repeatType: "reverse" } :
-                        { duration: 0.5, ease: "easeInOut" }
-                      }
-                      className={cn(
-                        "relative flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-[2rem] border bg-gradient-to-br from-[#121422] via-[#090b14] to-[#04050a] shadow-[0_0_45px_rgba(0,0,0,0.95)] backdrop-blur-xl",
-                        claimResult?.rarity === "legendary" && claimResult?.type === "permanent" ? "border-amber-400/60 shadow-[0_0_60px_rgba(251,191,36,0.3)]" :
-                        claimResult?.rarity === "legendary" ? "border-amber-400/40" :
-                        claimResult ? "border-cyan-400/30 shadow-[0_0_30px_rgba(34,211,238,0.2)]" : "border-white/15"
-                      )}
-                    >
-                      {claimStage === "opening" && (
-                        <div className={cn(
-                          "absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(255,255,255,0.15),transparent)] bg-[length:100%_200%] pointer-events-none",
-                          claimResult?.rarity === "legendary" ? "animate-shine-fast" : "animate-shine"
-                        )} />
-                      )}
-                      
-                      {claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "permanent" && (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                          className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent,#fcd34d,#f59e0b,#fff,#f59e0b,transparent)] opacity-30 blur-md pointer-events-none"
-                        />
-                      )}
-                      {claimStage === "revealed" && claimResult?.rarity === "legendary" && claimResult?.type === "temporary" && (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                          className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent,#fcd34d,#fff,transparent)] opacity-20 blur-md pointer-events-none"
-                        />
-                      )}
-
-                      {/* Glass effect layers */}
-                      <div className="absolute inset-x-2 top-2 h-1/3 rounded-full bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none blur-[1px]" />
-                      <div className="absolute inset-0 rounded-[2rem] shadow-[inset_0_0_30px_rgba(255,255,255,0.03)] pointer-events-none" />
-
-                      <div className={cn(
-                        "relative flex h-24 w-24 items-center justify-center rounded-[1.3rem] border bg-black/70 shadow-[inset_0_2px_20px_rgba(255,255,255,0.05)] backdrop-blur-md",
-                        claimResult?.rarity === "legendary" ? "border-amber-400/30 shadow-[0_0_25px_rgba(251,191,36,0.15)]" : "border-white/15"
-                      )}>
-                        {claimStage === "opening" ? (
-                          <Loader2 size={36} className={cn(
-                            "animate-spin", 
-                            claimResult?.rarity === "legendary" ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" : 
-                            "text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                          )} />
-                        ) : claimResult ? (
-                          <span className={cn(
-                            "text-4xl font-black italic tracking-tighter bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent pr-2",
-                            claimResult.type === "permanent" 
-                              ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_15px_rgba(244,63,94,0.6)]" 
-                              : "bg-[linear-gradient(110deg,#fff,#38bdf8,#22d3ee,#fff)] drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]"
-                          )}>
-                            +{claimResult.amount}
-                          </span>
-                        ) : (
-                          <Gift size={38} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
-                        )}
-                      </div>
-                    </motion.div>
-
-                    <AnimatePresence>
-                      {claimStage === "revealed" && claimResult && (
-                        <>
-                          {claimParticles.map((particle) => (
-                            <motion.span
-                              key={particle.id}
-                              initial={{ x: 0, y: 0, opacity: 0, scale: 0.45 }}
-                              animate={{ x: particle.x, y: particle.y, opacity: [0, 1, 0], scale: [0.45, 1, 0.2] }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.9, delay: particle.delay, ease: "easeOut" }}
-                              className={cn("absolute left-1/2 top-1/2 h-2 w-2 rounded-full", getRewardVisual(claimResult.rarity).dot)}
-                            />
-                          ))}
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  <div className="text-center md:text-left">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">
-                      <span>{claimStage === "opening" ? "Reward charging" : claimResult ? `${claimResult.rarity} reward unlocked` : "Daily bonus reward"}</span>
-                    </div>
-                    <h3 className={cn(
-                      "mt-2 text-2xl font-black uppercase tracking-tight sm:text-3xl",
-                      claimResult?.type === "permanent" 
-                        ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" 
-                        : claimResult
-                          ? "bg-[linear-gradient(110deg,#fff,#a5f3fc,#38bdf8,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]"
-                          : "text-white"
-                    )}>
-                      {claimStage === "opening" ? "Opening your reward..." : claimResult ? `+${claimResult.amount} ${claimResult.type === "permanent" ? "permanent" : claimResult.type === "temporary" ? "temporary" : ""} credits`.trim() : "Tap once. Reveal your bonus."}
-                    </h3>
-                    <p className="mt-3 text-xs font-medium leading-relaxed text-zinc-400">
-                      {claimResult
-                        ? claimResult.type === "permanent" 
-                          ? "Added to your permanent lifetime balance. These credits never expire and will always be available."
-                          : claimResult.type === "temporary"
-                            ? "Added to your temporary balance. Temporary credits expire when the daily limit resets, so use them today!"
-                            : "Claimed and added to your balance. Come back tomorrow for another chance!"
-                        : "Daily rewards have a chance to drop temporary credits that expire daily, or extremely rare permanent credits."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleClaimDailyReward}
-                disabled={claiming || claimLocked}
-                className={cn(
-                  "mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.22em] transition-all duration-200",
-                  claimLocked
-                    ? "border border-emerald-400/30 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.12)]"
-                    : "border border-white/80 bg-white text-black shadow-[0_0_35px_rgba(255,255,255,0.35)] hover:bg-zinc-100 hover:shadow-[0_0_45px_rgba(255,255,255,0.5)] hover:scale-[1.01] active:scale-[0.98]"
-                )}
-              >
-                {claiming ? <Loader2 size={18} className="animate-spin" /> : claimLocked ? <CheckCircle2 size={18} className="text-emerald-400" /> : <Gift size={18} />}
-                {claiming ? "Opening reward" : claimLocked ? `New reward in ${countdown || "..."}` : "Claim free reward"}
-              </button>
-            </div>
+            <DailyRewardLootBox
+              user={user}
+              claiming={claiming}
+              claimLocked={claimLocked}
+              dailyStreak={dailyStreak}
+              countdown={countdown}
+              claimResult={claimResult}
+              onClaim={handleClaimDailyReward}
+            />
           </motion.div>
 
           <div className="space-y-5">

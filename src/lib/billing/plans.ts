@@ -1,4 +1,4 @@
-export type BillingPlanId = "free" | "starter" | "creator" | "pro" | "ultimate";
+export type BillingPlanId = "free" | "starter" | "creator" | "pro" | "pro_yearly" | "ultimate";
 export type BillingMarket = "IN" | "GLOBAL";
 export type BillingGateway = "none" | "razorpay" | "paypal";
 
@@ -7,7 +7,7 @@ export type BillingPlan = {
   name: string;
   description: string;
   credits: number;
-  interval: "free" | "one_time" | "month";
+  interval: "free" | "one_time" | "month" | "year";
   prices: {
     IN: { amount: number; currency: "INR"; symbol: string; gateway: BillingGateway };
     GLOBAL: { amount: number; currency: "USD"; symbol: string; gateway: BillingGateway };
@@ -63,6 +63,18 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
       GLOBAL: { amount: 6.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
     features: ["Pro membership", "500 daily credits", "Priority processing", "Commercial exports"],
+  },
+  pro_yearly: {
+    id: "pro_yearly",
+    name: "Exismic Pro Yearly",
+    description: "Yearly Pro access with 28% savings and priority creative capacity.",
+    credits: 500,
+    interval: "year",
+    prices: {
+      IN: { amount: 4499, currency: "INR", symbol: "₹", gateway: "razorpay" },
+      GLOBAL: { amount: 59.99, currency: "USD", symbol: "$", gateway: "paypal" },
+    },
+    features: ["Pro membership (1 Year)", "500 daily credits", "Priority processing", "Commercial exports", "Save ~28% yearly"],
   },
   ultimate: {
     id: "ultimate",

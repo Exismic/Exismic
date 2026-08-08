@@ -13,9 +13,13 @@ type FulfillPaymentInput = {
 };
 
 function periodEndFor(planId: BillingPlanId) {
-  if (planId !== "pro") return null;
+  if (planId !== "pro" && planId !== "pro_yearly") return null;
   const next = new Date();
-  next.setMonth(next.getMonth() + 1);
+  if (planId === "pro_yearly") {
+    next.setFullYear(next.getFullYear() + 1);
+  } else {
+    next.setMonth(next.getMonth() + 1);
+  }
   return next;
 }
 
@@ -65,7 +69,7 @@ export async function recordBillingFailure({
   if (!dbUser?.email) return { recorded: true, emailSent: false };
 
   const sent = await sendPaymentFailedEmail(dbUser.email, {
-    purchaseType: order.planId === "pro" ? "pro" : "credits",
+    purchaseType: (order.planId === "pro" || order.planId === "pro_yearly") ? "pro" : "credits",
     amount: formatAmount(order.amount, order.currency),
     orderId: order.id,
     reason: safeReason,
@@ -96,8 +100,8 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
     const plan = getBillingPlan(order.planId);
     if (!plan) throw new Error("Unknown billing plan.");
 
-    const isProPlan = plan.id === "pro";
-    const currentPeriodEnd = isProPlan ? periodEnd || periodEndFor("pro") : null;
+    const isProPlan = plan.id === "pro" || plan.id === "pro_yearly";
+    const currentPeriodEnd = isProPlan ? periodEnd || periodEndFor(plan.id) : null;
     const existingMeta = order.metadata && typeof order.metadata === "object" ? order.metadata as Record<string, unknown> : {};
     const resolvedProviderPaymentId = providerPaymentId || order.providerPaymentId || `${order.gateway}_${order.id}`;
     const transactionKind = isProPlan ? "pro_subscription" : "credit_purchase";
@@ -290,7 +294,7 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
     const reference = result.transactionReference || result.order.providerPaymentId || result.order.id;
 
     if (email) {
-      const emailSent = result.plan.id === "pro"
+      const emailSent = (result.plan.id === "pro" || result.plan.id === "pro_yearly")
         ? await sendProWelcomeEmail(email, {
             invoiceId: reference,
             amount: formatAmount(result.order.amount, result.order.currency),
@@ -313,8 +317,8 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
 
     createNotification(
       result.order.userId,
-      result.plan.id === "pro" ? "Pro membership active" : "Credits added",
-      result.plan.id === "pro"
+      (result.plan.id === "pro" || result.plan.id === "pro_yearly") ? "Pro membership active" : "Credits added",
+      (result.plan.id === "pro" || result.plan.id === "pro_yearly")
         ? "Your Exismic Pro membership is ready."
         : `${result.order.credits.toLocaleString()} permanent credits were added to your account.`,
       "success",

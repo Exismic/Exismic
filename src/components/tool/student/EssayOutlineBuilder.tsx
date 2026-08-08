@@ -12,10 +12,10 @@ import {
   Lightbulb,
   Search,
   ChevronDown,
-  Cpu,
   RefreshCw,
   SlidersHorizontal,
-  Bookmark
+  Bookmark,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -64,28 +64,28 @@ function CustomDropdown<T extends string>({
 
   return (
     <div className="relative space-y-1.5" ref={dropdownRef}>
-      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">
+      <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider">
         {label}
       </label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-3 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-amber-500/50 text-white text-xs font-semibold flex items-center justify-between transition-all shadow-inner focus:outline-none cursor-pointer"
+        className="w-full p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/50 text-white text-xs font-semibold flex items-center justify-between transition-all shadow-inner focus:outline-none cursor-pointer"
       >
-        <div className="flex items-center gap-2 truncate">
+        <div className="flex items-center gap-2.5 truncate">
           {Icon && <Icon className="w-4 h-4 text-amber-400 shrink-0" />}
           <span className="truncate">{selectedOption.label}</span>
         </div>
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0",
+            "w-4 h-4 text-zinc-400 transition-transform duration-200 shrink-0",
             isOpen && "rotate-180 text-amber-400"
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50 p-2 rounded-2xl bg-neutral-900/95 border border-amber-500/30 backdrop-blur-xl shadow-2xl space-y-1 max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-full left-0 right-0 mt-2 z-50 p-2 rounded-2xl bg-zinc-950/95 border border-amber-500/30 backdrop-blur-2xl shadow-2xl space-y-1 max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -98,13 +98,13 @@ function CustomDropdown<T extends string>({
                 "w-full text-left p-2.5 rounded-xl text-xs transition-all flex items-center justify-between cursor-pointer",
                 value === opt.value
                   ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30"
-                  : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  : "text-zinc-300 hover:bg-white/5 hover:text-white"
               )}
             >
               <div className="pr-2">
                 <div className="font-semibold">{opt.label}</div>
                 {opt.description && (
-                  <div className="text-[10px] text-neutral-400 font-normal leading-tight mt-0.5">
+                  <div className="text-[10px] text-zinc-400 font-normal leading-tight mt-0.5">
                     {opt.description}
                   </div>
                 )}
@@ -125,9 +125,7 @@ export default function EssayOutlineBuilder() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<OutlineResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [aiSource, setAiSource] = useState<"ai" | "nlp">("ai");
 
-  // Call Backend API Endpoint powered by Exismic AI Engine
   const handleGenerate = async () => {
     if (!topic.trim()) return;
     setIsGenerating(true);
@@ -153,11 +151,10 @@ export default function EssayOutlineBuilder() {
           scholarKeywords: resData.data.scholarKeywords || [],
           suggestedSources: resData.data.suggestedSources || []
         });
-        setAiSource("ai");
       } else {
         runFallbackNLP();
       }
-    } catch (err: any) {
+    } catch {
       runFallbackNLP();
     } finally {
       setIsGenerating(false);
@@ -231,7 +228,6 @@ export default function EssayOutlineBuilder() {
       scholarKeywords: [`"${coreSubject}" systematic review`, `"${cleanTopic}" ethical considerations`],
       suggestedSources: ["Journal of Academic Research (JSTOR)", "IEEE Policy Archives"]
     });
-    setAiSource("nlp");
   };
 
   const handleCopy = () => {
@@ -279,39 +275,40 @@ export default function EssayOutlineBuilder() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
+    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12 selection:bg-amber-500/30 selection:text-amber-200">
       {/* Banner Header */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-amber-950/60 via-purple-950/40 to-neutral-950 border border-amber-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
-            <GraduationCap className="w-3.5 h-3.5" /> Exismic Academic AI Suite
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800 text-[11px] font-mono text-neutral-400">
-            <Cpu className="w-3.5 h-3.5 text-amber-400" /> Engine: Exismic Deep Neural v4.2
+      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-950/40 via-zinc-950 to-indigo-950/30 border border-amber-500/20 shadow-2xl backdrop-blur-2xl space-y-3">
+        <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold uppercase tracking-widest shadow-inner">
+            <GraduationCap className="w-4 h-4 text-amber-400" />
+            <span>Academic Writing Engine</span>
           </div>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="relative z-10 text-2xl sm:text-4xl font-black text-white tracking-tight uppercase bg-gradient-to-r from-white via-amber-100 to-zinc-400 bg-clip-text text-transparent">
           AI Essay & Thesis Outline Builder
         </h1>
-        <p className="text-neutral-300 text-sm sm:text-base max-w-2xl leading-relaxed">
-          Generate structured paragraph-by-paragraph essay outlines, customized thesis statement options, topic sentences, and Google Scholar search queries powered by Exismic AI Engine.
+        <p className="relative z-10 text-zinc-400 text-sm sm:text-base max-w-2xl leading-relaxed font-medium">
+          Generate structured paragraph-by-paragraph essay outlines, customized thesis statement options, topic sentences, and Google Scholar search queries.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Form Controls Column */}
-        <div className="lg:col-span-5 space-y-5 p-6 rounded-3xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-xl shadow-xl">
-          <div>
-            <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
-              Essay Topic or Research Prompt
+        <div className="lg:col-span-5 space-y-5 p-6 sm:p-7 rounded-3xl bg-zinc-950/60 border border-white/10 backdrop-blur-xl shadow-xl">
+          <div className="space-y-2">
+            <label className="block text-xs font-black uppercase tracking-wider text-amber-400">
+              Essay Topic or Research Prompt *
             </label>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g. The ethical impact of artificial intelligence in higher education..."
               rows={4}
-              className="w-full p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-amber-500 resize-none leading-relaxed transition-all shadow-inner"
+              className="w-full p-4 rounded-2xl bg-black/60 border border-white/10 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 resize-none leading-relaxed transition-all font-medium"
             />
           </div>
 
@@ -347,24 +344,24 @@ export default function EssayOutlineBuilder() {
           <button
             onClick={handleGenerate}
             disabled={!topic.trim() || isGenerating}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-extrabold text-xs tracking-widest uppercase shadow-xl hover:shadow-amber-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs tracking-widest uppercase shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2.5 cursor-pointer group"
           >
             {isGenerating ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <RefreshCw className="w-4.5 h-4.5 animate-spin text-white" />
                 <span>Building Academic Outline...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4.5 h-4.5 group-hover:scale-110 transition-transform text-amber-300" />
                 <span>Generate Essay Outline</span>
               </>
             )}
           </button>
 
           {/* Example Prompts */}
-          <div className="pt-3 border-t border-neutral-800/80 space-y-2">
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
+          <div className="pt-4 border-t border-white/5 space-y-2.5">
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
               Try Example Prompts:
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -377,7 +374,7 @@ export default function EssayOutlineBuilder() {
                 <button
                   key={example}
                   onClick={() => setTopic(example)}
-                  className="px-2.5 py-1 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-300 hover:border-amber-500/50 hover:text-white text-[11px] transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white/[0.02] border border-white/5 text-zinc-300 hover:border-amber-500/40 hover:text-amber-300 text-[11px] font-medium transition-all cursor-pointer"
                 >
                   + {example}
                 </button>
@@ -387,27 +384,26 @@ export default function EssayOutlineBuilder() {
         </div>
 
         {/* Output Column */}
-        <div className="lg:col-span-7 p-6 rounded-3xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-xl shadow-xl flex flex-col min-h-[480px]">
+        <div className="lg:col-span-7 p-6 sm:p-7 pt-8 sm:pt-9 rounded-3xl bg-zinc-950/60 border border-white/10 backdrop-blur-xl shadow-xl flex flex-col min-h-[480px]">
           {result ? (
             <div className="space-y-6 flex-1">
-              <div className="flex items-center justify-between border-b border-neutral-800/80 pb-3">
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                    Exismic AI Generated Outline ({paperType.toUpperCase()})
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
+                    {paperType.toUpperCase()} OUTLINE
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold transition-all border border-neutral-700 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition-all border border-white/10 cursor-pointer"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
                     {copied ? "Copied!" : "Copy"}
                   </button>
                   <button
                     onClick={handleDownloadTxt}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-all border border-amber-500/40 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-all border border-amber-500/40 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" /> TXT
                   </button>
@@ -415,12 +411,12 @@ export default function EssayOutlineBuilder() {
               </div>
 
               {/* Thesis Selection Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-950/40 to-neutral-950 border border-amber-500/30 space-y-3 shadow-lg">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-950/30 via-black to-zinc-950 border border-amber-500/30 space-y-3 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-amber-400 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                    <Lightbulb className="w-3.5 h-3.5" /> AI Generated Thesis Options
+                  <span className="text-amber-400 font-black uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5" /> Generated Thesis Options
                   </span>
-                  <span className="text-[10px] text-neutral-400 font-mono">Select preferred angle</span>
+                  <span className="text-[10px] text-zinc-500 font-mono">Select preferred angle</span>
                 </div>
                 <div className="space-y-2">
                   {result.thesisOptions.map((th, idx) => (
@@ -428,10 +424,10 @@ export default function EssayOutlineBuilder() {
                       key={idx}
                       onClick={() => setResult({ ...result, selectedThesisIndex: idx })}
                       className={cn(
-                        "w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all cursor-pointer",
+                        "w-full text-left p-3.5 rounded-xl border text-xs leading-relaxed transition-all cursor-pointer",
                         result.selectedThesisIndex === idx
-                          ? "bg-amber-500/20 border-amber-500 text-amber-100 font-medium ring-1 ring-amber-500/40 shadow-md"
-                          : "bg-neutral-950/80 border-neutral-800 text-neutral-400 hover:border-neutral-700"
+                          ? "bg-amber-500/20 border-amber-400/80 text-amber-100 font-medium ring-1 ring-amber-500/40 shadow-md"
+                          : "bg-black/60 border-white/5 text-zinc-400 hover:border-white/10 hover:text-zinc-200"
                       )}
                     >
                       <span className="font-bold text-amber-400 mr-1.5">Option {idx + 1}:</span> "{th}"
@@ -441,16 +437,16 @@ export default function EssayOutlineBuilder() {
               </div>
 
               {/* Outline Sections List */}
-              <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1">
+              <div className="space-y-4 max-h-[380px] overflow-y-auto pr-1">
                 {result.sections.map((sec, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800/80 space-y-2.5 shadow-inner">
+                  <div key={idx} className="p-5 rounded-2xl bg-black/60 border border-white/5 space-y-2.5 shadow-inner">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-white text-sm tracking-tight">{sec.title}</h4>
+                      <h4 className="font-black text-white text-sm tracking-tight">{sec.title}</h4>
                     </div>
-                    <p className="text-xs text-amber-400/90 font-medium italic border-l-2 border-amber-500/50 pl-2.5 py-0.5">
+                    <p className="text-xs text-amber-400/90 font-medium italic border-l-2 border-amber-500/50 pl-3 py-0.5">
                       Topic Sentence: "{sec.topicSentence}"
                     </p>
-                    <ul className="space-y-1.5 text-neutral-300 text-xs list-disc pl-4 leading-relaxed">
+                    <ul className="space-y-1.5 text-zinc-300 text-xs list-disc pl-5 leading-relaxed font-medium">
                       {sec.points.map((pt, pIdx) => (
                         <li key={pIdx}>{pt}</li>
                       ))}
@@ -459,31 +455,38 @@ export default function EssayOutlineBuilder() {
                 ))}
               </div>
 
-              {/* Scholar Recommended Keywords */}
+              {/* Scholar Recommended Keywords with 1-click links */}
               {result.scholarKeywords && result.scholarKeywords.length > 0 && (
-                <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
-                  <span className="text-neutral-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                <div className="p-4 rounded-2xl bg-black/60 border border-white/5 space-y-2.5 text-xs">
+                  <span className="text-zinc-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
                     <Search className="w-3.5 h-3.5 text-amber-400" /> Recommended Google Scholar Search Queries
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {result.scholarKeywords.map((kw, i) => (
-                      <span key={i} className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-300 font-mono text-[11px]">
-                        {kw}
-                      </span>
+                      <a
+                        key={i}
+                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(kw)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 text-zinc-300 hover:text-amber-300 font-mono text-[11px] transition-all"
+                      >
+                        <span>{kw}</span>
+                        <ExternalLink className="w-3 h-3 opacity-60" />
+                      </a>
                     ))}
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-500 space-y-3">
-              <div className="w-16 h-16 rounded-3xl bg-neutral-950 border border-neutral-800 flex items-center justify-center text-neutral-700 shadow-inner">
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-zinc-500 space-y-3">
+              <div className="w-16 h-16 rounded-3xl bg-black/60 border border-white/10 flex items-center justify-center text-zinc-600 shadow-inner">
                 <BookOpen className="w-8 h-8 stroke-[1.5]" />
               </div>
               <div className="max-w-xs space-y-1">
-                <h4 className="text-sm font-bold text-neutral-300">No Outline Generated Yet</h4>
-                <p className="text-xs text-neutral-500 leading-relaxed">
-                  Enter your essay topic on the left to query Exismic AI for a structured thesis statement and paper outline.
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider">No Outline Generated Yet</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Enter your essay topic on the left to generate a structured thesis statement and paper outline.
                 </p>
               </div>
             </div>
@@ -493,3 +496,4 @@ export default function EssayOutlineBuilder() {
     </div>
   );
 }
+

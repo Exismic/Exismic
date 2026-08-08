@@ -73,17 +73,8 @@ export default async function Home() {
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto py-12">
       <JsonLd type="FAQPage" data={faqSchema} />
-      {/* 1. Main Interactive Dashboard */}
+      {/* Main Interactive Dashboard */}
       <Dashboard />
-
-      {/* 2. Global Category Explorer (Moved to bottom as discovery) */}
-      <section className="pt-8">
-         <div className="text-center space-y-4 mb-20">
-            <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">Pick a category</h2>
-            <p className="text-zinc-500 font-medium">Choose what you want to work on</p>
-         </div>
-         <CategorySection />
-      </section>
 
       {/* Atmospheric Accents */}
       <div className="fixed inset-0 -z-50 pointer-events-none">
