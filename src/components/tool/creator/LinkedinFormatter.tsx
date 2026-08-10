@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Share2,
   Copy,
@@ -110,8 +111,20 @@ export default function LinkedinFormatter() {
   const [isExpandedPreview, setIsExpandedPreview] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const templateDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(e.target as Node)) {
+        setIsTemplateDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Apply formatting to selected text in textarea
   const applyTextTransform = (transformFn: (text: string) => string) => {
@@ -348,8 +361,10 @@ export default function LinkedinFormatter() {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
       {/* Header Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-blue-950/60 via-indigo-950/40 to-neutral-950 border border-blue-500/20 shadow-2xl backdrop-blur-xl">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-blue-950/60 via-indigo-950/40 to-neutral-950 border border-blue-500/20 shadow-2xl backdrop-blur-xl z-30">
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+        </div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
@@ -363,32 +378,97 @@ export default function LinkedinFormatter() {
             </p>
           </div>
 
-          {/* Quick Template Selector */}
-          <div className="shrink-0 space-y-2">
+          {/* Quick Template Selector - Custom Premium Dropdown */}
+          <div className="shrink-0 space-y-2 relative" ref={templateDropdownRef}>
             <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
               <Wand2 className="w-3.5 h-3.5 text-blue-400" /> Hook Templates
             </label>
-            <div className="relative">
-              <select
-                value={selectedTemplate}
-                onChange={(e) => {
-                  const t = TEMPLATES.find((item) => item.title === e.target.value);
-                  if (t) {
-                    setRawText(t.text);
-                    setSelectedTemplate(t.title);
-                  }
-                }}
-                className="w-full sm:w-56 appearance-none px-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-white text-xs font-semibold focus:outline-none focus:border-blue-500 cursor-pointer pr-10"
-              >
-                <option value="" disabled>Select a Viral Hook...</option>
-                {TEMPLATES.map((tmpl) => (
-                  <option key={tmpl.title} value={tmpl.title}>
-                    [{tmpl.category}] {tmpl.title}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            
+            <button
+              type="button"
+              onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+              className={cn(
+                "w-full sm:w-64 flex items-center justify-between px-4 py-2.5 rounded-2xl bg-neutral-900/90 border transition-all duration-300 text-xs font-semibold text-white shadow-lg cursor-pointer group",
+                isTemplateDropdownOpen 
+                  ? "border-blue-500 ring-2 ring-blue-500/20 bg-neutral-900 shadow-[0_0_20px_rgba(59,130,246,0.2)]" 
+                  : "border-neutral-700/80 hover:border-blue-400/50 hover:bg-neutral-850"
+              )}
+            >
+              <span className="truncate pr-2 text-neutral-200 group-hover:text-white">
+                {selectedTemplate ? (
+                  <span className="flex items-center gap-2">
+                    <span className="text-blue-400 font-extrabold">[{TEMPLATES.find(t => t.title === selectedTemplate)?.category}]</span>
+                    <span>{selectedTemplate}</span>
+                  </span>
+                ) : (
+                  "Select a Viral Hook..."
+                )}
+              </span>
+              <ChevronDown 
+                className={cn(
+                  "w-4 h-4 text-neutral-400 transition-transform duration-300 shrink-0",
+                  isTemplateDropdownOpen && "rotate-180 text-blue-400"
+                )} 
+              />
+            </button>
+
+            <AnimatePresence>
+              {isTemplateDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[#090a10]/95 border border-blue-500/30 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(59,130,246,0.15)] p-2 z-50 space-y-1 overflow-hidden"
+                >
+                  <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-neutral-500 border-b border-white/5 flex items-center justify-between">
+                    <span>Viral Post Frameworks</span>
+                    <Sparkles className="w-3 h-3 text-blue-400" />
+                  </div>
+                  {TEMPLATES.map((tmpl) => {
+                    const isSelected = selectedTemplate === tmpl.title;
+                    return (
+                      <button
+                        key={tmpl.title}
+                        type="button"
+                        onClick={() => {
+                          setRawText(tmpl.text);
+                          setSelectedTemplate(tmpl.title);
+                          setIsTemplateDropdownOpen(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200 group cursor-pointer",
+                          isSelected
+                            ? "bg-blue-500/15 border border-blue-500/30 text-white"
+                            : "hover:bg-white/[0.06] text-neutral-300 hover:text-white border border-transparent"
+                        )}
+                      >
+                        <div className="min-w-0 flex-1 pr-2 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border",
+                              tmpl.category === "Storytelling" && "bg-amber-500/10 text-amber-300 border-amber-500/30",
+                              tmpl.category === "Guide" && "bg-blue-500/10 text-blue-300 border-blue-500/30",
+                              tmpl.category === "Opinion" && "bg-purple-500/10 text-purple-300 border-purple-500/30",
+                              tmpl.category === "Case Study" && "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+                              tmpl.category === "Resource" && "bg-cyan-500/10 text-cyan-300 border-cyan-500/30"
+                            )}>
+                              {tmpl.category}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold truncate group-hover:translate-x-0.5 transition-transform text-neutral-200 group-hover:text-white">
+                            {tmpl.title}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <Check className="w-4 h-4 text-blue-400 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

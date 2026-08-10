@@ -563,25 +563,27 @@ export function Dashboard() {
                     </div>
 
                     {/* Top Header Row */}
-                    <div className="flex items-center justify-between relative z-20">
-                      <div className="flex items-center gap-3.5">
-                        <div className="relative w-13 h-13 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-amber-400 p-[1.5px] shrink-0 shadow-[0_0_20px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-transform">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-20">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="relative w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-amber-400 p-[1.5px] shrink-0 shadow-[0_0_20px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-transform">
                           <div className="w-full h-full rounded-[calc(1rem-1.5px)] bg-[#0c0617] flex items-center justify-center">
-                            <Crown size={26} className="fill-amber-300 text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,1)] animate-pulse" />
+                            <Crown size={22} className="fill-amber-300 text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,1)] animate-pulse sm:w-6 sm:h-6" />
                           </div>
                         </div>
-                        <div>
-                          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]">EXISMIC PRO STUDIO</span>
-                          <h3 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-100 via-fuchsia-200 to-cyan-200 tracking-tight drop-shadow-[0_2px_15px_rgba(168,85,247,0.6)]">
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.25em] text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)] leading-tight">
+                            EXISMIC PRO STUDIO
+                          </span>
+                          <h3 className="text-sm sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-100 via-fuchsia-200 to-cyan-200 tracking-tight drop-shadow-[0_2px_15px_rgba(168,85,247,0.6)] leading-tight">
                             UNLOCK UNLIMITED POWER
                           </h3>
                         </div>
                       </div>
 
-                        <div className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/30 to-fuchsia-500/30 border border-purple-400/70 text-purple-100 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.4)] flex items-center gap-1.5 animate-pulse">
-                          <Crown size={10} className="text-amber-300 fill-amber-300 shrink-0" />
-                          <span>PRO PASS</span>
-                        </div>
+                      <div className="self-start sm:self-auto px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/30 to-fuchsia-500/30 border border-purple-400/70 text-purple-100 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.4)] flex items-center gap-1.5 animate-pulse">
+                        <Crown size={10} className="text-amber-300 fill-amber-300 shrink-0" />
+                        <span>PRO PASS</span>
+                      </div>
                     </div>
 
                     {/* Subtitle & Value Proposition */}

@@ -242,9 +242,9 @@ export function Navbar() {
       <header 
         className={cn(
           session 
-            ? "sticky top-0 z-[100] bg-[#030303]/60 backdrop-blur-2xl border-b border-white/5 w-full h-20 transition-all duration-500"
+            ? "relative md:sticky md:top-0 z-40 bg-[#030303]/60 backdrop-blur-2xl border-b border-white/5 w-full h-16 sm:h-20 transition-all duration-500"
             : cn(
-                "fixed top-0 inset-x-0 h-20 z-[100] transition-all duration-500 border-b",
+                "relative md:fixed md:top-0 md:inset-x-0 h-16 sm:h-20 z-40 transition-all duration-500 border-b",
                 scrolled 
                   ? "bg-[#030303]/80 backdrop-blur-2xl border-white/[0.06] shadow-[0_4px_30px_rgba(0,0,0,0.8)]" 
                   : "bg-transparent border-transparent"

@@ -71,38 +71,82 @@ export default function SvgOptimizer() {
             className="w-full p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-lime-300 text-xs font-mono focus:outline-none focus:border-lime-500 leading-relaxed resize-none"
           />
 
-          <div className="space-y-2 pt-2 border-t border-neutral-800">
-            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+          <div className="space-y-3 pt-3 border-t border-neutral-800">
+            <span className="text-xs font-black text-neutral-400 uppercase tracking-widest block mb-1">
               Optimization Rules
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-neutral-300">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={stripComments}
-                  onChange={(e) => setStripComments(e.target.checked)}
-                  className="rounded bg-neutral-950 border-neutral-800 text-lime-500 focus:ring-lime-500"
-                />
-                Remove HTML/XML Comments
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={stripDimensions}
-                  onChange={(e) => setStripDimensions(e.target.checked)}
-                  className="rounded bg-neutral-950 border-neutral-800 text-lime-500 focus:ring-lime-500"
-                />
-                Strip fixed `width` / `height`
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={stripMetadata}
-                  onChange={(e) => setStripMetadata(e.target.checked)}
-                  className="rounded bg-neutral-950 border-neutral-800 text-lime-500 focus:ring-lime-500"
-                />
-                Strip Editor Namespaces & IDs
-              </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setStripComments(!stripComments)}
+                className={cn(
+                  "flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300 text-left cursor-pointer group select-none",
+                  stripComments
+                    ? "bg-lime-500/10 border-lime-500/40 text-white shadow-[0_0_15px_rgba(163,230,53,0.12)]"
+                    : "bg-neutral-950/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                )}
+              >
+                <div className={cn(
+                  "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all duration-300",
+                  stripComments
+                    ? "bg-gradient-to-br from-lime-400 to-emerald-500 border-lime-300 text-black shadow-[0_0_10px_rgba(163,230,53,0.5)] scale-105"
+                    : "bg-neutral-900 border-neutral-700 text-transparent group-hover:border-neutral-600"
+                )}>
+                  <Check size={12} strokeWidth={3} className={cn("transition-transform duration-200", stripComments ? "scale-100" : "scale-0")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold block leading-tight">Remove Comments</span>
+                  <span className="text-[10px] text-neutral-500 font-medium block mt-0.5">Strip `&lt;!-- --&gt;` blocks</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStripDimensions(!stripDimensions)}
+                className={cn(
+                  "flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300 text-left cursor-pointer group select-none",
+                  stripDimensions
+                    ? "bg-lime-500/10 border-lime-500/40 text-white shadow-[0_0_15px_rgba(163,230,53,0.12)]"
+                    : "bg-neutral-950/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                )}
+              >
+                <div className={cn(
+                  "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all duration-300",
+                  stripDimensions
+                    ? "bg-gradient-to-br from-lime-400 to-emerald-500 border-lime-300 text-black shadow-[0_0_10px_rgba(163,230,53,0.5)] scale-105"
+                    : "bg-neutral-900 border-neutral-700 text-transparent group-hover:border-neutral-600"
+                )}>
+                  <Check size={12} strokeWidth={3} className={cn("transition-transform duration-200", stripDimensions ? "scale-100" : "scale-0")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold block leading-tight">Strip `width` / `height`</span>
+                  <span className="text-[10px] text-neutral-500 font-medium block mt-0.5">Enable responsive viewBox</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStripMetadata(!stripMetadata)}
+                className={cn(
+                  "flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300 text-left cursor-pointer group select-none sm:col-span-2",
+                  stripMetadata
+                    ? "bg-lime-500/10 border-lime-500/40 text-white shadow-[0_0_15px_rgba(163,230,53,0.12)]"
+                    : "bg-neutral-950/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                )}
+              >
+                <div className={cn(
+                  "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all duration-300",
+                  stripMetadata
+                    ? "bg-gradient-to-br from-lime-400 to-emerald-500 border-lime-300 text-black shadow-[0_0_10px_rgba(163,230,53,0.5)] scale-105"
+                    : "bg-neutral-900 border-neutral-700 text-transparent group-hover:border-neutral-600"
+                )}>
+                  <Check size={12} strokeWidth={3} className={cn("transition-transform duration-200", stripMetadata ? "scale-100" : "scale-0")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold block leading-tight">Strip Editor Metadata & IDs</span>
+                  <span className="text-[10px] text-neutral-500 font-medium block mt-0.5">Clean Figma / Illustrator namespaces & element IDs</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>

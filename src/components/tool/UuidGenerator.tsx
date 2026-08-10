@@ -5,6 +5,7 @@ import {
   Key, 
   Copy, 
   CheckCircle2, 
+  Check,
   RefreshCw, 
   Plus
 } from "lucide-react";
@@ -78,26 +79,55 @@ export default function UuidGenerator() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-bold text-zinc-400">Formatting Toggles</label>
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 text-xs text-zinc-300 font-bold cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hyphens}
-                  onChange={(e) => setHyphens(e.target.checked)}
-                  className="rounded accent-lime-400"
-                />
-                Include Hyphens
-              </label>
-              <label className="flex items-center gap-3 text-xs text-zinc-300 font-bold cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={uppercase}
-                  onChange={(e) => setUppercase(e.target.checked)}
-                  className="rounded accent-lime-400"
-                />
-                UPPERCASE Letters
-              </label>
+            <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Formatting Toggles</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setHyphens(!hyphens)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 text-left cursor-pointer group select-none",
+                  hyphens
+                    ? "bg-lime-500/10 border-lime-500/40 text-white shadow-[0_0_15px_rgba(163,230,53,0.12)]"
+                    : "bg-neutral-950/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                )}
+              >
+                <div className={cn(
+                  "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all duration-300",
+                  hyphens
+                    ? "bg-gradient-to-br from-lime-400 to-emerald-500 border-lime-300 text-black shadow-[0_0_10px_rgba(163,230,53,0.5)] scale-105"
+                    : "bg-neutral-900 border-neutral-700 text-transparent group-hover:border-neutral-600"
+                )}>
+                  <Check size={12} strokeWidth={3} className={cn("transition-transform duration-200", hyphens ? "scale-100" : "scale-0")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold block leading-tight">Include Hyphens</span>
+                  <span className="text-[10px] text-neutral-500 font-medium block mt-0.5">8-4-4-4-12 standard</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setUppercase(!uppercase)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 text-left cursor-pointer group select-none",
+                  uppercase
+                    ? "bg-lime-500/10 border-lime-500/40 text-white shadow-[0_0_15px_rgba(163,230,53,0.12)]"
+                    : "bg-neutral-950/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                )}
+              >
+                <div className={cn(
+                  "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all duration-300",
+                  uppercase
+                    ? "bg-gradient-to-br from-lime-400 to-emerald-500 border-lime-300 text-black shadow-[0_0_10px_rgba(163,230,53,0.5)] scale-105"
+                    : "bg-neutral-900 border-neutral-700 text-transparent group-hover:border-neutral-600"
+                )}>
+                  <Check size={12} strokeWidth={3} className={cn("transition-transform duration-200", uppercase ? "scale-100" : "scale-0")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold block leading-tight">UPPERCASE</span>
+                  <span className="text-[10px] text-neutral-500 font-medium block mt-0.5">Capitalize hex characters</span>
+                </div>
+              </button>
             </div>
           </div>
 

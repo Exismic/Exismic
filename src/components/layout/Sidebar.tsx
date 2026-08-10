@@ -156,7 +156,7 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
         whileTap={{ scale: 0.97 }}
         className={cn(
           "relative h-[52px] flex items-center rounded-2xl transition-all duration-300 group mb-1.5",
-          isCompact ? "justify-center w-[52px] mx-auto px-0" : "gap-3.5 px-4",
+          isCompact ? "justify-center w-[52px] mx-auto px-0" : "gap-3 px-3.5",
           isActive ? "text-white" : "text-zinc-400 hover:text-white"
         )}
       >
@@ -222,11 +222,11 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
         {!isCompact && (
           <span 
             className={cn(
-              "text-[13.5px] font-black tracking-wide transition-all duration-300 whitespace-nowrap overflow-hidden select-none group-hover:translate-x-0.5",
+              "text-[13px] font-extrabold tracking-tight transition-all duration-300 whitespace-nowrap overflow-hidden min-w-0 flex-1 select-none group-hover:translate-x-0.5",
               isActive ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" : "text-zinc-300 group-hover:text-white"
             )}
           >
-            {name === 'Go Pro' ? <GradientText className="text-[13.5px] font-black tracking-wide">{name}</GradientText> : name}
+            {name === 'Go Pro' ? <GradientText className="text-[13px] font-extrabold tracking-tight">{name}</GradientText> : name}
           </span>
         )}
         
@@ -554,13 +554,13 @@ export function Sidebar() {
             
             <motion.aside 
               suppressHydrationWarning
-              initial={{ x: -280, opacity: 0 }}
+              initial={{ x: -300, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -280, opacity: 0 }}
+              exit={{ x: -300, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className={cn(
-                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[280px] bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:inset-0 transition-[width] duration-300 ease-in-out",
-                isCompact ? "lg:w-[88px]" : "lg:w-[280px]"
+                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:inset-0 transition-[width] duration-300 ease-in-out",
+                isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
               )}
             >
               {/* Compact Toggle Button */}

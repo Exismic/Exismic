@@ -14,12 +14,16 @@ interface MetadataProps {
 
 function resolveSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (process.env.NODE_ENV === "production" && configured?.includes("localhost")) {
-    return "https://www.exismic.xyz";
+  if (configured && !configured.includes("localhost")) {
+    const withProtocol = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
+    return withProtocol.trim().replace(/\/+$/, "");
   }
-  const rawUrl = configured || process.env.VERCEL_PROJECT_PRODUCTION_URL || "https://www.exismic.xyz";
-  const withProtocol = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-  return withProtocol.trim().replace(/\/+$/, "");
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelUrl && !vercelUrl.includes("localhost")) {
+    const withProtocol = /^https?:\/\//i.test(vercelUrl) ? vercelUrl : `https://${vercelUrl}`;
+    return withProtocol.trim().replace(/\/+$/, "");
+  }
+  return "https://www.exismic.xyz";
 }
 
 export const SITE_URL = resolveSiteUrl();
@@ -36,7 +40,7 @@ export function constructMetadata({
   keywords,
 }: MetadataProps = {}): Metadata {
   const resolvedCanonicalUrl = canonicalUrl
-    ? `${SITE_URL}${new URL(canonicalUrl, SITE_URL).pathname}`
+    ? (canonicalUrl.startsWith("http") ? canonicalUrl : `${SITE_URL}${canonicalUrl.startsWith("/") ? "" : "/"}${canonicalUrl}`)
     : undefined;
   const shouldIndex = SEO_INDEXING_ENABLED && !noIndex;
   
