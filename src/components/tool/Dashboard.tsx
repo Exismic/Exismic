@@ -248,6 +248,20 @@ const QUICK_ACTIONS = [
       pulseColor: "bg-emerald-400"
     }
   },
+  { 
+    name: "Post Formatter", 
+    href: "/tools/social-caption-generator", 
+    icon: Sparkles, 
+    badge: "VIRAL COPY", 
+    theme: {
+      idleBg: "bg-gradient-to-br from-violet-950/80 via-purple-950/50 to-zinc-950/90",
+      border: "border-violet-500/50 hover:border-violet-300",
+      glow: "shadow-[0_0_25px_rgba(139,92,246,0.3)] hover:shadow-[0_0_45px_rgba(139,92,246,0.7)]",
+      iconBg: "bg-violet-500/20 border-violet-400/50 text-violet-200",
+      badge: "bg-violet-500/30 border-violet-400/50 text-violet-200 shadow-[0_0_12px_rgba(139,92,246,0.5)]",
+      pulseColor: "bg-violet-400"
+    }
+  },
 ];
 
 const CATEGORY_TABS = [
@@ -645,12 +659,12 @@ export function Dashboard() {
             transition={{ delay: 0.3 }}
             className="space-y-4 pt-2"
           >
-            <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-purple-400 animate-pulse" />
+            <div className="flex items-center gap-2 pl-12 lg:pl-0">
+              <Sparkles size={14} className="text-purple-400 animate-pulse shrink-0" />
               <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-300">Quick Launch Cockpit</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4">
               {QUICK_ACTIONS.map((qa) => {
                 const Icon = qa.icon;
                 return (
@@ -658,7 +672,7 @@ export function Dashboard() {
                     key={qa.name}
                     href={qa.href}
                     className={cn(
-                      "group relative isolate flex flex-col justify-between gap-4 p-4 rounded-2xl border backdrop-blur-3xl transition-all duration-300 hover:scale-[1.04] active:scale-95",
+                      "group relative isolate flex flex-col justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl border backdrop-blur-3xl transition-all duration-300 hover:scale-[1.04] active:scale-95 min-w-0",
                       qa.theme.idleBg,
                       qa.theme.border,
                       qa.theme.glow
@@ -670,16 +684,16 @@ export function Dashboard() {
                     </div>
 
                     {/* Top Row: Icon Box & Badge */}
-                    <div className="flex items-center justify-between relative z-20 w-full">
+                    <div className="flex items-center justify-between gap-1.5 relative z-20 w-full min-w-0">
                       <div className={cn(
-                        "w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-inner shrink-0",
+                        "w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-inner shrink-0",
                         qa.theme.iconBg
                       )}>
-                        <Icon size={20} />
+                        <Icon size={18} className="sm:w-5 sm:h-5" />
                       </div>
 
                       <span className={cn(
-                        "relative z-20 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border shrink-0",
+                        "relative z-20 text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border shrink-0 max-w-[55%] truncate text-center",
                         qa.theme.badge
                       )}>
                         {qa.badge}
@@ -687,11 +701,11 @@ export function Dashboard() {
                     </div>
 
                     {/* Bottom Row: Tool Title & Status Dot */}
-                    <div className="flex items-center justify-between relative z-20 w-full pt-1">
-                      <span className="text-sm font-black text-white tracking-tight whitespace-nowrap group-hover:text-white transition-colors">
+                    <div className="flex items-center justify-between gap-1 relative z-20 w-full pt-1 min-w-0">
+                      <span className="text-xs sm:text-sm font-black text-white tracking-tight truncate group-hover:text-white transition-colors">
                         {qa.name}
                       </span>
-                      <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="relative flex h-2 w-2 shrink-0 ml-1">
                         <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", qa.theme.pulseColor)} />
                         <span className={cn("relative inline-flex rounded-full h-2 w-2", qa.theme.pulseColor)} />
                       </span>
@@ -1175,8 +1189,8 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, h
          </div>
          
          {progress !== undefined && (
-            <div className="relative w-12 h-12 flex items-center justify-center">
-               <svg className="w-full h-full transform -rotate-90">
+            <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
                   <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/10" />
                   <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" 
                      strokeDasharray={125} strokeDashoffset={125 - Math.min(progress, 100) * 1.25}
