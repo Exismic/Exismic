@@ -13,6 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { detectSttCapabilities, processSttLocally } from "@/lib/client-stt";
 
 type Transcription = {
   text: string;
@@ -70,26 +71,59 @@ export function SpeechToText() {
     setError(null);
     setResult(null);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("language", language);
-      const response = await fetch("/api/tools/audio/stt", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Transcription failed.");
-      setResult({
-        text: data.text,
-        language: data.language,
-        duration: data.duration,
-      });
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Transcription failed.");
-    } finally {
-      setIsProcessing(false);
+    const isCapable = detectSttCapabilities(file);
+    let transcriptionResult: Transcription | null = null;
+
+    // 1. Attempt fast client-side STT if device hardware & file payload pass capability checks
+    if (isCapable) {
+      try {
+        console.log("[STT Tool] Device & audio payload verified. Processing local speech recognition...");
+        const localData = await processSttLocally(file, language, 15000);
+        if (localData?.text) {
+          transcriptionResult = {
+            text: localData.text,
+            language: localData.language,
+            duration: localData.duration,
+          };
+        }
+      } catch (clientErr) {
+        console.warn("[STT Tool] Client-side transcription failed/timed out. Falling back to cloud API:", clientErr);
+        transcriptionResult = null;
+      }
     }
+
+    // 2. Cloud API fallback if device is weak, file is large, or client processing failed/timed out
+    if (!transcriptionResult) {
+      try {
+        console.log("[STT Tool] Transcribing audio via cloud Whisper API fallback...");
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("language", language);
+
+        const response = await fetch("/api/tools/audio/stt", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Transcription failed.");
+
+        transcriptionResult = {
+          text: data.text,
+          language: data.language,
+          duration: data.duration,
+        };
+      } catch (caught) {
+        console.error("[STT Tool] Cloud API fallback error:", caught);
+        setError(caught instanceof Error ? caught.message : "Transcription failed.");
+      }
+    }
+
+    if (transcriptionResult) {
+      setResult(transcriptionResult);
+    }
+
+    setIsProcessing(false);
   };
 
   const reset = () => {

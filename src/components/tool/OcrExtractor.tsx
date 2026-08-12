@@ -19,6 +19,7 @@ import {
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
 import type { LoggerMessage, Worker } from "tesseract.js";
+import { detectOcrCapabilities, processOcrLocally } from "@/lib/client-ocr";
 
 interface OcrPdfViewport {
   height: number;
@@ -129,77 +130,67 @@ export default function OcrExtractor() {
     if (!file) return;
     setIsProcessing(true);
     setProgress(0);
-    setStatus("Loading OCR language data...");
+    setStatus("Initializing OCR engine...");
     setError(null);
 
-    let worker: Worker | null = null;
-    try {
-      const { createWorker } = await import("tesseract.js");
-      let currentPage = 0;
-      let totalPages = 1;
-      worker = await createWorker(language, 1, {
-        logger: (message: LoggerMessage) => {
-          if (message.status === "recognizing text") {
-            const overall =
-              ((currentPage + Math.max(0, Math.min(1, message.progress))) /
-                totalPages) *
-              100;
-            setProgress(Math.round(overall));
-            setStatus(
-              totalPages > 1
-                ? `Reading page ${currentPage + 1} of ${totalPages}`
-                : `Reading text ${Math.round(message.progress * 100)}%`,
-            );
-          }
-        },
-      });
-      let fullText = "";
+    const isCapable = detectOcrCapabilities(file);
+    let resultText: string | null = null;
 
-      if (file.type === "application/pdf") {
-        if (!isPdfEngineLoaded) throw new Error("The PDF renderer is still loading. Try again in a moment.");
-        setStatus("Rendering document layers...");
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        totalPages = pdf.numPages;
-        if (totalPages > 50) {
-          throw new Error("OCR supports up to 50 PDF pages per scan.");
+    // 1. Attempt fast client-side worker OCR if device & file capabilities pass
+    if (isCapable) {
+      try {
+        console.log("[OCR Tool] Device & file payload verified. Running client worker OCR...");
+        resultText = await processOcrLocally(
+          file,
+          language,
+          (percent, statusMsg) => {
+            setProgress(percent);
+            setStatus(statusMsg);
+          },
+          20000
+        );
+      } catch (clientErr) {
+        console.warn("[OCR Tool] Client-side OCR failed or timed out. Falling back to cloud API:", clientErr);
+        resultText = null;
+      }
+    }
+
+    // 2. Server API fallback if device is weak, file is large, or client worker failed/timed out
+    if (!resultText) {
+      try {
+        console.log("[OCR Tool] Processing text recognition via cloud OCR fallback API...");
+        setStatus("Processing text recognition...");
+        setProgress(30);
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("language", language);
+
+        const response = await fetch("/api/tools/ocr/extract", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Text recognition failed.");
         }
 
-        for (let i = 1; i <= totalPages; i++) {
-          currentPage = i - 1;
-          setStatus(`Rendering page ${i} of ${totalPages}`);
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 2.0 });
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          if (!context) throw new Error("Could not initialize the page renderer.");
-          canvas.height = Math.ceil(viewport.height);
-          canvas.width = Math.ceil(viewport.width);
-          await page.render({ canvasContext: context, viewport }).promise;
-          const result = await worker.recognize(canvas);
-          fullText += `Page ${i}\n${result.data.text.trim()}\n\n`;
-          canvas.width = 1;
-          canvas.height = 1;
-        }
-      } else {
-        const result = await worker.recognize(file);
-        fullText = result.data.text;
+        resultText = data.text;
+        setProgress(100);
+      } catch (serverErr: unknown) {
+        console.error("[OCR Tool] Cloud OCR fallback failed:", serverErr);
+        setError(serverErr instanceof Error ? serverErr.message : "Text recognition failed.");
       }
+    }
 
-      const normalizedText = fullText.trim();
-      if (!normalizedText) {
-        throw new Error("No readable text was detected in this file.");
-      }
-      setExtractedText(normalizedText);
+    if (resultText) {
+      setExtractedText(resultText);
       setStatus("Success!");
       setProgress(100);
-    } catch (err: unknown) {
-      console.error("OCR Error:", err);
-      setError(err instanceof Error ? err.message : "Text recognition failed.");
-    } finally {
-      await worker?.terminate();
-      setIsProcessing(false);
     }
+
+    setIsProcessing(false);
   };
 
   return (

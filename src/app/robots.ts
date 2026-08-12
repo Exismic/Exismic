@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
-import { SEO_INDEXING_ENABLED, SITE_URL } from "@/lib/seo";
+import { SITE_URL } from "@/lib/seo";
 
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export default function robots(): MetadataRoute.Robots {
-
-  const base = {
+  return {
     rules: {
       userAgent: "*",
       allow: "/",
@@ -19,9 +18,7 @@ export default function robots(): MetadataRoute.Robots {
         "/history",
       ],
     },
+    sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
   };
-  return SEO_INDEXING_ENABLED
-    ? { ...base, sitemap: `${SITE_URL}/sitemap.xml` }
-    : base;
 }

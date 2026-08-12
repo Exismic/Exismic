@@ -8,18 +8,21 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  Paintbrush,
+  PaintBucket,
   Pencil,
   Pipette,
   Redo2,
   Save,
   ShieldCheck,
   Sparkles,
+  Sun,
   Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MinecraftArmModel, MinecraftSkinPart } from "@/lib/minecraft-skin";
 
-type EditorTool = "pencil" | "eraser" | "picker";
+type EditorTool = "pencil" | "eraser" | "picker" | "bucket" | "shade";
 type EditorLayer = "base" | "outer";
 type EditorPart = "full" | "head" | "torso" | "right-arm" | "left-arm" | "right-leg" | "left-leg";
 type Region = { x: number; y: number; width: number; height: number };
@@ -33,13 +36,20 @@ interface MinecraftSkinEditorProps {
 }
 
 const PART_OPTIONS: Array<{ id: EditorPart; label: string }> = [
-  { id: "full", label: "Full texture" },
+  { id: "full", label: "Full texture (64x64)" },
   { id: "head", label: "Head front" },
   { id: "torso", label: "Torso front" },
   { id: "right-arm", label: "Right arm" },
   { id: "left-arm", label: "Left arm" },
   { id: "right-leg", label: "Right leg" },
   { id: "left-leg", label: "Left leg" },
+];
+
+const PRESET_PALETTES = [
+  { name: "Skin Tones", colors: ["#ffe0bd", "#f1c27d", "#e0ac69", "#c68642", "#8d5524", "#3d2314"] },
+  { name: "Hair", colors: ["#090809", "#2c1b18", "#4a3728", "#a7774e", "#d6c496", "#992525", "#808080"] },
+  { name: "Armor & Metallic", colors: ["#e5e7eb", "#9ca3af", "#4b5563", "#d97706", "#2563eb", "#059669"] },
+  { name: "Neon & Cyber", colors: ["#22d3ee", "#a855f7", "#ec4899", "#facc15", "#10b981", "#3b82f6"] },
 ];
 
 const BASE_FACES: Region[] = [
@@ -53,8 +63,8 @@ const BASE_FACES: Region[] = [
   { x: 0, y: 20, width: 4, height: 12 }, { x: 4, y: 20, width: 4, height: 12 },
   { x: 8, y: 20, width: 4, height: 12 }, { x: 12, y: 20, width: 4, height: 12 },
   { x: 20, y: 48, width: 4, height: 4 }, { x: 24, y: 48, width: 4, height: 4 },
-  { x: 16, y: 52, width: 4, height: 12 }, { x: 20, y: 52, width: 4, height: 12 },
-  { x: 24, y: 52, width: 4, height: 12 }, { x: 28, y: 52, width: 4, height: 12 },
+  { x: 16, y: 52, width: 4, height: 12 }, { x: 20, y: 52, width: 8, height: 12 },
+  { x: 24, y: 52, width: 4, height: 12 }, { x: 28, y: 52, width: 8, height: 12 },
 ];
 
 function armBaseFaces(model: MinecraftArmModel): Region[] {
@@ -126,6 +136,12 @@ function hexToRgb(hex: string) {
     Number.parseInt(value.slice(2, 4), 16),
     Number.parseInt(value.slice(4, 6), 16),
   ] as const;
+}
+
+function shadeHex(hex: string, amount: number) {
+  const [r, g, b] = hexToRgb(hex);
+  const shift = (channel: number) => Math.max(0, Math.min(255, Math.round(channel + 255 * amount)));
+  return rgbaToHex(shift(r), shift(g), shift(b));
 }
 
 function pixelsToDataUrl(pixels: Uint8ClampedArray) {
@@ -239,7 +255,7 @@ function PixelCanvas({
         resolvePixel(event);
       }}
       onPointerMove={(event) => {
-        if (drawingRef.current && tool !== "picker") resolvePixel(event);
+        if (drawingRef.current && tool !== "picker" && tool !== "bucket") resolvePixel(event);
       }}
       onPointerUp={(event) => {
         drawingRef.current = false;
@@ -315,7 +331,7 @@ export function MinecraftSkinEditor({
     () => pixels ? validateSkin(pixels, armModel) : { valid: false, transparentBasePixels: 0 },
     [armModel, pixels]
   );
-  const palette = useMemo(() => {
+  const extractedPalette = useMemo(() => {
     if (!pixels) return [];
     const counts = new Map<string, number>();
     for (let offset = 0; offset < pixels.length; offset += 4) {
@@ -334,13 +350,90 @@ export function MinecraftSkinEditor({
     setPixels(next);
   }, []);
 
+  const floodFill = (startX: number, startY: number) => {
+    const current = pixelsRef.current;
+    if (!current) return;
+    const startOffset = (startY * 64 + startX) * 4;
+    const targetR = current[startOffset];
+    const targetG = current[startOffset + 1];
+    const targetB = current[startOffset + 2];
+    const targetA = current[startOffset + 3];
+
+    const [fillR, fillG, fillB] = hexToRgb(color);
+    const fillA = tool === "eraser" ? 0 : 255;
+
+    if (targetR === fillR && targetG === fillG && targetB === fillB && targetA === fillA) return;
+
+    const next = new Uint8ClampedArray(current);
+    const queue: Array<[number, number]> = [[startX, startY]];
+    const visited = new Set<string>();
+
+    const matches = (px: number, py: number) => {
+      if (px < region.x || px >= region.x + region.width || py < region.y || py >= region.y + region.height) return false;
+      const off = (py * 64 + px) * 4;
+      return next[off] === targetR && next[off + 1] === targetG && next[off + 2] === targetB && next[off + 3] === targetA;
+    };
+
+    while (queue.length > 0) {
+      const [cx, cy] = queue.pop()!;
+      const key = `${cx},${cy}`;
+      if (visited.has(key)) continue;
+      visited.add(key);
+
+      const off = (cy * 64 + cx) * 4;
+      next[off] = fillR;
+      next[off + 1] = fillG;
+      next[off + 2] = fillB;
+      next[off + 3] = fillA;
+
+      const neighbors: Array<[number, number]> = [
+        [cx + 1, cy],
+        [cx - 1, cy],
+        [cx, cy + 1],
+        [cx, cy - 1],
+      ];
+      for (const [nx, ny] of neighbors) {
+        if (matches(nx, ny) && !visited.has(`${nx},${ny}`)) {
+          queue.push([nx, ny]);
+        }
+      }
+    }
+    updatePixels(next);
+  };
+
+  const shadePixel = (x: number, y: number, amount: number) => {
+    const current = pixelsRef.current;
+    if (!current) return;
+    const offset = (y * 64 + x) * 4;
+    if (current[offset + 3] === 0) return;
+    const hex = rgbaToHex(current[offset], current[offset + 1], current[offset + 2]);
+    const shadedHex = shadeHex(hex, amount);
+    const [r, g, b] = hexToRgb(shadedHex);
+    const next = new Uint8ClampedArray(current);
+    next[offset] = r;
+    next[offset + 1] = g;
+    next[offset + 2] = b;
+    updatePixels(next);
+  };
+
   const paintPixel = (x: number, y: number) => {
     const current = pixelsRef.current;
     if (!current) return;
     const offset = (y * 64 + x) * 4;
+
     if (tool === "picker") {
       if (current[offset + 3] > 0) setColor(rgbaToHex(current[offset], current[offset + 1], current[offset + 2]));
       setTool("pencil");
+      return;
+    }
+
+    if (tool === "bucket") {
+      floodFill(x, y);
+      return;
+    }
+
+    if (tool === "shade") {
+      shadePixel(x, y, -0.08);
       return;
     }
 
@@ -461,7 +554,8 @@ export function MinecraftSkinEditor({
 
   return (
     <div className="min-h-[520px] bg-[#070810] p-3 sm:p-5">
-      <div className="grid gap-4 2xl:grid-cols-[220px_minmax(0,1fr)_260px]">
+      <div className="grid gap-4 2xl:grid-cols-[240px_minmax(0,1fr)_280px]">
+        {/* LEFT PANEL: BODY VIEW & TOOLS */}
         <aside className="space-y-4 rounded-lg border border-white/10 bg-black/25 p-3">
           <div>
             <p className="mb-2 text-[11px] font-bold text-zinc-300">Body view</p>
@@ -488,7 +582,7 @@ export function MinecraftSkinEditor({
                       layer === value ? "bg-white/10 text-white" : "text-zinc-500 hover:text-white"
                     )}
                   >
-                    {value}
+                    {value === "outer" ? "3D Outer" : "Base Body"}
                   </button>
                 ))}
               </div>
@@ -496,13 +590,15 @@ export function MinecraftSkinEditor({
           )}
 
           <div>
-            <p className="mb-2 text-[11px] font-bold text-zinc-300">Tool</p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {([
+            <p className="mb-2 text-[11px] font-bold text-zinc-300">Drawing tool</p>
+            <div className="grid grid-cols-5 gap-1.5">
+              {[
                 { id: "pencil", icon: Pencil, label: "Pencil" },
+                { id: "bucket", icon: PaintBucket, label: "Fill bucket" },
+                { id: "shade", icon: Sun, label: "Auto shade" },
                 { id: "eraser", icon: Eraser, label: "Eraser" },
-                { id: "picker", icon: Pipette, label: "Pick color" },
-              ] as const).map((item) => {
+                { id: "picker", icon: Pipette, label: "Color picker" },
+              ].map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
@@ -510,11 +606,11 @@ export function MinecraftSkinEditor({
                     type="button"
                     title={item.label}
                     aria-label={item.label}
-                    onClick={() => setTool(item.id)}
+                    onClick={() => setTool(item.id as EditorTool)}
                     className={cn(
                       "grid min-h-11 place-items-center rounded-md border transition",
                       tool === item.id
-                        ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100"
+                        ? "border-cyan-300/40 bg-cyan-400/20 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.2)]"
                         : "border-white/8 bg-white/[0.025] text-zinc-500 hover:text-white"
                     )}
                   >
@@ -556,6 +652,7 @@ export function MinecraftSkinEditor({
           </div>
         </aside>
 
+        {/* CENTER CANVAS */}
         <main className="flex min-h-[460px] flex-col items-center justify-center overflow-auto rounded-lg border border-white/10 bg-[radial-gradient(circle_at_50%_45%,rgba(59,130,246,0.08),transparent_46%)] p-4">
           <div className="mb-3 flex w-full items-center justify-between gap-3">
             <div>
@@ -586,6 +683,7 @@ export function MinecraftSkinEditor({
           />
         </main>
 
+        {/* RIGHT PANEL: PALETTES & SAVING */}
         <aside className="space-y-4 rounded-lg border border-white/10 bg-black/25 p-3">
           <div>
             <p className="mb-2 text-[11px] font-bold text-zinc-300">Paint color</p>
@@ -595,33 +693,63 @@ export function MinecraftSkinEditor({
                 value={color}
                 onChange={(event) => {
                   setColor(event.target.value);
-                  setTool("pencil");
+                  if (tool === "eraser" || tool === "picker") setTool("pencil");
                 }}
                 className="size-11 cursor-pointer rounded border-0 bg-transparent p-0"
                 aria-label="Paint color"
               />
               <div>
                 <p className="font-mono text-xs font-bold uppercase text-white">{color}</p>
-                <p className="mt-1 text-[10px] text-zinc-600">Current swatch</p>
+                <p className="mt-1 text-[10px] text-zinc-500">Current active color</p>
               </div>
             </div>
-            <div className="mt-2 grid grid-cols-5 gap-2">
-              {palette.map((swatch) => (
-                <button
-                  key={swatch}
-                  type="button"
-                  title={swatch}
-                  aria-label={`Use ${swatch}`}
-                  onClick={() => {
-                    setColor(swatch);
-                    setTool("pencil");
-                  }}
-                  className={cn(
-                    "aspect-square rounded border transition hover:scale-105",
-                    color === swatch ? "border-white ring-2 ring-cyan-300/40" : "border-white/10"
-                  )}
-                  style={{ backgroundColor: swatch }}
-                />
+
+            {/* Extracted Palette */}
+            <div className="mt-3">
+              <p className="mb-1.5 text-[10px] font-bold uppercase text-zinc-400">Skin Palette</p>
+              <div className="grid grid-cols-5 gap-1.5">
+                {extractedPalette.map((swatch) => (
+                  <button
+                    key={swatch}
+                    type="button"
+                    title={swatch}
+                    aria-label={`Use ${swatch}`}
+                    onClick={() => {
+                      setColor(swatch);
+                      if (tool === "eraser" || tool === "picker") setTool("pencil");
+                    }}
+                    className={cn(
+                      "aspect-square rounded border transition hover:scale-105",
+                      color === swatch ? "border-white ring-2 ring-cyan-300/40" : "border-white/10"
+                    )}
+                    style={{ backgroundColor: swatch }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Preset Palettes */}
+            <div className="mt-3 space-y-2">
+              <p className="text-[10px] font-bold uppercase text-zinc-400">Preset Swatches</p>
+              {PRESET_PALETTES.map((preset) => (
+                <div key={preset.name} className="flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-500">{preset.name}</span>
+                  <div className="flex gap-1">
+                    {preset.colors.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setColor(c);
+                          if (tool === "eraser" || tool === "picker") setTool("pencil");
+                        }}
+                        className="size-4 rounded-full border border-white/20 transition hover:scale-125"
+                        style={{ backgroundColor: c }}
+                        title={c}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -648,12 +776,12 @@ export function MinecraftSkinEditor({
           </div>
 
           <div>
-            <p className="mb-2 text-[11px] font-bold text-zinc-300">Exismic Ai edit</p>
+            <p className="mb-2 text-[11px] font-bold text-zinc-300">Exismic AI skin prompt edit</p>
             <textarea
               value={aiCommand}
               onChange={(event) => setAiCommand(event.target.value.slice(0, 240))}
               placeholder="Make the eyes angrier and add a short beard..."
-              className="min-h-24 w-full resize-none rounded-md border border-white/10 bg-black/30 p-3 text-xs leading-5 text-white outline-none focus:border-violet-300/35"
+              className="min-h-20 w-full resize-none rounded-md border border-white/10 bg-black/30 p-3 text-xs leading-5 text-white outline-none focus:border-violet-300/35"
             />
             <button
               type="button"
@@ -662,7 +790,7 @@ export function MinecraftSkinEditor({
               className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-violet-300/20 bg-violet-400/10 text-xs font-bold text-violet-100 transition hover:bg-violet-400/15 disabled:opacity-40"
             >
               {isAiEditing ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-              Apply to current skin
+              Apply AI edit
             </button>
           </div>
 
@@ -679,14 +807,11 @@ export function MinecraftSkinEditor({
             type="button"
             onClick={() => void save()}
             disabled={isSaving || !validation.valid}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-white text-xs font-black text-black transition hover:bg-cyan-50 disabled:opacity-40"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 text-xs font-black text-black shadow-lg transition hover:brightness-110 disabled:opacity-40"
           >
             {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             Save pixel edits
           </button>
-          <p className="text-center text-[10px] leading-4 text-zinc-600">
-            Manual edits are free. AI edits use the displayed generation credits.
-          </p>
         </aside>
       </div>
     </div>

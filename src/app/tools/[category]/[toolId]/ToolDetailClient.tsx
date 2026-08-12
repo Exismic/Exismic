@@ -57,6 +57,7 @@ import { isQualityUpgradeableTool } from "@/lib/tool-quality-policy";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { SITE_URL } from "@/lib/seo";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 
 interface ToolDetailClientProps {
   tool: Tool;
@@ -78,10 +79,22 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const response = await axios.get('/api/user/favorites');
-        setIsFavorited(response.data.favorites.includes(tool.id));
+        const response = await axios.get('/api/user/favorites', { validateStatus: () => true });
+        if (response.data?.authenticated && Array.isArray(response.data.favorites)) {
+          setIsFavorited(response.data.favorites.includes(tool.id));
+          return;
+        }
       } catch (err) {
-        console.error("Failed to fetch favorites:", err);
+        console.warn("Could not fetch server favorites, using local storage:", err);
+      }
+
+      if (typeof window !== "undefined") {
+        try {
+          const guestFavs = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+          setIsFavorited(guestFavs.includes(tool.id));
+        } catch {
+          setIsFavorited(false);
+        }
       }
     };
     fetchFavorites();
@@ -96,22 +109,40 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   };
 
   const handleFavorite = async () => {
-    const previousState = isFavorited;
-    setIsFavorited(!isFavorited);
+    const nextState = !isFavorited;
+    setIsFavorited(nextState);
     
     try {
-      await axios.post('/api/user/favorites', {
+      const response = await axios.post('/api/user/favorites', {
         toolId: tool.id,
-        action: previousState ? 'remove' : 'add'
-      }).then((response) => {
+        action: nextState ? 'add' : 'remove'
+      }, { validateStatus: () => true });
+
+      if (response.status === 200 && response.data?.success) {
         setIsFavorited(response.data.isFavorited === true);
         window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
           detail: { favorites: response.data.favorites },
         }));
-      });
+        return;
+      }
     } catch (err) {
-      console.error("Failed to update favorite:", err);
-      setIsFavorited(previousState);
+      console.warn("Server favorite save bypass:", err);
+    }
+
+    // Guest / local fallback if unauthenticated or offline
+    if (typeof window !== "undefined") {
+      try {
+        const currentFavs: string[] = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+        const updated = nextState
+          ? Array.from(new Set([...currentFavs, tool.id]))
+          : currentFavs.filter((id) => id !== tool.id);
+        localStorage.setItem("exismic_guest_favorites", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
+          detail: { favorites: updated },
+        }));
+      } catch (e) {
+        console.error("Local storage favorite error:", e);
+      }
     }
   };
 
@@ -488,6 +519,16 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
             </div>
           )}
        </div>
+
+       {/* Comprehensive About & Guide Section */}
+       <ToolSeoSection
+         toolName={tool.name}
+         toolDescription={tool.seoDescription || tool.description}
+         categoryName={category.name}
+         categoryId={category.id}
+         toolSlug={tool.href}
+         keywords={tool.seoKeywords}
+       />
 
        {/* Smart Workflow Tool Recommendations */}
        <ToolSuggestions currentToolId={tool.id} categoryId={categoryId} />

@@ -58,6 +58,23 @@ const DEFAULT_PALETTE: MinecraftSkinPalette = {
 
 const THEME_PALETTES: Array<{ match: RegExp; palette: Partial<MinecraftSkinPalette>; outfit: MinecraftSkinDesign["outfit"]; pattern: MinecraftSkinDesign["pattern"] }> = [
   {
+    match: /demon|lava|fire|obsidian|dark|hell|shadow|reaper|monster|fiend|dragon/i,
+    outfit: "armor",
+    pattern: "armored",
+    palette: {
+      skin: "#181216",
+      skinShade: "#0d0a0c",
+      top: "#181216",
+      topAccent: "#ff2200",
+      pants: "#181216",
+      shoes: "#ff2200",
+      hair: "#120e10",
+      hairHighlight: "#ff3300",
+      eyes: "#ff0000",
+      detail: "#ff2200",
+    },
+  },
+  {
     match: /cyber|neon|future|tech|robot|android/i,
     outfit: "cyber",
     pattern: "paneled",
@@ -365,7 +382,11 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
   };
 }
 
-export function sanitizeSkinDesign(value: Partial<MinecraftSkinDesign>, prompt: string, seed: number): MinecraftSkinDesign {
+export function sanitizeSkinDesign(
+  value: Partial<Omit<MinecraftSkinDesign, "palette">> & { palette?: Partial<MinecraftSkinPalette> },
+  prompt: string,
+  seed: number
+): MinecraftSkinDesign {
   const fallback = createFallbackSkinDesign(prompt, seed);
   const hairStyles = ["short", "long", "spiky", "hood", "helmet", "bald"] as const;
   const outfits = ["casual", "armor", "royal", "cyber", "fantasy", "formal", "sport"] as const;
@@ -561,6 +582,8 @@ function paintArm(canvas: SkinCanvas, faces: ArmFaces, palette: MinecraftSkinPal
 
 function paintHead(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () => number) {
   const palette = design.palette;
+  const isDarkChar = palette.skin.toLowerCase() === palette.top.toLowerCase() || palette.skin.toLowerCase() === "#181216";
+
   const baseFaces: Record<string, Face> = {
     top: { x: 8, y: 0, width: 8, height: 8 },
     bottom: { x: 16, y: 0, width: 8, height: 8 },
@@ -570,128 +593,36 @@ function paintHead(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () =
     back: { x: 24, y: 8, width: 8, height: 8 },
   };
 
-  Object.values(baseFaces).forEach((face) => canvas.fill(face, palette.skin, 0.1, random)); // Much better skin texture
+  Object.values(baseFaces).forEach((face) => canvas.fill(face, palette.skin, 0.1, random));
   canvas.fill(baseFaces.bottom, palette.skinShade, 0.1, random);
 
-  // Proper hair mapping
-  if (design.hairStyle !== "bald") {
-    canvas.fill(baseFaces.top, palette.hair, 0.15, random);
-    canvas.fill(baseFaces.back, palette.hair, 0.15, random);
-    
-    // Draw hair on sides
-    for (const face of [baseFaces.left, baseFaces.right]) {
-      canvas.fill({ x: face.x, y: face.y, width: face.width, height: design.hairStyle === "long" ? 7 : 4 }, palette.hair, 0.12, random);
-    }
+  // Base Head Top Hair/Helm
+  canvas.fill(baseFaces.top, palette.hair || palette.skin, 0.08, random);
 
-    // Draw front hairline
-    canvas.fill({ x: baseFaces.front.x, y: baseFaces.front.y, width: baseFaces.front.width, height: 2 }, palette.hair, 0.12, random);
-    
-    // Hair details
-    canvas.line(baseFaces.front.x + 1, baseFaces.front.y + 2, 3, palette.hairHighlight);
-    if (design.hairStyle === "spiky") {
-      canvas.setPixel(9, 10, palette.hair);
-      canvas.setPixel(14, 10, palette.hair);
-    }
+  // 3D Horns / Spikes on 3D Hat overlay (keeping rest of hat overlay transparent!)
+  if (isDarkChar || design.outfit === "armor" || design.hairStyle === "helmet" || design.hairStyle === "hood") {
+    canvas.setPixel(41, 0, palette.topAccent);
+    canvas.setPixel(41, 1, palette.topAccent);
+    canvas.setPixel(46, 0, palette.topAccent);
+    canvas.setPixel(46, 1, palette.topAccent);
+    canvas.setPixel(41, 8, palette.topAccent);
+    canvas.setPixel(46, 8, palette.topAccent);
   }
 
-  // Proper Helmet/Hood mapping! We must draw this on the OVERLAY layer, not the base layer!
-  if (design.hairStyle === "helmet" || design.hairStyle === "hood") {
-    const covering = design.hairStyle === "helmet" ? palette.topAccent : palette.top;
-    
-    // Overlay Mapping
-    const ovFaces = {
-      top: { x: 40, y: 0, width: 8, height: 8 },
-      right: { x: 32, y: 8, width: 8, height: 8 },
-      front: { x: 40, y: 8, width: 8, height: 8 },
-      left: { x: 48, y: 8, width: 8, height: 8 },
-      back: { x: 56, y: 8, width: 8, height: 8 }
-    };
-    
-    canvas.fill(ovFaces.top, covering, 0.12, random);
-    canvas.fill(ovFaces.right, covering, 0.12, random);
-    canvas.fill(ovFaces.left, covering, 0.12, random);
-    canvas.fill(ovFaces.back, covering, 0.12, random);
-
-    // Front of the hood (framing the face)
-    canvas.fill({ x: 40, y: 8, width: 8, height: 2 }, covering, 0.12, random); // top rim
-    canvas.fill({ x: 40, y: 10, width: 2, height: 6 }, covering, 0.12, random); // left rim
-    canvas.fill({ x: 46, y: 10, width: 2, height: 6 }, covering, 0.12, random); // right rim
-
-    // Add a dark inner shadow on the actual face to show depth under the hood
-    canvas.line(8, 8, 8, shade(palette.skin, -0.25));
-    canvas.line(8, 9, 8, shade(palette.skin, -0.15));
-    canvas.line(8, 10, 1, shade(palette.skin, -0.2), true);
-    canvas.line(15, 10, 1, shade(palette.skin, -0.2), true);
-  }
-
-  // Draw face features prominently
-  const eyeY = 12;
-  const eyeColor = palette.eyes;
-  
-  // Whites of eyes
-  canvas.setPixel(9, eyeY, shade(palette.skin, 0.4));
-  canvas.setPixel(14, eyeY, shade(palette.skin, 0.4));
-
-  // Irises
-  canvas.setPixel(10, eyeY, eyeColor);
-  canvas.setPixel(13, eyeY, eyeColor);
-  
-  // Pupils (darker)
-  canvas.setPixel(10, eyeY, shade(eyeColor, -0.4));
-  canvas.setPixel(13, eyeY, shade(eyeColor, -0.4));
-
-  // Mouth/nose
-  canvas.setPixel(11, 14, shade(palette.skinShade, -0.15));
-  canvas.setPixel(12, 14, shade(palette.skinShade, -0.15));
-  
-  if (design.expression === "friendly") {
-    canvas.setPixel(10, 13, shade(palette.skinShade, -0.1));
-    canvas.setPixel(13, 13, shade(palette.skinShade, -0.1));
-  } else if (design.expression === "serious") {
-    canvas.line(11, 14, 2, shade(palette.skinShade, -0.3));
-    canvas.setPixel(9, 11, shade(palette.hair, -0.2));
-    canvas.setPixel(10, 11, shade(palette.hair, -0.2));
-    canvas.setPixel(13, 11, shade(palette.hair, -0.2));
-    canvas.setPixel(14, 11, shade(palette.hair, -0.2));
-  }
-
-  if (design.eyeShape === "angry") {
-    const brow = shade(palette.hair, -0.15);
-    canvas.setPixel(9, 11, brow);
-    canvas.setPixel(10, 11, brow);
-    canvas.setPixel(13, 11, brow);
-    canvas.setPixel(14, 11, brow);
-  }
-
-  if (design.facialHair !== "none") {
-    const beard = shade(palette.hair, 0.04);
-    if (design.facialHair === "stubble") {
-      [[9, 14], [10, 15], [13, 15], [14, 14]].forEach(([x, y]) => canvas.setPixel(x, y, beard));
-    } else if (design.facialHair === "goatee") {
-      canvas.setPixel(11, 15, beard);
-      canvas.setPixel(12, 15, beard);
-      canvas.setPixel(11, 16, beard);
-      canvas.setPixel(12, 16, beard);
-    } else {
-      canvas.line(9, 14, 6, beard);
-      canvas.line(9, 15, 6, beard);
-    }
-  }
-
-  // Draw face mask directly on the OVERLAY so it pops out
-  if (design.faceStyle === "mask") {
-    const maskColor = shade(palette.top, -0.12);
-    canvas.fill({ x: 40, y: 12, width: 8, height: 4 }, maskColor, 0.08, random); // Front overlay
-    canvas.fill({ x: 32, y: 12, width: 8, height: 4 }, maskColor, 0.08, random); // Right overlay
-    canvas.fill({ x: 48, y: 12, width: 8, height: 4 }, maskColor, 0.08, random); // Left overlay
-    canvas.line(41, 12, 6, palette.topAccent);
-  } else if (design.faceStyle === "visor") {
-    const visorShade = shade(palette.eyes, -0.3);
-    canvas.fill({ x: 40, y: 11, width: 8, height: 3 }, visorShade, 0.05, random); // Front overlay
-    canvas.fill({ x: 32, y: 11, width: 8, height: 3 }, visorShade, 0.05, random); // Right overlay
-    canvas.fill({ x: 48, y: 11, width: 8, height: 3 }, visorShade, 0.05, random); // Left overlay
-    canvas.line(41, 12, 6, palette.eyes); // Glow line
-    canvas.setPixel(46, 11, palette.topAccent); // Reflection
+  // Glowing Demon / Visor Eyes
+  const eyeY = 11;
+  if (isDarkChar || design.faceStyle === "visor") {
+    canvas.setPixel(9, eyeY, palette.eyes);
+    canvas.setPixel(10, eyeY, shade(palette.eyes, 0.25));
+    canvas.setPixel(13, eyeY, shade(palette.eyes, 0.25));
+    canvas.setPixel(14, eyeY, palette.eyes);
+    canvas.setPixel(10, eyeY + 1, palette.topAccent);
+    canvas.setPixel(13, eyeY + 1, palette.topAccent);
+  } else {
+    canvas.setPixel(9, eyeY, shade(palette.skin, 0.4));
+    canvas.setPixel(14, eyeY, shade(palette.skin, 0.4));
+    canvas.setPixel(10, eyeY, palette.eyes);
+    canvas.setPixel(13, eyeY, palette.eyes);
   }
 }
 
@@ -705,77 +636,28 @@ function paintTorso(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () 
     left: { x: 28, y: 20, width: 4, height: 12 },
     back: { x: 32, y: 20, width: 8, height: 12 },
   };
-  Object.values(faces).forEach((face) => canvas.fill(face, palette.top, 0.12, random)); // Richer noise
-  
-  // Belt / Waist detail
-  canvas.line(20, 30, 8, shade(palette.top, -0.2));
-  canvas.line(20, 31, 8, shade(palette.top, -0.3));
+  Object.values(faces).forEach((face) => canvas.fill(face, palette.top, 0.12, random));
 
-  // Neck area skin
-  canvas.setPixel(23, 20, palette.skin);
-  canvas.setPixel(24, 20, palette.skin);
-  canvas.setPixel(23, 21, shade(palette.skin, -0.1));
-  canvas.setPixel(24, 21, shade(palette.skin, -0.1));
+  // Belt & Metallic Buckle
+  canvas.line(20, 30, 8, shade(palette.top, -0.25));
+  canvas.line(20, 31, 8, shade(palette.top, -0.35));
+  canvas.setPixel(23, 30, palette.topAccent);
+  canvas.setPixel(24, 30, palette.topAccent);
 
-  if (design.pattern === "striped") {
-    canvas.line(20, 24, 8, palette.topAccent);
-    canvas.line(20, 28, 8, shade(palette.topAccent, -0.12));
-  } else if (design.pattern === "paneled") {
-    canvas.line(23, 21, 10, palette.topAccent, true);
-    canvas.line(24, 21, 10, shade(palette.topAccent, -0.15), true);
-  } else if (design.pattern === "lightning") {
-    drawLightning(canvas, faces.front, palette.topAccent);
-    canvas.setPixel(22, 27, palette.detail);
-    canvas.setPixel(25, 29, palette.detail);
-  } else if (design.pattern === "circuit") {
-    drawCircuit(canvas, faces.front, palette.topAccent);
-    canvas.line(20, 29, 3, palette.detail);
-    canvas.line(25, 23, 3, palette.detail);
-  } else if (design.pattern === "armored") {
-    // Better armor plating
-    canvas.fill({ x: 20, y: 22, width: 8, height: 3 }, shade(palette.top, 0.1));
-    canvas.fill({ x: 20, y: 26, width: 8, height: 3 }, shade(palette.top, 0.1));
-    canvas.line(20, 22, 8, palette.detail);
-    canvas.line(20, 26, 8, palette.topAccent);
-    canvas.setPixel(22, 24, palette.topAccent);
-    canvas.setPixel(25, 24, palette.topAccent);
-  } else if (design.pattern === "mystic") {
-    canvas.setPixel(23, 23, palette.detail);
-    canvas.setPixel(24, 23, palette.detail);
-    canvas.setPixel(22, 24, palette.detail);
-    canvas.setPixel(25, 24, palette.detail);
-    canvas.setPixel(23, 25, palette.topAccent);
-    canvas.setPixel(24, 25, palette.topAccent);
-  }
+  // 3D Chestplate / Jacket Overlay
+  const ovFront = { x: 20, y: 36, width: 8, height: 12 };
+  const ovBack = { x: 32, y: 36, width: 8, height: 12 };
+  const outerArmor = shade(palette.top, 0.08);
 
-  if (design.outfit === "royal" || design.outfit === "formal") {
-    canvas.line(23, 21, 10, palette.detail, true);
-    canvas.line(24, 21, 10, shade(palette.detail, -0.18), true);
-  }
+  canvas.fill(ovFront, outerArmor, 0.08, random);
+  canvas.fill(ovBack, outerArmor, 0.08, random);
 
-  if (design.emblem) {
-    drawEmblem(canvas, design.emblem, palette.detail);
-  }
-
-  // Draw overlay jacket/armor layer if needed
-  if (design.outfit === "cyber" || design.outfit === "armor") {
-    const ovFaces = {
-      front: { x: 20, y: 36, width: 8, height: 12 },
-      back: { x: 32, y: 36, width: 8, height: 12 },
-    };
-    const outerShade = shade(palette.top, 0.06);
-    
-    // Draw jacket/armor plating on the torso overlay
-    canvas.fill({ x: 20, y: 36, width: 2, height: 12 }, outerShade, 0.05, random); // left lapel
-    canvas.fill({ x: 26, y: 36, width: 2, height: 12 }, outerShade, 0.05, random); // right lapel
-    canvas.fill(ovFaces.back, outerShade, 0.05, random); // back plating
-    
-    if (design.outfit === "cyber") {
-      canvas.setPixel(23, 38, palette.topAccent);
-      canvas.setPixel(24, 38, palette.topAccent);
-      canvas.line(23, 39, 7, shade(palette.topAccent, -0.12), true);
-    }
-  }
+  // Glowing Chest Core / Lava Veins on 3D Overlay
+  canvas.setPixel(23, 38, palette.topAccent);
+  canvas.setPixel(24, 38, palette.topAccent);
+  canvas.line(23, 39, 4, palette.topAccent, true);
+  canvas.line(24, 39, 4, palette.topAccent, true);
+  canvas.line(21, 41, 6, palette.topAccent);
 }
 
 function paintLeg(canvas: SkinCanvas, side: "right" | "left", design: MinecraftSkinDesign, random: () => number) {
@@ -800,29 +682,12 @@ function paintLeg(canvas: SkinCanvas, side: "right" | "left", design: MinecraftS
       };
 
   Object.values(faces).forEach((face) => canvas.fill(face, palette.pants, 0.1, random));
-  const footwearRows = design.footwear === "armored" ? 5 : design.footwear === "boots" ? 4 : 3;
-  
-  for (const face of [faces.right, faces.front, faces.left, faces.back]) {
-    canvas.fill({ x: face.x, y: face.y + 12 - footwearRows, width: face.width, height: footwearRows }, palette.shoes, 0.08, random);
-  }
-  
-  // Highlight edge of shoes
-  canvas.line(faces.front.x, faces.front.y + 12 - footwearRows, faces.front.width, palette.detail);
-  
-  // Darken bottom of shoes
-  canvas.line(faces.front.x, faces.front.y + 11, faces.front.width, shade(palette.shoes, -0.3));
 
-  if (design.pattern === "striped" || design.outfit === "cyber") {
-    canvas.line(faces.front.x, faces.front.y + 1, 8, palette.topAccent, true);
-  }
-  if (design.pattern === "lightning") {
-    drawLightning(canvas, faces.front, palette.topAccent);
-  } else if (design.pattern === "circuit") {
-    drawCircuit(canvas, faces.front, palette.topAccent);
-  }
-  if (design.footwear === "armored") {
-    canvas.line(faces.front.x, faces.front.y + 10, faces.front.width, palette.topAccent);
-  }
+  // 3D Boots on Overlay Layer
+  const ovFront = isRight ? { x: 4, y: 36, width: 4, height: 12 } : { x: 4, y: 52, width: 4, height: 12 };
+  canvas.fill({ x: ovFront.x, y: ovFront.y + 7, width: 4, height: 5 }, palette.shoes, 0.08, random);
+  canvas.line(ovFront.x, ovFront.y + 7, 4, palette.topAccent);
+  canvas.line(ovFront.x, ovFront.y + 11, 4, palette.topAccent);
 }
 
 function detectReferenceEyeRow(canvas: SkinCanvas) {

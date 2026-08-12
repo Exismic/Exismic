@@ -94,11 +94,11 @@ export function ToolWorkspaceHeader({
             
             <div className="relative inline-block">
                {/* Background glow for the text */}
-               <h1 className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.05] tracking-tight blur-xl opacity-30 select-none pointer-events-none", isPro ? "text-amber-400" : "text-white")}>
+               <h1 className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.2] tracking-tight pb-2 blur-xl opacity-30 select-none pointer-events-none", isPro ? "text-amber-400" : "text-white")}>
                  {name}
                </h1>
                <div className="relative flex items-center gap-4">
-                 <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.05] tracking-tight text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                 <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.2] tracking-tight pb-2 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
                    isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]"
                          : (CATEGORY_ANIM_STYLES[categoryId]?.textGrad || CATEGORY_ANIM_STYLES.pdf.textGrad)
                  )}>
@@ -121,38 +121,44 @@ export function ToolWorkspaceHeader({
           </div>
         </div>
 
-        <div className="relative flex items-center gap-2 self-start lg:self-auto">
+        <div className="relative flex items-center gap-3 self-start lg:self-auto">
           <AnimatePresence>
             {showShareToast && (
               <motion.div
                 initial={{ opacity: 0, y: 6, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 4, scale: 0.96 }}
-                className="absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-lg border border-cyan-300/20 bg-[#0b1017] px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-cyan-100 shadow-xl"
+                className="absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-xl border border-cyan-400/40 bg-zinc-950/95 px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-200 shadow-2xl backdrop-blur-md"
               >
-                Link copied
+                Link copied to clipboard
               </motion.div>
             )}
           </AnimatePresence>
-          <button
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
             onClick={onShare}
-            title="Share tool"
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition hover:border-cyan-300/20 hover:bg-cyan-300/[0.06] hover:text-cyan-100 active:scale-95"
+            title="Share tool link"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-200 transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/20 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.25)]"
           >
-            <Share2 size={16} />
-          </button>
-          <button
+            <Share2 size={17} />
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
             onClick={onFavorite}
             title={isFavorited ? "Remove from favorites" : "Save to favorites"}
             className={cn(
-              "flex min-h-11 min-w-11 items-center justify-center rounded-lg border transition active:scale-95",
+              "flex min-h-11 min-w-11 items-center justify-center rounded-xl border transition-all duration-300",
               isFavorited
-                ? "border-violet-300/25 bg-violet-300/[0.09] text-violet-200"
-                : "border-white/[0.07] bg-white/[0.025] text-zinc-500 hover:border-violet-300/20 hover:bg-violet-300/[0.06] hover:text-violet-100"
+                ? "border-amber-400/60 bg-gradient-to-br from-amber-500/25 via-yellow-500/15 to-amber-600/25 text-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.35)]"
+                : "border-white/10 bg-white/5 text-zinc-400 hover:border-amber-400/40 hover:bg-amber-400/10 hover:text-amber-300 hover:shadow-[0_0_20px_rgba(251,191,36,0.2)]"
             )}
           >
-            <Star size={16} className={cn(isFavorited && "fill-current")} />
-          </button>
+            <Star size={17} className={cn(isFavorited && "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]")} />
+          </motion.button>
         </div>
       </div>
     </header>

@@ -1,4 +1,5 @@
 import os
+import asyncio
 import tempfile
 import shutil
 import base64
@@ -26,6 +27,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Concurrency semaphore limit for background removal to prevent OOM
+bg_semaphore = asyncio.Semaphore(2)
 
 # Ensure FFmpeg is available
 try:
@@ -143,21 +147,41 @@ async def separate_audio(file: UploadFile = File(...), stems: int = 2):
 async def health():
     return {"status": "ready", "model": "htdemucs"}
 
+@app.post("/remove-bg")
 @app.post("/image/remove-bg")
 async def remove_bg(file: UploadFile = File(...)):
     """
     Removes background from an image using rembg.
+    Enforces max 2 concurrent jobs via asyncio.Semaphore and max 1920x1920 resolution downscaling.
     """
-    try:
-        input_data = await file.read()
-        
-        # Use rembg to remove background
-        output_data = remove(input_data)
-        
-        return Response(content=output_data, media_type="image/png")
-    except Exception as e:
-        print(f"Background Removal Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    async with bg_semaphore:
+        try:
+            input_data = await file.read()
+            
+            # Automatically downscale ultra-high-res images (>1920x1920) to conserve server memory
+            try:
+                with Image.open(io.BytesIO(input_data)) as img:
+                    max_dim = max(img.width, img.height)
+                    if max_dim > 1920:
+                        scale = 1920.0 / float(max_dim)
+                        new_size = (int(img.width * scale), int(img.height * scale))
+                        resample_mode = getattr(getattr(Image, 'Resampling', Image), 'LANCZOS', Image.LANCZOS)
+                        resized_img = img.resize(new_size, resample_mode)
+                        
+                        buf = io.BytesIO()
+                        img_fmt = img.format if img.format else "PNG"
+                        resized_img.save(buf, format=img_fmt)
+                        input_data = buf.getvalue()
+            except Exception as resize_err:
+                print(f"Pre-processing resize warning: {resize_err}")
+
+            # Use rembg to remove background
+            output_data = remove(input_data)
+            
+            return Response(content=output_data, media_type="image/png")
+        except Exception as e:
+            print(f"Background Removal Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

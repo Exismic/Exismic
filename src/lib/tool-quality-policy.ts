@@ -1,7 +1,7 @@
 export type OutputTier = "standard" | "hd";
 
 export const QUALITY_TOOL_POLICIES = {
-  "image-eraser": { hdCreditCost: 4, standardMaxEdge: 1280 },
+  "image-eraser": { hdCreditCost: 4, standardMaxEdge: 1000 },
   "image-compressor": { hdCreditCost: 2, standardMaxEdge: 1600 },
   "image-resizer": { hdCreditCost: 2, standardMaxEdge: 1600 },
   "image-converter": { hdCreditCost: 1, standardMaxEdge: 1600 },

@@ -42,14 +42,16 @@ export async function renderCategoryToolPage(categoryId: string, toolId: string)
         categoryId={categoryId} 
         toolId={toolId} 
       />
-      <ToolSeoSection
-        toolName={tool.name}
-        toolDescription={tool.seoDescription || tool.description}
-        categoryName={category.name}
-        categoryId={category.id}
-        toolSlug={tool.href}
-        keywords={tool.seoKeywords}
-      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+        <ToolSeoSection 
+          toolName={tool.name}
+          toolDescription={tool.seoDescription || tool.description}
+          categoryName={category.name}
+          categoryId={categoryId}
+          toolSlug={tool.id}
+          showRelatedTools={true}
+        />
+      </div>
     </>
   );
 }

@@ -74,6 +74,7 @@ export function ToolReliabilityNotice({
 
   if (
     reliability.level === "operational" ||
+    reliability.level === "service-backed" ||
     (reliability.level === "client-only" && !showClientOnly)
   ) {
     return null;

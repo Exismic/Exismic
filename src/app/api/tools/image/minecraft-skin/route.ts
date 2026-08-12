@@ -23,6 +23,7 @@ import {
   sanitizeSkinDesign,
   type MinecraftArmModel,
   type MinecraftSkinDesign,
+  type MinecraftSkinPalette,
   type MinecraftSkinPart,
 } from "@/lib/minecraft-skin";
 
@@ -114,6 +115,80 @@ function markFaces(mask: Uint8Array, faces: UvFace[]) {
   }
 }
 
+async function rebuildShowcaseTexture(source: Buffer, model: MinecraftArmModel): Promise<Uint8Array> {
+  const { data } = await sharp(source)
+    .resize(128, 64, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const canvas = new Uint8Array(64 * 64 * 4);
+  const armW = model === "slim" ? 3 : 4;
+
+  const isBgPixel = (r: number, g: number, b: number, a: number) => {
+    if (a < 50) return true;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+    if (max <= 48 && diff < 24) return true; // Container dark gray backdrop
+    if (min >= 220 && diff < 24) return true; // White backdrop
+    return false;
+  };
+
+  const copyPixel = (srcX: number, srcY: number, dstX: number, dstY: number) => {
+    const sX = Math.max(0, Math.min(127, Math.floor(srcX)));
+    const sY = Math.max(0, Math.min(63, Math.floor(srcY)));
+    const srcOff = (sY * 128 + sX) * 4;
+    const dX = Math.max(0, Math.min(63, Math.floor(dstX)));
+    const dY = Math.max(0, Math.min(63, Math.floor(dstY)));
+    const dstOff = (dY * 64 + dX) * 4;
+
+    const r = data[srcOff];
+    const g = data[srcOff + 1];
+    const b = data[srcOff + 2];
+    const a = data[srcOff + 3];
+
+    if (!isBgPixel(r, g, b, a)) {
+      canvas[dstOff] = r;
+      canvas[dstOff + 1] = g;
+      canvas[dstOff + 2] = b;
+      canvas[dstOff + 3] = 255;
+    }
+  };
+
+  const copyRegion = (sX: number, sY: number, sW: number, sH: number, dX: number, dY: number, dW: number, dH: number) => {
+    for (let y = 0; y < dH; y += 1) {
+      for (let x = 0; x < dW; x += 1) {
+        const srcX = sX + (x / dW) * sW;
+        const srcY = sY + (y / dH) * sH;
+        copyPixel(srcX, srcY, dX + x, dY + y);
+      }
+    }
+  };
+
+  // Front View Slicing
+  copyRegion(8, 4, 16, 16, 8, 8, 8, 8); // Head Front
+  copyRegion(8, 0, 16, 8, 8, 0, 8, 8); // Head Top
+  copyRegion(0, 4, 8, 16, 0, 8, 8, 8); // Head Right
+  copyRegion(24, 4, 8, 16, 16, 8, 8, 8); // Head Left
+  copyRegion(8, 20, 16, 24, 20, 20, 8, 12); // Torso Front
+  copyRegion(8, 18, 16, 4, 20, 16, 8, 4); // Torso Top
+  copyRegion(0, 20, 8, 24, 44, 20, armW, 12); // Right Arm Front
+  copyRegion(24, 20, 8, 24, 36, 52, armW, 12); // Left Arm Front
+  copyRegion(8, 44, 8, 20, 4, 20, 4, 12); // Right Leg Front
+  copyRegion(16, 44, 8, 20, 20, 52, 4, 12); // Left Leg Front
+
+  // Back View Slicing
+  copyRegion(72, 4, 16, 16, 24, 8, 8, 8); // Head Back
+  copyRegion(72, 20, 16, 24, 32, 20, 8, 12); // Torso Back
+  copyRegion(64, 20, 8, 24, 48 + armW, 20, armW, 12); // Right Arm Back
+  copyRegion(88, 20, 8, 24, 44, 52, armW, 12); // Left Arm Back
+  copyRegion(72, 44, 8, 20, 12, 20, 4, 12); // Right Leg Back
+  copyRegion(80, 44, 8, 20, 28, 52, 4, 12); // Left Leg Back
+
+  return canvas;
+}
+
 async function rebuildReferenceTexture(referenceImage: string, model: MinecraftArmModel) {
   const match = referenceImage.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/i);
   if (!match) throw new Error("The reference image could not be decoded.");
@@ -124,7 +199,7 @@ async function rebuildReferenceTexture(referenceImage: string, model: MinecraftA
   }
   const ratio = metadata.width / metadata.height;
   if (ratio < 0.92 || ratio > 1.08) {
-    throw new Error("Rebuild mode needs a square Minecraft skin-layout image. Use inspiration mode for character art.");
+    return rebuildShowcaseTexture(source, model);
   }
 
   const resized = sharp(source)
@@ -188,9 +263,10 @@ function buildDesignInstruction(
   targetPart: MinecraftSkinPart,
   referenceMode: "inspire" | "guided" | "rebuild"
 ) {
-  const referencePriority = referenceMode === "guided"
-    ? "Treat the reference as the character identity. Preserve its hair, face covering, garment type, dominant colors, sleeve length, footwear, symbols, and accent placement unless the prompt explicitly changes one of them."
-    : "Treat the written prompt as primary. Use the reference only for useful color, silhouette, and material cues.";
+  const wantsExactRef = /\b(exact|same|this|inspiration|reference|image|picture|like this|copy)\b/i.test(prompt);
+  const referencePriority = (referenceMode === "guided" || wantsExactRef)
+    ? "CRITICAL: Treat the reference image as the primary character identity! Faithfully replicate its demon/robot/character traits, horns, visor, mask, outfit type, lava/accent glows, and exact color palette. If it is a demon, monster, or robot, DO NOT use light human skin—use dark obsidian or appropriate armor colors!"
+    : "Treat the written prompt as primary. Use the reference for useful color, silhouette, and material cues.";
   return [
     `Create a coherent Minecraft skin design specification for: "${prompt}".`,
     `Visual treatment: ${style}.`,
@@ -410,6 +486,142 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+function shadeHex(hex: string, amount: number) {
+  const normalized = hex.trim().replace(/^#/, "");
+  const value = normalized.length === 3
+    ? normalized.split("").map((char) => char + char).join("")
+    : normalized.padStart(6, "0");
+  const r = Number.parseInt(value.slice(0, 2), 16) || 0;
+  const g = Number.parseInt(value.slice(2, 4), 16) || 0;
+  const b = Number.parseInt(value.slice(4, 6), 16) || 0;
+  const shift = (c: number) => Math.max(0, Math.min(255, Math.round(c + 255 * amount)));
+  return `#${[shift(r), shift(g), shift(b)].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+}
+
+async function extractImagePalette(referenceImage: string): Promise<Partial<MinecraftSkinPalette>> {
+  try {
+    const match = referenceImage.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/i);
+    if (!match) return {};
+    const source = Buffer.from(match[2], "base64");
+    const { data } = await sharp(source)
+      .resize(96, 96, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    let redLavaCount = 0;
+    let cyanNeonCount = 0;
+    let purpleMagicCount = 0;
+    let darkObsidianCount = 0;
+    let totalValidPixels = 0;
+
+    let dominantRedHex = "#ff2200";
+    let dominantCyanHex = "#00f3ff";
+    let dominantPurpleHex = "#a855f7";
+    let dominantDarkHex = "#181216";
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+      if (a < 50) continue;
+
+      totalValidPixels += 1;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const val = max / 255;
+
+      const hex = `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+
+      if (r > 110 && r > g * 1.25 && r > b * 1.25) {
+        redLavaCount += 1;
+        if (r > 170) dominantRedHex = hex;
+      } else if (g > 130 && b > 130 && r < 110) {
+        cyanNeonCount += 1;
+        dominantCyanHex = hex;
+      } else if (r > 110 && b > 130 && g < 110) {
+        purpleMagicCount += 1;
+        dominantPurpleHex = hex;
+      } else if (val < 0.28) {
+        darkObsidianCount += 1;
+        if (val < 0.18) dominantDarkHex = hex;
+      }
+    }
+
+    if (!totalValidPixels) return {};
+
+    // 1. Red & Black Lava Demon Archetype
+    if (redLavaCount / totalValidPixels > 0.03 || (redLavaCount >= 10 && darkObsidianCount >= 25)) {
+      return {
+        skin: dominantDarkHex,
+        skinShade: shadeHex(dominantDarkHex, -0.15),
+        top: dominantDarkHex,
+        topAccent: dominantRedHex,
+        pants: dominantDarkHex,
+        shoes: dominantRedHex,
+        hair: dominantDarkHex,
+        hairHighlight: dominantRedHex,
+        eyes: dominantRedHex,
+        detail: dominantRedHex,
+      };
+    }
+
+    // 2. Cyan Cyber / Tech Archetype
+    if (cyanNeonCount / totalValidPixels > 0.04) {
+      return {
+        skin: "#1a1c2e",
+        skinShade: "#101220",
+        top: "#141624",
+        topAccent: dominantCyanHex,
+        pants: "#0d0f19",
+        shoes: dominantCyanHex,
+        hair: "#1a1c2e",
+        hairHighlight: dominantCyanHex,
+        eyes: dominantCyanHex,
+        detail: dominantCyanHex,
+      };
+    }
+
+    // 3. Purple Magic / Mystic Archetype
+    if (purpleMagicCount / totalValidPixels > 0.04) {
+      return {
+        skin: "#21133d",
+        skinShade: "#150a29",
+        top: "#2a154c",
+        topAccent: dominantPurpleHex,
+        pants: "#1b0c33",
+        shoes: dominantPurpleHex,
+        hair: "#2a154c",
+        hairHighlight: dominantPurpleHex,
+        eyes: dominantPurpleHex,
+        detail: dominantPurpleHex,
+      };
+    }
+
+    // 4. Dark Armor Archetype
+    if (darkObsidianCount / totalValidPixels > 0.3) {
+      return {
+        skin: dominantDarkHex,
+        skinShade: shadeHex(dominantDarkHex, -0.15),
+        top: dominantDarkHex,
+        topAccent: "#eab308",
+        pants: dominantDarkHex,
+        shoes: "#333333",
+        hair: dominantDarkHex,
+        hairHighlight: "#555555",
+        eyes: "#eab308",
+        detail: "#eab308",
+      };
+    }
+
+    return {};
+  } catch (e) {
+    console.warn("[Minecraft Skin] Palette extraction bypass:", e);
+    return {};
+  }
+}
+
 export async function POST(request: NextRequest) {
   const apiUser = await getOptionalApiUser();
 
@@ -420,7 +632,6 @@ export async function POST(request: NextRequest) {
   );
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter);
 
-  let outputPath: string | null = null;
   try {
     const body = requestSchema.safeParse(await request.json());
     if (!body.success) {
@@ -461,17 +672,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const aiDesign = !apiUser || referenceRebuilt
+    const imagePalette = referenceImage ? await extractImagePalette(referenceImage) : {};
+
+    const aiDesign = referenceRebuilt
       ? null
       : await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
-    const design = aiDesign
-      ? sanitizeSkinDesign(aiDesign, prompt, seed)
-      : createFallbackSkinDesign(prompt, seed);
+
+    const design = sanitizeSkinDesign(
+      {
+        ...(aiDesign || {}),
+        palette: {
+          ...(aiDesign?.palette || {}),
+          ...imagePalette,
+        },
+      },
+      prompt,
+      seed
+    );
+
     let referenceGuided = false;
     let generated: Uint8Array;
     if (referenceRebuilt) {
       generated = await rebuildReferenceTexture(referenceImage!, armModel as MinecraftArmModel);
-    } else if (referenceMode === "guided" && referenceImage) {
+    } else if (referenceImage) {
       try {
         const referenceBase = await rebuildReferenceTexture(referenceImage, armModel as MinecraftArmModel);
         generated = applyPromptEditsToMinecraftSkin(
@@ -483,7 +706,7 @@ export async function POST(request: NextRequest) {
         );
         referenceGuided = true;
       } catch (referenceError) {
-        console.info("[Minecraft Skin] Guided reference is not a UV sheet; using AI-directed compilation.", referenceError);
+        console.info("[Minecraft Skin] Reference is not a 64x64 UV layout; using palette-guided compilation.", referenceError);
         generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel);
       }
     } else {

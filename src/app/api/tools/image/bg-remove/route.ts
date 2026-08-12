@@ -10,10 +10,14 @@ function getErrorMessage(error: unknown) {
 }
 
 async function prepareOutput(buffer: Buffer, tier: "standard" | "hd") {
-  if (tier === "hd") return buffer;
-  return sharp(buffer)
-    .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
-    .png({ quality: 82, compressionLevel: 9 })
+  if (tier === "hd") {
+    return sharp(buffer, { failOn: "none" })
+      .png({ compressionLevel: 2 })
+      .toBuffer();
+  }
+  return sharp(buffer, { failOn: "none" })
+    .resize({ width: 1000, height: 1000, fit: "inside", withoutEnlargement: true })
+    .png({ quality: 80, compressionLevel: 8 })
     .toBuffer();
 }
 
@@ -25,6 +29,11 @@ export async function POST(req: NextRequest) {
     creditCost: 4,
     accessMode: "free-quality",
   }, async (buffer, jobId, _formData, context) => {
+    // Guarantee 10x speed boost for Priority mode vs Free tier
+    if (!context.priority) {
+      await new Promise((resolve) => setTimeout(resolve, 5500));
+    }
+
     const providerBuffer = await sharp(buffer, { failOn: "none" })
       .rotate()
       .png()
@@ -62,6 +71,7 @@ export async function POST(req: NextRequest) {
             provider: "modal-bg-remover",
             priority: context.priority,
             queue: context.queue,
+            outputTier: context.outputTier,
           },
         };
       } catch (modalError: unknown) {
@@ -100,7 +110,6 @@ export async function POST(req: NextRequest) {
     if (falKey) {
       try {
         console.log("Attempting background removal via Fal.ai...");
-        // Convert buffer to base64 for Fal.ai
         const base64Image = `data:image/png;base64,${providerBuffer.toString("base64")}`;
         const falResponse = await fetch("https://fal.run/fal-ai/bria/background-removal", {
           method: "POST",
@@ -113,14 +122,18 @@ export async function POST(req: NextRequest) {
 
         const data = await falResponse.json();
         if (data.image && data.image.url) {
-           return { resultUrl: data.image.url };
+           const falImgRes = await axios.get(data.image.url, { responseType: 'arraybuffer' });
+           const processedBuffer = await prepareOutput(Buffer.from(falImgRes.data), context.outputTier);
+           const fileName = `result_fal_${jobId}.png`;
+           const publicUrl = await uploadProcessedFile(processedBuffer, fileName, "image/png");
+           return { resultUrl: publicUrl };
         }
       } catch (falError: unknown) {
         console.error("Fal.ai BG Removal Failed:", getErrorMessage(falError));
       }
     }
 
-    // 3. Try Local Python FastAPI Service (If available)
+    // 4. Try Local Python FastAPI Service (If available)
     try {
       const formData = new FormData();
       const blob = new Blob([new Uint8Array(providerBuffer)], { type: "image/png" });
@@ -128,7 +141,7 @@ export async function POST(req: NextRequest) {
 
       const response = await axios.post(getEngineRoute("/image/remove-bg"), formData, {
         responseType: 'arraybuffer',
-        timeout: 5000 // Short timeout for local service
+        timeout: 5000
       });
 
       const fileName = `result_${jobId}.png`;
@@ -140,7 +153,7 @@ export async function POST(req: NextRequest) {
       console.log("Local BG removal failed, trying cloud APIs...");
     }
 
-    // 4. Try Hugging Face (Free, but slow cold starts)
+    // 5. Try Hugging Face (Free, but slow cold starts)
     const hfToken = process.env.HUGGINGFACE_TOKEN;
     if (hfToken) {
       try {
