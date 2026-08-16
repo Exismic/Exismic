@@ -55,16 +55,16 @@ export default function ProBenefitsPage() {
 
   const benefits = [
     { 
-      id: "unlimited",
+      id: "credits",
       category: "creative",
-      title: "Limitless Creative Freedom", 
-      desc: "Creation without boundaries. Craft as many images, videos, and projects as your imagination demands.", 
-      icon: InfinityIcon, 
+      title: "500 Daily Studio Credits", 
+      desc: "Massive daily allowance of 500 high-speed credits replenished every 24 hours — 10x the free tier power.", 
+      icon: Zap, 
       color: "from-amber-400 to-orange-500",
       iconColor: "text-amber-400",
       iconBg: "bg-amber-400/10 border-amber-400/30",
       glowColor: "rgba(245, 158, 11, 0.25)",
-      badgeText: "UNLIMITED",
+      badgeText: "10X CREDITS",
       privilegeLevel: 5
     },
     { 

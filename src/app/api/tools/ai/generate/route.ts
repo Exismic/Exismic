@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
@@ -73,7 +74,7 @@ Maintain a confident, enthusiastic tone and structure into clear opening, body, 
     const groqResponse = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: "llama-3.3-70b-versatile",
+        model: DEFAULT_GROQ_TEXT_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }

@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import axios from 'axios';
 import { requireProApiUser } from "@/lib/api-security";
+import { DEFAULT_GROQ_TEXT_MODEL, GROQ_TEXT_MODELS, GROQ_VISION_MODELS } from "@/lib/ai-models";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,10 +21,7 @@ const MAX_VISION_IMAGES = 5;
 const MAX_VISION_DATA_CHARACTERS = Math.floor(3.7 * 1024 * 1024);
 const MAX_TEXT_ATTACHMENT_CHARACTERS = 120_000;
 const MAX_TOTAL_TEXT_ATTACHMENT_CHARACTERS = 240_000;
-const DEFAULT_VISION_MODELS = [
-  "meta-llama/llama-4-scout-17b-16e-instruct",
-  "qwen/qwen3.6-27b",
-];
+const DEFAULT_VISION_MODELS = GROQ_VISION_MODELS;
 
 class AttachmentValidationError extends Error {}
 
@@ -506,10 +504,23 @@ ${contextStr}`;
         throw new Error(upstreamMessage || "Exismic Vision is temporarily unavailable. Please try again.");
       }
     } else {
-      data = await callGroq({
-        ...basePayload,
-        model: "llama-3.3-70b-versatile",
-      });
+      let lastTextError: any = null;
+      for (const model of GROQ_TEXT_MODELS) {
+        try {
+          data = await callGroq({
+            ...basePayload,
+            model,
+          });
+          if (data?.choices?.[0]?.message?.content !== undefined) break;
+        } catch (error: any) {
+          lastTextError = error;
+          console.warn(`[Chat Text] ${model} failed:`, error.response?.data?.error?.message || error.message);
+        }
+      }
+      if (!data) {
+        const upstreamMessage = lastTextError?.response?.data?.error?.message;
+        throw new Error(upstreamMessage || "Exismic AI is temporarily unavailable. Please try again.");
+      }
     }
     if (!data?.choices?.[0]) throw new Error("AI Service invalid response");
 
@@ -532,7 +543,7 @@ ${contextStr}`;
     async function generateSmartTitle(userQuery: string): Promise<string> {
       try {
         const titlePayload = {
-          model: "llama-3.3-70b-versatile",
+          model: DEFAULT_GROQ_TEXT_MODEL,
           messages: [
             { 
               role: "system", 
@@ -559,7 +570,6 @@ ${contextStr}`;
         console.warn("Smart title generation failed:", err);
         // Clean fallback
         const fallback = userQuery
-          .replace(/[#*\_`\-\+\[\]\(\)]/g, "")
           .replace(/['"]+/g, "")
           .replace(/\s+/g, " ")
           .trim();

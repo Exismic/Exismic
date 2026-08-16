@@ -26,13 +26,14 @@ import {
   type MinecraftSkinPalette,
   type MinecraftSkinPart,
 } from "@/lib/minecraft-skin";
+import { DEFAULT_GROQ_TEXT_MODEL, DEFAULT_GROQ_VISION_MODEL } from "@/lib/ai-models";
 
 export const runtime = "nodejs";
 export const maxDuration = 45;
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const TEXT_MODEL = "llama-3.3-70b-versatile";
-const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+const TEXT_MODEL = DEFAULT_GROQ_TEXT_MODEL;
+const VISION_MODEL = DEFAULT_GROQ_VISION_MODEL;
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(3).max(600),

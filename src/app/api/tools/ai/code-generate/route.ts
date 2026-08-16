@@ -5,6 +5,7 @@ import axios from 'axios';
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
 import { requireProApiUser } from "@/lib/api-security";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 export async function POST(req: Request) {
   try {
@@ -91,7 +92,7 @@ Instructions:
 - Ensure delimiters are on their own lines.`;
 
     const response = await callGroq({
-      model: "llama-3.3-70b-versatile",
+      model: DEFAULT_GROQ_TEXT_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
@@ -114,7 +115,7 @@ Instructions:
         status: 'COMPLETED',
         originalUrl: prompt,
         resultUrl: codeOutput,
-        metadata: { language, framework, model: "llama-3.3-70b-versatile" }
+        metadata: { language, framework, model: DEFAULT_GROQ_TEXT_MODEL }
       }
     });
 

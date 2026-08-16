@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import axios from "axios";
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
@@ -69,7 +70,7 @@ export async function POST(
       const groqResponse = await axios.post(
         "https://api.groq.com/openai/v1/chat/completions",
         {
-          model: "llama-3.3-70b-versatile",
+          model: DEFAULT_GROQ_TEXT_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: prompt }

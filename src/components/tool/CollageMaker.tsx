@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { usePro } from "@/hooks/usePro";
 
 type CollageLayout = 'duo' | 'classic' | 'grid-4' | 'grid-9' | 'pinterest' | 'auto' | 'custom';
 type CollageRatio = '1:1' | '4:5' | '9:16' | '16:9' | '3:2' | '2:3';
@@ -38,6 +39,7 @@ interface CollageItem {
 }
 
 export function CollageMaker() {
+  const { isPro } = usePro();
   const [items, setItems] = useState<CollageItem[]>([]);
   const [activeLayout, setActiveLayout] = useState<CollageLayout>('auto');
   const [collageRatio, setCollageRatio] = useState<CollageRatio>('1:1');
@@ -292,6 +294,32 @@ export function CollageMaker() {
             img.onerror = () => reject(new Error("Could not load one of the collage images."));
             img.src = item.preview;
         });
+      }
+
+      // Draw subtle brand watermark badge if !isPro
+      if (!isPro) {
+        ctx.save();
+        const scale = Math.max(1, width / 1500);
+        const badgeW = 200 * scale;
+        const badgeH = 48 * scale;
+        const badgeX = width - badgeW - 30 * scale;
+        const badgeY = height - badgeH - 30 * scale;
+
+        ctx.fillStyle = "rgba(10, 12, 20, 0.85)";
+        ctx.beginPath();
+        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 12 * scale);
+        ctx.fill();
+
+        ctx.lineWidth = 1.5 * scale;
+        ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+        ctx.stroke();
+
+        ctx.font = `900 ${15 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("⚡ exismic.xyz", badgeX + badgeW / 2, badgeY + badgeH / 2);
+        ctx.restore();
       }
 
       const exportFormat = bgColor === 'transparent' ? 'png' : 'jpg';
@@ -645,26 +673,31 @@ export function CollageMaker() {
                                    collageRatio === '3:2' ? '3000x2000' : '2000x3000'} Neural Ultra-HD
                                </div>
                             </div>
-                           <div className="flex flex-col md:flex-row gap-4">
-                              <a 
-                                href={result}
-                                download={`exismic-collage-${Date.now()}.${resultFormat}`}
-                                className="flex-[2] py-8 rounded-3xl bg-emerald-500 text-white font-black text-lg uppercase tracking-widest shadow-4xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
-                              >
-                                <Download size={28} /> Export as High-Res {resultFormat.toUpperCase()}
-                              </a>
-                              <button 
-                                onClick={() => {
-                                  items.forEach((item) => URL.revokeObjectURL(item.preview));
-                                  setItems([]);
-                                  setResult(null);
-                                  setError(null);
-                                }}
-                                className="flex-1 py-8 rounded-3xl glass-dark border border-white/10 text-zinc-400 font-black text-lg uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-4"
-                              >
-                                <RefreshCw size={24} /> Start New
-                              </button>
-                           </div>
+                            <div className="flex flex-col md:flex-row gap-4">
+                               <a 
+                                 href={result}
+                                 download={`exismic-collage-${Date.now()}.${resultFormat}`}
+                                 className="flex-[2] py-8 rounded-3xl bg-emerald-500 text-white font-black text-lg uppercase tracking-widest shadow-4xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
+                               >
+                                 <Download size={28} /> Export as High-Res {resultFormat.toUpperCase()}
+                               </a>
+                               <button 
+                                 onClick={() => {
+                                   items.forEach((item) => URL.revokeObjectURL(item.preview));
+                                   setItems([]);
+                                   setResult(null);
+                                   setError(null);
+                                 }}
+                                 className="flex-1 py-8 rounded-3xl glass-dark border border-white/10 text-zinc-400 font-black text-lg uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-4"
+                               >
+                                 <RefreshCw size={24} /> Start New
+                               </button>
+                            </div>
+                            {!isPro && (
+                              <p className="text-center text-xs text-zinc-500 font-medium">
+                                Free export includes subtle <span className="text-zinc-300 font-bold">exismic.xyz</span> brand badge • <a href="/pro" className="text-amber-400 font-bold hover:underline">Upgrade to Pro</a> for 100% clean commercial exports
+                              </p>
+                            )}
                         </div>
                      </motion.div>
                    )}

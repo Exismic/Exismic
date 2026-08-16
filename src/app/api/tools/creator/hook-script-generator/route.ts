@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withToolHandler } from "@/lib/tools-handler";
 import axios from "axios";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -15,7 +16,7 @@ async function callGroq(messages: any[]) {
       const response = await axios.post(
         GROQ_API_URL,
         {
-          model: "llama-3.3-70b-versatile",
+          model: DEFAULT_GROQ_TEXT_MODEL,
           messages,
           temperature: 0.75,
           max_tokens: 2048,

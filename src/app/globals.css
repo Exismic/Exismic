@@ -971,3 +971,10 @@ html.theme-cosmic-nebula body::before {
   animation: neon-pulse 2s ease-in-out infinite;
 }
 
+@keyframes routeProgress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(30%); }
+  100% { transform: translateX(200%); }
+}
+
+

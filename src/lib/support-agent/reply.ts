@@ -1,4 +1,5 @@
 import type { SupportAgent, SupportDocument } from "./types";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -124,7 +125,7 @@ export async function generateSupportReply(agent: SupportAgent, message: string,
     .join("\n\n");
 
   const payload = {
-    model: "llama-3.3-70b-versatile",
+    model: DEFAULT_GROQ_TEXT_MODEL,
     messages: [
       {
         role: "system",

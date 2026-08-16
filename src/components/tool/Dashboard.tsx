@@ -18,6 +18,7 @@ import {
   Brush,
   FileText,
   Mic2,
+  Bot,
   Code2,
   Terminal,
   Monitor,
@@ -207,10 +208,10 @@ const QUICK_ACTIONS = [
     }
   },
   { 
-    name: "Code Studio", 
-    href: "/tools/ai/code", 
-    icon: Code2, 
-    badge: "PRO IDE", 
+    name: "Support Agent", 
+    href: "/tools/support-agent", 
+    icon: Bot, 
+    badge: "B2B BOT", 
     theme: {
       idleBg: "bg-gradient-to-br from-amber-950/80 via-yellow-950/50 to-zinc-950/90",
       border: "border-amber-500/50 hover:border-amber-300",
@@ -589,7 +590,7 @@ export function Dashboard() {
                             EXISMIC PRO STUDIO
                           </span>
                           <h3 className="text-sm sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-100 via-fuchsia-200 to-cyan-200 tracking-tight drop-shadow-[0_2px_15px_rgba(168,85,247,0.6)] leading-tight">
-                            UNLOCK UNLIMITED POWER
+                            UNLOCK PRO STUDIO POWER
                           </h3>
                         </div>
                       </div>
@@ -602,14 +603,14 @@ export function Dashboard() {
 
                     {/* Subtitle & Value Proposition */}
                     <p className="text-xs sm:text-sm font-bold text-zinc-200 leading-relaxed relative z-20">
-                      Supercharge your workflow with unlimited AI credits, 4K ultra-render speeds, 10x faster generations & commercial rights.
+                      Supercharge your workflow with 500 daily AI credits (10x allowance), 4K ultra-render speeds, priority queue & commercial rights.
                     </p>
 
                     {/* Bullet Feature Pills */}
                     <div className="grid grid-cols-2 gap-2.5 relative z-20 pt-1">
                       <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400/40 text-[11px] font-bold text-purple-100 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_15px_rgba(168,85,247,0.25)]">
                         <Zap size={14} className="text-cyan-300 fill-cyan-300/60" />
-                        <span>Unlimited Credits</span>
+                        <span>500 Daily Credits</span>
                       </div>
                       <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400/40 text-[11px] font-bold text-purple-100 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_15px_rgba(168,85,247,0.25)]">
                         <Sparkles size={14} className="text-fuchsia-300" />
@@ -620,8 +621,8 @@ export function Dashboard() {
                         <span>Commercial Rights</span>
                       </div>
                       <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400/40 text-[11px] font-bold text-purple-100 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_15px_rgba(168,85,247,0.25)]">
-                        <Crown size={14} className="text-amber-300" />
-                        <span>Pro Code IDE</span>
+                        <Crown size={14} className="text-amber-300 fill-amber-300/40" />
+                        <span>Zero Watermarks</span>
                       </div>
                     </div>
 

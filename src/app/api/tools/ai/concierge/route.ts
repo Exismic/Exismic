@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { TOOLS, type Tool } from "@/data/tools";
 import { checkRateLimit, getRequestIp, rateLimitResponse } from "@/lib/api-security";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -189,7 +190,7 @@ async function askGroq(message: string) {
 
   const catalog = TOOLS.map((tool) => `${tool.id}: ${tool.name} - ${tool.description}`).join("\n");
   const payload = {
-    model: "llama-3.3-70b-versatile",
+    model: DEFAULT_GROQ_TEXT_MODEL,
     response_format: { type: "json_object" },
     messages: [
       {

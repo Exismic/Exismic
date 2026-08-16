@@ -104,41 +104,34 @@ export function AppShell({ children, hasSession }: AppShellProps) {
           suppressHydrationWarning
           className="relative flex min-w-0 flex-1 flex-col bg-[#020202] isolate"
         >
-          {/* Global Ambient Background Studio - Insane Mode */}
+          {/* Global Ambient Background Studio - Optimized Hardware Accelerated */}
           {!isOverviewPage && (
             <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#030305]">
-              {/* Massive Orbiting Gradient Orbs */}
-              <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] animate-[spin_40s_linear_infinite] origin-bottom-right">
-                <div 
-                  className="w-full h-full rounded-full blur-[100px] mix-blend-screen opacity-60 transition-colors duration-1000"
-                  style={{ background: `radial-gradient(circle, ${primaryGlow}, transparent 70%)` }}
-                />
-              </div>
+              {/* Hardware-Accelerated Ambient Gradient Orbs */}
+              <div 
+                className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full blur-[80px] opacity-40 will-change-transform transform-gpu transition-colors duration-1000"
+                style={{ background: `radial-gradient(circle, ${primaryGlow}, transparent 70%)` }}
+              />
               
-              <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] animate-[spin_50s_linear_infinite_reverse] origin-top-left">
-                <div 
-                  className="w-full h-full rounded-full blur-[100px] mix-blend-screen opacity-50 transition-colors duration-1000"
-                  style={{ background: `radial-gradient(circle, ${secondaryGlow}, transparent 70%)` }}
-                />
-              </div>
+              <div 
+                className="absolute bottom-[-10%] right-[-5%] w-[55vw] h-[55vw] rounded-full blur-[80px] opacity-35 will-change-transform transform-gpu transition-colors duration-1000"
+                style={{ background: `radial-gradient(circle, ${secondaryGlow}, transparent 70%)` }}
+              />
 
-              <div className="absolute top-[20%] left-[30%] w-[50vw] h-[50vw] animate-[pulse_15s_ease-in-out_infinite]">
-                <div 
-                  className="w-full h-full rounded-full blur-[100px] mix-blend-screen opacity-40 transition-colors duration-1000"
-                  style={{ background: `radial-gradient(circle, ${tertiaryGlow}, transparent 70%)` }}
-                />
-              </div>
+              <div 
+                className="absolute top-[25%] left-[25%] w-[40vw] h-[40vw] rounded-full blur-[90px] opacity-25 will-change-transform transform-gpu transition-colors duration-1000"
+                style={{ background: `radial-gradient(circle, ${tertiaryGlow}, transparent 70%)` }}
+              />
 
-              {/* Premium Frosted Glass Overlay */}
-              <div className="absolute inset-0 backdrop-blur-[120px] bg-[#030305]/50" />
-
-              {/* Cinematic Noise Texture Overlay */}
-              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.06] mix-blend-overlay" />
+              {/* Fast Glass Backdrop & Inline Local Grain */}
+              <div className="absolute inset-0 bg-[#030305]/60 backdrop-blur-3xl" />
+              <div className="absolute inset-0 grain opacity-[0.03]" />
               
               {/* Vignette for depth */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#030305_120%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#030305_100%)]" />
             </div>
           )}
+
 
           {!isAuthRoute ? <Navbar /> : null}
           <div

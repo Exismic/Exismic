@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { hasActiveProAccess } from "@/lib/user-access";
 import { normalizeResumeData, type AtsInsight, type ResumeData } from "@/lib/resume";
 import { createClient } from "@/utils/supabase/server";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = DEFAULT_GROQ_TEXT_MODEL;
 
 type RequestMode = "section" | "full" | "ats";
 type SectionMode = "summary" | "experience" | "skills";

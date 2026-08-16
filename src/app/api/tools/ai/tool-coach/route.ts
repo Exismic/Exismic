@@ -7,6 +7,7 @@ import {
 } from "@/lib/api-security";
 import { TOOL_RELIABILITY } from "@/lib/tool-reliability";
 import { createClient } from "@/utils/supabase/server";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MAX_MESSAGE_LENGTH = 1_200;
@@ -157,7 +158,7 @@ async function callGroq({
   ].join("\n");
 
   const payload = {
-    model: "llama-3.3-70b-versatile",
+    model: DEFAULT_GROQ_TEXT_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
       ...messages,

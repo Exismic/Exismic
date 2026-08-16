@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-async function callGroq(messages: any[], model: string = "llama-3.3-70b-versatile") {
+async function callGroq(messages: any[], model: string = DEFAULT_GROQ_TEXT_MODEL) {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
   const keys = rawKeys.split(",").map((k) => k.trim()).filter(Boolean);
   if (keys.length === 0) {

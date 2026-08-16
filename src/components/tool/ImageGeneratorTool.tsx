@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import axios from "axios";
 import { useCredits } from "@/hooks/useCredits";
+import { downloadWithBrandPolicy } from "@/utils/watermark";
+import { Loader2 } from "lucide-react";
 
 interface GeneratorOptions {
   prompt: string;
@@ -216,20 +218,20 @@ export function ImageGeneratorTool() {
     handleSubmit(onSubmit)();
   };
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const handleDownload = async (url: string) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `exismic-gen-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
+      setIsDownloading(true);
+      await downloadWithBrandPolicy({
+        imageUrl: url,
+        fileName: `exismic-art-${Date.now()}.png`,
+        isPro,
+      });
     } catch (err) {
       console.error("Download failed", err);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -518,36 +520,44 @@ export function ImageGeneratorTool() {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex flex-wrap items-center justify-center gap-4 pb-4">
-                           <button 
-                              onClick={() => handleDownload(results[0])}
-                              className="px-6 py-3 rounded-xl bg-white text-black text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-zinc-200 transition-all"
-                           >
-                              <Download size={16} />
-                              Download Image
-                           </button>
-                           <button 
-                              onClick={handleVariations}
-                              className="px-6 py-3 rounded-xl bg-zinc-800 text-white text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-zinc-700 transition-all border border-white/5"
-                           >
-                              <RefreshCw size={16} />
-                              Generate Variations
-                           </button>
-                           <button 
-                              onClick={() => handleSubmit(onSubmit)()}
-                              className="px-6 py-3 rounded-xl bg-accent-blue/10 text-accent-blue text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-accent-blue/20 transition-all border border-accent-blue/20"
-                           >
-                              <RefreshCw size={16} />
-                              Generate Again
-                           </button>
-                           <button 
-                              onClick={() => setActiveTab('history')}
-                              className="px-6 py-3 rounded-xl bg-accent-purple/10 text-accent-purple text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-accent-purple/20 transition-all border border-accent-purple/20"
-                           >
-                              <History size={16} />
-                              Save to History
-                           </button>
-                        </div>
+                        <div className="flex flex-col items-center gap-2 w-full">
+                            <div className="flex flex-wrap items-center justify-center gap-4">
+                               <button 
+                                  onClick={() => handleDownload(results[0])}
+                                  disabled={isDownloading}
+                                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-white via-zinc-100 to-zinc-200 text-black text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg disabled:opacity-50"
+                               >
+                                  {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                  {isDownloading ? "Preparing Export..." : isPro ? "Download Clean Image" : "Download Image"}
+                               </button>
+                               <button 
+                                  onClick={handleVariations}
+                                  className="px-6 py-3 rounded-xl bg-zinc-800 text-white text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-zinc-700 transition-all border border-white/5"
+                               >
+                                  <RefreshCw size={16} />
+                                  Generate Variations
+                               </button>
+                               <button 
+                                  onClick={() => handleSubmit(onSubmit)()}
+                                  className="px-6 py-3 rounded-xl bg-accent-blue/10 text-accent-blue text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-accent-blue/20 transition-all border border-accent-blue/20"
+                               >
+                                  <RefreshCw size={16} />
+                                  Generate Again
+                               </button>
+                               <button 
+                                  onClick={() => setActiveTab('history')}
+                                  className="px-6 py-3 rounded-xl bg-accent-purple/10 text-accent-purple text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-accent-purple/20 transition-all border border-accent-purple/20"
+                               >
+                                  <History size={16} />
+                                  Save to History
+                               </button>
+                            </div>
+                            {!isPro && (
+                               <p className="text-[10px] text-zinc-500 font-medium text-center">
+                                  Includes subtle <span className="text-zinc-400 font-bold">exismic.xyz</span> badge • <a href="/pro" className="text-amber-400 font-bold hover:underline">Upgrade to Pro</a> for 100% clean commercial exports
+                               </p>
+                            )}
+                         </div>
                      </div>
                    ) : (
                      <div className="text-center space-y-8 opacity-50 group-hover:opacity-80 transition-opacity p-20">

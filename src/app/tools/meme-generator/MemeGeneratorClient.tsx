@@ -149,6 +149,32 @@ export default function MemeGenerator() {
         ctx.strokeText(word, textX, canvas.height - bottomOffset - i * (fontSize + 6));
         ctx.fillText(word, textX, canvas.height - bottomOffset - i * (fontSize + 6));
       });
+
+      // 3. Draw subtle brand badge on canvas for free tier
+      if (!isPro) {
+        ctx.save();
+        const badgeW = 115;
+        const badgeH = 24;
+        const badgeX = canvas.width - badgeW - 10;
+        const badgeY = canvas.height - badgeH - 10;
+        
+        ctx.fillStyle = "rgba(10, 12, 20, 0.8)";
+        ctx.beginPath();
+        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
+        ctx.fill();
+        
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
+        ctx.stroke();
+
+        ctx.font = "900 10px sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("⚡ exismic.xyz", badgeX + badgeW / 2, badgeY + badgeH / 2);
+        ctx.restore();
+      }
+
       setError("");
     };
     img.onerror = () => {
@@ -557,13 +583,6 @@ export default function MemeGenerator() {
                   {/* Decorative Glow */}
                   <div className="absolute -top-1/4 -right-1/4 w-full h-full rounded-full blur-[150px] bg-purple-600/10 -z-10" />
                </div>
-
-               {/* Watermark Overlay */}
-               {!isPro && (
-                 <div className="absolute bottom-12 right-12 opacity-30 pointer-events-none">
-                    <h4 className="text-[10px] font-black italic tracking-tighter text-white">EXISMIC STUDIOS</h4>
-                 </div>
-               )}
             </div>
 
             {/* Fun Tip */}

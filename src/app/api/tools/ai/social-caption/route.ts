@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withToolHandler } from "@/lib/tools-handler";
 import axios from "axios";
+import { DEFAULT_GROQ_TEXT_MODEL, DEFAULT_GROQ_VISION_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-async function callGroq(messages: any[], model: string = "llama-3.3-70b-versatile") {
+async function callGroq(messages: any[], model: string = DEFAULT_GROQ_TEXT_MODEL) {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
   const keys = rawKeys.split(",").map(k => k.trim()).filter(Boolean);
   if (keys.length === 0) throw new Error("The AI processing service is currently unavailable.");
@@ -28,7 +29,7 @@ async function callGroq(messages: any[], model: string = "llama-3.3-70b-versatil
 }
 
 async function callGroqVision(messages: any[]) {
-  return callGroq(messages, "meta-llama/llama-4-scout-17b-16e-instruct");
+  return callGroq(messages, DEFAULT_GROQ_VISION_MODEL);
 }
 
 export async function POST(req: NextRequest) {

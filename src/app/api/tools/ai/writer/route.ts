@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { deductCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
 import { requireProApiUser } from "@/lib/api-security";
+import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         "Authorization": `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: DEFAULT_GROQ_TEXT_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt },

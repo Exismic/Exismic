@@ -1000,7 +1000,7 @@ Ensure the code is complete, beautiful, modern, dark themed, and fully functiona
         { text: "nothing to commit, working tree clean", type: 'success' }
       );
     } else if (primary === 'agent-status') {
-      lines.push({ text: "Groq API Engine: ACTIVE. Models available: llama-3.3-70b-versatile, llama-3.2-11b-vision-preview.", type: 'success' });
+      lines.push({ text: "Groq API Engine: ACTIVE. Models available: openai/gpt-oss-120b, qwen/qwen3.6-27b, meta-llama/llama-4-scout-17b-16e-instruct.", type: 'success' });
     } else {
       lines.push({ text: `Command not found: ${primary}. Type 'help' for options.`, type: 'error' });
     }
