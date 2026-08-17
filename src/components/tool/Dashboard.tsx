@@ -509,7 +509,7 @@ export function Dashboard() {
       {/* CYBER ALIVE ANIMATED BACKGROUND ENGINE */}
       {isPro ? <ProBackground /> : <CyberAliveBackground />}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-8 md:pt-14 pb-24 md:pb-32 space-y-12 md:space-y-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-8 md:pt-14 pb-36 md:pb-32 space-y-12 md:space-y-16">
         
         {/* 1. ULTRA-PREMIUM HERO COCKPIT HEADER */}
         <section className="relative space-y-8">

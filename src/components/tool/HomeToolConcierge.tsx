@@ -135,14 +135,14 @@ export function HomeToolConcierge() {
               type="button"
               onClick={() => setIsOpen(true)}
               className={cn(
-                "group relative isolate flex h-16 items-center justify-start overflow-hidden rounded-2xl p-[1px] text-left shadow-[0_22px_70px_rgba(0,0,0,0.58)] transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(109,40,217,0.24)]",
-                showIntro ? "w-[190px]" : "w-16 hover:w-[190px]"
+                "group relative isolate flex h-14 w-14 items-center justify-start overflow-hidden rounded-2xl p-[1px] text-left shadow-[0_22px_70px_rgba(0,0,0,0.58)] transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_24px_80px_rgba(109,40,217,0.24)] sm:h-16",
+                showIntro ? "sm:w-[190px]" : "sm:w-16 sm:hover:w-[190px]"
               )}
               aria-label="Ask Exismic Ai to find a tool"
             >
               <span className="absolute -inset-[120%] animate-[spin_3.6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,#7c3aed_72deg,#ec4899_125deg,#22d3ee_178deg,transparent_235deg)] opacity-80 motion-reduce:animate-none" />
               <span className="absolute inset-[1px] rounded-[15px] bg-[linear-gradient(118deg,#070812_0%,#0c0a18_48%,#061018_100%)]" />
-              <span className="absolute inset-y-1 left-1 w-14 rounded-xl bg-[radial-gradient(circle,rgba(139,92,246,0.22),transparent_68%)] opacity-70 blur-md transition-opacity duration-500 group-hover:opacity-100" />
+              <span className="absolute inset-y-1 left-1 w-12 rounded-xl bg-[radial-gradient(circle,rgba(139,92,246,0.22),transparent_68%)] opacity-70 blur-md transition-opacity duration-500 group-hover:opacity-100 sm:w-14" />
               <span className="absolute inset-0 rounded-2xl bg-[linear-gradient(110deg,transparent_18%,rgba(255,255,255,0.08)_45%,transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <motion.span
                 aria-hidden="true"
@@ -152,13 +152,13 @@ export function HomeToolConcierge() {
                 className="absolute inset-y-0 z-10 w-8 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent blur-sm"
               />
 
-              <span className="relative z-20 flex size-[62px] shrink-0 items-center justify-center">
+              <span className="relative z-20 flex size-14 shrink-0 scale-[0.84] items-center justify-center sm:size-[62px] sm:scale-100">
                 <ExismicMark size={50} />
               </span>
 
               <span
                 className={cn(
-                  "relative z-20 overflow-hidden whitespace-nowrap pr-5 text-[10px] font-black uppercase tracking-[0.16em] text-white transition-[max-width,opacity,transform] duration-500",
+                  "relative z-20 hidden overflow-hidden whitespace-nowrap pr-5 text-[10px] font-black uppercase tracking-[0.16em] text-white transition-[max-width,opacity,transform] duration-500 sm:inline-block",
                   showIntro
                     ? "max-w-[120px] translate-x-0 opacity-100"
                     : "max-w-0 -translate-x-2 opacity-0 group-hover:max-w-[120px] group-hover:translate-x-0 group-hover:opacity-100"

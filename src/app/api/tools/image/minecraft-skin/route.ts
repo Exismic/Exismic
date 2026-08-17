@@ -36,7 +36,7 @@ const TEXT_MODEL = DEFAULT_GROQ_TEXT_MODEL;
 const VISION_MODEL = DEFAULT_GROQ_VISION_MODEL;
 
 const requestSchema = z.object({
-  prompt: z.string().trim().min(3).max(600),
+  prompt: z.string().trim().min(2).max(2000),
   armModel: z.enum(["classic", "slim"]).default("classic"),
   style: z.enum(["balanced", "pixel-detailed", "minimal", "high-contrast"]).default("balanced"),
   targetPart: z.enum(["all", "head", "torso", "arms", "legs"]).default("all"),
@@ -298,6 +298,7 @@ function buildDesignInstruction(
       horns: false,
       crown: false,
       halo: false,
+      glasses: false,
       palette: {
         skin: "#RRGGBB",
         skinShade: "#RRGGBB",
@@ -311,7 +312,7 @@ function buildDesignInstruction(
         detail: "#RRGGBB",
       },
     }),
-    "Sample colors from the reference when present. Set headphones, cables, horns, crown, halo to true when requested or visible. Record short visible emblem text exactly. Use readable contrast and a restrained palette. Do not include prose or markdown.",
+    "Sample colors from the reference when present. Set headphones, cables, horns, crown, halo, glasses to true when requested or visible. Record short visible emblem text exactly. Use readable contrast and a restrained palette. Do not include prose or markdown.",
   ].join("\n");
 }
 
@@ -696,25 +697,10 @@ export async function POST(request: NextRequest) {
       seed
     );
 
-    let referenceGuided = false;
+    let referenceGuided = Boolean(referenceImage && !referenceRebuilt);
     let generated: Uint8Array;
     if (referenceRebuilt) {
       generated = await rebuildReferenceTexture(referenceImage!, armModel as MinecraftArmModel);
-    } else if (referenceImage) {
-      try {
-        const referenceBase = await rebuildReferenceTexture(referenceImage, armModel as MinecraftArmModel);
-        generated = applyPromptEditsToMinecraftSkin(
-          referenceBase,
-          design,
-          prompt,
-          targetPart,
-          armModel as MinecraftArmModel
-        );
-        referenceGuided = true;
-      } catch (referenceError) {
-        console.info("[Minecraft Skin] Reference is not a 64x64 UV layout; using palette-guided compilation.", referenceError);
-        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, style, prompt);
-      }
     } else {
       generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, style, prompt);
     }

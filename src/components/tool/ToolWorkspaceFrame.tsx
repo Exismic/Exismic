@@ -125,39 +125,100 @@ export function ToolWorkspaceHeader({
           <AnimatePresence>
             {showShareToast && (
               <motion.div
-                initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                initial={{ opacity: 0, y: 8, scale: 0.92 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 4, scale: 0.96 }}
-                className="absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-xl border border-cyan-400/40 bg-zinc-950/95 px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-200 shadow-2xl backdrop-blur-md"
+                exit={{ opacity: 0, y: 4, scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                className="absolute bottom-full right-0 mb-3 whitespace-nowrap rounded-2xl border border-cyan-400/40 bg-[#070913]/95 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200 shadow-[0_15px_35px_rgba(0,0,0,0.8),0_0_20px_rgba(34,211,238,0.2)] backdrop-blur-2xl flex items-center gap-2"
               >
-                Link copied to clipboard
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+                </span>
+                <span>Link copied to clipboard</span>
               </motion.div>
             )}
           </AnimatePresence>
 
+          {/* Ultra-Premium Cyber-Glass Share Button */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.06, y: -1 }}
             whileTap={{ scale: 0.94 }}
             onClick={onShare}
+            aria-label="Share tool"
             title="Share tool link"
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-200 transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/20 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.25)]"
+            className="group relative flex h-12 w-12 items-center justify-center rounded-2xl p-[1px] shadow-[0_10px_25px_rgba(0,0,0,0.5)] transition-all duration-300 cursor-pointer"
           >
-            <Share2 size={17} />
+            {/* Ambient Hover Aura */}
+            <span className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-500/0 via-blue-500/0 to-purple-500/0 opacity-0 blur-lg transition-all duration-500 group-hover:from-cyan-500/30 group-hover:via-blue-500/30 group-hover:to-purple-500/30 group-hover:opacity-100" />
+
+            {/* Glowing Border Frame */}
+            <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/15 via-white/5 to-cyan-500/20 p-[1px] transition-all duration-300 group-hover:from-cyan-400/60 group-hover:via-blue-400/40 group-hover:to-purple-500/60" />
+
+            {/* Inner Glass Capsule */}
+            <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[15px] bg-[#080911]/92 backdrop-blur-xl transition-all duration-300 group-hover:bg-[#0c0f1d]/95">
+              {/* Inner Specular Light Sweep */}
+              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.15),transparent_60%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <span className="pointer-events-none absolute top-0 left-[-100%] h-full w-full bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-[-20deg] transition-all duration-700 group-hover:left-[200%]" />
+
+              <Share2 size={17} className="relative z-10 text-zinc-400 transition-all duration-300 group-hover:text-cyan-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+            </span>
           </motion.button>
 
+          {/* Ultra-Premium Golden Solar Star / Favorite Button */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.06, y: -1 }}
             whileTap={{ scale: 0.94 }}
             onClick={onFavorite}
+            aria-label={isFavorited ? "Remove from favorites" : "Save to favorites"}
             title={isFavorited ? "Remove from favorites" : "Save to favorites"}
             className={cn(
-              "flex min-h-11 min-w-11 items-center justify-center rounded-xl border transition-all duration-300",
-              isFavorited
-                ? "border-amber-400/60 bg-gradient-to-br from-amber-500/25 via-yellow-500/15 to-amber-600/25 text-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.35)]"
-                : "border-white/10 bg-white/5 text-zinc-400 hover:border-amber-400/40 hover:bg-amber-400/10 hover:text-amber-300 hover:shadow-[0_0_20px_rgba(251,191,36,0.2)]"
+              "group relative flex h-12 w-12 items-center justify-center rounded-2xl p-[1px] shadow-[0_10px_25px_rgba(0,0,0,0.5)] transition-all duration-300 cursor-pointer",
+              isFavorited && "shadow-[0_0_30px_rgba(245,158,11,0.25)]"
             )}
           >
-            <Star size={17} className={cn(isFavorited && "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]")} />
+            {/* Ambient Star Aura */}
+            <span className={cn(
+              "absolute -inset-1 rounded-2xl opacity-0 blur-lg transition-all duration-500",
+              isFavorited
+                ? "bg-gradient-to-r from-amber-500/40 via-yellow-400/40 to-orange-500/40 opacity-100 animate-pulse"
+                : "bg-gradient-to-r from-amber-500/0 to-yellow-400/0 group-hover:from-amber-500/30 group-hover:to-yellow-400/30 group-hover:opacity-100"
+            )} />
+
+            {/* Radiant Border Frame */}
+            <span className={cn(
+              "absolute inset-0 rounded-2xl p-[1px] transition-all duration-300",
+              isFavorited
+                ? "bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-600 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                : "bg-gradient-to-br from-white/15 via-white/5 to-amber-500/20 group-hover:from-amber-400/60 group-hover:via-yellow-400/40 group-hover:to-amber-600/60"
+            )} />
+
+            {/* Inner Glass Capsule */}
+            <span className={cn(
+              "relative flex h-full w-full items-center justify-center overflow-hidden rounded-[15px] backdrop-blur-xl transition-all duration-300",
+              isFavorited
+                ? "bg-gradient-to-br from-[#1b1406] via-[#100c03] to-[#0a0702]"
+                : "bg-[#080911]/92 group-hover:bg-[#141006]/95"
+            )}>
+              {/* Inner Specular Light Sweep */}
+              <span className={cn(
+                "pointer-events-none absolute inset-0 transition-opacity duration-300",
+                isFavorited
+                  ? "bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,0.35),transparent_70%)] opacity-100"
+                  : "bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,0.15),transparent_60%)] opacity-0 group-hover:opacity-100"
+              )} />
+              <span className="pointer-events-none absolute top-0 left-[-100%] h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] transition-all duration-700 group-hover:left-[200%]" />
+
+              <Star
+                size={18}
+                className={cn(
+                  "relative z-10 transition-all duration-300",
+                  isFavorited
+                    ? "fill-amber-400 text-amber-300 scale-110 drop-shadow-[0_0_12px_rgba(251,191,36,0.95)]"
+                    : "text-zinc-400 group-hover:text-amber-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"
+                )}
+              />
+            </span>
           </motion.button>
         </div>
       </div>
