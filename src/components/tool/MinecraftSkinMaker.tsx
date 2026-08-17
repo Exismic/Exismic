@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Box,
   Check,
+  ChevronDown,
   Download,
   Eye,
   Footprints,
@@ -25,6 +26,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCredits } from "@/hooks/useCredits";
 import { MinecraftSkinEditor } from "@/components/tool/MinecraftSkinEditor";
+import { MinecraftFeedbackModal } from "@/components/tool/MinecraftFeedbackModal";
+import { CreditModal } from "@/components/ui/CreditModal";
 import type {
   MinecraftArmModel,
   MinecraftSkinDesign,
@@ -39,18 +42,17 @@ interface GeneratedSkin {
   skinUrl: string;
   design: MinecraftSkinDesign;
   armModel: MinecraftArmModel;
+  targetPart: MinecraftSkinPart;
   seed: number;
-  priority: boolean;
-  cost: number;
   referenceRebuilt?: boolean;
   referenceGuided?: boolean;
 }
 
 const PROMPT_STARTERS = [
-  "Neon samurai with a cyan visor",
-  "Forest ranger with enchanted armor",
-  "Royal ice mage with silver details",
-  "Streetwear astronaut in purple and white",
+  "Neon samurai with a cyan visor and katana strap",
+  "Forest ranger with enchanted armor and leaf cloak",
+  "Royal ice mage with a glowing crown and cape",
+  "Cyberpunk hacker with purple glowing cables and headphones",
 ];
 
 const PARTS: Array<{
@@ -66,11 +68,16 @@ const PARTS: Array<{
   { id: "legs", label: "Legs", description: "Pants and footwear", icon: Footprints },
 ];
 
-const STYLE_OPTIONS: Array<{ id: StyleMode; label: string }> = [
-  { id: "balanced", label: "Balanced" },
-  { id: "pixel-detailed", label: "Detailed" },
-  { id: "minimal", label: "Minimal" },
-  { id: "high-contrast", label: "High contrast" },
+const STYLE_OPTIONS: Array<{
+  id: StyleMode;
+  label: string;
+  desc: string;
+  icon: string;
+}> = [
+  { id: "balanced", label: "Balanced", desc: "Smooth modern gradients & 3D layers", icon: "⚖️" },
+  { id: "pixel-detailed", label: "Detailed", desc: "Micro-shaded pixel texturing", icon: "✨" },
+  { id: "minimal", label: "Minimal", desc: "Clean, flat anime block colors", icon: "🌿" },
+  { id: "high-contrast", label: "High contrast", desc: "Vivid neon & intense outlines", icon: "⚡" },
 ];
 
 function readFileAsDataUrl(file: File) {
@@ -185,7 +192,7 @@ function SkinViewer({
 }
 
 export function MinecraftSkinMaker() {
-  const { credits, isPro, userId, refreshCredits } = useCredits();
+  const { credits, isPro, userId, refreshCredits, showUpsell, setShowUpsell } = useCredits();
   const [prompt, setPrompt] = useState("");
   const [armModel, setArmModel] = useState<MinecraftArmModel>("classic");
   const [style, setStyle] = useState<StyleMode>("balanced");
@@ -197,10 +204,61 @@ export function MinecraftSkinMaker() {
   const [previewMode, setPreviewMode] = useState<PreviewMode>("character");
   const [autoRotate, setAutoRotate] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false);
+  const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+  const styleDropdownRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (styleDropdownRef.current && !styleDropdownRef.current.contains(event.target as Node)) {
+        setIsStyleDropdownOpen(false);
+      }
+    }
+    if (isStyleDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isStyleDropdownOpen]);
+
+  const enhancePromptWithAi = async () => {
+    if (!prompt.trim()) {
+      setError("Type a character idea first, e.g. 'shadow ninja' or 'frost ranger'");
+      return;
+    }
+    if (credits < 1) {
+      setShowUpsell(true);
+      setError("Prompt enhancement requires 1 credit.");
+      return;
+    }
+    setIsEnhancingPrompt(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/tools/image/minecraft-skin/enhance-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        if (response.status === 403 || data.error?.toLowerCase().includes("credit")) {
+          setShowUpsell(true);
+        }
+        throw new Error(data.error || "Could not optimize prompt.");
+      }
+      setPrompt(data.enhancedPrompt);
+      setNotice("Prompt enhanced with AI! (1 credit used)");
+      refreshCredits();
+    } catch (err: any) {
+      setError(err?.message || "Failed to enhance prompt.");
+    } finally {
+      setIsEnhancingPrompt(false);
+    }
+  };
 
   useEffect(() => {
     if (!isGenerating) {
@@ -256,6 +314,11 @@ export function MinecraftSkinMaker() {
       setError("Generate a full skin before changing individual body parts.");
       return;
     }
+    if (credits < currentCost) {
+      setShowUpsell(true);
+      setError(`This generation needs ${currentCost} credits. Your current balance is ${credits}.`);
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
@@ -277,8 +340,12 @@ export function MinecraftSkinMaker() {
       const payload = await response.json() as GeneratedSkin & {
         success?: boolean;
         error?: string;
+        needsUpgrade?: boolean;
       };
       if (!response.ok || !payload.success) {
+        if (response.status === 403 || payload.needsUpgrade || payload.error?.toLowerCase().includes("credit") || payload.error?.toLowerCase().includes("balance")) {
+          setShowUpsell(true);
+        }
         throw new Error(payload.error || "Exismic could not generate this skin.");
       }
 
@@ -296,6 +363,18 @@ export function MinecraftSkinMaker() {
               : `${PARTS.find((part) => part.id === targetPart)?.label} updated without changing the rest of the skin.`
       );
       refreshCredits();
+
+      // Trigger one-time Beta Feedback modal if not given yet
+      try {
+        const alreadyGiven = localStorage.getItem("exismic_minecraft_feedback_given");
+        if (!alreadyGiven) {
+          window.setTimeout(() => {
+            setShowFeedbackModal(true);
+          }, 2200);
+        }
+      } catch {
+        // Ignore localStorage error
+      }
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : "Skin generation failed.");
     } finally {
@@ -351,10 +430,10 @@ export function MinecraftSkinMaker() {
   };
 
   const currentCost = referenceImage && referenceMode === "rebuild"
-    ? (isPro ? 1 : 2)
+    ? (isPro ? 8 : 12)
     : targetPart === "all"
-      ? (isPro ? 8 : 12)
-      : (isPro ? 2 : 4);
+      ? (isPro ? 16 : 24)
+      : (isPro ? 4 : 8);
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#06070b] shadow-[0_28px_90px_rgba(0,0,0,0.45)]">
@@ -372,6 +451,20 @@ export function MinecraftSkinMaker() {
                 <span className="rounded-full border border-emerald-300/20 bg-emerald-300/8 px-2.5 py-1 text-[10px] font-bold text-emerald-200">
                   UV-safe output
                 </span>
+                <button
+                type="button"
+                onClick={() => setShowFeedbackModal(true)}
+                className="group relative flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-bold text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:border-emerald-400/60 hover:bg-emerald-500/20 active:scale-95 cursor-pointer"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="tracking-tight">Help Improve Skin Maker · Feedback Open</span>
+                <span className="rounded-full bg-emerald-400/20 px-1.5 py-0.2 text-[9px] font-black uppercase text-emerald-200">
+                  Beta
+                </span>
+              </button>
                 {isPro && (
                   <span className="rounded-full border border-violet-300/20 bg-violet-300/8 px-2.5 py-1 text-[10px] font-bold text-violet-200">
                     <Zap className="mr-1 inline size-3" />
@@ -407,7 +500,29 @@ export function MinecraftSkinMaker() {
                 <label htmlFor="skin-prompt" className="text-xs font-bold text-white">
                   Character brief
                 </label>
-                <span className="text-[11px] text-zinc-600">{prompt.length}/600</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={enhancePromptWithAi}
+                    disabled={isEnhancingPrompt || !prompt.trim()}
+                    className="group inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/10 hover:bg-cyan-500/20 px-2.5 py-1 text-[11px] font-extrabold text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+                    title="Expand your simple idea into an ultra-detailed, aesthetic Minecraft prompt using AI (1 credit)"
+                  >
+                    {isEnhancingPrompt ? (
+                      <>
+                        <Loader2 className="size-3 animate-spin text-cyan-300" />
+                        <span>Optimizing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="size-3 text-cyan-300 transition-transform group-hover:rotate-12" />
+                        <span>Enhance with AI</span>
+                        <span className="rounded-full bg-cyan-400/25 px-1.5 py-0.5 text-[9px] font-black text-cyan-200">1 Credit</span>
+                      </>
+                    )}
+                  </button>
+                  <span className="text-[11px] text-zinc-600">{prompt.length}/600</span>
+                </div>
               </div>
               <div className="relative">
                 <textarea
@@ -562,17 +677,69 @@ export function MinecraftSkinMaker() {
                   ))}
                 </div>
               </div>
-              <div>
+              <div className="relative" ref={styleDropdownRef}>
                 <p className="mb-3 text-xs font-bold text-white">Pixel treatment</p>
-                <select
-                  value={style}
-                  onChange={(event) => setStyle(event.target.value as StyleMode)}
-                  className="min-h-12 w-full rounded-lg border border-white/10 bg-[#0b0c12] px-3 text-sm font-medium text-white outline-none transition focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/10"
+                <button
+                  type="button"
+                  onClick={() => setIsStyleDropdownOpen((prev) => !prev)}
+                  className="flex min-h-12 w-full items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#090b14]/90 px-3.5 py-2.5 text-left text-sm font-medium text-white shadow-sm transition hover:border-white/20 hover:bg-[#0e111d] focus:outline-none focus:ring-2 focus:ring-cyan-300/30 cursor-pointer"
                 >
-                  {STYLE_OPTIONS.map((option) => (
-                    <option key={option.id} value={option.id}>{option.label}</option>
-                  ))}
-                </select>
+                  <div className="flex items-center gap-2.5 truncate">
+                    <span className="text-base leading-none">{STYLE_OPTIONS.find((s) => s.id === style)?.icon}</span>
+                    <span className="truncate font-bold text-white text-xs sm:text-sm">
+                      {STYLE_OPTIONS.find((s) => s.id === style)?.label}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "size-4 text-zinc-400 transition-transform duration-200 shrink-0",
+                      isStyleDropdownOpen && "rotate-180 text-cyan-300"
+                    )}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {isStyleDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 6 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute left-0 right-0 top-full z-50 mt-2 space-y-1 rounded-2xl border border-white/10 bg-[#0b0d18]/98 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-2xl"
+                    >
+                      {STYLE_OPTIONS.map((option) => {
+                        const isSelected = style === option.id;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => {
+                              setStyle(option.id);
+                              setIsStyleDropdownOpen(false);
+                            }}
+                            className={cn(
+                              "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition cursor-pointer",
+                              isSelected
+                                ? "border border-cyan-400/30 bg-cyan-500/15 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                                : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+                            )}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="text-base shrink-0 leading-none">{option.icon}</span>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-white leading-snug">{option.label}</p>
+                                <p className="truncate text-[10px] text-zinc-400">{option.desc}</p>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <Check className="size-4 shrink-0 text-cyan-300" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -634,26 +801,28 @@ export function MinecraftSkinMaker() {
               type="button"
               onClick={() => void generate()}
               disabled={isGenerating}
-              className="group relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-lg border border-cyan-200/25 bg-[linear-gradient(105deg,#7c3aed_0%,#2563eb_50%,#06b6d4_100%)] px-5 text-sm font-black text-white shadow-[0_16px_38px_rgba(37,99,235,0.22)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 disabled:cursor-wait disabled:opacity-70"
+              className="group relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 px-5 text-sm font-black text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)] transition-all hover:shadow-[0_12px_35px_rgba(6,182,212,0.4)] hover:brightness-110 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:cursor-wait disabled:opacity-70 cursor-pointer"
             >
-              <span className="absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-white/20 blur-md transition-transform duration-700 group-hover:translate-x-[440%]" />
+              <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/15 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
               <span className="relative flex items-center gap-2">
                 {isGenerating ? (
                   <>
                     <Loader2 className="size-5 animate-spin" />
-                    Compiling skin · {progress}%
+                    <span>Compiling skin · {progress}%</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="size-5" />
-                    {referenceImage && referenceMode === "rebuild" && targetPart === "all"
-                      ? "Rebuild reference skin"
-                      : referenceImage && referenceMode === "guided" && targetPart === "all"
-                        ? "Create guided remix"
-                      : targetPart === "all"
-                        ? "Generate Minecraft skin"
-                        : `Regenerate ${targetPart}`}
-                    <span className="rounded-full bg-black/20 px-2 py-0.5 text-[10px]">{currentCost}</span>
+                    <span>
+                      {referenceImage && referenceMode === "rebuild" && targetPart === "all"
+                        ? "Rebuild reference skin"
+                        : referenceImage && referenceMode === "guided" && targetPart === "all"
+                          ? "Create guided remix"
+                        : targetPart === "all"
+                          ? "Generate Minecraft skin"
+                          : `Regenerate ${targetPart}`}
+                    </span>
+                    <span className="rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-black">{currentCost}</span>
                   </>
                 )}
               </span>
@@ -855,10 +1024,50 @@ export function MinecraftSkinMaker() {
         </section>
       </div>
 
+      {/* Community & Upcoming Updates Teaser */}
+      <div className="mx-4 my-6 sm:mx-6 lg:mx-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/30 via-teal-950/20 to-cyan-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+        <div className="flex items-center gap-3.5">
+          <div className="size-10 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider">Improve Minecraft Skin Maker</h4>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[9px] font-extrabold uppercase tracking-wider border border-emerald-400/30">
+                BETA COMMUNITY
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">Be a part of making it better — share your ideas, feature requests, and suggestions directly with our team.</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowFeedbackModal(true)}
+          className="shrink-0 px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-xs font-black text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+        >
+          💬 Share Suggestions
+        </button>
+      </div>
+
       <footer className="relative flex flex-col gap-3 border-t border-white/8 px-4 py-4 text-[11px] leading-5 text-zinc-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <p>Exports standard 64×64 PNG skins for classic and slim player models.</p>
         <p>Not an official Minecraft product. Not associated with Mojang or Microsoft.</p>
       </footer>
+
+      {/* Beta Feedback Modal */}
+      <MinecraftFeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        skinPrompt={prompt}
+      />
+
+      {/* Out of Credits / Pro Upsell Modal */}
+      <CreditModal
+        isOpen={showUpsell}
+        onClose={() => setShowUpsell(false)}
+        plan={isPro ? "pro" : "free"}
+        credits={credits}
+      />
     </div>
   );
 }

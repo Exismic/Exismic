@@ -290,27 +290,44 @@ export function CreditModal({ isOpen, onClose, plan, credits }: CreditModalProps
                 </div>
               </section>
 
-              <footer className="border-t border-white/[0.07] bg-black/20 px-5 py-5 sm:px-8">
-                <Link
-                  href="/pro"
-                  onClick={onClose}
-                  className="group/cta relative flex min-h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-cyan-500 px-5 shadow-[0_0_40px_rgba(168,85,247,0.4),inset_0_1px_0_rgba(255,255,255,0.6)] transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:shadow-[0_15px_50px_rgba(34,211,238,0.5),inset_0_1px_0_rgba(255,255,255,0.8)] active:translate-y-0 active:scale-[0.98]"
-                >
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-[150%] skew-x-[-25deg] transition-transform duration-1000 group-hover/cta:translate-x-[150%]" />
-                  {isPro ? (
-                    <RefreshCcw size={18} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                  ) : (
-                    <Crown size={18} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                  )}
-                  <span className="relative text-xs font-black uppercase tracking-[0.2em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-                    {isPro ? "Manage Pro membership" : "Unlock Exismic Pro"}
-                  </span>
-                  <ArrowRight size={18} className="relative text-white transition-transform duration-300 group-hover/cta:translate-x-1.5 group-hover/cta:scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                </Link>
-                <div className="mt-4 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.16em]">
+              <footer className="border-t border-white/[0.07] bg-black/30 px-5 py-5 sm:px-8 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option 1: Exismic Pro */}
+                  <Link
+                    href="/pro"
+                    onClick={onClose}
+                    className="group/cta relative flex min-h-14 items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-cyan-500 px-4 shadow-[0_0_30px_rgba(168,85,247,0.35),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:shadow-[0_10px_35px_rgba(34,211,238,0.45)] active:translate-y-0 active:scale-[0.98]"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-[150%] skew-x-[-25deg] transition-transform duration-1000 group-hover/cta:translate-x-[150%]" />
+                    {isPro ? (
+                      <RefreshCcw size={16} className="text-white shrink-0" />
+                    ) : (
+                      <Crown size={16} className="text-white shrink-0 fill-amber-300" />
+                    )}
+                    <span className="relative text-xs font-black uppercase tracking-wider text-white">
+                      {isPro ? "Manage Pro Plan" : "Exismic Pro (500/day)"}
+                    </span>
+                    <ArrowRight size={15} className="relative text-white shrink-0 transition-transform duration-300 group-hover/cta:translate-x-1" />
+                  </Link>
+
+                  {/* Option 2: Buy Additional Credits */}
+                  <Link
+                    href="/shop"
+                    onClick={onClose}
+                    className="group/shop relative flex min-h-14 items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-cyan-400/30 bg-[#0d1322] px-4 text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-300/60 hover:bg-[#131c33] hover:text-white hover:shadow-[0_10px_30px_rgba(6,182,212,0.3)] active:translate-y-0 active:scale-[0.98]"
+                  >
+                    <Zap size={16} className="text-cyan-300 shrink-0 fill-cyan-400/40" />
+                    <span className="text-xs font-black uppercase tracking-wider">
+                      Buy Extra Credits
+                    </span>
+                    <ArrowRight size={15} className="shrink-0 transition-transform duration-300 group-hover/shop:translate-x-1 text-cyan-300" />
+                  </Link>
+                </div>
+
+                <div className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.16em] pt-1">
                   <span className="flex items-center gap-1.5 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
                     <RefreshCcw size={12} className="text-cyan-300" />
-                    Resets in {timeUntilReset}
+                    Free refill in {timeUntilReset}
                   </span>
                   {!isPro && (
                     <>

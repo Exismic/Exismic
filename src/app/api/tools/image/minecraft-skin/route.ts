@@ -293,6 +293,11 @@ function buildDesignInstruction(
       pattern: "clean | striped | paneled | armored | mystic | lightning | circuit",
       emblem: "zero to three visible letters, blank when absent",
       traits: ["four to eight short visual traits actually observed or requested"],
+      headphones: false,
+      cables: false,
+      horns: false,
+      crown: false,
+      halo: false,
       palette: {
         skin: "#RRGGBB",
         skinShade: "#RRGGBB",
@@ -306,7 +311,7 @@ function buildDesignInstruction(
         detail: "#RRGGBB",
       },
     }),
-    "Sample colors from the reference when present. Record short visible emblem text exactly. Use readable contrast and a restrained palette. Do not include prose or markdown.",
+    "Sample colors from the reference when present. Set headphones, cables, horns, crown, halo to true when requested or visible. Record short visible emblem text exactly. Use readable contrast and a restrained palette. Do not include prose or markdown.",
   ].join("\n");
 }
 
@@ -657,10 +662,10 @@ export async function POST(request: NextRequest) {
     const referenceRebuilt = referenceMode === "rebuild" && Boolean(referenceImage);
     const baseCost = getToolCreditCost("image-minecraft-skin", 24);
     const cost = referenceRebuilt
-      ? Math.ceil(baseCost * 0.5)
+      ? (isPro ? 8 : 12)
       : targetPart === "all"
-        ? baseCost
-        : Math.ceil(baseCost / 3);
+        ? (isPro ? 16 : baseCost)
+        : (isPro ? 4 : 8);
     const availableCredits = user ? getCreditTotal(user) : 0;
 
     if (user && availableCredits < cost) {
@@ -708,10 +713,10 @@ export async function POST(request: NextRequest) {
         referenceGuided = true;
       } catch (referenceError) {
         console.info("[Minecraft Skin] Reference is not a 64x64 UV layout; using palette-guided compilation.", referenceError);
-        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel);
+        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, style, prompt);
       }
     } else {
-      generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel);
+      generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, style, prompt);
     }
     const pixels = targetPart === "all"
       ? generated

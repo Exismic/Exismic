@@ -1,5 +1,6 @@
 export type MinecraftArmModel = "classic" | "slim";
 export type MinecraftSkinPart = "all" | "head" | "torso" | "arms" | "legs";
+export type MinecraftSkinStyle = "balanced" | "pixel-detailed" | "minimal" | "high-contrast";
 
 export interface MinecraftSkinPalette {
   skin: string;
@@ -30,6 +31,11 @@ export interface MinecraftSkinDesign {
   emblem: string;
   traits: string[];
   palette: MinecraftSkinPalette;
+  headphones?: boolean;
+  cables?: boolean;
+  horns?: boolean;
+  crown?: boolean;
+  halo?: boolean;
 }
 
 type Rgba = [number, number, number, number];
@@ -184,20 +190,37 @@ function colorNearContext(prompt: string, contexts: string[]) {
 }
 
 function extractPromptPalette(prompt: string): Partial<MinecraftSkinPalette> {
-  const accent = colorNearContext(prompt, ["accent", "lightning", "trim", "line", "detail", "glow"]);
-  const top = colorNearContext(prompt, ["hoodie", "jacket", "shirt", "top", "robe", "armor", "coat"]);
-  const pants = colorNearContext(prompt, ["pants", "trousers", "jeans", "leggings"]);
-  const shoes = colorNearContext(prompt, ["shoes", "boots", "sneakers", "footwear"]);
-  const hair = colorNearContext(prompt, ["hair"]);
-  const eyes = colorNearContext(prompt, ["eyes", "visor", "goggles"]);
-  const skin = colorNearContext(prompt, ["skin", "complexion"]);
+  const accent = colorNearContext(prompt, [
+    "accent", "lightning", "trim", "line", "lines", "detail", "glow", "glowing",
+    "cables?", "wires?", "headphones?", "headset", "leds?", "neon", "circuits?", "visor", "eyes"
+  ]);
+  const top = colorNearContext(prompt, [
+    "hoodie", "jacket", "shirt", "top", "robe", "armor", "coat", "cyberpunk",
+    "hacker", "cloak", "suit", "vest", "tunic", "torso", "chest"
+  ]);
+  const pants = colorNearContext(prompt, ["pants", "trousers", "jeans", "leggings", "legs", "bottom"]);
+  const shoes = colorNearContext(prompt, ["shoes", "boots", "sneakers", "footwear", "feet"]);
+  const hair = colorNearContext(prompt, ["hair", "bangs", "fringe", "locks"]);
+  const eyes = colorNearContext(prompt, ["eyes", "visor", "goggles", "optics", "display", "lens"]);
+  const skin = colorNearContext(prompt, ["skin", "complexion", "face", "tone", "body"]);
+
+  let inferredAccent = accent;
+  if (!inferredAccent) {
+    for (const [name, color] of PROMPT_COLORS) {
+      if (new RegExp(`\\b${name}\\b`, "i").test(prompt)) {
+        inferredAccent = color;
+        break;
+      }
+    }
+  }
+
   return {
     ...(top ? { top } : {}),
-    ...(accent ? { topAccent: accent, detail: shade(accent, 0.16) } : {}),
+    ...(inferredAccent ? { topAccent: inferredAccent, detail: shade(inferredAccent, 0.16) } : {}),
     ...(pants ? { pants } : {}),
     ...(shoes ? { shoes } : {}),
     ...(hair ? { hair, hairHighlight: shade(hair, 0.12) } : {}),
-    ...(eyes ? { eyes } : {}),
+    ...(eyes ? { eyes } : inferredAccent ? { eyes: inferredAccent } : {}),
     ...(skin ? { skin, skinShade: shade(skin, -0.16) } : {}),
   };
 }
@@ -258,28 +281,53 @@ class SkinCanvas {
     this.pixels[offset + 3] = rgba[3];
   }
 
-  fill(face: Face, color: string, variation = 0, random?: () => number) {
+  fill(
+    face: Face,
+    color: string,
+    style: MinecraftSkinStyle = "balanced",
+    random?: () => number,
+    options?: {
+      gradientScale?: number;
+    }
+  ) {
+    const isMinimal = style === "minimal";
+    const isDetailed = style === "pixel-detailed";
+    const isHighContrast = style === "high-contrast";
+    const gradScale = options?.gradientScale ?? 1.0;
+
     for (let y = face.y; y < face.y + face.height; y += 1) {
       for (let x = face.x; x < face.x + face.width; x += 1) {
-        // Apply a base gradient (darker towards the bottom)
-        const gradientAmount = ((y - face.y) / face.height - 0.5) * -0.15;
-        let baseColor = color;
-        if (gradientAmount !== 0) {
-          baseColor = shade(baseColor, gradientAmount);
+        const normY = face.height > 1 ? (y - face.y) / (face.height - 1) : 0.5;
+
+        let shadeAmount = 0;
+
+        if (isMinimal) {
+          // Clean flat anime block color: 0 random noise, crisp 1px bottom shadow
+          if (y === face.y + face.height - 1) shadeAmount = -0.07;
+        } else if (isHighContrast) {
+          // High contrast: deep rich shadows, bright top rim edge
+          shadeAmount = (0.45 - normY) * 0.22 * gradScale;
+          if (y === face.y) shadeAmount += 0.12;
+          if (y === face.y + face.height - 1) shadeAmount -= 0.16;
+          if (x === face.x || x === face.x + face.width - 1) shadeAmount -= 0.08;
+        } else if (isDetailed) {
+          // Pixel-detailed: soft dither weave + ambient shading
+          const grad = (0.5 - normY) * 0.16 * gradScale;
+          const dither = ((x + y) % 2 === 0 ? 0.025 : -0.025);
+          shadeAmount = grad + dither;
+          if (x === face.x || x === face.x + face.width - 1) shadeAmount -= 0.06;
+          if (y === face.y + face.height - 1) shadeAmount -= 0.1;
+        } else {
+          // Balanced (Default): Smooth modern directional gradient
+          shadeAmount = (0.5 - normY) * 0.13 * gradScale;
+          if (y === face.y) shadeAmount += 0.05;
+          if (y === face.y + face.height - 1) shadeAmount -= 0.07;
+          if ((x === face.x || x === face.x + face.width - 1) && (y === face.y || y === face.y + face.height - 1)) {
+            shadeAmount -= 0.04;
+          }
         }
 
-        // Add soft noise
-        const varied = variation && random
-          ? shade(baseColor, (random() - 0.5) * variation * 2.5) // Increased noise strength
-          : baseColor;
-        
-        // Edge shading (ambient occlusion)
-        let finalColor = varied;
-        if (x === face.x || x === face.x + face.width - 1 || y === face.y || y === face.y + face.height - 1) {
-          finalColor = shade(finalColor, -0.06);
-        }
-
-        this.setPixel(x, y, finalColor);
+        this.setPixel(x, y, shade(color, shadeAmount));
       }
     }
   }
@@ -321,7 +369,7 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
               : "short";
 
   const palettes = [
-    { skin: "#e5b99f", skinShade: "#c28f73", hair: "#312a32", hairHighlight: "#59465f" }, // Much lighter/nicer skin
+    { skin: "#e5b99f", skinShade: "#c28f73", hair: "#312a32", hairHighlight: "#59465f" },
     { skin: "#c98f68", skinShade: "#9d6248", hair: "#211a22", hairHighlight: "#49364f" },
     { skin: "#8f5f43", skinShade: "#68422f", hair: "#0e1117", hairHighlight: "#29303b" },
     { skin: "#6f4935", skinShade: "#4e3125", hair: "#171218", hairHighlight: "#3b2b3c" },
@@ -351,8 +399,12 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
     /hood/.test(lower) ? "hooded" : "",
     /glow|neon|emissive/.test(lower) ? "glowing accents" : "",
     /lightning|electric/.test(lower) ? "lightning details" : "",
+    /cable|wire/.test(lower) ? "glowing cables" : "",
+    /headphone|headset/.test(lower) ? "headphones" : "",
     /mask|masked/.test(lower) ? "face mask" : "",
     /visor/.test(lower) ? "visor" : "",
+    /horn/.test(lower) ? "horns" : "",
+    /crown/.test(lower) ? "crown" : "",
     requestsAngryEyes(prompt) ? "angry eyes" : "",
     requestedFacialHair(prompt) !== "none" ? "facial hair" : "",
     /armor/.test(lower) ? "armor plating" : "",
@@ -363,7 +415,7 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
     name: prompt.trim().split(/\s+/).slice(0, 5).join(" ") || "Exismic Skin",
     description: `A Minecraft-compatible character inspired by: ${prompt.trim() || "a modern adventurer"}.`,
     hairStyle,
-    outfit: theme?.outfit ?? "casual",
+    outfit: theme?.outfit ?? (/cyber|hacker/i.test(lower) ? "cyber" : "casual"),
     expression: /angry|villain|serious|warrior/.test(lower) ? "serious" : "friendly",
     eyeShape: requestsAngryEyes(prompt)
       ? "angry"
@@ -377,8 +429,13 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
     footwear,
     pattern,
     emblem: emblemMatch?.[1]?.toUpperCase().slice(0, 3) || "",
-    traits: traitCandidates.slice(0, 6),
+    traits: traitCandidates.slice(0, 8),
     palette: sanitizePalette({ ...DEFAULT_PALETTE, ...complexion, ...theme?.palette, ...promptPalette }),
+    headphones: /headphone|headset|earphone/i.test(lower),
+    cables: /cable|wire|tech line|neon line|energy line/i.test(lower),
+    horns: /horn|demon|oni/i.test(lower),
+    crown: /crown|king|queen|royal|prince/i.test(lower),
+    halo: /halo|angel|divine/i.test(lower),
   };
 }
 
@@ -399,6 +456,8 @@ export function sanitizeSkinDesign(
   const patterns = ["clean", "striped", "paneled", "armored", "mystic", "lightning", "circuit"] as const;
   const pick = <T extends string>(candidate: unknown, options: readonly T[], defaultValue: T) =>
     typeof candidate === "string" && options.includes(candidate as T) ? candidate as T : defaultValue;
+
+  const lower = prompt.toLowerCase();
 
   return {
     name: typeof value.name === "string" ? value.name.trim().slice(0, 60) || fallback.name : fallback.name,
@@ -422,6 +481,11 @@ export function sanitizeSkinDesign(
       ? value.traits.filter((trait): trait is string => typeof trait === "string").map((trait) => trait.trim().slice(0, 40)).filter(Boolean).slice(0, 8)
       : fallback.traits,
     palette: sanitizePalette({ ...fallback.palette, ...(value.palette ?? {}) }),
+    headphones: typeof value.headphones === "boolean" ? value.headphones : fallback.headphones || /headphone|headset/i.test(lower),
+    cables: typeof value.cables === "boolean" ? value.cables : fallback.cables || /cable|wire/i.test(lower),
+    horns: typeof value.horns === "boolean" ? value.horns : fallback.horns || /horn|demon|oni/i.test(lower),
+    crown: typeof value.crown === "boolean" ? value.crown : fallback.crown || /crown|king|queen|royal/i.test(lower),
+    halo: typeof value.halo === "boolean" ? value.halo : fallback.halo || /halo|angel/i.test(lower),
   };
 }
 
@@ -438,7 +502,7 @@ function armFaces(model: MinecraftArmModel, side: "right" | "left", overlay = fa
       right: { x: 40, y: bodyY, width: 4, height: 12 },
       front: { x: 44, y: bodyY, width, height: 12 },
       left: { x: 44 + width, y: bodyY, width: 4, height: 12 },
-      back: { x: 48 + width, y: bodyY, width, height: 12 },
+      back: { x: 48 + width, y: bodyY, width: 4, height: 12 },
     };
   }
 
@@ -450,7 +514,7 @@ function armFaces(model: MinecraftArmModel, side: "right" | "left", overlay = fa
     top: { x: topX, y, width, height: 4 },
     bottom: { x: topX + width, y, width, height: 4 },
     right: { x: start, y: bodyY, width: 4, height: 12 },
-    front: { x: topX, y: bodyY, width, height: 12 },
+    front: { x: topX, y: bodyY, width: 4, height: 12 },
     left: { x: topX + width, y: bodyY, width: 4, height: 12 },
     back: { x: topX + width + 4, y: bodyY, width, height: 12 },
   };
@@ -548,41 +612,18 @@ function drawCircuit(canvas: SkinCanvas, face: Face, color: string) {
   }
 }
 
-function paintArm(canvas: SkinCanvas, faces: ArmFaces, palette: MinecraftSkinPalette, random: () => number, design: MinecraftSkinDesign) {
-  const faceList = Object.values(faces);
-  faceList.forEach((face) => canvas.fill(face, palette.top, 0.12, random)); // increased noise
-  const bodyFaces = [faces.right, faces.front, faces.left, faces.back];
-  const sleeveRows = design.sleeves === "short" ? 5 : design.sleeves === "long" ? 10 : 12;
-  bodyFaces.forEach((face) => {
-    if (sleeveRows < 12) {
-      const skinStart = face.y + sleeveRows;
-      canvas.fill({ x: face.x, y: skinStart, width: face.width, height: 12 - sleeveRows }, palette.skin, 0.08, random);
-      // Soft shadow under sleeve
-      canvas.line(face.x, skinStart, face.width, shade(palette.skin, -0.15));
-    }
-    if (design.gloves) {
-      const gloveRows = design.sleeves === "armored" ? 4 : 3;
-      canvas.fill({ x: face.x, y: face.y + 12 - gloveRows, width: face.width, height: gloveRows }, palette.shoes, 0.1, random);
-      canvas.line(face.x, face.y + 12 - gloveRows, face.width, palette.topAccent);
-    }
-  });
-
-  if (design.pattern === "striped" || design.pattern === "paneled") {
-    canvas.line(faces.front.x, faces.front.y + 2, faces.front.width, palette.topAccent);
-  } else if (design.pattern === "lightning") {
-    drawLightning(canvas, faces.front, palette.topAccent);
-  } else if (design.pattern === "circuit") {
-    drawCircuit(canvas, faces.front, palette.topAccent);
-  }
-  if (design.outfit === "armor") {
-    canvas.line(faces.front.x, faces.front.y, faces.front.width, palette.detail);
-    canvas.setPixel(faces.front.x, faces.front.y + 1, palette.topAccent);
-  }
-}
-
-function paintHead(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () => number) {
+function paintHead(
+  canvas: SkinCanvas,
+  design: MinecraftSkinDesign,
+  style: MinecraftSkinStyle = "balanced",
+  prompt = "",
+  random: () => number = () => 0.5
+) {
   const palette = design.palette;
-  const isDarkChar = palette.skin.toLowerCase() === palette.top.toLowerCase() || palette.skin.toLowerCase() === "#181216";
+  const lower = (prompt + " " + (design.description || "") + " " + (design.traits || []).join(" ")).toLowerCase();
+
+  const isDarkChar = /demon|shadow|monster|obsidian|fiend|reaper|robot|android|cyber/i.test(lower) &&
+    (palette.skin.toLowerCase() === palette.top.toLowerCase() || palette.skin.toLowerCase() === "#181216" || palette.skin.toLowerCase() === "#0b0b10");
 
   const baseFaces: Record<string, Face> = {
     top: { x: 8, y: 0, width: 8, height: 8 },
@@ -593,25 +634,30 @@ function paintHead(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () =
     back: { x: 24, y: 8, width: 8, height: 8 },
   };
 
-  Object.values(baseFaces).forEach((face) => canvas.fill(face, palette.skin, 0.1, random));
-  canvas.fill(baseFaces.bottom, palette.skinShade, 0.1, random);
+  // 1. Base Head Skin & Neck
+  Object.values(baseFaces).forEach((face) => canvas.fill(face, palette.skin, style, random));
+  canvas.fill(baseFaces.bottom, palette.skinShade, style, random);
 
-  // Base Head Top Hair/Helm
-  canvas.fill(baseFaces.top, palette.hair || palette.skin, 0.08, random);
+  // 2. Base Hair Layer
+  canvas.fill(baseFaces.top, palette.hair || palette.skin, style, random);
+  canvas.fill({ x: 24, y: 8, width: 8, height: 8 }, palette.hair, style, random); // back of head
+  canvas.fill({ x: 0, y: 8, width: 8, height: 4 }, palette.hair, style, random); // right side hair
+  canvas.fill({ x: 16, y: 8, width: 8, height: 4 }, palette.hair, style, random); // left side hair
 
-  // 3D Horns / Spikes on 3D Hat overlay (keeping rest of hat overlay transparent!)
-  if (isDarkChar || design.outfit === "armor" || design.hairStyle === "helmet" || design.hairStyle === "hood") {
-    canvas.setPixel(41, 0, palette.topAccent);
-    canvas.setPixel(41, 1, palette.topAccent);
-    canvas.setPixel(46, 0, palette.topAccent);
-    canvas.setPixel(46, 1, palette.topAccent);
-    canvas.setPixel(41, 8, palette.topAccent);
-    canvas.setPixel(46, 8, palette.topAccent);
-  }
-
-  // Glowing Demon / Visor Eyes
+  // 3. Face Features on Front Face
   const eyeY = 11;
-  if (isDarkChar || design.faceStyle === "visor") {
+  const hasVisor = /visor|goggles/i.test(lower) || design.faceStyle === "visor";
+  const hasMask = /mask|face cover|ninja|facemask/i.test(lower) || design.faceStyle === "mask";
+
+  if (hasVisor) {
+    canvas.fill({ x: 8, y: 10, width: 8, height: 3 }, shade(palette.eyes, -0.3), style, random);
+    canvas.line(9, 11, 6, palette.eyes);
+    canvas.setPixel(10, 11, shade(palette.eyes, 0.3));
+    canvas.setPixel(13, 11, shade(palette.eyes, 0.3));
+    if (style === "high-contrast") {
+      canvas.line(8, 10, 8, palette.topAccent);
+    }
+  } else if (isDarkChar) {
     canvas.setPixel(9, eyeY, palette.eyes);
     canvas.setPixel(10, eyeY, shade(palette.eyes, 0.25));
     canvas.setPixel(13, eyeY, shade(palette.eyes, 0.25));
@@ -619,15 +665,115 @@ function paintHead(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () =
     canvas.setPixel(10, eyeY + 1, palette.topAccent);
     canvas.setPixel(13, eyeY + 1, palette.topAccent);
   } else {
-    canvas.setPixel(9, eyeY, shade(palette.skin, 0.4));
-    canvas.setPixel(14, eyeY, shade(palette.skin, 0.4));
+    // Left eye
+    canvas.setPixel(9, eyeY, "#ffffff");
     canvas.setPixel(10, eyeY, palette.eyes);
+    canvas.setPixel(9, eyeY + 1, shade(palette.skin, -0.15));
+    canvas.setPixel(10, eyeY + 1, shade(palette.eyes, -0.25));
+    // Right eye
+    canvas.setPixel(14, eyeY, "#ffffff");
     canvas.setPixel(13, eyeY, palette.eyes);
+    canvas.setPixel(14, eyeY + 1, shade(palette.skin, -0.15));
+    canvas.setPixel(13, eyeY + 1, shade(palette.eyes, -0.25));
+
+    // Eyebrows
+    canvas.line(9, eyeY - 1, 2, shade(palette.hair, -0.1));
+    canvas.line(13, eyeY - 1, 2, shade(palette.hair, -0.1));
+
+    // Mouth
+    canvas.setPixel(11, 14, shade(palette.skin, -0.18));
+    canvas.setPixel(12, 14, shade(palette.skin, -0.18));
+  }
+
+  // Face Mask
+  if (hasMask) {
+    canvas.fill({ x: 8, y: 12, width: 8, height: 4 }, shade(palette.top, -0.1), style, random);
+    canvas.line(9, 12, 6, palette.topAccent);
+  }
+
+  // 4. 3D Overlay Layer (Hat / Hair Depth / Headphones / Crown / Horns)
+  const hasHeadphones = /headphone|headset|earphone/i.test(lower) || design.headphones;
+  const hasHorns = /horn|demon|oni/i.test(lower) || design.horns;
+  const hasCrown = /crown|king|queen|royal|prince/i.test(lower) || design.crown;
+  const hasHalo = /halo|angel|divine/i.test(lower) || design.halo;
+  const hasHood = /hood|hoodie|assassin|rogue/i.test(lower) || design.hairStyle === "hood";
+
+  if (hasHood) {
+    canvas.fill({ x: 40, y: 0, width: 8, height: 8 }, palette.top, style, random);
+    canvas.fill({ x: 32, y: 8, width: 8, height: 8 }, palette.top, style, random);
+    canvas.fill({ x: 48, y: 8, width: 8, height: 8 }, palette.top, style, random);
+    canvas.fill({ x: 56, y: 8, width: 8, height: 8 }, palette.top, style, random);
+    canvas.line(40, 8, 8, palette.topAccent);
+    canvas.line(40, 9, 1, palette.topAccent, true);
+    canvas.line(47, 9, 1, palette.topAccent, true);
+  } else {
+    if (design.hairStyle !== "bald") {
+      canvas.fill({ x: 40, y: 0, width: 8, height: 8 }, palette.hair, style, random);
+      canvas.line(40, 8, 8, palette.hair);
+      canvas.line(40, 9, 3, palette.hairHighlight);
+      canvas.line(44, 9, 4, palette.hair);
+      canvas.setPixel(42, 10, palette.hairHighlight);
+      canvas.setPixel(45, 10, palette.hair);
+      canvas.line(39, 8, 3, palette.hair, true);
+      canvas.line(48, 8, 3, palette.hair, true);
+    }
+  }
+
+  // Headphones on 3D Overlay
+  if (hasHeadphones) {
+    const bandColor = shade(palette.top, -0.3);
+    canvas.fill({ x: 40, y: 0, width: 8, height: 2 }, bandColor, style, random);
+    canvas.line(40, 0, 8, palette.topAccent);
+    canvas.line(35, 8, 3, bandColor, true);
+    canvas.line(52, 8, 3, bandColor, true);
+    // Left Ear Cup
+    canvas.fill({ x: 33, y: 10, width: 4, height: 4 }, bandColor, style, random);
+    canvas.fill({ x: 34, y: 11, width: 2, height: 2 }, palette.topAccent, style, random);
+    // Right Ear Cup
+    canvas.fill({ x: 49, y: 10, width: 4, height: 4 }, bandColor, style, random);
+    canvas.fill({ x: 50, y: 11, width: 2, height: 2 }, palette.topAccent, style, random);
+  }
+
+  // Horns
+  if (hasHorns) {
+    canvas.setPixel(41, 0, palette.topAccent);
+    canvas.setPixel(41, 1, palette.topAccent);
+    canvas.setPixel(46, 0, palette.topAccent);
+    canvas.setPixel(46, 1, palette.topAccent);
+    canvas.setPixel(41, 8, shade(palette.topAccent, 0.2));
+    canvas.setPixel(46, 8, shade(palette.topAccent, 0.2));
+  }
+
+  // Crown
+  if (hasCrown) {
+    canvas.line(40, 7, 8, "#facc15");
+    canvas.setPixel(41, 6, "#facc15");
+    canvas.setPixel(43, 6, "#facc15");
+    canvas.setPixel(45, 6, "#facc15");
+    canvas.setPixel(47, 6, "#facc15");
+    canvas.setPixel(43, 7, "#ef4444");
+    canvas.setPixel(45, 7, "#06b6d4");
+  }
+
+  // Halo
+  if (hasHalo) {
+    canvas.line(41, 1, 6, "#fde047");
+    canvas.line(41, 6, 6, "#fde047");
+    canvas.line(41, 2, 4, "#fde047", true);
+    canvas.line(46, 2, 4, "#fde047", true);
   }
 }
 
-function paintTorso(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () => number) {
+function paintTorso(
+  canvas: SkinCanvas,
+  design: MinecraftSkinDesign,
+  style: MinecraftSkinStyle = "balanced",
+  prompt = "",
+  random: () => number = () => 0.5
+) {
   const palette = design.palette;
+  const lower = (prompt + " " + (design.description || "") + " " + (design.traits || []).join(" ")).toLowerCase();
+
   const faces = {
     top: { x: 20, y: 16, width: 8, height: 4 },
     bottom: { x: 28, y: 16, width: 8, height: 4 },
@@ -636,33 +782,118 @@ function paintTorso(canvas: SkinCanvas, design: MinecraftSkinDesign, random: () 
     left: { x: 28, y: 20, width: 4, height: 12 },
     back: { x: 32, y: 20, width: 8, height: 12 },
   };
-  Object.values(faces).forEach((face) => canvas.fill(face, palette.top, 0.12, random));
 
-  // Belt & Metallic Buckle
-  canvas.line(20, 30, 8, shade(palette.top, -0.25));
-  canvas.line(20, 31, 8, shade(palette.top, -0.35));
+  // Base Torso
+  Object.values(faces).forEach((face) => canvas.fill(face, palette.top, style, random));
+
+  // Undershirt / Collar
+  canvas.fill({ x: 23, y: 20, width: 2, height: 3 }, palette.skin, style, random);
+  canvas.line(22, 20, 1, palette.topAccent, true);
+  canvas.line(25, 20, 1, palette.topAccent, true);
+
+  // Belt & Buckle
+  canvas.line(20, 30, 8, shade(palette.pants, -0.2));
+  canvas.line(20, 31, 8, shade(palette.pants, -0.3));
   canvas.setPixel(23, 30, palette.topAccent);
   canvas.setPixel(24, 30, palette.topAccent);
 
-  // 3D Chestplate / Jacket Overlay
+  // 3D Torso Overlay: Jacket / Hoodie / Cables / Armor
   const ovFront = { x: 20, y: 36, width: 8, height: 12 };
   const ovBack = { x: 32, y: 36, width: 8, height: 12 };
-  const outerArmor = shade(palette.top, 0.08);
+  const ovRight = { x: 16, y: 36, width: 4, height: 12 };
+  const ovLeft = { x: 28, y: 36, width: 4, height: 12 };
 
-  canvas.fill(ovFront, outerArmor, 0.08, random);
-  canvas.fill(ovBack, outerArmor, 0.08, random);
+  const jacketColor = shade(palette.top, 0.06);
+  canvas.fill(ovRight, jacketColor, style, random);
+  canvas.fill(ovLeft, jacketColor, style, random);
+  canvas.fill(ovBack, jacketColor, style, random);
 
-  // Glowing Chest Core / Lava Veins on 3D Overlay
-  canvas.setPixel(23, 38, palette.topAccent);
-  canvas.setPixel(24, 38, palette.topAccent);
-  canvas.line(23, 39, 4, palette.topAccent, true);
-  canvas.line(24, 39, 4, palette.topAccent, true);
-  canvas.line(21, 41, 6, palette.topAccent);
+  // Front Jacket Overlay: open collar showing undershirt
+  canvas.fill({ x: 20, y: 36, width: 3, height: 12 }, jacketColor, style, random);
+  canvas.fill({ x: 25, y: 36, width: 3, height: 12 }, jacketColor, style, random);
+  // Lapels & Zipper line
+  canvas.line(22, 36, 12, palette.topAccent, true);
+  canvas.line(25, 36, 12, palette.topAccent, true);
+
+  // Glowing Cables / Tech Conduits
+  const hasCables = /cable|wire|tech line|cyber|circuit|neon/i.test(lower) || design.cables;
+  if (hasCables) {
+    canvas.setPixel(21, 36, palette.topAccent);
+    canvas.setPixel(26, 36, palette.topAccent);
+    canvas.line(21, 37, 5, palette.topAccent, true);
+    canvas.line(26, 37, 5, palette.topAccent, true);
+    canvas.setPixel(23, 40, palette.topAccent);
+    canvas.setPixel(24, 40, palette.topAccent);
+    canvas.setPixel(23, 41, shade(palette.topAccent, 0.3));
+    canvas.setPixel(24, 41, shade(palette.topAccent, 0.3));
+    canvas.line(34, 37, 6, palette.topAccent, true);
+    canvas.line(37, 37, 6, palette.topAccent, true);
+  }
+
+  // Emblem
+  if (design.emblem) {
+    drawEmblem(canvas, design.emblem, design.palette.detail);
+  }
 }
 
-function paintLeg(canvas: SkinCanvas, side: "right" | "left", design: MinecraftSkinDesign, random: () => number) {
+function paintArm(
+  canvas: SkinCanvas,
+  faces: ArmFaces,
+  palette: MinecraftSkinPalette,
+  random: () => number,
+  design: MinecraftSkinDesign,
+  style: MinecraftSkinStyle = "balanced",
+  prompt = "",
+  side: "right" | "left" = "right",
+  model: MinecraftArmModel = "classic"
+) {
+  const lower = (prompt + " " + (design.description || "") + " " + (design.traits || []).join(" ")).toLowerCase();
+  const faceList = Object.values(faces);
+  const bodyFaces = [faces.right, faces.front, faces.left, faces.back];
+
+  faceList.forEach((face) => canvas.fill(face, palette.top, style, random));
+
+  const sleeveRows = design.sleeves === "short" ? 4 : design.sleeves === "long" ? 9 : 12;
+  bodyFaces.forEach((face) => {
+    if (sleeveRows < 12) {
+      const skinStart = face.y + sleeveRows;
+      canvas.fill({ x: face.x, y: skinStart, width: face.width, height: 12 - sleeveRows }, palette.skin, style, random);
+      canvas.line(face.x, skinStart, face.width, shade(palette.skin, -0.15));
+    }
+    if (design.gloves || /glove|gauntlet/i.test(lower)) {
+      const gloveY = face.y + 9;
+      canvas.fill({ x: face.x, y: gloveY, width: face.width, height: 3 }, palette.shoes, style, random);
+      canvas.line(face.x, gloveY, face.width, palette.topAccent);
+    }
+  });
+
+  const ovFaces = armFaces(model, side, true);
+  [ovFaces.right, ovFaces.front, ovFaces.left, ovFaces.back].forEach((face) => {
+    canvas.fill({ x: face.x, y: face.y, width: face.width, height: Math.min(face.height, sleeveRows) }, shade(palette.top, 0.06), style, random);
+    canvas.line(face.x, face.y + Math.min(face.height, sleeveRows) - 1, face.width, palette.topAccent);
+  });
+
+  const hasCables = /cable|wire|tech line|cyber|circuit|neon/i.test(lower) || design.cables;
+  if (hasCables) {
+    canvas.line(ovFaces.front.x + 1, ovFaces.front.y + 1, 8, palette.topAccent, true);
+    if (ovFaces.front.width >= 4) {
+      canvas.setPixel(ovFaces.front.x + 2, ovFaces.front.y + 8, palette.topAccent);
+    }
+  }
+}
+
+function paintLeg(
+  canvas: SkinCanvas,
+  side: "right" | "left",
+  design: MinecraftSkinDesign,
+  style: MinecraftSkinStyle = "balanced",
+  prompt = "",
+  random: () => number = () => 0.5
+) {
   const palette = design.palette;
+  const lower = (prompt + " " + (design.description || "") + " " + (design.traits || []).join(" ")).toLowerCase();
   const isRight = side === "right";
+
   const faces = isRight
     ? {
         top: { x: 4, y: 16, width: 4, height: 4 },
@@ -681,13 +912,21 @@ function paintLeg(canvas: SkinCanvas, side: "right" | "left", design: MinecraftS
         back: { x: 28, y: 52, width: 4, height: 12 },
       };
 
-  Object.values(faces).forEach((face) => canvas.fill(face, palette.pants, 0.1, random));
+  Object.values(faces).forEach((face) => canvas.fill(face, palette.pants, style, random));
 
-  // 3D Boots on Overlay Layer
+  [faces.right, faces.front, faces.left, faces.back].forEach((face) => {
+    canvas.fill({ x: face.x, y: face.y + 8, width: face.width, height: 4 }, palette.shoes, style, random);
+    canvas.line(face.x, face.y + 8, face.width, palette.topAccent);
+  });
+  canvas.fill(faces.bottom, shade(palette.shoes, -0.2), style, random);
+
   const ovFront = isRight ? { x: 4, y: 36, width: 4, height: 12 } : { x: 4, y: 52, width: 4, height: 12 };
-  canvas.fill({ x: ovFront.x, y: ovFront.y + 7, width: 4, height: 5 }, palette.shoes, 0.08, random);
+  canvas.fill({ x: ovFront.x, y: ovFront.y + 7, width: 4, height: 5 }, shade(palette.shoes, 0.08), style, random);
   canvas.line(ovFront.x, ovFront.y + 7, 4, palette.topAccent);
-  canvas.line(ovFront.x, ovFront.y + 11, 4, palette.topAccent);
+
+  if (/cyber|armor|robot|tech/i.test(lower)) {
+    canvas.fill({ x: ovFront.x + 1, y: ovFront.y + 4, width: 2, height: 2 }, palette.topAccent, style, random);
+  }
 }
 
 function detectReferenceEyeRow(canvas: SkinCanvas) {
@@ -902,16 +1141,22 @@ export function applyPromptEditsToMinecraftSkin(
   return canvas.pixels;
 }
 
-export function compileMinecraftSkin(design: MinecraftSkinDesign, seed: number, model: MinecraftArmModel) {
+export function compileMinecraftSkin(
+  design: MinecraftSkinDesign,
+  seed: number,
+  model: MinecraftArmModel,
+  style: MinecraftSkinStyle = "balanced",
+  prompt = ""
+) {
   const canvas = new SkinCanvas();
   const random = createRandom(seed);
 
-  paintHead(canvas, design, random);
-  paintTorso(canvas, design, random);
-  paintArm(canvas, armFaces(model, "right"), design.palette, random, design);
-  paintArm(canvas, armFaces(model, "left"), design.palette, random, design);
-  paintLeg(canvas, "right", design, random);
-  paintLeg(canvas, "left", design, random);
+  paintHead(canvas, design, style, prompt, random);
+  paintTorso(canvas, design, style, prompt, random);
+  paintArm(canvas, armFaces(model, "right"), design.palette, random, design, style, prompt, "right", model);
+  paintArm(canvas, armFaces(model, "left"), design.palette, random, design, style, prompt, "left", model);
+  paintLeg(canvas, "right", design, style, prompt, random);
+  paintLeg(canvas, "left", design, style, prompt, random);
 
   return canvas.pixels;
 }

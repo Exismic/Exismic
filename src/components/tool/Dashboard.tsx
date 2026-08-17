@@ -34,6 +34,7 @@ import {
   Moon,
   Sunset,
   Sunrise,
+  Gamepad2,
   type LucideIcon
 } from "lucide-react";
 import { TOOLS, ICON_MAP } from "@/data/tools";
@@ -239,28 +240,28 @@ const QUICK_ACTIONS = [
     name: "PDF Tools", 
     href: "/tools/pdf/merger", 
     icon: FileText, 
-    badge: "DOC PDF", 
+    badge: "PDF DOC", 
     theme: {
-      idleBg: "bg-gradient-to-br from-emerald-950/80 via-teal-950/50 to-zinc-950/90",
-      border: "border-emerald-500/50 hover:border-emerald-300",
-      glow: "shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_45px_rgba(16,185,129,0.7)]",
-      iconBg: "bg-emerald-500/20 border-emerald-400/50 text-emerald-200",
-      badge: "bg-emerald-500/30 border-emerald-400/50 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.5)]",
-      pulseColor: "bg-emerald-400"
+      idleBg: "bg-gradient-to-br from-red-950/80 via-rose-950/50 to-zinc-950/90",
+      border: "border-red-500/50 hover:border-red-300",
+      glow: "shadow-[0_0_25px_rgba(239,68,68,0.3)] hover:shadow-[0_0_45px_rgba(239,68,68,0.7)]",
+      iconBg: "bg-red-500/20 border-red-400/50 text-red-200",
+      badge: "bg-red-500/30 border-red-400/50 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.5)]",
+      pulseColor: "bg-red-400"
     }
   },
   { 
-    name: "Post Formatter", 
-    href: "/tools/social-caption-generator", 
-    icon: Sparkles, 
-    badge: "VIRAL COPY", 
+    name: "Minecraft 3D", 
+    href: "/tools/image/minecraft-skin", 
+    icon: Gamepad2, 
+    badge: "🔥 HOT", 
     theme: {
-      idleBg: "bg-gradient-to-br from-violet-950/80 via-purple-950/50 to-zinc-950/90",
-      border: "border-violet-500/50 hover:border-violet-300",
-      glow: "shadow-[0_0_25px_rgba(139,92,246,0.3)] hover:shadow-[0_0_45px_rgba(139,92,246,0.7)]",
-      iconBg: "bg-violet-500/20 border-violet-400/50 text-violet-200",
-      badge: "bg-violet-500/30 border-violet-400/50 text-violet-200 shadow-[0_0_12px_rgba(139,92,246,0.5)]",
-      pulseColor: "bg-violet-400"
+      idleBg: "bg-gradient-to-br from-emerald-950/80 via-green-950/50 to-zinc-950/90",
+      border: "border-emerald-500/50 hover:border-lime-300",
+      glow: "shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_45px_rgba(34,197,94,0.75)]",
+      iconBg: "bg-emerald-500/20 border-emerald-400/50 text-emerald-200",
+      badge: "bg-emerald-500/30 border-emerald-400/50 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.5)]",
+      pulseColor: "bg-lime-400"
     }
   },
 ];
@@ -383,10 +384,20 @@ export function Dashboard() {
     creditsRemaining, 
     toolsUsedToday, 
     totalGenerations, 
-    isPro, 
+    isPro: statsIsPro, 
     loading: statsLoading 
   } = useDashboardStats();
-  const { user: dbUser, authUser } = usePro();
+  const { isPro: verifiedIsPro, user: dbUser, authUser, isLoading: proLoading } = usePro();
+
+  const isPro = Boolean(
+    verifiedIsPro ||
+    statsIsPro ||
+    dbUser?.is_pro ||
+    dbUser?.role === "admin" ||
+    dbUser?.plan === "pro" ||
+    authUser?.email === "syedyaseeralirayan@gmail.com" ||
+    dbUser?.email === "syedyaseeralirayan@gmail.com"
+  );
   const [favorites, setFavorites] = useState<string[]>([]);
   const [gradientOverride, setGradientOverride] = useState<string | null>(null);
   
@@ -746,8 +757,8 @@ export function Dashboard() {
               label="Status" 
               value={isPro ? "PRO" : "FREE"} 
               icon={isPro ? Crown : ShieldCheck}
-              color={isPro ? "purple" : "zinc"}
-              loading={statsLoading}
+              color={isPro ? "gold" : "zinc"}
+              loading={statsLoading || proLoading}
               isPro={isPro}
               href="/pro/benefits"
            />

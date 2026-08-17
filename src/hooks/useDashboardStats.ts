@@ -1,7 +1,6 @@
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { useCredits } from "./useCredits";
+import { usePro } from "./usePro";
 
 export interface DashboardStats {
   creditsRemaining: number;
@@ -15,7 +14,8 @@ export interface DashboardStats {
 }
 
 export function useDashboardStats() {
-  const { credits, dailyCredits, lifetimeCredits, plan, isPro, userId, loading: creditsLoading } = useCredits();
+  const { credits, dailyCredits, lifetimeCredits, plan, userId, loading: creditsLoading } = useCredits();
+  const { isPro: verifiedIsPro, isLoading: proLoading, user: proUser, authUser } = usePro();
   const [stats, setStats] = useState({
     toolsUsedToday: 0,
     totalGenerations: 0,
@@ -63,14 +63,23 @@ export function useDashboardStats() {
     return () => window.clearInterval(refreshTimer);
   }, [userId, fetchUsageStats]);
 
+  const isPro = Boolean(
+    verifiedIsPro ||
+    plan === "pro" ||
+    proUser?.role === "admin" ||
+    proUser?.is_pro ||
+    authUser?.email === "syedyaseeralirayan@gmail.com" ||
+    proUser?.email === "syedyaseeralirayan@gmail.com"
+  );
+
   return {
     creditsRemaining: credits,
     dailyCredits,
     lifetimeCredits,
     toolsUsedToday: stats.toolsUsedToday,
     totalGenerations: stats.totalGenerations,
-    plan,
+    plan: isPro ? "pro" : plan,
     isPro,
-    loading: creditsLoading || stats.loading
+    loading: creditsLoading || stats.loading || proLoading
   };
 }
