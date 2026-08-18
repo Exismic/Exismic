@@ -16,14 +16,20 @@ function resolveSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
   if (configured && !configured.includes("localhost")) {
     const withProtocol = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
-    return withProtocol.trim().replace(/\/+$/, "").replace(/^https?:\/\/www\.exismic\.xyz/i, "https://exismic.xyz");
+    const clean = withProtocol.trim().replace(/\/+$/, "");
+    return clean.includes("exismic.xyz") && !clean.includes("www.")
+      ? clean.replace("exismic.xyz", "www.exismic.xyz")
+      : clean;
   }
   const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   if (vercelUrl && !vercelUrl.includes("localhost")) {
     const withProtocol = /^https?:\/\//i.test(vercelUrl) ? vercelUrl : `https://${vercelUrl}`;
-    return withProtocol.trim().replace(/\/+$/, "").replace(/^https?:\/\/www\.exismic\.xyz/i, "https://exismic.xyz");
+    const clean = withProtocol.trim().replace(/\/+$/, "");
+    return clean.includes("exismic.xyz") && !clean.includes("www.")
+      ? clean.replace("exismic.xyz", "www.exismic.xyz")
+      : clean;
   }
-  return "https://exismic.xyz";
+  return "https://www.exismic.xyz";
 }
 
 export const SITE_URL = resolveSiteUrl();

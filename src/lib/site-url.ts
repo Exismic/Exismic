@@ -1,4 +1,4 @@
-const PRODUCTION_SITE_URL = "https://exismic.xyz";
+const PRODUCTION_SITE_URL = "https://www.exismic.xyz";
 
 function trimUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
