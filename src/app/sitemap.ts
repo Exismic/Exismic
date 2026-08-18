@@ -3,15 +3,14 @@ import { CATEGORIES, TOOLS } from "@/data/tools";
 import { BLOG_POSTS } from "@/lib/blog-data";
 import { SITE_URL } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400; // Cache sitemap for 24 hours at edge
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `${SITE_URL}/`,
+      url: `${SITE_URL}`,
       lastModified: now,
       changeFrequency: "daily",
       priority: 1,
