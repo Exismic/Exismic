@@ -17,6 +17,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/minecraft-skin",
+        destination: "/tools/image/minecraft-skin",
+        permanent: false,
+      },
+      {
+        source: "/giveaways",
+        destination: "/giveaway",
+        permanent: false,
+      },
+    ];
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "100mb",

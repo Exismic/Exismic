@@ -16,6 +16,8 @@ export async function updateSession(request: NextRequest) {
     "/privacy-policy",
     "/terms-of-service",
     "/appeal",
+    "/giveaway",
+    "/giveaways",
   ]);
 
   const isPublicRoute =
@@ -23,6 +25,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/api/auth') ||
     request.nextUrl.pathname.startsWith('/api/og') ||
+    request.nextUrl.pathname.startsWith('/api/giveaways') ||
     request.nextUrl.pathname.startsWith('/api/tools') ||
     request.nextUrl.pathname === '/api/user/favorites' ||
     request.nextUrl.pathname.startsWith('/api/billing/market') ||

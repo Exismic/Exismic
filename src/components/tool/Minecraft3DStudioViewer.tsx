@@ -154,7 +154,18 @@ export function Minecraft3DStudioViewer({
       viewerRef.current?.dispose();
       viewerRef.current = null;
     };
-  }, [skinUrl, armModel]);
+  }, [armModel]);
+
+  // Dynamically load skin texture on the active viewer in real time
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !skinUrl) return;
+    void viewer.loadSkin(skinUrl).then(() => {
+      if (viewer.playerObject?.skin) {
+        viewer.playerObject.skin.setOuterLayerVisible(showOverlays);
+      }
+    });
+  }, [skinUrl, showOverlays]);
 
   // Handle animation switch dynamically without recreating full canvas
   useEffect(() => {

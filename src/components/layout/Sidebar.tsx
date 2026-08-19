@@ -19,7 +19,8 @@ import {
   Crown,
   Users,
   ShieldCheck,
-  Flame
+  Flame,
+  Gift
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -49,6 +50,7 @@ interface SidebarItemProps {
 const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
   "/": "bg-gradient-to-b from-purple-400 via-pink-400 to-indigo-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
   "/shop": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-500 shadow-[0_0_14px_rgba(245,158,11,0.9)]",
+  "/giveaway": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-400 shadow-[0_0_16px_rgba(245,158,11,1)]",
   "/favorites": "bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(251,191,36,0.9)]",
   "/history": "bg-gradient-to-b from-blue-400 via-cyan-400 to-indigo-400 shadow-[0_0_14px_rgba(96,165,250,0.9)]",
   "/referrals": "bg-gradient-to-b from-emerald-400 via-teal-400 to-green-500 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
@@ -76,6 +78,12 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
     border: "group-hover:border-amber-400/35",
     glow: "rgba(245,158,11,0.5)",
+    text: "group-hover:text-amber-200"
+  },
+  "/giveaway": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/20 group-hover:via-yellow-950/25 group-hover:to-transparent",
+    border: "group-hover:border-amber-400/50",
+    glow: "rgba(245,158,11,0.8)",
     text: "group-hover:text-amber-200"
   },
   "/favorites": {
@@ -140,6 +148,161 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
   },
 };
 
+const ITEM_ICON_STYLES: Record<string, {
+  borderGrad: string;
+  glowPool: string;
+  icon: string;
+  activeBorderGrad: string;
+  activeGlowPool: string;
+  activeIcon: string;
+  ambientGlow: string;
+}> = {
+  "/": {
+    borderGrad: "from-violet-400/50 via-purple-500/15 to-transparent group-hover:from-violet-400 group-hover:via-purple-500/40",
+    glowPool: "from-violet-600/35 via-indigo-600/20 to-transparent",
+    icon: "text-violet-300 fill-violet-400/15 drop-shadow-[0_0_10px_rgba(167,139,250,0.95)]",
+    activeBorderGrad: "from-violet-400 via-purple-400 to-indigo-500",
+    activeGlowPool: "from-violet-600/70 via-purple-600/45 to-indigo-900/60",
+    activeIcon: "text-violet-200 fill-violet-300/35 drop-shadow-[0_0_14px_rgba(167,139,250,1)]",
+    ambientGlow: "rgba(139,92,246,0.7)"
+  },
+  "/shop": {
+    borderGrad: "from-orange-500/50 via-amber-500/15 to-transparent group-hover:from-orange-400 group-hover:via-amber-500/40",
+    glowPool: "from-orange-500/35 via-amber-600/20 to-transparent",
+    icon: "text-orange-400 fill-orange-500/20 drop-shadow-[0_0_10px_rgba(251,146,60,0.95)]",
+    activeBorderGrad: "from-orange-400 via-amber-400 to-red-500",
+    activeGlowPool: "from-orange-500/70 via-amber-600/45 to-red-900/60",
+    activeIcon: "text-orange-200 fill-orange-400/40 drop-shadow-[0_0_14px_rgba(251,146,60,1)]",
+    ambientGlow: "rgba(249,115,22,0.7)"
+  },
+  "/giveaway": {
+    borderGrad: "from-amber-400/60 via-yellow-500/25 to-transparent group-hover:from-amber-300 group-hover:via-yellow-500/50",
+    glowPool: "from-amber-500/50 via-yellow-600/30 to-orange-900/20",
+    icon: "text-amber-300 fill-amber-400/20 drop-shadow-[0_0_12px_rgba(245,158,11,1)]",
+    activeBorderGrad: "from-amber-300 via-yellow-400 to-orange-500",
+    activeGlowPool: "from-amber-500/80 via-yellow-600/60 to-orange-900/70",
+    activeIcon: "text-amber-200 fill-amber-300/35 drop-shadow-[0_0_16px_rgba(251,191,36,1)]",
+    ambientGlow: "rgba(245,158,11,0.85)"
+  },
+  "/favorites": {
+    borderGrad: "from-yellow-300/55 via-amber-400/15 to-transparent group-hover:from-yellow-300 group-hover:via-amber-400/40",
+    glowPool: "from-yellow-400/35 via-amber-500/20 to-transparent",
+    icon: "text-yellow-300 fill-yellow-300/25 drop-shadow-[0_0_10px_rgba(253,224,71,1)]",
+    activeBorderGrad: "from-yellow-300 via-amber-400 to-yellow-500",
+    activeGlowPool: "from-yellow-400/70 via-amber-500/45 to-yellow-900/60",
+    activeIcon: "text-yellow-200 fill-yellow-300/50 drop-shadow-[0_0_14px_rgba(253,224,71,1)]",
+    ambientGlow: "rgba(250,204,21,0.75)"
+  },
+  "/history": {
+    borderGrad: "from-blue-500/50 via-sky-500/15 to-transparent group-hover:from-blue-400 group-hover:via-sky-500/40",
+    glowPool: "from-blue-600/35 via-sky-600/20 to-transparent",
+    icon: "text-blue-400 fill-blue-500/15 drop-shadow-[0_0_10px_rgba(96,165,250,0.95)]",
+    activeBorderGrad: "from-blue-400 via-sky-400 to-indigo-500",
+    activeGlowPool: "from-blue-500/70 via-indigo-600/45 to-sky-900/60",
+    activeIcon: "text-blue-200 fill-blue-400/30 drop-shadow-[0_0_14px_rgba(96,165,250,1)]",
+    ambientGlow: "rgba(59,130,246,0.7)"
+  },
+  "/referrals": {
+    borderGrad: "from-emerald-400/50 via-teal-500/15 to-transparent group-hover:from-emerald-300 group-hover:via-teal-500/40",
+    glowPool: "from-emerald-500/35 via-teal-600/20 to-transparent",
+    icon: "text-emerald-400 fill-emerald-500/15 drop-shadow-[0_0_10px_rgba(52,211,153,0.95)]",
+    activeBorderGrad: "from-emerald-400 via-teal-400 to-green-500",
+    activeGlowPool: "from-emerald-400/70 via-teal-500/45 to-green-900/60",
+    activeIcon: "text-emerald-200 fill-emerald-400/30 drop-shadow-[0_0_14px_rgba(52,211,153,1)]",
+    ambientGlow: "rgba(16,185,129,0.7)"
+  },
+  "/admin": {
+    borderGrad: "from-rose-500/50 via-red-500/15 to-transparent group-hover:from-rose-400 group-hover:via-red-500/40",
+    glowPool: "from-rose-600/35 via-red-600/20 to-transparent",
+    icon: "text-rose-400 fill-rose-500/15 drop-shadow-[0_0_10px_rgba(244,63,94,0.95)]",
+    activeBorderGrad: "from-rose-400 via-red-400 to-pink-500",
+    activeGlowPool: "from-rose-500/70 via-red-600/45 to-pink-900/60",
+    activeIcon: "text-rose-200 fill-rose-400/30 drop-shadow-[0_0_14px_rgba(244,63,94,1)]",
+    ambientGlow: "rgba(244,63,94,0.7)"
+  },
+  "/category/image": {
+    borderGrad: "from-cyan-400/50 via-teal-500/15 to-transparent group-hover:from-cyan-300 group-hover:via-teal-500/40",
+    glowPool: "from-cyan-400/35 via-sky-500/20 to-transparent",
+    icon: "text-cyan-300 fill-cyan-400/15 drop-shadow-[0_0_10px_rgba(34,211,238,0.95)]",
+    activeBorderGrad: "from-cyan-300 via-sky-400 to-blue-500",
+    activeGlowPool: "from-cyan-400/70 via-sky-500/45 to-blue-900/60",
+    activeIcon: "text-cyan-200 fill-cyan-400/35 drop-shadow-[0_0_14px_rgba(34,211,238,1)]",
+    ambientGlow: "rgba(6,182,212,0.75)"
+  },
+  "/category/video": {
+    borderGrad: "from-fuchsia-500/50 via-purple-500/15 to-transparent group-hover:from-fuchsia-400 group-hover:via-purple-500/40",
+    glowPool: "from-fuchsia-500/35 via-purple-600/20 to-transparent",
+    icon: "text-fuchsia-400 fill-fuchsia-500/15 drop-shadow-[0_0_10px_rgba(217,70,239,0.95)]",
+    activeBorderGrad: "from-fuchsia-400 via-purple-400 to-violet-500",
+    activeGlowPool: "from-fuchsia-500/70 via-purple-600/45 to-violet-900/60",
+    activeIcon: "text-fuchsia-200 fill-fuchsia-400/35 drop-shadow-[0_0_14px_rgba(217,70,239,1)]",
+    ambientGlow: "rgba(217,70,239,0.75)"
+  },
+  "/category/audio": {
+    borderGrad: "from-pink-500/50 via-rose-500/15 to-transparent group-hover:from-pink-400 group-hover:via-rose-500/40",
+    glowPool: "from-pink-500/35 via-rose-500/20 to-transparent",
+    icon: "text-pink-400 fill-pink-500/15 drop-shadow-[0_0_10px_rgba(236,72,153,0.95)]",
+    activeBorderGrad: "from-pink-400 via-rose-400 to-purple-500",
+    activeGlowPool: "from-pink-500/70 via-rose-500/45 to-purple-900/60",
+    activeIcon: "text-pink-200 fill-pink-400/35 drop-shadow-[0_0_14px_rgba(236,72,153,1)]",
+    ambientGlow: "rgba(236,72,153,0.75)"
+  },
+  "/category/pdf": {
+    borderGrad: "from-red-500/50 via-orange-500/15 to-transparent group-hover:from-red-400 group-hover:via-orange-500/40",
+    glowPool: "from-red-500/35 via-orange-600/20 to-transparent",
+    icon: "text-red-400 fill-red-500/15 drop-shadow-[0_0_10px_rgba(239,68,68,0.95)]",
+    activeBorderGrad: "from-red-400 via-orange-400 to-amber-500",
+    activeGlowPool: "from-red-500/70 via-orange-600/45 to-amber-900/60",
+    activeIcon: "text-red-200 fill-red-400/35 drop-shadow-[0_0_14px_rgba(239,68,68,1)]",
+    ambientGlow: "rgba(239,68,68,0.75)"
+  },
+  "/category/ai": {
+    borderGrad: "from-amber-300/60 via-yellow-400/20 to-transparent group-hover:from-amber-200 group-hover:via-yellow-300/50",
+    glowPool: "from-amber-400/40 via-yellow-500/25 to-purple-900/20",
+    icon: "text-amber-200 fill-amber-300/25 drop-shadow-[0_0_12px_rgba(254,240,138,1)]",
+    activeBorderGrad: "from-amber-300 via-yellow-300 to-purple-400",
+    activeGlowPool: "from-amber-400/75 via-yellow-500/50 to-purple-900/60",
+    activeIcon: "text-white fill-white/60 drop-shadow-[0_0_16px_rgba(255,255,255,1)]",
+    ambientGlow: "rgba(245,158,11,0.85)"
+  },
+  "/category/productivity": {
+    borderGrad: "from-teal-400/50 via-emerald-500/15 to-transparent group-hover:from-teal-300 group-hover:via-emerald-500/40",
+    glowPool: "from-teal-400/35 via-emerald-500/20 to-transparent",
+    icon: "text-teal-300 fill-teal-400/15 drop-shadow-[0_0_10px_rgba(20,184,166,0.95)]",
+    activeBorderGrad: "from-teal-400 via-emerald-400 to-green-500",
+    activeGlowPool: "from-teal-400/70 via-emerald-500/45 to-green-900/60",
+    activeIcon: "text-teal-200 fill-teal-400/35 drop-shadow-[0_0_14px_rgba(20,184,166,1)]",
+    ambientGlow: "rgba(20,184,166,0.7)"
+  },
+  "/category/developer": {
+    borderGrad: "from-lime-400/50 via-green-500/15 to-transparent group-hover:from-lime-300 group-hover:via-green-500/40",
+    glowPool: "from-lime-400/35 via-green-500/20 to-transparent",
+    icon: "text-lime-300 fill-lime-400/15 drop-shadow-[0_0_10px_rgba(132,204,22,0.95)]",
+    activeBorderGrad: "from-lime-400 via-emerald-400 to-green-500",
+    activeGlowPool: "from-lime-400/70 via-green-500/45 to-emerald-900/60",
+    activeIcon: "text-lime-200 fill-lime-400/35 drop-shadow-[0_0_14px_rgba(132,204,22,1)]",
+    ambientGlow: "rgba(132,204,22,0.7)"
+  },
+  "/category/student": {
+    borderGrad: "from-sky-400/50 via-blue-500/15 to-transparent group-hover:from-sky-300 group-hover:via-blue-500/40",
+    glowPool: "from-sky-400/35 via-blue-500/20 to-transparent",
+    icon: "text-sky-300 fill-sky-400/15 drop-shadow-[0_0_10px_rgba(14,165,233,0.95)]",
+    activeBorderGrad: "from-sky-400 via-blue-400 to-indigo-500",
+    activeGlowPool: "from-sky-400/70 via-blue-500/45 to-indigo-900/60",
+    activeIcon: "text-sky-200 fill-sky-400/35 drop-shadow-[0_0_14px_rgba(14,165,233,1)]",
+    ambientGlow: "rgba(14,165,233,0.7)"
+  },
+  "/category/creator": {
+    borderGrad: "from-rose-400/50 via-orange-400/15 to-transparent group-hover:from-rose-300 group-hover:via-orange-400/40",
+    glowPool: "from-rose-400/35 via-orange-400/20 to-transparent",
+    icon: "text-rose-300 fill-rose-400/15 drop-shadow-[0_0_10px_rgba(251,113,133,0.95)]",
+    activeBorderGrad: "from-rose-400 via-orange-400 to-pink-500",
+    activeGlowPool: "from-rose-400/70 via-orange-400/45 to-pink-900/60",
+    activeIcon: "text-rose-200 fill-rose-400/35 drop-shadow-[0_0_14px_rgba(251,113,133,1)]",
+    ambientGlow: "rgba(244,63,94,0.7)"
+  },
+};
+
 function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-accent-purple", glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact, rightElement }: SidebarItemProps) {
   const indicatorGradient = CATEGORY_INDICATOR_GRADIENTS[href] || "bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]";
   const hoverStyle = CATEGORY_HOVER_STYLES[href] || {
@@ -149,14 +312,24 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
     text: "group-hover:text-purple-200"
   };
 
+  const iconStyle = ITEM_ICON_STYLES[href] || {
+    borderGrad: "from-purple-400/50 via-purple-500/15 to-transparent group-hover:from-purple-400 group-hover:via-purple-500/40",
+    glowPool: "from-purple-500/35 via-indigo-600/20 to-transparent",
+    icon: "text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.95)]",
+    activeBorderGrad: "from-purple-400 via-purple-400 to-indigo-500",
+    activeGlowPool: "from-purple-500/70 via-indigo-600/45 to-purple-900/60",
+    activeIcon: "text-white drop-shadow-[0_0_14px_rgba(255,255,255,1)]",
+    ambientGlow: "rgba(168,85,247,0.7)"
+  };
+
   return (
     <Link href={href} onClick={onClick}>
       <motion.div
         whileHover="hover"
         whileTap={{ scale: 0.97 }}
         className={cn(
-          "relative h-[52px] flex items-center rounded-2xl transition-all duration-300 group mb-1.5",
-          isCompact ? "justify-center w-[52px] mx-auto px-0" : "gap-3 px-3.5",
+          "relative h-[54px] flex items-center rounded-2xl transition-all duration-300 group mb-1.5",
+          isCompact ? "justify-center w-[54px] mx-auto px-0" : "gap-3 px-3.5",
           isActive ? "text-white" : "text-zinc-400 hover:text-white"
         )}
       >
@@ -164,7 +337,14 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
         {isActive && (
           <motion.div 
             layoutId="sidebarActiveBg"
-            className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent backdrop-blur-xl rounded-2xl border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.1)] -z-10"
+            className={cn(
+              "absolute inset-0 backdrop-blur-xl rounded-2xl -z-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+              href === "/giveaway"
+                ? "bg-gradient-to-r from-amber-500/25 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_25px_rgba(245,158,11,0.25)]"
+                : href === "/shop"
+                ? "bg-gradient-to-r from-amber-500/20 via-orange-950/25 to-transparent border border-amber-400/35 shadow-[0_4px_25px_rgba(245,158,11,0.2)]"
+                : "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18)]"
+            )}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
         )}
@@ -195,27 +375,80 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
           )} />
         )}
 
-        {/* Icon Container with Glass Box */}
+        {/* Exismic Obsidian Neo-Studio Pod - Rock-Solid & Stable */}
         <div className="relative shrink-0">
           <motion.div
             variants={{
               hover: { scale: 1.1, y: -1 }
             }}
-            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            transition={{ type: "spring", stiffness: 450, damping: 18 }}
             className={cn(
-              "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300",
-              isActive 
-                ? "bg-gradient-to-br from-purple-500/25 via-purple-800/30 to-indigo-900/40 border border-purple-400/40 text-purple-200 shadow-[0_0_16px_rgba(168,85,247,0.35)]" 
-                : "bg-white/[0.02] border border-white/5 group-hover:border-white/20 text-zinc-400 group-hover:text-white shadow-sm"
+              "w-10 h-10 rounded-[14px] p-[1px] shadow-[0_4px_16px_rgba(0,0,0,0.7)] transition-all duration-300 relative select-none",
+              isActive
+                ? cn(
+                    "bg-gradient-to-br",
+                    href === "/giveaway" ? "shadow-[0_0_24px_rgba(245,158,11,0.5)]" : "shadow-[0_0_24px_rgba(168,85,247,0.4)]",
+                    iconStyle.activeBorderGrad
+                  )
+                : cn("bg-gradient-to-br", iconStyle.borderGrad)
             )}
           >
-            <Icon size={17} className={cn("transition-all duration-300", isActive ? "text-purple-200 drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]" : "group-hover:scale-110", hoverStyle.text)} />
+            {/* Deep Void Inner Cavity */}
+            <div className="relative w-full h-full rounded-[13px] bg-[#07080e] flex items-center justify-center overflow-hidden border border-white/[0.05]">
+              {/* Subtle Glass Surface Reflection */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/12 via-transparent to-transparent opacity-60" />
+
+              {/* Ambient Colored Neon Plasma Pool with Soft Static Glow */}
+              <motion.div 
+                animate={{
+                  opacity: isActive ? [0.8, 1, 0.8] : [0.25, 0.48, 0.25]
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 4.5,
+                  ease: "easeInOut"
+                }}
+                className={cn(
+                  "pointer-events-none absolute inset-0 bg-gradient-to-br",
+                  isActive ? iconStyle.activeGlowPool : iconStyle.glowPool
+                )} 
+              />
+
+              {/* Periodic Subtle Diamond Sheen Sweep */}
+              <motion.div
+                animate={{ left: ["-120%", "220%"] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2.2,
+                  repeatDelay: 5.5,
+                  ease: "easeInOut"
+                }}
+                className="pointer-events-none absolute top-0 h-full w-[60%] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] z-10"
+              />
+
+              {/* Solid Anchored Luminescent Icon (No vertical shifting) */}
+              <Icon 
+                size={18} 
+                className={cn(
+                  "relative z-20 transition-all duration-300 group-hover:scale-110", 
+                  isActive ? iconStyle.activeIcon : iconStyle.icon
+                )} 
+              />
+            </div>
           </motion.div>
           
-          {/* Dynamic Ambient Icon Glow */}
-          <div 
-            className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-300 -z-10 scale-175 rounded-full pointer-events-none" 
-            style={{ backgroundColor: hoverStyle.glow }} 
+          {/* Dynamic Ambient Bio-Luminescent Pulse Bloom */}
+          <motion.div 
+            animate={{
+              opacity: isActive ? [0.45, 0.75, 0.45] : [0.1, 0.25, 0.1]
+            }}
+            transition={{
+              repeat: Infinity,
+              duration: 4.5,
+              ease: "easeInOut"
+            }}
+            className="absolute inset-0 blur-xl group-hover:opacity-90 transition-opacity duration-300 -z-10 scale-160 rounded-full pointer-events-none" 
+            style={{ backgroundColor: iconStyle.ambientGlow }} 
           />
         </div>
 
@@ -474,6 +707,19 @@ export function Sidebar() {
 
   const topItems = [
     { name: t('common.dashboard'), icon: LayoutDashboard, href: '/', accent: 'text-accent-purple', glow: 'rgba(124, 58, 237, 0.5)' },
+    { 
+      name: 'Giveaways', 
+      icon: Gift, 
+      href: '/giveaway', 
+      accent: 'text-amber-300', 
+      glow: 'rgba(245, 158, 11, 0.7)',
+      rightElement: (
+        <span className="relative flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-2 py-0.5 text-[9px] font-black tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)] animate-pulse">
+          <span className="size-1.5 rounded-full bg-amber-400" />
+          NEW
+        </span>
+      ),
+    },
     { name: 'Daily Vault', icon: Flame, href: '/shop', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
     { name: t('common.history'), icon: Clock, href: '/history', accent: 'text-blue-400', glow: 'rgba(96, 165, 250, 0.5)' },

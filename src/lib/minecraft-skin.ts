@@ -22,6 +22,8 @@ export interface MinecraftSkinDesign {
   outfit: "casual" | "armor" | "royal" | "cyber" | "fantasy" | "formal" | "sport";
   expression: "neutral" | "friendly" | "serious";
   eyeShape: "normal" | "angry" | "soft";
+  eyeStyle?: "anime" | "classic" | "glowing" | "minimal" | "visor";
+  mouthStyle?: "smile" | "neutral" | "smirk" | "open" | "none";
   facialHair: "none" | "stubble" | "short-beard" | "goatee";
   faceStyle: "open" | "mask" | "visor";
   sleeves: "short" | "long" | "armored";
@@ -65,6 +67,23 @@ const DEFAULT_PALETTE: MinecraftSkinPalette = {
 
 const THEME_PALETTES: Array<{ match: RegExp; palette: Partial<MinecraftSkinPalette>; outfit: MinecraftSkinDesign["outfit"]; pattern: MinecraftSkinDesign["pattern"] }> = [
   {
+    match: /military|soldier|airforce|pilot|army|camo|tactical|swat|commando|navy|seal|combat|operator|sniper|veteran|flight|top gun|usaf/i,
+    outfit: "armor",
+    pattern: "armored",
+    palette: {
+      skin: "#c98f68",
+      skinShade: "#9d6248",
+      top: "#2d382c",
+      topAccent: "#1b241a",
+      pants: "#232d22",
+      shoes: "#15171b",
+      hair: "#1c1815",
+      hairHighlight: "#362f2a",
+      eyes: "#38bdf8",
+      detail: "#d4af37",
+    },
+  },
+  {
     match: /demon|lava|fire|obsidian|dark|hell|shadow|reaper|monster|fiend|dragon/i,
     outfit: "armor",
     pattern: "armored",
@@ -82,16 +101,22 @@ const THEME_PALETTES: Array<{ match: RegExp; palette: Partial<MinecraftSkinPalet
     },
   },
   {
-    match: /cyber|neon|future|tech|robot|android/i,
+    match: /cyber|neon|future|tech|robot|android|mecha|cyborg/i,
     outfit: "cyber",
     pattern: "paneled",
-    palette: { top: "#25105f", topAccent: "#18d7ed", pants: "#101325", detail: "#c14cff", eyes: "#58f3ff" },
+    palette: { top: "#0f172a", topAccent: "#06b6d4", pants: "#090d16", shoes: "#06b6d4", detail: "#d946ef", eyes: "#22d3ee" },
   },
   {
-    match: /knight|armor|warrior|paladin|soldier/i,
+    match: /ninja|shinobi|assassin|rogue|stealth|shadow/i,
+    outfit: "armor",
+    pattern: "paneled",
+    palette: { top: "#111318", topAccent: "#ef4444", pants: "#0b0c10", shoes: "#090a0d", detail: "#dc2626", skin: "#c98f68", hair: "#0d0e12", eyes: "#ef4444" },
+  },
+  {
+    match: /knight|crusader|paladin|templar|armor|plate|warrior|samurai|viking/i,
     outfit: "armor",
     pattern: "armored",
-    palette: { top: "#39404d", topAccent: "#aab4c5", pants: "#242936", shoes: "#12151d", detail: "#eabf52" },
+    palette: { top: "#475569", topAccent: "#94a3b8", pants: "#334155", shoes: "#1e293b", detail: "#f59e0b", hair: "#3e2723", eyes: "#60a5fa" },
   },
   {
     match: /wizard|mage|magic|mystic|witch|sorcer/i,
@@ -396,12 +421,12 @@ class SkinCanvas {
           if (y === face.y + face.height - 1) shadeAmount -= 0.16;
           if (x === face.x || x === face.x + face.width - 1) shadeAmount -= 0.08;
         } else if (isDetailed) {
-          // Pixel-detailed: soft dither weave + ambient shading
-          const grad = (0.5 - normY) * 0.16 * gradScale;
-          const dither = ((x + y) % 2 === 0 ? 0.025 : -0.025);
-          shadeAmount = grad + dither;
-          if (x === face.x || x === face.x + face.width - 1) shadeAmount -= 0.06;
-          if (y === face.y + face.height - 1) shadeAmount -= 0.1;
+          // Pixel-detailed: smooth directional lighting with soft ambient micro-contrast
+          const grad = (0.5 - normY) * 0.15 * gradScale;
+          const noise = ((Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1) * 0.02 - 0.01;
+          shadeAmount = grad + noise;
+          if (x === face.x || x === face.x + face.width - 1) shadeAmount -= 0.05;
+          if (y === face.y + face.height - 1) shadeAmount -= 0.08;
         } else {
           // Balanced (Default): Smooth modern directional gradient
           shadeAmount = (0.5 - normY) * 0.13 * gradScale;
@@ -507,6 +532,24 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
       : /soft eyes|friendly eyes/.test(lower)
         ? "soft"
         : "normal",
+    eyeStyle: /glowing eyes?|herobrine|demon eyes?|enderman/i.test(lower)
+      ? "glowing"
+      : /classic eyes?|steve|alex|simple eyes?/i.test(lower)
+        ? "classic"
+        : /minimal eyes?|dot eyes?|indie|emo/i.test(lower)
+          ? "minimal"
+          : /visor|goggles/i.test(lower)
+            ? "visor"
+            : "anime",
+    mouthStyle: /smirk|grin|cocky/i.test(lower)
+      ? "smirk"
+      : /open mouth|laugh|shout/i.test(lower)
+        ? "open"
+        : /no mouth|faceless/i.test(lower)
+          ? "none"
+          : /neutral mouth|serious/i.test(lower)
+            ? "neutral"
+            : "smile",
     facialHair: requestedFacialHair(prompt),
     faceStyle,
     sleeves,
@@ -534,6 +577,8 @@ export function sanitizeSkinDesign(
   const outfits = ["casual", "armor", "royal", "cyber", "fantasy", "formal", "sport"] as const;
   const expressions = ["neutral", "friendly", "serious"] as const;
   const eyeShapes = ["normal", "angry", "soft"] as const;
+  const eyeStyles = ["anime", "classic", "glowing", "minimal", "visor"] as const;
+  const mouthStyles = ["smile", "neutral", "smirk", "open", "none"] as const;
   const facialHair = ["none", "stubble", "short-beard", "goatee"] as const;
   const faceStyles = ["open", "mask", "visor"] as const;
   const sleeves = ["short", "long", "armored"] as const;
@@ -553,6 +598,8 @@ export function sanitizeSkinDesign(
     outfit: pick(value.outfit, outfits, fallback.outfit),
     expression: pick(value.expression, expressions, fallback.expression),
     eyeShape: pick(value.eyeShape, eyeShapes, fallback.eyeShape),
+    eyeStyle: pick(value.eyeStyle, eyeStyles, fallback.eyeStyle || "anime"),
+    mouthStyle: pick(value.mouthStyle, mouthStyles, fallback.mouthStyle || "smile"),
     facialHair: pick(value.facialHair, facialHair, fallback.facialHair),
     faceStyle: pick(value.faceStyle, faceStyles, fallback.faceStyle),
     sleeves: pick(value.sleeves, sleeves, fallback.sleeves),
@@ -697,6 +744,25 @@ function drawCircuit(canvas: SkinCanvas, face: Face, color: string) {
   }
 }
 
+function drawCamouflage(
+  canvas: SkinCanvas,
+  face: Face,
+  baseColor: string,
+  accentColor: string
+) {
+  const baseRamp = getHueShiftRamp(baseColor, "fabric");
+  const darkRamp = getHueShiftRamp(accentColor, "fabric");
+  const colors = [baseRamp.base, baseRamp.shadow, darkRamp.base, darkRamp.deepShadow, baseRamp.light];
+
+  for (let y = face.y; y < face.y + face.height; y += 1) {
+    for (let x = face.x; x < face.x + face.width; x += 1) {
+      const noise = (Math.sin(x * 1.7 + y * 2.3) + Math.cos(x * 3.1 - y * 1.9) + 2) / 4;
+      const idx = Math.floor(noise * colors.length) % colors.length;
+      canvas.setPixel(x, y, colors[idx]);
+    }
+  }
+}
+
 function paintHead(
   canvas: SkinCanvas,
   design: MinecraftSkinDesign,
@@ -715,6 +781,10 @@ function paintHead(
 
   const isDarkChar = /demon|shadow|monster|obsidian|fiend|reaper|robot|android|cyber/i.test(lower) &&
     (palette.skin.toLowerCase() === palette.top.toLowerCase() || palette.skin.toLowerCase() === "#181216" || palette.skin.toLowerCase() === "#0b0b10");
+  const isMilitary = /military|soldier|airforce|pilot|army|camo|tactical|swat|commando|navy|seal|combat|operator|sniper|veteran|flight|top gun|usaf/i.test(lower);
+  const isKnight = /knight|crusader|paladin|templar|armor|plate|warrior|samurai|viking/i.test(lower);
+  const isNinja = /ninja|shinobi|assassin|rogue|stealth|shadow/i.test(lower);
+  const isCyber = /cyber|hacker|futuristic|tech|robot|mecha|android|neon/i.test(lower);
 
   const baseFaces: Record<string, Face> = {
     top: { x: 8, y: 0, width: 8, height: 8 },
@@ -727,182 +797,264 @@ function paintHead(
 
   // 1. Base Head Skin & Neck
   Object.values(baseFaces).forEach((face) => canvas.fill(face, palette.skin, "balanced", random));
-  canvas.fill(baseFaces.bottom, skinRamp.shadow, "balanced", random);
+  // Natural neck shadow on head bottom (subtle 8% shadow, no discoloration)
+  canvas.fill(baseFaces.bottom, shade(palette.skin, -0.08), "balanced", random);
 
-  // 2. Base Hair Layer (Full back, sides, and top with strand texture)
+  // 2. Base Hair Layer
   canvas.fill(baseFaces.top, hairRamp.base, "pixel-detailed", random);
-  canvas.fill({ x: 24, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // back of head
-  canvas.fill({ x: 0, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // right side hair
-  canvas.fill({ x: 16, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // left side hair
+  canvas.fill({ x: 24, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // back
+  canvas.fill({ x: 0, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // right side
+  canvas.fill({ x: 16, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // left side
+  canvas.fill({ x: 8, y: 8, width: 8, height: 1 }, hairRamp.base, "pixel-detailed", random); // forehead hairline row 8
 
-  // Base forehead hairline (rows 8 & 9 covered by hair base)
-  canvas.fill({ x: 8, y: 8, width: 8, height: 2 }, hairRamp.base, "pixel-detailed", random);
+  const hasVisor = /visor|goggles/i.test(lower) || design.faceStyle === "visor" || design.eyeStyle === "visor";
+  const hasMask = /mask|face cover|ninja|facemask|balaclava/i.test(lower) || design.faceStyle === "mask";
 
-  const eyeY = 11;
-  const hasVisor = /visor|goggles/i.test(lower) || design.faceStyle === "visor";
-  const hasMask = /mask|face cover|ninja|facemask/i.test(lower) || design.faceStyle === "mask";
+  const resolvedEyeStyle = design.eyeStyle || (
+    hasVisor ? "visor"
+    : isDarkChar || /glowing eyes?|herobrine|enderman|demon eyes?/i.test(lower) ? "glowing"
+    : /classic eyes?|steve|alex|simple eyes?/i.test(lower) ? "classic"
+    : /minimal eyes?|dot eyes?|indie|emo/i.test(lower) ? "minimal"
+    : "anime"
+  );
 
-  if (hasVisor) {
-    // Futuristic glowing visor
+  const browColor = isDarkChar ? "#000000" : hairRamp.shadow;
+  const lashColor = isDarkChar ? "#000000" : hairRamp.deepShadow;
+  const pupilColor = eyesRamp.deepShadow || "#09090b";
+  const irisGlow = eyesRamp.highlight;
+  const irisBase = eyesRamp.base;
+
+  if (resolvedEyeStyle === "visor") {
+    // 🥽 1. Glowing Tech Visor / Cyber Optic
     canvas.fill({ x: 8, y: 10, width: 8, height: 3 }, eyesRamp.deepShadow, "minimal", random);
     canvas.line(9, 11, 6, eyesRamp.highlight);
     canvas.setPixel(10, 10, "#ffffff");
     canvas.setPixel(11, 11, "#ffffff");
-  } else if (isDarkChar) {
-    // Glowing Demon / Robot Eyes
-    canvas.setPixel(9, eyeY, eyesRamp.highlight);
-    canvas.setPixel(10, eyeY, eyesRamp.base);
-    canvas.setPixel(13, eyeY, eyesRamp.base);
-    canvas.setPixel(14, eyeY, eyesRamp.highlight);
-    canvas.setPixel(10, eyeY + 1, accentRamp.highlight);
-    canvas.setPixel(13, eyeY + 1, accentRamp.highlight);
+  } else if (resolvedEyeStyle === "glowing") {
+    // ⚡ 2. Solid Luminous Glowing Eyes (Herobrine / Demon / Shadow - Image 1)
+    const glowSolid = eyesRamp.highlight || "#ffffff";
+    const glowAccent = eyesRamp.base || glowSolid;
+    // Left Eye
+    canvas.setPixel(9, 11, glowSolid);
+    canvas.setPixel(10, 11, glowSolid);
+    canvas.setPixel(9, 12, glowAccent);
+    canvas.setPixel(10, 12, glowAccent);
+    // Right Eye
+    canvas.setPixel(13, 11, glowSolid);
+    canvas.setPixel(14, 11, glowSolid);
+    canvas.setPixel(13, 12, glowAccent);
+    canvas.setPixel(14, 12, glowAccent);
+  } else if (resolvedEyeStyle === "classic") {
+    // 🔲 3. Classic 2×1 Minecraft Steve/Alex Style (Image 3)
+    // Left Brow & Eye
+    canvas.setPixel(9, 10, browColor);
+    canvas.setPixel(10, 10, browColor);
+    canvas.setPixel(9, 11, "#ffffff"); // Sclera White
+    canvas.setPixel(10, 11, irisBase); // Pupil/Iris
+    // Right Brow & Eye
+    canvas.setPixel(13, 10, browColor);
+    canvas.setPixel(14, 10, browColor);
+    canvas.setPixel(13, 11, irisBase); // Pupil/Iris
+    canvas.setPixel(14, 11, "#ffffff"); // Sclera White
+  } else if (resolvedEyeStyle === "minimal") {
+    // ▪️ 4. Minimalist 1×2 Aesthetic / Emo Dot Eyes
+    canvas.setPixel(10, 10, browColor);
+    canvas.setPixel(13, 10, browColor);
+    canvas.setPixel(10, 11, pupilColor);
+    canvas.setPixel(10, 12, irisGlow);
+    canvas.setPixel(13, 11, pupilColor);
+    canvas.setPixel(13, 12, irisGlow);
   } else {
-    // MASTER AESTHETIC ANIME EYES (Pro 2x3 Deep Shading)
-    const lashColor = isDarkChar ? "#000000" : hairRamp.deepShadow;
-    const pupilColor = eyesRamp.deepShadow || "#18181b";
-    const irisMid = eyesRamp.base;
-    const irisGlow = eyesRamp.highlight;
+    // ✨ 5. Pro High-Definition Aesthetic / Anime 2×2 Eyes (Image 2)
+    // Eyebrows (y: 9)
+    canvas.setPixel(9, 9, browColor);
+    canvas.setPixel(10, 9, browColor);
+    canvas.setPixel(13, 9, browColor);
+    canvas.setPixel(14, 9, browColor);
 
-    // Left Eye (x: 9, 10, y: 10..12)
-    canvas.setPixel(9, 10, lashColor); // Upper Lash Left
-    canvas.setPixel(10, 10, lashColor); // Upper Lash Right
-    canvas.setPixel(9, 11, pupilColor); // Dark Iris
-    canvas.setPixel(10, 11, pupilColor); // Dark Iris
-    canvas.setPixel(9, 12, "#ffffff"); // Specular Sparkle
-    canvas.setPixel(10, 12, irisGlow); // Glowing Iris Bottom
-    canvas.setPixel(10, 13, lashColor); // Lower Lash Outline
+    // Left Eye (x: 9..10, y: 10..12)
+    canvas.setPixel(9, 10, lashColor);
+    canvas.setPixel(10, 10, lashColor);
+    canvas.setPixel(9, 11, "#ffffff"); // Specular Catchlight
+    canvas.setPixel(10, 11, pupilColor); // Pupil
+    canvas.setPixel(9, 12, irisBase); // Iris
+    canvas.setPixel(10, 12, irisGlow); // Iris Glow
 
-    // Right Eye (x: 13, 14, y: 10..12)
-    canvas.setPixel(13, 10, lashColor); // Upper Lash Left
-    canvas.setPixel(14, 10, lashColor); // Upper Lash Right
-    canvas.setPixel(13, 11, pupilColor); // Dark Iris
-    canvas.setPixel(14, 11, pupilColor); // Dark Iris
-    canvas.setPixel(14, 12, "#ffffff"); // Specular Sparkle
-    canvas.setPixel(13, 12, irisGlow); // Glowing Iris Bottom
-    canvas.setPixel(13, 13, lashColor); // Lower Lash Outline
+    // Right Eye (x: 13..14, y: 10..12)
+    canvas.setPixel(13, 10, lashColor);
+    canvas.setPixel(14, 10, lashColor);
+    canvas.setPixel(13, 11, "#ffffff"); // Specular Catchlight
+    canvas.setPixel(14, 11, pupilColor); // Pupil
+    canvas.setPixel(13, 12, irisGlow); // Iris Glow
+    canvas.setPixel(14, 12, irisBase); // Iris
+
+    // Outer Sclera Whites
+    canvas.setPixel(8, 11, "#f8fafc");
+    canvas.setPixel(8, 12, "#e2e8f0");
+    canvas.setPixel(15, 11, "#f8fafc");
+    canvas.setPixel(15, 12, "#e2e8f0");
   }
 
-  // 3D Tactical Face Mask
-  if (hasMask) {
-    canvas.fill({ x: 8, y: 12, width: 8, height: 4 }, topRamp.base, "minimal", random);
-    canvas.line(9, 12, 6, topRamp.shadow);
+  // 3. Cheeks & Nose (y: 13) - Strictly 100% clean skin gap between eyes (y: 12) and mouth (y: 14)
+
+  // 4. Natural Expressive Mouth & Lips (Strictly row y: 14, NEVER row y: 13)
+  const resolvedMouthStyle = design.mouthStyle || (
+    hasMask ? "none"
+    : /smirk|grin|cocky|confident/i.test(lower) ? "smirk"
+    : /open mouth|laugh|screaming|shout/i.test(lower) ? "open"
+    : /no mouth|faceless/i.test(lower) ? "none"
+    : /neutral mouth|serious/i.test(lower) ? "neutral"
+    : "smile"
+  );
+
+  if (!hasMask && resolvedMouthStyle !== "none" && !isDarkChar) {
+    const lipColor = shade(palette.skin, -0.18);
+    const darkLip = shade(palette.skin, -0.28);
+    const softLip = shade(palette.skin, -0.09);
+
+    if (resolvedMouthStyle === "smile") {
+      // 4-pixel centered gentle smile
+      canvas.setPixel(10, 14, softLip);
+      canvas.setPixel(11, 14, lipColor);
+      canvas.setPixel(12, 14, lipColor);
+      canvas.setPixel(13, 14, softLip);
+    } else if (resolvedMouthStyle === "smirk") {
+      // Centered asymmetric smirk: neutral left (11), deeper shadow on right (12)
+      canvas.setPixel(11, 14, lipColor);
+      canvas.setPixel(12, 14, darkLip);
+    } else if (resolvedMouthStyle === "open") {
+      // Centered 2px open mouth in deep warm tone
+      canvas.setPixel(11, 14, "#4a1c1c");
+      canvas.setPixel(12, 14, "#4a1c1c");
+    } else {
+      // Centered neutral 2px lip line
+      canvas.setPixel(11, 14, lipColor);
+      canvas.setPixel(12, 14, lipColor);
+    }
   }
 
-  // 4. MASTER 3D OUTER HAIR, STRANDS & CURTAIN BANGS LAYER (x: 32..63, y: 0..15)
-  const hasHeadphones = /headphone|headset|earphone/i.test(lower) || design.headphones;
+  // 3D Tactical Face Mask / Ninja Mask
+  if (hasMask || isNinja) {
+    const maskColor = isNinja ? "#111318" : topRamp.base;
+    canvas.fill({ x: 8, y: 13, width: 8, height: 3 }, maskColor, "minimal", random);
+    canvas.line(9, 13, 6, topRamp.shadow);
+  }
+
+  // 3D OVERLAYS (x: 32..63, y: 0..15)
+  const hasHeadphones = /headphone|headset|earphone|radio/i.test(lower) || design.headphones;
   const hasHorns = /horn|demon|oni/i.test(lower) || design.horns;
   const hasCrown = /crown|king|queen|royal|prince/i.test(lower) || design.crown;
   const hasHalo = /halo|angel|divine/i.test(lower) || design.halo;
   const hasHood = /hood|hoodie|assassin|rogue/i.test(lower) || design.hairStyle === "hood";
 
-  if (hasHood) {
+  if (isMilitary && (/helmet|tactical|swat|commando|soldier/i.test(lower) || design.hairStyle === "helmet")) {
+    // 3D Tactical Combat / Flight Helmet with Open Face
+    const helmRamp = getHueShiftRamp(palette.top, "metal");
+    canvas.fill({ x: 40, y: 0, width: 8, height: 8 }, helmRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 32, y: 8, width: 8, height: 8 }, helmRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 48, y: 8, width: 8, height: 8 }, helmRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 56, y: 8, width: 8, height: 8 }, helmRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 40, y: 8, width: 8, height: 2 }, helmRamp.base, "pixel-detailed", random);
+    // Front NVG Mount Bracket
+    canvas.setPixel(43, 8, "#18181b");
+    canvas.setPixel(44, 8, "#18181b");
+    canvas.setPixel(43, 9, "#3f3f46");
+    canvas.setPixel(44, 9, "#3f3f46");
+    // Helmet Rim Ridge
+    canvas.line(40, 9, 8, helmRamp.light);
+  } else if (isKnight) {
+    // 3D Heroic Open-Faced Barbute Knight Helmet
+    const steelRamp = getHueShiftRamp(palette.topAccent || "#94a3b8", "metal");
+    canvas.fill({ x: 40, y: 0, width: 8, height: 8 }, steelRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 32, y: 8, width: 8, height: 8 }, steelRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 48, y: 8, width: 8, height: 8 }, steelRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 56, y: 8, width: 8, height: 8 }, steelRamp.base, "pixel-detailed", random);
+    // Forehead Plate Brow & Side Cheek Guards (leaving eyes, mouth & hair bangs visible!)
+    canvas.fill({ x: 40, y: 8, width: 8, height: 2 }, steelRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 40, y: 10, width: 1, height: 4 }, steelRamp.base, "pixel-detailed", random);
+    canvas.fill({ x: 47, y: 10, width: 1, height: 4 }, steelRamp.base, "pixel-detailed", random);
+    // Gold Battle Crest Trim on Forehead
+    canvas.line(40, 8, 8, palette.detail || "#f59e0b");
+  } else if (hasHood) {
+    // 3D Assassin / Streetwear Hood
     canvas.fill({ x: 40, y: 0, width: 8, height: 8 }, topRamp.base, "minimal", random);
     canvas.fill({ x: 32, y: 8, width: 8, height: 8 }, topRamp.base, "minimal", random);
     canvas.fill({ x: 48, y: 8, width: 8, height: 8 }, topRamp.base, "minimal", random);
     canvas.fill({ x: 56, y: 8, width: 8, height: 8 }, topRamp.base, "minimal", random);
     canvas.line(40, 8, 8, topRamp.light);
   } else if (design.hairStyle !== "bald") {
-    // Top 3D Hair with Strand Shading
+    // 3D Detailed Aesthetic Hair & Bangs (Foreground bangs at y: 8..9, no face obscuring)
     canvas.fill({ x: 40, y: 0, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random);
     canvas.line(41, 2, 6, hairRamp.light);
-
-    // Back & Sides 3D Hair with Strand Texture
-    canvas.fill({ x: 56, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random);
-    canvas.fill({ x: 32, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random);
-    canvas.fill({ x: 48, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random);
-
-    // Front Aesthetic Curtain Bangs (x: 40..47, y: 8..15)
+    canvas.fill({ x: 56, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // back hair
+    canvas.fill({ x: 32, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // right side hair
+    canvas.fill({ x: 48, y: 8, width: 8, height: 8 }, hairRamp.base, "pixel-detailed", random); // left side hair
+    // Front Hair Bangs (y: 8..9 only - leaving eyes at row 10..12 fully unobstructed!)
     canvas.fill({ x: 40, y: 8, width: 8, height: 2 }, hairRamp.base, "pixel-detailed", random);
-
-    // Bangs Strands hanging over forehead
-    canvas.setPixel(40, 10, hairRamp.base);
-    canvas.setPixel(41, 10, hairRamp.light);
-    canvas.setPixel(42, 10, hairRamp.shadow);
-    canvas.setPixel(45, 10, hairRamp.shadow);
-    canvas.setPixel(46, 10, hairRamp.light);
-    canvas.setPixel(47, 10, hairRamp.base);
-
-    // Center Part V-Split Strand
-    canvas.setPixel(43, 9, hairRamp.shadow);
-    canvas.setPixel(44, 9, hairRamp.shadow);
-
-    // Lush Framing Side Locks hanging past cheeks
-    canvas.line(40, 10, 6, hairRamp.base, true);
-    canvas.line(47, 10, 6, hairRamp.base, true);
-    canvas.setPixel(40, 11, hairRamp.light);
-    canvas.setPixel(47, 11, hairRamp.light);
-    canvas.setPixel(40, 14, hairRamp.shadow);
-    canvas.setPixel(47, 14, hairRamp.shadow);
-
-    // Side Overlay Lock Extensions (Draping over ears)
-    canvas.line(39, 10, 5, hairRamp.base, true);
-    canvas.line(48, 10, 5, hairRamp.base, true);
+    canvas.setPixel(41, 9, hairRamp.light);
+    canvas.setPixel(44, 9, hairRamp.light);
+    canvas.setPixel(46, 9, hairRamp.shadow);
+    // Outer Border Sideburn Locks (x: 40 and 47 only)
+    canvas.line(40, 10, 3, hairRamp.base, true);
+    canvas.line(47, 10, 3, hairRamp.base, true);
   }
 
-  // 3D Eyeglasses & Spectacles Engine
-  const hasGlasses = /glass|eyeglass|spectacle|monocle|shades|sunglasses/i.test(lower) || design.glasses;
-  if (hasGlasses) {
-    const isGold = /gold|golden|brass|wire/i.test(lower);
-    const isSunglasses = /shades|sunglasses|tinted/i.test(lower);
-    const frameColor = isGold ? "#d4af37" : isSunglasses ? "#18181b" : "#27272a";
-    const lensColor = isSunglasses ? "#18181b" : "#f0f9ff";
-
-    // Left eye frame on 3D overlay (x: 40..47, y: 8..15)
-    canvas.setPixel(41, 10, frameColor);
-    canvas.setPixel(42, 10, frameColor);
-    canvas.setPixel(41, 11, frameColor);
-    canvas.setPixel(42, 11, lensColor);
-
-    // Right eye frame on 3D overlay
-    canvas.setPixel(45, 10, frameColor);
-    canvas.setPixel(46, 10, frameColor);
-    canvas.setPixel(45, 11, lensColor);
-    canvas.setPixel(46, 11, frameColor);
-
-    // Bridge across nose
-    canvas.setPixel(43, 10, frameColor);
-    canvas.setPixel(44, 10, frameColor);
-
-    // Frame temples extending along side overlays
-    canvas.line(35, 10, 5, frameColor);
-    canvas.line(48, 10, 5, frameColor);
+  // 3D Pilot Aviators / Sunglasses
+  const hasAviators = isMilitary || /aviator|pilot|sunglasses|shades/i.test(lower) || design.glasses;
+  if (hasAviators && !isKnight) {
+    const goldFrame = "#d4af37";
+    const darkLens = "#1e293b";
+    // Left Lens
+    canvas.setPixel(41, 10, goldFrame);
+    canvas.setPixel(42, 10, goldFrame);
+    canvas.setPixel(41, 11, darkLens);
+    canvas.setPixel(42, 11, darkLens);
+    canvas.setPixel(41, 12, goldFrame);
+    canvas.setPixel(42, 12, darkLens);
+    canvas.setPixel(41, 11, "#ffffff"); // Specular Reflection
+    // Right Lens
+    canvas.setPixel(45, 10, goldFrame);
+    canvas.setPixel(46, 10, goldFrame);
+    canvas.setPixel(45, 11, darkLens);
+    canvas.setPixel(46, 11, darkLens);
+    canvas.setPixel(45, 12, darkLens);
+    canvas.setPixel(46, 12, goldFrame);
+    canvas.setPixel(45, 11, "#ffffff"); // Specular Reflection
+    // Bridge & Temples
+    canvas.setPixel(43, 10, goldFrame);
+    canvas.setPixel(44, 10, goldFrame);
+    canvas.line(35, 10, 5, goldFrame);
+    canvas.line(48, 10, 5, goldFrame);
   }
 
-  // 3D Headphones with LED Ring
-  if (hasHeadphones) {
+  // 3D Tactical Headset / Headphones with Boom Mic
+  if (hasHeadphones || (isMilitary && /pilot|airforce|operator|comms/i.test(lower))) {
     const bandColor = "#18181b";
     canvas.fill({ x: 40, y: 0, width: 8, height: 2 }, bandColor, "minimal", random);
     canvas.line(41, 0, 6, accentRamp.highlight);
-    canvas.line(35, 8, 3, bandColor, true);
-    canvas.line(52, 8, 3, bandColor, true);
     canvas.fill({ x: 33, y: 10, width: 4, height: 4 }, bandColor, "minimal", random);
     canvas.fill({ x: 34, y: 11, width: 2, height: 2 }, accentRamp.highlight, "minimal", random);
     canvas.fill({ x: 49, y: 10, width: 4, height: 4 }, bandColor, "minimal", random);
     canvas.fill({ x: 50, y: 11, width: 2, height: 2 }, accentRamp.highlight, "minimal", random);
+    // Boom mic on left cheek
+    canvas.line(41, 13, 3, "#27272a");
+    canvas.setPixel(43, 13, accentRamp.highlight);
   }
 
-  // 3D Horns
+  // 3D Horns / Crown / Halo
   if (hasHorns) {
     canvas.setPixel(41, 0, accentRamp.highlight);
     canvas.setPixel(41, 1, accentRamp.base);
     canvas.setPixel(46, 0, accentRamp.highlight);
     canvas.setPixel(46, 1, accentRamp.base);
-    canvas.setPixel(41, 8, accentRamp.shadow);
-    canvas.setPixel(46, 8, accentRamp.shadow);
   }
-
-  // 3D Royal Crown
   if (hasCrown) {
     canvas.line(40, 7, 8, "#facc15");
     canvas.setPixel(41, 6, "#facc15");
     canvas.setPixel(43, 6, "#facc15");
     canvas.setPixel(45, 6, "#facc15");
     canvas.setPixel(47, 6, "#facc15");
-    canvas.setPixel(43, 7, "#ef4444");
-    canvas.setPixel(45, 7, "#06b6d4");
   }
-
-  // 3D Halo
   if (hasHalo) {
     canvas.line(41, 1, 6, "#fde047");
     canvas.line(41, 6, 6, "#fde047");
@@ -923,7 +1075,6 @@ function paintTorso(
 
   const topRamp = getHueShiftRamp(palette.top, "fabric");
   const accentRamp = getHueShiftRamp(palette.topAccent, "neon");
-  const pantsRamp = getHueShiftRamp(palette.pants, "fabric");
   const skinRamp = getHueShiftRamp(palette.skin, "skin");
 
   const faces = {
@@ -935,30 +1086,132 @@ function paintTorso(
     back: { x: 32, y: 20, width: 8, height: 12 },
   };
 
-  const isFormal = /gentleman|suit|tuxedo|formal|victorian|waistcoat|vest|tie|cravat|blazer|trench coat|aristocrat/i.test(lower) || design.outfit === "formal";
-  const isArmor = /armor|knight|warrior|paladin|plate|chestplate|chainmail/i.test(lower) || design.outfit === "armor";
-  const isCyber = /cyber|hacker|futuristic|tech|robot|neon/i.test(lower) || design.outfit === "cyber";
-  const isAesthetic = /aesthetic|anime|goth|e-girl|e-boy|sweater|oversized|monochrome|cute/i.test(lower);
-
-  // Base Torso Fill with fabric texture
-  Object.values(faces).forEach((face) => canvas.fill(face, palette.top, "pixel-detailed", random));
+  const isMilitary = /military|soldier|airforce|pilot|army|camo|tactical|swat|commando|navy|seal|combat|operator|sniper|veteran|flight|top gun|usaf/i.test(lower);
+  const isArmor = /armor|knight|warrior|paladin|plate|chestplate|chainmail|samurai/i.test(lower) || design.outfit === "armor";
+  const isCyber = /cyber|hacker|futuristic|tech|robot|neon|mecha/i.test(lower) || design.outfit === "cyber";
+  const isFormal = /gentleman|suit|tuxedo|formal|victorian|waistcoat|vest|tie|cravat|blazer/i.test(lower) || design.outfit === "formal";
+  const isNinja = /ninja|shinobi|assassin|rogue|stealth/i.test(lower);
+  const isAesthetic = /aesthetic|anime|goth|e-girl|e-boy|sweater|oversized|monochrome/i.test(lower);
 
   const ovFront = { x: 20, y: 36, width: 8, height: 12 };
   const ovBack = { x: 32, y: 36, width: 8, height: 12 };
   const ovRight = { x: 16, y: 36, width: 4, height: 12 };
   const ovLeft = { x: 28, y: 36, width: 4, height: 12 };
 
-  if (isFormal) {
-    // FORMAL / VICTORIAN GENTLEMAN
+  if (isMilitary) {
+    // 🪖 MASTER TACTICAL MILITARY & AIRFORCE ENGINE
+    // Base Camo Uniform / Flight Suit
+    Object.values(faces).forEach((face) => drawCamouflage(canvas, face, palette.top, palette.topAccent));
+    // Flight Suit / Tactical Undershirt Neck Zip
+    canvas.fill({ x: 23, y: 20, width: 2, height: 3 }, "#18181b", "minimal", random);
+    canvas.line(23, 20, 3, "#d4af37", true); // Gold zipper line
+
+    // 3D Tactical MOLLE Plate Carrier Vest
+    const vestRamp = getHueShiftRamp(palette.topAccent || "#1b241a", "fabric");
+    canvas.fill(ovRight, vestRamp.base, "pixel-detailed", random);
+    canvas.fill(ovLeft, vestRamp.base, "pixel-detailed", random);
+    canvas.fill(ovBack, vestRamp.base, "pixel-detailed", random);
+    canvas.fill(ovFront, vestRamp.base, "pixel-detailed", random);
+
+    // Front Magazine Ammo Pouches (x: 21..26, y: 41..43)
+    canvas.fill({ x: 21, y: 41, width: 6, height: 3 }, vestRamp.deepShadow, "minimal", random);
+    canvas.setPixel(22, 41, vestRamp.highlight);
+    canvas.setPixel(24, 41, vestRamp.highlight);
+    canvas.setPixel(25, 41, vestRamp.highlight);
+
+    // Shoulder Radio Comms Unit with Antenna on Left Shoulder
+    canvas.setPixel(ovFront.x + 1, ovFront.y + 1, "#18181b");
+    canvas.setPixel(ovFront.x + 1, ovFront.y + 2, "#3f3f46");
+    canvas.setPixel(ovFront.x + 1, ovFront.y, accentRamp.highlight); // LED Antenna
+
+    // Squadron / Flag Patch on Right Chest (x: 25..26, y: 38..39)
+    canvas.setPixel(25, 38, "#ef4444");
+    canvas.setPixel(26, 38, "#3b82f6");
+    canvas.setPixel(25, 39, "#ffffff");
+    canvas.setPixel(26, 39, "#d4af37");
+
+    // Tactical Utility Belt with Steel Buckle (y: 47)
+    canvas.line(20, 47, 8, "#18181b");
+    canvas.setPixel(23, 47, "#d4af37"); // Steel / Gold buckle
+    canvas.setPixel(24, 47, "#d4af37");
+  } else if (isArmor) {
+    // ⚔️ MASTER MEDIEVAL & KNIGHT PLATE ARMOR
+    // Chainmail Base Underlay
+    Object.values(faces).forEach((face) => canvas.fill(face, "#334155", "pixel-detailed", random));
+    // 3D Polished Plate Breastplate with Specular Bevels
+    const metalRamp = getHueShiftRamp(palette.topAccent || "#94a3b8", "metal");
+    canvas.fill(ovRight, metalRamp.base, "pixel-detailed", random);
+    canvas.fill(ovLeft, metalRamp.base, "pixel-detailed", random);
+    canvas.fill(ovBack, metalRamp.base, "pixel-detailed", random);
+    canvas.fill(ovFront, metalRamp.base, "pixel-detailed", random);
+
+    // Specular Light Bevel Highlights
+    canvas.line(21, 37, 6, metalRamp.highlight);
+    canvas.line(20, 36, 12, metalRamp.shadow, true);
+    canvas.line(27, 36, 12, metalRamp.shadow, true);
+
+    // Dynamic Heraldic Emblems & Breastplate Engravings
+    const crestColor = palette.detail || palette.topAccent || "#f59e0b";
+    const hasCross = /cross|crusader|templar|paladin|holy/i.test(lower);
+    const hasDragon = /dragon|beast|monster|demon|fire/i.test(lower);
+    const hasGem = /gem|crystal|ruby|sapphire|emerald|diamond|rune/i.test(lower);
+
+    if (hasCross) {
+      canvas.line(23, 39, 4, crestColor, true); // vertical beam
+      canvas.line(22, 40, 4, crestColor); // horizontal cross
+    } else if (hasDragon) {
+      canvas.setPixel(23, 39, crestColor);
+      canvas.setPixel(24, 39, crestColor);
+      canvas.setPixel(22, 40, crestColor);
+      canvas.setPixel(25, 40, crestColor);
+      canvas.setPixel(23, 41, accentRamp.highlight);
+      canvas.setPixel(24, 41, accentRamp.highlight);
+    } else if (hasGem) {
+      canvas.setPixel(23, 39, "#ffffff");
+      canvas.setPixel(24, 39, "#ffffff");
+      canvas.setPixel(23, 40, accentRamp.highlight);
+      canvas.setPixel(24, 40, accentRamp.highlight);
+    } else {
+      // Sleek Master Cuirass Center Rib & Filigree
+      canvas.line(23, 38, 5, metalRamp.highlight, true);
+      canvas.setPixel(22, 39, metalRamp.light);
+      canvas.setPixel(25, 39, metalRamp.light);
+      canvas.setPixel(21, 41, metalRamp.light);
+      canvas.setPixel(26, 41, metalRamp.light);
+    }
+
+    // Plate Belt at waist
+    canvas.line(20, 46, 8, "#1e293b");
+    canvas.setPixel(23, 46, crestColor);
+    canvas.setPixel(24, 46, crestColor);
+  } else if (isCyber) {
+    // ⚡ MASTER CYBERPUNK & MECHA EXOSKELETON
+    Object.values(faces).forEach((face) => canvas.fill(face, "#090d16", "pixel-detailed", random));
+    // 3D Exoskeleton Armor Plating
+    canvas.fill(ovRight, topRamp.base, "minimal", random);
+    canvas.fill(ovLeft, topRamp.base, "minimal", random);
+    canvas.fill(ovBack, topRamp.base, "minimal", random);
+    canvas.fill(ovFront, topRamp.base, "minimal", random);
+
+    // Glowing Arc Reactor Core at center of chest (x: 23..24, y: 39..40)
+    canvas.setPixel(23, 39, "#ffffff");
+    canvas.setPixel(24, 39, "#ffffff");
+    canvas.setPixel(23, 40, accentRamp.highlight);
+    canvas.setPixel(24, 40, accentRamp.highlight);
+    // Neon Energy Conduits
+    canvas.line(21, 41, 2, accentRamp.base);
+    canvas.line(25, 41, 2, accentRamp.base);
+    canvas.line(23, 41, 4, accentRamp.highlight, true);
+  } else if (isFormal) {
+    // 🎩 MASTER FORMAL SUIT & TUXEDO
     canvas.fill({ x: 22, y: 20, width: 4, height: 4 }, "#ffffff", "minimal", random);
-    const tieColor = /cravat|tie|crimson|burgundy|red/i.test(lower) ? (palette.topAccent || "#881337") : (palette.topAccent || "#1e293b");
+    const tieColor = palette.topAccent || "#881337";
     const tieRamp = getHueShiftRamp(tieColor, "fabric");
     canvas.setPixel(23, 21, tieRamp.light);
     canvas.setPixel(24, 21, tieRamp.base);
     canvas.setPixel(23, 22, tieRamp.highlight);
     canvas.setPixel(24, 22, tieRamp.base);
 
-    // 3D Suit Coat
     canvas.fill(ovRight, topRamp.base, "minimal", random);
     canvas.fill(ovLeft, topRamp.base, "minimal", random);
     canvas.fill(ovBack, topRamp.base, "minimal", random);
@@ -969,35 +1222,24 @@ function paintTorso(
     canvas.line(26, 36, 6, topRamp.light, true);
     canvas.setPixel(22, 42, "#eab308");
     canvas.setPixel(25, 42, "#eab308");
-  } else if (isAesthetic) {
-    // AESTHETIC OVERSIZED SWEATER (Clean, knit-textured, high-contrast)
-    // Minimal Crewneck Collar
-    canvas.setPixel(23, 20, "#ffffff");
-    canvas.setPixel(24, 20, "#ffffff");
-
-    // White Undershirt Hem at bottom of sweater
-    canvas.line(20, 31, 8, "#ffffff");
-
-    // 3D Sweater Overlay with Knit Texture
+  } else {
+    // 🛹 MASTER STREETWEAR & HOODIE
+    canvas.fill({ x: 23, y: 20, width: 2, height: 2 }, skinRamp.base, "minimal", random);
+    Object.values(faces).forEach((face) => canvas.fill(face, palette.top, "pixel-detailed", random));
     canvas.fill(ovRight, topRamp.base, "pixel-detailed", random);
     canvas.fill(ovLeft, topRamp.base, "pixel-detailed", random);
     canvas.fill(ovBack, topRamp.base, "pixel-detailed", random);
     canvas.fill(ovFront, topRamp.base, "pixel-detailed", random);
 
-    // Subtle Knit Chest Shadow / Fold
-    canvas.line(21, 41, 6, topRamp.shadow);
-    canvas.line(22, 42, 4, topRamp.deepShadow);
+    // 3D Hoodie Kangaroo Pocket (x: 21..26, y: 43..45)
+    canvas.fill({ x: 21, y: 43, width: 6, height: 3 }, topRamp.shadow, "minimal", random);
+    canvas.line(22, 43, 4, topRamp.highlight);
 
-    // White hem on 3D overlay bottom
-    canvas.line(20, 47, 8, "#ffffff");
-  } else {
-    // Casual / Streetwear / Cyber
-    canvas.fill({ x: 23, y: 20, width: 2, height: 3 }, skinRamp.base, "minimal", random);
-    canvas.fill(ovRight, topRamp.base, "minimal", random);
-    canvas.fill(ovLeft, topRamp.base, "minimal", random);
-    canvas.fill(ovBack, topRamp.base, "minimal", random);
-    canvas.fill({ x: 20, y: 36, width: 3, height: 12 }, topRamp.base, "minimal", random);
-    canvas.fill({ x: 25, y: 36, width: 3, height: 12 }, topRamp.base, "minimal", random);
+    // Twin Drawstrings hanging down chest
+    canvas.setPixel(22, 38, "#ffffff");
+    canvas.setPixel(22, 39, "#ffffff");
+    canvas.setPixel(25, 38, "#ffffff");
+    canvas.setPixel(25, 39, "#ffffff");
   }
 
   // Emblem
@@ -1023,15 +1265,18 @@ function paintArm(
 
   const topRamp = getHueShiftRamp(palette.top, "fabric");
   const accentRamp = getHueShiftRamp(palette.topAccent, "neon");
-  const skinRamp = getHueShiftRamp(palette.skin, "skin");
-
-  const isFormal = /gentleman|suit|tuxedo|formal|victorian/i.test(lower) || design.outfit === "formal";
-  const isAesthetic = /aesthetic|anime|goth|e-girl|e-boy|sweater|oversized|monochrome|cute/i.test(lower);
+  const isMilitary = /military|soldier|airforce|pilot|army|camo|tactical|swat|commando|navy|seal|combat|operator/i.test(lower);
+  const isArmor = /armor|knight|warrior|paladin|plate|samurai/i.test(lower) || design.outfit === "armor";
+  const isCyber = /cyber|hacker|futuristic|tech|robot|neon|mecha/i.test(lower);
 
   // Base Arm Fill
-  faceList.forEach((face) => canvas.fill(face, palette.top, "minimal", random));
+  if (isMilitary) {
+    faceList.forEach((face) => drawCamouflage(canvas, face, palette.top, palette.topAccent));
+  } else {
+    faceList.forEach((face) => canvas.fill(face, palette.top, "minimal", random));
+  }
 
-  const sleeveRows = isAesthetic ? 11 : design.sleeves === "short" ? 4 : design.sleeves === "long" ? 9 : 11;
+  const sleeveRows = isMilitary ? 9 : design.sleeves === "short" ? 4 : design.sleeves === "long" ? 9 : 11;
   bodyFaces.forEach((face) => {
     if (sleeveRows < 12) {
       const skinStart = face.y + sleeveRows;
@@ -1039,20 +1284,30 @@ function paintArm(
     }
   });
 
-  // White Dress Shirt / Oversized Sweater Cuff at hand
+  // Tactical Gloves / Hand Cuffs
   bodyFaces.forEach((face) => {
-    canvas.line(face.x, face.y + 11, face.width, "#ffffff");
+    const gloveColor = isMilitary ? "#18181b" : isArmor ? "#334155" : "#ffffff";
+    canvas.line(face.x, face.y + 11, face.width, gloveColor);
   });
 
-  // 3D Sleeve Overlays
+  // 3D Sleeve Overlays & Pauldrons
   const ovFaces = armFaces(model, side, true);
   [ovFaces.right, ovFaces.front, ovFaces.left, ovFaces.back].forEach((face) => {
     canvas.fill({ x: face.x, y: face.y, width: face.width, height: sleeveRows }, topRamp.base, "minimal", random);
     canvas.line(face.x, face.y + sleeveRows - 1, face.width, topRamp.light);
   });
 
-  const hasCables = /cable|wire|tech line|cyber|circuit|neon/i.test(lower) || design.cables;
-  if (hasCables) {
+  if (isMilitary) {
+    // Tactical Unit / Squadron Patch on upper right arm
+    if (side === "right") {
+      canvas.setPixel(ovFaces.right.x + 1, ovFaces.right.y + 2, "#d4af37");
+      canvas.setPixel(ovFaces.right.x + 2, ovFaces.right.y + 2, "#3b82f6");
+    }
+  } else if (isArmor) {
+    // 3D Steel Pauldron Shoulder Plate
+    canvas.fill({ x: ovFaces.top.x, y: ovFaces.top.y, width: ovFaces.top.width, height: 4 }, palette.topAccent || "#94a3b8", "pixel-detailed", random);
+    canvas.line(ovFaces.front.x, ovFaces.front.y, ovFaces.front.width, "#f59e0b"); // Gold Trim
+  } else if (isCyber) {
     canvas.line(ovFaces.front.x + 1, ovFaces.front.y + 1, 8, accentRamp.highlight, true);
     if (ovFaces.front.width >= 4) {
       canvas.setPixel(ovFaces.front.x + 2, ovFaces.front.y + 8, accentRamp.highlight);
@@ -1074,8 +1329,8 @@ function paintLeg(
 
   const pantsRamp = getHueShiftRamp(palette.pants, "fabric");
   const shoesRamp = getHueShiftRamp(palette.shoes, "fabric");
-  const accentRamp = getHueShiftRamp(palette.topAccent, "neon");
-  const isAesthetic = /aesthetic|anime|goth|e-girl|e-boy|sweater|stocking|socks|skirt|cute/i.test(lower);
+  const isMilitary = /military|soldier|airforce|pilot|army|camo|tactical|swat|commando|navy|seal|combat|operator/i.test(lower);
+  const isArmor = /armor|knight|warrior|paladin|plate|samurai/i.test(lower) || design.outfit === "armor";
 
   const faces = isRight
     ? {
@@ -1095,21 +1350,19 @@ function paintLeg(
         back: { x: 28, y: 52, width: 4, height: 12 },
       };
 
-  if (isAesthetic) {
-    // AESTHETIC / E-GIRL / ANIME LEGS: Shorts/Hem -> Bare Skin Gap -> Thigh-High Stockings
-    // 1. Top Hem / White Undershirt Overhang (Rows 0..2)
+  if (isMilitary) {
+    // 🪖 Military Camo Fatigues
+    Object.values(faces).forEach((face) => drawCamouflage(canvas, face, palette.pants, palette.topAccent));
+    // Heavy Combat Boots (Rows 8..11)
     [faces.right, faces.front, faces.left, faces.back].forEach((face) => {
-      canvas.fill({ x: face.x, y: face.y, width: face.width, height: 2 }, "#ffffff", "minimal", random);
-      // 2. Bare Skin Gap (Rows 2..4)
-      canvas.fill({ x: face.x, y: face.y + 2, width: face.width, height: 3 }, palette.skin, "minimal", random);
-      // 3. Dark Thigh-High Stockings / Boots (Rows 5..12)
-      canvas.fill({ x: face.x, y: face.y + 5, width: face.width, height: 7 }, palette.pants, "minimal", random);
-      canvas.line(face.x, face.y + 5, face.width, pantsRamp.deepShadow);
+      canvas.fill({ x: face.x, y: face.y + 8, width: face.width, height: 4 }, "#18181b", "pixel-detailed", random);
+      canvas.setPixel(face.x + 1, face.y + 9, "#71717a"); // Boot eyelets
+      canvas.setPixel(face.x + 2, face.y + 9, "#71717a");
+      canvas.line(face.x, face.y + 11, face.width, "#09090b"); // Rubber tread
     });
   } else {
     // Base Pants Fill
     Object.values(faces).forEach((face) => canvas.fill(face, palette.pants, style, random));
-
     // Knee Crease Shading
     canvas.line(faces.front.x, faces.front.y + 5, 4, pantsRamp.shadow);
     canvas.line(faces.front.x + 1, faces.front.y + 6, 2, pantsRamp.light);
@@ -1117,31 +1370,34 @@ function paintLeg(
     // Footwear
     [faces.right, faces.front, faces.left, faces.back].forEach((face) => {
       canvas.fill({ x: face.x, y: face.y + 8, width: face.width, height: 4 }, palette.shoes, style, random);
-      const isSneaker = /sneaker|shoe|trainer|runner|sport/i.test(lower);
+      const isSneaker = /sneaker|shoe|trainer|runner|sport|streetwear|hoodie/i.test(lower);
       const soleColor = isSneaker ? "#ffffff" : shoesRamp.deepShadow;
       canvas.line(face.x, face.y + 11, face.width, soleColor);
     });
   }
 
   // Shoe Bottom Tread
-  canvas.fill(faces.bottom, shoesRamp.deepShadow, "minimal", random);
+  canvas.fill(faces.bottom, "#09090b", "minimal", random);
 
-  // 3D Pants / Shoe Overlays (x: 0..15 on right leg, x: 0..15 on left leg)
+  // 3D Pants / Boot Overlays
   const ovFront = isRight ? { x: 4, y: 36, width: 4, height: 12 } : { x: 4, y: 52, width: 4, height: 12 };
 
-  if (isAesthetic) {
-    // 3D Skirt / Sweater Hem Overhang
-    canvas.fill({ x: ovFront.x, y: ovFront.y, width: 4, height: 3 }, palette.top, "minimal", random);
-    canvas.line(ovFront.x, ovFront.y + 2, 4, "#ffffff");
+  if (isMilitary) {
+    // 3D Reinforced Knee Pads on Front (y: 44..46)
+    canvas.fill({ x: ovFront.x, y: ovFront.y + 4, width: 4, height: 3 }, "#18181b", "minimal", random);
+    canvas.line(ovFront.x + 1, ovFront.y + 5, 2, "#3f3f46");
+    // 3D Drop-Leg Holster with Sidearm on Right Leg
+    if (isRight) {
+      canvas.fill({ x: ovFront.x + 2, y: ovFront.y + 1, width: 2, height: 3 }, "#09090b", "minimal", random);
+      canvas.setPixel(ovFront.x + 2, ovFront.y + 1, "#d4af37"); // Pistol Grip
+    }
+  } else if (isArmor) {
+    // 3D Steel Plate Greaves & Sabatons
+    canvas.fill({ x: ovFront.x, y: ovFront.y + 8, width: 4, height: 4 }, palette.topAccent || "#94a3b8", "pixel-detailed", random);
+    canvas.line(ovFront.x, ovFront.y + 8, 4, "#f59e0b");
   } else {
     canvas.fill({ x: ovFront.x, y: ovFront.y + 8, width: 4, height: 4 }, shoesRamp.base, style, random);
     canvas.line(ovFront.x, ovFront.y + 8, 4, shoesRamp.light);
-  }
-
-  // Cyber / Armor Accents
-  if (/cyber|armor|robot|tech/i.test(lower)) {
-    canvas.setPixel(ovFront.x + 1, ovFront.y + 4, accentRamp.highlight);
-    canvas.setPixel(ovFront.x + 2, ovFront.y + 4, accentRamp.highlight);
   }
 }
 

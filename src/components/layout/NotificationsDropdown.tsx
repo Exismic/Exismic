@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect, useMemo, useId, useCallback } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { Bell, Trash2, Clock, Sparkles, Zap, AlertCircle, Loader2, Gift, ArrowRight, Coins, ShoppingBag } from "lucide-react";
@@ -19,6 +20,7 @@ interface Notification {
 }
 
 export function NotificationsDropdown() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
@@ -293,32 +295,53 @@ export function NotificationsDropdown() {
                   Sign in to see notifications
                 </div>
               ) : notifications.length > 0 ? (
-                notifications.map((n) => (
-                  <div 
-                    key={n.id}
-                    onClick={() => markAsRead(n.id)}
-                    className={cn(
-                      "p-4 mx-2 rounded-2xl transition-all flex gap-4 cursor-pointer relative group/item",
-                      !n.read ? "bg-white/[0.03] hover:bg-white/[0.05]" : "opacity-60 hover:opacity-100 hover:bg-white/[0.02]"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                      n.type === 'success' ? "bg-emerald-500/10 text-emerald-500" : 
-                      n.type === 'warning' ? "bg-red-500/10 text-red-500" : "bg-accent-blue/10 text-accent-blue"
-                    )}>
-                       {n.type === 'success' ? <Zap size={18} /> : 
-                        n.type === 'warning' ? <AlertCircle size={18} /> : <Clock size={18} />}
-                    </div>
-                    
-                    <div className="flex-1 space-y-1">
-                       <div className="flex items-center justify-between">
-                          <p className="text-xs font-bold text-white tracking-tight">{n.title}</p>
-                          <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1">
-                             {formatTime(n.createdAt)}
-                          </span>
-                       </div>
-                       <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">{n.message}</p>
+                notifications.map((n) => {
+                  const isGiveaway = n.title.toLowerCase().includes("giveaway") || n.message.toLowerCase().includes("giveaway");
+
+                  return (
+                    <div 
+                      key={n.id}
+                      onClick={() => {
+                        markAsRead(n.id);
+                        if (isGiveaway) {
+                          setIsOpen(false);
+                          router.push("/giveaway");
+                        }
+                      }}
+                      className={cn(
+                        "p-4 mx-2 rounded-2xl transition-all flex gap-4 cursor-pointer relative group/item",
+                        isGiveaway
+                          ? "bg-amber-500/[0.06] hover:bg-amber-500/10 border border-amber-400/20"
+                          : !n.read
+                          ? "bg-white/[0.03] hover:bg-white/[0.05]"
+                          : "opacity-60 hover:opacity-100 hover:bg-white/[0.02]"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                        isGiveaway ? "bg-amber-400/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)]" :
+                        n.type === 'success' ? "bg-emerald-500/10 text-emerald-500" : 
+                        n.type === 'warning' ? "bg-red-500/10 text-red-500" : "bg-accent-blue/10 text-accent-blue"
+                      )}>
+                         {isGiveaway ? <Gift size={18} /> :
+                          n.type === 'success' ? <Zap size={18} /> : 
+                          n.type === 'warning' ? <AlertCircle size={18} /> : <Clock size={18} />}
+                      </div>
+                      
+                      <div className="flex-1 space-y-1">
+                         <div className="flex items-center justify-between">
+                            <p className={cn("text-xs font-bold tracking-tight", isGiveaway ? "text-amber-200" : "text-white")}>{n.title}</p>
+                            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1">
+                               {formatTime(n.createdAt)}
+                            </span>
+                         </div>
+                         <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">{n.message}</p>
+                         {isGiveaway && (
+                           <div className="mt-2 inline-flex items-center gap-1 rounded-lg bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 text-[9px] font-black text-amber-300">
+                             <span>View Giveaway Details</span>
+                             <ArrowRight size={10} />
+                           </div>
+                         )}
                        {n.type.startsWith("claim:") && (
                           <button
                             onClick={async (e) => {
@@ -361,7 +384,8 @@ export function NotificationsDropdown() {
                       <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-accent-blue rounded-full" />
                     )}
                   </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="p-12 text-center space-y-4">
                    <div className="w-16 h-16 rounded-[2rem] bg-white/5 flex items-center justify-center mx-auto text-zinc-700">

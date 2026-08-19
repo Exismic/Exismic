@@ -9,10 +9,10 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const PROMPT_ENHANCE_COST = 1;
 
 const ENHANCE_MODELS = [
-  "openai/gpt-oss-120b",
-  "qwen/qwen3.6-27b",
-  "openai/gpt-oss-20b",
-  "groq/compound",
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+  "mixtral-8x7b-32768",
+  "gemma2-9b-it",
 ];
 
 function getGroqKeys(): string[] {
@@ -25,6 +25,12 @@ function getGroqKeys(): string[] {
 function generateSmartFallback(rawPrompt: string): string {
   const p = rawPrompt.toLowerCase();
 
+  if (/military|soldier|airforce|pilot|army|camo|tactical|swat|commando|navy|seal|combat|operator/i.test(p)) {
+    return `${rawPrompt.trim()} with tactical digital camouflage fatigues, 3D MOLLE plate carrier vest with ammo pouches, shoulder comms radio, gold aviator sunglasses, unit flag patch, drop-leg holster, and combat boots.`;
+  }
+  if (/ninja|shinobi|assassin|rogue|stealth|shadow/i.test(p)) {
+    return `${rawPrompt.trim()} with sleek midnight shinobi tunic, 3D metal forehead protector headband, lower cloth facemask, crossed back scabbard harness, crimson waist sash, and wrapped forearm gauntlets.`;
+  }
   if (/gentleman|suit|tuxedo|victorian|aristocrat|formal|sherlock|detective/i.test(p)) {
     return `${rawPrompt.trim()} with neatly styled dark parted hair, polished round eyeglasses, tailored charcoal double-breasted coat with 3D lapels, crimson waistcoat with a gold pocket watch chain, crisp white collared shirt with a silk cravat, and formal oxford shoes.`;
   }

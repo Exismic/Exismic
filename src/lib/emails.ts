@@ -1288,3 +1288,80 @@ export async function sendAdminGiftCardReviewEmail(details: {
   }
 }
 
+export async function sendGiveawayWinnerEmail(details: {
+  email: string;
+  name: string;
+  prizeAmount: number;
+}) {
+  const safeName = escapeEmailText(details.name || details.email.split('@')[0]);
+  const safeCredits = details.prizeAmount.toLocaleString();
+
+  try {
+    const { error } = await sendTrackedEmail('giveaway_winner', details.email, {
+      from: SENDER_WELCOME,
+      to: [details.email],
+      subject: `🎉 Congratulations! You Won ${safeCredits} Permanent Credits on Exismic!`,
+      html: renderTransactionalEmail({
+        preheader: `You are a winner in the Exismic Community Giveaway! ${safeCredits} Permanent Credits have been deposited into your account.`,
+        badge: 'Official Winner',
+        title: '🎉 You <span style="background:linear-gradient(90deg,#fbbf24,#f59e0b,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fbbf24;">Won The Giveaway!</span>',
+        body: `Congratulations <strong>${safeName}</strong>! Your entry was selected as a winner in the Exismic Community Giveaway.`,
+        content: `
+          <div style="max-width:480px; margin:0 auto 24px; border-radius:24px; border:1px solid rgba(251,191,36,0.35); background:linear-gradient(135deg, rgba(251,191,36,0.14), rgba(245,158,11,0.05)); padding:26px; text-align:center;">
+            <div style="font-size:38px; margin-bottom:12px;">🏆</div>
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:#fbbf24; margin-bottom:6px;">Official Prize Awarded</div>
+            <div style="font-size:32px; font-weight:950; color:#ffffff; margin-bottom:8px; text-shadow:0 0 20px rgba(251,191,36,0.5); font-family:monospace;">+${safeCredits} CREDITS</div>
+            <div style="font-size:13px; font-weight:700; color:#a1a1aa; line-height:1.5;">These are <strong>Permanent Lifetime Credits</strong> that never expire, do not reset daily, and work on all 40+ Exismic tools!</div>
+          </div>
+          
+          <a href="${SITE_URL}/giveaway" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#f59e0b,#eab308,#ca8a04); color:#000000; text-decoration:none; text-align:center; padding:18px 0; font-size:16px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(245,158,11,0.4);">View Giveaway & Start Creating</a>
+        `,
+        footerNote: "You received this email because your account was randomly chosen as a winner in the official Exismic Community Giveaway.",
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('Giveaway winner email error:', err);
+    return false;
+  }
+}
+
+export async function sendGiveawayLaunchAnnouncementEmail(details: {
+  email: string;
+  name?: string;
+}) {
+  const safeName = escapeEmailText(details.name || details.email.split('@')[0]);
+
+  try {
+    const { error } = await sendTrackedEmail('giveaway_launch', details.email, {
+      from: SENDER_WELCOME,
+      to: [details.email],
+      subject: `🎁 A New Giveaway is Live on Exismic! Win 500 Permanent Credits`,
+      html: renderTransactionalEmail({
+        preheader: `A brand new community giveaway is live! 3 lucky creators will win 500 Permanent Lifetime Credits each. Spend 100+ credits to enter.`,
+        badge: 'New Giveaway Drop',
+        title: '🎉 New <span style="background:linear-gradient(90deg,#fbbf24,#f59e0b,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fbbf24;">Giveaway is Live!</span>',
+        body: `Hey <strong>${safeName}</strong>, we are hosting an exclusive community giveaway on Exismic!`,
+        content: `
+          <div style="max-width:480px; margin:0 auto 24px; border-radius:24px; border:1px solid rgba(251,191,36,0.35); background:linear-gradient(135deg, rgba(251,191,36,0.14), rgba(245,158,11,0.05)); padding:26px; text-align:center;">
+            <div style="font-size:38px; margin-bottom:12px;">🎁</div>
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:#fbbf24; margin-bottom:6px;">1,500 Credits Prize Pool</div>
+            <div style="font-size:28px; font-weight:950; color:#ffffff; margin-bottom:8px; text-shadow:0 0 20px rgba(251,191,36,0.5); font-family:monospace;">3 WINNERS x 500c</div>
+            <div style="font-size:13px; font-weight:700; color:#d1d5db; line-height:1.6; margin-top:10px;">
+              Spend at least <strong>100 credits</strong> across any AI, Minecraft 3D Studio, or media tools during the giveaway window to be <strong>automatically entered</strong>!
+            </div>
+          </div>
+          
+          <a href="${SITE_URL}/giveaway" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#f59e0b,#eab308,#ca8a04); color:#000000; text-decoration:none; text-align:center; padding:18px 0; font-size:16px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(245,158,11,0.4);">Enter Giveaway & View Progress →</a>
+        `,
+        footerNote: "You received this email because you are a registered creator on Exismic.",
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('Giveaway launch announcement email error:', err);
+    return false;
+  }
+}
+
+

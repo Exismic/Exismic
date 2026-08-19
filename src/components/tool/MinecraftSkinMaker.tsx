@@ -27,10 +27,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCredits } from "@/hooks/useCredits";
 import { MinecraftSkinEditor } from "@/components/tool/MinecraftSkinEditor";
-import { MinecraftFeedbackModal } from "@/components/tool/MinecraftFeedbackModal";
 import { Minecraft3DStudioViewer } from "@/components/tool/Minecraft3DStudioViewer";
 import { CreditModal } from "@/components/ui/CreditModal";
 import {
+  compileMinecraftSkin,
   createFallbackSkinDesign,
   type MinecraftArmModel,
   type MinecraftSkinDesign,
@@ -83,6 +83,35 @@ const STYLE_OPTIONS: Array<{
   { id: "high-contrast", label: "High contrast", desc: "Vivid neon & intense outlines", icon: "⚡" },
 ];
 
+export type EyeStyleMode = "anime" | "classic" | "glowing" | "minimal" | "visor";
+export type MouthStyleMode = "smile" | "neutral" | "smirk" | "open" | "none";
+
+const EYE_OPTIONS: Array<{
+  id: EyeStyleMode;
+  label: string;
+  desc: string;
+  icon: string;
+}> = [
+  { id: "anime", label: "Anime / Aesthetic 2×2", desc: "Multi-tone iris gradient & specular shine", icon: "✨" },
+  { id: "classic", label: "Classic Steve 2×1", desc: "Horizontal white sclera & colored pupil", icon: "🔲" },
+  { id: "glowing", label: "Glowing Solid", desc: "Herobrine & Demon solid luminous blocks", icon: "⚡" },
+  { id: "minimal", label: "Minimal Dot", desc: "1×2 sleek indie / emo dots under bangs", icon: "▪️" },
+  { id: "visor", label: "Cyber Visor", desc: "Futuristic optic HUD & glowing beam", icon: "🥽" },
+];
+
+const MOUTH_OPTIONS: Array<{
+  id: MouthStyleMode;
+  label: string;
+  desc: string;
+}> = [
+  { id: "smile", label: "Smile", desc: "Soft warm smile" },
+  { id: "neutral", label: "Neutral", desc: "Subtle calm lip line" },
+  { id: "smirk", label: "Smirk", desc: "Confident upward smirk" },
+  { id: "open", label: "Open", desc: "Energetic open expression" },
+  { id: "none", label: "None / Masked", desc: "Clean faceless / under-mask" },
+];
+
+
 function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -131,6 +160,8 @@ export function MinecraftSkinMaker() {
   const [isFetchingGamertag, setIsFetchingGamertag] = useState(false);
   const [armModel, setArmModel] = useState<MinecraftArmModel>("classic");
   const [style, setStyle] = useState<StyleMode>("balanced");
+  const [eyeStyle, setEyeStyle] = useState<EyeStyleMode>("anime");
+  const [mouthStyle, setMouthStyle] = useState<MouthStyleMode>("smile");
   const [targetPart, setTargetPart] = useState<MinecraftSkinPart>("all");
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceName, setReferenceName] = useState<string | null>(null);
@@ -145,7 +176,6 @@ export function MinecraftSkinMaker() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportGamertag = async (targetUsername?: string) => {
@@ -241,6 +271,56 @@ export function MinecraftSkinMaker() {
     }
   };
 
+  const handleSelectEyeStyle = (newEyeStyle: EyeStyleMode) => {
+    setEyeStyle(newEyeStyle);
+    if (result) {
+      const updatedDesign: MinecraftSkinDesign = {
+        ...result.design,
+        eyeStyle: newEyeStyle,
+      };
+      const newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const imgData = ctx.createImageData(64, 64);
+        imgData.data.set(newPixels);
+        ctx.putImageData(imgData, 0, 0);
+        setResult({
+          ...result,
+          design: updatedDesign,
+          skinUrl: canvas.toDataURL("image/png"),
+        });
+      }
+    }
+  };
+
+  const handleSelectMouthStyle = (newMouthStyle: MouthStyleMode) => {
+    setMouthStyle(newMouthStyle);
+    if (result) {
+      const updatedDesign: MinecraftSkinDesign = {
+        ...result.design,
+        mouthStyle: newMouthStyle,
+      };
+      const newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const imgData = ctx.createImageData(64, 64);
+        imgData.data.set(newPixels);
+        ctx.putImageData(imgData, 0, 0);
+        setResult({
+          ...result,
+          design: updatedDesign,
+          skinUrl: canvas.toDataURL("image/png"),
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     if (!isGenerating) {
       setProgress(0);
@@ -282,7 +362,8 @@ export function MinecraftSkinMaker() {
     }
   };
 
-  const generate = async () => {
+  const generate = async (overrideTargetPart?: MinecraftSkinPart) => {
+    const activeTargetPart = overrideTargetPart || targetPart;
     if (!userId) {
       setError("Sign in to generate and save Minecraft skins.");
       return;
@@ -291,13 +372,19 @@ export function MinecraftSkinMaker() {
       setError("Describe the character you want to create.");
       return;
     }
-    if (targetPart !== "all" && !result) {
+    if (activeTargetPart !== "all" && !result) {
       setError("Generate a full skin before changing individual body parts.");
       return;
     }
-    if (credits < currentCost) {
+    const partCost = referenceImage && referenceMode === "rebuild"
+      ? (isPro ? 6 : 10)
+      : activeTargetPart === "all"
+        ? (isPro ? 16 : 24)
+        : (isPro ? 2 : 4);
+
+    if (credits < partCost) {
       setShowUpsell(true);
-      setError(`This generation needs ${currentCost} credits. Your current balance is ${credits}.`);
+      setError(`This generation needs ${partCost} credits. Your current balance is ${credits}.`);
       return;
     }
 
@@ -312,8 +399,10 @@ export function MinecraftSkinMaker() {
           prompt: prompt.trim(),
           armModel,
           style,
-          targetPart,
-          baseSkinUrl: targetPart === "all" ? undefined : result?.skinUrl,
+          eyeStyle,
+          mouthStyle,
+          targetPart: activeTargetPart,
+          baseSkinUrl: activeTargetPart === "all" ? undefined : result?.skinUrl,
           referenceImage: referenceImage || undefined,
           referenceMode,
         }),
@@ -344,18 +433,6 @@ export function MinecraftSkinMaker() {
               : `${PARTS.find((part) => part.id === targetPart)?.label} updated without changing the rest of the skin.`
       );
       refreshCredits();
-
-      // Trigger one-time Beta Feedback modal if not given yet
-      try {
-        const alreadyGiven = localStorage.getItem("exismic_minecraft_feedback_given");
-        if (!alreadyGiven) {
-          window.setTimeout(() => {
-            setShowFeedbackModal(true);
-          }, 2200);
-        }
-      } catch {
-        // Ignore localStorage error
-      }
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : "Skin generation failed.");
     } finally {
@@ -411,10 +488,10 @@ export function MinecraftSkinMaker() {
   };
 
   const currentCost = referenceImage && referenceMode === "rebuild"
-    ? (isPro ? 8 : 12)
+    ? (isPro ? 6 : 10)
     : targetPart === "all"
       ? (isPro ? 16 : 24)
-      : (isPro ? 4 : 8);
+      : (isPro ? 2 : 4);
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#06070b] shadow-[0_28px_90px_rgba(0,0,0,0.45)]">
@@ -432,21 +509,6 @@ export function MinecraftSkinMaker() {
                 <span className="rounded-full border border-emerald-300/20 bg-emerald-300/8 px-2.5 py-1 text-[10px] font-bold text-emerald-200">
                   UV-safe output
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setShowFeedbackModal(true)}
-                  className="group relative flex shrink-0 items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:border-emerald-400/60 hover:bg-emerald-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
-                >
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span className="tracking-tight hidden sm:inline">Help Improve Skin Maker · Feedback Open</span>
-                  <span className="tracking-tight sm:hidden">Feedback</span>
-                  <span className="shrink-0 whitespace-nowrap rounded-full bg-emerald-400/20 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-200">
-                    Beta
-                  </span>
-                </button>
                 {isPro && (
                   <span className="shrink-0 whitespace-nowrap rounded-full border border-violet-300/20 bg-violet-300/8 px-2.5 py-1 text-[10px] font-bold text-violet-200">
                     <Zap className="mr-1 inline size-3" />
@@ -781,6 +843,95 @@ export function MinecraftSkinMaker() {
               </div>
             </div>
 
+            {/* Eye Style & Facial Aesthetics */}
+            <div className="rounded-xl border border-white/10 bg-black/25 p-4 space-y-3.5 shadow-inner">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="size-4 text-cyan-400" />
+                  <span className="text-xs font-bold text-white">Eye Style & Face Aesthetics</span>
+                </div>
+                <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-black text-emerald-300 border border-emerald-400/20">
+                  Instant Switching: 0 Credits (Free)
+                </span>
+              </div>
+
+              {/* Eye Style Selection Grid */}
+              <div className="grid grid-cols-1 gap-2">
+                {EYE_OPTIONS.map((option) => {
+                  const isSelected = eyeStyle === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleSelectEyeStyle(option.id)}
+                      className={cn(
+                        "flex items-center justify-between gap-3 rounded-lg border p-2.5 text-left transition cursor-pointer",
+                        isSelected
+                          ? "border-cyan-400/50 bg-cyan-500/15 text-white shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                          : "border-white/5 bg-white/[0.02] text-zinc-400 hover:border-white/15 hover:bg-white/[0.05] hover:text-zinc-200"
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-base shrink-0 leading-none">{option.icon}</span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white truncate">{option.label}</p>
+                          <p className="text-[10px] text-zinc-400 truncate mt-0.5">{option.desc}</p>
+                        </div>
+                      </div>
+                      {isSelected && <Check className="size-4 text-cyan-300 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Mouth & Expression Row */}
+              <div className="pt-1.5 border-t border-white/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-zinc-300">Mouth & Expression:</span>
+                  <span className="text-[10px] text-cyan-300 font-bold capitalize">{mouthStyle}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1 rounded-lg border border-white/5 bg-black/40 p-1">
+                  {MOUTH_OPTIONS.map((option) => {
+                    const isSelected = mouthStyle === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleSelectMouthStyle(option.id)}
+                        className={cn(
+                          "rounded-md py-1.5 px-1 text-center text-[10px] font-bold capitalize transition cursor-pointer",
+                          isSelected
+                            ? "bg-cyan-500/25 text-cyan-200 border border-cyan-400/30 shadow-sm"
+                            : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
+                        )}
+                        title={option.desc}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {result && (
+                  <div className="pt-2 flex items-center justify-between">
+                    <p className="text-[10px] text-zinc-400">Want a full AI face & hair redesign?</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTargetPart("head");
+                        void generate("head");
+                      }}
+                      disabled={isGenerating}
+                      className="px-2.5 py-1 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-[10px] font-bold text-cyan-200 flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Sparkles className="size-3 text-cyan-300" />
+                      <span>AI Remix Head ({isPro ? 2 : 4} Credits)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div>
               <p className="mb-3 text-xs font-bold text-white">Generate area</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 xl:grid-cols-2 2xl:grid-cols-5">
@@ -1064,42 +1215,10 @@ export function MinecraftSkinMaker() {
         </section>
       </div>
 
-      {/* Community & Upcoming Updates Teaser */}
-      <div className="mx-4 my-6 sm:mx-6 lg:mx-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/30 via-teal-950/20 to-cyan-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-        <div className="flex items-center gap-3.5">
-          <div className="size-10 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
-            <Sparkles size={20} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider">Improve Minecraft Skin Maker</h4>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[9px] font-extrabold uppercase tracking-wider border border-emerald-400/30">
-                BETA COMMUNITY
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 mt-0.5">Be a part of making it better — share your ideas, feature requests, and suggestions directly with our team.</p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowFeedbackModal(true)}
-          className="shrink-0 px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-xs font-black text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
-        >
-          💬 Share Suggestions
-        </button>
-      </div>
-
       <footer className="relative flex flex-col gap-3 border-t border-white/8 px-4 py-4 text-[11px] leading-5 text-zinc-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <p>Exports standard 64×64 PNG skins for classic and slim player models.</p>
         <p>Not an official Minecraft product. Not associated with Mojang or Microsoft.</p>
       </footer>
-
-      {/* Beta Feedback Modal */}
-      <MinecraftFeedbackModal
-        isOpen={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
-        skinPrompt={prompt}
-      />
 
       {/* Out of Credits / Pro Upsell Modal */}
       <CreditModal

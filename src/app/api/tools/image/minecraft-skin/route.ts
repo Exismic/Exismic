@@ -39,9 +39,11 @@ const requestSchema = z.object({
   prompt: z.string().trim().min(2).max(2000),
   armModel: z.enum(["classic", "slim"]).default("classic"),
   style: z.enum(["balanced", "pixel-detailed", "minimal", "high-contrast"]).default("balanced"),
+  eyeStyle: z.enum(["anime", "classic", "glowing", "minimal", "visor"]).optional(),
+  mouthStyle: z.enum(["smile", "neutral", "smirk", "open", "none"]).optional(),
   targetPart: z.enum(["all", "head", "torso", "arms", "legs"]).default("all"),
   seed: z.number().int().min(0).max(4294967295).optional(),
-  baseSkinUrl: z.string().trim().max(220).optional(),
+  baseSkinUrl: z.string().max(6_000_000).optional(),
   referenceImage: z.string().max(6_000_000).optional(),
   referenceMode: z.enum(["inspire", "guided", "rebuild"]).default("guided"),
 });
@@ -312,7 +314,14 @@ function buildDesignInstruction(
         detail: "#RRGGBB",
       },
     }),
-    "Sample colors from the reference when present. Set headphones, cables, horns, crown, halo, glasses to true when requested or visible. Record short visible emblem text exactly. Use readable contrast and a restrained palette. Do not include prose or markdown.",
+    "Sample colors from the reference when present. Set headphones, cables, horns, crown, halo, glasses to true when requested or visible.",
+    "Archetype Rules:",
+    "- For Military/Soldier/Pilot/Airforce: outfit='armor', sleeves='long', gloves=true, footwear='boots', pattern='armored'. If pilot/airforce/sunglasses, set glasses=true (aviators) or headphones=true (pilot headset).",
+    "- For Knight/Paladin/Samurai: outfit='armor', sleeves='armored', footwear='armored', pattern='armored'. Keep faceStyle='open' so character face, eyes, and hair remain heroic and expressive unless explicitly asked for 'closed visor' or 'greathelm'.",
+    "- For Cyberpunk/Sci-Fi/Mecha: outfit='cyber', faceStyle='open'|'visor', cables=true, pattern='circuit', use glowing neon palettes.",
+    "- For Anime/Goth/Aesthetic: outfit='casual'|'royal', hairStyle='long'|'spiky', use vibrant eye colors and stylized hair highlight.",
+    "- For Streetwear/Casual: outfit='casual', hairStyle='short'|'spiky', footwear='shoes'.",
+    "Extract specific colors mentioned in the prompt (e.g. 'golden', 'crimson', 'emerald', 'sapphire', 'white', 'purple', 'black') directly into the palette object for top, topAccent, detail, hair, and eyes. Use readable contrast and a rich, vibrant palette. Do not include prose or markdown.",
   ].join("\n");
 }
 
@@ -389,22 +398,25 @@ async function createAiDesign(
   return null;
 }
 
-async function loadBaseSkin(baseSkinUrl: string | undefined) {
+async function loadBaseSkin(baseSkinUrl: string | undefined): Promise<Uint8Array> {
   if (!baseSkinUrl) throw new Error("Generate a complete skin before regenerating individual parts.");
-  if (!/minecraft_[a-z0-9-]+\.png$/i.test(baseSkinUrl)) {
-    throw new Error("The selected base skin is invalid.");
+  let input: Buffer;
+  if (baseSkinUrl.startsWith("data:image/")) {
+    const base64Data = baseSkinUrl.replace(/^data:image\/[a-z0-9-+.]+;base64,/i, "");
+    input = Buffer.from(base64Data, "base64");
+  } else {
+    const response = await fetch(baseSkinUrl);
+    if (!response.ok) throw new Error("Could not load base skin from storage.");
+    const arrayBuffer = await response.arrayBuffer();
+    input = Buffer.from(arrayBuffer);
   }
 
-  const response = await fetch(baseSkinUrl);
-  if (!response.ok) throw new Error("Could not load base skin from storage.");
-  const arrayBuffer = await response.arrayBuffer();
-  const input = Buffer.from(arrayBuffer);
   const image = sharp(input);
-  const metadata = await image.metadata();
-  if (metadata.width !== 64 || metadata.height !== 64) {
-    throw new Error("The selected base skin is not a valid 64x64 texture.");
-  }
-  const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await image
+    .resize(64, 64, { fit: "fill", kernel: "nearest" })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   if (info.channels !== 4) throw new Error("The selected skin has an unsupported pixel format.");
   return new Uint8Array(data);
 }
@@ -652,6 +664,8 @@ export async function POST(request: NextRequest) {
       prompt,
       armModel,
       style,
+      eyeStyle,
+      mouthStyle,
       targetPart,
       baseSkinUrl,
       referenceImage,
@@ -663,10 +677,10 @@ export async function POST(request: NextRequest) {
     const referenceRebuilt = referenceMode === "rebuild" && Boolean(referenceImage);
     const baseCost = getToolCreditCost("image-minecraft-skin", 24);
     const cost = referenceRebuilt
-      ? (isPro ? 8 : 12)
+      ? (isPro ? 6 : 10)
       : targetPart === "all"
         ? (isPro ? 16 : baseCost)
-        : (isPro ? 4 : 8);
+        : (isPro ? 2 : 4);
     const availableCredits = user ? getCreditTotal(user) : 0;
 
     if (user && availableCredits < cost) {
@@ -688,6 +702,8 @@ export async function POST(request: NextRequest) {
     const design = sanitizeSkinDesign(
       {
         ...(aiDesign || {}),
+        ...(eyeStyle ? { eyeStyle } : {}),
+        ...(mouthStyle ? { mouthStyle } : {}),
         palette: {
           ...(aiDesign?.palette || {}),
           ...imagePalette,
