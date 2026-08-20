@@ -509,7 +509,7 @@ export function Dashboard() {
       {/* CYBER ALIVE ANIMATED BACKGROUND ENGINE */}
       {isPro ? <ProBackground /> : <CyberAliveBackground />}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-8 md:pt-14 pb-36 md:pb-32 space-y-12 md:space-y-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-8 md:pt-14 pb-36 md:pb-32 space-y-12 md:space-y-16">
         
         {/* 1. ULTRA-PREMIUM HERO COCKPIT HEADER */}
         <section className="relative space-y-8">
@@ -1129,41 +1129,41 @@ export function Dashboard() {
 function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, href, badge }: StatCardProps) {
   const themeStyles = {
     cyan: {
-      cardBg: "bg-gradient-to-br from-cyan-950/80 via-blue-950/40 to-zinc-950/90",
+      cardBg: "bg-gradient-to-br from-cyan-950/70 via-blue-950/35 to-[#040810]",
       border: "border-cyan-500/40 hover:border-cyan-300",
-      glow: "shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:shadow-[0_0_55px_rgba(6,182,212,0.6)]",
+      glow: "shadow-[0_12px_36px_rgba(0,0,0,0.6),0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_16px_44px_rgba(0,0,0,0.7),0_0_30px_rgba(6,182,212,0.4)]",
       iconBg: "bg-cyan-500/20 border-cyan-400/50 text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.5)]",
       textGrad: "from-white via-cyan-100 to-cyan-400 drop-shadow-[0_2px_15px_rgba(6,182,212,0.4)]",
       pillBg: "bg-cyan-500/20 border-cyan-400/50 text-cyan-200"
     },
     purple: {
-      cardBg: "bg-gradient-to-br from-purple-950/80 via-fuchsia-950/40 to-zinc-950/90",
+      cardBg: "bg-gradient-to-br from-purple-950/70 via-fuchsia-950/35 to-[#080312]",
       border: "border-purple-500/40 hover:border-purple-300",
-      glow: "shadow-[0_0_30px_rgba(168,85,247,0.25)] hover:shadow-[0_0_55px_rgba(168,85,247,0.6)]",
+      glow: "shadow-[0_12px_36px_rgba(0,0,0,0.6),0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_16px_44px_rgba(0,0,0,0.7),0_0_30px_rgba(168,85,247,0.4)]",
       iconBg: "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-[0_0_20px_rgba(168,85,247,0.5)]",
       textGrad: "from-white via-purple-100 to-fuchsia-400 drop-shadow-[0_2px_15px_rgba(168,85,247,0.4)]",
       pillBg: "bg-purple-500/20 border-purple-400/50 text-purple-200"
     },
     amber: {
-      cardBg: "bg-gradient-to-br from-amber-950/80 via-yellow-950/40 to-zinc-950/90",
+      cardBg: "bg-gradient-to-br from-amber-950/70 via-yellow-950/35 to-[#0c0803]",
       border: "border-amber-500/40 hover:border-amber-300",
-      glow: "shadow-[0_0_30px_rgba(245,158,11,0.25)] hover:shadow-[0_0_55px_rgba(245,158,11,0.6)]",
+      glow: "shadow-[0_12px_36px_rgba(0,0,0,0.6),0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_16px_44px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.4)]",
       iconBg: "bg-amber-500/20 border-amber-400/50 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.5)]",
       textGrad: "from-white via-amber-100 to-yellow-400 drop-shadow-[0_2px_15px_rgba(245,158,11,0.4)]",
       pillBg: "bg-amber-500/20 border-amber-400/50 text-amber-200"
     },
     gold: {
-      cardBg: "bg-gradient-to-br from-amber-950/90 via-yellow-950/60 to-zinc-950/95",
+      cardBg: "bg-gradient-to-br from-amber-950/80 via-yellow-950/40 to-[#0e0a03]",
       border: "border-amber-400/60 hover:border-amber-300",
-      glow: "shadow-[0_0_35px_rgba(251,191,36,0.3)] hover:shadow-[0_0_65px_rgba(251,191,36,0.7)]",
+      glow: "shadow-[0_12px_36px_rgba(0,0,0,0.6),0_0_22px_rgba(251,191,36,0.22)] hover:shadow-[0_16px_44px_rgba(0,0,0,0.7),0_0_32px_rgba(251,191,36,0.45)]",
       iconBg: "bg-amber-400/25 border-amber-300/60 text-amber-100 shadow-[0_0_25px_rgba(251,191,36,0.6)]",
       textGrad: "from-amber-100 via-yellow-300 to-amber-400 drop-shadow-[0_2px_18px_rgba(245,158,11,0.6)]",
       pillBg: "bg-amber-400/20 border-amber-400/50 text-amber-200"
     },
     zinc: {
-      cardBg: "bg-gradient-to-br from-zinc-900/90 via-purple-950/30 to-zinc-950/90",
+      cardBg: "bg-gradient-to-br from-zinc-900/70 via-purple-950/20 to-[#08080a]",
       border: "border-purple-500/30 hover:border-purple-400/60",
-      glow: "shadow-[0_0_25px_rgba(168,85,247,0.15)] hover:shadow-[0_0_45px_rgba(168,85,247,0.4)]",
+      glow: "shadow-[0_12px_36px_rgba(0,0,0,0.6),0_0_18px_rgba(168,85,247,0.12)] hover:shadow-[0_16px_44px_rgba(0,0,0,0.7),0_0_26px_rgba(168,85,247,0.3)]",
       iconBg: "bg-purple-500/15 border-purple-400/40 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]",
       textGrad: "from-white via-zinc-100 to-zinc-300 drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]",
       pillBg: "bg-zinc-800/80 border-white/15 text-zinc-300"
@@ -1186,6 +1186,32 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, h
     >
       {loading && (
         <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-pulse z-40" />
+      )}
+
+      {/* In-Card Ambient Radial Glows */}
+      {color === "gold" && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -left-10 size-40 rounded-full bg-amber-500/20 blur-2xl z-0" />
+          <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full bg-yellow-500/15 blur-2xl z-0" />
+        </>
+      )}
+      {color === "cyan" && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -left-10 size-40 rounded-full bg-cyan-500/20 blur-2xl z-0" />
+          <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full bg-blue-500/15 blur-2xl z-0" />
+        </>
+      )}
+      {color === "purple" && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -left-10 size-40 rounded-full bg-purple-500/20 blur-2xl z-0" />
+          <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full bg-fuchsia-500/15 blur-2xl z-0" />
+        </>
+      )}
+      {color === "amber" && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -left-10 size-40 rounded-full bg-amber-500/20 blur-2xl z-0" />
+          <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full bg-orange-500/15 blur-2xl z-0" />
+        </>
       )}
 
       {/* Sweeping Laser Sheen Beam */}
@@ -1238,11 +1264,13 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, h
       <div className="space-y-1 relative z-20">
          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-zinc-400 group-hover:text-zinc-200 transition-colors break-words">{label}</p>
          <h3 className={cn(
-           "text-4xl sm:text-5xl font-black bg-gradient-to-r bg-clip-text text-transparent tracking-tight break-words",
-           t.textGrad
+           "text-4xl sm:text-5xl font-black tracking-tight break-words",
+           (isPro && (label === "Status" || label === "Pro Status"))
+             ? "bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(245,158,11,0.7)]"
+             : cn("bg-gradient-to-r bg-clip-text text-transparent", t.textGrad)
          )}>
             {(isPro && (label === "Status" || label === "Pro Status")) ? (
-              <GradientText className="from-amber-200 via-yellow-300 to-amber-400 drop-shadow-[0_0_25px_rgba(245,158,11,0.7)]">PRO</GradientText>
+              <span>PRO</span>
             ) : value}
          </h3>
       </div>

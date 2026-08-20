@@ -63,8 +63,11 @@ const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
   "/category/pdf": "bg-gradient-to-b from-orange-400 via-amber-500 to-red-500 shadow-[0_0_14px_rgba(249,115,22,0.9)]",
   "/category/ai": "bg-gradient-to-b from-amber-300 via-yellow-400 to-purple-400 shadow-[0_0_14px_rgba(250,204,21,0.9)]",
   "/category/productivity": "bg-gradient-to-b from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
-  "/category/developer": "bg-gradient-to-b from-lime-400 via-emerald-400 to-teal-500 shadow-[0_0_14px_rgba(163,230,53,0.9)]",
-  "/category/creator": "bg-gradient-to-b from-rose-400 via-pink-400 to-purple-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
+  "/category/developer": "bg-gradient-to-b from-lime-400 via-emerald-400 to-green-500 shadow-[0_0_14px_rgba(132,204,22,0.9)]",
+  "/category/student": "bg-gradient-to-b from-sky-400 via-blue-400 to-indigo-500 shadow-[0_0_14px_rgba(14,165,233,0.9)]",
+  "/category/creator": "bg-gradient-to-b from-rose-400 via-orange-400 to-pink-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
+  "/category/business": "bg-gradient-to-b from-orange-400 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(255,153,51,0.9)]",
+  "/category/seo": "bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
 };
 
 const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: string; text: string }> = {
@@ -146,6 +149,59 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     glow: "rgba(16,185,129,0.5)",
     text: "group-hover:text-emerald-200"
   },
+  "/category/developer": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-lime-500/15 group-hover:via-emerald-950/20 group-hover:to-transparent",
+    border: "group-hover:border-lime-400/40",
+    glow: "rgba(132,204,22,0.5)",
+    text: "group-hover:text-lime-200"
+  },
+  "/category/student": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-sky-500/15 group-hover:via-blue-950/20 group-hover:to-transparent",
+    border: "group-hover:border-sky-400/40",
+    glow: "rgba(14,165,233,0.5)",
+    text: "group-hover:text-sky-200"
+  },
+  "/category/creator": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-rose-500/15 group-hover:via-pink-950/20 group-hover:to-transparent",
+    border: "group-hover:border-rose-400/40",
+    glow: "rgba(244,63,94,0.5)",
+    text: "group-hover:text-rose-200"
+  },
+  "/category/business": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-orange-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
+    border: "group-hover:border-orange-400/40",
+    glow: "rgba(255,153,51,0.5)",
+    text: "group-hover:text-orange-200"
+  },
+  "/category/seo": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-cyan-500/15 group-hover:via-blue-950/20 group-hover:to-transparent",
+    border: "group-hover:border-cyan-400/40",
+    glow: "rgba(34,211,238,0.5)",
+    text: "group-hover:text-cyan-200"
+  },
+};
+
+const CATEGORY_ACTIVE_BG_STYLES: Record<string, string> = {
+  "/": "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/30 shadow-[0_4px_20px_rgba(168,85,247,0.2)]",
+  "/shop": "bg-gradient-to-r from-amber-500/20 via-orange-950/25 to-transparent border border-amber-400/35 shadow-[0_4px_25px_rgba(245,158,11,0.2)]",
+  "/giveaway": "bg-gradient-to-r from-amber-500/25 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_25px_rgba(245,158,11,0.25)]",
+  "/favorites": "bg-gradient-to-r from-yellow-500/20 via-amber-950/25 to-transparent border border-yellow-400/35 shadow-[0_4px_25px_rgba(251,191,36,0.2)]",
+  "/history": "bg-gradient-to-r from-blue-500/20 via-indigo-950/25 to-transparent border border-blue-400/35 shadow-[0_4px_25px_rgba(96,165,250,0.2)]",
+  "/referrals": "bg-gradient-to-r from-emerald-500/20 via-teal-950/25 to-transparent border border-emerald-400/35 shadow-[0_4px_25px_rgba(16,185,129,0.2)]",
+  "/admin": "bg-gradient-to-r from-rose-500/20 via-red-950/25 to-transparent border border-rose-400/35 shadow-[0_4px_25px_rgba(244,63,94,0.2)]",
+  "/pro": "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18)]",
+
+  "/category/image": "bg-gradient-to-r from-cyan-500/20 via-sky-950/25 to-transparent border border-cyan-400/40 shadow-[0_4px_20px_rgba(34,211,238,0.25)]",
+  "/category/video": "bg-gradient-to-r from-fuchsia-600/20 via-purple-950/25 to-transparent border border-fuchsia-400/40 shadow-[0_4px_20px_rgba(217,70,239,0.25)]",
+  "/category/audio": "bg-gradient-to-r from-pink-500/20 via-rose-950/25 to-transparent border border-pink-400/40 shadow-[0_4px_20px_rgba(236,72,153,0.25)]",
+  "/category/pdf": "bg-gradient-to-r from-orange-500/20 via-red-950/25 to-transparent border border-orange-400/40 shadow-[0_4px_20px_rgba(249,115,22,0.25)]",
+  "/category/ai": "bg-gradient-to-r from-amber-500/20 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_20px_rgba(245,158,11,0.25)]",
+  "/category/productivity": "bg-gradient-to-r from-emerald-500/20 via-teal-950/25 to-transparent border border-emerald-400/40 shadow-[0_4px_20px_rgba(16,185,129,0.25)]",
+  "/category/developer": "bg-gradient-to-r from-lime-500/20 via-emerald-950/25 to-transparent border border-lime-400/40 shadow-[0_4px_20px_rgba(132,204,22,0.25)]",
+  "/category/student": "bg-gradient-to-r from-sky-500/20 via-blue-950/25 to-transparent border border-sky-400/40 shadow-[0_4px_20px_rgba(14,165,233,0.25)]",
+  "/category/creator": "bg-gradient-to-r from-rose-500/20 via-pink-950/25 to-transparent border border-rose-400/40 shadow-[0_4px_20px_rgba(244,63,94,0.25)]",
+  "/category/business": "bg-gradient-to-r from-orange-500/20 via-amber-950/25 to-transparent border border-orange-400/40 shadow-[0_4px_20px_rgba(255,153,51,0.25)]",
+  "/category/seo": "bg-gradient-to-r from-cyan-500/20 via-blue-950/25 to-transparent border border-cyan-400/40 shadow-[0_4px_20px_rgba(34,211,238,0.25)]",
 };
 
 const ITEM_ICON_STYLES: Record<string, {
@@ -301,6 +357,24 @@ const ITEM_ICON_STYLES: Record<string, {
     activeIcon: "text-rose-200 fill-rose-400/35 drop-shadow-[0_0_14px_rgba(251,113,133,1)]",
     ambientGlow: "rgba(244,63,94,0.7)"
   },
+  "/category/business": {
+    borderGrad: "from-orange-400/50 via-amber-500/15 to-transparent group-hover:from-orange-300 group-hover:via-amber-500/40",
+    glowPool: "from-orange-400/35 via-amber-500/20 to-transparent",
+    icon: "text-orange-300 fill-orange-400/15 drop-shadow-[0_0_10px_rgba(255,153,51,0.95)]",
+    activeBorderGrad: "from-orange-400 via-amber-400 to-yellow-500",
+    activeGlowPool: "from-orange-400/70 via-amber-500/45 to-yellow-900/60",
+    activeIcon: "text-orange-200 fill-orange-400/35 drop-shadow-[0_0_14px_rgba(255,153,51,1)]",
+    ambientGlow: "rgba(255,153,51,0.7)"
+  },
+  "/category/seo": {
+    borderGrad: "from-cyan-400/50 via-blue-500/15 to-transparent group-hover:from-cyan-300 group-hover:via-blue-500/40",
+    glowPool: "from-cyan-400/35 via-blue-500/20 to-transparent",
+    icon: "text-cyan-300 fill-cyan-400/15 drop-shadow-[0_0_10px_rgba(34,211,238,0.95)]",
+    activeBorderGrad: "from-cyan-400 via-blue-400 to-indigo-500",
+    activeGlowPool: "from-cyan-400/70 via-blue-500/45 to-indigo-900/60",
+    activeIcon: "text-cyan-200 fill-cyan-400/35 drop-shadow-[0_0_14px_rgba(34,211,238,1)]",
+    ambientGlow: "rgba(34,211,238,0.7)"
+  },
 };
 
 function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-accent-purple", glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact, rightElement }: SidebarItemProps) {
@@ -333,17 +407,13 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
           isActive ? "text-white" : "text-zinc-400 hover:text-white"
         )}
       >
-        {/* Active Background - Luminous Glassmorphic Depth */}
+        {/* Active Background - Luminous Glassmorphic Depth with Category Unique Theme */}
         {isActive && (
           <motion.div 
             layoutId="sidebarActiveBg"
             className={cn(
               "absolute inset-0 backdrop-blur-xl rounded-2xl -z-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
-              href === "/giveaway"
-                ? "bg-gradient-to-r from-amber-500/25 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_25px_rgba(245,158,11,0.25)]"
-                : href === "/shop"
-                ? "bg-gradient-to-r from-amber-500/20 via-orange-950/25 to-transparent border border-amber-400/35 shadow-[0_4px_25px_rgba(245,158,11,0.2)]"
-                : "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18)]"
+              CATEGORY_ACTIVE_BG_STYLES[href] || "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18)]"
             )}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
@@ -614,7 +684,23 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
           >
             <ChevronDown
               size={14}
-              className={cn("transition-transform duration-300", isOpen && "rotate-180 text-purple-300")}
+              className={cn(
+                "transition-transform duration-300",
+                isOpen && "rotate-180",
+                isOpen && (
+                  category.id === "developer" ? "text-lime-300" :
+                  category.id === "image" ? "text-cyan-300" :
+                  category.id === "video" ? "text-fuchsia-300" :
+                  category.id === "audio" ? "text-pink-300" :
+                  category.id === "pdf" ? "text-orange-300" :
+                  category.id === "ai" ? "text-amber-300" :
+                  category.id === "productivity" ? "text-emerald-300" :
+                  category.id === "student" ? "text-sky-300" :
+                  category.id === "creator" ? "text-rose-300" :
+                  category.id === "business" ? "text-orange-300" :
+                  category.id === "seo" ? "text-cyan-300" : "text-purple-300"
+                )
+              )}
             />
           </button>
         }
@@ -627,7 +713,20 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden pl-4 pr-1 space-y-1.5 border-l-2 border-purple-500/20 ml-6 my-1.5"
+            className={cn(
+              "overflow-hidden pl-4 pr-1 space-y-1.5 border-l-2 ml-6 my-1.5",
+              category.id === "developer" ? "border-lime-500/25" :
+              category.id === "image" ? "border-cyan-500/25" :
+              category.id === "video" ? "border-fuchsia-500/25" :
+              category.id === "audio" ? "border-pink-500/25" :
+              category.id === "pdf" ? "border-orange-500/25" :
+              category.id === "ai" ? "border-amber-500/25" :
+              category.id === "productivity" ? "border-emerald-500/25" :
+              category.id === "student" ? "border-sky-500/25" :
+              category.id === "creator" ? "border-rose-500/25" :
+              category.id === "business" ? "border-orange-500/25" :
+              category.id === "seo" ? "border-cyan-500/25" : "border-purple-500/25"
+            )}
           >
             {categoryTools.map((tool) => {
               const ToolIcon = ICON_MAP[tool.icon] || Sparkles;
@@ -734,6 +833,11 @@ export function Sidebar() {
     pdf: 'rgba(249, 115, 22, 0.5)',
     ai: 'rgba(250, 204, 21, 0.5)',
     productivity: 'rgba(16, 185, 129, 0.5)',
+    developer: 'rgba(132, 204, 22, 0.5)',
+    student: 'rgba(14, 165, 233, 0.5)',
+    creator: 'rgba(244, 63, 94, 0.5)',
+    business: 'rgba(255, 153, 51, 0.5)',
+    seo: 'rgba(34, 211, 238, 0.5)',
   };
 
   const staggerVariants = {

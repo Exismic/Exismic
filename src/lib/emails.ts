@@ -1342,19 +1342,19 @@ export async function sendGiveawayLaunchAnnouncementEmail(details: {
     const { error } = await sendTrackedEmail('giveaway_launch', details.email, {
       from: SENDER_WELCOME,
       to: [details.email],
-      subject: `🎁 A New Giveaway is Live on Exismic! Win 500 Permanent Credits`,
+      subject: `🎁 Mega Giveaway is Live on Exismic! Win Up to 1,500 Permanent Credits`,
       html: renderTransactionalEmail({
-        preheader: `A brand new community giveaway is live! 3 lucky creators will win 500 Permanent Lifetime Credits each. Spend 100+ credits to enter.`,
-        badge: 'New Giveaway Drop',
-        title: '🎉 New <span style="background:linear-gradient(90deg,#fbbf24,#f59e0b,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fbbf24;">Giveaway is Live!</span>',
-        body: `Hey <strong>${safeName}</strong>, we are hosting an exclusive community giveaway on Exismic!`,
+        preheader: `A brand new mega giveaway is live! 3 lucky creators will win up to 1,500 Permanent Lifetime Credits (3,000 Credits total pool). Spend 250+ credits to enter.`,
+        badge: 'Mega Giveaway Drop',
+        title: '🎉 Mega <span style="background:linear-gradient(90deg,#fbbf24,#f59e0b,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fbbf24;">Giveaway is Live!</span>',
+        body: `Hey <strong>${safeName}</strong>, we are hosting an exclusive community mega giveaway on Exismic!`,
         content: `
           <div style="max-width:480px; margin:0 auto 24px; border-radius:24px; border:1px solid rgba(251,191,36,0.35); background:linear-gradient(135deg, rgba(251,191,36,0.14), rgba(245,158,11,0.05)); padding:26px; text-align:center;">
             <div style="font-size:38px; margin-bottom:12px;">🎁</div>
-            <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:#fbbf24; margin-bottom:6px;">1,500 Credits Prize Pool</div>
-            <div style="font-size:28px; font-weight:950; color:#ffffff; margin-bottom:8px; text-shadow:0 0 20px rgba(251,191,36,0.5); font-family:monospace;">3 WINNERS x 500c</div>
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:#fbbf24; margin-bottom:6px;">3,000 Credits Total Prize Pool</div>
+            <div style="font-size:24px; font-weight:950; color:#ffffff; margin-bottom:8px; text-shadow:0 0 20px rgba(251,191,36,0.5); font-family:monospace;">1ST: 1,500c · 2ND: 1,000c · 3RD: 500c</div>
             <div style="font-size:13px; font-weight:700; color:#d1d5db; line-height:1.6; margin-top:10px;">
-              Spend at least <strong>100 credits</strong> across any AI, Minecraft 3D Studio, or media tools during the giveaway window to be <strong>automatically entered</strong>!
+              Spend at least <strong>250 credits</strong> across any AI, Minecraft 3D Studio, or media tools during the giveaway window to be <strong>automatically entered</strong>!
             </div>
           </div>
           

@@ -68,11 +68,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
+export async function generateStaticParams() {
+  return CATEGORIES.map((c) => ({ id: c.id }));
+}
+
 export default async function CategoryPage({ params }: PageProps) {
-  const { id } = await params;
+  const resolvedParams = await params;
+  const id = resolvedParams?.id;
   const category = CATEGORIES.find(c => c.id === id);
 
   if (!category) {
+    console.error("[CategoryPage] Category not found for id:", id, "Available:", CATEGORIES.map(c => c.id));
     notFound();
   }
 

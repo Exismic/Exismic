@@ -47,6 +47,17 @@ interface GiveawayData {
     awarded: boolean;
     isCurrentUserWinner?: boolean;
   } | null;
+  winners?: Array<{
+    place: number;
+    rankTitle: string;
+    badge: string;
+    name: string;
+    email: string;
+    prizeAmount: number;
+    prizeDisplay: string;
+    awarded: boolean;
+    isCurrentUserWinner?: boolean;
+  }>;
   isUpcoming?: boolean;
   isActive?: boolean;
   isExpired?: boolean;
@@ -294,15 +305,15 @@ export function GiveawayPageClient() {
                     className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-orange-500/20 px-4 py-1.5 text-xs font-black text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)]"
                   >
                     <Sparkles className="size-3.5 text-amber-300 animate-spin" />
-                    <span className="tracking-wider uppercase">✨ SPECIAL COMMUNITY EVENT · COMING SOON</span>
+                    <span className="tracking-wider uppercase">Special Community Event · Coming Soon</span>
                   </motion.div>
                 </div>
 
                 {/* Big Title */}
                 <h1 className="mt-6 text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.15]">
-                  Yay! A New Giveaway is{" "}
+                  A Special Giveaway is{" "}
                   <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(245,158,11,0.6)]">
-                    Coming Soon 🎁
+                    Coming Soon
                   </span>
                 </h1>
 
@@ -516,20 +527,20 @@ export function GiveawayPageClient() {
                       <span>
                         {isGiveawayEnded
                           ? "Special Community Event · Concluded"
-                          : "Special Community Event · Live Active Event"}
+                          : "Special Community Event · Live Now"}
                       </span>
                     </motion.div>
 
                     <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl leading-[1.15]">
-                      Win{" "}
+                      Win Up to{" "}
                       <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(245,158,11,0.5)]">
-                        500 Permanent
+                        1,500 Permanent
                       </span>{" "}
                       Credits
                     </h1>
 
                     <p className="text-sm leading-relaxed text-zinc-300 sm:text-base max-w-xl">
-                      We are hosting an exclusive giveaway! <strong className="text-amber-200 font-black">3 lucky creators</strong> will randomly win <strong className="text-white font-black">500 Permanent Lifetime Credits</strong> each. Spend at least 100 credits across any Exismic tool to automatically qualify.
+                      We are hosting a massive community giveaway! <strong className="text-amber-200 font-black">3 lucky creators</strong> will win tiered permanent lifetime credits: <strong className="text-white font-black">1st (1,500c) · 2nd (1,000c) · 3rd (500c)</strong>. Spend at least 250 credits across any Exismic tool to automatically qualify.
                     </p>
 
                     <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -538,14 +549,14 @@ export function GiveawayPageClient() {
                         className="flex items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/[0.04] px-4 py-2.5 backdrop-blur-md shadow-sm transition hover:border-amber-400/40"
                       >
                         <Trophy className="size-4 text-amber-400" />
-                        <span className="text-xs font-bold text-zinc-200">3 Winners (500c Each)</span>
+                        <span className="text-xs font-bold text-zinc-200">1st: 1,500c · 2nd: 1,000c · 3rd: 500c</span>
                       </motion.div>
                       <motion.div
                         whileHover={{ y: -3, scale: 1.02 }}
                         className="flex items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/[0.04] px-4 py-2.5 backdrop-blur-md shadow-sm transition hover:border-amber-400/40"
                       >
                         <Coins className="size-4 text-amber-400" />
-                        <span className="text-xs font-bold text-zinc-200">1,500 Credits Prize Pool</span>
+                        <span className="text-xs font-bold text-zinc-200">3,000 Credits Total Pool</span>
                       </motion.div>
                       <motion.div
                         whileHover={{ y: -3, scale: 1.02 }}
@@ -653,8 +664,8 @@ export function GiveawayPageClient() {
                                 Giveaway Ends In
                               </span>
                             </div>
-                            <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase">
-                              Live Active Countdown
+                            <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-300">
+                              Ends August 25
                             </span>
                           </div>
 
@@ -723,7 +734,7 @@ export function GiveawayPageClient() {
                   <p className="text-xs text-zinc-400 sm:text-sm">
                     {isGiveawayEnded
                       ? "Giveaway window has concluded and all participant entries are locked and finalized."
-                      : "Spend 100 credits across any Exismic AI or media tool to automatically qualify."}
+                      : "Spend 250 credits across any Exismic AI or media tool to automatically qualify."}
                   </p>
                 </div>
 
@@ -797,7 +808,7 @@ export function GiveawayPageClient() {
                       </span>
                     </div>
                     <div className="mt-1 text-[11px] font-medium text-zinc-400">
-                      {isParticipated ? "100% Entered in Giveaway" : "Requires 100 credits spend"}
+                      {isParticipated ? "100% Entered in Giveaway" : "Requires 250 credits spend"}
                     </div>
                   </div>
 
@@ -868,7 +879,7 @@ export function GiveawayPageClient() {
                       </p>
                     ) : (
                       <p className="text-xs text-zinc-400 pt-1">
-                        💡 Tip: Use any AI generator, Minecraft skin studio, or copywriter tool to easily reach 100 credits!
+                        💡 Tip: Use any AI generator, Minecraft skin studio, or copywriter tool to easily reach 250 credits!
                       </p>
                     )}
                   </div>
@@ -889,27 +900,28 @@ export function GiveawayPageClient() {
                   <p className="mt-1 text-xs text-zinc-400 sm:text-sm">
                     {data?.winner
                       ? "The giveaway has concluded. Here are the 3 winning slots and awarded permanent credit balances."
-                      : "3 random participants who spend 100+ credits will be awarded 500 Permanent Credits each on August 25."}
+                      : "3 random participants who spend 250+ credits will be awarded tiered Permanent Credits on August 25."}
                   </p>
                 </div>
                 <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-xs font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
                   <Crown className="size-3.5 text-amber-400" />
-                  <span>1,500 Credits Total Pool</span>
+                  <span>3,000 Credits Total Pool</span>
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                 {[
                   {
                     slotNum: 1,
-                    rankLabel: "1ST PRIZE",
-                    rankBadge: "👑 Grand Prize",
-                    winnerName: data?.winner ? data.winner.name : null,
-                    amount: "500 Permanent Credits",
+                    rankBadge: "👑 1st Place",
+                    winnerName: data?.winners?.[0]?.name || data?.winner?.name || null,
+                    amount: "1,500 Permanent Credits",
+                    creditsTag: "+1,500 CREDITS",
+                    creditsNum: "1,500 Credits",
                     statusText: data?.winner
                       ? "Deposited into Account Balance"
-                      : "Random Selection at Expiry",
-                    borderColor: "border-amber-400/45 hover:border-amber-300",
+                      : "Random Selection on Expiry",
+                    borderColor: "border-amber-400/40 hover:border-amber-300",
                     bgGradient: "from-[#1a1205]/95 via-[#0e0a16]/95 to-[#07060b]/98",
                     glowShadow: "shadow-[0_15px_50px_rgba(245,158,11,0.2)]",
                     pillColor: "border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300",
@@ -919,13 +931,14 @@ export function GiveawayPageClient() {
                   },
                   {
                     slotNum: 2,
-                    rankLabel: "2ND PRIZE",
-                    rankBadge: "🥈 Lucky Winner #2",
-                    winnerName: data?.winner ? data.winner.name : null,
-                    amount: "500 Permanent Credits",
+                    rankBadge: "🥈 2nd Place",
+                    winnerName: data?.winners?.[1]?.name || null,
+                    amount: "1,000 Permanent Credits",
+                    creditsTag: "+1,000 CREDITS",
+                    creditsNum: "1,000 Credits",
                     statusText: data?.winner
                       ? "Deposited into Account Balance"
-                      : "Random Selection at Expiry",
+                      : "Random Selection on Expiry",
                     borderColor: "border-slate-300/35 hover:border-slate-200",
                     bgGradient: "from-[#121624]/95 via-[#0c0e18]/95 to-[#07060b]/98",
                     glowShadow: "shadow-[0_15px_50px_rgba(148,163,184,0.15)]",
@@ -936,28 +949,29 @@ export function GiveawayPageClient() {
                   },
                   {
                     slotNum: 3,
-                    rankLabel: "3RD PRIZE",
-                    rankBadge: "🥉 Lucky Winner #3",
-                    winnerName: data?.winner ? data.winner.name : null,
+                    rankBadge: "🥉 3rd Place",
+                    winnerName: data?.winners?.[2]?.name || null,
                     amount: "500 Permanent Credits",
+                    creditsTag: "+500 CREDITS",
+                    creditsNum: "500 Credits",
                     statusText: data?.winner
                       ? "Deposited into Account Balance"
-                      : "Random Selection at Expiry",
+                      : "Random Selection on Expiry",
                     borderColor: "border-amber-600/35 hover:border-amber-500",
                     bgGradient: "from-[#18100a]/95 via-[#0e0a14]/95 to-[#07060b]/98",
                     glowShadow: "shadow-[0_15px_50px_rgba(217,119,6,0.15)]",
                     pillColor: "border-amber-600/30 bg-gradient-to-r from-amber-700/20 to-orange-600/20 text-amber-300",
                     avatarBg: "border-amber-600/40 bg-gradient-to-br from-amber-600/30 via-orange-600/20 to-yellow-600/20 text-amber-200 shadow-[0_0_25px_rgba(217,119,6,0.3)]",
                     iconColor: "text-amber-400",
-                    accentTag: "Winner",
+                    accentTag: "Third Prize",
                   },
                 ].map((prize, idx) => (
                   <motion.div
                     key={idx}
-                    whileHover={{ y: -6, scale: 1.01 }}
+                    whileHover={{ y: -5, scale: 1.01 }}
                     transition={{ duration: 0.25 }}
                     className={cn(
-                      "relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-b p-6 backdrop-blur-2xl transition-all duration-300",
+                      "relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-b p-5 backdrop-blur-2xl transition-all duration-300 sm:p-6",
                       prize.borderColor,
                       prize.bgGradient,
                       prize.glowShadow
@@ -967,74 +981,63 @@ export function GiveawayPageClient() {
                     <div className="pointer-events-none absolute -top-16 -right-16 size-36 rounded-full bg-amber-400/10 blur-[40px]" />
 
                     <div>
-                      {/* Card Header Tag */}
-                      <div className="flex items-center justify-between">
+                      {/* Card Header Tag: Clean flex spacing without overlap */}
+                      <div className="flex items-center justify-between gap-2">
                         <span
                           className={cn(
-                            "rounded-full border px-3 py-1 text-[11px] font-black tracking-wider uppercase backdrop-blur-md",
+                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-black tracking-wider uppercase backdrop-blur-md whitespace-nowrap",
                             prize.pillColor
                           )}
                         >
                           {prize.rankBadge}
                         </span>
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-zinc-400">
+                        <span className="flex items-center gap-1 font-mono text-[11px] font-bold text-amber-300/90 shrink-0">
                           <Sparkles className="size-3 text-amber-400" />
-                          <span>{prize.rankLabel}</span>
+                          <span>{prize.creditsTag}</span>
                         </span>
                       </div>
 
                       {/* Winner Profile Body */}
-                      <div className="mt-6 flex items-center gap-4">
+                      <div className="mt-5 flex items-center gap-3.5">
                         <div
                           className={cn(
-                            "relative grid size-14 shrink-0 place-items-center rounded-2xl border text-xl font-black transition-transform duration-300 group-hover:scale-105",
+                            "relative grid size-12 shrink-0 place-items-center rounded-2xl border text-lg font-black transition-transform duration-300 group-hover:scale-105",
                             prize.avatarBg
                           )}
                         >
                           {prize.winnerName ? (
                             prize.winnerName.slice(0, 2).toUpperCase()
                           ) : (
-                            <Gift className="size-6 text-amber-300/80" />
+                            <Gift className="size-5 text-amber-300/80" />
                           )}
                           {prize.winnerName && (
-                            <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-black ring-2 ring-black">
+                            <span className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-black ring-2 ring-black">
                               ✓
                             </span>
                           )}
                         </div>
 
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                            {prize.winnerName ? "Verified Winner" : "Prize Slot Status"}
+                            {prize.winnerName ? "Verified Winner" : "Prize Amount"}
                           </div>
-                          <div className="mt-0.5 text-base font-black text-white">
+                          <div className="mt-0.5 text-base font-black text-white truncate">
                             {prize.winnerName ? (
                               prize.winnerName
                             ) : (
-                              <span className="text-zinc-400 italic">Unclaimed Slot</span>
+                              <span>{prize.creditsNum}</span>
                             )}
                           </div>
 
-                          {prize.winnerName ? (
-                            <div className="mt-1 flex items-center gap-1.5">
-                              <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 font-mono text-[11px] font-black text-amber-300">
-                                +500 CREDITS
-                              </span>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="text-xl font-black text-white">500 Credits</div>
-                              <div className="text-xs font-semibold text-amber-300">
-                                Permanent Lifetime Prize
-                              </div>
-                            </div>
-                          )}
+                          <div className="text-[11px] font-semibold text-amber-300/90">
+                            Permanent Lifetime Prize
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Status Footer */}
-                    <div className="mt-6 border-t border-white/10 pt-4">
+                    <div className="mt-5 border-t border-white/10 pt-3.5">
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2 text-zinc-300 font-medium">
                           <span
@@ -1050,13 +1053,12 @@ export function GiveawayPageClient() {
                               )}
                             />
                           </span>
-                          <span className="truncate text-[11px] font-semibold text-zinc-300">
-                            {prize.statusText}
+                          <span className="text-[11px]">
+                            {prize.winnerName ? "Awarded & Transferred" : prize.statusText}
                           </span>
                         </div>
-
-                        <span className="rounded-md bg-white/[0.05] px-2 py-0.5 font-mono text-[10px] font-bold text-amber-300">
-                          LIFETIME
+                        <span className="font-mono text-[10px] font-bold text-zinc-500 uppercase">
+                          {prize.accentTag}
                         </span>
                       </div>
                     </div>
@@ -1065,20 +1067,30 @@ export function GiveawayPageClient() {
               </div>
             </div>
 
-            {/* Quick Launch: Tools to Spend Credits & Enter */}
+            {/* Feature Tool Shortcuts: Spend Credits Fast */}
             <div className="mt-14">
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-black text-white sm:text-2xl">
-                    Spend Credits & Enter Instantly
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">⚡</span>
+                    <h2 className="text-xl font-black text-white sm:text-2xl">
+                      Featured Studios to Qualify
+                    </h2>
+                  </div>
                   <p className="mt-1 text-xs text-zinc-400 sm:text-sm">
-                    Launch any tool to generate images, remix Minecraft skins, or write articles to easily reach 100 credits.
+                    Generate Minecraft skins, AI art, 3D assets, and copy to easily reach your 250 credits goal.
                   </p>
                 </div>
+                <Link
+                  href="/tools"
+                  className="group inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 hover:text-amber-200 transition"
+                >
+                  <span>Explore All 40+ Tools</span>
+                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                </Link>
               </div>
 
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {FEATURED_TOOLS.map((tool) => {
                   const Icon = tool.icon;
                   return (
@@ -1086,7 +1098,7 @@ export function GiveawayPageClient() {
                       key={tool.id}
                       href={tool.href}
                       className={cn(
-                        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-b p-6 backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1.5",
+                        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-b p-6 backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl",
                         tool.borderGlow,
                         tool.cardBg
                       )}
@@ -1175,8 +1187,8 @@ export function GiveawayPageClient() {
                   {
                     num: "01",
                     icon: Flame,
-                    title: "100 Credits Qualification",
-                    desc: "Spend at least 100 credits across any Exismic AI, Minecraft 3D Studio, or media tools during the active giveaway window.",
+                    title: "250 Credits Qualification",
+                    desc: "Spend at least 250 credits across any Exismic AI, Minecraft 3D Studio, or media tools during the active giveaway window.",
                     border: "border-amber-400/25 hover:border-amber-400/50",
                     iconBg: "border-amber-400/30 bg-amber-400/10 text-amber-300",
                     badgeBg: "bg-amber-400/10 text-amber-300",
@@ -1185,7 +1197,7 @@ export function GiveawayPageClient() {
                     num: "02",
                     icon: CheckCircle2,
                     title: "100% Automatic Entry",
-                    desc: "No manual forms, surveys, or external sign-ups required. Your entry is registered automatically the instant you hit 100 credits.",
+                    desc: "No manual forms, surveys, or external sign-ups required. Your entry is registered automatically the instant you hit 250 credits.",
                     border: "border-emerald-400/25 hover:border-emerald-400/50",
                     iconBg: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
                     badgeBg: "bg-emerald-400/10 text-emerald-300",
@@ -1193,8 +1205,8 @@ export function GiveawayPageClient() {
                   {
                     num: "03",
                     icon: Sparkles,
-                    title: "Random Winner Selection",
-                    desc: "Winners are selected completely at random by our automated backend system when the live countdown timer expires.",
+                    title: "Tiered Winner Drawing",
+                    desc: "3 winners are drawn randomly by our backend: 1st Place (1,500c), 2nd Place (1,000c), and 3rd Place (500c).",
                     border: "border-purple-400/25 hover:border-purple-400/50",
                     iconBg: "border-purple-400/30 bg-purple-400/10 text-purple-300",
                     badgeBg: "bg-purple-400/10 text-purple-300",
@@ -1221,7 +1233,7 @@ export function GiveawayPageClient() {
                     num: "06",
                     icon: Users,
                     title: "Community First & Transparent",
-                    desc: "Every creator has equal winning odds. Winning accounts are publicly showcased in the official winners showcase at conclusion.",
+                    desc: "Every creator has equal winning odds. Winning accounts are publicly showcased in the official winners showcase at conclusion on August 25.",
                     border: "border-rose-400/25 hover:border-rose-400/50",
                     iconBg: "border-rose-400/30 bg-rose-400/10 text-rose-300",
                     badgeBg: "bg-rose-400/10 text-rose-300",
@@ -1287,7 +1299,7 @@ export function GiveawayPageClient() {
                   <div>
                     <div className="text-xs font-bold text-white">Spread the Word</div>
                     <div className="text-[11px] text-zinc-400">
-                      Invite other creators to participate and win 500 permanent credits.
+                      Invite other creators to participate and win up to 1,500 permanent credits.
                     </div>
                   </div>
                 </div>

@@ -19,6 +19,8 @@ const GradientText: React.FC<GradientTextProps> = ({
   glow = true,
   speed = 4,
 }) => {
+  const hasCustomBg = className?.includes("from-") || className?.includes("bg-gradient");
+
   return (
     <span className={cn(
       "relative inline-flex items-center font-outfit font-black tracking-tighter", 
@@ -26,10 +28,11 @@ const GradientText: React.FC<GradientTextProps> = ({
     )}>
       <motion.span
         className={cn(
-          "bg-clip-text text-transparent relative z-10 pr-1.5"
+          "bg-clip-text text-transparent relative z-10 pr-1.5",
+          hasCustomBg && className
         )}
         style={{
-          backgroundImage: "linear-gradient(to right, #A855F7, #6366F1, #22D3EE, #A855F7)",
+          backgroundImage: hasCustomBg ? undefined : "linear-gradient(to right, #A855F7, #6366F1, #22D3EE, #A855F7)",
           backgroundSize: "200% auto",
           WebkitBackgroundClip: "text",
         }}
