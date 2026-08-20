@@ -212,9 +212,7 @@ export function GiveawayPageClient() {
   const percentage = Math.min(100, Math.round((creditsSpent / targetCredits) * 100));
 
   const isUpcoming = Boolean(
-    data?.isUpcoming !== undefined
-      ? data.isUpcoming
-      : new Date().getTime() < new Date(giveaway.startsAt).getTime()
+    timeLeft.isUpcoming && new Date().getTime() < new Date(giveaway.startsAt).getTime()
   );
   const isGiveawayEnded = Boolean(
     !isUpcoming && (data?.winner || timeLeft.isEnded || data?.isExpired)
@@ -325,7 +323,7 @@ export function GiveawayPageClient() {
                       </span>
                     </div>
                     <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-0.5 text-[10px] font-bold text-amber-300">
-                      Tomorrow at 3:00 PM
+                      Starting Soon
                     </span>
                   </div>
 

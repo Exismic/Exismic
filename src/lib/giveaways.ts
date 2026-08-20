@@ -29,8 +29,8 @@ export const CURRENT_GIVEAWAY: ActiveGiveawayConfig = {
   prizeDisplay: "500 Permanent Credits",
   winnersCount: 3,
   requiredSpend: 100,
-  startsAt: "2026-08-20T15:00:00+05:30", // Tomorrow 3:00 PM
-  endsAt: "2026-08-25T15:00:00+05:30",   // August 25, 3:00 PM
+  startsAt: "2026-08-20T15:00:00+05:30", // Starts Today at 3:00 PM
+  endsAt: "2026-08-22T15:00:00+05:30",   // Ends August 22, 3:00 PM
   status: "scheduled",
   terms: [
     "Spend at least 100 credits across any Exismic AI, Minecraft 3D Studio, or media tools during the giveaway window.",
@@ -42,14 +42,19 @@ export const CURRENT_GIVEAWAY: ActiveGiveawayConfig = {
   ],
 };
 
+let isBroadcasting = false;
+
 export async function broadcastGiveawayLaunch() {
+  if (isBroadcasting) return;
+  isBroadcasting = true;
+
   const giveaway = CURRENT_GIVEAWAY;
   try {
     const allUsers = await prisma.user.findMany({
       select: { id: true, email: true, name: true, username: true },
     });
 
-    const notifTitle = `🎁 New Giveaway is Live: ${giveaway.prizeDisplay}!`;
+    const notifTitle = `🎁 Giveaway Live: ${giveaway.prizeDisplay}!`;
     const notifMsg = `Spend 100+ credits across any Exismic tool to automatically enter for a chance to win ${giveaway.prizeDisplay}!`;
 
     for (const user of allUsers) {
@@ -64,7 +69,8 @@ export async function broadcastGiveawayLaunch() {
         if (!existingNotif) {
           await createNotification(user.id, notifTitle, notifMsg, "success");
 
-          if (user.email) {
+          // Only send real emails in production to prevent spamming users during local dev testing
+          if (user.email && process.env.NODE_ENV === "production") {
             void sendGiveawayLaunchAnnouncementEmail({
               email: user.email,
               name: user.name || user.username || "Creator",
@@ -77,6 +83,8 @@ export async function broadcastGiveawayLaunch() {
     }
   } catch (err) {
     console.error("[Giveaway Launch Broadcast Error]:", err);
+  } finally {
+    isBroadcasting = false;
   }
 }
 

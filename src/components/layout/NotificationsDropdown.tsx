@@ -309,81 +309,87 @@ export function NotificationsDropdown() {
                         }
                       }}
                       className={cn(
-                        "p-4 mx-2 rounded-2xl transition-all flex gap-4 cursor-pointer relative group/item",
+                        "p-3.5 mx-2 rounded-2xl transition-all flex gap-3.5 cursor-pointer relative group/item",
                         isGiveaway
-                          ? "bg-amber-500/[0.06] hover:bg-amber-500/10 border border-amber-400/20"
+                          ? "border border-amber-400/25 bg-gradient-to-r from-amber-500/[0.08] via-amber-950/20 to-transparent hover:border-amber-400/40 hover:bg-amber-500/[0.12]"
                           : !n.read
-                          ? "bg-white/[0.03] hover:bg-white/[0.05]"
-                          : "opacity-60 hover:opacity-100 hover:bg-white/[0.02]"
+                          ? "bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08]"
+                          : "opacity-65 hover:opacity-100 hover:bg-white/[0.03] border border-transparent"
                       )}
                     >
                       <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                        isGiveaway ? "bg-amber-400/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)]" :
-                        n.type === 'success' ? "bg-emerald-500/10 text-emerald-500" : 
-                        n.type === 'warning' ? "bg-red-500/10 text-red-500" : "bg-accent-blue/10 text-accent-blue"
+                        "size-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5",
+                        isGiveaway ? "bg-amber-400/20 text-amber-300 shadow-[0_0_14px_rgba(245,158,11,0.35)] border border-amber-400/30" :
+                        n.type === 'success' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : 
+                        n.type === 'warning' ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-accent-blue/10 text-accent-blue border border-accent-blue/20"
                       )}>
-                         {isGiveaway ? <Gift size={18} /> :
-                          n.type === 'success' ? <Zap size={18} /> : 
-                          n.type === 'warning' ? <AlertCircle size={18} /> : <Clock size={18} />}
+                         {isGiveaway ? <Gift size={16} /> :
+                          n.type === 'success' ? <Zap size={16} /> : 
+                          n.type === 'warning' ? <AlertCircle size={16} /> : <Clock size={16} />}
                       </div>
                       
-                      <div className="flex-1 space-y-1">
-                         <div className="flex items-center justify-between">
-                            <p className={cn("text-xs font-bold tracking-tight", isGiveaway ? "text-amber-200" : "text-white")}>{n.title}</p>
-                            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1">
-                               {formatTime(n.createdAt)}
-                            </span>
+                      <div className="min-w-0 flex-1 space-y-1">
+                         <div className="flex items-start justify-between gap-2.5">
+                            <p className={cn("text-xs font-bold leading-snug break-words flex-1", isGiveaway ? "text-amber-200" : "text-white")}>
+                               {n.title}
+                            </p>
+                            <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+                               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider whitespace-nowrap">
+                                  {formatTime(n.createdAt)}
+                               </span>
+                               {!n.read && (
+                                 <span className={cn("size-1.5 rounded-full shrink-0", isGiveaway ? "bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.9)]" : "bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.9)]")} />
+                               )}
+                            </div>
                          </div>
+
                          <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">{n.message}</p>
+
                          {isGiveaway && (
-                           <div className="mt-2 inline-flex items-center gap-1 rounded-lg bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 text-[9px] font-black text-amber-300">
-                             <span>View Giveaway Details</span>
-                             <ArrowRight size={10} />
+                           <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/35 px-2.5 py-1 text-[10px] font-black text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)] transition group-hover/item:brightness-110">
+                             <span>View Giveaway Dashboard</span>
+                             <ArrowRight size={10} className="transition-transform group-hover/item:translate-x-0.5" />
                            </div>
                          )}
-                       {n.type.startsWith("claim:") && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              setClaimingId(n.id);
-                              try {
-                                const response = await fetch("/api/user/notifications", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ action: "claim", id: n.id }),
-                                });
-                                const data = await response.json();
-                                if (response.ok && data.success) {
-                                  setNotifications(prev => prev.filter(item => item.id !== n.id));
-                                  window.location.reload();
-                                } else {
-                                  alert(data.error || "Failed to claim reward.");
-                                }
-                              } catch (err) {
-                                console.error(err);
-                              } finally {
-                                setClaimingId(null);
-                              }
-                            }}
-                            disabled={claimingId === n.id}
-                            className="mt-2 w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1"
-                          >
-                            {claimingId === n.id ? (
-                              <>
-                                <Loader2 size={10} className="animate-spin" /> Claiming...
-                              </>
-                            ) : (
-                              "Claim Reward"
-                            )}
-                          </button>
-                        )}
-                    </div>
 
-                    {!n.read && (
-                      <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-accent-blue rounded-full" />
-                    )}
-                  </div>
+                         {n.type.startsWith("claim:") && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                setClaimingId(n.id);
+                                try {
+                                  const response = await fetch("/api/user/notifications", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ action: "claim", id: n.id }),
+                                  });
+                                  const data = await response.json();
+                                  if (response.ok && data.success) {
+                                    setNotifications(prev => prev.filter(item => item.id !== n.id));
+                                    window.location.reload();
+                                  } else {
+                                    alert(data.error || "Failed to claim reward.");
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                } finally {
+                                  setClaimingId(null);
+                                }
+                              }}
+                              disabled={claimingId === n.id}
+                              className="mt-2 w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1"
+                            >
+                              {claimingId === n.id ? (
+                                <>
+                                  <Loader2 size={10} className="animate-spin" /> Claiming...
+                                </>
+                              ) : (
+                                "Claim Reward"
+                              )}
+                            </button>
+                          )}
+                      </div>
+                    </div>
                   );
                 })
               ) : (

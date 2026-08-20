@@ -1332,6 +1332,12 @@ export async function sendGiveawayLaunchAnnouncementEmail(details: {
 }) {
   const safeName = escapeEmailText(details.name || details.email.split('@')[0]);
 
+  // Safeguard: Never send launch emails to real users during local testing
+  if (process.env.NODE_ENV !== 'production' && !details.email.toLowerCase().includes('syedrayan')) {
+    console.log(`[Email Safeguard] Skipped giveaway launch email to ${details.email} in local development.`);
+    return true;
+  }
+
   try {
     const { error } = await sendTrackedEmail('giveaway_launch', details.email, {
       from: SENDER_WELCOME,
