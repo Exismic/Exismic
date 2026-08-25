@@ -2054,26 +2054,26 @@ export default function AdminPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-amber-500/20 backdrop-blur-xl space-y-1.5">
                       <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Total Prize Pool</span>
-                      <h4 className="text-3xl font-black text-amber-300">{giveawayData?.giveaway.totalPrizePool.toLocaleString() || "3,000"}c</h4>
+                      <h4 className="text-3xl font-black text-amber-300">{giveawayData?.giveaway?.totalPrizePool?.toLocaleString() || "0"}c</h4>
                       <p className="text-[10px] text-zinc-500 font-medium">Permanent Lifetime Balance</p>
                     </div>
 
                     <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-emerald-500/20 backdrop-blur-xl space-y-1.5">
                       <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Qualified Entrants</span>
-                      <h4 className="text-3xl font-black text-emerald-400">{giveawayData?.stats.qualifiedCount || 0} Users</h4>
+                      <h4 className="text-3xl font-black text-emerald-400">{giveawayData?.stats?.qualifiedCount || 0} Users</h4>
                       <p className="text-[10px] text-zinc-500 font-medium">Spent ≥ 250 credits in window</p>
                     </div>
 
                     <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-cyan-500/20 backdrop-blur-xl space-y-1.5">
                       <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">In-Progress Users</span>
-                      <h4 className="text-3xl font-black text-cyan-300">{giveawayData?.stats.inProgressCount || 0} Users</h4>
+                      <h4 className="text-3xl font-black text-cyan-300">{giveawayData?.stats?.inProgressCount || 0} Users</h4>
                       <p className="text-[10px] text-zinc-500 font-medium">Currently building spend threshold</p>
                     </div>
 
                     <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-purple-500/20 backdrop-blur-xl space-y-1.5">
                       <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Total Event Spend</span>
-                      <h4 className="text-3xl font-black text-purple-300">{giveawayData?.stats.totalCreditsSpentInWindow.toLocaleString() || 0}c</h4>
-                      <p className="text-[10px] text-zinc-500 font-medium">Avg: {giveawayData?.stats.avgCreditsSpent || 0}c per participant</p>
+                      <h4 className="text-3xl font-black text-purple-300">{giveawayData?.stats?.totalCreditsSpentInWindow?.toLocaleString() || 0}c</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Avg: {giveawayData?.stats?.avgCreditsSpent || 0}c per participant</p>
                     </div>
                   </div>
 
@@ -2119,7 +2119,7 @@ export default function AdminPage() {
                         <Skeleton className="h-14 w-full bg-white/5 rounded-2xl" />
                         <Skeleton className="h-14 w-full bg-white/5 rounded-2xl" />
                       </div>
-                    ) : giveawayData?.participants.length === 0 ? (
+                    ) : !giveawayData?.participants || giveawayData.participants.length === 0 ? (
                       <div className="p-16 text-center text-zinc-500 text-xs font-bold uppercase tracking-wider">
                         No participants registered in the current giveaway window yet.
                       </div>
@@ -2138,7 +2138,7 @@ export default function AdminPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5">
-                            {giveawayData?.participants.map((p, idx) => (
+                            {giveawayData?.participants?.map((p, idx) => (
                               <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                                 {/* Creator Info */}
                                 <td className="py-3.5 px-5">
@@ -2148,7 +2148,7 @@ export default function AdminPage() {
                                       {p.avatar ? (
                                         <img src={p.avatar} alt="Avatar" className="w-full h-full object-cover" />
                                       ) : (
-                                        <span className="font-bold text-xs text-zinc-300">{p.name[0]?.toUpperCase() || "U"}</span>
+                                        <span className="font-bold text-xs text-zinc-300">{p.name?.[0]?.toUpperCase() || "U"}</span>
                                       )}
                                     </div>
                                     <div className="flex flex-col truncate max-w-[180px]">
