@@ -168,6 +168,7 @@ export function GiveawayPageClient() {
 
   // Live dual-phase countdown timer calculation
   useEffect(() => {
+    if (!giveaway) return;
     const startTime = new Date(giveaway.startsAt).getTime();
     const endTime = new Date(giveaway.endsAt).getTime();
 
@@ -213,31 +214,33 @@ export function GiveawayPageClient() {
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [giveaway.startsAt, giveaway.endsAt]);
+  }, [giveaway?.startsAt, giveaway?.endsAt]);
 
   const userProgress = data?.userProgress;
   const isParticipated = userProgress?.isParticipated || false;
   const creditsSpent = userProgress?.creditsSpent || 0;
-  const targetCredits = giveaway.requiredSpend;
+  const targetCredits = giveaway?.requiredSpend || 250;
   const remainingCredits = Math.max(0, targetCredits - creditsSpent);
   const percentage = Math.min(100, Math.round((creditsSpent / targetCredits) * 100));
 
   const isUpcoming = Boolean(
-    timeLeft.isUpcoming && new Date().getTime() < new Date(giveaway.startsAt).getTime()
+    giveaway && timeLeft.isUpcoming && new Date().getTime() < new Date(giveaway.startsAt).getTime()
   );
   const isGiveawayEnded = Boolean(
-    !isUpcoming && (data?.winner || timeLeft.isEnded || data?.isExpired)
+    giveaway && !isUpcoming && (data?.winner || timeLeft.isEnded || data?.isExpired)
   );
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      if (isUpcoming) {
+      if (!giveaway) {
+        document.title = "Giveaways | Exismic";
+      } else if (isUpcoming) {
         document.title = "New Giveaway Coming Soon | Exismic";
       } else {
         document.title = `${giveaway.title} | Exismic`;
       }
     }
-  }, [isUpcoming, giveaway.title]);
+  }, [isUpcoming, giveaway?.title]);
 
   const handleShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "https://exismic.com/giveaway";
@@ -247,6 +250,105 @@ export function GiveawayPageClient() {
       setTimeout(() => setCopied(false), 2500);
     }
   };
+
+  // When no giveaway is active, display the idle "No Active Giveaways Right Now" screen
+  if (!giveaway) {
+    return (
+      <div className="relative min-h-screen overflow-hidden pb-24 text-white">
+        {/* Dynamic Background Mesh */}
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -top-40 left-1/2 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-gradient-to-b from-amber-500/10 via-purple-600/10 to-transparent blur-[120px]" />
+          <div className="absolute top-1/3 right-0 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[130px]" />
+        </div>
+
+        <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8">
+          {/* Top Breadcrumb */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="text-xs font-semibold text-zinc-400 transition hover:text-white"
+              >
+                Dashboard
+              </Link>
+              <span className="text-zinc-600">/</span>
+              <span className="text-xs font-bold text-amber-300">Giveaways</span>
+            </div>
+          </div>
+
+          {/* Idle Obsidian Hero Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#0e0c16]/95 via-[#08070e]/95 to-[#040408]/98 p-8 sm:p-14 text-center shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
+          >
+            {/* Ambient Inner Glow */}
+            <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-96 rounded-full bg-amber-500/10 blur-[90px]" />
+
+            {/* Glowing Icon */}
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-yellow-500/15 to-orange-500/20 shadow-[0_0_35px_rgba(245,158,11,0.25)]">
+              <Gift className="h-10 w-10 text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.8)]" />
+            </div>
+
+            {/* Status Pill */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1 text-xs font-black uppercase tracking-wider text-zinc-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
+              <span>No Active Giveaways</span>
+            </div>
+
+            {/* Main Title */}
+            <h1 className="mt-5 text-3xl font-black tracking-tight text-white sm:text-5xl">
+              No New Giveaway{" "}
+              <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                Right Now
+              </span>
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+              There are no live community giveaways running at this moment. Stay tuned for future creator events, credit drops, and reward challenges!
+            </p>
+
+            {/* Quick Navigation Cards */}
+            <div className="mx-auto mt-10 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+              <Link
+                href="/"
+                className="group relative flex flex-col items-center rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center transition-all duration-300 hover:border-cyan-400/40 hover:bg-cyan-500/5 hover:scale-[1.02]"
+              >
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                  <Wand2 size={18} />
+                </div>
+                <h4 className="text-xs font-black uppercase text-white">AI Tools</h4>
+                <p className="mt-1 text-[11px] text-zinc-500">Explore 50+ AI Studio tools</p>
+              </Link>
+
+              <Link
+                href="/shop"
+                className="group relative flex flex-col items-center rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center transition-all duration-300 hover:border-amber-400/40 hover:bg-amber-500/5 hover:scale-[1.02]"
+              >
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-300 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                  <Flame size={18} />
+                </div>
+                <h4 className="text-xs font-black uppercase text-white">Daily Vault</h4>
+                <p className="mt-1 text-[11px] text-zinc-500">Claim your daily free bonus</p>
+              </Link>
+
+              <Link
+                href="/referrals"
+                className="group relative flex flex-col items-center rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center transition-all duration-300 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:scale-[1.02]"
+              >
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                  <Users size={18} />
+                </div>
+                <h4 className="text-xs font-black uppercase text-white">Referrals</h4>
+                <p className="mt-1 text-[11px] text-zinc-500">Invite & earn permanent credits</p>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden pb-24 text-white">

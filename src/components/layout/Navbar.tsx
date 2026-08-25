@@ -26,14 +26,24 @@ import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
-import { ManageSubscriptionModal } from "../tool/ManageSubscriptionModal";
-import { CreditModal } from "../ui/CreditModal";
+import dynamic from "next/dynamic";
+
+const ManageSubscriptionModal = dynamic(
+  () => import("../tool/ManageSubscriptionModal").then((mod) => mod.ManageSubscriptionModal),
+  { ssr: false }
+);
+
+const CreditModal = dynamic(
+  () => import("../ui/CreditModal").then((mod) => mod.CreditModal),
+  { ssr: false }
+);
 import { ProBadge } from "../ui/ProBadge";
 import { UserProfile } from "../ui/UserProfile";
 import { AvatarWithFrame } from "../ui/AvatarWithFrame";
 import { CreditTokenIcon } from "../ui/CreditTokenIcon";
 import { PremiumName } from "../ui/PremiumName";
 import { NotificationsDropdown } from "./NotificationsDropdown";
+import { PageTranslator } from "./PageTranslator";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -272,7 +282,7 @@ export function Navbar() {
               <span className="relative min-w-0 flex-1 truncate text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500 transition-colors group-hover/search:text-zinc-300">
                 Search tools, commands, and creations
               </span>
-              <kbd className="relative hidden h-7 shrink-0 items-center gap-1 rounded-lg border border-white/[0.08] bg-black/35 px-2 text-[8px] font-black uppercase tracking-[0.12em] text-zinc-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] group-hover/search:text-zinc-400 lg:flex">
+              <kbd className="relative hidden h-7 shrink-0 items-center gap-1 rounded-lg border border-white/[0.08] bg-black/35 px-2 text-[8px] font-black uppercase tracking-[0.12em] text-zinc-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] group-hover/search:text-zinc-400 lg:flex notranslate" translate="no">
                 Ctrl <span className="text-zinc-700">+</span> K
               </kbd>
               <span
@@ -455,14 +465,15 @@ export function Navbar() {
                 <Link 
                   href="/shop"
                   title="Open Credit Shop Vault & Claim Daily Bonus"
-                  className="group/vault relative flex h-10 cursor-pointer items-center gap-3 rounded-full p-[1px] shadow-[0_10px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(34,211,238,0.15)] transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_15px_45px_rgba(34,211,238,0.35),0_0_30px_rgba(168,85,247,0.25)] active:scale-95"
+                  className="group/vault relative flex h-10 cursor-pointer items-center gap-3 rounded-full p-[1px] shadow-[0_10px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(34,211,238,0.15)] transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_15px_45px_rgba(34,211,238,0.35),0_0_30px_rgba(168,85,247,0.25)] active:scale-95 notranslate"
+                  translate="no"
                 >
                   {/* Glowing Animated Outer Border Ring */}
                   <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/50 via-purple-500/50 to-fuchsia-500/50 opacity-70 blur-[2px] transition-all duration-500 group-hover/vault:opacity-100 group-hover/vault:blur-[4px]" />
                   <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/80 via-purple-400/80 to-fuchsia-400/80 p-[1px] transition-all" />
 
                   {/* Glassmorphic Inner Pill Container */}
-                  <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full bg-[#06070e]/92 pl-2 pr-3 backdrop-blur-2xl border border-white/[0.12] transition-colors duration-300 group-hover/vault:bg-[#090b16]/95 group-hover/vault:border-cyan-300/40">
+                  <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full bg-[#06070e]/92 pl-2 pr-3 backdrop-blur-2xl border border-white/[0.12] transition-colors duration-300 group-hover/vault:bg-[#090b16]/95 group-hover/vault:border-cyan-300/40 notranslate" translate="no">
                     {/* Ambient Glow & Reflection Sweep */}
                     <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_15%_50%,rgba(56,189,248,0.25),transparent_45%),radial-gradient(circle_at_85%_50%,rgba(168,85,247,0.2),transparent_40%)]" />
                     <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] transition-transform duration-1000 group-hover/vault:translate-x-56" />
@@ -470,15 +481,15 @@ export function Navbar() {
                     <CreditTokenIcon size="sm" />
 
                     {/* Numerical Credit Balance */}
-                    <span suppressHydrationWarning className="relative z-10 font-sans text-sm font-black tracking-tight tabular-nums text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                    <span suppressHydrationWarning className="relative z-10 font-sans text-sm font-black tracking-tight tabular-nums text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] notranslate" translate="no">
                       {credits.toLocaleString()}
                     </span>
 
                     {/* Sleek Ultra-Premium Cyber Vault Tag Badge */}
-                    <span className="relative overflow-hidden z-10 flex items-center gap-1.5 rounded-full border border-cyan-400/35 bg-gradient-to-r from-cyan-500/20 via-purple-500/15 to-indigo-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_15px_rgba(34,211,238,0.25)] backdrop-blur-md transition-all duration-300 group-hover/vault:border-cyan-300 group-hover/vault:shadow-[0_0_22px_rgba(34,211,238,0.55)] group-hover/vault:scale-[1.03]">
+                    <span className="relative overflow-hidden z-10 flex items-center gap-1.5 rounded-full border border-cyan-400/35 bg-gradient-to-r from-cyan-500/20 via-purple-500/15 to-indigo-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_15px_rgba(34,211,238,0.25)] backdrop-blur-md transition-all duration-300 group-hover/vault:border-cyan-300 group-hover/vault:shadow-[0_0_22px_rgba(34,211,238,0.55)] group-hover/vault:scale-[1.03] notranslate" translate="no">
                       <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
                       <Sparkles size={11} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0 animate-pulse" />
-                      <span className="relative z-10 font-sans font-black tracking-[0.2em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">VAULT</span>
+                      <span className="relative z-10 font-sans font-black tracking-[0.2em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] notranslate" translate="no">VAULT</span>
                     </span>
                   </div>
                 </Link>

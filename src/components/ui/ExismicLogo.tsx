@@ -86,23 +86,23 @@ export function ExismicLogo({
       : "text-[9px] tracking-[0.32em] mt-1.5";
 
   const logoContent = (
-    <div suppressHydrationWarning className={cn("flex items-center gap-3 group relative cursor-pointer select-none", className)}>
+    <div suppressHydrationWarning className={cn("flex items-center gap-3 group relative cursor-pointer select-none notranslate", className)} translate="no">
       <ExismicMark size={size} className={innerClassName} />
 
       {/* Premium Typography Branding */}
       {showText && (
-        <div className="flex flex-col justify-center text-left">
+        <div className="flex flex-col justify-center text-left notranslate" translate="no">
           <h1 className={cn(
-            "font-black tracking-[-0.015em] bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-100 to-zinc-400 group-hover:from-white group-hover:via-purple-100 group-hover:to-indigo-300 leading-none flex items-center transition-all duration-500",
+            "font-black tracking-[-0.015em] bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-100 to-zinc-400 group-hover:from-white group-hover:via-purple-100 group-hover:to-indigo-300 leading-none flex items-center transition-all duration-500 notranslate",
             titleSizeClass
-          )}>
+          )} translate="no">
             Exismic
             <span className="inline-block text-cyan-400 font-black drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] ml-[1px] group-hover:text-purple-400 group-hover:scale-125 transition-all duration-300">.</span>
           </h1>
           <span className={cn(
-            "font-black text-zinc-500 uppercase transition-colors duration-300",
+            "font-black text-zinc-500 uppercase transition-colors duration-300 notranslate",
             subtitleSizeClass
-          )}>
+          )} translate="no">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400/90 to-indigo-400/90 drop-shadow-[0_0_6px_rgba(168,85,247,0.3)]">AI</span>
             <span className="group-hover:text-zinc-400 transition-colors duration-300"> Studio</span>
           </span>

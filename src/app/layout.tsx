@@ -104,6 +104,8 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://mgirjaamphcgnispdofo.supabase.co" />
+        <link rel="preconnect" href="https://translate.googleapis.com" />
+        <link rel="preconnect" href="https://translate.google.com" />
       </head>
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white bg-[#030303]`} suppressHydrationWarning>
         <JsonLd type="Organization" data={defaultSchemaData.organization} />

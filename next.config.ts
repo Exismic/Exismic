@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   serverExternalPackages: ["pdf-parse"],
+  compress: true,
   async headers() {
     return [
       {
@@ -32,6 +33,14 @@ const nextConfig: NextConfig = {
     ];
   },
   experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "clsx",
+      "tailwind-merge",
+      "@supabase/supabase-js",
+      "uuid",
+    ],
     serverActions: {
       bodySizeLimit: "100mb",
     },

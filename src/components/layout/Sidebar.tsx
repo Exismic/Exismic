@@ -806,24 +806,12 @@ export function Sidebar() {
 
   const topItems = [
     { name: t('common.dashboard'), icon: LayoutDashboard, href: '/', accent: 'text-accent-purple', glow: 'rgba(124, 58, 237, 0.5)' },
-    { 
-      name: 'Giveaways', 
-      icon: Gift, 
-      href: '/giveaway', 
-      accent: 'text-amber-300', 
-      glow: 'rgba(245, 158, 11, 0.7)',
-      rightElement: (
-        <span className="relative flex items-center gap-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-2 py-0.5 text-[9px] font-black tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)] animate-pulse">
-          <span className="size-1.5 rounded-full bg-amber-400" />
-          NEW
-        </span>
-      ),
-    },
     { name: 'Daily Vault', icon: Flame, href: '/shop', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
     { name: t('common.history'), icon: Clock, href: '/history', accent: 'text-blue-400', glow: 'rgba(96, 165, 250, 0.5)' },
     { name: t('common.pro'), icon: Sparkles, href: '/pro', accent: 'text-accent-purple', glow: 'rgba(168, 85, 247, 0.5)' },
     { name: t('common.referrals', 'Referrals'), icon: Users, href: '/referrals', accent: 'text-emerald-400', glow: 'rgba(16, 185, 129, 0.5)' },
+    { name: 'Giveaways', icon: Gift, href: '/giveaway', accent: 'text-amber-300', glow: 'rgba(245, 158, 11, 0.5)' },
   ];
 
   const catGlows: Record<string, string> = {

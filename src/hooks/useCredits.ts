@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { PRICING_CONFIG } from '@/config/pricing';
 import { create } from 'zustand';
@@ -92,10 +92,15 @@ export function useCredits() {
     setUserId, setState, updateState, setLoading, setShowUpsell, setNotification, setCountdown
   } = store;
 
-  // Memoized background refresh function
+  // Memoized background refresh function with request deduplication
+  const lastRefreshRef = useRef<number>(0);
   const refreshCredits = useCallback(() => {
+    const now = Date.now();
+    if (now - lastRefreshRef.current < 1500) return; // Cooldown to avoid duplicate flood
+    lastRefreshRef.current = now;
+
     if (useCreditStore.getState().userId) {
-      fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' })
+      fetch(`/api/user/credits?t=${now}`, { cache: 'no-store' })
         .then(res => res.json())
         .then(json => {
           if (json.success && json.data) {
@@ -111,7 +116,8 @@ export function useCredits() {
               todayClaim: json.data.todayClaim || null,
             });
           }
-        });
+        })
+        .catch(err => console.warn("[CREDITS_REFRESH_SKIP]", err));
     }
   }, [setState]);
 

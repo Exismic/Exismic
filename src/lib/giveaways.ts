@@ -53,76 +53,31 @@ export const PRIZE_TIERS: GiveawayPrizeTier[] = [
   },
 ];
 
-export const CURRENT_GIVEAWAY: ActiveGiveawayConfig = {
-  id: "giveaway-aug-2026-mega",
-  title: "3,000 Permanent Credits Mega Giveaway",
-  subtitle: "1st Place: 1,500c · 2nd Place: 1,000c · 3rd Place: 500c",
-  totalPrizePool: 3000,
-  prizeType: "lifetime_credits",
-  prizeDisplay: "3,000 Permanent Credits Pool",
-  winnersCount: 3,
-  prizes: PRIZE_TIERS,
-  requiredSpend: 250,
-  startsAt: "2026-08-20T15:00:00+05:30", // Today at 3:00 PM
-  endsAt: "2026-08-25T15:00:00+05:30",   // August 25, 3:00 PM
-  status: "scheduled",
-  terms: [
-    "Spend at least 250 credits across any Exismic AI, Minecraft 3D Studio, or media tools during the giveaway window.",
-    "Participation is 100% automatic once you reach 250 credits spent — no manual forms required.",
-    "Only credits spent after the official launch will count towards entry qualification.",
-    "3 winners will be drawn randomly: 1st Place (1,500c), 2nd Place (1,000c), and 3rd Place (500c).",
-    "All prize credits are permanent Lifetime Credits that never expire and do not reset daily.",
-    "Winners will have credits deposited automatically directly into their account balance.",
-  ],
-};
+export const CURRENT_GIVEAWAY: ActiveGiveawayConfig | null = null;
 
 let isBroadcasting = false;
 
 export async function broadcastGiveawayLaunch() {
-  if (isBroadcasting) return;
-  isBroadcasting = true;
-
-  const giveaway = CURRENT_GIVEAWAY;
-  try {
-    const allUsers = await prisma.user.findMany({
-      select: { id: true, email: true, name: true, username: true },
-    });
-
-    const notifTitle = `🎁 Mega Giveaway Live: Win Up to 1,500 Credits!`;
-    const notifMsg = `Spend 250+ credits across any Exismic tool to automatically enter for a chance to win 1,500 Permanent Lifetime Credits (3,000 Credits Total Pool)!`;
-
-    for (const user of allUsers) {
-      try {
-        const existingNotif = await prisma.notification.findFirst({
-          where: {
-            userId: user.id,
-            title: notifTitle,
-          },
-        });
-
-        if (!existingNotif) {
-          await createNotification(user.id, notifTitle, notifMsg, "success");
-
-          if (user.email) {
-            void sendGiveawayLaunchAnnouncementEmail({
-              email: user.email,
-              name: user.name || user.username || "Creator",
-            });
-          }
-        }
-      } catch (userErr) {
-        console.error(`[Giveaway Broadcast User Error: ${user.id}]`, userErr);
-      }
-    }
-  } catch (err) {
-    console.error("[Giveaway Launch Broadcast Error]:", err);
-  } finally {
-    isBroadcasting = false;
-  }
+  if (!CURRENT_GIVEAWAY || isBroadcasting) return;
+  // Giveaway is inactive/cancelled, send no notifications or emails
 }
 
 export async function getUserGiveawayProgress(userId: string | null) {
   const giveaway = CURRENT_GIVEAWAY;
+
+  if (!giveaway) {
+    return {
+      giveaway: null,
+      userProgress: null,
+      isUpcoming: false,
+      isActive: false,
+      isExpired: false,
+      isCurrentUserWinner: false,
+      winner: null,
+      winners: [],
+    };
+  }
+
   const now = Date.now();
   const startDate = new Date(giveaway.startsAt);
   const endDate = new Date(giveaway.endsAt);

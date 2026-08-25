@@ -88,7 +88,7 @@ export async function resetCreditsIfNewDay(userId: string) {
         const isNewDay =
           !user.creditsLastReset || user.creditsLastReset < mostRecentReset;
 
-        if (!isNewDay && user.dailyCredits <= creditLimit && !isPlanExpired) return user;
+        if (!isNewDay && !isPlanExpired) return user;
 
         const updatedUser = await transaction.user.update({
           where: { id: userId },

@@ -34,7 +34,21 @@ import {
   Ban,
   RefreshCw,
   CheckCircle2,
-  Info
+  Info,
+  Gift,
+  ShieldAlert,
+  Flame,
+  UserCheck,
+  UserX,
+  Zap,
+  Terminal,
+  Code,
+  Cpu,
+  Wand2,
+  ExternalLink,
+  Layers,
+  Activity,
+  Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -89,6 +103,96 @@ interface ActivityFile {
   user: {
     name: string | null;
     email: string | null;
+  };
+}
+
+interface ModerationActivity {
+  id: string;
+  userId: string;
+  user: {
+    id: string;
+    name: string;
+    email: string | null;
+    username: string | null;
+    avatar: string | null;
+    plan: string;
+    status: string;
+    role: string;
+    totalCreditsRemaining: number;
+    joinedAt: string;
+  };
+  toolId: string;
+  toolType: string;
+  amountSpent: number;
+  balanceType: string;
+  transactionType: string;
+  description: string;
+  metadata: any;
+  mediaPreview: {
+    id: string;
+    resultUrl: string | null;
+    fileType: string;
+    originalName: string;
+  } | null;
+  createdAt: string;
+}
+
+interface GiveawayModerationParticipant {
+  id: string;
+  name: string;
+  email: string;
+  username: string | null;
+  avatar: string | null;
+  plan: string;
+  status: string;
+  currentBalance: number;
+  creditsSpent: number;
+  requiredSpend: number;
+  progressPercent: number;
+  isQualified: boolean;
+  firstSpendAt: string;
+  lastSpendAt: string;
+  toolsUsedCount: number;
+  toolsUsedList: string[];
+}
+
+interface GiveawayModerationData {
+  giveaway: {
+    id: string;
+    title: string;
+    subtitle: string;
+    totalPrizePool: number;
+    prizeDisplay: string;
+    requiredSpend: number;
+    prizes: Array<{ place: number; rankTitle: string; prizeAmount: number; prizeDisplay: string; badge: string }>;
+    startsAt: string;
+    endsAt: string;
+    status: string;
+  };
+  stats: {
+    totalParticipants: number;
+    qualifiedCount: number;
+    inProgressCount: number;
+    totalCreditsSpentInWindow: number;
+    avgCreditsSpent: number;
+    estimatedWinChancePercent: number;
+  };
+  participants: GiveawayModerationParticipant[];
+  awardedWinners: Array<{
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string | null;
+    avatar: string | null;
+    prizeAmount: number;
+    description: string | null;
+    awardedAt: string;
+  }>;
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
   };
 }
 
@@ -186,6 +290,47 @@ export default function AdminPage() {
   const [filePage, setFilePage] = useState(1);
   const [fileTotalPages, setFileTotalPages] = useState(1);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+
+  // Advanced Live Tool Moderation Stream State
+  const [moderationActivities, setModerationActivities] = useState<ModerationActivity[]>([]);
+  const [moderationStats, setModerationStats] = useState<{
+    executionsToday: number;
+    creditsSpentToday: number;
+    failedJobsToday: number;
+    totalUsers: number;
+  }>({
+    executionsToday: 0,
+    creditsSpentToday: 0,
+    failedJobsToday: 0,
+    totalUsers: 0,
+  });
+  const [moderationLoading, setModerationLoading] = useState(false);
+  const [moderationPage, setModerationPage] = useState(1);
+  const [moderationTotalPages, setModerationTotalPages] = useState(1);
+  const [moderationSearch, setModerationSearch] = useState("");
+  const [moderationToolFilter, setModerationToolFilter] = useState("all");
+  const [moderationTypeFilter, setModerationTypeFilter] = useState("all");
+  const [moderationSubTab, setModerationSubTab] = useState<"stream" | "media">("stream");
+
+  // Moderation Action Modals
+  const [inspectUser, setInspectUser] = useState<ModerationActivity["user"] | null>(null);
+  const [warnModalOpen, setWarnModalOpen] = useState(false);
+  const [warnUserTarget, setWarnUserTarget] = useState<ModerationActivity["user"] | null>(null);
+  const [warnReason, setWarnReason] = useState("");
+  const [adjustCreditsModalOpen, setAdjustCreditsModalOpen] = useState(false);
+  const [adjustCreditsTarget, setAdjustCreditsTarget] = useState<ModerationActivity["user"] | null>(null);
+  const [adjustAmount, setAdjustAmount] = useState(50);
+  const [adjustBalanceType, setAdjustBalanceType] = useState<"daily" | "bonus" | "lifetime">("lifetime");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Giveaway Manager Tab State
+  const [giveawayData, setGiveawayData] = useState<GiveawayModerationData | null>(null);
+  const [giveawayLoading, setGiveawayLoading] = useState(false);
+  const [giveawaySearch, setGiveawaySearch] = useState("");
+  const [giveawayFilter, setGiveawayFilter] = useState<"all" | "qualified" | "in_progress">("all");
+  const [giveawayPage, setGiveawayPage] = useState(1);
+  const [giveawayTotalPages, setGiveawayTotalPages] = useState(1);
 
   // Promos Tab State
   const [promos, setPromos] = useState<PromoCode[]>([]);
@@ -386,6 +531,9 @@ export default function AdminPage() {
       loadTickets(ticketPage, ticketSearch, ticketStatusFilter);
     } else if (activeTab === "activity") {
       loadActivity(filePage);
+      loadModerationActivity(moderationPage, moderationSearch, moderationToolFilter, moderationTypeFilter);
+    } else if (activeTab === "giveaways") {
+      loadGiveawayModeration(giveawayPage, giveawaySearch, giveawayFilter);
     } else if (activeTab === "promos") {
       loadPromos();
     } else if (activeTab === "announcements") {
@@ -401,7 +549,17 @@ export default function AdminPage() {
     } else if (activeTab === "tool_errors") {
       loadToolErrors(toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter);
     }
-  }, [activeTab, userPage, userSearch, userPlanFilter, userRoleFilter, ticketPage, ticketSearch, ticketStatusFilter, filePage, referralPage, logPage, toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter, authorized]);
+  }, [
+    activeTab, 
+    userPage, userSearch, userPlanFilter, userRoleFilter, 
+    ticketPage, ticketSearch, ticketStatusFilter, 
+    filePage, 
+    moderationPage, moderationSearch, moderationToolFilter, moderationTypeFilter,
+    giveawayPage, giveawaySearch, giveawayFilter,
+    referralPage, logPage, 
+    toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter, 
+    authorized
+  ]);
 
   // Loaders
   async function loadUsers(page: number, query: string, plan: string, role: string) {
@@ -446,6 +604,85 @@ export default function AdminPage() {
       console.error(err);
     }
   }
+
+  async function loadModerationActivity(page: number, search: string, toolId: string, type: string) {
+    setModerationLoading(true);
+    try {
+      const res = await fetch(
+        `/api/admin/moderation/activity?page=${page}&limit=20&search=${encodeURIComponent(search)}&toolId=${toolId === "all" ? "" : encodeURIComponent(toolId)}&type=${type}`
+      );
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setModerationActivities(data.activities);
+        setModerationStats(data.stats);
+        setModerationTotalPages(data.pagination.totalPages);
+        setModerationPage(data.pagination.page);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setModerationLoading(false);
+    }
+  }
+
+  async function loadGiveawayModeration(page: number, search: string, filter: string) {
+    setGiveawayLoading(true);
+    try {
+      const res = await fetch(
+        `/api/admin/giveaways/moderation?page=${page}&limit=25&search=${encodeURIComponent(search)}&filter=${filter}`
+      );
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setGiveawayData(data);
+        setGiveawayTotalPages(data.pagination.totalPages);
+        setGiveawayPage(data.pagination.page);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGiveawayLoading(false);
+    }
+  }
+
+  const handleExecuteUserAction = async (payload: {
+    action: string;
+    userId?: string;
+    fileId?: string;
+    reason?: string;
+    amount?: number;
+    balanceType?: string;
+  }) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/moderation/user-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(data.message || "Action executed successfully.");
+        if (activeTab === "activity") {
+          await loadModerationActivity(moderationPage, moderationSearch, moderationToolFilter, moderationTypeFilter);
+          await loadActivity(filePage);
+        } else if (activeTab === "giveaways") {
+          await loadGiveawayModeration(giveawayPage, giveawaySearch, giveawayFilter);
+        } else if (activeTab === "users") {
+          await loadUsers(userPage, userSearch, userPlanFilter, userRoleFilter);
+        }
+        setInspectUser(null);
+        setWarnModalOpen(false);
+        setAdjustCreditsModalOpen(false);
+      } else {
+        alert(data.error || "Failed to execute moderation action.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An unexpected error occurred while executing moderation action.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   async function loadPromos() {
     try {
@@ -836,11 +1073,12 @@ export default function AdminPage() {
             <div className="flex overflow-x-auto gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md max-w-fit scrollbar-none">
               {[
                 { id: "users", label: "Users Directory", icon: Users },
+                { id: "activity", label: "Live Moderation Stream", icon: ShieldAlert },
+                { id: "giveaways", label: "Giveaway Manager", icon: Gift },
                 { id: "giftcards", label: "Gift Cards Queue", icon: Ticket },
                 { id: "tool_errors", label: "Tool Error Logs", icon: AlertTriangle },
                 { id: "announcements", label: "Announcements", icon: Megaphone },
                 { id: "tickets", label: "Support Tickets", icon: Ticket },
-                { id: "activity", label: "Moderation Logs", icon: Eye },
                 { id: "promos", label: "Promo Codes", icon: Coins },
                 { id: "referrals", label: "Referrals", icon: Clock },
                 { id: "logs", label: "System Logs", icon: FileText },
@@ -1317,85 +1555,708 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* TAB 3: LIVE ACTIVITY & MODERATION */}
+              {/* TAB 3: LIVE ACTIVITY & UNIVERSAL MODERATION STREAM */}
               {activeTab === "activity" && (
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Platform Generation Stream</h3>
-                    <p className="text-xs text-zinc-500">Moderate recent creations across images, audio files, and videos.</p>
+                <div className="space-y-8">
+                  {/* Top Header & Live Counter Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+                        <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">Live Moderation & Tool Cockpit</h3>
+                      </div>
+                      <p className="text-xs text-zinc-400">Universal real-time stream of all 40+ AI tools, credit spends, prompts, and media generations.</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Sub-tab toggle: Stream vs Media Gallery */}
+                      <div className="flex p-1 rounded-xl bg-white/5 border border-white/10">
+                        <button
+                          onClick={() => setModerationSubTab("stream")}
+                          className={cn(
+                            "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                            moderationSubTab === "stream" ? "bg-accent-purple text-black font-black shadow-md" : "text-zinc-400 hover:text-white"
+                          )}
+                        >
+                          <Activity size={13} />
+                          Live Stream
+                        </button>
+                        <button
+                          onClick={() => setModerationSubTab("media")}
+                          className={cn(
+                            "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                            moderationSubTab === "media" ? "bg-accent-purple text-black font-black shadow-md" : "text-zinc-400 hover:text-white"
+                          )}
+                        >
+                          <Eye size={13} />
+                          Media Gallery ({files.length})
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          loadModerationActivity(moderationPage, moderationSearch, moderationToolFilter, moderationTypeFilter);
+                          loadActivity(filePage);
+                        }}
+                        disabled={moderationLoading}
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Refresh Stream"
+                      >
+                        <RefreshCw size={14} className={cn(moderationLoading && "animate-spin text-accent-purple")} />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {files.length === 0 ? (
-                      <div className="col-span-full text-center py-20 text-zinc-500 text-xs font-bold">No active generations catalogued.</div>
-                    ) : (
-                      files.map((file) => (
-                        <div key={file.id} className="relative group p-4 bg-[#0b0c12]/60 border border-white/5 rounded-3xl overflow-hidden hover:border-red-500/20 transition-all">
-                          {/* Top user badge */}
-                          <div className="flex justify-between items-start mb-3 border-b border-white/5 pb-2">
-                            <div className="flex flex-col max-w-[120px]">
-                              <span className="text-[10px] font-black text-white truncate">{file.user.name || "Explorer"}</span>
-                              <span className="text-[8px] text-zinc-500 truncate">{file.user.email}</span>
-                            </div>
-                            <span className="px-1.5 py-0.5 rounded bg-white/5 text-[8px] font-black uppercase tracking-wider text-zinc-400">{file.toolType}</span>
+                  {/* 4 Live Summary Metric Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-purple-500/20 backdrop-blur-xl space-y-2 relative overflow-hidden">
+                      <div className="flex items-center justify-between text-zinc-400">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Tool Calls (24h)</span>
+                        <Zap size={16} className="text-accent-purple" />
+                      </div>
+                      <h4 className="text-3xl font-black text-white">{moderationStats.executionsToday.toLocaleString()}</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Across all platform endpoints</p>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-amber-500/20 backdrop-blur-xl space-y-2 relative overflow-hidden">
+                      <div className="flex items-center justify-between text-zinc-400">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Credits Spent (24h)</span>
+                        <Coins size={16} className="text-amber-400" />
+                      </div>
+                      <h4 className="text-3xl font-black text-amber-300">-{moderationStats.creditsSpentToday.toLocaleString()}c</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Daily, bonus, & lifetime burns</p>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-rose-500/20 backdrop-blur-xl space-y-2 relative overflow-hidden">
+                      <div className="flex items-center justify-between text-zinc-400">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Failed Jobs</span>
+                        <AlertTriangle size={16} className="text-rose-400" />
+                      </div>
+                      <h4 className="text-3xl font-black text-rose-400">{moderationStats.failedJobsToday}</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Exceptions & API limits (24h)</p>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-cyan-500/20 backdrop-blur-xl space-y-2 relative overflow-hidden">
+                      <div className="flex items-center justify-between text-zinc-400">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Total Creators</span>
+                        <Users size={16} className="text-cyan-400" />
+                      </div>
+                      <h4 className="text-3xl font-black text-cyan-300">{moderationStats.totalUsers.toLocaleString()}</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Registered explorer accounts</p>
+                    </div>
+                  </div>
+
+                  {/* Filter & Search Bar */}
+                  {moderationSubTab === "stream" && (
+                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-3 rounded-2xl bg-[#0b0c12]/60 border border-white/5">
+                      <div className="relative flex-1">
+                        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        <input
+                          type="text"
+                          placeholder="Search creator by email, name, or username..."
+                          value={moderationSearch}
+                          onChange={(e) => {
+                            setModerationSearch(e.target.value);
+                            setModerationPage(1);
+                            loadModerationActivity(1, e.target.value, moderationToolFilter, moderationTypeFilter);
+                          }}
+                          className="w-full pl-9 pr-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-accent-purple"
+                        />
+                      </div>
+
+                      {/* Tool ID Filter */}
+                      <select
+                        value={moderationToolFilter}
+                        onChange={(e) => {
+                          setModerationToolFilter(e.target.value);
+                          setModerationPage(1);
+                          loadModerationActivity(1, moderationSearch, e.target.value, moderationTypeFilter);
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-[#0d0e15] border border-white/10 text-xs text-zinc-300 focus:outline-none focus:border-accent-purple cursor-pointer"
+                      >
+                        <option value="all">All Tools (40+)</option>
+                        <option value="minecraft-skin">Minecraft 3D Skin Studio</option>
+                        <option value="image/eraser">Magic Object Eraser</option>
+                        <option value="audio/vocal-remover">AI Vocal Stem Splitter</option>
+                        <option value="ai/img-gen">AI Image Generator</option>
+                        <option value="developer/code-gen">Code Studio & Generator</option>
+                        <option value="youtube/summarizer">YouTube AI Summarizer</option>
+                        <option value="image/photo-restorer">Photo Colorizer & Restorer</option>
+                        <option value="pdf/compressor">PDF Compressor / Merger</option>
+                      </select>
+
+                      {/* Spend / Type Filter */}
+                      <select
+                        value={moderationTypeFilter}
+                        onChange={(e) => {
+                          setModerationTypeFilter(e.target.value);
+                          setModerationPage(1);
+                          loadModerationActivity(1, moderationSearch, moderationToolFilter, e.target.value);
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-[#0d0e15] border border-white/10 text-xs text-zinc-300 focus:outline-none focus:border-accent-purple cursor-pointer"
+                      >
+                        <option value="all">All Transactions</option>
+                        <option value="spends">Credit Burns Only</option>
+                        <option value="media">With Media Outputs</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* STREAM SUB-VIEW */}
+                  {moderationSubTab === "stream" && (
+                    <div className="space-y-4">
+                      {moderationLoading && moderationActivities.length === 0 ? (
+                        <div className="space-y-3">
+                          <Skeleton className="h-16 w-full bg-white/5 rounded-2xl" />
+                          <Skeleton className="h-16 w-full bg-white/5 rounded-2xl" />
+                          <Skeleton className="h-16 w-full bg-white/5 rounded-2xl" />
+                        </div>
+                      ) : moderationActivities.length === 0 ? (
+                        <div className="p-16 text-center border border-dashed border-white/10 rounded-3xl text-zinc-500 text-xs font-bold uppercase tracking-wider">
+                          No tool activities found matching current search criteria.
+                        </div>
+                      ) : (
+                        <div className="rounded-3xl border border-white/5 bg-[#0b0c12]/60 overflow-hidden backdrop-blur-xl">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs text-zinc-400">
+                              <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                                <tr>
+                                  <th className="py-3.5 px-5">Creator</th>
+                                  <th className="py-3.5 px-4">Tool Used</th>
+                                  <th className="py-3.5 px-4">Credits Spent</th>
+                                  <th className="py-3.5 px-4">Input / Parameters</th>
+                                  <th className="py-3.5 px-4">Timestamp</th>
+                                  <th className="py-3.5 px-5 text-right">Moderation</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-white/5">
+                                {moderationActivities.map((act) => (
+                                  <tr key={act.id} className="hover:bg-white/[0.02] transition-colors group">
+                                    {/* Creator Column */}
+                                    <td className="py-3.5 px-5">
+                                      <div 
+                                        onClick={() => setInspectUser(act.user)}
+                                        className="flex items-center gap-3 cursor-pointer group/user max-w-[220px]"
+                                      >
+                                        <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                                          {act.user.avatar ? (
+                                            <img src={act.user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                          ) : (
+                                            <span className="font-bold text-xs text-zinc-300">{act.user.name?.[0]?.toUpperCase() || "U"}</span>
+                                          )}
+                                        </div>
+                                        <div className="flex flex-col truncate">
+                                          <div className="flex items-center gap-1.5 truncate">
+                                            <span className="font-bold text-white group-hover/user:text-accent-purple transition-colors truncate">
+                                              {act.user.name}
+                                            </span>
+                                            {act.user.plan === "pro" && (
+                                              <span className="px-1 py-0.2 rounded bg-amber-400/20 text-amber-300 text-[8px] font-black uppercase">PRO</span>
+                                            )}
+                                            {act.user.status === "suspended" && (
+                                              <span className="px-1 py-0.2 rounded bg-red-500/20 text-red-300 text-[8px] font-black uppercase">BANNED</span>
+                                            )}
+                                          </div>
+                                          <span className="text-[10px] text-zinc-500 truncate">{act.user.email}</span>
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    {/* Tool Column */}
+                                    <td className="py-3.5 px-4">
+                                      <div className="flex items-center gap-2">
+                                        <span className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-accent-purple shrink-0">
+                                          {act.toolId.includes("minecraft") ? <Flame size={12} className="text-emerald-400" /> :
+                                           act.toolId.includes("code") ? <Code size={12} className="text-lime-400" /> :
+                                           act.toolId.includes("audio") ? <Activity size={12} className="text-rose-400" /> :
+                                           act.toolId.includes("image") ? <Wand2 size={12} className="text-cyan-400" /> :
+                                           <Zap size={12} />}
+                                        </span>
+                                        <div className="flex flex-col">
+                                          <span className="font-bold text-zinc-200 uppercase tracking-tight text-[11px] truncate max-w-[140px]">
+                                            {act.toolId.replace("image/", "").replace("developer/", "").replace("audio/", "")}
+                                          </span>
+                                          <span className="text-[9px] text-zinc-500 capitalize">{act.toolType}</span>
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    {/* Credits Spent Column */}
+                                    <td className="py-3.5 px-4">
+                                      <div className="flex flex-col">
+                                        <span className="font-mono font-black text-amber-300 text-xs">
+                                          -{act.amountSpent} Credits
+                                        </span>
+                                        <span className="text-[9px] text-zinc-500 capitalize">
+                                          {act.balanceType} balance
+                                        </span>
+                                      </div>
+                                    </td>
+
+                                    {/* Input / Parameter Column */}
+                                    <td className="py-3.5 px-4 max-w-[220px]">
+                                      <div className="space-y-1">
+                                        <p className="text-[10px] font-mono text-zinc-300 line-clamp-2 bg-black/40 px-2 py-1 rounded-md border border-white/5" title={act.description}>
+                                          {act.metadata?.prompt || act.metadata?.originalName || act.description || "Executed standard processing"}
+                                        </p>
+                                        {act.mediaPreview?.resultUrl && (
+                                          <a 
+                                            href={act.mediaPreview.resultUrl} 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-[9px] font-bold text-cyan-400 hover:underline"
+                                          >
+                                            <ExternalLink size={9} /> View Output File
+                                          </a>
+                                        )}
+                                      </div>
+                                    </td>
+
+                                    {/* Timestamp Column */}
+                                    <td className="py-3.5 px-4 text-[11px] text-zinc-400 whitespace-nowrap">
+                                      {new Date(act.createdAt).toLocaleString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        second: "2-digit"
+                                      })}
+                                    </td>
+
+                                    {/* Quick Moderation Actions Column */}
+                                    <td className="py-3.5 px-5 text-right whitespace-nowrap">
+                                      <div className="flex items-center justify-end gap-1.5">
+                                        <button
+                                          onClick={() => setInspectUser(act.user)}
+                                          className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase"
+                                          title="Inspect Creator History"
+                                        >
+                                          Audit
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setWarnUserTarget(act.user);
+                                            setWarnReason("");
+                                            setWarnModalOpen(true);
+                                          }}
+                                          className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black transition-all text-[10px] font-black uppercase"
+                                          title="Warn Creator"
+                                        >
+                                          Warn
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setAdjustCreditsTarget(act.user);
+                                            setAdjustAmount(50);
+                                            setAdjustReason("");
+                                            setAdjustCreditsModalOpen(true);
+                                          }}
+                                          className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black transition-all text-[10px] font-black uppercase"
+                                          title="Adjust / Refund Credits"
+                                        >
+                                          +/-
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const action = act.user.status === "suspended" ? "unsuspend" : "suspend";
+                                            if (confirm(`Are you sure you want to ${action} ${act.user.name}?`)) {
+                                              handleExecuteUserAction({ action, userId: act.user.id });
+                                            }
+                                          }}
+                                          disabled={actionLoading}
+                                          className={cn(
+                                            "p-1.5 rounded-lg border transition-all text-[10px] font-black uppercase",
+                                            act.user.status === "suspended"
+                                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-black"
+                                              : "bg-red-500/10 border-red-500/20 text-red-300 hover:bg-red-500 hover:text-black"
+                                          )}
+                                          title={act.user.status === "suspended" ? "Unban Account" : "Suspend Account"}
+                                        >
+                                          {act.user.status === "suspended" ? <UserCheck size={12} /> : <UserX size={12} />}
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
 
-                          {/* Media Preview Box */}
-                          <div className="relative aspect-video w-full rounded-2xl bg-zinc-950/80 border border-white/5 overflow-hidden flex items-center justify-center text-zinc-600 mb-4">
-                            {file.fileType.startsWith("image/") && file.resultUrl ? (
-                              <img src={file.resultUrl} alt="User creation" className="w-full h-full object-cover" />
-                            ) : file.fileType.startsWith("audio/") && file.resultUrl ? (
-                              <audio src={file.resultUrl} controls className="max-w-[90%] scale-75" />
-                            ) : file.fileType.startsWith("video/") && file.resultUrl ? (
-                              <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                                <Play size={16} className="text-accent-purple" /> Video File
+                          {/* Pagination Footer */}
+                          {moderationTotalPages > 1 && (
+                            <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 bg-white/[0.01]">
+                              <span className="text-[10px] font-bold text-zinc-500">Page {moderationPage} of {moderationTotalPages}</span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    const prev = Math.max(moderationPage - 1, 1);
+                                    setModerationPage(prev);
+                                    loadModerationActivity(prev, moderationSearch, moderationToolFilter, moderationTypeFilter);
+                                  }}
+                                  disabled={moderationPage === 1 || moderationLoading}
+                                  className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                  <ChevronLeft size={14} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const next = Math.min(moderationPage + 1, moderationTotalPages);
+                                    setModerationPage(next);
+                                    loadModerationActivity(next, moderationSearch, moderationToolFilter, moderationTypeFilter);
+                                  }}
+                                  disabled={moderationPage === moderationTotalPages || moderationLoading}
+                                  className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                  <ChevronRight size={14} />
+                                </button>
                               </div>
-                            ) : (
-                              <div className="text-[10px] font-black uppercase tracking-wider text-zinc-600">No Preview</div>
-                            )}
-                          </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                          {/* File details */}
-                          <div className="flex justify-between items-center">
-                            <span className="text-[9px] text-zinc-500 font-bold">{new Date(file.createdAt).toLocaleDateString()}</span>
+                  {/* MEDIA GALLERY SUB-VIEW */}
+                  {moderationSubTab === "media" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {files.length === 0 ? (
+                          <div className="col-span-full text-center py-20 text-zinc-500 text-xs font-bold">No active generations catalogued.</div>
+                        ) : (
+                          files.map((file) => (
+                            <div key={file.id} className="relative group p-4 bg-[#0b0c12]/60 border border-white/5 rounded-3xl overflow-hidden hover:border-red-500/20 transition-all">
+                              <div className="flex justify-between items-start mb-3 border-b border-white/5 pb-2">
+                                <div className="flex flex-col max-w-[120px]">
+                                  <span className="text-[10px] font-black text-white truncate">{file.user.name || "Explorer"}</span>
+                                  <span className="text-[8px] text-zinc-500 truncate">{file.user.email}</span>
+                                </div>
+                                <span className="px-1.5 py-0.5 rounded bg-white/5 text-[8px] font-black uppercase tracking-wider text-zinc-400">{file.toolType}</span>
+                              </div>
+
+                              <div className="relative aspect-video w-full rounded-2xl bg-zinc-950/80 border border-white/5 overflow-hidden flex items-center justify-center text-zinc-600 mb-4">
+                                {file.fileType.startsWith("image/") && file.resultUrl ? (
+                                  <img src={file.resultUrl} alt="User creation" className="w-full h-full object-cover" />
+                                ) : file.fileType.startsWith("audio/") && file.resultUrl ? (
+                                  <audio src={file.resultUrl} controls className="max-w-[90%] scale-75" />
+                                ) : file.fileType.startsWith("video/") && file.resultUrl ? (
+                                  <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                    <Play size={16} className="text-accent-purple" /> Video File
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] font-black uppercase tracking-wider text-zinc-600">No Preview</div>
+                                )}
+                              </div>
+
+                              <div className="flex justify-between items-center">
+                                <span className="text-[9px] text-zinc-500 font-bold">{new Date(file.createdAt).toLocaleDateString()}</span>
+                                <button
+                                  onClick={() => handleModerationDelete(file.id)}
+                                  disabled={deletingFileId === file.id}
+                                  className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                  {deletingFileId === file.id ? (
+                                    <Loader2 size={12} className="animate-spin" />
+                                  ) : (
+                                    <Trash2 size={12} />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {fileTotalPages > 1 && (
+                        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 bg-white/[0.01] rounded-3xl">
+                          <span className="text-[10px] font-bold text-zinc-500">Page {filePage} of {fileTotalPages}</span>
+                          <div className="flex items-center gap-2">
                             <button
-                              onClick={() => handleModerationDelete(file.id)}
-                              disabled={deletingFileId === file.id}
-                              className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black transition-all active:scale-95 disabled:opacity-50"
+                              onClick={() => setFilePage(p => Math.max(p - 1, 1))}
+                              disabled={filePage === 1}
+                              className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                             >
-                              {deletingFileId === file.id ? (
-                                <Loader2 size={12} className="animate-spin" />
-                              ) : (
-                                <Trash2 size={12} />
-                              )}
+                              <ChevronLeft size={14} />
+                            </button>
+                            <button
+                              onClick={() => setFilePage(p => Math.min(p + 1, fileTotalPages))}
+                              disabled={filePage === fileTotalPages}
+                              className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                              <ChevronRight size={14} />
                             </button>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
-                  {fileTotalPages > 1 && (
-                    <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 bg-white/[0.01] rounded-3xl">
-                      <span className="text-[10px] font-bold text-zinc-500">Page {filePage} of {fileTotalPages}</span>
-                      <div className="flex items-center gap-2">
+              {/* TAB: GIVEAWAY MANAGER & PARTICIPANT MODERATION */}
+              {activeTab === "giveaways" && (
+                <div className="space-y-8">
+                  {/* Event Status Banner */}
+                  <div className="relative p-8 rounded-[2.5rem] bg-linear-to-br from-amber-950/40 via-[#0b0c12] to-[#0b0c12] border border-amber-500/30 overflow-hidden backdrop-blur-xl space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                          <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-ping" />
+                          Official Mega Giveaway Event
+                        </div>
+                        <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-white">
+                          {giveawayData?.giveaway?.title || "No Active Giveaway Event"}
+                        </h3>
+                        <p className="text-xs text-zinc-400 max-w-2xl">
+                          Admin Command Deck for monitoring qualified entrants, verifying credit spend thresholds (250c minimum), and drawing eligible winners.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
                         <button
-                          onClick={() => setFilePage(p => Math.max(p - 1, 1))}
-                          disabled={filePage === 1}
-                          className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          onClick={() => loadGiveawayModeration(giveawayPage, giveawaySearch, giveawayFilter)}
+                          disabled={giveawayLoading}
+                          className="px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black text-xs uppercase tracking-wider hover:bg-amber-300 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(251,191,36,0.4)] cursor-pointer"
                         >
-                          <ChevronLeft size={14} />
-                        </button>
-                        <button
-                          onClick={() => setFilePage(p => Math.min(p + 1, fileTotalPages))}
-                          disabled={filePage === fileTotalPages}
-                          className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                        >
-                          <ChevronRight size={14} />
+                          <RefreshCw size={14} className={cn(giveawayLoading && "animate-spin")} />
+                          Refresh Data
                         </button>
                       </div>
                     </div>
-                  )}
+
+                    {/* Prize Tier Badges */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/5 relative z-10">
+                      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+                        <Award size={24} className="text-amber-300 shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-black text-amber-300 uppercase tracking-widest">1st Place Grand Prize</p>
+                          <p className="text-lg font-black text-white">1,500 Lifetime Credits</p>
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-3">
+                        <Award size={24} className="text-cyan-300 shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-black text-cyan-300 uppercase tracking-widest">2nd Place Prize</p>
+                          <p className="text-lg font-black text-white">1,000 Lifetime Credits</p>
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center gap-3">
+                        <Award size={24} className="text-purple-300 shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-black text-purple-300 uppercase tracking-widest">3rd Place Prize</p>
+                          <p className="text-lg font-black text-white">500 Lifetime Credits</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4 Summary Stat Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-amber-500/20 backdrop-blur-xl space-y-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Total Prize Pool</span>
+                      <h4 className="text-3xl font-black text-amber-300">{giveawayData?.giveaway.totalPrizePool.toLocaleString() || "3,000"}c</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Permanent Lifetime Balance</p>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-emerald-500/20 backdrop-blur-xl space-y-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Qualified Entrants</span>
+                      <h4 className="text-3xl font-black text-emerald-400">{giveawayData?.stats.qualifiedCount || 0} Users</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Spent ≥ 250 credits in window</p>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-cyan-500/20 backdrop-blur-xl space-y-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">In-Progress Users</span>
+                      <h4 className="text-3xl font-black text-cyan-300">{giveawayData?.stats.inProgressCount || 0} Users</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Currently building spend threshold</p>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-[#0b0c12]/80 border border-purple-500/20 backdrop-blur-xl space-y-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Total Event Spend</span>
+                      <h4 className="text-3xl font-black text-purple-300">{giveawayData?.stats.totalCreditsSpentInWindow.toLocaleString() || 0}c</h4>
+                      <p className="text-[10px] text-zinc-500 font-medium">Avg: {giveawayData?.stats.avgCreditsSpent || 0}c per participant</p>
+                    </div>
+                  </div>
+
+                  {/* Filter & Search Bar */}
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-3 rounded-2xl bg-[#0b0c12]/60 border border-white/5">
+                    <div className="relative flex-1">
+                      <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <input
+                        type="text"
+                        placeholder="Search participant by name, email, or username..."
+                        value={giveawaySearch}
+                        onChange={(e) => {
+                          setGiveawaySearch(e.target.value);
+                          setGiveawayPage(1);
+                          loadGiveawayModeration(1, e.target.value, giveawayFilter);
+                        }}
+                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    {/* Status Filter */}
+                    <select
+                      value={giveawayFilter}
+                      onChange={(e) => {
+                        const nextFilter = e.target.value as any;
+                        setGiveawayFilter(nextFilter);
+                        setGiveawayPage(1);
+                        loadGiveawayModeration(1, giveawaySearch, nextFilter);
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-[#0d0e15] border border-white/10 text-xs text-zinc-300 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    >
+                      <option value="all">All Participants ({giveawayData?.stats.totalParticipants || 0})</option>
+                      <option value="qualified">Qualified Only (≥ 250c)</option>
+                      <option value="in_progress">In Progress (&lt; 250c)</option>
+                    </select>
+                  </div>
+
+                  {/* Participant Table */}
+                  <div className="rounded-3xl border border-white/5 bg-[#0b0c12]/60 overflow-hidden backdrop-blur-xl space-y-4">
+                    {giveawayLoading && !giveawayData ? (
+                      <div className="p-8 space-y-3">
+                        <Skeleton className="h-14 w-full bg-white/5 rounded-2xl" />
+                        <Skeleton className="h-14 w-full bg-white/5 rounded-2xl" />
+                        <Skeleton className="h-14 w-full bg-white/5 rounded-2xl" />
+                      </div>
+                    ) : giveawayData?.participants.length === 0 ? (
+                      <div className="p-16 text-center text-zinc-500 text-xs font-bold uppercase tracking-wider">
+                        No participants registered in the current giveaway window yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-zinc-400">
+                          <thead className="bg-white/[0.02] border-b border-white/5 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                            <tr>
+                              <th className="py-3.5 px-5">Creator</th>
+                              <th className="py-3.5 px-4">Event Spend</th>
+                              <th className="py-3.5 px-4">Progress to 250c</th>
+                              <th className="py-3.5 px-4">Status</th>
+                              <th className="py-3.5 px-4">First Activity</th>
+                              <th className="py-3.5 px-4">Tools Used</th>
+                              <th className="py-3.5 px-5 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {giveawayData?.participants.map((p, idx) => (
+                              <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                                {/* Creator Info */}
+                                <td className="py-3.5 px-5">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-mono font-bold text-xs text-zinc-500 w-4">#{idx + 1}</span>
+                                    <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                                      {p.avatar ? (
+                                        <img src={p.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                      ) : (
+                                        <span className="font-bold text-xs text-zinc-300">{p.name[0]?.toUpperCase() || "U"}</span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col truncate max-w-[180px]">
+                                      <div className="flex items-center gap-1.5 truncate">
+                                        <span className="font-bold text-white truncate">{p.name}</span>
+                                        {p.plan === "pro" && (
+                                          <span className="px-1 py-0.2 rounded bg-amber-400/20 text-amber-300 text-[8px] font-black uppercase">PRO</span>
+                                        )}
+                                      </div>
+                                      <span className="text-[10px] text-zinc-500 truncate">{p.email}</span>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Event Spend */}
+                                <td className="py-3.5 px-4">
+                                  <div className="flex flex-col">
+                                    <span className="font-mono font-black text-sm text-amber-300">
+                                      {p.creditsSpent} / 250c
+                                    </span>
+                                    <span className="text-[9px] text-zinc-500">Balance: {p.currentBalance}c</span>
+                                  </div>
+                                </td>
+
+                                {/* Progress Bar */}
+                                <td className="py-3.5 px-4 w-44">
+                                  <div className="space-y-1">
+                                    <div className="h-2 w-full rounded-full bg-white/5 border border-white/10 overflow-hidden">
+                                      <div 
+                                        className={cn(
+                                          "h-full rounded-full transition-all duration-500",
+                                          p.isQualified 
+                                            ? "bg-linear-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]" 
+                                            : "bg-linear-to-r from-amber-500 to-yellow-400"
+                                        )}
+                                        style={{ width: `${p.progressPercent}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-[9px] font-mono text-zinc-400">{p.progressPercent}% achieved</span>
+                                  </div>
+                                </td>
+
+                                {/* Status Badge */}
+                                <td className="py-3.5 px-4">
+                                  {p.isQualified ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                                      <CheckCircle2 size={11} /> Qualified
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                                      <Clock size={11} /> In Progress
+                                    </span>
+                                  )}
+                                </td>
+
+                                {/* First Activity Date */}
+                                <td className="py-3.5 px-4 text-[11px] text-zinc-400 whitespace-nowrap">
+                                  {new Date(p.firstSpendAt).toLocaleDateString()}
+                                </td>
+
+                                {/* Tools Used Tag */}
+                                <td className="py-3.5 px-4">
+                                  <div className="flex flex-wrap gap-1 max-w-[160px]">
+                                    {p.toolsUsedList.slice(0, 2).map((tool) => (
+                                      <span key={tool} className="px-1.5 py-0.5 rounded bg-white/5 text-[9px] font-mono text-zinc-400">
+                                        {tool.split("/").pop()}
+                                      </span>
+                                    ))}
+                                    {p.toolsUsedList.length > 2 && (
+                                      <span className="px-1 py-0.5 rounded bg-white/5 text-[9px] font-mono text-zinc-500">
+                                        +{p.toolsUsedList.length - 2}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                {/* Action Column */}
+                                <td className="py-3.5 px-5 text-right whitespace-nowrap">
+                                  <button
+                                    onClick={() => {
+                                      setAdjustCreditsTarget({
+                                        id: p.id,
+                                        name: p.name,
+                                        email: p.email,
+                                        username: p.username,
+                                        avatar: p.avatar,
+                                        plan: p.plan,
+                                        status: p.status,
+                                        role: "user",
+                                        totalCreditsRemaining: p.currentBalance,
+                                        joinedAt: p.firstSpendAt,
+                                      });
+                                      setAdjustAmount(50);
+                                      setAdjustReason("Giveaway reward / bonus adjustment");
+                                      setAdjustCreditsModalOpen(true);
+                                    }}
+                                    className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black transition-all text-[10px] font-black uppercase"
+                                  >
+                                    Adjust
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -2440,6 +3301,252 @@ export default function AdminPage() {
                     </pre>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL 4: FORENSIC USER INSPECTION AUDIT MODAL */}
+        {inspectUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg p-8 rounded-[2.5rem] bg-[#0b0c12] border border-white/10 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                    {inspectUser.avatar ? (
+                      <img src={inspectUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="font-black text-base text-white">{inspectUser.name[0]?.toUpperCase() || "U"}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white">{inspectUser.name}</h3>
+                    <p className="text-xs text-zinc-400 font-mono">{inspectUser.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setInspectUser(null)}
+                  className="p-2 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                  <span className="text-[9px] font-black uppercase text-zinc-500">Plan Tier</span>
+                  <p className="text-sm font-black text-accent-purple uppercase">{inspectUser.plan}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                  <span className="text-[9px] font-black uppercase text-zinc-500">Account Status</span>
+                  <p className={cn("text-sm font-black uppercase", inspectUser.status === "suspended" ? "text-rose-400" : "text-emerald-400")}>
+                    {inspectUser.status}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                  <span className="text-[9px] font-black uppercase text-zinc-500">Total Balance Remaining</span>
+                  <p className="text-sm font-black text-amber-300 font-mono">{inspectUser.totalCreditsRemaining} Credits</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                  <span className="text-[9px] font-black uppercase text-zinc-500">Account Created</span>
+                  <p className="text-xs font-medium text-zinc-300">{new Date(inspectUser.joinedAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Quick Moderation Controls</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => {
+                      setWarnUserTarget(inspectUser);
+                      setWarnReason("");
+                      setWarnModalOpen(true);
+                    }}
+                    className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black font-black text-xs uppercase tracking-wider transition-all"
+                  >
+                    Send Warning
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAdjustCreditsTarget(inspectUser);
+                      setAdjustAmount(50);
+                      setAdjustReason("");
+                      setAdjustCreditsModalOpen(true);
+                    }}
+                    className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black font-black text-xs uppercase tracking-wider transition-all"
+                  >
+                    Adjust Credits
+                  </button>
+                  <button
+                    onClick={() => {
+                      const action = inspectUser.status === "suspended" ? "unsuspend" : "suspend";
+                      if (confirm(`Are you sure you want to ${action} this creator account?`)) {
+                        handleExecuteUserAction({ action, userId: inspectUser.id });
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className={cn(
+                      "p-3 rounded-xl border font-black text-xs uppercase tracking-wider transition-all",
+                      inspectUser.status === "suspended"
+                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-black"
+                        : "bg-rose-500/10 border-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-black"
+                    )}
+                  >
+                    {inspectUser.status === "suspended" ? "Unban Account" : "Suspend Account"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL 5: DISPATCH WARNING NOTIFICATION MODAL */}
+        {warnModalOpen && warnUserTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md p-8 rounded-[2.5rem] bg-[#0b0c12] border border-amber-500/30 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2 text-amber-300">
+                  <AlertTriangle size={18} />
+                  <h3 className="text-base font-black uppercase tracking-tight text-white">Dispatch Warning to {warnUserTarget.name}</h3>
+                </div>
+                <button
+                  onClick={() => setWarnModalOpen(false)}
+                  className="p-2 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-zinc-400">Warning Message / Policy Reminder</label>
+                <textarea
+                  rows={4}
+                  value={warnReason}
+                  onChange={(e) => setWarnReason(e.target.value)}
+                  placeholder="Automated usage anomaly or excessive request rate detected. Please ensure all activity complies with our fair use guidelines."
+                  className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setWarnModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white text-xs font-black uppercase"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleExecuteUserAction({
+                      action: "warn",
+                      userId: warnUserTarget.id,
+                      reason: warnReason || undefined,
+                    });
+                  }}
+                  disabled={actionLoading}
+                  className="px-6 py-2.5 rounded-xl bg-amber-400 text-black font-black text-xs uppercase tracking-wider hover:bg-amber-300 transition-all flex items-center gap-2"
+                >
+                  {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                  Send Warning
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL 6: ADJUST / REFUND CREDITS MODAL */}
+        {adjustCreditsModalOpen && adjustCreditsTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md p-8 rounded-[2.5rem] bg-[#0b0c12] border border-cyan-500/30 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <Coins size={18} />
+                  <h3 className="text-base font-black uppercase tracking-tight text-white">Adjust Credits for {adjustCreditsTarget.name}</h3>
+                </div>
+                <button
+                  onClick={() => setAdjustCreditsModalOpen(false)}
+                  className="p-2 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400">Credit Adjustment (+ / -)</label>
+                  <input
+                    type="number"
+                    value={adjustAmount}
+                    onChange={(e) => setAdjustAmount(parseInt(e.target.value, 10) || 0)}
+                    placeholder="50 (or -50 to deduct)"
+                    className="w-full p-3.5 rounded-xl bg-white/5 border border-white/10 text-sm font-mono text-white focus:outline-none focus:border-cyan-400"
+                  />
+                  <span className="text-[9px] text-zinc-500">Positive value adds credits, negative value deducts.</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400">Target Balance</label>
+                  <select
+                    value={adjustBalanceType}
+                    onChange={(e) => setAdjustBalanceType(e.target.value as any)}
+                    className="w-full p-3.5 rounded-xl bg-[#0d0e15] border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  >
+                    <option value="lifetime">Lifetime (Permanent Balance)</option>
+                    <option value="bonus">Bonus Balance</option>
+                    <option value="daily">Daily Balance</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400">Audit Reason / Note</label>
+                  <input
+                    type="text"
+                    value={adjustReason}
+                    onChange={(e) => setAdjustReason(e.target.value)}
+                    placeholder="e.g. Compensation for failed generation / Giveaway reward"
+                    className="w-full p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setAdjustCreditsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white text-xs font-black uppercase"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleExecuteUserAction({
+                      action: "adjust_credits",
+                      userId: adjustCreditsTarget.id,
+                      amount: adjustAmount,
+                      balanceType: adjustBalanceType,
+                      reason: adjustReason || undefined,
+                    });
+                  }}
+                  disabled={actionLoading || adjustAmount === 0}
+                  className="px-6 py-2.5 rounded-xl bg-cyan-400 text-black font-black text-xs uppercase tracking-wider hover:bg-cyan-300 transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <Coins size={13} />}
+                  Execute Adjustment
+                </button>
               </div>
             </motion.div>
           </div>
