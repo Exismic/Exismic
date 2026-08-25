@@ -121,7 +121,7 @@ export function MaintenanceScreen() {
           </span>
 
           <a 
-            href="/auth/login" 
+            href="/auth/login?returnUrl=/admin" 
             className="hover:text-white transition-colors font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1"
           >
             <Lock size={10} /> Admin Access &rarr;

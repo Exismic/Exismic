@@ -24,9 +24,11 @@ import { constructMetadata } from "@/lib/seo";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { isAdminEmail } from "@/lib/admin";
 import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
 import { MaintenanceScreen } from "@/components/layout/MaintenanceScreen";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = constructMetadata();
 
 export default async function RootLayout({
@@ -43,41 +45,37 @@ export default async function RootLayout({
 
   // 2. PARALLELIZE Auth session and database config queries concurrently via Promise.all
   const [sessionResult, maintenanceCfg, activeAnnouncements] = await Promise.all([
-    supabase.auth.getSession().catch(() => ({ data: { session: null } })),
-    !isAuthRoute
-      ? prisma.systemConfig.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null)
-      : null,
-    !isAuthRoute
-      ? prisma.announcement.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } }).catch(() => [])
-      : [],
+    supabase.auth.getUser().catch(() => ({ data: { user: null } })),
+    prisma.systemConfig.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null),
+    prisma.announcement.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } }).catch(() => []),
   ]);
 
-  const session = sessionResult?.data?.session || null;
-  let isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "true" || maintenanceCfg?.value === "true";
+  const user = sessionResult?.data?.user || null;
+  const isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "true" || maintenanceCfg?.value === "true";
   let isAdmin = false;
   let isSuspended = false;
 
   // 3. Fast indexed user role check if user is logged in
-  if (!isAuthRoute && session?.user?.id) {
+  if (user?.id) {
     try {
       const dbUser = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { role: true, status: true },
+        where: { id: user.id },
+        select: { role: true, status: true, email: true },
       });
-      isAdmin = dbUser?.role === "admin";
+      isAdmin = dbUser?.role === "admin" || (dbUser?.email ? isAdminEmail(dbUser.email) : false);
       isSuspended = dbUser?.status === "suspended";
     } catch (dbError) {
       console.error("[USER_ROLE_CHECK_ERROR]", dbError);
     }
   }
 
-  // 3. Kick out suspended users
+  // 4. Kick out suspended users
   if (isSuspended) {
     await supabase.auth.signOut();
     redirect("/auth/login?error=suspended");
   }
 
-  // 3. Render upgrade screen if mode is active and user lacks privilege
+  // 5. Render upgrade screen if mode is active and user lacks admin privilege
   if (isMaintenance && !isAdmin && !isAuthRoute) {
     return (
       <html lang="en" className="dark" suppressHydrationWarning>
@@ -116,7 +114,7 @@ export default async function RootLayout({
               <ProfileThemeProvider>
                 <I18nProvider>
                   <AnnouncementBanner announcements={activeAnnouncements} />
-                  <AppShell hasSession={Boolean(session)}>{children}</AppShell>
+                  <AppShell hasSession={Boolean(user)}>{children}</AppShell>
                   <ReferralTracker />
                   <ConsentAwareAnalytics />
                   <Analytics />
