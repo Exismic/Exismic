@@ -86,7 +86,9 @@ function productionConfigurationError(gateway: "razorpay" | "paypal" | "none", p
   }
 
   if (gateway === "paypal") {
-    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+    const clientId = process.env.PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.PAYPAL_LIVE_CLIENT_ID;
+    const clientSecret = process.env.PAYPAL_CLIENT_SECRET || process.env.PAYPAL_SECRET || process.env.PAYPAL_LIVE_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
       return "PayPal keys (PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET) are not configured in environment variables.";
     }
   }
@@ -428,20 +430,22 @@ function getBillingErrorMessage(error: unknown) {
     return "Payment gateway authentication failed. Please try again shortly.";
   }
 
-  if (/auth/i.test(message) && /failed/i.test(message)) {
-    return "Payment gateway authentication failed. Please try again shortly.";
+  if (/auth/i.test(message) && (/failed/i.test(message) || /rejected/i.test(message))) {
+    return "PayPal authentication failed. Please verify your PayPal Client ID and Secret in Vercel.";
   }
 
   if (/Razorpay is not configured/i.test(message)) {
     return "Razorpay checkout is not configured yet.";
   }
 
-  if (/PayPal/i.test(message) && /configured/i.test(message)) {
-    return "PayPal checkout is not configured yet.";
+  if (/PayPal.*not configured/i.test(message) || (/PayPal/i.test(message) && /keys.*configured/i.test(message))) {
+    return "PayPal checkout is not configured yet. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in Vercel.";
   }
 
   if (process.env.NODE_ENV === "production") {
-    return "Could not start checkout. Please try again.";
+    return typeof message === "string" && message.length > 0 && !/internal/i.test(message)
+      ? message
+      : "Could not start checkout. Please try again.";
   }
   return message || "Could not create payment order.";
 }

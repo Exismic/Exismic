@@ -97,7 +97,7 @@ async function verifyPayPalWebhook(req: NextRequest, event: PayPalWebhookPayload
 
 async function renewSubscription(subscriptionId: string, event: PayPalWebhookPayload) {
   const paymentOrder = await prisma.paymentOrder.findFirst({
-    where: { gateway: "paypal", providerOrderId: subscriptionId, planId: "pro" },
+    where: { gateway: "paypal", providerOrderId: subscriptionId, planId: { in: ["pro", "pro_yearly"] } },
     orderBy: { createdAt: "desc" },
   });
   if (!paymentOrder) return { processed: false, reason: "subscription_order_not_found" };
@@ -105,7 +105,13 @@ async function renewSubscription(subscriptionId: string, event: PayPalWebhookPay
   const subscription = await getPayPalSubscription(subscriptionId).catch(() => null);
   const rawNextBilling = subscription?.billing_info?.next_billing_time;
   const nextBillingDate = rawNextBilling ? new Date(rawNextBilling) : new Date();
-  if (!rawNextBilling || Number.isNaN(nextBillingDate.getTime())) nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+  if (!rawNextBilling || Number.isNaN(nextBillingDate.getTime())) {
+    if (paymentOrder.planId === "pro_yearly") {
+      nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+    } else {
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+    }
+  }
 
   const providerPaymentId = extractCaptureId(event) || event.id || `${subscriptionId}:${event.event_type || "renewal"}`;
   const amount = extractAmountMinor(event);
@@ -148,7 +154,7 @@ async function renewSubscription(subscriptionId: string, event: PayPalWebhookPay
 
 async function activateSubscription(subscriptionId: string, event: PayPalWebhookPayload) {
   const paymentOrder = await prisma.paymentOrder.findFirst({
-    where: { gateway: "paypal", providerOrderId: subscriptionId, planId: "pro" },
+    where: { gateway: "paypal", providerOrderId: subscriptionId, planId: { in: ["pro", "pro_yearly"] } },
     orderBy: { createdAt: "desc" },
   });
   if (!paymentOrder) return { processed: false, reason: "subscription_order_not_found" };
@@ -156,7 +162,13 @@ async function activateSubscription(subscriptionId: string, event: PayPalWebhook
   const subscription = await getPayPalSubscription(subscriptionId);
   const rawNextBilling = subscription.billing_info?.next_billing_time;
   const nextBillingDate = rawNextBilling ? new Date(rawNextBilling) : new Date();
-  if (!rawNextBilling || Number.isNaN(nextBillingDate.getTime())) nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+  if (!rawNextBilling || Number.isNaN(nextBillingDate.getTime())) {
+    if (paymentOrder.planId === "pro_yearly") {
+      nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+    } else {
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+    }
+  }
 
   if (paymentOrder.status !== "paid") {
     const result = await fulfillBillingOrder({

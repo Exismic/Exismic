@@ -9,19 +9,23 @@ type ActivateBody = {
   subscriptionId?: string;
 };
 
-function fallbackNextBillingDate() {
+function fallbackNextBillingDate(isYearly = false) {
   const nextBillingDate = new Date();
-  nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+  if (isYearly) {
+    nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+  } else {
+    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+  }
   return nextBillingDate;
 }
 
-function resolveNextBillingDate(subscription: Awaited<ReturnType<typeof getPayPalSubscription>>) {
+function resolveNextBillingDate(subscription: Awaited<ReturnType<typeof getPayPalSubscription>>, isYearly = false) {
   const rawNextBilling = subscription.billing_info?.next_billing_time;
   if (rawNextBilling) {
     const nextBillingDate = new Date(rawNextBilling);
     if (!Number.isNaN(nextBillingDate.getTime())) return nextBillingDate;
   }
-  return fallbackNextBillingDate();
+  return fallbackNextBillingDate(isYearly);
 }
 
 function amountsMatch(actual: number | null | undefined, expected: number) {
@@ -82,14 +86,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "PayPal subscription currently accepts USD only." }, { status: 400 });
     }
 
-    const proPrice = getPlanPrice("pro", "GLOBAL");
-    const expectedPlanId = await resolvePayPalProPlanId(proPrice.amount, "USD");
-    if (subscription.plan_id !== expectedPlanId) {
-      return NextResponse.json({ error: "PayPal subscription plan does not match Exismic Pro." }, { status: 400 });
-    }
+    const isYearly = customContext.tierId === "pro_yearly";
+    const planTier = isYearly ? "pro_yearly" : "pro";
+    const proPrice = getPlanPrice(planTier, "GLOBAL");
+
     if (Number.isFinite(customContext.amount) && Math.round(customContext.amount * 100) !== proPrice.amountMinor) {
       return NextResponse.json({ error: "PayPal subscription amount does not match Exismic Pro pricing." }, { status: 400 });
     }
+
     const paidAmount = subscription.billing_info?.last_payment?.amount?.value
       ? Number(subscription.billing_info.last_payment.amount.value)
       : null;
@@ -103,9 +107,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "PayPal subscription amount does not match Exismic Pro pricing." }, { status: 400 });
     }
 
-    const nextBillingDate = resolveNextBillingDate(subscription);
+    const nextBillingDate = resolveNextBillingDate(subscription, isYearly);
     const paymentOrder = await prisma.paymentOrder.findFirst({
-      where: { providerOrderId: subscriptionId, gateway: "paypal", planId: "pro" },
+      where: {
+        providerOrderId: subscriptionId,
+        gateway: "paypal",
+        planId: { in: ["pro", "pro_yearly"] },
+      },
       orderBy: { createdAt: "desc" },
     });
     if (!paymentOrder || paymentOrder.userId !== user.id) {
@@ -127,7 +135,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      plan: "pro",
+      plan: planTier,
       subscriptionId,
       nextBillingDate: nextBillingDate.toISOString(),
       alreadyProcessed: result.alreadyProcessed,
@@ -138,5 +146,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
-

@@ -49,11 +49,15 @@ export type PayPalCaptureResponse = {
 };
 
 export function isPayPalSandboxEnabled() {
-  return process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_ENABLED === "true" || process.env.PAYPAL_SANDBOX_ENABLED === "true";
+  return (
+    process.env.PAYPAL_MODE === "sandbox" ||
+    process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_ENABLED === "true" ||
+    process.env.PAYPAL_SANDBOX_ENABLED === "true"
+  );
 }
 
-export function getPayPalMode() {
-  return process.env.PAYPAL_MODE === "live" ? "live" : "sandbox";
+export function getPayPalMode(): "live" | "sandbox" {
+  return isPayPalSandboxEnabled() ? "sandbox" : "live";
 }
 
 export function getPayPalApiBase() {
@@ -65,6 +69,27 @@ export function getPayPalPublicState() {
     enabled: isPayPalSandboxEnabled(),
     mode: getPayPalMode(),
   };
+}
+
+export function getPayPalClientId(): string {
+  return (
+    process.env.PAYPAL_CLIENT_ID ||
+    process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ||
+    process.env.PAYPAL_LIVE_CLIENT_ID ||
+    process.env.PAYPAL_SANDBOX_CLIENT_ID ||
+    ""
+  ).trim();
+}
+
+export function getPayPalClientSecret(): string {
+  return (
+    process.env.PAYPAL_CLIENT_SECRET ||
+    process.env.PAYPAL_SECRET ||
+    process.env.PAYPAL_LIVE_CLIENT_SECRET ||
+    process.env.PAYPAL_LIVE_SECRET ||
+    process.env.PAYPAL_SANDBOX_CLIENT_SECRET ||
+    ""
+  ).trim();
 }
 
 export function encodePayPalCustomId(context: PayPalOrderContext) {
@@ -95,11 +120,11 @@ export function parsePayPalCustomId(customId?: string) {
 }
 
 export async function getPayPalAccessToken() {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const clientId = getPayPalClientId();
+  const clientSecret = getPayPalClientSecret();
 
   if (!clientId || !clientSecret) {
-    throw new Error("PayPal is not configured.");
+    throw new Error("PayPal keys are not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in environment variables.");
   }
 
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
@@ -113,10 +138,16 @@ export async function getPayPalAccessToken() {
     cache: "no-store",
   });
 
-  const data = await response.json().catch(() => null);
+  const data = await response.json().catch(() => null) as { access_token?: string; error?: string; error_description?: string } | null;
   if (!response.ok || !data?.access_token) {
-    console.error("[PayPal] Could not fetch access token", data);
-    throw new Error("PayPal credentials were rejected. Check the configured mode and API app credentials.");
+    console.error("[PayPal] Could not fetch access token", {
+      status: response.status,
+      mode: getPayPalMode(),
+      apiBase: getPayPalApiBase(),
+      data,
+    });
+    const detail = data?.error_description || data?.error || `Status ${response.status}`;
+    throw new Error(`PayPal credentials authentication failed (${detail}). Verify your PayPal Client ID and Secret in Vercel.`);
   }
 
   return String(data.access_token);
@@ -261,7 +292,13 @@ async function createPayPalProduct(accessToken: string) {
   return product.id;
 }
 
+const dynamicPlanCache = new Map<string, string>();
+
 async function createPayPalPlan(accessToken: string, amount: number, currency: CheckoutCurrency, intervalUnit: "MONTH" | "YEAR" = "MONTH") {
+  const cacheKey = `${getPayPalMode()}:${currency}:${intervalUnit}:${amount.toFixed(2)}`;
+  const cached = dynamicPlanCache.get(cacheKey);
+  if (cached) return cached;
+
   const productId = await createPayPalProduct(accessToken);
   const response = await fetch(`${getPayPalApiBase()}/v1/billing/plans`, {
     method: "POST",
@@ -298,25 +335,29 @@ async function createPayPalPlan(accessToken: string, amount: number, currency: C
     cache: "no-store",
   });
 
-  const plan = await response.json().catch(() => null) as { id?: string } | null;
+  const plan = await response.json().catch(() => null) as { id?: string; message?: string; name?: string; details?: unknown } | null;
   if (!response.ok || !plan?.id) {
-    console.error("[PayPal] Plan creation failed", plan);
-    throw new Error("Could not prepare PayPal subscription plan.");
+    console.error("[PayPal] Plan creation failed", {
+      status: response.status,
+      plan,
+    });
+    throw new Error(`Could not prepare PayPal subscription plan (${plan?.message || response.statusText || "unknown error"}).`);
   }
 
+  dynamicPlanCache.set(cacheKey, plan.id);
   return plan.id;
 }
 
 export async function resolvePayPalProPlanId(amount: number, currency: CheckoutCurrency, intervalUnit: "MONTH" | "YEAR" = "MONTH") {
   const configured = intervalUnit === "YEAR"
-    ? (currency === "USD" ? process.env.PAYPAL_PRO_YEARLY_PLAN_ID_USD || process.env.PAYPAL_PRO_YEARLY_PLAN_ID : process.env.PAYPAL_PRO_YEARLY_PLAN_ID_INR || process.env.PAYPAL_PRO_YEARLY_PLAN_ID)
-    : (currency === "USD" ? process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID : process.env.PAYPAL_PRO_PLAN_ID_INR || process.env.PAYPAL_PRO_PLAN_ID);
+    ? (currency === "USD"
+        ? process.env.PAYPAL_PRO_YEARLY_PLAN_ID_USD || process.env.PAYPAL_PRO_YEARLY_PLAN_ID || process.env.PAYPAL_YEARLY_PLAN_ID
+        : process.env.PAYPAL_PRO_YEARLY_PLAN_ID_INR || process.env.PAYPAL_PRO_YEARLY_PLAN_ID || process.env.PAYPAL_YEARLY_PLAN_ID)
+    : (currency === "USD"
+        ? process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID || process.env.PAYPAL_PLAN_ID
+        : process.env.PAYPAL_PRO_PLAN_ID_INR || process.env.PAYPAL_PRO_PLAN_ID || process.env.PAYPAL_PLAN_ID);
 
   if (configured) return configured;
-
-  if (getPayPalMode() === "live") {
-    throw new Error(`PayPal Pro ${intervalUnit === "YEAR" ? "yearly" : "monthly"} subscription plan is not configured.`);
-  }
 
   const accessToken = await getPayPalAccessToken();
   return createPayPalPlan(accessToken, amount, currency, intervalUnit);
