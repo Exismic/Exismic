@@ -19,7 +19,6 @@ import {
   Zap,
   ChevronRight,
   Crown,
-  Code2,
   FileText,
   Calendar,
   Layers
@@ -58,13 +57,6 @@ const ICON_MAP: Record<string, { icon: React.ReactNode; bg: string; border: stri
     border: "border-amber-500/30",
     glow: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
     text: "text-amber-300",
-  },
-  Code2: {
-    icon: <Code2 size={22} className="text-emerald-300" />,
-    bg: "bg-emerald-500/15",
-    border: "border-emerald-500/30",
-    glow: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
-    text: "text-emerald-300",
   },
   FileText: {
     icon: <FileText size={22} className="text-blue-300" />,

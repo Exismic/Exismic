@@ -18,7 +18,7 @@ type CreateOrderBody = {
 };
 
 function getRazorpayClient() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
   if (!keyId || !keySecret) throw new Error("Razorpay is not configured.");
   return new Razorpay({ key_id: keyId, key_secret: keySecret });
@@ -76,25 +76,18 @@ function asInputJson(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
-function productionConfigurationError(gateway: "razorpay" | "paypal" | "none", planId: string) {
+function productionConfigurationError(gateway: "razorpay" | "paypal" | "none", planId: string, isGift = false) {
   if (process.env.NODE_ENV !== "production" || gateway === "none") return null;
 
   if (gateway === "razorpay") {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) return "Razorpay checkout is not configured.";
-    if (!process.env.RAZORPAY_WEBHOOK_SECRET) return "Razorpay payment confirmation is not configured.";
-    if ((planId === "pro" || planId === "pro_yearly") && !getRazorpayProPlanId(planId === "pro_yearly")) {
-      return "Razorpay Pro billing is not configured.";
-    }
+    const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) return "Razorpay keys (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET) are not configured in environment variables.";
   }
 
   if (gateway === "paypal") {
-    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) return "PayPal checkout is not configured.";
-    if (!process.env.PAYPAL_WEBHOOK_ID) return "PayPal payment confirmation is not configured.";
-    if (planId === "pro" && !(process.env.PAYPAL_PRO_PLAN_ID_USD || process.env.PAYPAL_PRO_PLAN_ID)) {
-      return "PayPal Pro billing is not configured.";
-    }
-    if (planId === "pro_yearly" && !(process.env.PAYPAL_PRO_YEARLY_PLAN_ID_USD || process.env.PAYPAL_PRO_YEARLY_PLAN_ID)) {
-      return "PayPal Pro Yearly billing is not configured.";
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return "PayPal keys (PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET) are not configured in environment variables.";
     }
   }
 
@@ -112,24 +105,25 @@ async function createRazorpayProSubscription(
   const subscriptionApi = razorpay as RazorpaySubscriptionApi;
 
   if (!planId) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(`Razorpay Pro ${isYearly ? "yearly" : "monthly"} subscription plan is not configured.`);
+    try {
+      const plan = await subscriptionApi.plans.create({
+        period: isYearly ? "yearly" : "monthly",
+        interval: 1,
+        item: {
+          name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}`,
+          description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership`,
+          amount: price.amountMinor,
+          currency: price.currency,
+        },
+        notes: {
+          source: "exismic_dynamic_plan",
+        },
+      });
+      planId = String(plan.id);
+    } catch (planErr) {
+      console.error("[Razorpay Plan Creation Failed]", planErr);
+      throw new Error(`Razorpay Pro ${isYearly ? "yearly" : "monthly"} subscription plan could not be created.`);
     }
-
-    const plan = await subscriptionApi.plans.create({
-      period: isYearly ? "yearly" : "monthly",
-      interval: 1,
-      item: {
-        name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}`,
-        description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership`,
-        amount: price.amountMinor,
-        currency: price.currency,
-      },
-      notes: {
-        source: "exismic_dynamic_plan",
-      },
-    });
-    planId = String(plan.id);
   }
 
   return subscriptionApi.subscriptions.create({
@@ -211,10 +205,13 @@ export async function POST(req: NextRequest) {
 
     const localMockPayments = shouldUseLocalMockPayments(req);
     const effectiveGateway = localMockPayments ? "mock" : price.gateway;
-    const configurationError = localMockPayments ? null : productionConfigurationError(price.gateway, plan.id);
+    const configurationError = localMockPayments ? null : productionConfigurationError(price.gateway, plan.id, isGift);
     if (configurationError) {
-      console.error(`[Billing] ${configurationError}`);
-      return NextResponse.json({ error: "Checkout is temporarily unavailable. Please try again later." }, { status: 503 });
+      console.error(`[Billing Configuration Error] ${configurationError}`);
+      return NextResponse.json({ 
+        error: "Checkout is temporarily unavailable. Please try again later.",
+        details: process.env.NODE_ENV !== "production" ? configurationError : undefined
+      }, { status: 503 });
     }
 
     if (price.amountMinor <= 0 || price.gateway === "none") {

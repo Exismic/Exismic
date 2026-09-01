@@ -119,8 +119,6 @@ export async function GET() {
       shopClaims,
       userFiles,
       chatSessions,
-      communityLikesResult,
-      communityPostsResult,
       userContext
     ] = await Promise.all([
       prisma.creditTransaction.findMany({
@@ -151,23 +149,13 @@ export async function GET() {
         },
         select: { updatedAt: true },
       }),
-      prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_likes 
-        WHERE user_id = ${userId} AND created_at >= ${windowStart}
-      `.catch(() => [{ count: 0 }]),
-      prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_posts 
-        WHERE user_id = ${userId} AND created_at >= ${windowStart}
-      `.catch(() => [{ count: 0 }]),
       prisma.userContext.findUnique({
         where: { userId },
         select: { preferences: true },
       }),
     ]);
 
-    const communityLikes = Number(communityLikesResult?.[0]?.count || 0);
-    const communityPosts = Number(communityPostsResult?.[0]?.count || 0);
-    const communityInteractions = communityLikes + communityPosts;
+    const communityInteractions = 0;
 
     // Build Activity Data for Daily and Weekly
     const dailyActivity = buildActivityData(

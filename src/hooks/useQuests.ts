@@ -10,7 +10,7 @@ export interface QuestItem {
   title: string;
   description: string;
   icon: string;
-  category: "creation" | "exploration" | "coding" | "documents" | "community" | "vault" | "mastery" | string;
+  category: "creation" | "exploration" | "documents" | "vault" | "mastery" | string;
   target: number;
   current: number;
   rewardCredits: number;

@@ -2,7 +2,6 @@ export type QuestCategory =
   | "creation" 
   | "exploration" 
   | "documents" 
-  | "community" 
   | "vault" 
   | "mastery";
 
@@ -53,7 +52,7 @@ export interface UserActivityData {
 }
 
 // ==========================================
-// DAILY QUEST TEMPLATES POOL
+// DAILY QUEST TEMPLATES POOL (100% Live Public Features)
 // ==========================================
 export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
   {
@@ -87,7 +86,7 @@ export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     rewardMin: 15,
     rewardMax: 25,
     actionUrl: "/tools/image/minecraft-skin",
-    actionLabel: "Open Studio",
+    actionLabel: "Open Editor",
     difficulty: "normal",
     evaluateProgress: (a) => a.visualCraftCount,
   },
@@ -137,7 +136,7 @@ export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     targetMax: 1,
     rewardMin: 15,
     rewardMax: 20,
-    actionUrl: "/tools/productivity/pdf-notes",
+    actionUrl: "/tools/pdf-to-notes",
     actionLabel: "Doc Tools",
     difficulty: "normal",
     evaluateProgress: (a) => a.docProcessCount,
@@ -146,7 +145,7 @@ export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     templateId: "creation_spree",
     type: "daily",
     title: "Spark Creator",
-    descriptionTemplate: (target) => `Produce ${target} AI creations across any tool studio`,
+    descriptionTemplate: (target) => `Produce ${target} AI creations across creative tools`,
     icon: "Sparkles",
     category: "creation",
     targetMin: 2,
@@ -175,20 +174,23 @@ export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     evaluateProgress: (a) => a.totalCreditsSpent,
   },
   {
-    templateId: "community_vibe",
+    templateId: "avatar_craft",
     type: "daily",
-    title: "Community Pioneer",
-    descriptionTemplate: () => "Like a post or explore creations in the Community Hub",
-    icon: "Flame",
-    category: "community",
+    title: "Avatar Designer",
+    descriptionTemplate: (target) => 
+      target === 1 
+        ? "Design or edit a custom Minecraft skin or avatar" 
+        : `Create or customize ${target} skins or avatars`,
+    icon: "Palette",
+    category: "creation",
     targetMin: 1,
-    targetMax: 1,
-    rewardMin: 10,
-    rewardMax: 15,
-    actionUrl: "/community",
-    actionLabel: "Community",
+    targetMax: 2,
+    rewardMin: 15,
+    rewardMax: 25,
+    actionUrl: "/tools/image/minecraft-skin",
+    actionLabel: "Design Skin",
     difficulty: "normal",
-    evaluateProgress: (a) => a.communityInteractions,
+    evaluateProgress: (a) => a.visualCraftCount,
   },
   {
     templateId: "art_enhancer",
@@ -209,7 +211,7 @@ export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
 ];
 
 // ============================================
-// WEEKLY MEGA QUEST TEMPLATES POOL (High Req & Balanced Rewards)
+// WEEKLY MEGA QUEST TEMPLATES POOL (100% Live Public Features)
 // ============================================
 export const WEEKLY_QUEST_TEMPLATES: QuestTemplate[] = [
   {
@@ -304,7 +306,7 @@ export const WEEKLY_QUEST_TEMPLATES: QuestTemplate[] = [
     rewardMin: 95,
     rewardMax: 125,
     actionUrl: "/tools",
-    actionLabel: "Create Studio",
+    actionLabel: "Create Now",
     difficulty: "legendary",
     evaluateProgress: (a) => a.totalCreationsCount,
   },
@@ -319,31 +321,31 @@ export const WEEKLY_QUEST_TEMPLATES: QuestTemplate[] = [
     targetMax: 18,
     rewardMin: 75,
     rewardMax: 105,
-    actionUrl: "/tools/productivity/pdf-notes",
+    actionUrl: "/tools/pdf-to-notes",
     actionLabel: "Doc Tools",
     difficulty: "epic",
     evaluateProgress: (a) => a.docProcessCount,
   },
   {
-    templateId: "community_legend",
+    templateId: "weekly_explorer",
     type: "weekly",
-    title: "Community Legend",
-    descriptionTemplate: (target) => `Engage with ${target} community posts or share creations`,
-    icon: "Flame",
-    category: "community",
+    title: "Platform Vanguard",
+    descriptionTemplate: (target) => `Explore and utilize ${target} creative AI tools this week`,
+    icon: "Wand2",
+    category: "exploration",
     targetMin: 10,
-    targetMax: 20,
-    rewardMin: 65,
-    rewardMax: 90,
-    actionUrl: "/community",
-    actionLabel: "Community Hub",
+    targetMax: 16,
+    rewardMin: 70,
+    rewardMax: 95,
+    actionUrl: "/tools",
+    actionLabel: "Explore Tools",
     difficulty: "epic",
-    evaluateProgress: (a) => a.communityInteractions,
+    evaluateProgress: (a) => a.distinctToolsUsed,
   },
   {
     templateId: "studio_virtuoso",
     type: "weekly",
-    title: "Studio Virtuoso",
+    title: "Visual Virtuoso",
     descriptionTemplate: (target) => `Generate or refine ${target} visual & media assets`,
     icon: "Palette",
     category: "creation",
@@ -481,7 +483,7 @@ export function generateQuestsForUser(
   claimedQuestIds: string[] = [],
   questCount = 4
 ): QuestItem[] {
-  const seed = `${userId}:${cycleKey}:${type}:v4`;
+  const seed = `${userId}:${cycleKey}:${type}:v5`;
   const rng = createSeededRNG(seed);
 
   const pool = type === "daily" ? DAILY_QUEST_TEMPLATES : WEEKLY_QUEST_TEMPLATES;
