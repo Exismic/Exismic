@@ -2,13 +2,16 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { 
+  Coins,
+  Diamond,
+  Crown,
+  Flame,
+  Award,
   Zap, 
   X, 
   Check, 
   ShieldCheck, 
   ArrowRight,
-  Sparkles,
-  Crown,
   Loader2,
   CreditCard,
   ExternalLink,
@@ -26,6 +29,7 @@ import { GiftCardPaymentModal } from "@/components/modals/GiftCardPaymentModal";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
 
 const CREDIT_TIERS = PRICING_CONFIG.CREDIT_PACKAGES;
 
@@ -36,9 +40,11 @@ interface RazorpayResponse {
 }
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  'Zap': Zap,
-  'Sparkles': Sparkles,
-  'Crown': Crown
+  'Zap': Coins,
+  'Sparkles': Diamond,
+  'Crown': Crown,
+  'Coins': Coins,
+  'Diamond': Diamond,
 };
 
 export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -71,8 +77,8 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
 
   const marketOverride = isIndia ? "IN" : "GLOBAL";
   const gatewayName = isIndia ? "Razorpay" : "PayPal";
-  
   const { refreshCredits } = useCredits();
+  const activeTierObj = CREDIT_TIERS.find((t) => t.id === selectedTier);
 
   const handlePurchase = async () => {
     if (!paymentsEnabled) return;
@@ -241,30 +247,31 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                         )}
                       >
                          {tier.popular && (
-                           <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-accent-purple text-white text-[9px] font-black uppercase tracking-widest shadow-lg">
-                              Studio Choice
+                           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white text-[9px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(168,85,247,0.5)] border border-purple-300/40 flex items-center gap-1">
+                              <Award size={10} className="text-fuchsia-100 fill-fuchsia-200/40" />
+                              <span>Best Value</span>
                            </div>
                          )}
 
                          <div className="space-y-8">
                             <div className={cn(
-                              "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
-                              tier.color === 'blue' ? "bg-blue-500/10 text-blue-400" :
-                              tier.color === 'purple' ? "bg-purple-500/10 text-purple-400" :
-                              "bg-amber-500/10 text-amber-400"
+                              "w-14 h-14 rounded-2xl flex items-center justify-center transition-all border shadow-lg",
+                              tier.color === 'blue' ? "bg-cyan-500/15 border-cyan-400/30 text-cyan-300 shadow-cyan-500/10" :
+                              tier.color === 'purple' ? "bg-purple-500/15 border-purple-400/30 text-purple-300 shadow-purple-500/10" :
+                              "bg-amber-500/15 border-amber-400/30 text-amber-300 shadow-amber-500/10"
                             )}>
                                {(() => {
-                                  const Icon = ICON_MAP[tier.icon as string] || Zap;
-                                  return <Icon size={28} />;
+                                  const Icon = ICON_MAP[tier.icon as string] || Coins;
+                                  return <Icon size={26} />;
                                 })()}
                             </div>
 
                             <div className="space-y-1">
                                <div className="flex items-center justify-between">
-                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 italic">{tier.label}</h4>
+                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{tier.label}</h4>
                                  {tier.bonusCredits > 0 && (
-                                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300">
-                                     +{tier.bonusCredits} Bonus
+                                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.2)]">
+                                     <Flame size={9} className="text-emerald-300 fill-emerald-400/30" /> +{tier.bonusCredits} Bonus
                                    </span>
                                  )}
                                </div>
@@ -275,75 +282,144 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
                                     tier.color === 'purple' ? "bg-[linear-gradient(110deg,#fff,#c084fc,#06b6d4,#fff)] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" :
                                     "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]"
                                   )}>{tier.credits + (tier.bonusCredits || 0)}</span>
-                                  <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">PERM</span>
+                                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">PERM</span>
                                </div>
                             </div>
 
                             <div className="h-px bg-white/5" />
 
                             <div className="space-y-3">
-                               <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
-                                  <Check size={14} className="text-accent-purple" />
+                               <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
+                                  <Check size={14} className="text-cyan-400" />
                                   <span>Instant Delivery</span>
                                </div>
-                               <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
-                                  <Check size={14} className="text-accent-purple" />
+                               <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
+                                  <Check size={14} className="text-cyan-400" />
                                   <span>No Expiry</span>
                                </div>
                             </div>
 
                             <div className="text-center pt-4">
                                <div className="flex flex-col items-center">
-                                 <span className="text-xl font-black text-white italic">
+                                 <span className="text-xl font-black text-white">
                                    {isIndia ? `₹${tier.priceINR}` : `$${tier.priceUSD}`}
                                  </span>
-                                 <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">{gatewayName} checkout</span>
+                                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{gatewayName} checkout</span>
                                </div>
                             </div>
                          </div>
 
                          {selectedTier === tier.id && (
-                            <div className="absolute inset-0 border-2 border-accent-purple/50 rounded-[2.5rem] animate-pulse pointer-events-none" />
+                            <div className="absolute inset-0 border-2 border-cyan-400/80 rounded-[2.5rem] shadow-[0_0_30px_rgba(34,211,238,0.25)] pointer-events-none" />
                          )}
                       </motion.div>
                     ))}
                   </div>
 
                   <div className="flex flex-col items-center gap-6 pt-6">
-                     <button 
+                     <motion.button 
+                       type="button"
                        onClick={handlePurchase}
                        disabled={!selectedTier || isProcessing || !paymentsEnabled}
+                       whileHover={selectedTier && paymentsEnabled ? { y: -3, scale: 1.02 } : undefined}
+                       whileTap={selectedTier && paymentsEnabled ? { scale: 0.97 } : undefined}
                        className={cn(
-                         "group relative flex h-16 w-full max-w-sm items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.4em] text-[10px] italic transition-all duration-500",
+                         "group/launch relative flex min-h-[60px] w-full max-w-sm items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] sm:p-[3px] isolate transition-all duration-500 cursor-pointer select-none",
                          selectedTier && paymentsEnabled
-                           ? "text-white shadow-[0_0_30px_-5px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_-10px_rgba(34,211,238,0.6)] hover:-translate-y-1 hover:scale-[1.02] active:scale-95"
-                           : "text-zinc-600 bg-white/5 cursor-not-allowed"
+                           ? "shadow-[0_0_35px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(0,0,0,0.95)]"
+                           : "bg-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
                        )}
                      >
-                        {selectedTier && paymentsEnabled && (
-                          <span className="absolute inset-0 bg-[linear-gradient(110deg,#06b6d4,#3b82f6,#a855f7,#06b6d4)] bg-[length:300%_auto] animate-gradient-x" />
-                        )}
-                        <div className={cn(
-                          "relative z-10 flex h-full w-full items-center justify-center gap-4 rounded-2xl px-5 transition-all duration-500",
-                          selectedTier && paymentsEnabled ? "bg-[#030303] group-hover:bg-transparent" : "bg-transparent"
-                        )}>
-                          {selectedTier && paymentsEnabled && (
-                            <>
-                              <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
-                              <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.25),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
-                            </>
-                          )}
-                          <div className="relative z-20 flex items-center gap-4 text-[11px] sm:text-[12px]">
-                            {isProcessing ? (
-                               <><Loader2 size={18} className="animate-spin text-cyan-400" /> <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]">Processing...</span></>
-                            ) : selectedTier && paymentsEnabled ? (
-                               <><Zap size={16} className="text-cyan-400 group-hover:text-white transition-colors duration-300 animate-pulse" /> <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,1)] group-hover:text-cyan-50">Complete checkout</span> <ArrowRight size={16} className="text-cyan-400 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" /></>
-                            ) : (
-                               <span className="font-black text-zinc-400 tracking-widest">Select a credit pack</span>
-                            )}
-                          </div>
-                        </div>
-                     </button>
+                       {selectedTier && paymentsEnabled && (
+                         <>
+                           {/* Continuous Seamless Rotating Neon Border (Sharp) */}
+                           <motion.span
+                             aria-hidden="true"
+                             className={cn(
+                               "absolute -inset-[150%] opacity-100 mix-blend-screen transition-opacity duration-500 group-hover/launch:opacity-100",
+                               activeTierObj?.id === "tier-1" || activeTierObj?.credits === 500
+                                 ? "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]"
+                                 : activeTierObj?.id === "tier-3" || activeTierObj?.credits === 6000
+                                   ? "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]"
+                                   : "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]"
+                             )}
+                             animate={{ rotate: 360 }}
+                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                           />
+
+                           {/* Outer Diffusion Glow Halo */}
+                           <motion.span
+                             aria-hidden="true"
+                             className={cn(
+                               "absolute -inset-[100%] blur-md opacity-60 mix-blend-screen transition-opacity duration-500 group-hover/launch:opacity-90",
+                               activeTierObj?.id === "tier-1" || activeTierObj?.credits === 500
+                                 ? "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]"
+                                 : activeTierObj?.id === "tier-3" || activeTierObj?.credits === 6000
+                                   ? "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]"
+                                   : "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]"
+                             )}
+                             animate={{ rotate: 360 }}
+                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                           />
+                         </>
+                       )}
+
+                       <span className="relative flex h-full w-full items-center gap-3.5 rounded-[19px] border border-white/10 bg-gradient-to-br from-[#08080d]/98 to-[#040406]/98 px-4 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#0d0d16]/98 group-hover/launch:to-[#06060a]/98">
+                         {/* Idle Shimmer Sweep */}
+                         {selectedTier && paymentsEnabled && (
+                           <motion.div
+                             animate={{ x: ["-250%", "250%"] }}
+                             transition={{ repeat: Infinity, duration: 3, ease: "linear", repeatDelay: 1.5 }}
+                             className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
+                           />
+                         )}
+
+                         {isProcessing ? (
+                           <div className="relative z-10 flex h-full w-full items-center justify-center gap-2 py-2 text-white">
+                             <Loader2 size={16} className="animate-spin text-cyan-400" />
+                             <span className="text-xs font-black uppercase tracking-widest">Processing...</span>
+                           </div>
+                         ) : selectedTier && paymentsEnabled ? (
+                           <>
+                             <ExismicMark
+                               size={36}
+                               letter="C"
+                               theme={
+                                 activeTierObj?.id === "tier-1" || activeTierObj?.credits === 500
+                                   ? "blue"
+                                   : activeTierObj?.id === "tier-3" || activeTierObj?.credits === 6000
+                                     ? "gold"
+                                     : "purple"
+                               }
+                               className="transition-all duration-500 group-hover/launch:scale-110 group-hover/launch:rotate-3"
+                             />
+
+                             <span className="min-w-0 flex-1 text-left relative z-10">
+                               <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                                 BUY • {activeTierObj ? (isIndia ? `₹${activeTierObj.priceINR}` : `$${activeTierObj.priceUSD}`) : ""}
+                               </span>
+                               <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors duration-500 group-hover/launch:text-cyan-200/90">
+                                 {activeTierObj ? `${(activeTierObj.credits + (activeTierObj.bonusCredits || 0)).toLocaleString()} Credits` : "Instant Delivery"}
+                               </span>
+                             </span>
+
+                             <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.04] bg-white/[0.02] text-zinc-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 group-hover/launch:border-cyan-300/60 group-hover/launch:bg-cyan-300/[0.2] group-hover/launch:text-cyan-50 group-hover/launch:shadow-[0_0_30px_rgba(34,211,238,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]">
+                               <motion.div
+                                 animate={{ x: [0, 4, 0] }}
+                                 transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                                 className="text-zinc-300 group-hover/launch:text-cyan-100 transition-colors"
+                               >
+                                 <ArrowRight size={15} />
+                               </motion.div>
+                             </span>
+                           </>
+                         ) : (
+                           <div className="relative z-10 flex h-full w-full items-center justify-center py-2">
+                             <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Select a credit pack</span>
+                           </div>
+                         )}
+                       </span>
+                     </motion.button>
 
                      {/* Gift Card Option */}
                      {paymentsEnabled && selectedTier && (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useEffect, useCallback } from "react";
+import { create } from "zustand";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 
@@ -51,7 +52,7 @@ let profileRequest: Promise<ProUserRecord | null> | null = null;
 let profileCache: { data: ProUserRecord; fetchedAt: number } | null = null;
 
 async function fetchCanonicalProfile(force = false): Promise<ProUserRecord | null> {
-  if (!force && profileCache && Date.now() - profileCache.fetchedAt < 15_000) {
+  if (!force && profileCache && Date.now() - profileCache.fetchedAt < 30_000) {
     return profileCache.data;
   }
   if (profileRequest) return profileRequest;
@@ -78,46 +79,93 @@ async function fetchCanonicalProfile(force = false): Promise<ProUserRecord | nul
   return profileRequest;
 }
 
-export function usePro() {
-  const [isPro, setIsPro] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<ProUserRecord | null>(null);
-  const [authUser, setAuthUser] = useState<User | null>(null);
-  const supabase = useMemo(() => createClient(), []);
+interface ProStore {
+  isPro: boolean;
+  isLoading: boolean;
+  user: ProUserRecord | null;
+  authUser: User | null;
+  isInitialized: boolean;
+  setState: (data: Partial<ProStore>) => void;
+}
 
-  const loadProStatus = useCallback(async (showLoading = false, force = false) => {
-    if (showLoading) setIsLoading(true);
+const useProStore = create<ProStore>((set) => ({
+  isPro: false,
+  isLoading: true,
+  user: null,
+  authUser: null,
+  isInitialized: false,
+  setState: (data) => set((prev) => ({ ...prev, ...data })),
+}));
 
+let proFetchPromise: Promise<void> | null = null;
+let singletonListenersAttached = false;
+let globalChannel: any = null;
+
+async function loadGlobalProStatus(showLoading = false, force = false): Promise<void> {
+  if (showLoading && !useProStore.getState().isInitialized) {
+    useProStore.getState().setState({ isLoading: true });
+  }
+
+  if (proFetchPromise && !force) {
+    return proFetchPromise;
+  }
+
+  proFetchPromise = (async () => {
     try {
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      setAuthUser(session?.user || null);
+      const currentAuthUser = session?.user || null;
 
       if (!session?.user?.email) {
-        setUser(null);
-        setIsPro(false);
+        useProStore.getState().setState({
+          authUser: null,
+          user: null,
+          isPro: false,
+          isLoading: false,
+          isInitialized: true,
+        });
         return;
       }
 
       const data = await fetchCanonicalProfile(force);
       if (data) {
-        setUser(data);
-        setIsPro(resolveProStatus(data));
+        useProStore.getState().setState({
+          authUser: currentAuthUser,
+          user: data,
+          isPro: resolveProStatus(data),
+          isLoading: false,
+          isInitialized: true,
+        });
       } else {
-        setUser(null);
-        setIsPro(false);
+        useProStore.getState().setState({
+          authUser: currentAuthUser,
+          user: null,
+          isPro: false,
+          isLoading: false,
+          isInitialized: true,
+        });
       }
     } catch (err) {
       console.error("usePro status refresh error:", err);
+      useProStore.getState().setState({ isLoading: false, isInitialized: true });
     } finally {
-      setIsLoading(false);
+      proFetchPromise = null;
     }
-  }, [supabase]);
+  })();
 
-  useEffect(() => {
-    void loadProStatus(true);
+  return proFetchPromise;
+}
 
-    const channelId = `pro_updates_${Math.random().toString(36).substring(7)}`;
-    const channel = supabase
+function initSingletonProSubscriptions() {
+  if (typeof window === "undefined" || singletonListenersAttached) return;
+  singletonListenersAttached = true;
+
+  const supabase = createClient();
+
+  // 1. Single Realtime Channel
+  try {
+    const channelId = `pro_updates_global_${Math.random().toString(36).substring(7)}`;
+    globalChannel = supabase
       .channel(channelId)
       .on(
         'postgres_changes',
@@ -126,8 +174,9 @@ export function usePro() {
           schema: 'public',
           table: 'User',
         },
-        async (payload) => {
-          const { data: { session } } = await supabase.auth.getSession();
+        async (payload: any) => {
+          const { data }: any = await supabase.auth.getSession();
+          const session = data?.session;
           const changedUser = {
             ...(payload.old as ProUserRecord),
             ...(payload.new as ProUserRecord),
@@ -138,40 +187,54 @@ export function usePro() {
             (changedUser.id === session.user.id ||
               (session.user.email && changedUser.email === session.user.email))
           ) {
-            // Re-read the canonical server result instead of trusting a partial
-            // realtime payload with database column naming.
-            void loadProStatus(false, true);
+            void loadGlobalProStatus(false, true);
           }
         }
       )
       .subscribe();
+  } catch (err) {
+    console.warn("Failed to subscribe to pro realtime updates:", err);
+  }
 
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === "visible") void loadProStatus(false);
-    };
-    const refreshAfterAccountChange = () => void loadProStatus(false);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      profileCache = null;
-      void loadProStatus(true, true);
-    });
+  // 2. Auth State Change
+  supabase.auth.onAuthStateChange(() => {
+    profileCache = null;
+    void loadGlobalProStatus(true, true);
+  });
 
-    window.addEventListener("focus", refreshAfterAccountChange);
-    window.addEventListener("exismic:pro-status-changed", refreshAfterAccountChange);
-    document.addEventListener("visibilitychange", refreshWhenVisible);
+  // 3. Window & Tab Listeners
+  const refreshSilent = () => {
+    if (document.visibilityState === "visible") {
+      void loadGlobalProStatus(false, false);
+    }
+  };
+  const refreshForced = () => void loadGlobalProStatus(false, true);
 
-    return () => {
-      void supabase.removeChannel(channel);
-      subscription.unsubscribe();
-      window.removeEventListener("focus", refreshAfterAccountChange);
-      window.removeEventListener("exismic:pro-status-changed", refreshAfterAccountChange);
-      document.removeEventListener("visibilitychange", refreshWhenVisible);
-    };
-  }, [loadProStatus, supabase]);
-
-  const refresh = useCallback(
-    () => loadProStatus(true, true),
-    [loadProStatus]
-  );
-
-  return { isPro, isLoading, user, authUser, refresh };
+  window.addEventListener("focus", refreshSilent);
+  window.addEventListener("exismic:pro-status-changed", refreshForced);
+  document.addEventListener("visibilitychange", refreshSilent);
 }
+
+export function usePro() {
+  const store = useProStore();
+
+  useEffect(() => {
+    initSingletonProSubscriptions();
+    if (!store.isInitialized) {
+      void loadGlobalProStatus(true);
+    }
+  }, [store.isInitialized]);
+
+  const refresh = useCallback(() => {
+    return loadGlobalProStatus(true, true);
+  }, []);
+
+  return {
+    isPro: store.isPro,
+    isLoading: store.isLoading,
+    user: store.user,
+    authUser: store.authUser,
+    refresh,
+  };
+}
+

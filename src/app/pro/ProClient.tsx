@@ -6,14 +6,18 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Archive,
   ArrowRight,
+  Award,
   Check,
   CheckCircle2,
   Code2,
+  Coins,
   CreditCard,
   Cpu,
   Crown,
   ExternalLink,
+  Flame,
   Gauge,
+  Gift,
   ImageDown,
   Loader2,
   Lock,
@@ -24,7 +28,9 @@ import {
   Shield,
   ShieldCheck,
   Sparkles,
+  Ticket,
   WandSparkles,
+  Zap,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -33,7 +39,11 @@ import { ManageSubscriptionModal } from "@/components/tool/ManageSubscriptionMod
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
+import { GiftPurchaseModal } from "@/components/modals/GiftPurchaseModal";
+import { GiftSuccessModal } from "@/components/modals/GiftSuccessModal";
+import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
 import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
 
@@ -219,6 +229,16 @@ export function ProClient() {
   const currencySymbol = isIndia ? "₹" : "$";
   const [billingInterval] = useState<"monthly" | "yearly">("monthly");
   const [selectedPlanId, setSelectedPlanId] = useState<"pro" | "pro_yearly">("pro");
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [giftInitialPlan, setGiftInitialPlan] = useState<string>("pro");
+  const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
+  const [giftSuccessDetails, setGiftSuccessDetails] = useState<{
+    giftCode: string;
+    giftType: "pro" | "pro_monthly" | "pro_yearly" | "credits";
+    giftCredits?: number;
+    recipientName?: string;
+    recipientMessage?: string;
+  } | null>(null);
 
   const currentProConfig = PRICING_CONFIG.PRO_PLAN;
   const priceDisplay = isIndia
@@ -411,57 +431,67 @@ export function ProClient() {
             transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* Floating Logo with Aura (Perfectly Bounded) */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50vw] h-[100vh] pointer-events-none hidden md:flex justify-end items-center z-0 pr-10 xl:pr-24 overflow-visible">
-             <div className="relative flex items-center justify-center">
-               {/* Glowing Aura behind logo */}
-               <motion.div 
-                 className="absolute w-[400px] h-[400px] bg-gradient-to-tr from-accent-purple via-accent-cyan to-accent-blue rounded-full blur-[120px] opacity-30"
-                 animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 180] }}
-                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-               />
-               <motion.div
-                 animate={prefersReducedMotion ? undefined : { y: ["-3%", "3%", "-3%"], rotate: [-1.5, 1.5, -1.5] }}
-                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                 className="relative z-10"
-               >
-                 <ExismicMark size={450} className="drop-shadow-[0_0_40px_rgba(255,255,255,0.1)] opacity-30" />
-               </motion.div>
-             </div>
-          </div>
-
-          <div className="mx-auto w-full max-w-7xl relative z-10">
+          {/* Ambient Glows */}
+          <div className="absolute right-[5%] top-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-purple-600/15 via-cyan-500/15 to-blue-600/10 blur-[130px] pointer-events-none" />
+          <div className="mx-auto w-full max-w-7xl relative z-10 space-y-6">
+            <PageBreadcrumb items={[{ label: "Exismic Pro Plan" }]} />
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
-              className="max-w-[790px]"
+              className="w-full"
             >
-              {/* Premium Glowing Badge */}
-              <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-md transition-colors hover:bg-accent-cyan/20 hover:border-accent-cyan/50 cursor-default">
-                <Crown size={14} className="fill-accent-cyan/30 text-accent-cyan animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-accent-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
-                  The complete Exismic experience
-                </span>
+              {/* Header Text Block */}
+              <div className="max-w-[790px]">
+                {/* Premium Glowing Badge */}
+                <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-md transition-colors hover:bg-accent-cyan/20 hover:border-accent-cyan/50 cursor-default">
+                  <Crown size={14} className="fill-accent-cyan/30 text-accent-cyan animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-accent-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+                    The complete Exismic experience
+                  </span>
+                </div>
+
+                <h1 className="max-w-[800px] text-[clamp(4.5rem,11vw,9.5rem)] font-black leading-[0.88] tracking-[-0.05em] text-white pb-3">
+                  Exismic
+                  <br />
+                  <span className="relative inline-block mt-2 pb-2">
+                    <span className="absolute inset-0 bg-[linear-gradient(90deg,#a855f7,#06b6d4,#3b82f6,#a855f7)] bg-[length:200%_auto] animate-gradient-x blur-2xl opacity-50" />
+                    <span className="relative bg-[linear-gradient(90deg,#e9d5ff,#a5f3fc,#93c5fd,#e9d5ff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent">
+                      Pro.
+                    </span>
+                  </span>
+                </h1>
+
+                <p className="mt-10 max-w-[620px] text-lg font-medium leading-relaxed text-zinc-400 sm:text-xl sm:leading-loose">
+                  Stop rationing ideas. Get the speed, capacity, clean exports, and creative ownership
+                  to turn more of your work into finished results.
+                </p>
               </div>
 
-              <h1 className="max-w-[800px] text-[clamp(4.5rem,11vw,9.5rem)] font-black leading-[0.82] tracking-[-0.05em] text-white">
-                Exismic
-                <br />
-                <span className="relative inline-block mt-2">
-                  <span className="absolute inset-0 bg-[linear-gradient(90deg,#a855f7,#06b6d4,#3b82f6,#a855f7)] bg-[length:200%_auto] animate-gradient-x blur-2xl opacity-50" />
-                  <span className="relative bg-[linear-gradient(90deg,#e9d5ff,#a5f3fc,#93c5fd,#e9d5ff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent">
-                    Pro.
-                  </span>
-                </span>
-              </h1>
+              {/* Gift & Redeem Actions */}
+              <div className="mt-8 flex items-center gap-3.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGiftInitialPlan("pro");
+                    setIsGiftModalOpen(true);
+                  }}
+                  className="group relative inline-flex items-center gap-2.5 rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/20 via-fuchsia-500/15 to-purple-600/20 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-purple-200 shadow-[0_0_25px_rgba(168,85,247,0.25)] backdrop-blur-xl transition-all duration-300 hover:border-purple-300 hover:bg-purple-500/30 hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] hover:text-white active:scale-95 cursor-pointer"
+                >
+                  <Gift size={16} className="text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] transition-transform duration-300 group-hover:scale-110" />
+                  <span>Buy Pro as a Gift</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsRedeemModalOpen(true)}
+                  className="group relative inline-flex items-center gap-2.5 rounded-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500/20 via-blue-500/15 to-cyan-600/20 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-cyan-200 shadow-[0_0_25px_rgba(6,182,212,0.25)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/30 hover:shadow-[0_0_35px_rgba(6,182,212,0.5)] hover:text-white active:scale-95 cursor-pointer"
+                >
+                  <Ticket size={16} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
+                  <span>Redeem Gift Code</span>
+                </button>
+              </div>
 
-              <p className="mt-10 max-w-[620px] text-lg font-medium leading-relaxed text-zinc-400 sm:text-xl sm:leading-loose">
-                Stop rationing ideas. Get the speed, capacity, clean exports, and creative ownership
-                to turn more of your work into finished results.
-              </p>
-
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="mt-8 w-full">
                 {isPro ? (
                   <div className="flex flex-wrap items-center gap-3">
                     <button
@@ -475,36 +505,329 @@ export function ProClient() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-4 w-full max-w-md">
-                    {/* Active Plan Selection Card */}
-                    <div
+                  <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* 1. Monthly Pro Pass (Cyan Theme) */}
+                    <motion.div
+                      whileHover={{ y: -6 }}
+                      transition={{ duration: 0.3 }}
                       onClick={() => handleUpgradeClick("pro")}
-                      className="cursor-pointer group relative flex flex-col justify-between rounded-2xl border-2 border-purple-500/40 bg-gradient-to-b from-purple-500/10 via-cyan-500/5 to-transparent p-6 backdrop-blur-md shadow-[0_0_35px_rgba(168,85,247,0.2)] transition-all duration-300 hover:border-purple-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.35)] hover:-translate-y-1"
+                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2px] backdrop-blur-3xl transition-all duration-500 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-b from-cyan-500/40 via-white/10 to-transparent flex flex-col"
                     >
-                      <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-purple-500 to-cyan-400 px-3 py-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-black shadow-md">
-                        Monthly Access
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300 flex items-center gap-1">
-                            <Crown size={13} className="text-purple-400" /> Pro Tier
-                          </span>
-                          <span className="text-xl font-black text-white">{isIndia ? "₹499" : "$6.99"}<span className="text-[10px] text-zinc-400 font-bold">/mo</span></span>
+                      {/* Ambient Glowing Blobs */}
+                      <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
+                      <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-sky-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-40" />
+                      
+                      {/* Top Neon Accent Beam */}
+                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+
+                      {/* Inner Obsidian Card */}
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-8 sm:p-10 backdrop-blur-3xl">
+                        <div>
+                          {/* Header: Plan Identity Badge Row */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
+                                <Crown size={22} className="text-cyan-300 fill-cyan-400/30" />
+                              </div>
+                              <div>
+                                <h3 className="text-xl font-black text-white tracking-tight">Monthly Pro</h3>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Standard Tier</p>
+                              </div>
+                            </div>
+                            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-300">
+                              Flexible
+                            </span>
+                          </div>
+
+                          {/* Price Block */}
+                          <div className="mt-6">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#a5f3fc_50%,#38bdf8_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
+                                {isIndia ? "₹499" : "$6.99"}
+                              </span>
+                              <span className="text-xs font-black uppercase tracking-widest text-cyan-300/80">/ month</span>
+                            </div>
+                            <p className="mt-2 text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
+                              <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                              <span>Billed monthly • Cancel anytime in 1-click</span>
+                            </p>
+                          </div>
+
+                          {/* Refined Purpose-Built Benefit Rows */}
+                          <div className="mt-7 space-y-3">
+                            {[
+                              {
+                                icon: Coins,
+                                iconColor: "text-cyan-300",
+                                iconBg: "border-cyan-400/30 bg-cyan-500/10 shadow-[0_0_12px_rgba(34,211,238,0.2)]",
+                                title: "500 Daily Compute Credits",
+                                subtitle: "Restores automatically every 24h at 00:00 UTC",
+                                badge: "15,000 / mo",
+                                badgeStyle: "text-cyan-300 bg-cyan-500/10 border-cyan-400/25",
+                              },
+                              {
+                                icon: Zap,
+                                iconColor: "text-sky-300",
+                                iconBg: "border-sky-400/30 bg-sky-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]",
+                                title: "Accelerated GPU Processing",
+                                subtitle: "Dedicated priority route across all Studio AI tools",
+                                badge: "Fast Queue",
+                                badgeStyle: "text-sky-300 bg-sky-500/10 border-sky-400/25",
+                              },
+                              {
+                                icon: Palette,
+                                iconColor: "text-indigo-300",
+                                iconBg: "border-indigo-400/30 bg-indigo-500/10 shadow-[0_0_12px_rgba(129,140,248,0.2)]",
+                                title: "All 50+ Studio AI Tools",
+                                subtitle: "Full model access, clean exports & no watermarks",
+                                badge: "All Tools",
+                                badgeStyle: "text-indigo-300 bg-indigo-500/10 border-indigo-400/25",
+                              },
+                              {
+                                icon: ShieldCheck,
+                                iconColor: "text-emerald-300",
+                                iconBg: "border-emerald-400/30 bg-emerald-500/10 shadow-[0_0_12px_rgba(52,211,153,0.2)]",
+                                title: "100% Commercial License",
+                                subtitle: "Full ownership for client & commercial revenue",
+                                badge: "Commercial",
+                                badgeStyle: "text-emerald-300 bg-emerald-500/10 border-emerald-400/25",
+                              },
+                            ].map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div
+                                  key={item.title}
+                                  className="group/item flex items-center justify-between gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4.5 py-3.5 transition-all duration-300 hover:border-cyan-500/30 hover:bg-white/[0.04]"
+                                >
+                                  <div className="flex items-center gap-4 min-w-0">
+                                    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
+                                      <ItemIcon size={19} className={item.iconColor} />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-xs sm:text-sm font-black text-white tracking-wide">{item.title}</p>
+                                      <p className="text-[11px] sm:text-xs font-medium text-zinc-400 leading-snug">{item.subtitle}</p>
+                                    </div>
+                                  </div>
+                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-wider", item.badgeStyle)}>
+                                    {item.badge}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <h3 className="mt-2 text-lg font-black text-white flex items-center gap-2">
-                          Exismic Pro <Sparkles size={16} className="text-purple-400" />
-                        </h3>
-                        <p className="mt-1 text-xs text-zinc-300 leading-relaxed">500 daily credits, priority mode processing & commercial rights. Resets daily.</p>
+
+                        {/* Interactive Signature Launcher Button */}
+                        <div className="mt-8">
+                          <motion.button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro"); }}
+                            disabled={loading || !paymentsEnabled}
+                            whileHover={paymentsEnabled ? { y: -2, scale: 1.02 } : undefined}
+                            whileTap={paymentsEnabled ? { scale: 0.98 } : undefined}
+                            className="group/launch relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
+                          >
+                            {/* Rotating Neon Border */}
+                            <motion.span
+                              aria-hidden="true"
+                              className="absolute -inset-[150%] opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8_25%,#3b82f6_50%,#67e8f9_75%,#06b6d4_100%)]"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            />
+                            {/* Halo Diffusion */}
+                            <motion.span
+                              aria-hidden="true"
+                              className="absolute -inset-[100%] blur-md opacity-60 mix-blend-screen bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8,#3b82f6,#06b6d4)]"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            />
+                            <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[19px] border border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 px-5 py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98">
+                              <div className="flex items-center gap-3.5">
+                                <ExismicMark size={40} letter="P" theme="blue" animated={true} />
+                                <div className="text-left">
+                                  <span className="block text-xs sm:text-sm font-black uppercase tracking-[0.18em] text-white">
+                                    GET MONTHLY • {isIndia ? "₹499" : "$6.99"}
+                                  </span>
+                                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300/90">
+                                    Standard Pro Access
+                                  </span>
+                                </div>
+                              </div>
+                              <ArrowRight size={18} className="text-cyan-300 transition-transform group-hover/launch:translate-x-1" />
+                            </span>
+                          </motion.button>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro"); }}
-                        disabled={loading || !paymentsEnabled}
-                        className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all group-hover:brightness-110 group-hover:shadow-[0_0_35px_rgba(168,85,247,0.5)]"
-                      >
-                        <Crown size={15} /> Unlock Exismic Pro
-                      </button>
-                    </div>
+                    </motion.div>
+
+                    {/* 2. Annual Pro VIP (Featured & Best Value - Purple Theme) */}
+                    <motion.div
+                      whileHover={{ y: -8 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => handleUpgradeClick("pro_yearly")}
+                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-b from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col"
+                    >
+                      {/* Ambient Radiant Glows */}
+                      <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-80" />
+                      <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-fuchsia-500/25 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
+
+                      {/* Top Neon Accent Beam */}
+                      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-400 shadow-[0_0_25px_rgba(168,85,247,1)]" />
+
+                      {/* Inner Obsidian Card */}
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-8 sm:p-10 backdrop-blur-3xl">
+                        <div>
+                          {/* Header: Plan Identity Badge Row */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
+                                <Sparkles size={22} className="text-purple-300 fill-purple-400/20" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="text-xl font-black text-white tracking-tight">Annual VIP</h3>
+                                  <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
+                                    Best Value
+                                  </span>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-300">12 Months Unlocked</p>
+                              </div>
+                            </div>
+
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)]">
+                              <Flame size={12} className="text-amber-300 fill-amber-400/40" />
+                              Save 28%
+                            </span>
+                          </div>
+
+                          {/* Price Block */}
+                          <div className="mt-6">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_10%,#e9d5ff_40%,#d946ef_70%,#c084fc_90%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_35px_rgba(168,85,247,0.45)]">
+                                {isIndia ? "₹4,499" : "$59.99"}
+                              </span>
+                              <span className="text-xs font-black uppercase tracking-widest text-purple-300">/ year</span>
+                            </div>
+
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
+                              <span className="text-emerald-400 flex items-center gap-1">
+                                <Flame size={14} className="text-amber-300 fill-amber-400/30" />
+                                Only {isIndia ? "₹375" : "$4.99"} / month
+                              </span>
+                              <span className="text-zinc-600">•</span>
+                              <span className="line-through text-zinc-500 font-semibold">{isIndia ? "₹5,988/yr" : "$83.88/yr"}</span>
+                              <span className="rounded-full bg-emerald-400/15 border border-emerald-400/40 px-2.5 py-0.5 text-[9px] font-black text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+                                Save {isIndia ? "₹1,489" : "$23.89"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Refined Purpose-Built Benefit Rows */}
+                          <div className="mt-7 space-y-3">
+                            {[
+                              {
+                                icon: Coins,
+                                iconColor: "text-purple-300",
+                                iconBg: "border-purple-400/35 bg-purple-500/15 shadow-[0_0_15px_rgba(168,85,247,0.25)]",
+                                title: "182,500 Total Creative Credits",
+                                subtitle: "500 daily credits guaranteed every 24h for 365 days",
+                                badge: "182.5K / yr",
+                                badgeStyle: "text-purple-300 bg-purple-500/15 border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]",
+                              },
+                              {
+                                icon: Cpu,
+                                iconColor: "text-amber-300",
+                                iconBg: "border-amber-400/35 bg-amber-500/15 shadow-[0_0_15px_rgba(251,191,36,0.25)]",
+                                title: "Ultra Compute Queue Priority",
+                                subtitle: "Max GPU cluster allocation during heavy demand",
+                                badge: "Top Priority",
+                                badgeStyle: "text-amber-300 bg-amber-500/15 border-amber-400/30",
+                              },
+                              {
+                                icon: Award,
+                                iconColor: "text-fuchsia-300",
+                                iconBg: "border-fuchsia-400/35 bg-fuchsia-500/15 shadow-[0_0_15px_rgba(217,70,239,0.25)]",
+                                title: "3.5 Months Completely Free",
+                                subtitle: "Single annual payment with zero transaction fees",
+                                badge: "28% Off",
+                                badgeStyle: "text-fuchsia-200 bg-fuchsia-500/20 border-fuchsia-400/40 shadow-[0_0_10px_rgba(217,70,239,0.25)]",
+                              },
+                              {
+                                icon: Crown,
+                                iconColor: "text-pink-300",
+                                iconBg: "border-pink-400/35 bg-pink-500/15 shadow-[0_0_15px_rgba(244,114,182,0.25)]",
+                                title: "Permanent VIP Cosmetics",
+                                subtitle: "Discord VIP role, animated frame & nametag aura",
+                                badge: "VIP Suite",
+                                badgeStyle: "text-pink-300 bg-pink-500/15 border-pink-400/30",
+                              },
+                            ].map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div
+                                  key={item.title}
+                                  className="group/item flex items-center justify-between gap-4 rounded-2xl border border-purple-400/20 bg-purple-400/[0.03] px-4.5 py-3.5 transition-all duration-300 hover:border-purple-400/40 hover:bg-purple-400/[0.06]"
+                                >
+                                  <div className="flex items-center gap-4 min-w-0">
+                                    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
+                                      <ItemIcon size={19} className={item.iconColor} />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-xs sm:text-sm font-black text-white tracking-wide">{item.title}</p>
+                                      <p className="text-[11px] sm:text-xs font-semibold text-zinc-300 leading-snug">{item.subtitle}</p>
+                                    </div>
+                                  </div>
+                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-wider", item.badgeStyle)}>
+                                    {item.badge}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Interactive Signature Launcher Button */}
+                        <div className="mt-8">
+                          <motion.button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleUpgradeClick("pro_yearly"); }}
+                            disabled={loading || !paymentsEnabled}
+                            whileHover={paymentsEnabled ? { y: -2, scale: 1.02 } : undefined}
+                            whileTap={paymentsEnabled ? { scale: 0.98 } : undefined}
+                            className="group/launch relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_40px_rgba(168,85,247,0.6)] hover:shadow-[0_0_55px_rgba(168,85,247,0.85)]"
+                          >
+                            {/* Rotating Neon Border */}
+                            <motion.span
+                              aria-hidden="true"
+                              className="absolute -inset-[150%] opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,#a855f7,#d946ef_25%,#ec4899_50%,#c084fc_75%,#a855f7_100%)]"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
+                            />
+                            {/* Halo Diffusion */}
+                            <motion.span
+                              aria-hidden="true"
+                              className="absolute -inset-[100%] blur-md opacity-80 mix-blend-screen bg-[conic-gradient(from_0deg,#a855f7,#d946ef,#ec4899,#a855f7)]"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
+                            />
+                            <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[19px] border border-purple-400/30 bg-gradient-to-br from-[#120822]/98 via-[#0e071a]/98 to-[#07030e]/98 px-5 py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1a0c33]/98 group-hover/launch:to-[#0f041c]/98">
+                              <div className="flex items-center gap-3.5">
+                                <ExismicMark size={40} letter="P" theme="purple" animated={true} />
+                                <div className="text-left">
+                                  <span className="block text-xs sm:text-sm font-black uppercase tracking-[0.18em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]">
+                                    GET YEARLY VIP • {isIndia ? "₹4,499" : "$59.99"}
+                                  </span>
+                                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-purple-200">
+                                    🔥 SAVE 28% • 3.5 MO FREE
+                                  </span>
+                                </div>
+                              </div>
+                              <ArrowRight size={18} className="text-purple-300 transition-transform group-hover/launch:translate-x-1" />
+                            </span>
+                          </motion.button>
+                        </div>
+                      </div>
+                    </motion.div>
                   </div>
                 )}
               </div>
@@ -982,12 +1305,39 @@ export function ProClient() {
         onClose={() => setIsTermsModalOpen(false)}
         onConfirm={handleUpgradeConfirm}
         type="pro"
-        price={`${currencySymbol}${priceDisplay}${priceSuffix}`}
+        price={
+          selectedPlanId === "pro_yearly"
+            ? `${currencySymbol}${isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR.toLocaleString("en-IN") : PRICING_CONFIG.PRO_YEARLY_PLAN.USD}/yr`
+            : `${currencySymbol}${priceDisplay}${priceSuffix}`
+        }
+        packName={selectedPlanId === "pro_yearly" ? "Exismic Pro (Annual)" : "Exismic Pro (Monthly)"}
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={loading}
         planId={selectedPlanId}
       />
-
+      <GiftPurchaseModal
+        isOpen={isGiftModalOpen}
+        onClose={() => setIsGiftModalOpen(false)}
+        initialPlanId={giftInitialPlan}
+        onSuccess={(details) => {
+          setGiftSuccessDetails(details);
+        }}
+      />
+      {giftSuccessDetails && (
+        <GiftSuccessModal
+          isOpen={Boolean(giftSuccessDetails)}
+          onClose={() => setGiftSuccessDetails(null)}
+          giftCode={giftSuccessDetails.giftCode}
+          giftType={giftSuccessDetails.giftType}
+          giftCredits={giftSuccessDetails.giftCredits}
+          recipientName={giftSuccessDetails.recipientName}
+          recipientMessage={giftSuccessDetails.recipientMessage}
+        />
+      )}
+      <RedeemPromoModal
+        isOpen={isRedeemModalOpen}
+        onClose={() => setIsRedeemModalOpen(false)}
+      />
     </div>
   );
 }
@@ -1012,10 +1362,10 @@ function SectionHeading({
       className={cn("max-w-3xl", align === "center" && "mx-auto text-center")}
     >
       <p className="text-[9px] font-black uppercase tracking-[0.26em] text-cyan-300/80">{eyebrow}</p>
-      <h2 className="mt-4 bg-[linear-gradient(100deg,#ffffff_0%,#f5f3ff_38%,#d8b4fe_68%,#a5f3fc_100%)] bg-clip-text text-[clamp(2.1rem,5vw,4.3rem)] font-black leading-[0.95] tracking-[-0.04em] text-transparent drop-shadow-[0_0_28px_rgba(139,92,246,0.06)]">
+      <h2 className="mt-4 pb-2 bg-[linear-gradient(100deg,#ffffff_0%,#f5f3ff_38%,#d8b4fe_68%,#a5f3fc_100%)] bg-clip-text text-[clamp(2.1rem,5vw,4.3rem)] font-black leading-[1.08] tracking-[-0.03em] text-transparent drop-shadow-[0_0_28px_rgba(139,92,246,0.06)]">
         {title}
       </h2>
-      <p className="mt-5 text-sm font-medium leading-7 text-zinc-500 sm:text-base">{description}</p>
+      <p className="mt-4 text-sm font-medium leading-7 text-zinc-500 sm:text-base">{description}</p>
     </motion.div>
   );
 }

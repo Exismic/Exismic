@@ -277,6 +277,7 @@ async function writeClipboard(text: string) {
 export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -287,9 +288,34 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hidden = sessionStorage.getItem("exismic_hide_tool_assistant") === "true";
+      if (hidden) setIsDismissed(true);
+    }
     const timer = window.setTimeout(() => setShowIntro(false), 2600);
-    return () => window.clearTimeout(timer);
+
+    const handleRestore = () => {
+      setIsDismissed(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("exismic_hide_tool_assistant");
+      }
+      setIsOpen(true);
+    };
+
+    window.addEventListener("exismic_restore_ai_assistant", handleRestore);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("exismic_restore_ai_assistant", handleRestore);
+    };
   }, []);
+
+  const handleHide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDismissed(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("exismic_hide_tool_assistant", "true");
+    }
+  };
 
   useEffect(() => {
     setMessages([createMessage("assistant", defaultIntro(tool))]);
@@ -403,14 +429,25 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
   return (
     <>
       <AnimatePresence>
-        {!isOpen && (
+        {!isOpen && !isDismissed && (
           <motion.div
             initial={{ opacity: 0, y: 18, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.94 }}
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
-            className="fixed bottom-3 right-3 z-40 sm:bottom-7 sm:right-7"
+            className="group/launcher fixed bottom-3 right-3 z-40 sm:bottom-7 sm:right-7"
           >
+            {/* Temporary Dismiss / Hide Button */}
+            <button
+              type="button"
+              onClick={handleHide}
+              title="Hide AI assistant for this session"
+              aria-label="Hide AI assistant"
+              className="absolute -top-2 -left-2 z-30 flex size-5 items-center justify-center rounded-full border border-white/20 bg-[#080914]/90 text-zinc-400 opacity-0 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-red-400/40 hover:bg-red-500/20 hover:text-white group-hover/launcher:opacity-100 active:scale-95"
+            >
+              <X size={10} strokeWidth={2.5} />
+            </button>
+
             <button
               type="button"
               onClick={() => setIsOpen(true)}
@@ -448,6 +485,31 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
                 <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-white">Ask Exismic Ai</span>
                 <span className="block truncate text-[9px] font-semibold text-zinc-500">{tool.name}</span>
               </span>
+            </button>
+          </motion.div>
+        )}
+
+        {!isOpen && isDismissed && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed bottom-3 right-3 z-40 sm:bottom-6 sm:right-6"
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setIsDismissed(false);
+                if (typeof window !== "undefined") {
+                  sessionStorage.removeItem("exismic_hide_tool_assistant");
+                }
+                setIsOpen(true);
+              }}
+              title={`Open AI Assistant for ${tool.name}`}
+              aria-label="Open AI Assistant"
+              className="flex size-7 items-center justify-center rounded-full border border-white/15 bg-[#080914]/80 text-zinc-500 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-purple-400/40 hover:bg-purple-500/20 hover:text-cyan-300 opacity-40 hover:opacity-100 active:scale-95 cursor-pointer"
+            >
+              <ExismicMark size={16} />
             </button>
           </motion.div>
         )}

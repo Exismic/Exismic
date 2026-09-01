@@ -17,16 +17,16 @@ export type BlogPostMetadata = {
 
 export const BLOG_POSTS: BlogPostMetadata[] = [
   {
-    slug: 'introducing-exismic',
-    title: 'Introducing Exismic: The Future of Creative Workflows',
-    excerpt: 'We are thrilled to announce the launch of Exismic, the ultimate AI-powered workspace designed to give you power without the clutter.',
-    publishedAt: '2026-07-09',
+    slug: 'exismic-1-5-release',
+    title: 'Exismic 1.5: Quests, Developer API, Yearly Pro, and Gifting',
+    excerpt: 'Exismic 1.5 introduces Daily & Weekly Quests to earn credits, official Developer API access, Yearly Pro plans, credit and membership gifting, and extensive visual refinements.',
+    publishedAt: '2026-09-01',
     readTime: '4 min read',
     author: {
       name: 'Exismic Team',
       avatar: 'https://i.pravatar.cc/150?u=exismic',
     },
-    coverImage: 'bg-[radial-gradient(ellipse_at_top_right,rgba(124,58,237,0.15),transparent_50%)]',
+    coverImage: 'bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.18),transparent_50%)]',
     category: 'Product Updates',
   }
 ];

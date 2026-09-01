@@ -4,13 +4,16 @@
  */
 
 export const GROQ_TEXT_MODELS = [
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
+  "openai/gpt-oss-120b",
+  "qwen/qwen3.8-27b",
+  "qwen/qwen3.6-27b",
+  "groq/compound",
+  "allam-2-7b",
 ] as const;
 
 export const GROQ_VISION_MODELS = [
-  "llama-3.2-11b-vision-preview",
-  "llama-3.2-90b-vision-preview",
+  "groq/compound",
+  "openai/gpt-oss-120b",
 ] as const;
 
 export const DEFAULT_GROQ_TEXT_MODEL = GROQ_TEXT_MODELS[0];

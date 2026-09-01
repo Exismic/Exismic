@@ -72,7 +72,6 @@ export const PRO_FRAMES = [
   {
     id: "emerald-viper",
     name: "Emerald Toxic Matrix",
-    isNew: true,
     borderStyles: "bg-gradient-to-br from-emerald-500 via-lime-400 to-teal-600 animate-[spin_6s_linear_infinite] shadow-[0_0_25px_rgba(16,185,129,0.7)]",
     glowStyles: "from-emerald-500/75 via-lime-400/65 to-teal-600/75",
     badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -81,7 +80,6 @@ export const PRO_FRAMES = [
   {
     id: "diamond-ice",
     name: "Glacier Diamond Frost",
-    isNew: true,
     borderStyles: "bg-gradient-to-tr from-sky-300 via-cyan-200 via-blue-400 to-white animate-[spin_7s_linear_infinite] shadow-[0_0_25px_rgba(56,189,248,0.7)]",
     glowStyles: "from-sky-300/80 via-cyan-200/70 to-blue-400/80",
     badgeColor: "bg-sky-500/10 text-sky-300 border-sky-500/20",
@@ -90,7 +88,6 @@ export const PRO_FRAMES = [
   {
     id: "solar-flare",
     name: "Solar Flare Supernova",
-    isNew: true,
     borderStyles: "bg-[linear-gradient(110deg,#f59e0b,#ef4444,#eab308,#f59e0b)] bg-[length:200%_200%] animate-[gradient-x_2.5s_ease_infinite] shadow-[0_0_25px_rgba(245,158,11,0.75)]",
     glowStyles: "from-amber-500/80 via-orange-500/70 to-red-600/80",
     badgeColor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
@@ -99,7 +96,6 @@ export const PRO_FRAMES = [
   {
     id: "hyper-violet",
     name: "Hyper Violet Singularity",
-    isNew: true,
     borderStyles: "bg-gradient-to-br from-purple-700 via-fuchsia-600 to-indigo-800 animate-[spin_5s_linear_infinite] shadow-[0_0_25px_rgba(168,85,247,0.75)]",
     glowStyles: "from-purple-700/80 via-fuchsia-600/70 to-indigo-800/80",
     badgeColor: "bg-purple-500/10 text-purple-300 border-purple-500/20",
@@ -108,7 +104,6 @@ export const PRO_FRAMES = [
   {
     id: "aurora-borealis",
     name: "Aurora Northern Lights",
-    isNew: true,
     borderStyles: "bg-[linear-gradient(110deg,#10b981,#14b8a6,#06b6d4,#a855f7,#10b981)] bg-[length:300%_300%] animate-[gradient-x_4s_ease_infinite] shadow-[0_0_25px_rgba(45,212,191,0.75)]",
     glowStyles: "from-emerald-400/80 via-teal-400/70 to-purple-500/80",
     badgeColor: "bg-teal-500/10 text-teal-300 border-teal-500/20",
@@ -117,33 +112,110 @@ export const PRO_FRAMES = [
   {
     id: "obsidian-onyx",
     name: "Obsidian Stealth Onyx",
-    isNew: true,
     borderStyles: "bg-[linear-gradient(110deg,#3f3f46,#fafafa,#18181b,#fafafa)] bg-[length:200%_200%] animate-[gradient-x_3.5s_ease_infinite] shadow-[0_0_25px_rgba(255,255,255,0.4)]",
     glowStyles: "from-zinc-500/60 via-zinc-300/40 to-zinc-800/60",
     badgeColor: "bg-zinc-500/10 text-zinc-300 border-zinc-500/20",
     titleColor: "bg-gradient-to-r from-zinc-200 via-white to-zinc-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "hologram-prism",
+    name: "Holographic Prism Matrix",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#38bdf8,#f472b6,#c084fc,#34d399,#38bdf8)] bg-[length:300%_300%] animate-[gradient-x_3s_ease_infinite] shadow-[0_0_30px_rgba(56,189,248,0.85)]",
+    glowStyles: "from-sky-400/80 via-pink-400/70 to-teal-400/80",
+    badgeColor: "bg-sky-500/10 text-sky-300 border-sky-500/20",
+    titleColor: "bg-gradient-to-r from-sky-300 via-pink-300 to-teal-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "crimson-inferno",
+    name: "Crimson Blood Inferno",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#dc2626,#991b1b,#ef4444,#7f1d1d,#dc2626)] bg-[length:250%_250%] animate-[gradient-x_2.5s_ease_infinite] shadow-[0_0_30px_rgba(220,38,38,0.85)]",
+    glowStyles: "from-red-600/85 via-rose-600/75 to-red-950/85",
+    badgeColor: "bg-red-500/10 text-red-400 border-red-500/20",
+    titleColor: "bg-gradient-to-r from-red-400 via-rose-300 to-red-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "quantum-flux",
+    name: "Quantum Flux Reactor",
+    isNew: true,
+    borderStyles: "bg-gradient-to-tr from-cyan-400 via-indigo-600 via-emerald-400 to-blue-500 animate-[spin_4s_linear_infinite] shadow-[0_0_30px_rgba(34,211,238,0.85)]",
+    glowStyles: "from-cyan-400/85 via-indigo-500/75 to-emerald-400/85",
+    badgeColor: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
+    titleColor: "bg-gradient-to-r from-cyan-300 via-indigo-300 to-emerald-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "celestial-platinum",
+    name: "Celestial Royal Platinum",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#e2e8f0,#ffffff,#94a3b8,#cbd5e1,#ffffff)] bg-[length:200%_200%] animate-[gradient-x_3s_ease_infinite] shadow-[0_0_30px_rgba(255,255,255,0.75)]",
+    glowStyles: "from-slate-200/80 via-white/70 to-slate-400/80",
+    badgeColor: "bg-slate-300/10 text-slate-200 border-slate-300/20",
+    titleColor: "bg-gradient-to-r from-slate-100 via-white to-slate-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "plasma-storm",
+    name: "Electric Plasma Storm",
+    isNew: true,
+    borderStyles: "bg-gradient-to-br from-yellow-300 via-amber-500 via-cyan-400 to-indigo-600 animate-[spin_5s_linear_infinite] shadow-[0_0_30px_rgba(234,179,8,0.85)]",
+    glowStyles: "from-yellow-400/80 via-cyan-400/70 to-indigo-600/80",
+    badgeColor: "bg-yellow-500/10 text-yellow-300 border-yellow-500/20",
+    titleColor: "bg-gradient-to-r from-yellow-300 via-cyan-300 to-indigo-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "sakura-blossom",
+    name: "Sakura Cyber Blossom",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#f472b6,#fda4af,#ec4899,#fbcfe8,#f472b6)] bg-[length:200%_200%] animate-[gradient-x_3.5s_ease_infinite] shadow-[0_0_25px_rgba(244,114,182,0.8)]",
+    glowStyles: "from-pink-400/80 via-rose-300/70 to-pink-600/80",
+    badgeColor: "bg-pink-500/10 text-pink-300 border-pink-500/20",
+    titleColor: "bg-gradient-to-r from-pink-300 via-rose-200 to-pink-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "golden-pharaoh",
+    name: "Mythic Sun Pharaoh",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#b45309,#fbbf24,#78350f,#fde68a,#b45309)] bg-[length:220%_220%] animate-[gradient-x_2.8s_ease_infinite] shadow-[0_0_30px_rgba(251,191,36,0.85)]",
+    glowStyles: "from-amber-600/85 via-yellow-300/75 to-amber-800/85",
+    badgeColor: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+    titleColor: "bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "dark-matter",
+    name: "Abyssal Dark Matter",
+    isNew: true,
+    borderStyles: "bg-gradient-to-tr from-slate-900 via-purple-950 via-cyan-900 to-slate-900 animate-[spin_8s_linear_infinite] border border-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.5)]",
+    glowStyles: "from-purple-950/90 via-cyan-900/80 to-slate-900/90",
+    badgeColor: "bg-cyan-950/40 text-cyan-300 border-cyan-500/30",
+    titleColor: "bg-gradient-to-r from-purple-300 via-cyan-200 to-slate-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
   }
 ];
 
 interface AvatarWithFrameProps {
-  avatarUrl?: string;
-  displayName: string;
-  isPro: boolean;
-  frameId?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  avatarUrl?: string | null;
+  displayName?: string | null;
+  fallbackName?: string | null;
+  isPro?: boolean;
+  frameId?: string | null;
+  size?: "sm" | "md" | "lg" | "xl" | number;
   className?: string;
 }
 
 export function AvatarWithFrame({
   avatarUrl,
   displayName,
-  isPro,
+  fallbackName,
+  isPro = false,
   frameId,
   size = "md",
   className
 }: AvatarWithFrameProps) {
   const activeFrame = isPro ? PRO_FRAMES.find(f => f.id === frameId) : null;
-  const initial = displayName[0] || "E";
+  const nameStr = (displayName || fallbackName || "User").trim();
+  const initial = nameStr.charAt(0).toUpperCase() || "E";
+
+  const isNumericSize = typeof size === "number";
+  const sizeKey = (isNumericSize ? (size <= 40 ? "sm" : size <= 56 ? "md" : size <= 80 ? "lg" : "xl") : size) as "sm" | "md" | "lg" | "xl";
 
   const sizeStyles = {
     sm: { 
@@ -174,7 +246,13 @@ export function AvatarWithFrame({
       innerRounded: "rounded-[27px]", 
       initialText: "text-3xl" 
     }
-  }[size];
+  }[sizeKey] || {
+    container: "w-[48px] h-[48px]",
+    padding: "3.5px",
+    outerRounded: "rounded-[16px]",
+    innerRounded: "rounded-[13px]",
+    initialText: "text-xs"
+  };
 
   return (
     <div className={cn("relative shrink-0 select-none group/avatar-frame", className)}>
@@ -228,7 +306,7 @@ export function AvatarWithFrame({
           )}
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover relative z-10" />
+            <img src={avatarUrl} alt={displayName || "Avatar"} className="w-full h-full object-cover relative z-10" />
           ) : (
             <div
               className={cn(

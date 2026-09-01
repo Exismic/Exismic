@@ -376,6 +376,16 @@ export function ChatWorkspace() {
   const attachedImageCount = attachments.filter(item => item.type.startsWith("image/")).length;
   const canSubmit = (input.trim().length > 0 || attachments.length > 0) && !isUploading;
 
+  React.useEffect(() => {
+    try {
+      const prefill = sessionStorage.getItem("exismic_chat_prefill");
+      if (prefill) {
+        setInput(prefill);
+        sessionStorage.removeItem("exismic_chat_prefill");
+      }
+    } catch {}
+  }, [setInput]);
+
   // --- Keyboard Shortcuts & Commands ---
   const executeCommand = (cmdId: string) => {
     setShowCommands(false);

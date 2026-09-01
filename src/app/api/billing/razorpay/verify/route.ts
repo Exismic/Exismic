@@ -93,7 +93,13 @@ export async function POST(req: NextRequest) {
       rawMetadata: { verifiedBy: "checkout_success", razorpaySignature: "verified", razorpayOrderId: razorpay_order_id || null, razorpaySubscriptionId: razorpay_subscription_id || null },
     });
 
-    return NextResponse.json({ success: true, alreadyProcessed: result.alreadyProcessed, orderId: paymentOrder.id });
+    return NextResponse.json({ 
+      success: true, 
+      alreadyProcessed: result.alreadyProcessed, 
+      orderId: paymentOrder.id,
+      isGift: Boolean(result.isGift),
+      giftCode: result.giftCode || null,
+    });
   } catch (error) {
     console.error("[Billing] Razorpay verify failed:", error);
     const message = process.env.NODE_ENV === "production"

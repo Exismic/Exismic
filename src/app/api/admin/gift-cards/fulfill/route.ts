@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "approve") {
-      // Grant credits or Pro status using fulfillBillingOrder
+      // Grant credits/Pro status for self orders OR generate 1-time gift voucher for gift passes
       const result = await fulfillBillingOrder({
         orderId: order.id,
         providerPaymentId: `gift_approval_${order.id}_${Date.now()}`,
@@ -92,8 +92,8 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (targetEmail) {
-        const isPro = order.planId === "pro";
+      if (targetEmail && !result.isGift) {
+        const isPro = order.planId === "pro" || order.planId === "pro_yearly";
         await sendGiftCardApprovedEmail(targetEmail, {
           planName,
           orderId: order.id,
@@ -105,7 +105,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         status: "COMPLETED",
-        message: `Order #${orderId.slice(-8)} approved, fulfilled, and confirmation email sent!`,
+        message: result.isGift
+          ? `Order #${orderId.slice(-8)} approved! Gift voucher (${result.giftCode}) generated & emailed to buyer.`
+          : `Order #${orderId.slice(-8)} approved, fulfilled, and confirmation email sent!`,
         result,
       });
     }

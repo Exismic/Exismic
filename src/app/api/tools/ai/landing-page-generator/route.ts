@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
+import { requireApiUser, getRequestIp, checkDistributedRateLimit, rateLimitResponse } from "@/lib/api-security";
+import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = DEFAULT_GROQ_TEXT_MODEL;
+const TOOL_COST = getToolCreditCost("landing-page-generator", 12);
 
 interface GroqMessage {
   role: "system" | "user";
@@ -51,9 +54,22 @@ async function callGroq(messages: GroqMessage[]) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(`landing-page-gen:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 20 : 5, 60 * 60 * 1000);
+    const authResult = await requireApiUser();
+    if (authResult instanceof NextResponse) return authResult;
+    const authUser = authResult;
+
+    const ip = getRequestIp(req);
+    const limit = await checkDistributedRateLimit(`landing-page-gen:${authUser.id || ip}`, 10, 60 * 60 * 1000);
     if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+
+    const userCredits = await getUserCredits(authUser.id);
+    const available = userCredits ? getCreditTotal(userCredits) : 0;
+    if (available < TOOL_COST) {
+      return NextResponse.json(
+        { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
+        { status: 402 }
+      );
+    }
 
     const { prompt, style = "modern" } = await req.json().catch(() => ({}));
 
@@ -118,7 +134,13 @@ Style tone selected: ${style}. Apply matching typography, colors, and borders. M
     }
     cleanHtml = cleanHtml.trim();
 
-    return NextResponse.json({ html: cleanHtml });
+    // Atomically deduct credits
+    await deductCredits(authUser.id, TOOL_COST, "landing-page-generator");
+
+    return NextResponse.json({
+      html: cleanHtml,
+      creditsDeducted: TOOL_COST,
+    });
 
   } catch (error: any) {
     console.error("[Landing Page Route Error]:", error);

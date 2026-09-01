@@ -22,9 +22,13 @@ import {
   Sparkles,
   Zap,
   Check,
-  Globe,
   Star,
-  Layers
+  Layers,
+  LogIn,
+  UserPlus,
+  Image as ImageIcon,
+  Music,
+  Code2
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -653,7 +657,7 @@ export default function AuthPage() {
         </div>
 
         {/* Middle Feature Showcase */}
-        <div className="my-auto py-10 max-w-xl space-y-9">
+        <div className="my-auto py-10 max-w-xl space-y-8">
           
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
@@ -661,32 +665,33 @@ export default function AuthPage() {
             transition={{ duration: 0.7 }}
             className="space-y-4"
           >
-            <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-white leading-[1.15]">
+            <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-[1.12]">
               Everything you need to <br />
-              <span className="bg-gradient-to-r from-purple-400 via-violet-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+              <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(168,85,247,0.3)]">
                 create with AI.
               </span>
             </h1>
 
-            <p className="text-zinc-400 text-base leading-relaxed font-normal">
+            <p className="text-zinc-400 text-sm sm:text-base leading-relaxed font-normal max-w-lg">
               Remove backgrounds, generate images, isolate audio stems, and convert code — all in one powerful, unified workspace.
             </p>
           </motion.div>
 
-          {/* Clean Feature Highlights Grid */}
+          {/* Feature Highlights Grid */}
           <div className="space-y-3.5">
             <motion.div 
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="flex items-start gap-4 p-4 rounded-2xl border border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.035] hover:border-purple-500/25 transition-all duration-300 group shadow-sm"
+              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border border-white/[0.08] hover:border-purple-400/40 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(168,85,247,0.2)] ring-1 ring-white/[0.04] hover:-translate-y-0.5"
             >
-              <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-400 shrink-0 group-hover:scale-105 transition-all duration-300">
-                <Sparkles size={18} />
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-400/0 group-hover:via-purple-400/60 to-transparent transition-all duration-500" />
+              <div className="w-11 h-11 rounded-xl border border-purple-400/25 bg-purple-500/10 text-purple-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-sm">
+                <ImageIcon size={19} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-white group-hover:text-purple-200 transition-colors">Image & Asset Generation</h3>
-                <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed font-normal">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Image & Asset Generation</h3>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
                   Instant background removal, AI image creation, and photo enhancement in high resolution.
                 </p>
               </div>
@@ -696,14 +701,15 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex items-start gap-4 p-4 rounded-2xl border border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.035] hover:border-cyan-500/25 transition-all duration-300 group shadow-sm"
+              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border border-white/[0.08] hover:border-cyan-400/40 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(6,182,212,0.2)] ring-1 ring-white/[0.04] hover:-translate-y-0.5"
             >
-              <div className="p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shrink-0 group-hover:scale-105 transition-all duration-300">
-                <Layers size={18} />
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/0 group-hover:via-cyan-400/60 to-transparent transition-all duration-500" />
+              <div className="w-11 h-11 rounded-xl border border-cyan-400/25 bg-cyan-500/10 text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(6,182,212,0.3)] transition-all duration-300 shadow-sm">
+                <Music size={19} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-white group-hover:text-cyan-200 transition-colors">Audio & Vocal Separation</h3>
-                <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed font-normal">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Audio & Vocal Separation</h3>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
                   Studio-grade vocal and instrumental stem separation for music producers and video creators.
                 </p>
               </div>
@@ -713,48 +719,19 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex items-start gap-4 p-4 rounded-2xl border border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.035] hover:border-emerald-500/25 transition-all duration-300 group shadow-sm"
+              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border border-white/[0.08] hover:border-emerald-400/40 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(16,185,129,0.2)] ring-1 ring-white/[0.04] hover:-translate-y-0.5"
             >
-              <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shrink-0 group-hover:scale-105 transition-all duration-300">
-                <Zap size={18} />
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/0 group-hover:via-emerald-400/60 to-transparent transition-all duration-500" />
+              <div className="w-11 h-11 rounded-xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-sm">
+                <Code2 size={19} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-white group-hover:text-emerald-200 transition-colors">Developer & Productivity Tools</h3>
-                <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed font-normal">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Developer & Productivity Tools</h3>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
                   Convert design screenshots to code, extract text with smart OCR, and automate export workflows.
                 </p>
               </div>
             </motion.div>
-          </div>
-
-          {/* Trust Social Proof Bar */}
-          <div className="pt-5 border-t border-white/[0.06] flex items-center justify-between">
-            <div className="flex items-center gap-3.5">
-              <div className="flex -space-x-2.5">
-                <img src="/avatars/marcus.png" alt="Creator" className="w-8 h-8 rounded-full border-2 border-[#040407] object-cover ring-1 ring-white/10" />
-                <img src="/avatars/alena.png" alt="Creator" className="w-8 h-8 rounded-full border-2 border-[#040407] object-cover ring-1 ring-white/10" />
-                <img src="/avatars/julian.png" alt="Creator" className="w-8 h-8 rounded-full border-2 border-[#040407] object-cover ring-1 ring-white/10" />
-                <div className="w-8 h-8 rounded-full border-2 border-[#040407] bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-[10px] font-black text-white ring-1 ring-white/10">
-                  +10k
-                </div>
-              </div>
-              <div className="text-xs">
-                <div className="flex items-center gap-1 text-amber-400">
-                  <Star size={11} fill="currentColor" className="drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
-                  <Star size={11} fill="currentColor" className="drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
-                  <Star size={11} fill="currentColor" className="drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
-                  <Star size={11} fill="currentColor" className="drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
-                  <Star size={11} fill="currentColor" className="drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
-                  <span className="text-white font-extrabold ml-1 text-[11px]">4.9/5</span>
-                </div>
-                <p className="text-zinc-400 text-[11px] font-medium">Loved by creators worldwide</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium bg-white/[0.02] border border-white/[0.04] px-3 py-1.5 rounded-full">
-              <Globe size={13} className="text-purple-400" />
-              <span>99.99% Uptime</span>
-            </div>
           </div>
 
         </div>
@@ -833,13 +810,14 @@ export default function AuthPage() {
           )}
 
           {/* Main Auth Glass Card */}
-          <div className="relative group">
-            {/* Multi-layer ambient border glow */}
-            <div className="absolute -inset-[1px] bg-gradient-to-b from-purple-500/30 via-white/10 to-cyan-500/20 rounded-[2.1rem] pointer-events-none blur-[1px]" />
-            <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-[2.1rem] pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+          <div className="relative">
+            {/* Subtle ambient border */}
+            <div className="absolute -inset-[1px] rounded-[2.1rem] bg-gradient-to-b from-white/[0.1] via-white/[0.03] to-purple-500/15 pointer-events-none" />
             
-            <div className="bg-[#090a10]/95 backdrop-blur-3xl border border-white/[0.09] rounded-[2rem] p-7 sm:p-10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.9)] overflow-hidden relative">
-              
+            <div className="bg-[#080911]/95 backdrop-blur-3xl rounded-[2rem] border border-white/[0.08] p-6 sm:p-9 shadow-[0_24px_70px_rgba(0,0,0,0.85)] overflow-hidden relative">
+              {/* Top Hairline Sheen */}
+              <div className="pointer-events-none absolute top-0 inset-x-12 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            
               {/* Floating Toast Notification */}
               <AnimatePresence>
                 {(success || error) && (
@@ -953,32 +931,30 @@ export default function AuthPage() {
                     exit={{ opacity: 0, x: -15 }}
                     className="space-y-6"
                   >
-                    <button
-                      type="button"
-                      onClick={() => { setState('link'); setError(null); setFieldErrors({}); }}
-                      className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    <button 
+                      type="button" 
+                      onClick={() => setState('link')} 
+                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
                     >
                       <ArrowLeft size={14} /> Back
                     </button>
 
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight text-white">Approve {providerLabel(linkProvider)}</h2>
-                      <p className="mt-1.5 text-xs text-zinc-400 font-medium">Confirm your existing Exismic password to finish linking.</p>
+                    <div className="space-y-1">
+                      <h2 className="text-xl font-bold text-white">Confirm Account Password</h2>
+                      <p className="text-zinc-400 text-xs leading-relaxed font-normal">
+                        Enter the password for <span className="font-semibold text-white">{linkEmail}</span> to complete linking.
+                      </p>
                     </div>
 
                     <form onSubmit={handleLinkSubmit} className="space-y-4">
-                      <div className="rounded-xl border border-white/10 bg-black/40 p-4">
-                        <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Account Email</p>
-                        <p className="mt-1 truncate text-xs font-semibold text-white">{linkEmail}</p>
-                      </div>
-
                       <div className="relative group">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" size={16} />
                         <input
                           name="password"
                           type={showPassword ? "text" : "password"}
+                          required
                           autoComplete="current-password"
-                          placeholder="Current password"
+                          placeholder="Current account password"
                           className="w-full bg-black/50 border border-white/10 rounded-xl py-3.5 pl-11 pr-11 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 transition-all"
                         />
                         <button
@@ -993,59 +969,37 @@ export default function AuthPage() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-zinc-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-60 cursor-pointer"
+                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                       >
-                        {isLoading ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <Loader2 className="animate-spin text-black" size={16} />
-                            <span>Connecting...</span>
-                          </div>
-                        ) : (
-                          <><Link2 size={15} /> Confirm & Link Provider</>
-                        )}
+                        {isLoading ? <Loader2 size={16} className="animate-spin text-white" /> : null}
+                        Verify & Finish Linking
                       </button>
                     </form>
-                  </motion.div>
-
-                ) : state === 'success' ? (
-
-                  /* ------------------------------------------------------------- */
-                  /* STATE: SUCCESS SCREEN                                         */
-                  /* ------------------------------------------------------------- */
-                  <motion.div 
-                    key="success-screen"
-                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center py-8 space-y-5"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                      <CheckCircle2 size={36} />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <h2 className="text-2xl font-bold text-white">Identity Verified</h2>
-                      <p className="text-zinc-400 text-xs font-medium">Preparing your workspace dashboard...</p>
-                    </div>
-                    <Loader2 className="animate-spin text-purple-400" size={20} />
                   </motion.div>
 
                 ) : state === 'magic' ? (
 
                   /* ------------------------------------------------------------- */
-                  /* STATE: PHONE MFA APPROVAL                                      */
+                  /* STATE: ONE-TAP PHONE APPROVAL (TRUSTED DEVICE AUTH)          */
                   /* ------------------------------------------------------------- */
                   <motion.div
-                    key="magic-screen"
+                    key="magic-link-screen"
                     initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
                     className="space-y-6"
                   >
-                    <button onClick={() => setState('signin')} className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                      <ArrowLeft size={14} /> Back to standard login
+                    <button 
+                      type="button"
+                      onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
+                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      <ArrowLeft size={14} /> Back to Password Sign In
                     </button>
 
-                    <div className="space-y-2">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.15)]">
-                        <Radio size={12} className="animate-pulse" /> Mobile Approval Security
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 text-[10px] font-black uppercase tracking-wider">
+                        <Radio size={12} className="animate-pulse text-cyan-400" /> One-Tap Mobile Security
                       </div>
-                      <h2 className="text-2xl font-black tracking-tight text-white">Mobile Device MFA</h2>
+                      <h2 className="text-2xl font-black tracking-tight text-white">Approve From Phone</h2>
                       <p className="text-zinc-400 text-xs leading-relaxed font-normal">
                         Approve sign-in requests directly from your trusted phone app without typing passwords.
                       </p>
@@ -1266,7 +1220,7 @@ export default function AuthPage() {
                     className="space-y-6"
                   >
                     <button 
-                      type="button"
+                      type="button" 
                       onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
                       className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
                     >
@@ -1344,45 +1298,48 @@ export default function AuthPage() {
                   /* MAIN AUTH FORM: SIGN IN / SIGN UP TABS                         */
                   /* ------------------------------------------------------------- */
                   <motion.div 
+                    layout
                     key="main-auth-form"
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="space-y-6"
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="space-y-5"
                   >
                     {/* Segmented Tab Switcher */}
-                    <div className="grid grid-cols-2 p-1.5 bg-white/[0.03] border border-white/[0.08] rounded-2xl relative shadow-inner">
+                    <div className="grid grid-cols-2 p-1 bg-black/40 border border-white/[0.08] rounded-xl relative shadow-inner">
                       <button 
                         type="button"
                         onClick={() => { setState('signin'); setError(null); setFieldErrors({}); }}
-                        className={`py-2.5 text-xs font-black uppercase tracking-wider relative z-10 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
+                        className={`py-2.5 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2 select-none ${
                           state === 'signin' ? "text-white" : "text-zinc-400 hover:text-zinc-200"
                         }`}
                       >
                         {state === 'signin' && (
                           <motion.div 
                             layoutId="activeAuthTab"
-                            className="absolute inset-0 bg-[#181824] rounded-xl border border-white/10 shadow-lg -z-10"
-                            transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                            className="absolute inset-0 bg-[#161826] rounded-lg border border-white/[0.12] shadow-sm -z-10"
+                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
                           />
                         )}
-                        <KeyRound size={13} className={state === 'signin' ? "text-purple-400" : "text-zinc-500"} />
+                        <KeyRound size={13.5} className={state === 'signin' ? "text-purple-400" : "text-zinc-500"} />
                         <span>Sign In</span>
                       </button>
 
                       <button 
                         type="button"
                         onClick={() => { setState('signup'); setError(null); setFieldErrors({}); }}
-                        className={`py-2.5 text-xs font-black uppercase tracking-wider relative z-10 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
+                        className={`py-2.5 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2 select-none ${
                           state === 'signup' ? "text-white" : "text-zinc-400 hover:text-zinc-200"
                         }`}
                       >
                         {state === 'signup' && (
                           <motion.div 
                             layoutId="activeAuthTab"
-                            className="absolute inset-0 bg-[#181824] rounded-xl border border-white/10 shadow-lg -z-10"
-                            transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                            className="absolute inset-0 bg-[#161826] rounded-lg border border-white/[0.12] shadow-sm -z-10"
+                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
                           />
                         )}
-                        <Sparkles size={13} className={state === 'signup' ? "text-purple-400" : "text-zinc-500"} />
+                        <UserPlus size={13.5} className={state === 'signup' ? "text-cyan-400" : "text-zinc-500"} />
                         <span>Sign Up</span>
                       </button>
                     </div>
@@ -1393,61 +1350,61 @@ export default function AuthPage() {
                         type="button"
                         onClick={() => handleSocialLogin('google')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/[0.025] border border-white/10 text-xs font-semibold text-zinc-300 hover:bg-white/[0.08] hover:border-white/20 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm group"
+                        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.025] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06] text-xs font-semibold text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95 group"
                       >
-                        {socialLoading === 'google' ? <Loader2 size={16} className="animate-spin text-purple-400" /> : <GoogleIcon />}
-                        <span className="hidden sm:inline">{socialLoading === 'google' ? 'Connecting...' : 'Google'}</span>
+                        {socialLoading === 'google' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <GoogleIcon />}
+                        <span className="hidden sm:inline font-medium">{socialLoading === 'google' ? '...' : 'Google'}</span>
                       </button>
 
                       <button 
                         type="button"
                         onClick={() => handleSocialLogin('github')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/[0.025] border border-white/10 text-xs font-semibold text-zinc-300 hover:bg-white/[0.08] hover:border-white/20 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm group"
+                        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.025] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06] text-xs font-semibold text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95 group"
                       >
-                        {socialLoading === 'github' ? <Loader2 size={16} className="animate-spin text-purple-400" /> : <GitHubIcon />}
-                        <span className="hidden sm:inline">{socialLoading === 'github' ? 'Connecting...' : 'GitHub'}</span>
+                        {socialLoading === 'github' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <GitHubIcon />}
+                        <span className="hidden sm:inline font-medium">{socialLoading === 'github' ? '...' : 'GitHub'}</span>
                       </button>
 
                       <button 
                         type="button"
                         onClick={() => handleSocialLogin('discord')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white/[0.025] border border-white/10 text-xs font-semibold text-zinc-300 hover:bg-[#5865F2]/15 hover:border-[#5865F2]/40 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm group"
+                        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.025] border border-white/[0.08] hover:border-[#5865F2]/40 hover:bg-[#5865F2]/10 text-xs font-semibold text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95 group"
                       >
-                        {socialLoading === 'discord' ? <Loader2 size={16} className="animate-spin text-purple-400" /> : <DiscordIcon />}
-                        <span className="hidden sm:inline">{socialLoading === 'discord' ? 'Connecting...' : 'Discord'}</span>
+                        {socialLoading === 'discord' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <DiscordIcon />}
+                        <span className="hidden sm:inline font-medium">{socialLoading === 'discord' ? '...' : 'Discord'}</span>
                       </button>
                     </div>
 
                     {/* Mobile Security Approval Tile (Sign In Only with smooth slide) */}
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence initial={false}>
                       {state === 'signin' && (
                         <motion.div
                           key="mobile-security-tile"
-                          initial={{ opacity: 0, height: 0, scale: 0.96 }}
-                          animate={{ opacity: 1, height: "auto", scale: 1 }}
-                          exit={{ opacity: 0, height: 0, scale: 0.96 }}
-                          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                           className="overflow-hidden"
                         >
                           <button
                             type="button"
                             onClick={() => { setState('magic'); setError(null); setSuccess(null); }}
-                            className="w-full group relative overflow-hidden rounded-2xl border border-cyan-500/25 bg-gradient-to-r from-cyan-500/[0.06] via-purple-500/[0.03] to-transparent p-[1px] transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-500/[0.1] cursor-pointer shadow-sm"
+                            className="w-full group relative overflow-hidden rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-3 transition-all duration-200 hover:border-cyan-400/40 hover:bg-cyan-500/[0.08] cursor-pointer"
                           >
-                            <div className="relative flex items-center gap-3.5 p-3.5">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-black/50 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]">
-                                <Smartphone size={18} />
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-400/25 bg-black/40 text-cyan-300">
+                                <Smartphone size={16} />
                               </div>
                               <div className="min-w-0 flex-1 text-left">
                                 <div className="text-xs font-bold text-white flex items-center gap-1.5">
                                   <span>One-Tap Mobile Security</span>
-                                  <span className="text-[9px] bg-cyan-400/20 text-cyan-300 px-1.5 py-0.2 rounded font-mono uppercase tracking-wider">Fast</span>
+                                  <span className="text-[9px] bg-cyan-400/15 text-cyan-300 px-1.5 py-0.2 rounded font-mono uppercase tracking-wider font-semibold">Fast</span>
                                 </div>
-                                <div className="text-[11px] text-zinc-400 truncate font-normal">Approve sign-in directly from your phone app</div>
+                                <div className="text-[11px] text-zinc-400 truncate font-normal">Approve sign-in from your phone app</div>
                               </div>
-                              <ChevronRight size={16} className="text-cyan-300 opacity-60 group-hover:translate-x-1 transition-transform" />
+                              <ChevronRight size={15} className="text-cyan-300 opacity-60 group-hover:translate-x-0.5 transition-transform" />
                             </div>
                           </button>
                         </motion.div>
@@ -1455,19 +1412,25 @@ export default function AuthPage() {
                     </AnimatePresence>
 
                     {/* Divider */}
-                    <div className="relative flex items-center gap-3">
-                      <div className="h-[1px] flex-1 bg-white/10" />
+                    <div className="relative flex items-center gap-3 py-0.5">
+                      <div className="h-[1px] flex-1 bg-white/[0.08]" />
                       <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">or continue with email</span>
-                      <div className="h-[1px] flex-1 bg-white/10" />
+                      <div className="h-[1px] flex-1 bg-white/[0.08]" />
                     </div>
 
                     {/* Main Email Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <motion.form layout onSubmit={handleSubmit} className="space-y-3.5">
                       
                       {/* Email Input */}
                       <div className="space-y-1">
-                        <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" size={16} />
+                        <div className={`relative flex items-center rounded-xl border bg-black/40 transition-all duration-200 ${
+                          fieldErrors.email 
+                            ? "border-rose-500/60 bg-rose-500/[0.03]" 
+                            : "border-white/[0.08] hover:border-white/20 focus-within:border-purple-400/70 focus-within:bg-purple-950/[0.08] focus-within:ring-2 focus-within:ring-purple-500/15"
+                        }`}>
+                          <div className="pl-3.5 pr-1 text-zinc-500">
+                            <Mail size={15} />
+                          </div>
                           <input 
                             name="email"
                             type="email" 
@@ -1478,11 +1441,7 @@ export default function AuthPage() {
                             onChange={() => {
                               if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
                             }}
-                            className={`w-full bg-black/50 border rounded-2xl py-3.5 pl-11 pr-4 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all ${
-                              fieldErrors.email 
-                                ? "border-rose-500/60 bg-rose-500/[0.03] focus:border-rose-500" 
-                                : "border-white/10 focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 focus:bg-purple-950/10"
-                            }`}
+                            className="w-full bg-transparent py-3 px-2 text-xs text-white placeholder:text-zinc-600 font-medium focus:outline-none"
                           />
                         </div>
                         {fieldErrors.email && (
@@ -1492,8 +1451,14 @@ export default function AuthPage() {
 
                       {/* Password Input */}
                       <div className="space-y-1">
-                        <div className="relative group">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" size={16} />
+                        <div className={`relative flex items-center rounded-xl border bg-black/40 transition-all duration-200 ${
+                          fieldErrors.password 
+                            ? "border-rose-500/60 bg-rose-500/[0.03]" 
+                            : "border-white/[0.08] hover:border-white/20 focus-within:border-purple-400/70 focus-within:bg-purple-950/[0.08] focus-within:ring-2 focus-within:ring-purple-500/15"
+                        }`}>
+                          <div className="pl-3.5 pr-1 text-zinc-500">
+                            <Lock size={15} />
+                          </div>
                           <input 
                             name="password"
                             type={showPassword ? "text" : "password"}
@@ -1504,18 +1469,14 @@ export default function AuthPage() {
                               if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
                               if (state === 'signup') setSignupPassword(e.target.value);
                             }}
-                            className={`w-full bg-black/50 border rounded-2xl py-3.5 pl-11 pr-11 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all ${
-                              fieldErrors.password 
-                                ? "border-rose-500/60 bg-rose-500/[0.03] focus:border-rose-500" 
-                                : "border-white/10 focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 focus:bg-purple-950/10"
-                            }`}
+                            className="w-full bg-transparent py-3 px-2 text-xs text-white placeholder:text-zinc-600 font-medium focus:outline-none"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                            className="pr-3.5 pl-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
                           >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                           </button>
                         </div>
                         {fieldErrors.password && (
@@ -1528,7 +1489,7 @@ export default function AuthPage() {
                         <motion.div 
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          className="space-y-1.5 pt-1 px-1"
+                          className="space-y-1.5 pt-0.5 px-0.5"
                         >
                           <div className="flex items-center justify-between text-[11px]">
                             <span className="text-zinc-400">Security Rating</span>
@@ -1548,32 +1509,34 @@ export default function AuthPage() {
                       )}
 
                       {/* Confirm Password Field (Sign Up Only) */}
-                      <AnimatePresence mode="popLayout">
+                      <AnimatePresence initial={false}>
                         {state === 'signup' && (
                           <motion.div
                             key="confirm-password-field"
-                            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                            animate={{ opacity: 1, height: "auto", marginTop: 12 }}
-                            exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                            className="space-y-1 overflow-hidden"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                            className="overflow-hidden space-y-1"
                           >
-                            <div className="relative group">
-                              <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" size={16} />
+                            <div className="relative flex items-center rounded-xl border border-white/[0.08] hover:border-white/20 focus-within:border-purple-400/70 focus-within:bg-purple-950/[0.08] focus-within:ring-2 focus-within:ring-purple-500/15 bg-black/40 transition-all duration-200">
+                              <div className="pl-3.5 pr-1 text-zinc-500">
+                                <ShieldCheck size={15} />
+                              </div>
                               <input 
                                 name="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
                                 required
                                 autoComplete="new-password"
                                 placeholder="Confirm Password"
-                                className="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 pl-11 pr-11 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 focus:bg-purple-950/10 transition-all"
+                                className="w-full bg-transparent py-3 px-2 text-xs text-white placeholder:text-zinc-600 font-medium focus:outline-none"
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                                className="pr-3.5 pl-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
                               >
-                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                               </button>
                             </div>
                           </motion.div>
@@ -1581,20 +1544,20 @@ export default function AuthPage() {
                       </AnimatePresence>
 
                       {/* Forgot Password Link (Sign In Only) */}
-                      <AnimatePresence mode="popLayout">
+                      <AnimatePresence initial={false}>
                         {state === 'signin' && (
                           <motion.div
                             key="forgot-password-link"
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="flex justify-end pt-0.5 overflow-hidden"
+                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                            className="overflow-hidden flex justify-end pt-0.5"
                           >
                             <button 
                               type="button" 
                               onClick={() => setState('forgot')}
-                              className="text-[11px] font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                              className="text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
                             >
                               Forgot password?
                             </button>
@@ -1602,37 +1565,41 @@ export default function AuthPage() {
                         )}
                       </AnimatePresence>
 
-                      {/* Premium CTA Button */}
-                      <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:via-indigo-500 hover:to-cyan-400 text-white font-extrabold text-xs uppercase tracking-widest shadow-[0_10px_35px_-5px_rgba(168,85,247,0.4)] hover:shadow-[0_15px_45px_-5px_rgba(168,85,247,0.6)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 relative overflow-hidden group/btn disabled:opacity-60 cursor-pointer mt-2 flex items-center justify-center"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={isLoading ? 'loading' : state}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="flex items-center justify-center gap-2 relative z-10"
-                          >
-                            {isLoading ? (
-                              <>
-                                <Loader2 className="animate-spin text-white" size={17} />
-                                <span>{state === 'signin' ? 'Signing In...' : 'Creating Account...'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>{state === 'signin' ? 'Sign In to Workspace' : 'Create Exismic Account'}</span>
-                                <ArrowRight size={15} className="group-hover/btn:translate-x-1 transition-transform" />
-                              </>
-                            )}
-                          </motion.div>
-                        </AnimatePresence>
-                      </button>
-                    </form>
+                      {/* Clean Balanced CTA Button */}
+                      <div className="pt-2">
+                        <button 
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full h-13 sm:h-14 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:via-indigo-500 hover:to-cyan-500 text-white font-black uppercase tracking-[0.18em] text-xs flex items-center justify-center gap-2.5 cursor-pointer shadow-[0_8px_25px_-5px_rgba(147,51,234,0.35),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all duration-300 hover:shadow-[0_12px_30px_-5px_rgba(147,51,234,0.5)] active:scale-[0.985] relative overflow-hidden disabled:opacity-60 group/btn"
+                        >
+                          {/* Subtle Metallic Light Sweep on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+                          
+                          <AnimatePresence mode="wait" initial={false}>
+                            <motion.div
+                              key={isLoading ? 'loading' : state}
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              transition={{ duration: 0.18, ease: "easeOut" }}
+                              className="flex items-center justify-center gap-2 relative z-10"
+                            >
+                              {isLoading ? (
+                                <>
+                                  <Loader2 className="animate-spin text-white" size={16} />
+                                  <span>{state === 'signin' ? 'Signing In...' : 'Creating Account...'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>{state === 'signin' ? 'Sign In to Workspace' : 'Create Exismic Account'}</span>
+                                  <ArrowRight size={15} className="group-hover/btn:translate-x-1 transition-transform" />
+                                </>
+                              )}
+                            </motion.div>
+                          </AnimatePresence>
+                        </button>
+                      </div>
+                    </motion.form>
 
                   </motion.div>
                 )}

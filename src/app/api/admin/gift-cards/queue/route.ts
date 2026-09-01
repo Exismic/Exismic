@@ -57,6 +57,9 @@ export async function GET(req: NextRequest) {
           giftCardType: meta.giftCardType || "custom",
           giftCardCode: meta.giftCardCode || "",
           planName: meta.planName || o.planId,
+          isGift: Boolean(meta.isGift),
+          recipientName: (meta.recipientName as string) || null,
+          recipientMessage: (meta.recipientMessage as string) || null,
         };
       }),
     });

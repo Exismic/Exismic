@@ -18,7 +18,7 @@ export function ToolQualitySelector({ toolId }: { toolId: string }) {
   const cookieName = `exismic_output_tier_${toolId}`;
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(({ data }: any) => {
       const stored = document.cookie
         .split("; ")
         .find((entry) => entry.startsWith(`${cookieName}=`))

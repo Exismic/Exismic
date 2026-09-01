@@ -30,7 +30,7 @@ export function useAuth(redirectOnLogin: string | null = '/dashboard') {
     checkSession();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       if (mounted) {
         setUser(session?.user ?? null);
         const isSuspended = typeof window !== 'undefined' && window.location.search.includes('error=suspended');

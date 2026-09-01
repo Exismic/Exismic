@@ -99,17 +99,19 @@ export function ManageSubscriptionModal({
     year: "numeric",
   });
   const isIndia = isHydrated && getIsIndia();
+  const userPlan = (user?.plan || "").toLowerCase();
+  const isYearly = userPlan === "pro_yearly" || Boolean(expiryDate && (expiryDate.getTime() - Date.now()) > 45 * 24 * 60 * 60 * 1000);
 
-  const originalNumericPrice = isIndia
-    ? PRICING_CONFIG.PRO_PLAN.INR
-    : PRICING_CONFIG.PRO_PLAN.USD;
+  const originalNumericPrice = isYearly
+    ? (isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR : PRICING_CONFIG.PRO_YEARLY_PLAN.USD)
+    : (isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD);
   const discountedNumericPrice = Math.round(originalNumericPrice * 0.7);
 
   const planPrice = isIndia
-    ? `₹${originalNumericPrice}`
+    ? `₹${originalNumericPrice.toLocaleString("en-IN")}`
     : `$${originalNumericPrice}`;
   const discountedPrice = isIndia
-    ? `₹${discountedNumericPrice}`
+    ? `₹${discountedNumericPrice.toLocaleString("en-IN")}`
     : `$${discountedNumericPrice}`;
 
   useEffect(() => {
@@ -248,7 +250,7 @@ export function ManageSubscriptionModal({
                 )}
                 <div className="min-w-0">
                   <h2 id="membership-modal-title" className="truncate text-sm font-black tracking-[-0.01em] text-white">
-                    {step === "overview" && "Exismic Pro"}
+                    {step === "overview" && (isYearly ? "Exismic Pro (Annual VIP)" : "Exismic Pro (Monthly)")}
                     {step === "loss_summary" && "Before you cancel..."}
                     {step === "survey" && "Help us improve"}
                     {step === "save_offer" && "Special Pro Offer"}
@@ -318,7 +320,7 @@ export function ManageSubscriptionModal({
                               {planPrice}
                             </span>
                             <span className="pb-2 text-[9px] font-black uppercase tracking-[0.16em] text-zinc-600">
-                              / month
+                              {isYearly ? "/ year" : "/ month"}
                             </span>
                           </div>
                         </div>

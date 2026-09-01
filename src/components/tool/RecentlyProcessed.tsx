@@ -12,9 +12,11 @@ import {
   Play, 
   AudioWaveform,
   ExternalLink,
-  Sparkles,
   Trash2,
-  Search
+  Search,
+  Check,
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -37,11 +39,11 @@ interface ProcessedItem {
 }
 
 const FileIcon = ({ type }: { type: string }) => {
-  if (type.includes('image')) return <ImageIcon className="w-10 h-10 text-accent-purple" />;
-  if (type.includes('audio')) return <AudioWaveform className="w-10 h-10 text-accent-cyan" />;
-  if (type.includes('video')) return <Video className="w-10 h-10 text-accent-blue" />;
-  if (type.includes('pdf')) return <FileText className="w-10 h-10 text-emerald-500" />;
-  return <Sparkles className="w-10 h-10 text-white" />;
+  if (type.includes('image')) return <ImageIcon className="w-10 h-10 text-cyan-400" />;
+  if (type.includes('audio')) return <AudioWaveform className="w-10 h-10 text-purple-400" />;
+  if (type.includes('video')) return <Video className="w-10 h-10 text-blue-400" />;
+  if (type.includes('pdf') || type.includes('doc')) return <FileText className="w-10 h-10 text-emerald-400" />;
+  return <FileText className="w-10 h-10 text-zinc-400" />;
 };
 
 const formatTimeAgo = (dateString: string) => {
@@ -89,17 +91,27 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
   const [selectedCategory, setSelectedCategory] = useState("all");
   
   const supabase = createClient();
+  const historyFetchRef = React.useRef<Promise<any> | null>(null);
 
   const loadHistory = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/files/history?limit=${limit}`);
-      if (response.ok) {
-        const data = await response.json();
-        setItems(data);
+    if (historyFetchRef.current) return historyFetchRef.current;
+
+    historyFetchRef.current = (async () => {
+      try {
+        const response = await fetch(`/api/files/history?limit=${limit}`, { cache: "no-store" });
+        if (response.ok) {
+          const data = await response.json();
+          setItems(data);
+          return data;
+        }
+      } catch (error) {
+        console.error("Failed to fetch history:", error);
+      } finally {
+        historyFetchRef.current = null;
       }
-    } catch (error) {
-      console.error("Failed to fetch history:", error);
-    }
+    })();
+
+    return historyFetchRef.current;
   }, [limit]);
 
   useEffect(() => {
@@ -123,7 +135,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
     };
     window.addEventListener("exismic-preferences-updated", handlePreferencesUpdate);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       if (!session?.user) {
         setItems([]);
         setLoading(false);
@@ -201,19 +213,19 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
           {!fullPage && <Skeleton className="h-11 w-28 rounded-full" />}
         </div>
 
-        <div className="flex flex-col gap-5 md:flex-row md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: fullPage ? 6 : 3 }).map((_, index) => (
             <div
               key={index}
-              className="w-full rounded-[1.75rem] border border-white/5 bg-white/[0.025] p-2 md:w-[340px] md:rounded-[2.5rem]"
+              className="w-full rounded-[2rem] border border-white/5 bg-white/[0.025] p-3"
             >
-              <Skeleton className="aspect-[16/10] rounded-[1.35rem] md:rounded-[2rem]" />
-              <div className="p-4 sm:p-5 md:p-6">
+              <Skeleton className="aspect-[16/10] rounded-[1.5rem]" />
+              <div className="p-4 space-y-3">
                 <SkeletonLine className="h-4 w-4/5" />
-                <SkeletonLine className="mt-3 w-1/2" />
-                <div className="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
-                  <Skeleton className="h-12 rounded-2xl" />
-                  <Skeleton className="h-12 rounded-2xl" />
+                <SkeletonLine className="w-1/2" />
+                <div className="mt-4 flex flex-col gap-2">
+                  <Skeleton className="h-10 rounded-xl" />
+                  <Skeleton className="h-10 rounded-xl" />
                 </div>
               </div>
             </div>
@@ -226,19 +238,22 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
   if (items.length === 0) {
     return (
       <section className={cn(fullPage ? "px-0 py-4" : "px-4 py-12")}>
-        <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8 glass-dark p-6 sm:p-10 md:p-16 rounded-[2rem] md:rounded-[3rem] border border-white/5">
-          <div className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-full bg-zinc-900 flex items-center justify-center mx-auto text-zinc-700">
-             <History size={40} />
+        <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8 bg-[#0a0b14]/80 p-8 sm:p-12 md:p-16 rounded-[2.5rem] md:rounded-[3rem] border border-white/10 backdrop-blur-2xl shadow-2xl">
+          <div className="w-20 h-20 rounded-3xl bg-white/[0.04] border border-white/10 flex items-center justify-center mx-auto text-zinc-500 shadow-inner">
+             <History size={36} />
           </div>
-          <div className="space-y-4">
-            <h3 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">Nothing here yet</h3>
-            <p className="text-zinc-500 font-medium max-w-sm mx-auto">Try a tool to see your work here. It only takes a second.</p>
+          <div className="space-y-3">
+            <h3 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tight">No creations found</h3>
+            <p className="text-zinc-400 font-medium max-w-sm mx-auto text-sm">
+              Try running one of our AI tools to automatically populate your personal history vault!
+            </p>
           </div>
           <Link 
             href="/tools" 
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl premium-gradient text-white font-black text-xs uppercase tracking-widest hover:scale-105 transition-all"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 text-white font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-lg hover:shadow-cyan-500/25"
           >
-            Start now <Sparkles size={16} />
+            <span>Explore All Tools</span>
+            <ArrowRight size={16} />
           </Link>
         </div>
       </section>
@@ -246,54 +261,54 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
   }
 
   return (
-    <section className="px-0 sm:px-4 space-y-8 md:space-y-12 overflow-x-hidden">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 md:gap-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue shadow-3xl border border-accent-blue/10">
-              <History size={24} />
-            </div>
-            <div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500 uppercase italic leading-normal inline-block pr-6 py-1 drop-shadow-md">
-                {fullPage ? "All saved results" : "Your recent work"}
-              </h2>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mt-2">
-                {fullPage ? "A unified archive of processed outputs" : "Everything you made recently"}
-                {preferences.autoRefreshHistory && <span className="ml-2 text-cyan-300/70">• Live</span>}
-              </p>
-            </div>
+    <section className="px-0 space-y-8 md:space-y-10 overflow-x-hidden">
+      {/* Section Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+            <History size={20} />
+          </div>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase italic">
+              {fullPage ? "All Saved Results" : "Recent Creations"}
+            </h2>
+            <p className="text-xs font-semibold text-zinc-400 flex items-center gap-2 mt-0.5">
+              <span>{filteredItems.length} {filteredItems.length === 1 ? "file" : "files"} available</span>
+              {preferences.autoRefreshHistory && <span className="text-cyan-300 font-bold">• Live Sync</span>}
+            </p>
           </div>
         </div>
         
         {!fullPage && (
-        <Link 
-          href="/history" 
-          className="group flex min-h-11 w-fit items-center gap-3 px-5 sm:px-6 py-3 rounded-full glass-dark border border-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white/10 transition-all"
-        >
-          See all
-          <ExternalLink size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-        </Link>
+          <Link 
+            href="/history" 
+            className="group flex min-h-11 w-fit items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/30 hover:bg-cyan-500/10 text-xs font-bold text-zinc-300 hover:text-white transition-all shadow-md"
+          >
+            <span>View Full Vault</span>
+            <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-cyan-400" />
+          </Link>
         )}
       </div>
 
-      {/* Interactive Search and Filter Badges */}
+      {/* Interactive Search and Category Filters */}
       {fullPage && (
-        <div className="flex flex-col xl:flex-row items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-3xl backdrop-blur-md relative z-30">
+        <div className="flex flex-col lg:flex-row items-center gap-4 bg-[#0a0c16]/80 border border-white/10 p-3 sm:p-4 rounded-3xl backdrop-blur-2xl relative z-30 shadow-2xl">
           <div className="relative flex-1 w-full">
             <input 
               type="text" 
-              placeholder="Search by filename..." 
+              placeholder="Search processed files by name..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 bg-white/5 border border-white/10 hover:border-white/15 focus:border-[#7c3aed]/50 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(124,58,237,0.15)] rounded-2xl pl-11 pr-4 text-xs font-bold text-white placeholder-zinc-500 outline-none transition-all"
+              className="w-full h-11 bg-white/[0.04] border border-white/10 hover:border-white/20 focus:border-cyan-400/50 focus:bg-cyan-950/20 focus:shadow-[0_0_20px_rgba(34,211,238,0.15)] rounded-2xl pl-11 pr-4 text-xs font-bold text-white placeholder-zinc-500 outline-none transition-all"
             />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
               <Search size={16} strokeWidth={2.5} />
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+          
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {[
-              { id: "all", label: "All" },
+              { id: "all", label: "All Formats" },
               { id: "image", label: "Images" },
               { id: "audio", label: "Audios" },
               { id: "video", label: "Videos" },
@@ -303,10 +318,10 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all",
+                  "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   selectedCategory === cat.id 
-                    ? "bg-white text-black font-black" 
-                    : "bg-white/[0.03] border border-white/5 text-zinc-400 hover:text-white hover:bg-white/5"
+                    ? "bg-cyan-400 text-black shadow-[0_0_15px_rgba(34,211,238,0.4)]" 
+                    : "bg-white/[0.03] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.08]"
                 )}
               >
                 {cat.label}
@@ -316,16 +331,17 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
         </div>
       )}
 
+      {/* Grid of Results */}
       <div className="relative group/container w-full">
         <div className="pb-8 md:pb-12 w-full">
           {filteredItems.length === 0 ? (
-            <div className="w-full text-center py-20 bg-white/[0.01] border border-white/5 rounded-[2.5rem] backdrop-blur-md">
-              <div className="w-16 h-16 rounded-full bg-zinc-950/80 border border-white/5 flex items-center justify-center mx-auto text-zinc-700 mb-5 shadow-inner">
-                <History size={26} />
+            <div className="w-full text-center py-16 bg-[#0a0b14]/60 border border-white/10 rounded-[2.5rem] backdrop-blur-md">
+              <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center mx-auto text-zinc-500 mb-4 shadow-inner">
+                <History size={24} />
               </div>
-              <h4 className="text-lg font-black uppercase italic tracking-tighter text-white">No creations found</h4>
-              <p className="text-xs font-semibold text-zinc-500 mt-2 max-w-sm mx-auto">
-                No files match this category or your search term. Try selecting another tab or running some AI tools to fill your library!
+              <h4 className="text-base font-black uppercase italic tracking-tight text-white">No matching creations</h4>
+              <p className="text-xs font-semibold text-zinc-500 mt-1 max-w-sm mx-auto">
+                No files matched your filter criteria. Try selecting another tab or resetting search.
               </p>
             </div>
           ) : (
@@ -351,119 +367,122 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ 
-                      duration: 0.4, 
-                      delay: i * 0.05,
+                      duration: 0.35, 
+                      delay: i * 0.04,
                       type: "spring",
                       stiffness: 140,
                       damping: 18
                     }}
-                    className="w-full h-full p-2 sm:p-2.5 rounded-[2rem] md:rounded-[2.5rem] bg-[#050508]/80 backdrop-blur-2xl border border-white/10 group hover:border-white/20 hover:shadow-[0_20px_60px_rgba(124,58,237,0.15)] transition-all duration-500 relative touch-manipulation overflow-hidden shadow-xl hover:-translate-y-2 flex flex-col"
+                    className="w-full h-full p-2.5 rounded-[2rem] bg-[#0c0d1c]/90 backdrop-blur-2xl border border-white/10 group hover:border-cyan-400/40 hover:shadow-[0_20px_60px_rgba(6,182,212,0.15)] transition-all duration-500 relative touch-manipulation overflow-hidden shadow-xl hover:-translate-y-1.5 flex flex-col justify-between"
                   >
-                    <div className="absolute -inset-1 bg-gradient-to-r from-accent-purple via-accent-cyan to-accent-blue rounded-[3rem] blur opacity-0 group-hover:opacity-20 transition duration-1000 animate-gradient-x bg-[length:200%_auto] z-[-1]" />
-                    <div className="absolute inset-0 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-accent-purple/0 to-accent-blue/0 group-hover:from-accent-purple/10 group-hover:to-accent-blue/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-cyan-500/0 via-purple-500/0 to-transparent group-hover:from-cyan-500/5 group-hover:via-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     
-                    <div className="relative aspect-[16/10] rounded-[1.35rem] md:rounded-[2rem] overflow-hidden bg-zinc-950/50 flex items-center justify-center transition-transform duration-700 group-hover:scale-[0.98]">
-                      {(item.fileType === 'image' || item.resultUrl?.match(/\.(webp|jpg|jpeg|gif|png)/i)) && downloadableUrl ? (
-                        <>
-                          <img 
-                            src={downloadableUrl}
-                            alt={item.originalName} 
-                            loading={preferences.highFidelityPreview ? "eager" : "lazy"}
-                            decoding={preferences.highFidelityPreview ? "sync" : "async"}
-                            fetchPriority={preferences.highFidelityPreview ? "high" : "auto"}
-                            className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700"
-                          />
-                          {item.fileType === 'video' && (
-                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                              <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white">
-                                <Play fill="currentColor" size={20} />
+                    {/* Media Preview Box */}
+                    <div>
+                      <div className="relative aspect-[16/10] rounded-[1.5rem] overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center transition-transform duration-700 group-hover:scale-[0.99]">
+                        {(item.fileType === 'image' || item.resultUrl?.match(/\.(webp|jpg|jpeg|gif|png)/i)) && downloadableUrl ? (
+                          <>
+                            <img 
+                              src={downloadableUrl}
+                              alt={item.originalName} 
+                              loading={preferences.highFidelityPreview ? "eager" : "lazy"}
+                              decoding={preferences.highFidelityPreview ? "sync" : "async"}
+                              fetchPriority={preferences.highFidelityPreview ? "high" : "auto"}
+                              className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-opacity duration-700"
+                            />
+                            {item.fileType === 'video' && (
+                              <div className="absolute inset-0 flex items-center justify-center z-10">
+                                <div className="w-12 h-12 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-lg">
+                                  <Play fill="currentColor" size={18} />
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity duration-700">
-                          <FileIcon type={item.fileType} />
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 group-hover:text-zinc-400">
-                            {item.fileType.toUpperCase()} PREVIEW
-                          </span>
-                        </div>
-                      )}
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center gap-3 opacity-50 group-hover:opacity-100 transition-opacity duration-700">
+                            <FileIcon type={item.fileType} />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-zinc-300">
+                              {item.fileType.toUpperCase()} PREVIEW
+                            </span>
+                          </div>
+                        )}
 
-                      {/* Trash Delete Button - Always visible with clean, premium styling */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          deleteItem(item.id);
-                        }}
-                        className="absolute top-4 left-4 z-20 p-2.5 rounded-xl bg-black/60 hover:bg-rose-950/80 border border-white/10 hover:border-rose-500/30 text-zinc-400 hover:text-rose-400 backdrop-blur-xl transition-all duration-300 active:scale-90 shadow-md"
-                        title="Delete from history"
-                      >
-                        <Trash2 size={13} strokeWidth={2.5} />
-                      </button>
+                        {/* Trash Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteItem(item.id);
+                          }}
+                          className="absolute top-3 left-3 z-20 p-2.5 rounded-xl bg-black/70 hover:bg-rose-950/90 border border-white/10 hover:border-rose-500/40 text-zinc-400 hover:text-rose-400 backdrop-blur-xl transition-all duration-300 active:scale-90 shadow-md cursor-pointer"
+                          title="Delete from history"
+                        >
+                          <Trash2 size={13} strokeWidth={2.5} />
+                        </button>
 
-                      <div className="absolute top-4 right-4 z-20">
-                        <div className={cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-xl border",
-                          item.status === 'completed' ? "border-emerald-500/30" : "border-amber-500/30"
-                        )}>
+                        {/* Status Chip */}
+                        <div className="absolute top-3 right-3 z-20">
                           <div className={cn(
-                            "w-1.5 h-1.5 rounded-full",
-                            item.status === 'completed' ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-spin"
-                          )} />
-                          <span className={cn(
-                            "text-[9px] font-black uppercase tracking-widest leading-none",
-                            item.status === 'completed' ? "text-emerald-500" : "text-amber-500"
-                          )}>{item.status === 'completed' ? 'Done' : 'Working'}</span>
+                            "flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-xl border text-[9px] font-black uppercase tracking-wider",
+                            item.status === 'completed' 
+                              ? "border-emerald-500/40 text-emerald-400" 
+                              : "border-amber-500/40 text-amber-400"
+                          )}>
+                            <span className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              item.status === 'completed' ? "bg-emerald-400" : "bg-amber-400 animate-spin"
+                            )} />
+                            <span>{item.status === 'completed' ? 'Done' : 'Working'}</span>
+                          </div>
                         </div>
+
+                        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                       </div>
 
-                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                    </div>
-
-                    <div className="p-4 sm:p-5 md:p-6 space-y-4 md:space-y-5 flex-1 flex flex-col justify-between">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-white font-black text-sm break-words line-clamp-2 uppercase italic tracking-tight mb-1 group-hover:text-accent-purple transition-colors">
+                      {/* File Details */}
+                      <div className="p-3.5 sm:p-4 space-y-2">
+                        <p className="text-white font-black text-sm break-words line-clamp-1 uppercase italic tracking-tight group-hover:text-cyan-300 transition-colors" title={item.originalName}>
                           {item.originalName}
                         </p>
-                        <div className="flex flex-col gap-1.5 mt-1">
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">
                             {toolInfo.name}
-                          </p>
-                          <div className="flex items-center gap-1.5 text-[9px] font-medium text-zinc-600 uppercase tracking-widest">
-                            <History size={10} className="shrink-0" />
-                            <span className="truncate">{formatTimeAgo(item.createdAt)}</span>
+                          </span>
+                          <div className="flex items-center gap-1 text-[10px] font-semibold text-zinc-500 shrink-0">
+                            <History size={11} className="shrink-0 text-zinc-600" />
+                            <span>{formatTimeAgo(item.createdAt)}</span>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex flex-col gap-2.5 pt-2 w-full">
-                         <Link 
-                          href={toolInfo.href}
-                          className="flex w-full min-h-[2.75rem] items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-zinc-900/50 border border-white/5 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white hover:border-white/10 transition-all active:scale-95"
-                         >
-                            <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-700 shrink-0" />
-                            <span>Retry Tool</span>
-                         </Link>
-                         {downloadableUrl ? (
-                           <a
-                            href={downloadableUrl}
-                            download={item.originalName}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex w-full min-h-[2.75rem] items-center justify-center gap-2.5 py-2 px-4 rounded-xl premium-gradient text-white font-black text-[10px] uppercase tracking-widest shadow-lg hover:shadow-accent-purple/20 transition-all active:scale-95"
-                           >
-                              <Download size={14} className="shrink-0" />
-                              <span>Save Result</span>
-                           </a>
-                         ) : (
-                           <div className="flex w-full min-h-[2.75rem] items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-600 font-black text-[10px] uppercase tracking-widest">
-                              <FileText size={14} className="shrink-0" />
-                              <span>Saved</span>
-                           </div>
-                         )}
-                      </div>
+                    {/* Action Buttons */}
+                    <div className="p-3.5 pt-0 flex flex-col gap-2 w-full">
+                      <Link 
+                        href={toolInfo.href}
+                        className="group/btn flex w-full min-h-[2.4rem] items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/40 hover:bg-cyan-500/10 text-zinc-300 hover:text-white font-bold text-xs transition-all active:scale-95 text-center"
+                      >
+                        <RefreshCw size={12} className="group-hover/btn:rotate-180 transition-transform duration-700 text-cyan-400 shrink-0" />
+                        <span>Open in Tool / Retry</span>
+                      </Link>
+
+                      {downloadableUrl ? (
+                        <a
+                          href={downloadableUrl}
+                          download={item.originalName}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex w-full min-h-[2.5rem] items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-600 to-indigo-600 hover:from-cyan-400 hover:via-purple-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.35)] transition-all active:scale-95"
+                        >
+                          <Download size={13} className="shrink-0" />
+                          <span>Save Result</span>
+                        </a>
+                      ) : (
+                        <div className="flex w-full min-h-[2.5rem] items-center justify-center gap-2 py-2 px-4 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-500 font-bold text-xs uppercase tracking-wider">
+                          <FileText size={13} className="shrink-0 text-zinc-600" />
+                          <span>Processed</span>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -473,30 +492,6 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
           )}
         </div>
       </div>
-
-      <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          height: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.02);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(168, 85, 247, 0.2);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(168, 85, 247, 0.4);
-        }
-      `}</style>
     </section>
   );
 }

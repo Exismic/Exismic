@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { getOrCreateUser } from "@/lib/user-access";
 import {
   inferResultFileType,
   normalizeHistoryToolType,
@@ -23,6 +24,9 @@ export async function GET(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const dbUser = await getOrCreateUser(user);
+    const userId = dbUser.id;
+
     const { searchParams } = new URL(req.url);
     const requestedLimit = Number.parseInt(searchParams.get("limit") || "20", 10);
     const limit = Number.isFinite(requestedLimit)
@@ -35,11 +39,11 @@ export async function GET(req: Request) {
 
       const [toolsUsedToday, totalFiles, profile] = await Promise.all([
         prisma.userFile.count({
-          where: { userId: user.id, createdAt: { gte: startOfToday } },
+          where: { userId, createdAt: { gte: startOfToday } },
         }),
-        prisma.userFile.count({ where: { userId: user.id } }),
+        prisma.userFile.count({ where: { userId } }),
         prisma.user.findUnique({
-          where: { id: user.id },
+          where: { id: userId },
           select: { aiGenerationsUsed: true },
         }),
       ]);
@@ -52,7 +56,7 @@ export async function GET(req: Request) {
     }
 
     const history = await prisma.userFile.findMany({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });

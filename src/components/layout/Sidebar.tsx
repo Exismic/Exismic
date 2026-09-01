@@ -7,6 +7,7 @@ import { CATEGORIES, TOOLS, ICON_MAP, type Category } from "@/data/tools";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { 
   LayoutDashboard, 
+  LayoutGrid,
   Star, 
   Menu,
   X,
@@ -20,7 +21,9 @@ import {
   Users,
   ShieldCheck,
   Flame,
-  Gift
+  Gift,
+  HelpCircle,
+  ScrollText
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -34,6 +37,7 @@ import { useTranslation } from "react-i18next";
 import { UserProfile } from "../ui/UserProfile";
 import { ExismicLogo } from "../ui/ExismicLogo";
 import { CreditTokenIcon } from "../ui/CreditTokenIcon";
+import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
 
 interface SidebarItemProps {
   name: string;
@@ -50,12 +54,16 @@ interface SidebarItemProps {
 const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
   "/": "bg-gradient-to-b from-purple-400 via-pink-400 to-indigo-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
   "/shop": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-500 shadow-[0_0_14px_rgba(245,158,11,0.9)]",
+  "/rewards": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-500 shadow-[0_0_14px_rgba(245,158,11,0.9)]",
+  "/community": "bg-gradient-to-b from-cyan-300 via-purple-400 to-pink-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
   "/giveaway": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-400 shadow-[0_0_16px_rgba(245,158,11,1)]",
   "/favorites": "bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(251,191,36,0.9)]",
   "/history": "bg-gradient-to-b from-blue-400 via-cyan-400 to-indigo-400 shadow-[0_0_14px_rgba(96,165,250,0.9)]",
   "/referrals": "bg-gradient-to-b from-emerald-400 via-teal-400 to-green-500 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
   "/admin": "bg-gradient-to-b from-rose-400 via-red-500 to-orange-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
   "/pro": "bg-gradient-to-b from-purple-300 via-pink-300 to-cyan-300 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
+  "/changelog": "bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
+  "/help": "bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-500 shadow-[0_0_14px_rgba(14,165,233,0.9)]",
 
   "/category/image": "bg-gradient-to-b from-cyan-300 via-sky-400 to-blue-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
   "/category/video": "bg-gradient-to-b from-violet-400 via-fuchsia-400 to-purple-500 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
@@ -82,6 +90,12 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     border: "group-hover:border-amber-400/35",
     glow: "rgba(245,158,11,0.5)",
     text: "group-hover:text-amber-200"
+  },
+  "/community": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-cyan-500/15 group-hover:via-purple-950/20 group-hover:to-transparent",
+    border: "group-hover:border-cyan-400/35",
+    glow: "rgba(34,211,238,0.5)",
+    text: "group-hover:text-cyan-200"
   },
   "/giveaway": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/20 group-hover:via-yellow-950/25 group-hover:to-transparent",
@@ -112,6 +126,18 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     border: "group-hover:border-rose-400/35",
     glow: "rgba(244,63,94,0.5)",
     text: "group-hover:text-rose-200"
+  },
+  "/changelog": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-purple-500/15 group-hover:via-indigo-950/20 group-hover:to-transparent",
+    border: "group-hover:border-purple-400/35",
+    glow: "rgba(168,85,247,0.5)",
+    text: "group-hover:text-purple-200"
+  },
+  "/help": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-sky-500/15 group-hover:via-blue-950/20 group-hover:to-transparent",
+    border: "group-hover:border-sky-400/35",
+    glow: "rgba(14,165,233,0.5)",
+    text: "group-hover:text-sky-200"
   },
   "/category/image": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-cyan-500/15 group-hover:via-cyan-950/20 group-hover:to-transparent",
@@ -184,12 +210,15 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
 const CATEGORY_ACTIVE_BG_STYLES: Record<string, string> = {
   "/": "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/30 shadow-[0_4px_20px_rgba(168,85,247,0.2)]",
   "/shop": "bg-gradient-to-r from-amber-500/20 via-orange-950/25 to-transparent border border-amber-400/35 shadow-[0_4px_25px_rgba(245,158,11,0.2)]",
+  "/community": "bg-gradient-to-r from-cyan-500/20 via-purple-950/25 to-transparent border border-cyan-400/35 shadow-[0_4px_25px_rgba(34,211,238,0.2)]",
   "/giveaway": "bg-gradient-to-r from-amber-500/25 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_25px_rgba(245,158,11,0.25)]",
   "/favorites": "bg-gradient-to-r from-yellow-500/20 via-amber-950/25 to-transparent border border-yellow-400/35 shadow-[0_4px_25px_rgba(251,191,36,0.2)]",
   "/history": "bg-gradient-to-r from-blue-500/20 via-indigo-950/25 to-transparent border border-blue-400/35 shadow-[0_4px_25px_rgba(96,165,250,0.2)]",
   "/referrals": "bg-gradient-to-r from-emerald-500/20 via-teal-950/25 to-transparent border border-emerald-400/35 shadow-[0_4px_25px_rgba(16,185,129,0.2)]",
   "/admin": "bg-gradient-to-r from-rose-500/20 via-red-950/25 to-transparent border border-rose-400/35 shadow-[0_4px_25px_rgba(244,63,94,0.2)]",
   "/pro": "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18)]",
+  "/changelog": "bg-gradient-to-r from-purple-600/20 via-indigo-950/25 to-transparent border border-purple-400/35 shadow-[0_4px_25px_rgba(168,85,247,0.2)]",
+  "/help": "bg-gradient-to-r from-sky-500/20 via-blue-950/25 to-transparent border border-sky-400/35 shadow-[0_4px_25px_rgba(14,165,233,0.2)]",
 
   "/category/image": "bg-gradient-to-r from-cyan-500/20 via-sky-950/25 to-transparent border border-cyan-400/40 shadow-[0_4px_20px_rgba(34,211,238,0.25)]",
   "/category/video": "bg-gradient-to-r from-fuchsia-600/20 via-purple-950/25 to-transparent border border-fuchsia-400/40 shadow-[0_4px_20px_rgba(217,70,239,0.25)]",
@@ -230,6 +259,15 @@ const ITEM_ICON_STYLES: Record<string, {
     activeGlowPool: "from-orange-500/70 via-amber-600/45 to-red-900/60",
     activeIcon: "text-orange-200 fill-orange-400/40 drop-shadow-[0_0_14px_rgba(251,146,60,1)]",
     ambientGlow: "rgba(249,115,22,0.7)"
+  },
+  "/community": {
+    borderGrad: "from-cyan-400/50 via-purple-500/15 to-transparent group-hover:from-cyan-400 group-hover:via-purple-500/40",
+    glowPool: "from-cyan-500/35 via-purple-600/20 to-transparent",
+    icon: "text-cyan-300 fill-cyan-400/15 drop-shadow-[0_0_10px_rgba(34,211,238,0.95)]",
+    activeBorderGrad: "from-cyan-300 via-purple-400 to-pink-500",
+    activeGlowPool: "from-cyan-500/70 via-purple-600/45 to-pink-900/60",
+    activeIcon: "text-cyan-200 fill-cyan-400/30 drop-shadow-[0_0_14px_rgba(34,211,238,1)]",
+    ambientGlow: "rgba(34,211,238,0.7)"
   },
   "/giveaway": {
     borderGrad: "from-amber-400/60 via-yellow-500/25 to-transparent group-hover:from-amber-300 group-hover:via-yellow-500/50",
@@ -275,6 +313,24 @@ const ITEM_ICON_STYLES: Record<string, {
     activeGlowPool: "from-rose-500/70 via-red-600/45 to-pink-900/60",
     activeIcon: "text-rose-200 fill-rose-400/30 drop-shadow-[0_0_14px_rgba(244,63,94,1)]",
     ambientGlow: "rgba(244,63,94,0.7)"
+  },
+  "/changelog": {
+    borderGrad: "from-purple-400/50 via-indigo-500/15 to-transparent group-hover:from-purple-300 group-hover:via-indigo-500/40",
+    glowPool: "from-purple-500/35 via-indigo-600/20 to-transparent",
+    icon: "text-purple-300 fill-purple-400/15 drop-shadow-[0_0_10px_rgba(168,85,247,0.95)]",
+    activeBorderGrad: "from-purple-400 via-indigo-400 to-cyan-500",
+    activeGlowPool: "from-purple-500/70 via-indigo-600/45 to-cyan-900/60",
+    activeIcon: "text-purple-200 fill-purple-400/30 drop-shadow-[0_0_14px_rgba(168,85,247,1)]",
+    ambientGlow: "rgba(168,85,247,0.7)"
+  },
+  "/help": {
+    borderGrad: "from-sky-400/50 via-blue-500/15 to-transparent group-hover:from-sky-300 group-hover:via-blue-500/40",
+    glowPool: "from-sky-500/35 via-blue-600/20 to-transparent",
+    icon: "text-sky-300 fill-sky-400/15 drop-shadow-[0_0_10px_rgba(56,189,248,0.95)]",
+    activeBorderGrad: "from-sky-400 via-blue-400 to-indigo-500",
+    activeGlowPool: "from-sky-500/70 via-blue-600/45 to-indigo-900/60",
+    activeIcon: "text-sky-200 fill-sky-400/30 drop-shadow-[0_0_14px_rgba(56,189,248,1)]",
+    ambientGlow: "rgba(14,165,233,0.7)"
   },
   "/category/image": {
     borderGrad: "from-cyan-400/50 via-teal-500/15 to-transparent group-hover:from-cyan-300 group-hover:via-teal-500/40",
@@ -377,147 +433,113 @@ const ITEM_ICON_STYLES: Record<string, {
   },
 };
 
-function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-accent-purple", glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact, rightElement }: SidebarItemProps) {
-  const indicatorGradient = CATEGORY_INDICATOR_GRADIENTS[href] || "bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400 shadow-[0_0_14px_rgba(168,85,247,0.9)]";
+function SidebarItem({ name, icon: Icon, href, isActive, glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact, rightElement }: SidebarItemProps) {
+  const indicatorGradient = CATEGORY_INDICATOR_GRADIENTS[href] || "bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400 shadow-[0_0_12px_rgba(168,85,247,0.8)]";
   const hoverStyle = CATEGORY_HOVER_STYLES[href] || {
-    bg: "group-hover:bg-gradient-to-r group-hover:from-purple-500/12 group-hover:via-purple-900/10 group-hover:to-transparent",
-    border: "group-hover:border-purple-400/35",
+    bg: "group-hover:bg-gradient-to-r group-hover:from-purple-500/10 group-hover:via-white/[0.02] group-hover:to-transparent",
+    border: "group-hover:border-purple-400/30",
     glow: glowColor,
     text: "group-hover:text-purple-200"
   };
 
   const iconStyle = ITEM_ICON_STYLES[href] || {
-    borderGrad: "from-purple-400/50 via-purple-500/15 to-transparent group-hover:from-purple-400 group-hover:via-purple-500/40",
-    glowPool: "from-purple-500/35 via-indigo-600/20 to-transparent",
-    icon: "text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.95)]",
+    borderGrad: "from-purple-400/40 via-purple-500/10 to-transparent group-hover:from-purple-400 group-hover:via-purple-500/30",
+    glowPool: "from-purple-500/25 via-indigo-600/15 to-transparent",
+    icon: "text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]",
     activeBorderGrad: "from-purple-400 via-purple-400 to-indigo-500",
-    activeGlowPool: "from-purple-500/70 via-indigo-600/45 to-purple-900/60",
-    activeIcon: "text-white drop-shadow-[0_0_14px_rgba(255,255,255,1)]",
-    ambientGlow: "rgba(168,85,247,0.7)"
+    activeGlowPool: "from-purple-500/50 via-indigo-600/35 to-purple-900/40",
+    activeIcon: "text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]",
+    ambientGlow: "rgba(168,85,247,0.5)"
   };
 
   return (
     <Link href={href} onClick={onClick}>
       <motion.div
-        whileHover="hover"
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.98 }}
         className={cn(
-          "relative h-[54px] flex items-center rounded-2xl transition-all duration-300 group mb-1.5",
-          isCompact ? "justify-center w-[54px] mx-auto px-0" : "gap-3 px-3.5",
+          "relative h-[42px] flex items-center rounded-xl transition-all duration-200 group mb-1",
+          isCompact ? "justify-center w-[44px] mx-auto px-0" : "gap-2.5 px-3",
           isActive ? "text-white" : "text-zinc-400 hover:text-white"
         )}
       >
-        {/* Active Background - Luminous Glassmorphic Depth with Category Unique Theme */}
+        {/* Active Background - Luminous Glassmorphic Depth */}
         {isActive && (
           <motion.div 
             layoutId="sidebarActiveBg"
             className={cn(
-              "absolute inset-0 backdrop-blur-xl rounded-2xl -z-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
-              CATEGORY_ACTIVE_BG_STYLES[href] || "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/25 shadow-[0_4px_20px_rgba(168,85,247,0.18)]"
+              "absolute inset-0 backdrop-blur-xl rounded-xl -z-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
+              CATEGORY_ACTIVE_BG_STYLES[href] || "bg-gradient-to-r from-purple-600/15 via-purple-900/10 to-transparent border border-purple-400/25 shadow-[0_4px_16px_rgba(168,85,247,0.15)]"
             )}
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            transition={{ type: "spring", stiffness: 400, damping: 32 }}
           />
         )}
         
-        {/* Ultra-Premium Category Hover Background for Inactive */}
+        {/* Hover Highlight Pill for Inactive */}
         {!isActive && (
           <div className={cn(
-            "absolute inset-0 rounded-2xl border border-transparent backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 -z-20 shadow-[0_4px_20px_rgba(0,0,0,0.4)]",
+            "absolute inset-0 rounded-xl border border-transparent opacity-0 group-hover:opacity-100 transition-all duration-200 -z-20 shadow-[0_4px_16px_rgba(0,0,0,0.3)]",
             hoverStyle.bg,
             hoverStyle.border
           )} />
         )}
 
-        {/* Active Left Accent Bar - Category Specific Glowing Gradient */}
+        {/* Active Left Accent Bar */}
         {isActive && (
           <motion.div 
             layoutId="sidebarActiveBar"
-            className={cn("absolute left-0 w-1.5 h-6 rounded-r-full z-20", indicatorGradient)}
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className={cn("absolute left-0 w-1 h-4.5 rounded-r-full z-20", indicatorGradient)}
+            transition={{ type: "spring", stiffness: 400, damping: 32 }}
           />
         )}
 
-        {/* Inactive Hover Micro Left Indicator Bar */}
+        {/* Inactive Hover Indicator */}
         {!isActive && (
           <div className={cn(
-            "absolute left-0 w-1 h-5 rounded-r-full opacity-0 group-hover:opacity-100 transition-all duration-300 z-20",
+            "absolute left-0 w-0.5 h-3.5 rounded-r-full opacity-0 group-hover:opacity-100 transition-all duration-200 z-20",
             indicatorGradient
           )} />
         )}
 
-        {/* Exismic Obsidian Neo-Studio Pod - Rock-Solid & Stable */}
-        <div className="relative shrink-0">
-          <motion.div
-            variants={{
-              hover: { scale: 1.1, y: -1 }
-            }}
-            transition={{ type: "spring", stiffness: 450, damping: 18 }}
+        {/* Sleek Glass Icon Capsule */}
+        <div className="relative shrink-0 flex items-center justify-center">
+          <div
             className={cn(
-              "w-10 h-10 rounded-[14px] p-[1px] shadow-[0_4px_16px_rgba(0,0,0,0.7)] transition-all duration-300 relative select-none",
+              "w-7.5 h-7.5 rounded-[10px] p-[1px] transition-all duration-300 relative select-none flex items-center justify-center",
               isActive
                 ? cn(
-                    "bg-gradient-to-br",
-                    href === "/giveaway" ? "shadow-[0_0_24px_rgba(245,158,11,0.5)]" : "shadow-[0_0_24px_rgba(168,85,247,0.4)]",
+                    "bg-gradient-to-br shadow-[0_0_16px_rgba(168,85,247,0.3)]",
                     iconStyle.activeBorderGrad
                   )
-                : cn("bg-gradient-to-br", iconStyle.borderGrad)
+                : cn("bg-gradient-to-br group-hover:scale-105", iconStyle.borderGrad)
             )}
           >
-            {/* Deep Void Inner Cavity */}
-            <div className="relative w-full h-full rounded-[13px] bg-[#07080e] flex items-center justify-center overflow-hidden border border-white/[0.05]">
-              {/* Subtle Glass Surface Reflection */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/12 via-transparent to-transparent opacity-60" />
-
-              {/* Ambient Colored Neon Plasma Pool with Soft Static Glow */}
-              <motion.div 
-                animate={{
-                  opacity: isActive ? [0.8, 1, 0.8] : [0.25, 0.48, 0.25]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 4.5,
-                  ease: "easeInOut"
-                }}
+            {/* Inner Glass Chamber */}
+            <div className="relative w-full h-full rounded-[9px] bg-[#090a10]/90 flex items-center justify-center overflow-hidden border border-white/[0.04]">
+              {/* Subtle ambient neon pool */}
+              <div 
                 className={cn(
-                  "pointer-events-none absolute inset-0 bg-gradient-to-br",
-                  isActive ? iconStyle.activeGlowPool : iconStyle.glowPool
+                  "pointer-events-none absolute inset-0 bg-gradient-to-br transition-opacity duration-300",
+                  isActive ? cn(iconStyle.activeGlowPool, "opacity-100") : cn(iconStyle.glowPool, "opacity-40 group-hover:opacity-75")
                 )} 
               />
 
-              {/* Periodic Subtle Diamond Sheen Sweep */}
-              <motion.div
-                animate={{ left: ["-120%", "220%"] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2.2,
-                  repeatDelay: 5.5,
-                  ease: "easeInOut"
-                }}
-                className="pointer-events-none absolute top-0 h-full w-[60%] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] z-10"
-              />
-
-              {/* Solid Anchored Luminescent Icon (No vertical shifting) */}
+              {/* Icon */}
               <Icon 
-                size={18} 
+                size={15} 
                 className={cn(
-                  "relative z-20 transition-all duration-300 group-hover:scale-110", 
+                  "relative z-20 transition-transform duration-200 group-hover:scale-110", 
                   isActive ? iconStyle.activeIcon : iconStyle.icon
                 )} 
               />
             </div>
-          </motion.div>
+          </div>
           
-          {/* Dynamic Ambient Bio-Luminescent Pulse Bloom */}
-          <motion.div 
-            animate={{
-              opacity: isActive ? [0.45, 0.75, 0.45] : [0.1, 0.25, 0.1]
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 4.5,
-              ease: "easeInOut"
-            }}
-            className="absolute inset-0 blur-xl group-hover:opacity-90 transition-opacity duration-300 -z-10 scale-160 rounded-full pointer-events-none" 
+          {/* Subtle Ambient Pulse Bloom */}
+          <div 
+            className={cn(
+              "absolute inset-0 blur-md transition-opacity duration-300 -z-10 rounded-full pointer-events-none",
+              isActive ? "opacity-60 scale-125" : "opacity-0 group-hover:opacity-40 scale-110"
+            )}
             style={{ backgroundColor: iconStyle.ambientGlow }} 
           />
         </div>
@@ -525,25 +547,25 @@ function SidebarItem({ name, icon: Icon, href, isActive, accentColor = "text-acc
         {!isCompact && (
           <span 
             className={cn(
-              "text-[13px] font-extrabold tracking-tight transition-all duration-300 whitespace-nowrap overflow-hidden min-w-0 flex-1 select-none group-hover:translate-x-0.5",
+              "text-[12.5px] font-bold tracking-tight transition-all duration-200 whitespace-nowrap overflow-hidden min-w-0 flex-1 select-none",
               isActive ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" : "text-zinc-300 group-hover:text-white"
             )}
           >
-            {name === 'Go Pro' ? <GradientText className="text-[13px] font-extrabold tracking-tight">{name}</GradientText> : name}
+            {name === 'Go Pro' ? <GradientText className="text-[12.5px] font-bold tracking-tight">{name}</GradientText> : name}
           </span>
         )}
         
         {!isCompact && rightElement && (
-          <div className="ml-auto shrink-0 relative z-30">
+          <div className="ml-auto shrink-0 relative z-30 flex items-center">
             {rightElement}
           </div>
         )}
 
         {isActive && !isCompact && !rightElement && (
           <motion.div 
-            initial={{ opacity: 0, x: -4 }}
+            initial={{ opacity: 0, x: -3 }}
             animate={{ opacity: 1, x: 0 }}
-            className="ml-auto text-purple-400 opacity-60 group-hover:opacity-100 transition-opacity"
+            className="ml-auto text-purple-400/80 group-hover:text-purple-300 transition-colors"
           >
             <ChevronRight size={13} />
           </motion.div>
@@ -633,14 +655,18 @@ const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; tex
 function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: CategoryDropdownProps) {
   const Icon = ICON_MAP[category.icon] || Sparkles;
   
-  const categoryTools = useMemo(() => {
-    const list = TOOLS.filter(t => t.category === category.id);
-    return list.sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0)).slice(0, 3);
+  const allCategoryTools = useMemo(() => {
+    return TOOLS.filter(t => t.category === category.id);
   }, [category.id]);
 
+  const categoryTools = useMemo(() => {
+    return [...allCategoryTools].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0)).slice(0, 3);
+  }, [allCategoryTools]);
+
+  const totalToolCount = allCategoryTools.length;
   const viewStyle = CATEGORY_VIEW_ALL_STYLES[category.id] || CATEGORY_VIEW_ALL_STYLES.student;
 
-  const isCategoryActive = pathname === `/category/${category.id}` || categoryTools.some(t => pathname === t.href);
+  const isCategoryActive = pathname === `/category/${category.id}` || allCategoryTools.some(t => pathname === t.href);
   const [isOpen, setIsOpen] = useState(isCategoryActive);
 
   useEffect(() => {
@@ -654,7 +680,6 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
         icon={Icon}
         href={`/category/${category.id}`}
         isActive={isCategoryActive}
-        accentColor={category.color}
         glowColor={catGlow}
         isCompact={true}
       />
@@ -662,47 +687,53 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
   }
 
   return (
-    <div className="relative group/cat space-y-1">
+    <div className="relative group/cat space-y-0.5">
       <SidebarItem 
         name={catName}
         icon={Icon}
         href={`/category/${category.id}`}
         isActive={isCategoryActive}
-        accentColor={category.color}
         glowColor={catGlow}
         isCompact={false}
         rightElement={
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsOpen((prev) => !prev);
-            }}
-            className="p-1.5 flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-200 cursor-pointer active:scale-90 opacity-60 group-hover/cat:opacity-100"
-            aria-label={`Toggle ${catName} tools`}
-          >
-            <ChevronDown
-              size={14}
-              className={cn(
-                "transition-transform duration-300",
-                isOpen && "rotate-180",
-                isOpen && (
-                  category.id === "developer" ? "text-lime-300" :
-                  category.id === "image" ? "text-cyan-300" :
-                  category.id === "video" ? "text-fuchsia-300" :
-                  category.id === "audio" ? "text-pink-300" :
-                  category.id === "pdf" ? "text-orange-300" :
-                  category.id === "ai" ? "text-amber-300" :
-                  category.id === "productivity" ? "text-emerald-300" :
-                  category.id === "student" ? "text-sky-300" :
-                  category.id === "creator" ? "text-rose-300" :
-                  category.id === "business" ? "text-orange-300" :
-                  category.id === "seo" ? "text-cyan-300" : "text-purple-300"
-                )
-              )}
-            />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {totalToolCount > 0 && (
+              <span className="text-[9.5px] font-bold text-zinc-400 group-hover/cat:text-zinc-300 bg-white/[0.04] border border-white/[0.06] rounded-md px-1.5 py-0.5 leading-none transition-colors">
+                {totalToolCount}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsOpen((prev) => !prev);
+              }}
+              className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer active:scale-90"
+              aria-label={`Toggle ${catName} tools`}
+            >
+              <ChevronDown
+                size={13}
+                className={cn(
+                  "transition-transform duration-200",
+                  isOpen && "rotate-180",
+                  isOpen && (
+                    category.id === "developer" ? "text-lime-300" :
+                    category.id === "image" ? "text-cyan-300" :
+                    category.id === "video" ? "text-fuchsia-300" :
+                    category.id === "audio" ? "text-pink-300" :
+                    category.id === "pdf" ? "text-orange-300" :
+                    category.id === "ai" ? "text-amber-300" :
+                    category.id === "productivity" ? "text-emerald-300" :
+                    category.id === "student" ? "text-sky-300" :
+                    category.id === "creator" ? "text-rose-300" :
+                    category.id === "business" ? "text-orange-300" :
+                    category.id === "seo" ? "text-cyan-300" : "text-purple-300"
+                  )
+                )}
+              />
+            </button>
+          </div>
         }
       />
 
@@ -712,9 +743,9 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             className={cn(
-              "overflow-hidden pl-4 pr-1 space-y-1.5 border-l-2 ml-6 my-1.5",
+              "overflow-hidden pl-3.5 pr-1 space-y-1 border-l ml-5 my-1",
               category.id === "developer" ? "border-lime-500/25" :
               category.id === "image" ? "border-cyan-500/25" :
               category.id === "video" ? "border-fuchsia-500/25" :
@@ -735,12 +766,12 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
               return (
                 <Link key={tool.id} href={tool.href}>
                   <div className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group/tool select-none",
+                    "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all duration-150 group/tool select-none",
                     isToolActive
-                      ? "bg-gradient-to-r from-purple-500/20 via-indigo-500/15 to-transparent text-white border border-purple-400/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                      ? "bg-purple-500/15 text-white border border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}>
-                    <ToolIcon size={14} className={cn("shrink-0 transition-transform group-hover/tool:scale-110", isToolActive ? "text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.8)]" : "text-zinc-500 group-hover/tool:text-purple-300")} />
+                    <ToolIcon size={13} className={cn("shrink-0 transition-transform group-hover/tool:scale-110", isToolActive ? "text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.8)]" : "text-zinc-500 group-hover/tool:text-purple-300")} />
                     <span className="truncate">{tool.name}</span>
                   </div>
                 </Link>
@@ -749,18 +780,18 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
 
             <Link href={`/category/${category.id}`}>
               <div className={cn(
-                "relative overflow-hidden flex items-center justify-between px-3.5 py-2.5 mt-2 rounded-xl border text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 group/viewall",
+                "relative overflow-hidden flex items-center justify-between px-3 py-1.5 mt-1.5 rounded-lg border text-[9.5px] font-black uppercase tracking-[0.15em] transition-all duration-200 group/viewall",
                 viewStyle.bg,
                 viewStyle.border,
                 viewStyle.text,
-                "hover:scale-[1.02] active:scale-[0.98]",
+                "hover:scale-[1.01] active:scale-[0.99]",
                 viewStyle.hoverShadow
               )}>
                 <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
                 <span className="relative z-10">
-                  View All Tools
+                  View All ({totalToolCount})
                 </span>
-                <ArrowRight size={13} className="relative z-10 transition-transform group-hover/viewall:translate-x-1" />
+                <ArrowRight size={11} className="relative z-10 transition-transform group-hover/viewall:translate-x-1" />
               </div>
             </Link>
           </motion.div>
@@ -776,8 +807,9 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const { isCompact, toggleCompact } = useSidebarStore();
   const { isPro, user: dbUser, isLoading: isProLoading } = usePro();
-  const { credits, loading: isCreditsLoading } = useCredits();
+  const { credits, loading: isCreditsLoading, dailyStreak, countdown } = useCredits();
   const [session, setSession] = useState<Session | null>(null);
+  const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -797,7 +829,7 @@ export function Sidebar() {
     }
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSession(session);
     });
 
@@ -809,7 +841,7 @@ export function Sidebar() {
     { name: 'Daily Vault', icon: Flame, href: '/shop', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
     { name: t('common.history'), icon: Clock, href: '/history', accent: 'text-blue-400', glow: 'rgba(96, 165, 250, 0.5)' },
-    { name: t('common.pro'), icon: Sparkles, href: '/pro', accent: 'text-accent-purple', glow: 'rgba(168, 85, 247, 0.5)' },
+    { name: t('common.pro'), icon: Crown, href: '/pro', accent: 'text-accent-purple', glow: 'rgba(168, 85, 247, 0.5)' },
     { name: t('common.referrals', 'Referrals'), icon: Users, href: '/referrals', accent: 'text-emerald-400', glow: 'rgba(16, 185, 129, 0.5)' },
     { name: 'Giveaways', icon: Gift, href: '/giveaway', accent: 'text-amber-300', glow: 'rgba(245, 158, 11, 0.5)' },
   ];
@@ -897,21 +929,22 @@ export function Sidebar() {
               exit={{ x: -300, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className={cn(
-                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:inset-0 transition-[width] duration-300 ease-in-out",
+                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full transition-[width] duration-300 ease-in-out shrink-0 overflow-hidden",
                 isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
               )}
             >
               {/* Compact Toggle Button */}
               <button 
                 onClick={toggleCompact} 
+                aria-label={isCompact ? "Expand sidebar" : "Collapse sidebar"}
                 className={cn(
-                  "hidden lg:flex absolute top-[60px] -right-3 w-6 h-6 rounded-full bg-[#0a0a0e] border border-white/10 items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all z-[150] shadow-[0_0_15px_rgba(0,0,0,0.8)]"
+                  "hidden lg:flex absolute top-[26px] -right-3 w-6 h-6 rounded-full bg-[#0a0a0e] border border-white/10 items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all z-[150] shadow-[0_0_15px_rgba(0,0,0,0.8)]"
                 )}
               >
                 {isCompact ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
               </button>
 
-              <div suppressHydrationWarning className="flex flex-col h-full relative overflow-hidden">
+              <div suppressHydrationWarning className="flex flex-col h-full max-h-full relative overflow-hidden">
                 {/* Background Noise/Gradient - Lux Style */}
                 <div suppressHydrationWarning className="absolute inset-0 bg-[#070708] pointer-events-none" />
                 <div suppressHydrationWarning className="absolute inset-0 bg-linear-to-b from-accent-purple/[0.05] via-transparent to-transparent pointer-events-none" />
@@ -919,8 +952,8 @@ export function Sidebar() {
                 <div suppressHydrationWarning className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-purple/10 blur-[120px] rounded-full pointer-events-none" />
 
                 {/* Logo / Branding Section - High-Octane Branding */}
-                <div className={cn("pt-12 pb-8 relative z-50 flex items-center", isCompact ? "justify-center px-0" : "justify-between px-6")}>
-                  <ExismicLogo size={isCompact ? 32 : 42} showText={!isCompact} />
+                <div className={cn("pt-6 pb-4 shrink-0 relative z-50 flex items-center w-full", isCompact ? "justify-center px-0 text-center" : "justify-between px-5")}>
+                  <ExismicLogo size={isCompact ? 34 : 40} showText={!isCompact} className={isCompact ? "justify-center mx-auto" : ""} />
                   
                   {!isCompact && !isProLoading && isPro && (
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
@@ -932,12 +965,12 @@ export function Sidebar() {
                 </div>
 
                 {/* Nav Groups */}
-                <nav suppressHydrationWarning className="flex-1 px-4 py-2 space-y-3 overflow-y-auto no-scrollbar relative z-10">
+                <nav suppressHydrationWarning className="flex-1 px-3 py-1.5 space-y-3 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] relative z-10 min-h-0">
                   <LayoutGroup>
                     {/* Main Menu */}
                     <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1">
                        {!isCompact && (
-                         <div className="flex items-center justify-between px-4 mb-3 pt-2">
+                         <div className="flex items-center justify-between px-3.5 mb-2 pt-1">
                             <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
                                <p className="text-[10px] font-black uppercase tracking-[0.35em] bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">EXPLORE</p>
@@ -977,9 +1010,9 @@ export function Sidebar() {
                     {/* Categories Group */}
                     <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1 pt-1">
                        {!isCompact && (
-                         <div className="flex items-center justify-between px-4 mb-2 pt-1">
+                         <div className="flex items-center justify-between px-3.5 mb-2 pt-1">
                             <div className="flex items-center gap-2">
-                               <Sparkles size={12} className="text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-pulse" />
+                                <LayoutGrid size={12} className="text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
                                <p className="text-[10px] font-black uppercase tracking-[0.35em] bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">STUDIO TOOLS</p>
                             </div>
                             <div className="w-16 h-px bg-gradient-to-r from-purple-500/50 via-cyan-500/30 to-transparent" />
@@ -999,50 +1032,151 @@ export function Sidebar() {
                           );
                        })}
                     </motion.div>
+
+                    {/* Ecosystem & Resources Group */}
+                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1 pt-1">
+                       {!isCompact && (
+                         <div className="flex items-center justify-between px-3.5 mb-2 pt-1">
+                            <div className="flex items-center gap-2">
+                               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                               <p className="text-[10px] font-black uppercase tracking-[0.35em] bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">ECOSYSTEM</p>
+                            </div>
+                            <div className="w-14 h-px bg-gradient-to-r from-cyan-500/40 to-transparent" />
+                         </div>
+                       )}
+                       <SidebarItem 
+                         name={t('common.community', 'Community')} 
+                         icon={Users} 
+                         href="/community" 
+                         isActive={pathname === "/community"} 
+                         glowColor="rgba(34, 211, 238, 0.5)" 
+                         isCompact={isCompact} 
+                       />
+                       <SidebarItem 
+                         name="Changelog" 
+                         icon={ScrollText} 
+                         href="/changelog" 
+                         isActive={pathname === "/changelog"} 
+                         glowColor="rgba(168, 85, 247, 0.5)" 
+                         isCompact={isCompact} 
+                         rightElement={
+                           <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 shadow-[0_0_8px_rgba(168,85,247,0.3)]">
+                             NEW
+                           </span>
+                         }
+                       />
+                       <SidebarItem 
+                         name="Help & Guides" 
+                         icon={HelpCircle} 
+                         href="/help" 
+                         isActive={pathname === "/help"} 
+                         glowColor="rgba(14, 165, 233, 0.5)" 
+                         isCompact={isCompact} 
+                       />
+                     </motion.div>
                   </LayoutGroup>
                 </nav>
 
-                {/* Footer Section: Credits, Upgrades & User Info */}
-                <div suppressHydrationWarning className={cn("mt-auto border-t border-white/5 bg-[#050506]/95 backdrop-blur-3xl space-y-4 relative z-50", isCompact ? "p-3" : "p-5")}>
-                  {/* Real-time Credits Display Badge */}
+                {/* Account & Billing Section - Fixed Pinned Bottom Footer */}
+                <div className={cn("border-t border-white/[0.06] bg-[#07070a]/95 backdrop-blur-2xl relative z-20 space-y-2 shrink-0", isCompact ? "p-2" : "p-3")}>
+                  {/* Real-time Credits Display Vault Card */}
                   {!isCompact && (
-                    <div className="group/credits relative overflow-hidden rounded-2xl border border-white/10 bg-[#07070c]/80 p-4 shadow-[0_18px_45px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 hover:border-cyan-300/25 hover:shadow-[0_22px_60px_rgba(34,211,238,0.10)]">
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(124,58,237,0.24),transparent_36%),radial-gradient(circle_at_85%_65%,rgba(34,211,238,0.16),transparent_34%)]" />
-                    <div className="pointer-events-none absolute inset-y-0 -left-10 w-10 skew-x-[-18deg] bg-white/10 blur-sm transition-transform duration-1000 group-hover/credits:translate-x-64" />
-                    <div className="relative flex items-center justify-between">
-                    <div className="flex items-center gap-3 relative z-10">
-                      <CreditTokenIcon size="md" />
-                      <div className="space-y-0.5">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 leading-none">Credits</p>
-                        <h4 className="mt-1 text-sm font-black leading-none text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
-                          {isCreditsLoading ? "..." : credits.toLocaleString()}
-                        </h4>
+                    <div className="block group/credits relative">
+                      <div 
+                        onClick={() => setIsBuyCreditsOpen(true)}
+                        className="cursor-pointer relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#0c0d16]/90 via-[#07080f]/95 to-[#05060a]/98 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 hover:border-cyan-400/35 hover:shadow-[0_16px_40px_rgba(34,211,238,0.15),0_0_20px_rgba(168,85,247,0.12)] hover:-translate-y-0.5 active:scale-[0.99]"
+                      >
+                        
+                        {/* Background Neon Plasma Bloom */}
+                        <div className="pointer-events-none absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-purple-500/15 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-60" />
+                        <div className="pointer-events-none absolute -bottom-10 -left-10 w-24 h-24 bg-gradient-to-tr from-purple-600/15 via-blue-600/10 to-transparent rounded-full blur-xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-40" />
+
+                        {/* Shimmer Light Sweep on Hover */}
+                        <div className="pointer-events-none absolute inset-y-0 -left-20 w-16 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/20 to-transparent blur-[2px] transition-transform duration-1000 ease-out group-hover/credits:translate-x-[500px]" />
+
+                        {/* Top Header Row: Core & Status Badge */}
+                        <div className="relative flex items-center justify-between z-10 mb-2">
+                          <div className="flex items-center gap-2">
+                            <CreditTokenIcon size="sm" />
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-hover/credits:text-zinc-200 transition-colors">
+                                CREDIT VAULT
+                              </span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
+                            </div>
+                          </div>
+
+                          {/* Right Badge / Action */}
+                          {!isProLoading && isPro ? (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-200 text-[8.5px] font-black uppercase tracking-wider shadow-[0_0_10px_rgba(168,85,247,0.25)]">
+                              <Crown size={9} className="text-amber-300" fill="currentColor" />
+                              <span>PRO</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsBuyCreditsOpen(true);
+                              }}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400/15 hover:bg-amber-400/30 active:scale-95 border border-amber-300/30 text-amber-200 text-[8.5px] font-black uppercase tracking-wider transition-all shadow-[0_0_10px_rgba(245,158,11,0.2)] cursor-pointer"
+                            >
+                              <span>+ TOP UP</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Main Balance Display Row */}
+                        <div className="relative z-10 flex items-baseline justify-between mb-1.5">
+                          <div className="flex items-baseline gap-1.5">
+                            <h4 className="text-xl font-black tracking-tight text-white leading-none drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]">
+                              {isCreditsLoading ? "..." : credits.toLocaleString()}
+                            </h4>
+                            <span className="text-[9.5px] font-extrabold tracking-wider uppercase text-cyan-300/80 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]">
+                              available
+                            </span>
+                          </div>
+
+                          <Link
+                            href="/shop"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[9.5px] text-zinc-500 hover:text-cyan-300 transition-colors flex items-center gap-0.5 font-bold cursor-pointer"
+                          >
+                            <span>{isPro ? "Vault" : "Refill"}</span>
+                            <ArrowRight size={10} className="transition-transform group-hover/credits:translate-x-0.5" />
+                          </Link>
+                        </div>
+
+                        {/* Bottom Micro Meter / Status Pill */}
+                        <div className="relative z-10 pt-1.5 border-t border-white/[0.05] flex items-center justify-between text-[9px] text-zinc-400 font-semibold">
+                          <div className="flex items-center gap-1.5">
+                            <Flame size={10} className={(dailyStreak ?? 0) > 0 ? "text-amber-400" : "text-zinc-500"} />
+                            <span>{(dailyStreak ?? 0) > 0 ? `${dailyStreak} day streak` : "Daily active"}</span>
+                          </div>
+                          
+                          {countdown && (
+                            <div className="flex items-center gap-1 text-[8.5px] text-zinc-500 font-mono">
+                              <Clock size={8.5} />
+                              <span>{countdown}</span>
+                            </div>
+                          )}
+                        </div>
+
                       </div>
                     </div>
-                    {!isProLoading && !isPro && (
-                      <Link href="/pro" className="relative z-10 shrink-0">
-                        <div className="rounded-xl border border-amber-300/25 bg-amber-300/10 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-widest text-amber-200 transition-colors hover:bg-amber-300/15">
-                          TOP UP
-                        </div>
-                      </Link>
-                    )}
-                    </div>
-                  </div>
                   )}
 
                   {/* Ultra Premium Animated Upgrade Button */}
                   {!isCompact && !isProLoading && !isPro && (
-                    <Link href="/pro" className="block w-full relative group pb-1">
-                      {/* Pulsing Animated Glow Backdrop */}
+                    <Link href="/pro" className="block w-full relative group">
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-500 rounded-full blur-[8px] opacity-60 group-hover:opacity-100 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
                       
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.96 }}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className="relative w-full py-3.5 rounded-full bg-zinc-950/90 backdrop-blur-xl border border-white/20 text-xs font-black uppercase tracking-[0.2em] overflow-hidden"
+                        className="relative w-full py-2.5 rounded-full bg-zinc-950/90 backdrop-blur-xl border border-white/20 text-xs font-black uppercase tracking-[0.2em] overflow-hidden"
                       >
-                        {/* Infinite Shimmer Sweep */}
                         <motion.div
                           animate={{ x: ["-200%", "200%"] }}
                           transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 0.5 }}
@@ -1050,10 +1184,7 @@ export function Sidebar() {
                         />
 
                         <span className="relative z-10 flex items-center justify-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                          {/* Pulsing Crown */}
-                          <Crown size={15} className="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-                          
-                          {/* Animated Gradient Text */}
+                          <Crown size={13} className="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                           <span className="bg-gradient-to-r from-amber-100 via-white to-amber-200 bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
                             UPGRADE TO PRO
                           </span>
@@ -1079,6 +1210,12 @@ export function Sidebar() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Dynamic Buy Credits Modal */}
+      <BuyCreditsModal 
+        isOpen={isBuyCreditsOpen} 
+        onClose={() => setIsBuyCreditsOpen(false)} 
+      />
     </>
   );
 }

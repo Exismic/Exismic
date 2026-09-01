@@ -37,7 +37,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { planId, giftCardType = "minecoins", giftCardCode } = body;
+    const { 
+      planId, 
+      giftCardType = "minecoins", 
+      giftCardCode,
+      isGift,
+      recipientName,
+      recipientMessage
+    } = body;
 
     const validation = validateCodeLength(giftCardType, giftCardCode || "");
     if (!validation.isValid) {
@@ -92,10 +99,13 @@ export async function POST(req: NextRequest) {
         metadata: {
           giftCardType,
           giftCardCode: cleanCode,
-          planName,
+          planName: isGift ? `${planName} (Gift Pass)` : planName,
           userEmail: user.email,
           submittedAt: new Date().toISOString(),
           requiresManualVerification: true,
+          isGift: Boolean(isGift),
+          recipientName: recipientName?.trim() || undefined,
+          recipientMessage: recipientMessage?.trim() || undefined,
         },
       },
     });

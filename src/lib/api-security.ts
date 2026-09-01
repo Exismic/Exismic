@@ -73,6 +73,42 @@ export function checkRateLimit(key: string, limit: number, windowMs: number) {
   };
 }
 
+export async function checkDistributedRateLimit(key: string, limit: number, windowMs: number) {
+  try {
+    const { getRedisClient } = await import("@/lib/redis");
+    const redis = getRedisClient();
+    if (!redis) {
+      return checkRateLimit(key, limit, windowMs);
+    }
+
+    const redisKey = `ratelimit:${key}`;
+    const windowSec = Math.max(1, Math.ceil(windowMs / 1000));
+    const current = await redis.incr(redisKey);
+
+    if (current === 1) {
+      await redis.expire(redisKey, windowSec);
+    }
+
+    if (current > limit) {
+      const ttl = await redis.ttl(redisKey);
+      return {
+        allowed: false,
+        remaining: 0,
+        retryAfter: ttl > 0 ? ttl : windowSec,
+      };
+    }
+
+    return {
+      allowed: true,
+      remaining: Math.max(0, limit - current),
+      retryAfter: 0,
+    };
+  } catch (err) {
+    // Graceful fallback to memory on Redis timeout/error
+    return checkRateLimit(key, limit, windowMs);
+  }
+}
+
 export function rateLimitResponse(retryAfter: number) {
   return NextResponse.json(
     { error: "Too many requests. Please wait a moment and try again." },

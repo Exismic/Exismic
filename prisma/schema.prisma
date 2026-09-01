@@ -57,6 +57,8 @@ model User {
   trustedLoginChallenges TrustedLoginChallenge[]
   creditTransactions     CreditTransaction[]
   creditShopClaims       CreditShopClaim[]
+  communityPosts         CommunityPost[]
+  communityLikes         CommunityLike[]
   hasSeenWelcome         Boolean                 @default(true) @map("has_seen_welcome")
   status                 String                  @default("active")
 }
@@ -558,3 +560,45 @@ model ToolErrorLog {
   @@index([createdAt])
   @@map("tool_error_logs")
 }
+
+model CommunityPost {
+  id             String          @id @default(cuid())
+  userId         String?         @map("user_id")
+  authorName     String          @default("Creator") @map("author_name")
+  authorAvatar   String?         @map("author_avatar")
+  title          String          @default("")
+  category       String          @default("general")
+  prompt         String          @default("")
+  toolName       String          @default("") @map("tool_name")
+  toolUrl        String          @default("") @map("tool_url")
+  previewUrl     String          @default("") @map("preview_url")
+  mediaType      String          @default("image") @map("media_type")
+  tags           String[]        @default([])
+  likesCount     Int             @default(0) @map("likes_count")
+  viewsCount     Int             @default(0) @map("views_count")
+  featured       Boolean         @default(false)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes          CommunityLike[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("community_posts")
+}
+
+model CommunityLike {
+  id        String        @id @default(cuid())
+  postId    String        @map("post_id")
+  userId    String        @map("user_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@index([postId])
+  @@map("community_likes")
+}
+

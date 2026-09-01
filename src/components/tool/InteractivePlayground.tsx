@@ -257,7 +257,7 @@ export function InteractivePlayground() {
   }, [isDragging, handleMove]);
 
   return (
-    <section className="py-14 sm:py-24 px-3 sm:px-6 max-w-7xl mx-auto w-full relative selection:bg-purple-500/30">
+    <section className="py-8 sm:py-12 px-3 sm:px-6 max-w-7xl mx-auto w-full relative selection:bg-purple-500/30">
       
       {/* Audio Stems Preloaded Elements */}
       <audio
@@ -291,22 +291,21 @@ export function InteractivePlayground() {
           viewport={{ once: true }}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20 backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.15)]"
         >
-          <Sparkles size={13} className="text-purple-400 animate-spin" style={{ animationDuration: "8s" }} />
+          <Sparkles size={13} className="text-purple-400" />
           <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.3em] text-purple-300">
-            Interactive Studio Playground
+            Try It Live
           </span>
-          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping ml-1" />
         </motion.div>
 
         <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight uppercase leading-[0.98]">
-          Test-Drive the <br />
+          Try the Tools <br />
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 drop-shadow-[0_0_35px_rgba(168,85,247,0.3)]">
-            AI Studio Tools.
+            Right Here.
           </span>
         </h2>
 
         <p className="text-zinc-400 font-medium text-xs sm:text-sm md:text-base max-w-xl leading-relaxed px-2">
-          Experience real-time interactive previews of our flagship tools right here. No sign-up required.
+          Test out a few of our favorite tools right in your browser. No sign-up or credit card needed.
         </p>
       </div>
 

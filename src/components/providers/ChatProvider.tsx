@@ -294,8 +294,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // --- Initialization & Hooks ---
   useEffect(() => {
     rollSuggestions();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data }: any) => {
+      setSession(data?.session || null);
     });
 
     fetchSessions();

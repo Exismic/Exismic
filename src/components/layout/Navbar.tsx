@@ -20,12 +20,24 @@ import {
   BookOpen,
   CreditCard,
   Coins,
-  ShoppingBag
+  Trophy,
+  Gift,
+  Check,
+  Zap,
+  Star,
+  ChevronRight,
+  Menu,
+  X,
+  ArrowRight,
+  HelpCircle,
+  LayoutGrid,
+  Rocket
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
+import { useQuests } from "@/hooks/useQuests";
 import dynamic from "next/dynamic";
 
 const ManageSubscriptionModal = dynamic(
@@ -37,41 +49,55 @@ const CreditModal = dynamic(
   () => import("../ui/CreditModal").then((mod) => mod.CreditModal),
   { ssr: false }
 );
+
+const DailyQuestsModal = dynamic(
+  () => import("../reward/DailyQuestsModal").then((mod) => mod.DailyQuestsModal),
+  { ssr: false }
+);
+
+const RedeemPromoModal = dynamic(
+  () => import("../modals/RedeemPromoModal").then((mod) => mod.RedeemPromoModal),
+  { ssr: false }
+);
 import { ProBadge } from "../ui/ProBadge";
 import { UserProfile } from "../ui/UserProfile";
 import { AvatarWithFrame } from "../ui/AvatarWithFrame";
 import { CreditTokenIcon } from "../ui/CreditTokenIcon";
 import { PremiumName } from "../ui/PremiumName";
 import { NotificationsDropdown } from "./NotificationsDropdown";
-import { PageTranslator } from "./PageTranslator";
+import { ExismicLogo } from "../ui/ExismicLogo";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isQuestsModalOpen, setIsQuestsModalOpen] = useState(false);
+  const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
+  
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [hoveredNavTab, setHoveredNavTab] = useState<string | null>(null);
   
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const mobileUserDropdownRef = useRef<HTMLDivElement>(null);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
-  const { isPro, isLoading: isProLoading, user: dbUser, refresh: refreshPro } = usePro();
+  const { isPro, isLoading: isProLoading, user: dbUser, authUser, refresh: refreshPro } = usePro();
   const { credits, showUpsell, setShowUpsell } = useCredits();
-  const supabase = createClient();
+  const { unclaimedCount, completedCount, totalAvailable } = useQuests();
 
   const [localFrameId, setLocalFrameId] = useState<string | null>(null);
   const [localGradientId, setLocalGradientId] = useState<string | null>(null);
 
   useEffect(() => {
-    const frame = session?.user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
-    const gradient = session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
+    const frame = authUser?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
+    const gradient = authUser?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
     setLocalFrameId(frame);
     setLocalGradientId(gradient);
-  }, [session, dbUser]);
+  }, [authUser, dbUser]);
 
   useEffect(() => {
     const handleFrameUpdate = (e: Event) => {
@@ -91,25 +117,14 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    async function getSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-    }
-    getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    const handleScroll = (e?: Event) => {
+      const el = document.getElementById("app-main-content");
+      const targetScroll = (e?.target as HTMLElement)?.scrollTop;
+      const scrollY = typeof targetScroll === "number" ? targetScroll : (el?.scrollTop || window.scrollY || 0);
+      setScrolled(scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
   }, []);
 
   // Click outside handlers
@@ -134,18 +149,26 @@ export function Navbar() {
   useEffect(() => {
     setToolsDropdownOpen(false);
     setUserDropdownOpen(false);
+    setMobileNavOpen(false);
   }, [pathname]);
 
-  const handleSearchClick = () => {
-    const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    const event = new KeyboardEvent("keydown", {
-      key: "k",
-      metaKey: isMac,
-      ctrlKey: !isMac,
-      bubbles: true,
-      cancelable: true
-    });
-    window.dispatchEvent(event);
+  const handleScrollTo = (sectionId: string) => {
+    if (pathname === "/") {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      router.push(`/#${sectionId}`);
+    }
+  };
+
+  const handleSearchClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    window.dispatchEvent(new CustomEvent("open-command-palette"));
   };
 
   const handleCancelSubscription = async () => {
@@ -188,9 +211,9 @@ export function Navbar() {
     { name: "Blog", href: "/blog" },
   ];
 
-  const navLinks = session ? loggedInLinks : loggedOutLinks;
-  const fullName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Explorer";
-  const avatarUrl = dbUser?.custom_avatar_url || session?.user?.user_metadata?.avatar_url;
+  const navLinks = authUser ? loggedInLinks : loggedOutLinks;
+  const fullName = authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || "Explorer";
+  const avatarUrl = dbUser?.custom_avatar_url || authUser?.user_metadata?.avatar_url;
 
   const usageCount = dbUser?.aiGenerationsUsed ?? 0;
   const totalLimit = dbUser?.aiGenerationsLimit ?? 50;
@@ -202,6 +225,8 @@ export function Navbar() {
         return LayoutDashboard;
       case "Tools":
         return FolderOpen;
+      case "Rewards":
+        return Star;
       case "AI Chat":
         return MessageSquare;
       case "Code Studio":
@@ -251,48 +276,191 @@ export function Navbar() {
     <>
       <header 
         className={cn(
-          session 
-            ? "relative md:sticky md:top-0 z-40 bg-[#030303]/60 backdrop-blur-2xl border-b border-white/5 w-full h-16 sm:h-20 transition-all duration-500"
-            : cn(
-                "relative md:fixed md:top-0 md:inset-x-0 h-16 sm:h-20 z-40 transition-all duration-500 border-b",
-                scrolled 
-                  ? "bg-[#030303]/80 backdrop-blur-2xl border-white/[0.06] shadow-[0_4px_30px_rgba(0,0,0,0.8)]" 
-                  : "bg-transparent border-transparent"
-              )
+          "relative w-full z-40 transition-all duration-500 border-b",
+          scrolled 
+            ? "bg-[#030308]/85 backdrop-blur-2xl border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.7)] h-16" 
+            : "bg-transparent border-transparent h-16 sm:h-20"
         )}
       >
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between relative">
-          
-          {/* Desktop search and notifications */}
-          <div className="relative z-50 hidden items-center gap-2 md:flex">
-            <button
-              type="button"
-              onClick={handleSearchClick}
-              className="group/search relative flex h-12 w-[clamp(260px,31vw,430px)] items-center gap-3 overflow-hidden rounded-2xl border border-white/[0.09] bg-[#08080d]/84 px-3.5 text-left shadow-[0_16px_45px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all duration-300 hover:border-cyan-300/20 hover:bg-[#0a0a11] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 active:scale-[0.99]"
-              title="Global AI Search & Commands (Ctrl+K)"
-              aria-label="Open global search"
-            >
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(168,85,247,0.12),transparent_37%),radial-gradient(circle_at_92%_100%,rgba(34,211,238,0.08),transparent_36%)] opacity-80"
-              />
-              <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-zinc-400 transition-all duration-300 group-hover/search:border-cyan-300/20 group-hover/search:text-cyan-200 group-hover/search:shadow-[0_0_18px_rgba(34,211,238,0.1)]">
-                <Search size={15} strokeWidth={2.2} />
-              </span>
-              <span className="relative min-w-0 flex-1 truncate text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500 transition-colors group-hover/search:text-zinc-300">
-                Search tools, commands, and creations
-              </span>
-              <kbd className="relative hidden h-7 shrink-0 items-center gap-1 rounded-lg border border-white/[0.08] bg-black/35 px-2 text-[8px] font-black uppercase tracking-[0.12em] text-zinc-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] group-hover/search:text-zinc-400 lg:flex notranslate" translate="no">
-                Ctrl <span className="text-zinc-700">+</span> K
-              </kbd>
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-8 bottom-0 h-px origin-center scale-x-0 bg-linear-to-r from-transparent via-purple-400 to-cyan-300 opacity-0 transition-all duration-500 group-hover/search:scale-x-100 group-hover/search:opacity-80"
-              />
-            </button>
+        {/* Subtle Ambient Overhead Glow on Landing / Public pages */}
+        <div 
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 -top-6 h-20 bg-gradient-to-b from-purple-600/10 via-cyan-500/5 to-transparent blur-2xl"
+        />
 
-            <NotificationsDropdown />
-          </div>
+        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between relative">
+          
+          {/* Desktop Left: Exismic Brand Logo for visitors VS Search Bar & Notification for logged-in users */}
+          {!authUser ? (
+            <div className="relative z-50 hidden md:flex items-center gap-3 shrink-0">
+              <ExismicLogo size={34} showText={true} logoLink={true} />
+            </div>
+          ) : (
+            <div className="relative z-50 hidden md:flex items-center gap-3 shrink-0">
+              {/* Tool Search Bar on Left */}
+              <button
+                type="button"
+                onClick={handleSearchClick}
+                className="group/search relative flex h-10 w-[clamp(300px,26vw,420px)] cursor-pointer items-center rounded-2xl p-[1px] select-none isolate transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-[0_8px_25px_rgba(0,0,0,0.5),0_0_20px_rgba(6,182,212,0.12)] hover:shadow-[0_12px_32px_rgba(6,182,212,0.25),0_0_25px_rgba(139,92,246,0.2)] notranslate text-left"
+                title="Search tools, commands, AI models... (Ctrl + K)"
+                aria-label="Open tool search and command palette"
+                translate="no"
+              >
+                {/* Radiant Ambient Aura */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-cyan-500/30 via-purple-500/25 to-indigo-500/30 opacity-50 blur-[6px] transition-all duration-300 group-hover/search:opacity-100 group-hover/search:blur-[10px]"
+                />
+
+                {/* Metallic Prismatic Border Rim */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-2xl p-[1px] bg-gradient-to-r from-cyan-400/40 via-purple-500/30 to-indigo-400/40 group-hover/search:from-cyan-300 group-hover/search:via-purple-400 group-hover/search:to-cyan-400 transition-all duration-300"
+                />
+
+                {/* Glassmorphic Obsidian Core */}
+                <div className="relative flex h-full w-full items-center gap-2.5 overflow-hidden rounded-2xl px-3 bg-gradient-to-r from-[#060814]/98 via-[#0a0d22]/95 to-[#070918]/98 border border-white/[0.08] group-hover/search:border-cyan-400/40 backdrop-blur-2xl transition-all duration-300">
+                  {/* Top Ambient Prismatic Hairline */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-0 inset-x-4 h-[1px] bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent"
+                  />
+
+                  {/* Left Icon Pill */}
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <div className="relative flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 via-indigo-500/15 to-purple-500/20 border border-cyan-400/30 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.25)] group-hover/search:border-cyan-300 group-hover/search:shadow-[0_0_15px_rgba(6,182,212,0.5)] group-hover/search:scale-105 transition-all duration-300">
+                      <Search size={13} className="text-cyan-200 drop-shadow-[0_0_5px_rgba(34,211,238,1)] transition-all duration-300" />
+                    </div>
+                  </div>
+
+                  {/* Placeholder Label */}
+                  <span className="relative z-10 min-w-0 flex-1 text-[12.5px] font-medium text-zinc-400 group-hover/search:text-zinc-200 transition-colors tracking-normal whitespace-nowrap overflow-hidden text-ellipsis">
+                    Search tools, commands...
+                  </span>
+
+                  {/* Keyboard Shortcut Badge */}
+                  <kbd className="relative hidden h-6 shrink-0 items-center gap-1 rounded-lg border border-white/[0.1] bg-[#0c0e1e]/90 px-2 text-[10px] font-mono font-bold text-zinc-400 group-hover/search:border-cyan-400/40 group-hover/search:text-cyan-200 group-hover/search:bg-cyan-500/[0.08] lg:flex shadow-xs notranslate transition-colors" translate="no">
+                    Ctrl K
+                  </kbd>
+                </div>
+              </button>
+
+              {/* Notification Icon on Left */}
+              <NotificationsDropdown />
+            </div>
+          )}
+
+          {/* Desktop Center: Floating Glassmorphic Capsule ONLY for landing page visitors */}
+          {!authUser ? (
+            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center z-50">
+              <div className="relative group/navisland">
+                {/* Radiant Ambient Aura */}
+                <div 
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-1.5 rounded-full bg-gradient-to-r from-purple-600/40 via-cyan-500/35 to-pink-500/40 opacity-50 blur-[12px] group-hover/navisland:opacity-100 group-hover/navisland:blur-[16px] transition-all duration-500"
+                />
+
+                {/* Metallic Radiant Border Rim */}
+                <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-purple-500/60 via-cyan-400/60 to-pink-500/60 shadow-[0_0_30px_rgba(168,85,247,0.3),0_0_20px_rgba(34,211,238,0.2)]">
+                  {/* Main Glassmorphic Capsule */}
+                  <nav 
+                    className="relative flex items-center gap-1.5 px-2 py-1.5 rounded-full bg-[#070818]/95 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-300 select-none"
+                    onMouseLeave={() => setHoveredNavTab(null)}
+                  >
+                    {/* Top Edge Ambient Prismatic Hairline */}
+                    <div 
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-0 inset-x-8 h-[1px] bg-gradient-to-r from-transparent via-cyan-200/60 to-transparent"
+                    />
+
+                    {/* 1. Tools */}
+                    <Link 
+                      href="/tools" 
+                      onMouseEnter={() => setHoveredNavTab("tools")}
+                      className={cn(
+                        "group/item relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 select-none z-10",
+                        pathname === "/tools" ? "text-purple-200" : "text-zinc-300 hover:text-purple-200"
+                      )}
+                    >
+                      {(hoveredNavTab === "tools" || (pathname === "/tools" && !hoveredNavTab)) && (
+                        <motion.div
+                          layoutId="navPillHighlight"
+                          className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600/35 via-indigo-600/30 to-purple-600/25 border border-purple-400/60 shadow-[0_0_20px_rgba(168,85,247,0.45)]"
+                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                        />
+                      )}
+                      <LayoutGrid size={14} className={cn(
+                        "transition-transform duration-300 group-hover/item:scale-110",
+                        pathname === "/tools" ? "text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,1)]" : "text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.7)] group-hover/item:text-purple-200"
+                      )} />
+                      <span className="relative z-10">Tools</span>
+                    </Link>
+
+                    {/* 2. Featured Showcase */}
+                    <button 
+                      type="button"
+                      onClick={() => handleScrollTo("explore")}
+                      onMouseEnter={() => setHoveredNavTab("featured")}
+                      className="group/item relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-zinc-300 hover:text-cyan-200 transition-all duration-200 select-none z-10 cursor-pointer"
+                    >
+                      {hoveredNavTab === "featured" && (
+                        <motion.div
+                          layoutId="navPillHighlight"
+                          className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/35 via-blue-600/30 to-cyan-500/25 border border-cyan-400/60 shadow-[0_0_20px_rgba(34,211,238,0.45)]"
+                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                        />
+                      )}
+                      <Zap size={14} className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] group-hover/item:text-cyan-200 group-hover/item:scale-110 transition-transform duration-200" />
+                      <span className="relative z-10">Featured</span>
+                    </button>
+
+                    {/* 3. Pro Plan */}
+                    <Link 
+                      href="/pro" 
+                      onMouseEnter={() => setHoveredNavTab("pro")}
+                      className={cn(
+                        "group/pro relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black transition-all duration-200 select-none z-10",
+                        pathname === "/pro" ? "text-amber-100" : "text-amber-200 hover:text-white"
+                      )}
+                    >
+                      {hoveredNavTab === "pro" || pathname === "/pro" ? (
+                        <motion.div
+                          layoutId="navPillHighlight"
+                          className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/35 via-yellow-500/25 to-amber-500/35 border border-amber-400/70 shadow-[0_0_25px_rgba(245,158,11,0.55)]"
+                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                        />
+                      ) : null}
+                      <Crown size={14} className="text-amber-400 fill-amber-400/40 group-hover/pro:scale-110 group-hover/pro:text-yellow-200 transition-transform drop-shadow-[0_0_8px_rgba(251,191,36,1)]" />
+                      <span className="relative z-10 bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-400 bg-clip-text text-transparent group-hover/pro:from-white group-hover/pro:to-amber-200 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                        Pro
+                      </span>
+                      <span className="relative z-10 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 font-black text-[8.5px] tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.8)]">
+                        10X
+                      </span>
+                    </Link>
+
+                    {/* 4. FAQ */}
+                    <button 
+                      type="button"
+                      onClick={() => handleScrollTo("faq")}
+                      onMouseEnter={() => setHoveredNavTab("faq")}
+                      className="group/item relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-zinc-300 hover:text-fuchsia-200 transition-all duration-200 select-none z-10 cursor-pointer"
+                    >
+                      {hoveredNavTab === "faq" && (
+                        <motion.div
+                          layoutId="navPillHighlight"
+                          className="absolute inset-0 rounded-full bg-gradient-to-r from-fuchsia-500/30 to-pink-500/25 border border-fuchsia-400/60 shadow-[0_0_20px_rgba(217,70,239,0.45)]"
+                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                        />
+                      )}
+                      <HelpCircle size={14} className="text-fuchsia-400 drop-shadow-[0_0_6px_rgba(217,70,239,0.8)] group-hover/item:text-fuchsia-200 transition-colors" />
+                      <span className="relative z-10">FAQ</span>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {/* Navigation remains available in the mobile drawer. */}
           <div className="hidden">
@@ -450,51 +618,185 @@ export function Navbar() {
 
           {/* Right Side: Search, Credits, Pro Badge, Profile */}
           <div className="hidden md:flex items-center gap-4 relative z-50">
-            {/* Search lives on the left side of the desktop header. */}
-            <button 
-              onClick={handleSearchClick}
-              className="hidden"
-              title="Global AI Search (Ctrl+K)"
-            >
-              <Search size={16} className="transition-transform duration-300 group-hover:scale-110" />
-            </button>
-
-            {session ? (
+            {authUser ? (
               <div className="flex items-center gap-3">
-                {/* 1. Ultra Premium Cyber Vault Pill */}
-                <Link 
+                {/* 1. Ultra Luxury Cyber Credit Vault Pill */}
+                <Link
                   href="/shop"
                   title="Open Credit Shop Vault & Claim Daily Bonus"
-                  className="group/vault relative flex h-10 cursor-pointer items-center gap-3 rounded-full p-[1px] shadow-[0_10px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(34,211,238,0.15)] transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_15px_45px_rgba(34,211,238,0.35),0_0_30px_rgba(168,85,247,0.25)] active:scale-95 notranslate"
+                  className={cn(
+                    "group/vault relative flex h-10 cursor-pointer items-center rounded-full p-[1px] select-none isolate transition-all duration-500 hover:scale-[1.03] active:scale-95 touch-manipulation notranslate",
+                    "shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(6,182,212,0.18)] hover:shadow-[0_15px_45px_rgba(6,182,212,0.45),0_0_30px_rgba(99,102,241,0.35)]"
+                  )}
                   translate="no"
                 >
-                  {/* Glowing Animated Outer Border Ring */}
-                  <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/50 via-purple-500/50 to-fuchsia-500/50 opacity-70 blur-[2px] transition-all duration-500 group-hover/vault:opacity-100 group-hover/vault:blur-[4px]" />
-                  <span aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/80 via-purple-400/80 to-fuchsia-400/80 p-[1px] transition-all" />
+                  {/* Radiant Cyber-Cyan/Indigo Outer Halo Glow */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/40 via-sky-400/50 to-indigo-600/40 opacity-70 blur-[3px] group-hover/vault:opacity-100 group-hover/vault:blur-[6px] transition-all duration-500 pointer-events-none"
+                  />
 
-                  {/* Glassmorphic Inner Pill Container */}
-                  <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full bg-[#06070e]/92 pl-2 pr-3 backdrop-blur-2xl border border-white/[0.12] transition-colors duration-300 group-hover/vault:bg-[#090b16]/95 group-hover/vault:border-cyan-300/40 notranslate" translate="no">
-                    {/* Ambient Glow & Reflection Sweep */}
-                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_15%_50%,rgba(56,189,248,0.25),transparent_45%),radial-gradient(circle_at_85%_50%,rgba(168,85,247,0.2),transparent_40%)]" />
-                    <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[1px] transition-transform duration-1000 group-hover/vault:translate-x-56" />
+                  {/* Metallic Gradient Outer Border Rim */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full p-[1px] bg-gradient-to-r from-cyan-400/50 via-sky-300/70 to-indigo-400/50 group-hover/vault:from-cyan-300 group-hover/vault:via-white group-hover/vault:to-indigo-300 transition-all duration-300 pointer-events-none"
+                  />
 
+                  {/* Glassmorphic Cyber-Obsidian Core */}
+                  <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full pl-2 pr-3.5 bg-gradient-to-r from-[#060814]/95 via-[#0b1026]/95 to-[#080718]/95 border border-cyan-400/25 group-hover/vault:border-cyan-300/60 backdrop-blur-2xl transition-all duration-300">
+                    {/* Ambient Radial Lighting & Sheen Reflection */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_20%_50%,rgba(6,182,212,0.25),transparent_48%),radial-gradient(circle_at_85%_50%,rgba(99,102,241,0.18),transparent_42%)]"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-cyan-100/30 to-transparent blur-[1px] transition-transform duration-1000 group-hover/vault:translate-x-56"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-0 inset-x-3 h-[1px] bg-gradient-to-r from-transparent via-cyan-200/50 to-transparent"
+                    />
+
+                    {/* Exismic Credit Token Emblem */}
                     <CreditTokenIcon size="sm" />
 
-                    {/* Numerical Credit Balance */}
-                    <span suppressHydrationWarning className="relative z-10 font-sans text-sm font-black tracking-tight tabular-nums text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] notranslate" translate="no">
+                    {/* Bold Radiant Numbers */}
+                    <span
+                      suppressHydrationWarning
+                      className="relative z-10 font-sans text-[13px] font-black tracking-tight bg-gradient-to-b from-white via-slate-100 to-slate-200 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] group-hover/vault:drop-shadow-[0_0_12px_rgba(34,211,238,0.6)] transition-all notranslate"
+                      translate="no"
+                    >
                       {credits.toLocaleString()}
                     </span>
 
-                    {/* Sleek Ultra-Premium Cyber Vault Tag Badge */}
-                    <span className="relative overflow-hidden z-10 flex items-center gap-1.5 rounded-full border border-cyan-400/35 bg-gradient-to-r from-cyan-500/20 via-purple-500/15 to-indigo-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_15px_rgba(34,211,238,0.25)] backdrop-blur-md transition-all duration-300 group-hover/vault:border-cyan-300 group-hover/vault:shadow-[0_0_22px_rgba(34,211,238,0.55)] group-hover/vault:scale-[1.03] notranslate" translate="no">
-                      <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
-                      <Sparkles size={11} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0 animate-pulse" />
-                      <span className="relative z-10 font-sans font-black tracking-[0.2em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] notranslate" translate="no">VAULT</span>
+                    {/* Luxury Embossed Typography */}
+                    <span className="relative z-10 font-sans text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] group-hover/vault:from-white group-hover/vault:via-cyan-100 group-hover/vault:to-sky-200 transition-all">
+                      VAULT
                     </span>
+
+                    {/* Dynamic Interactive Arrow */}
+                    <ChevronRight
+                      size={13}
+                      className="relative z-10 text-cyan-400/60 transition-transform duration-200 group-hover/vault:translate-x-0.5 group-hover/vault:text-cyan-200 group-hover/vault:drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]"
+                    />
                   </div>
                 </Link>
 
+                {/* 2. Ultra Premium Quests & Challenges Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsQuestsModalOpen(true)}
+                  title={
+                    unclaimedCount > 0
+                      ? `${unclaimedCount} quest reward${unclaimedCount > 1 ? "s" : ""} ready to claim!`
+                      : "Quests & Rewards (Daily & Weekly)"
+                  }
+                  className={cn(
+                    "group/quests relative flex h-10 cursor-pointer items-center rounded-full p-[1px] shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(245,158,11,0.15)] transition-all duration-500 hover:scale-[1.03] active:scale-95 touch-manipulation notranslate",
+                    unclaimedCount > 0
+                      ? "hover:shadow-[0_15px_45px_rgba(245,158,11,0.45),0_0_30px_rgba(251,191,36,0.35)]"
+                      : "hover:shadow-[0_15px_40px_rgba(245,158,11,0.3),0_0_25px_rgba(251,191,36,0.2)]"
+                  )}
+                  translate="no"
+                >
+                  {/* Glowing Radiant Amber/Gold Halo */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-0 rounded-full transition-all duration-500 pointer-events-none",
+                      unclaimedCount > 0
+                        ? "bg-gradient-to-r from-amber-500/70 via-yellow-400/80 to-amber-600/70 opacity-90 blur-[4px] animate-pulse"
+                        : "bg-gradient-to-r from-amber-500/40 via-yellow-400/45 to-orange-500/40 opacity-60 blur-[2px] group-hover/quests:opacity-100 group-hover/quests:blur-[4px]"
+                    )}
+                  />
+                  {/* Metallic Gradient Outer Border Rim */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-0 rounded-full p-[1px] transition-all duration-300 pointer-events-none",
+                      unclaimedCount > 0
+                        ? "bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400"
+                        : "bg-gradient-to-r from-amber-500/50 via-yellow-400/70 to-amber-600/50 group-hover/quests:from-amber-400/90 group-hover/quests:via-yellow-300 group-hover/quests:to-amber-500/90"
+                    )}
+                  />
 
+                  {/* Glassmorphic Luxury Obsidian Core */}
+                  <div
+                    className={cn(
+                      "relative flex h-full items-center gap-2 overflow-hidden rounded-full pl-2 pr-3.5 backdrop-blur-2xl border transition-all duration-300",
+                      unclaimedCount > 0
+                        ? "bg-gradient-to-r from-[#170e05]/95 via-[#1a1106]/95 to-[#120917]/95 border-amber-400/50 group-hover/quests:border-amber-300/80"
+                        : "bg-gradient-to-r from-[#09070f]/95 via-[#0e0a14]/95 to-[#0b0810]/95 border-amber-400/20 group-hover/quests:border-amber-300/50 group-hover/quests:bg-[#120e1a]/95"
+                    )}
+                  >
+                    {/* Ambient Radial Lighting & Sheen Reflection */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_20%_50%,rgba(245,158,11,0.22),transparent_45%),radial-gradient(circle_at_85%_50%,rgba(251,191,36,0.15),transparent_40%)]"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-amber-100/30 to-transparent blur-[1px] transition-transform duration-1000 group-hover/quests:translate-x-56"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-0 inset-x-3 h-[1px] bg-gradient-to-r from-transparent via-amber-200/40 to-transparent"
+                    />
+
+                    {/* Golden Trophy Jewel Emblem */}
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <div
+                        className={cn(
+                          "relative flex items-center justify-center h-6 w-6 rounded-lg transition-all duration-300 group-hover/quests:scale-110",
+                          unclaimedCount > 0
+                            ? "bg-gradient-to-b from-amber-400/40 via-yellow-500/30 to-amber-600/30 border border-amber-300/80 shadow-[0_0_12px_rgba(251,191,36,0.7),inset_0_1px_2px_rgba(255,255,255,0.6)]"
+                            : "bg-gradient-to-b from-amber-400/25 via-amber-500/15 to-amber-900/30 border border-amber-400/40 shadow-[0_0_8px_rgba(245,158,11,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] group-hover/quests:border-amber-300/70 group-hover/quests:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
+                        )}
+                      >
+                        <Trophy
+                          size={13}
+                          className={cn(
+                            "transition-all duration-300",
+                            unclaimedCount > 0
+                              ? "text-yellow-200 drop-shadow-[0_0_6px_rgba(251,191,36,1)] animate-bounce"
+                              : "text-amber-300 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)] group-hover/quests:text-yellow-200 group-hover/quests:drop-shadow-[0_0_8px_rgba(251,191,36,1)]"
+                          )}
+                        />
+                      </div>
+
+                      {/* Floating Radiant Ping Beacon */}
+                      {unclaimedCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-90"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-300 shadow-[0_0_6px_rgba(251,191,36,1)]"></span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Luxury Embossed Typography */}
+                    <span className="relative z-10 font-sans text-[10.5px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-amber-100 via-yellow-200 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] group-hover/quests:from-white group-hover/quests:via-yellow-100 group-hover/quests:to-amber-200 transition-all">
+                      QUESTS
+                    </span>
+
+                    {/* Dynamic Status / Rewards Badge */}
+                    {unclaimedCount > 0 ? (
+                      <span className="relative z-10 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-amber-950 font-black text-[8.5px] tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.9)] animate-pulse shrink-0">
+                        <Gift size={9.5} className="shrink-0 text-amber-950" />
+                        +{unclaimedCount}
+                      </span>
+                    ) : completedCount === totalAvailable && totalAvailable > 0 ? (
+                      <span className="relative z-10 flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[8.5px] font-black tracking-wider shadow-[0_0_8px_rgba(16,185,129,0.3)] shrink-0">
+                        <Check size={9} strokeWidth={3} />
+                        ALL
+                      </span>
+                    ) : (
+                      <span className="relative z-10 flex items-center px-1.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-[8.5px] font-bold tabular-nums text-amber-200/85 shrink-0 group-hover/quests:text-amber-100 group-hover/quests:border-amber-400/40 group-hover/quests:bg-amber-400/15 transition-all">
+                        {completedCount}/{totalAvailable}
+                      </span>
+                    )}
+                  </div>
+                </button>
 
                 {/* 3. User Avatar and Custom Dropdown */}
                 <div className="relative" ref={userDropdownRef}>
@@ -526,7 +828,7 @@ export function Navbar() {
                         {/* Profile Header */}
                         <UserProfile 
                           fullName={fullName} 
-                          email={session?.user?.email} 
+                          email={authUser?.email} 
                           avatarUrl={avatarUrl} 
                           isPro={isPro} 
                           frameId={localFrameId || undefined}
@@ -550,11 +852,49 @@ export function Navbar() {
 
                         {/* Navigation Actions */}
                         <div className="space-y-1">
+                          <button
+                            onClick={() => {
+                              setUserDropdownOpen(false);
+                              setIsQuestsModalOpen(true);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-200 hover:text-white bg-gradient-to-r from-amber-500/[0.08] to-transparent hover:from-amber-500/20 hover:to-amber-500/5 border border-amber-400/20 hover:border-amber-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropquest shadow-[0_0_15px_rgba(245,158,11,0.06)] hover:shadow-[0_0_25px_rgba(245,158,11,0.2)]"
+                          >
+                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 group-hover/dropquest:scale-110 transition-transform shrink-0">
+                              <Trophy size={13} className="text-amber-300 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]" />
+                            </div>
+                            <span className="font-sans font-black tracking-wider bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent">Daily Quests</span>
+                            {unclaimedCount > 0 ? (
+                              <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-pulse font-mono flex items-center gap-1">
+                                <Sparkles size={9} />
+                                +{unclaimedCount} CLAIM
+                              </span>
+                            ) : completedCount === totalAvailable && totalAvailable > 0 ? (
+                              <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                COMPLETED
+                              </span>
+                            ) : (
+                              <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/25">
+                                {completedCount}/{totalAvailable}
+                              </span>
+                            )}
+                          </button>
                           <Link href="/shop" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
                             <Coins size={14} className="text-amber-400" />
                             <span>Credit Shop Vault</span>
                             <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserDropdownOpen(false);
+                              setIsRedeemModalOpen(true);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider text-left"
+                          >
+                            <Gift size={14} className="text-amber-400" />
+                            <span>Redeem Gift Pass</span>
+                            <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
+                          </button>
                           <Link href="/account/settings" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
                             <Settings size={14} />
                             <span>Account Settings</span>
@@ -580,6 +920,7 @@ export function Navbar() {
                         {/* Log Out */}
                         <button 
                           onClick={async () => {
+                            const supabase = createClient();
                             await supabase.auth.signOut();
                             setUserDropdownOpen(false);
                             router.push('/');
@@ -595,216 +936,392 @@ export function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/auth/login" className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors px-4 py-2">
-                  Login
+              <div className="flex items-center gap-3 select-none">
+                {/* Log In Button - High-Octane Glass with Neon Prismatic Aura & Light Sweep */}
+                <Link href="/auth/login" className="group/login relative select-none">
+                  {/* Ambient Halo Glow */}
+                  <div className="pointer-events-none absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600/60 via-indigo-500/50 to-cyan-400/60 opacity-40 blur-[8px] group-hover/login:opacity-100 group-hover/login:blur-[12px] group-hover/login:scale-105 transition-all duration-300" />
+                  
+                  {/* 1.5px Prismatic Border Rim */}
+                  <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-purple-500/70 via-cyan-400/70 to-indigo-500/70 group-hover/login:from-purple-400 group-hover/login:via-cyan-300 group-hover/login:to-pink-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] group-hover/login:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all duration-300">
+                    <div className="h-10 px-4.5 rounded-full bg-gradient-to-r from-[#0a0c1e]/95 via-[#101432]/95 to-[#0b0e24]/95 hover:from-[#13173d] hover:to-[#171c4a] text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_16px_rgba(0,0,0,0.6)] transition-all active:scale-95 overflow-hidden relative">
+                      {/* Light Sweep Shimmer */}
+                      <div className="pointer-events-none absolute inset-y-0 -left-12 w-8 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/30 to-transparent blur-[1px] group-hover/login:translate-x-36 transition-transform duration-700 ease-out" />
+                      
+                      <LogIn size={14} className="text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.9)] group-hover/login:translate-x-0.5 group-hover/login:text-cyan-200 transition-all duration-200" />
+                      <span className="bg-gradient-to-r from-white via-zinc-100 to-cyan-200 bg-clip-text text-transparent group-hover/login:from-white group-hover/login:to-white tracking-wide">
+                        Log in
+                      </span>
+                    </div>
+                  </div>
                 </Link>
-                <Link href="/auth/login?signup=true">
-                  <button className="group relative px-6 py-2.5 rounded-full font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95 bg-linear-to-r from-accent-purple to-accent-cyan overflow-hidden text-xs uppercase tracking-widest font-black">
-                    <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-700 ease-in-out -skew-x-12 -translate-x-full" />
-                    <span className="relative flex items-center gap-1.5">
-                      Sign Up <LogIn size={12} />
-                    </span>
-                  </button>
+
+                {/* Try for Free Ultra Bold Radiant Jewel Button */}
+                <Link href="/tools" className="group/tryfree relative select-none">
+                  {/* Outer Intense Radiant Aura */}
+                  <div className="pointer-events-none absolute -inset-1.5 rounded-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-400 opacity-80 blur-[10px] group-hover/tryfree:opacity-100 group-hover/tryfree:blur-[16px] group-hover/tryfree:scale-105 transition-all duration-300 animate-pulse" />
+                  
+                  {/* 1.5px Prismatic Border Rim */}
+                  <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-pink-400 via-cyan-300 via-yellow-200 to-purple-400 shadow-[0_0_25px_rgba(217,70,239,0.5),0_0_15px_rgba(6,182,212,0.4)] group-hover/tryfree:shadow-[0_0_35px_rgba(217,70,239,0.8),0_0_20px_rgba(6,182,212,0.6)] transition-all duration-300">
+                    <button className="h-10 px-5.5 rounded-full bg-gradient-to-r from-[#a21caf] via-[#6366f1] to-[#0891b2] hover:from-[#c026d3] hover:via-[#4f46e5] hover:to-[#06b6d4] text-white font-black uppercase tracking-wider text-xs flex items-center gap-2.5 cursor-pointer shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.7),0_8px_25px_rgba(147,51,234,0.6)] transition-all relative overflow-hidden active:scale-95">
+                      {/* Dynamic Metallic Light Sweep */}
+                      <div className="pointer-events-none absolute inset-y-0 -left-16 w-12 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/40 to-transparent blur-[2px] group-hover/tryfree:translate-x-48 transition-transform duration-1000 ease-out" />
+                      
+                      <Rocket size={14} className="text-cyan-100 drop-shadow-[0_0_10px_rgba(34,211,238,1)] group-hover/tryfree:-translate-y-1 group-hover/tryfree:translate-x-1 group-hover/tryfree:rotate-12 transition-transform duration-300" />
+                      <span className="tracking-wider drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">Try for Free</span>
+                      <ArrowRight size={14} className="text-white drop-shadow-[0_0_6px_rgba(255,255,255,1)] group-hover/tryfree:translate-x-1 transition-transform duration-300" />
+                    </button>
+                  </div>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile command bar. The sidebar owns navigation on small screens. */}
-          <div className="relative z-50 flex w-full min-w-0 items-center gap-2 pl-14 md:hidden">
-            <button
-              type="button"
-              onClick={handleSearchClick}
-              aria-label="Open global search"
-              className="group/mobile-search relative flex h-12 min-w-0 flex-1 items-center gap-2.5 overflow-hidden rounded-2xl border border-white/[0.09] bg-[#08080d]/88 px-3 text-left text-zinc-400 shadow-[0_14px_34px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all active:scale-[0.98]"
-            >
-              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(168,85,247,0.16),transparent_42%),radial-gradient(circle_at_92%_100%,rgba(34,211,238,0.1),transparent_38%)]" />
-              <Search size={16} strokeWidth={2.2} className="relative shrink-0 text-cyan-200" />
-              <span className="relative min-w-0 flex-1 truncate text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 group-active/mobile-search:text-white">
-                Search Exismic
-              </span>
-              <span className="relative hidden h-6 shrink-0 items-center rounded-lg border border-white/[0.08] bg-black/30 px-2 text-[8px] font-black text-zinc-600 sm:flex">
-                Ctrl K
-              </span>
-            </button>
+          {/* Mobile Header: Consistent, clean layout across all pages */}
+          <div className="relative z-50 flex w-full min-w-0 items-center justify-between gap-2 md:hidden">
+            <ExismicLogo size={28} showText={true} logoLink={true} />
 
-            <div className="shrink-0">
-              <NotificationsDropdown />
-            </div>
-
-            {session ? (
-              <div className="relative shrink-0" ref={mobileUserDropdownRef}>
+            {authUser ? (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  aria-label="Open profile menu"
-                  aria-expanded={userDropdownOpen}
-                  className={cn(
-                    "group/mobile-profile relative flex h-12 w-12 items-center justify-center rounded-2xl border bg-[#08080d]/88 shadow-[0_14px_34px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-2xl transition-all active:scale-95",
-                    userDropdownOpen && "border-purple-500/40 bg-purple-500/10"
-                  )}
+                  onClick={handleSearchClick}
+                  aria-label="Search tools"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[#08080d]/88 text-zinc-300 hover:text-white shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95 cursor-pointer"
                 >
-                  <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.18),transparent_48%),radial-gradient(circle_at_82%_82%,rgba(34,211,238,0.12),transparent_42%)]" />
-                  <AvatarWithFrame
-                    avatarUrl={avatarUrl}
-                    displayName={fullName}
-                    isPro={isPro}
-                    frameId={localFrameId || undefined}
-                    size="sm"
-                    className="relative z-10 scale-[0.88]"
-                  />
-                  <span className="absolute bottom-1.5 right-1.5 z-20 h-2.5 w-2.5 rounded-full border-2 border-[#08080d] bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.8)]" />
+                  <Search size={16} className="text-cyan-300" />
                 </button>
-
-                <AnimatePresence>
-                  {userDropdownOpen && (
-                    <>
-                      <motion.button
-                        type="button"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-xs"
-                      />
-
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                        className="fixed inset-x-3 top-[4.75rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[1.75rem] border border-white/[0.12] bg-[#07070c] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)]"
-                      >
-                        <span className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.16),transparent_40%),radial-gradient(circle_at_90%_22%,rgba(34,211,238,0.1),transparent_38%)]" />
-
-                        <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-2 pb-4 pt-2">
-                          <AvatarWithFrame
-                            avatarUrl={avatarUrl}
-                            displayName={fullName}
-                            isPro={isPro}
-                            frameId={localFrameId || undefined}
-                            size="md"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <PremiumName
-                              name={fullName.toUpperCase()}
-                              isPro={isPro}
-                              gradientId={localGradientId}
-                              className="block truncate text-sm font-black"
-                            />
-                            <p className="mt-1 truncate text-[10px] font-semibold text-zinc-500">
-                              {session?.user?.email}
-                            </p>
-                            <div className="mt-2">
-                              {isPro ? (
-                                <ProBadge size="sm" />
-                              ) : (
-                                <span className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                                  Exismic Explorer
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="relative grid grid-cols-2 gap-2 py-3">
-                          <Link
-                            href="/shop"
-                            onClick={() => setUserDropdownOpen(false)}
-                            className="flex min-h-16 items-center gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 text-left transition-colors active:bg-cyan-300/[0.08]"
-                          >
-                            <CreditTokenIcon />
-                            <span className="min-w-0">
-                              <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Credits</span>
-                              <span className="mt-1 block truncate text-xs font-black text-white">{credits.toLocaleString()}</span>
-                            </span>
-                          </Link>
-                          <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-purple-300/10 bg-purple-300/[0.035] px-3">
-                            <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
-                            <span className="min-w-0">
-                              <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Membership</span>
-                              <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Exismic Pro" : "Free"}</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="relative grid gap-1.5">
-                          <Link
-                            href="/shop"
-                            onClick={() => setUserDropdownOpen(false)}
-                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10"
-                          >
-                            <Coins size={16} className="text-amber-400" />
-                            Credit Shop Vault
-                            <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
-                          </Link>
-                          <Link
-                            href="/"
-                            onClick={() => setUserDropdownOpen(false)}
-                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
-                          >
-                            <LayoutDashboard size={16} className="text-cyan-300" />
-                            Dashboard
-                            <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
-                          </Link>
-                          <Link
-                            href="/account/settings"
-                            onClick={() => setUserDropdownOpen(false)}
-                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
-                          >
-                            <Settings size={16} className="text-purple-300" />
-                            Settings & Security
-                            <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setUserDropdownOpen(false);
-                              if (isPro) setIsManageModalOpen(true);
-                              else router.push("/pro");
-                            }}
-                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
-                          >
-                            <CreditCard size={16} className="text-fuchsia-300" />
-                            {isPro ? "Manage Membership" : "Explore Pro"}
-                            <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
-                          </button>
-                          <div className="mx-3 h-px bg-white/[0.06]" />
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              setUserDropdownOpen(false);
-                              await supabase.auth.signOut();
-                              router.push("/");
-                            }}
-                            className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-red-400/80 transition-colors active:bg-red-500/[0.08]"
-                          >
-                            <LogOut size={16} />
-                            Sign Out
-                          </button>
-                        </div>
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
+                <NotificationsDropdown />
+                <div className="relative shrink-0" ref={mobileUserDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    aria-label="Open profile menu"
+                    aria-expanded={userDropdownOpen}
+                    className={cn(
+                      "group/mobile-profile relative flex h-10 w-10 items-center justify-center rounded-xl border bg-[#08080d]/88 shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95",
+                      userDropdownOpen && "border-purple-500/40 bg-purple-500/10"
+                    )}
+                  >
+                    <AvatarWithFrame
+                      avatarUrl={avatarUrl}
+                      displayName={fullName}
+                      isPro={isPro}
+                      frameId={localFrameId || undefined}
+                      size="sm"
+                      className="relative z-10 scale-[0.85]"
+                    />
+                    <span className="absolute bottom-1 right-1 z-20 h-2 w-2 rounded-full border-2 border-[#08080d] bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.8)]" />
+                  </button>
+                </div>
               </div>
             ) : (
-              <Link
-                href="/auth/login"
-                aria-label="Sign in"
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/[0.09] bg-[#08080d]/88 text-zinc-300 shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl"
-              >
-                <LogIn size={17} />
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link href="/tools">
+                  <button className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.4)] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5">
+                    <Rocket size={12} className="text-cyan-200" />
+                    <span>Try Free</span>
+                  </button>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#080914] border border-white/[0.12] text-zinc-200 hover:text-white transition-colors active:scale-95"
+                  aria-label="Toggle navigation menu"
+                >
+                  {mobileNavOpen ? <X size={17} /> : <Menu size={17} />}
+                </button>
+              </div>
             )}
           </div>
 
+          {/* Shared Mobile Navigation Drawer for Logged Out Visitors */}
+          <AnimatePresence>
+            {mobileNavOpen && !authUser && (
+              <>
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setMobileNavOpen(false)}
+                  className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-xs md:hidden"
+                />
+
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="fixed inset-x-3 top-[4.5rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[2rem] border border-white/[0.12] bg-[#070814]/95 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-3xl md:hidden space-y-3"
+                >
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href="/tools"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="flex flex-col p-3 rounded-2xl bg-purple-500/[0.08] border border-purple-500/20 active:bg-purple-500/20 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300">
+                          <LayoutGrid size={16} />
+                        </div>
+                        <span className="text-[9px] font-mono font-bold text-purple-300">50+ TOOLS</span>
+                      </div>
+                      <span className="text-xs font-bold text-white">All AI Tools</span>
+                      <span className="text-[10px] text-zinc-400 mt-0.5">Explore creative suite</span>
+                    </Link>
+
+                    <Link
+                      href="/pro"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="flex flex-col p-3 rounded-2xl bg-amber-500/[0.08] border border-amber-500/20 active:bg-amber-500/20 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-300">
+                          <Crown size={16} />
+                        </div>
+                        <span className="px-1.5 py-0.2 rounded bg-amber-400 text-amber-950 font-black text-[8px]">10X</span>
+                      </div>
+                      <span className="text-xs font-bold text-white">Pro Plan</span>
+                      <span className="text-[10px] text-zinc-400 mt-0.5">Unlock max power</span>
+                    </Link>
+                  </div>
+
+                  <div className="space-y-1 bg-white/[0.02] p-2 rounded-2xl border border-white/[0.06]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileNavOpen(false);
+                        handleScrollTo("explore");
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] text-left text-xs font-semibold text-zinc-300 transition-colors"
+                    >
+                      <Zap size={16} className="text-cyan-400" />
+                      <span>Featured Showcase</span>
+                    </button>
+
+                    <Link
+                      href="/shop"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] text-left text-xs font-semibold text-zinc-300 transition-colors"
+                    >
+                      <Coins size={16} className="text-cyan-300" />
+                      <span>Credit Shop Vault</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileNavOpen(false);
+                        handleScrollTo("faq");
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] text-left text-xs font-semibold text-zinc-300 transition-colors"
+                    >
+                      <HelpCircle size={16} className="text-zinc-400" />
+                      <span>Frequently Asked Questions</span>
+                    </button>
+                  </div>
+
+                  <div className="pt-2 flex flex-col gap-2">
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-center text-xs font-bold text-white transition-all"
+                    >
+                      Log in to your account
+                    </Link>
+                    <Link
+                      href="/tools"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-center text-xs font-bold text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all flex items-center justify-center gap-2"
+                    >
+                      <Rocket size={14} className="text-cyan-200" />
+                      <span>Get Started for Free</span>
+                    </Link>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+            {/* Shared Mobile User Dropdown Drawer */}
+            <AnimatePresence>
+              {userDropdownOpen && (
+                <>
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-xs md:hidden"
+                  />
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    className="fixed inset-x-3 top-[4.75rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[1.75rem] border border-white/[0.12] bg-[#07070c] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)] md:hidden"
+                  >
+                    <span className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.16),transparent_40%),radial-gradient(circle_at_90%_22%,rgba(34,211,238,0.1),transparent_38%)]" />
+
+                    <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-2 pb-4 pt-2">
+                      <AvatarWithFrame
+                        avatarUrl={avatarUrl}
+                        displayName={fullName}
+                        isPro={isPro}
+                        frameId={localFrameId || undefined}
+                        size="md"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <PremiumName
+                          name={fullName.toUpperCase()}
+                          isPro={isPro}
+                          gradientId={localGradientId}
+                          className="block truncate text-sm font-black"
+                        />
+                        <p className="mt-1 truncate text-[10px] font-semibold text-zinc-500">
+                          {authUser?.email}
+                        </p>
+                        <div className="mt-2">
+                          {isPro ? (
+                            <ProBadge size="sm" />
+                          ) : (
+                            <span className="text-[8px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                              Exismic Explorer
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative grid grid-cols-2 gap-2 py-3">
+                      <Link
+                        href="/shop"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex min-h-16 items-center gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 text-left transition-colors active:bg-cyan-300/[0.08]"
+                      >
+                        <CreditTokenIcon />
+                        <span className="min-w-0">
+                          <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Credits</span>
+                          <span className="mt-1 block truncate text-xs font-black text-white">{credits.toLocaleString()}</span>
+                        </span>
+                      </Link>
+                      <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-purple-300/10 bg-purple-300/[0.035] px-3">
+                        <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
+                        <span className="min-w-0">
+                          <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Membership</span>
+                          <span className="mt-1 block truncate text-xs font-black text-white">{isPro ? "Exismic Pro" : "Free"}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="relative grid gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          setIsQuestsModalOpen(true);
+                        }}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10.5px] font-black uppercase tracking-[0.13em] text-amber-200 bg-gradient-to-r from-amber-500/[0.08] to-transparent active:bg-amber-400/20 border border-amber-400/20 transition-all text-left shadow-[0_0_15px_rgba(245,158,11,0.06)]"
+                      >
+                        <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 shrink-0">
+                          <Trophy size={15} className="text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+                        </div>
+                        <span className="bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent font-black">Quests & Rewards</span>
+                        {unclaimedCount > 0 ? (
+                          <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 animate-pulse font-mono shadow-[0_0_10px_rgba(245,158,11,0.8)] flex items-center gap-1">
+                            <Sparkles size={9} />
+                            +{unclaimedCount} READY
+                          </span>
+                        ) : completedCount === totalAvailable && totalAvailable > 0 ? (
+                          <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            COMPLETED
+                          </span>
+                        ) : (
+                          <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/25">
+                            {completedCount}/{totalAvailable}
+                          </span>
+                        )}
+                      </button>
+                      <Link
+                        href="/shop"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10"
+                      >
+                        <Coins size={16} className="text-amber-400" />
+                        Credit Shop Vault
+                        <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          setIsRedeemModalOpen(true);
+                        }}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10 text-left"
+                      >
+                        <Gift size={16} className="text-amber-400" />
+                        Redeem Gift Pass
+                        <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
+                      </button>
+                      <Link
+                        href="/"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                      >
+                        <LayoutDashboard size={16} className="text-cyan-300" />
+                        Dashboard
+                        <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                      </Link>
+                      <Link
+                        href="/account/settings"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                      >
+                        <Settings size={16} className="text-purple-300" />
+                        Settings & Security
+                        <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          if (isPro) setIsManageModalOpen(true);
+                          else router.push("/pro");
+                        }}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-zinc-300 transition-colors active:bg-white/[0.06]"
+                      >
+                        <CreditCard size={16} className="text-fuchsia-300" />
+                        {isPro ? "Manage Membership" : "Explore Pro"}
+                        <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
+                      </button>
+                      <div className="mx-3 h-px bg-white/[0.06]" />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setUserDropdownOpen(false);
+                          const supabase = createClient();
+                          await supabase.auth.signOut();
+                          router.push("/");
+                        }}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-[10px] font-black uppercase tracking-[0.13em] text-red-400/80 transition-colors active:bg-red-500/[0.08]"
+                      >
+                        <LogOut size={16} />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
         </div>
       </header>
 
       {/* Subscription/Billing Management Modal */}
-      {session && (
+      {authUser && (
         <ManageSubscriptionModal 
           isOpen={isManageModalOpen}
           onClose={() => setIsManageModalOpen(false)}
@@ -820,6 +1337,18 @@ export function Navbar() {
         onClose={() => setShowUpsell(false)}
         plan={isPro ? 'pro' : 'free'}
         credits={credits}
+      />
+
+      {/* Daily Quests Modal */}
+      <DailyQuestsModal
+        isOpen={isQuestsModalOpen}
+        onClose={() => setIsQuestsModalOpen(false)}
+      />
+
+      {/* Gift / Promo Code Redemption Modal */}
+      <RedeemPromoModal
+        isOpen={isRedeemModalOpen}
+        onClose={() => setIsRedeemModalOpen(false)}
       />
     </>
   );

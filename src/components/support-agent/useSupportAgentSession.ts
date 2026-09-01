@@ -14,15 +14,15 @@ export function useSupportAgentSession() {
 
     supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (!active) return;
-        setSession(data.session);
+        setSession(data?.session || null);
       })
       .finally(() => {
         if (active) setLoading(false);
       });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event: any, nextSession: any) => {
       setSession(nextSession);
       setLoading(false);
     });

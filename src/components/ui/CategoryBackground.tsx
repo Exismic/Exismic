@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
@@ -174,60 +174,32 @@ export default function CategoryBackground({ categoryId }: CategoryBackgroundPro
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 w-screen h-screen pointer-events-none overflow-hidden z-0 select-none">
-      {/* Ambient Gradient Orbs */}
+    <div className="fixed inset-0 w-screen h-screen pointer-events-none overflow-hidden z-0 select-none bg-[#030303]">
+      {/* Pure CSS Ambient Glows (Zero GPU blur overhead) */}
       <div 
-        className="absolute -top-[15%] -right-[10%] w-[65%] h-[65%] rounded-full blur-[120px] mix-blend-screen opacity-50 transition-colors duration-700"
-        style={{ background: `radial-gradient(circle, ${config.color}, transparent 70%)` }}
-      />
-      <div 
-        className="absolute -bottom-[15%] -left-[10%] w-[65%] h-[65%] rounded-full blur-[120px] mix-blend-screen opacity-40 transition-colors duration-700"
-        style={{ background: `radial-gradient(circle, ${config.color}, transparent 70%)` }}
+        className="absolute inset-0 transition-opacity duration-700"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 85% 10%, ${config.color.replace(/[\d\.]+\)$/, "0.12)")} 0%, transparent 50%),
+            radial-gradient(circle at 15% 90%, ${config.color.replace(/[\d\.]+\)$/, "0.08)")} 0%, transparent 50%)
+          `
+        }}
       />
 
-      {/* Floating Animated Particles */}
-      {particles.map((p) => {
-        const Icon = p.IconComponent;
-        return (
-          <motion.div
-            key={p.id}
-            className="absolute top-0 flex items-center justify-center"
-            style={{
-              left: `${p.left}%`,
-              width: p.size,
-              height: p.size,
-            }}
-            initial={{
-              y: "-15vh",
-              x: 0,
-              rotate: p.rotateStart,
-              opacity: 0,
-            }}
-            animate={{
-              y: ["-15vh", "115vh"],
-              x: [0, p.sway, 0],
-              rotate: [p.rotateStart, p.rotateEnd],
-              opacity: [0, p.opacity, p.opacity, 0],
-            }}
-            transition={{
-              duration: p.duration,
-              delay: p.delay,
-              repeat: Infinity,
-              ease: "linear",
-              times: [0, 0.15, 0.85, 1],
-            }}
-          >
-            <Icon
-              size={p.size}
-              style={{ color: p.particleColor.replace(/[\d\.]+\)$/, "0.8)") }}
-              className="drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]"
-            />
-          </motion.div>
-        );
-      })}
+      {/* Subtle Precision Grid */}
+      <div 
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: '56px 56px'
+        }}
+      />
 
-      {/* Subtly Textured Grain Overlay */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+      {/* Subtle Depth Vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,#030303_100%)] opacity-90" />
     </div>,
     document.body
   );

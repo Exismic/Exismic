@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Sparkles, Shield, CheckCircle2, Crown, Loader2 } from "lucide-react";
+import { X, Shield, CheckCircle2, Crown, Loader2, Palette } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +65,72 @@ export const CUSTOM_THEMES = [
     previewStyle: "bg-gradient-to-tr from-[#3b82f6]/20 via-[#080f1e] to-[#93c5fd]/20 border-blue-500/30",
     badgeStyles: "bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20",
     colorDots: ["bg-[#3b82f6]", "bg-[#93c5fd]"]
+  },
+  {
+    id: "hologram-synth",
+    name: "Hologram Synthwave",
+    isNew: true,
+    description: "Multi-prism holographic spectrum blending pastel cyan, neon pink & lavender.",
+    previewBg: "bg-[#05030e]",
+    accentGlow: "rgba(56, 189, 248, 0.5)",
+    previewStyle: "bg-gradient-to-tr from-[#38bdf8]/25 via-[#0d071e] to-[#f472b6]/25 border-sky-400/30",
+    badgeStyles: "bg-[#38bdf8]/10 text-[#38bdf8] border-[#38bdf8]/20",
+    colorDots: ["bg-[#38bdf8]", "bg-[#f472b6]", "bg-[#c084fc]"]
+  },
+  {
+    id: "blood-inferno",
+    name: "Blood Inferno",
+    isNew: true,
+    description: "Scorching volcanic crimson glow accompanied by blazing lava orange embers.",
+    previewBg: "bg-[#060102]",
+    accentGlow: "rgba(220, 38, 38, 0.5)",
+    previewStyle: "bg-gradient-to-tr from-[#dc2626]/25 via-[#120204] to-[#f97316]/25 border-red-500/30",
+    badgeStyles: "bg-[#dc2626]/10 text-[#dc2626] border-[#dc2626]/20",
+    colorDots: ["bg-[#dc2626]", "bg-[#f97316]"]
+  },
+  {
+    id: "tokyo-sakura",
+    name: "Tokyo Sakura",
+    isNew: true,
+    description: "Delicate cyberpunk cherry blossom aura with soft magenta and rose accents.",
+    previewBg: "bg-[#070208]",
+    accentGlow: "rgba(244, 114, 182, 0.5)",
+    previewStyle: "bg-gradient-to-tr from-[#f472b6]/25 via-[#130514] to-[#fda4af]/25 border-pink-400/30",
+    badgeStyles: "bg-[#f472b6]/10 text-[#f472b6] border-[#f472b6]/20",
+    colorDots: ["bg-[#f472b6]", "bg-[#fda4af]"]
+  },
+  {
+    id: "solar-flare",
+    name: "Solar Flare",
+    isNew: true,
+    description: "Radiant solar supernova glow with energized amber and pure gold flares.",
+    previewBg: "bg-[#060301]",
+    accentGlow: "rgba(245, 158, 11, 0.5)",
+    previewStyle: "bg-gradient-to-tr from-[#f59e0b]/25 via-[#120701] to-[#ef4444]/25 border-amber-400/30",
+    badgeStyles: "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20",
+    colorDots: ["bg-[#f59e0b]", "bg-[#ef4444]"]
+  },
+  {
+    id: "abyssal-singularity",
+    name: "Abyssal Singularity",
+    isNew: true,
+    description: "Deep space cosmic ultraviolet void with glowing celestial indigo waves.",
+    previewBg: "bg-[#03010b]",
+    accentGlow: "rgba(167, 139, 250, 0.5)",
+    previewStyle: "bg-gradient-to-tr from-[#7c3aed]/25 via-[#060214] to-[#38bdf8]/25 border-violet-400/30",
+    badgeStyles: "bg-[#7c3aed]/10 text-[#7c3aed] border-[#7c3aed]/20",
+    colorDots: ["bg-[#7c3aed]", "bg-[#38bdf8]"]
+  },
+  {
+    id: "cyber-matrix",
+    name: "Emerald Cyber Matrix",
+    isNew: true,
+    description: "Hyper-toxic neon lime and mint streams cutting through obsidian glass.",
+    previewBg: "bg-[#010603]",
+    accentGlow: "rgba(16, 185, 129, 0.5)",
+    previewStyle: "bg-gradient-to-tr from-[#10b981]/25 via-[#021006] to-[#a3e635]/25 border-emerald-400/30",
+    badgeStyles: "bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20",
+    colorDots: ["bg-[#10b981]", "bg-[#a3e635]"]
   }
 ];
 
@@ -83,204 +149,201 @@ export function ThemeSelectorModal({
   onSelectTheme,
   isUpdating
 }: ThemeSelectorModalProps) {
-  const [hoveredTheme, setHoveredTheme] = useState<string | null>(null);
-
-  // Apply visual preview triggers temporarily on body for a cinematic live layout look
-  const triggerLivePreview = (themeId: string | null) => {
-    if (typeof document === "undefined") return;
-    setHoveredTheme(themeId);
-    
-    const themes = CUSTOM_THEMES.map(t => `theme-${t.id}`);
-    document.documentElement.classList.remove(...themes);
-    document.body.classList.remove(...themes);
-
-    const activeTheme = themeId || currentTheme;
-    if (activeTheme) {
-      document.documentElement.classList.add(`theme-${activeTheme}`);
-      document.body.classList.add(`theme-${activeTheme}`);
-    }
-  };
-
-  const handleClose = () => {
-    // Reset back to saved state on close
-    triggerLivePreview(null);
-    onClose();
-  };
+  const [selectedPendingTheme, setSelectedPendingTheme] = useState<string | null>(null);
 
   const handleApply = async (themeId: string | null) => {
-    await onSelectTheme(themeId);
+    setSelectedPendingTheme(themeId);
+    try {
+      await onSelectTheme(themeId);
+    } finally {
+      setSelectedPendingTheme(null);
+    }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center p-3 sm:p-4">
-          
-          {/* Backdrop Glass Panel */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
-          />
-
-          {/* Luxury Modal Container */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 25 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 25 }}
-            transition={{ type: "spring", stiffness: 350, damping: 26 }}
-            className="relative w-full max-w-4xl bg-zinc-950/90 backdrop-blur-3xl border border-white/[0.08] rounded-[2rem] md:rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden z-10 flex flex-col max-h-[calc(100dvh-1.5rem)]"
-          >
-            {/* Ambient atmospheres inside modal */}
-            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-              <div className="absolute top-[-30%] left-[-20%] w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.05)_0%,transparent_60%)] animate-pulse duration-[8000ms]" />
-              <div className="absolute bottom-[-30%] right-[-20%] w-[100%] h-[100%] bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.04)_0%,transparent_60%)] animate-pulse duration-[6000ms]" />
-            </div>
-
-            {/* Header */}
-            <div className="p-4 sm:p-6 md:p-8 md:pb-4 border-b border-white/5 relative z-10 flex items-start justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shadow-lg">
-                  <Crown size={18} className="fill-purple-400/10" />
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }} 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-2xl p-3 sm:p-6 md:p-10"
+        >
+          <div className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9)]">
+            {/* Neon Laser Top Accent */}
+            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-400 via-purple-500 to-cyan-400 shadow-[0_0_20px_rgba(245,158,11,0.8)] z-30" />
+            
+            {/* Ambient Glows */}
+            <div className="pointer-events-none absolute -top-24 right-0 w-96 h-96 bg-amber-500/10 blur-[120px]" />
+            <div className="pointer-events-none absolute -bottom-24 left-0 w-96 h-96 bg-purple-500/10 blur-[120px]" />
+            
+            {/* Top Header */}
+            <div className="p-5 sm:p-7 md:p-8 flex items-center justify-between z-20 border-b border-white/10 bg-[#090a18]/80 backdrop-blur-2xl gap-4">
+              <div className="flex items-center gap-3.5 sm:gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                  <Palette size={22} className="text-amber-300" />
                 </div>
-                <div className="text-left">
-                  <h3 className="text-lg sm:text-xl font-black italic uppercase tracking-tighter text-white flex flex-wrap items-center gap-2">
-                    Profile Themes 
-                    <span className="px-2 py-0.5 rounded bg-gradient-to-r from-purple-500 to-pink-500 text-[7px] font-black tracking-widest text-white uppercase shadow-[0_0_10px_rgba(168,85,247,0.3)] animate-pulse">PRO ELITE</span>
-                  </h3>
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">Customize your Exismic background, layout accents, and glows</p>
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Pro Profile Themes</h2>
+                    <span className="rounded-full border border-amber-400/30 bg-amber-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300">
+                      {CUSTOM_THEMES.length} Themes
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium text-zinc-400 mt-0.5">Customize your workspace atmosphere & neon lighting</p>
                 </div>
               </div>
-              <button
-                onClick={handleClose}
-                className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 text-zinc-400 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center cursor-pointer active:scale-95"
+              <button 
+                onClick={onClose} 
+                className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
+                aria-label="Close modal"
               >
-                <X size={16} />
+                <X size={20} className="group-hover:scale-110 transition-transform" />
               </button>
             </div>
 
             {/* Modal Body (Scrollable Grid) */}
-            <div className="p-4 sm:p-6 md:p-8 overflow-y-auto no-scrollbar flex-1 relative z-10 space-y-5 sm:space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 relative z-10 space-y-5">
               
               {/* Default Theme Card Reset */}
               <div 
-                onMouseEnter={() => triggerLivePreview(null)}
-                onMouseLeave={() => triggerLivePreview(null)}
                 onClick={() => !isUpdating && handleApply(null)}
                 className={cn(
-                  "p-4 sm:p-5 rounded-2xl bg-white/[0.01] hover:bg-white/[0.03] border border-white/[0.04] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between cursor-pointer transition-all duration-300 group/reset",
-                  !currentTheme && "bg-white/[0.03] border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                  "p-4 sm:p-5 rounded-2xl border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between cursor-pointer transition-all duration-300 group/reset backdrop-blur-xl",
+                  !currentTheme 
+                    ? "bg-gradient-to-r from-purple-950/40 to-zinc-900/60 border-purple-500/50 shadow-[0_0_25px_rgba(168,85,247,0.2)]" 
+                    : "bg-[#090a16]/70 border-white/10 hover:border-white/20 hover:bg-[#0f1124]/80"
                 )}
               >
                 <div className="flex items-center gap-4 text-left">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500 group-hover/reset:text-white transition-colors">
-                    <Shield size={16} />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-zinc-900/80 text-zinc-400 group-hover/reset:text-white transition-colors">
+                    <Shield size={20} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-white">Default Midnight Vibe</h4>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Standard dark luxury theme with purple layout indicators</p>
+                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">Default Midnight Atmosphere</h4>
+                    <p className="text-xs text-zinc-400 mt-0.5">Original obsidian dark aesthetic with signature Exismic neon accents</p>
                   </div>
                 </div>
                 {!currentTheme ? (
-                  <span className="px-3.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[9px] font-black uppercase text-purple-400 flex items-center gap-1.5 shadow-lg select-none">
-                    <CheckCircle2 size={12} /> Equipped
+                  <span className="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500/30 text-xs font-black uppercase text-purple-300 flex items-center gap-2 shadow-lg select-none shrink-0 w-fit">
+                    <CheckCircle2 size={14} /> Equipped
                   </span>
                 ) : (
-                  <span className="px-3.5 py-1.5 rounded-lg bg-white/5 text-[9px] font-black uppercase text-zinc-500 group-hover/reset:text-white group-hover/reset:bg-white group-hover/reset:text-black transition-all shadow-md">
-                    Select
-                  </span>
+                  <button
+                    disabled={isUpdating}
+                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-zinc-300 group-hover/reset:bg-white group-hover/reset:text-black group-hover/reset:border-white transition-all shadow-md shrink-0 w-fit cursor-pointer"
+                  >
+                    Reset to Default
+                  </button>
                 )}
               </div>
 
               {/* Custom Themes Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 {CUSTOM_THEMES.map((theme) => {
                   const isSelected = currentTheme === theme.id;
+                  const isApplyingThis = isUpdating && selectedPendingTheme === theme.id;
                   return (
                     <motion.div
                       key={theme.id}
-                      whileHover={{ y: -4, scale: 1.02 }}
-                      onMouseEnter={() => triggerLivePreview(theme.id)}
-                      onMouseLeave={() => triggerLivePreview(null)}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => !isUpdating && handleApply(theme.id)}
                       className={cn(
-                        "p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] bg-[#0b0b11]/30 backdrop-blur-xl border border-white/5 flex flex-col justify-between cursor-pointer transition-all duration-300 group/card min-h-[220px] relative overflow-hidden",
-                        isSelected && "bg-[#0b0b11]/70 border-purple-500/80 shadow-[0_0_30px_rgba(168,85,247,0.25)] border-2 scale-105 hover:scale-105"
+                        "p-5 rounded-3xl backdrop-blur-xl border flex flex-col justify-between gap-4 cursor-pointer transition-all duration-300 group/card min-h-[220px] relative overflow-hidden",
+                        isSelected 
+                          ? "bg-gradient-to-b from-[#18132e]/95 via-[#110d24]/95 to-[#090814]/95 border-amber-400/80 shadow-[0_0_35px_rgba(245,158,11,0.3)]" 
+                          : "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-amber-400/40 hover:bg-[#101224]/80 shadow-lg"
                       )}
                     >
-                      {/* Subtle Ambient Hover Glow */}
-                      <div 
-                        className={cn(
-                          "absolute -inset-10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 blur-2xl -z-10 bg-gradient-to-tr",
-                          theme.id === "cyber-pulse" && "from-[#a855f7]/10 to-[#06b6d4]/10",
-                          theme.id === "luxury-void" && "from-[#f59e0b]/10 to-[#fbbf24]/5",
-                          theme.id === "cosmic-nebula" && "from-[#d946ef]/10 to-[#f43f5e]/10",
-                          theme.id === "neon-shadow" && "from-[#22c55e]/10 to-[#84cc16]/5",
-                          theme.id === "royal-eclipse" && "from-[#dc2626]/10 to-[#701a75]/10",
-                          theme.id === "minimal-frost" && "from-[#3b82f6]/10 to-[#93c5fd]/10"
-                        )} 
-                      />
+                      {/* Ambient hover glow */}
+                      <div className="absolute -inset-10 rounded-[2.5rem] opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 blur-2xl -z-10 bg-gradient-to-br from-amber-500/10 via-purple-500/10 to-cyan-500/10" />
 
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-black uppercase tracking-wider text-white italic">{theme.name}</h4>
-                          <div className="flex items-center gap-1">
-                            {theme.colorDots.map((dot, i) => (
-                              <div key={i} className={cn("w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm", dot)} />
-                            ))}
-                          </div>
+                      {/* NEW Tag */}
+                      {(theme as { isNew?: boolean }).isNew && (
+                        <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-black text-[8px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.6)] animate-pulse border border-amber-300/60">
+                          NEW
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between pr-8">
+                          <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-white italic">{theme.name}</h4>
                         </div>
 
                         {/* Visual Swatch Preview Box */}
-                        <div className={cn("h-16 w-full rounded-2xl border flex items-center justify-center overflow-hidden shadow-inner relative select-none", theme.previewStyle)}>
-                          <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none" />
-                          <Crown size={16} className="text-white/20" />
+                        <div className={cn("h-16 w-full rounded-2xl border flex items-center justify-between px-4 overflow-hidden shadow-inner relative select-none transition-all", theme.previewStyle)}>
+                          <div className="flex items-center gap-1.5 z-10">
+                            {theme.colorDots.map((dot, i) => (
+                              <span key={i} className={cn("w-3 h-3 rounded-full border border-white/30 shadow-md", dot)} />
+                            ))}
+                          </div>
+                          <Crown size={16} className="text-white/30 z-10" />
                         </div>
 
-                        <p className="text-[10px] font-semibold text-zinc-500 leading-relaxed group-hover/card:text-zinc-400 transition-colors text-left">
+                        <p className="text-xs font-medium text-zinc-400 leading-relaxed text-left">
                           {theme.description}
                         </p>
                       </div>
 
-                      <div className="mt-6">
-                        {isUpdating && hoveredTheme === theme.id ? (
-                          <button className="w-full py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-white text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-md">
-                            <Loader2 size={12} className="animate-spin text-purple-400" /> Applying...
-                          </button>
-                        ) : isSelected ? (
-                          <button className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(168,85,247,0.35)] cursor-default">
-                            <CheckCircle2 size={12} /> Equipped
-                          </button>
-                        ) : (
-                          <button className="w-full py-2.5 rounded-xl bg-white/5 border border-white/5 text-zinc-500 group-hover/card:bg-white group-hover/card:text-black group-hover/card:border-white group-hover/card:shadow-[0_0_15px_rgba(255,255,255,0.15)] text-[9px] font-black uppercase tracking-widest transition-all">
-                            Select
-                          </button>
-                        )}
+                      <div className="mt-2 pt-2 border-t border-white/5">
+                        <button
+                          type="button"
+                          disabled={isUpdating}
+                          className={cn(
+                            "w-full py-2.5 px-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-md flex items-center justify-center gap-1.5",
+                            isSelected 
+                              ? "bg-gradient-to-r from-amber-500 via-purple-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] font-black" 
+                              : "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/card:bg-amber-500 group-hover/card:text-black group-hover/card:border-amber-400 group-hover/card:shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                          )}
+                        >
+                          {isApplyingThis ? (
+                            <>
+                              <Loader2 size={13} className="animate-spin text-white" />
+                              <span>Applying...</span>
+                            </>
+                          ) : isSelected ? (
+                            <>
+                              <CheckCircle2 size={13} className="text-white" />
+                              <span>Equipped</span>
+                            </>
+                          ) : (
+                            <span>Apply Theme</span>
+                          )}
+                        </button>
                       </div>
                     </motion.div>
                   );
                 })}
               </div>
-
             </div>
 
-            {/* Footer */}
-            <div className="p-8 border-t border-white/5 bg-zinc-950/60 backdrop-blur-md flex items-center justify-between relative z-10">
-              <span className="text-[9.5px] font-black uppercase tracking-widest text-zinc-500 italic flex items-center gap-1.5">
-                <Sparkles size={11} className="text-purple-400 animate-pulse" /> Hover over any theme card to preview it live in-browser!
-              </span>
-              <button 
-                onClick={handleClose}
-                className="px-6 py-3 rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 text-[9px] font-black uppercase tracking-widest transition-all"
-              >
-                Close
-              </button>
+            {/* Footer Toolbar */}
+            <div className="p-4 sm:p-5 md:p-6 border-t border-white/10 bg-[#070814]/90 backdrop-blur-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between z-20">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                <CheckCircle2 size={15} className="text-amber-400 shrink-0" />
+                <span>Select any theme to apply its atmosphere across your workspace</span>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                {currentTheme && (
+                  <button 
+                    onClick={() => handleApply(null)}
+                    disabled={isUpdating}
+                    className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    Reset to Default
+                  </button>
+                )}
+                <button 
+                  onClick={onClose}
+                  className="px-6 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
             </div>
-
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

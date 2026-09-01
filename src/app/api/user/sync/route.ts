@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
-import { createAdminClient } from '@/utils/supabase/admin';
+import { getOrCreateUser } from '@/lib/user-access';
 import { PRICING_CONFIG } from '@/config/pricing';
 
 export async function POST(req: NextRequest) {
@@ -14,9 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Fetch user from local Prisma
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    });
+    const dbUser = await getOrCreateUser(user);
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

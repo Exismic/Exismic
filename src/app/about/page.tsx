@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Rocket, Sparkles, Shield, Zap, Heart, Globe, Cpu, Layers } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 export default function AboutPage() {
   return (
@@ -16,11 +17,8 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04]" />
       </div>
       
-      <main className="max-w-6xl mx-auto px-6 pt-32 space-y-32 relative z-10">
-        <Link href="/" className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 hover:text-white transition-all group">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          Mission / Back
-        </Link>
+      <main className="max-w-6xl mx-auto px-6 pt-24 space-y-16 relative z-10">
+        <PageBreadcrumb items={[{ label: "About Exismic" }]} />
 
         {/* Cinematic Hero Section */}
         <header className="relative w-full rounded-[4rem] bg-[#0b0c12]/80 backdrop-blur-3xl border border-white/5 overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] p-12 md:p-24 flex flex-col items-center text-center group transition-all duration-700 hover:border-accent-orange/30">

@@ -126,22 +126,50 @@ export function CreditBadge() {
             <button
               onClick={() => setShowUpsell(true)}
               className={cn(
-                "group/vault relative flex h-10 items-center gap-2.5 overflow-hidden rounded-full border pl-2.5 pr-4 transition-all duration-500",
-                "border-white/10 bg-[#07070c]/80 shadow-[0_12px_30px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl hover:-translate-y-0.5 hover:border-cyan-300/35 hover:bg-[#0a0a12]",
-                isPro && "shadow-[0_15px_40px_rgba(168,85,247,0.12)] hover:border-purple-500/30"
+                "group/vault relative flex h-10 cursor-pointer items-center rounded-full p-[1px] select-none isolate transition-all duration-500 hover:scale-[1.03] active:scale-95 touch-manipulation",
+                "shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(6,182,212,0.18)] hover:shadow-[0_15px_45px_rgba(6,182,212,0.45),0_0_30px_rgba(168,85,247,0.35)]",
+                isPro && "shadow-[0_15px_40px_rgba(168,85,247,0.2)] hover:border-purple-500/50"
               )}
             >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_80%_50%,rgba(34,211,238,0.15),transparent_30%)] opacity-70" />
-              <div className="pointer-events-none absolute inset-y-0 -left-10 w-10 skew-x-[-18deg] bg-white/10 blur-sm transition-transform duration-1000 group-hover/vault:translate-x-44" />
-              <CreditTokenIcon />
-              
-              <div className="relative z-10 flex items-center">
-                <span suppressHydrationWarning className="flex items-center gap-1.5 text-sm font-black tracking-tight text-white">
-                  <span className="font-sans font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-                    {displayedCredits.toLocaleString()}
+              {/* Radiant Cyber Halo Glow */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/40 via-blue-500/50 to-purple-600/40 opacity-70 blur-[3px] group-hover/vault:opacity-100 group-hover/vault:blur-[6px] transition-all duration-500 pointer-events-none"
+              />
+
+              {/* Metallic Gradient Outer Border Rim */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full p-[1px] bg-gradient-to-r from-cyan-400/50 via-sky-300/70 to-purple-400/50 group-hover/vault:from-cyan-300 group-hover/vault:via-white group-hover/vault:to-purple-300 transition-all duration-300 pointer-events-none"
+              />
+
+              {/* Glassmorphic Cyber-Obsidian Core */}
+              <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full pl-2 pr-3.5 bg-gradient-to-r from-[#060814]/95 via-[#0b1026]/95 to-[#080718]/95 border border-cyan-400/25 group-hover/vault:border-cyan-300/60 backdrop-blur-2xl transition-all duration-300">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_20%_50%,rgba(6,182,212,0.25),transparent_48%),radial-gradient(circle_at_85%_50%,rgba(168,85,247,0.18),transparent_42%)]"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-cyan-100/30 to-transparent blur-[1px] transition-transform duration-1000 group-hover/vault:translate-x-56"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-0 inset-x-3 h-[1px] bg-gradient-to-r from-transparent via-cyan-200/50 to-transparent"
+                />
+
+                <CreditTokenIcon />
+                
+                <div className="relative z-10 flex items-center">
+                  <span suppressHydrationWarning className="flex items-center gap-1.5 text-sm font-black tracking-tight text-white">
+                    <span className="font-sans font-black bg-gradient-to-b from-white via-slate-100 to-slate-200 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] group-hover/vault:drop-shadow-[0_0_12px_rgba(34,211,238,0.6)] transition-all">
+                      {displayedCredits.toLocaleString()}
+                    </span>
+                    <span className="font-sans text-[9px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] group-hover/vault:from-white group-hover/vault:via-cyan-100 group-hover/vault:to-sky-200 transition-all">
+                      CREDITS
+                    </span>
                   </span>
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Credits</span>
-                </span>
+                </div>
               </div>
             </button>
 

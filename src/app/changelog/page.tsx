@@ -15,6 +15,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 type ChangeType = "feature" | "fix" | "ui" | "perf" | "sec";
 
@@ -67,11 +68,48 @@ const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: st
 
 const RELEASES: Release[] = [
   {
+    version: "v1.5",
+    date: "September 2026",
+    title: "September Platform & Feature Release",
+    tagline: "Daily & weekly quests to earn credits, developer API access, yearly Pro memberships, creative gifting, extensive UI overhaul, and bug fixes.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        text: "Daily & Weekly Quests: A brand new way to earn credits by completing rotating creative tasks, trying new tools, and maintaining daily activity streaks."
+      },
+      {
+        type: "feature",
+        text: "Developer API Access: Generate official API keys to integrate Exismic creative, image, and processing tools directly into your own applications and websites."
+      },
+      {
+        type: "feature",
+        text: "Yearly Pro Memberships: Subscribe to Exismic Pro on an annual plan for uninterrupted creative power and substantial yearly savings."
+      },
+      {
+        type: "feature",
+        text: "Credit & Membership Gifting: Easily gift credits and full Exismic Pro memberships directly to friends, collaborators, and team members."
+      },
+      {
+        type: "ui",
+        text: "Extensive UI Refinements: Widespread visual upgrades across the platform with sleek obsidian glass styling, cleaner controls, and refined typography."
+      },
+      {
+        type: "fix",
+        text: "Platform Stability & Bug Fixes: Resolved various platform bugs and errors across tools to deliver a smoother, more reliable user experience."
+      },
+      {
+        type: "perf",
+        text: "Performance & Responsiveness: Faster workspace load times, smoother transitions, and instant credit balance updates."
+      }
+    ]
+  },
+  {
     version: "v1.2",
     date: "August 2026",
     title: "August Platform & Feature Update",
     tagline: "New flexible payment options, UI visual refinements, expanded AI tools suite, and performance optimizations.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
@@ -203,11 +241,8 @@ export default function ChangelogPage() {
     <div className="min-h-screen bg-[#030303] text-white selection:bg-accent-purple/30 pb-32">
       <div className="absolute top-0 left-0 w-full h-[500px] bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.06)_0%,transparent_70%)] pointer-events-none" />
       
-      <main className="max-w-4xl mx-auto px-6 pt-32 space-y-12 relative z-10">
-        <Link href="/" className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all group">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          Updates / Back
-        </Link>
+      <main className="max-w-4xl mx-auto px-6 pt-24 space-y-10 relative z-10">
+        <PageBreadcrumb items={[{ label: "Product Changelog" }]} />
 
         <header className="space-y-6">
           <div className="flex items-center gap-4 text-accent-purple">

@@ -34,8 +34,11 @@ import {
   Loader2,
   RefreshCcw,
   ArrowRight,
-  Flame,
-  Image as ImageIcon
+  Flame, 
+  Image as ImageIcon,
+  Code2,
+  Key,
+  Type
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
@@ -56,6 +59,8 @@ import { ThemeSelectorModal, CUSTOM_THEMES } from "@/components/modals/ThemeSele
 import { forgotPasswordAction } from "@/app/actions/auth";
 import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
 import { TrustedLoginSetup } from "@/components/auth/TrustedLoginSetup";
+import { ApiKeyManager } from "@/components/account/ApiKeyManager";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -79,7 +84,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob> {
   });
 }
 
-type TabType = 'profile' | 'security' | 'billing' | 'credits' | 'preferences';
+type TabType = 'profile' | 'security' | 'billing' | 'credits' | 'preferences' | 'developer';
 type PreferenceKey = 'autoRefreshHistory' | 'emailNotifications' | 'highFidelityPreview';
 
 const DEFAULT_USER_PREFERENCES: Record<PreferenceKey, boolean> = {
@@ -155,7 +160,7 @@ export default function AccountSettings() {
 
   useEffect(() => {
     const requestedTab = searchParams.get("tab");
-    if (requestedTab && ["profile", "security", "billing", "credits", "preferences"].includes(requestedTab)) {
+    if (requestedTab && ["profile", "security", "billing", "credits", "preferences", "developer"].includes(requestedTab)) {
       setActiveTab(requestedTab as TabType);
     }
   }, [searchParams]);
@@ -554,6 +559,7 @@ export default function AccountSettings() {
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
     { id: 'credits', label: 'Credits & Usage', icon: Zap },
+    { id: 'developer', label: 'Developer API', icon: Code2 },
     { id: 'preferences', label: 'Preferences', icon: Settings },
   ];
 
@@ -565,23 +571,26 @@ export default function AccountSettings() {
         <div className="absolute bottom-10 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px]" />
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.025]" />
       </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-24">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10 lg:mb-14">
-           <Link href="/" className="group flex min-h-11 items-center gap-3 text-zinc-400 hover:text-white transition-all">
-              <div className="w-10 h-10 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:border-purple-500/40 group-hover:bg-purple-500/10 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all">
-                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform text-zinc-300 group-hover:text-purple-400" />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.35em] group-hover:tracking-[0.4em] transition-all">Exit Terminal</span>
-           </Link>
-           <div className="flex items-center gap-4">
-              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="min-h-11 px-6 py-2.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest text-[9px] hover:bg-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all cursor-pointer">Sign Out</button>
-           </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-16">
+        <div className="mb-8 lg:mb-10">
+          <PageBreadcrumb
+            items={[{ label: "Account Settings" }]}
+            rightElement={
+              <button 
+                onClick={() => supabase.auth.signOut().then(() => router.push('/'))} 
+                className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 text-red-400 hover:text-red-300 text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(239,68,68,0.25)] active:scale-95"
+              >
+                <LogOut size={13} className="group-hover:-translate-x-0.5 transition-transform" />
+                <span>Sign Out</span>
+              </button>
+            }
+          />
         </div>
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-10 2xl:gap-12">
           <div className="space-y-6 xl:col-span-3 xl:space-y-8">
-             <div className="space-y-2">
-                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white drop-shadow-sm">Settings</h2>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400/80">Account Infrastructure</p>
+             <div className="space-y-1.5">
+                <h1 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white drop-shadow-sm">Settings</h1>
+                <p className="text-xs font-semibold text-zinc-400">Account details & preferences</p>
              </div>
              <nav className="flex gap-2 overflow-x-auto pb-2 xl:block xl:space-y-2.5 xl:overflow-visible xl:pb-0">
                 {navigation.map((item) => (
@@ -589,20 +598,20 @@ export default function AccountSettings() {
                      key={item.id} 
                      onClick={() => setActiveTab(item.id as TabType)} 
                      className={cn(
-                       "group relative flex min-h-13 shrink-0 items-center gap-3 rounded-2xl px-4 py-3.5 transition-all duration-300 xl:w-full xl:gap-4 xl:px-6 xl:py-4 cursor-pointer overflow-hidden", 
+                       "group relative flex min-h-12 shrink-0 items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300 xl:w-full xl:gap-3.5 xl:px-5 xl:py-3.5 cursor-pointer overflow-hidden text-xs font-bold", 
                        activeTab === item.id 
-                         ? "bg-gradient-to-r from-purple-600/20 via-indigo-600/15 to-purple-900/10 border border-purple-500/30 text-white shadow-[0_0_25px_rgba(168,85,247,0.2)] backdrop-blur-xl" 
-                         : "text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent hover:border-white/10"
+                         ? "bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-900/15 border border-purple-500/40 text-white shadow-[0_0_25px_rgba(168,85,247,0.25)] backdrop-blur-xl" 
+                         : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent hover:border-white/10"
                      )}
                    >
                      {activeTab === item.id && (
                        <motion.div 
                          layoutId="active-tab-accent" 
-                         className="absolute left-0 top-2 bottom-2 w-1.5 rounded-r-full bg-gradient-to-b from-purple-400 to-indigo-500 shadow-[0_0_12px_#7c3aed]" 
+                         className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-gradient-to-b from-purple-400 to-indigo-400 shadow-[0_0_12px_#a855f7]" 
                        />
                      )}
-                     <item.icon size={18} className={cn("transition-all duration-300", activeTab === item.id ? "text-purple-400 scale-110 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "text-zinc-500 group-hover:text-zinc-300 group-hover:scale-110")} />
-                     <span className="font-black uppercase tracking-widest text-[10px] sm:text-[11px]">{item.label}</span>
+                     <item.icon size={17} className={cn("transition-all duration-300", activeTab === item.id ? "text-purple-400 scale-110 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "text-zinc-500 group-hover:text-zinc-300 group-hover:scale-110")} />
+                     <span className="tracking-wide">{item.label}</span>
                      {activeTab === item.id && (
                        <motion.div layoutId="nav-glow" className="ml-auto w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_10px_#a855f7] animate-pulse" />
                      )}
@@ -691,10 +700,10 @@ export default function AccountSettings() {
                                <button 
                                  onClick={handleUpdateProfile} 
                                  disabled={isUpdating || name === (user.user_metadata?.full_name || "")} 
-                                 className="group relative isolate flex min-h-13 w-full sm:w-auto items-center justify-center gap-3 px-10 py-4.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
+                                 className="group relative isolate flex min-h-12 w-full sm:w-auto items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
                                >
-                                  {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} className="group-hover:scale-110 transition-transform" />}
-                                  <span>Sync Profile</span>
+                                  {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} className="group-hover:scale-110 transition-transform" />}
+                                  <span>Save Changes</span>
                                </button>
                              </div>
                          </div>
@@ -708,11 +717,11 @@ export default function AccountSettings() {
 
                          <div className="relative z-10 mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                             <div className="space-y-1">
-                               <div className="flex items-center gap-3">
-                                  <Crown size={18} className="text-amber-300" />
-                                  <span className="text-[9px] font-black uppercase tracking-[0.34em] text-amber-200/70">Pro Customization</span>
+                               <div className="flex items-center gap-2 text-amber-300">
+                                  <Crown size={17} />
+                                  <span className="text-xs font-bold text-amber-200/90">Exclusive Pro Features</span>
                                </div>
-                               <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white md:text-3xl">VIP Identity Suite</h3>
+                               <h3 className="text-2xl font-black italic uppercase tracking-tight text-white md:text-3xl">Profile Customization</h3>
                             </div>
                             <span className="w-fit rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.12)]">Pro VIP</span>
                          </div>
@@ -789,7 +798,7 @@ export default function AccountSettings() {
                                   <div className="flex items-start justify-between gap-4">
                                      <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-cyan-200">
-                                           <Sparkles size={16} className="fill-cyan-200/20" />
+                                           <Type size={16} />
                                            <h4 className="text-lg font-black uppercase tracking-tight text-white">Name Style</h4>
                                         </div>
                                         <p className="max-w-sm text-[10px] font-bold uppercase leading-relaxed tracking-widest text-zinc-500">Premium gradients that travel with your profile.</p>
@@ -1322,58 +1331,72 @@ export default function AccountSettings() {
                        </section>
                     </div>
                  )}
+                 {activeTab === 'developer' && (
+                    <div className="space-y-8">
+                       <ApiKeyManager />
+                    </div>
+                 )}
              </motion.div>
           </div>
         </div>
-      </div>
-
-      {/* Dynamic Pro Avatar Frames Browser Modal */}
+      </div>      {/* Dynamic Pro Avatar Frames Browser Modal */}
       <AnimatePresence>
         {isPro && isFrameModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-2xl p-3 sm:p-6 md:p-10"
           >
-            <div className="relative w-full max-w-4xl max-h-[calc(100dvh-2rem)] h-[85dvh] flex flex-col bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl">
+            <div className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9)]">
+               {/* Neon Laser Top Accent */}
+               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 shadow-[0_0_20px_rgba(168,85,247,0.8)] z-30" />
+               
                {/* Ambient Glows */}
-               <div className="absolute top-0 right-0 w-80 h-80 bg-accent-purple/10 blur-[100px] pointer-events-none" />
-               <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent-cyan/5 blur-[100px] pointer-events-none" />
+               <div className="pointer-events-none absolute -top-24 right-0 w-96 h-96 bg-purple-600/15 blur-[120px]" />
+               <div className="pointer-events-none absolute -bottom-24 left-0 w-96 h-96 bg-cyan-500/10 blur-[120px]" />
                
                {/* Top Header */}
-               <div className="p-4 sm:p-6 md:p-8 flex items-center justify-between z-10 border-b border-white/5 bg-black/40 backdrop-blur-md gap-4">
-                  <div className="flex items-center gap-4">
-                     <div className="p-3 rounded-2xl bg-accent-purple/20 text-accent-purple">
-                        <Crown size={24} className="fill-accent-purple/20" />
+               <div className="p-5 sm:p-7 md:p-8 flex items-center justify-between z-20 border-b border-white/10 bg-[#090a18]/80 backdrop-blur-2xl gap-4">
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-purple-400/30 bg-purple-500/15 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+                        <Crown size={22} className="text-purple-300 fill-purple-400/20" />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Elite Pro Avatar Frames</h2>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pick a luxurious digital identity frame</p>
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Pro Avatar Frames</h2>
+                          <span className="rounded-full border border-purple-400/30 bg-purple-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-purple-300">
+                            {PRO_FRAMES.length} Styles
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-zinc-400 mt-0.5">Choose a glowing digital frame for your profile</p>
                      </div>
                   </div>
                   <button 
                      onClick={() => setIsFrameModalOpen(false)} 
-                     className="min-h-11 min-w-11 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
+                     className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
+                     aria-label="Close modal"
                   >
-                     <X size={24} />
+                     <X size={20} className="group-hover:scale-110 transition-transform" />
                   </button>
                </div>
 
                {/* Grid Frame Selector Body */}
-               <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 md:p-12 relative z-10">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+               <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 relative z-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                      {PRO_FRAMES.map((frame) => {
                         const isSelected = selectedFrame === frame.id;
                         return (
                            <motion.div 
                               key={frame.id} 
-                              whileHover={{ scale: 1.05, y: -4 }}
+                              whileHover={{ y: -4 }}
                               whileTap={{ scale: 0.98 }}
                               onClick={() => !isUpdatingFrame && handleApplyFrame(frame.id)}
                               className={cn(
-                                 "p-6 rounded-[2.5rem] bg-[#0b0b11]/30 backdrop-blur-xl border border-white/5 flex flex-col items-center gap-6 cursor-pointer transition-all duration-300 group/frame relative overflow-hidden",
-                                 isSelected && "bg-[#0b0b11]/60 border-purple-500/80 shadow-[0_0_35px_rgba(168,85,247,0.35)] scale-105 hover:scale-105 border-2"
+                                 "p-5 rounded-3xl backdrop-blur-xl border flex flex-col items-center justify-between gap-5 cursor-pointer transition-all duration-300 group/frame relative overflow-hidden",
+                                 isSelected 
+                                   ? "bg-gradient-to-b from-[#16122c]/95 via-[#100d22]/95 to-[#090814]/95 border-purple-400/80 shadow-[0_0_35px_rgba(168,85,247,0.35)]" 
+                                   : "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-purple-400/40 hover:bg-[#101224]/80 shadow-lg"
                               )}
                            >
                               {/* Ambient Orb Glow behind the card */}
@@ -1382,13 +1405,15 @@ export default function AccountSettings() {
                                  frame.glowStyles
                               )} />
 
+                              {/* NEW Tag */}
                               {(frame as { isNew?: boolean }).isNew && (
-                                 <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 text-black text-[7.5px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.6)] animate-pulse border border-emerald-300/50">
+                                 <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 text-black text-[8px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(34,211,238,0.6)] animate-pulse border border-cyan-300/60">
                                     NEW
                                  </div>
                               )}
 
-                              <div className="relative scale-125 my-4 transition-transform duration-500 group-hover/frame:scale-135">
+                              {/* Frame Preview */}
+                              <div className="relative scale-110 my-3 transition-transform duration-500 group-hover/frame:scale-120">
                                  <AvatarWithFrame 
                                     avatarUrl={displayAvatarUrl}
                                     displayName={name || 'User'}
@@ -1397,35 +1422,45 @@ export default function AccountSettings() {
                                     size="md"
                                  />
                                  {isSelected && (
-                                    <div className="absolute -top-1.5 -right-1.5 w-5.5 h-5.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center border border-[#030303] shadow-[0_0_15px_rgba(168,85,247,0.5)] z-30 animate-pulse">
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center border border-[#070812] shadow-[0_0_12px_rgba(168,85,247,0.8)] z-30">
                                        <CheckCircle2 size={12} className="text-white" />
                                     </div>
                                  )}
                               </div>
                               
-                              <div className="space-y-2 text-center relative z-10">
-                                 <h4 className={cn("text-xs font-black uppercase tracking-wider text-center drop-shadow-md", frame.titleColor || "text-white")}>
+                              {/* Frame Title & Badges */}
+                              <div className="space-y-1.5 text-center w-full relative z-10">
+                                 <h4 className={cn("text-xs font-black uppercase tracking-tight text-center truncate drop-shadow-sm", frame.titleColor || "text-white")}>
                                     {frame.name}
                                  </h4>
                                  <span className={cn(
-                                    "inline-block px-2.5 py-0.5 rounded-md text-[7px] font-extrabold uppercase tracking-widest border transition-all duration-300",
+                                    "inline-block px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border transition-all duration-300",
                                     isSelected 
-                                      ? "bg-purple-500/20 text-purple-300 border-purple-500/30" 
-                                      : "bg-white/5 border-white/5 text-zinc-500 group-hover/frame:text-zinc-300 group-hover/frame:border-white/10"
+                                      ? "bg-purple-500/25 text-purple-300 border-purple-500/40" 
+                                      : "bg-white/[0.04] border-white/10 text-zinc-500 group-hover/frame:text-zinc-300"
                                  )}>
-                                    PRO ELITE
+                                    Pro Elite
                                  </span>
                               </div>
                               
+                              {/* Selection Button */}
                               <button 
+                                 type="button"
                                  className={cn(
-                                    "w-full py-2.5 rounded-xl text-[8.5px] font-black uppercase tracking-widest border transition-all duration-300 mt-2 shadow-lg",
+                                    "w-full py-2.5 px-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-md flex items-center justify-center gap-1.5",
                                     isSelected 
-                                      ? "bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white shadow-[0_0_15px_rgba(168,85,247,0.45)] hover:scale-102 font-black" 
-                                      : "bg-white/5 border-white/5 text-zinc-500 group-hover/frame:bg-white group-hover/frame:text-black group-hover/frame:border-white group-hover/frame:shadow-[0_0_15px_rgba(255,255,255,0.15)]"
+                                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] font-black" 
+                                      : "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/frame:bg-purple-600 group-hover/frame:text-white group-hover/frame:border-purple-500/50 group-hover/frame:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                                  )}
                               >
-                                 {isSelected ? "Equipped" : "Select"}
+                                 {isSelected ? (
+                                   <>
+                                     <CheckCircle2 size={13} className="text-white" />
+                                     <span>Equipped</span>
+                                   </>
+                                 ) : (
+                                   <span>Select Frame</span>
+                                 )}
                               </button>
                            </motion.div>
                         );
@@ -1433,22 +1468,25 @@ export default function AccountSettings() {
                   </div>
                </div>
 
-               {/* Footer */}
-               <div className="p-4 sm:p-6 md:p-8 border-t border-white/5 bg-zinc-950/60 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 italic">Select any frame to instantly apply it to your account</span>
-                  <div className="flex gap-4">
+               {/* Footer Toolbar */}
+               <div className="p-4 sm:p-5 md:p-6 border-t border-white/10 bg-[#070814]/90 backdrop-blur-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between z-20">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                     <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                     <span>Click any frame to preview and instantly equip it to your profile</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
                      {selectedFrame && (
                         <button 
                            onClick={() => { handleApplyFrame(null); }}
                            disabled={isUpdatingFrame}
-                           className="px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                           className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
                         >
-                           Remove Current Frame
+                           Reset to Default
                         </button>
                      )}
                      <button 
                         onClick={() => setIsFrameModalOpen(false)}
-                        className="px-8 py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest text-[9px] hover:bg-zinc-200 transition-all shadow-xl"
+                        className="px-6 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer"
                      >
                         Done
                      </button>
@@ -1466,46 +1504,57 @@ export default function AccountSettings() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-2xl p-3 sm:p-6 md:p-10"
           >
-            <div className="relative w-full max-w-4xl max-h-[calc(100dvh-2rem)] h-[85dvh] flex flex-col bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl">
+            <div className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9)]">
+               {/* Neon Laser Top Accent */}
+               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 shadow-[0_0_20px_rgba(34,211,238,0.8)] z-30" />
+               
                {/* Ambient Glows */}
-               <div className="absolute top-0 right-0 w-80 h-80 bg-accent-cyan/10 blur-[100px] pointer-events-none" />
-               <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent-purple/5 blur-[100px] pointer-events-none" />
+               <div className="pointer-events-none absolute -top-24 right-0 w-96 h-96 bg-cyan-600/15 blur-[120px]" />
+               <div className="pointer-events-none absolute -bottom-24 left-0 w-96 h-96 bg-purple-500/10 blur-[120px]" />
                
                {/* Top Header */}
-               <div className="p-4 sm:p-6 md:p-8 flex items-center justify-between z-10 border-b border-white/5 bg-black/40 backdrop-blur-md gap-4">
-                  <div className="flex items-center gap-4">
-                     <div className="p-3 rounded-2xl bg-accent-cyan/20 text-accent-cyan">
-                        <Sparkles size={24} className="fill-accent-cyan/20" />
+               <div className="p-5 sm:p-7 md:p-8 flex items-center justify-between z-20 border-b border-white/10 bg-[#090a18]/80 backdrop-blur-2xl gap-4">
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                        <Type size={22} className="text-cyan-300" />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Elite Premium Name Styles</h2>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pick a luxurious glowing text identity style</p>
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Pro Name Styles</h2>
+                          <span className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-cyan-300">
+                            {NAME_GRADIENTS.length} Styles
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-zinc-400 mt-0.5">Select a glowing text style for your name</p>
                      </div>
                   </div>
                   <button 
                      onClick={() => setIsGradientModalOpen(false)} 
-                     className="min-h-11 min-w-11 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
+                     className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
+                     aria-label="Close modal"
                   >
-                     <X size={24} />
+                     <X size={20} className="group-hover:scale-110 transition-transform" />
                   </button>
                </div>
 
                {/* Grid Name Style Selector Body */}
-               <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 md:p-12 relative z-10">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+               <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 relative z-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                      {NAME_GRADIENTS.map((gradient) => {
                         const isSelected = selectedGradient === gradient.id;
                         return (
                            <motion.div 
                               key={gradient.id} 
-                              whileHover={{ scale: 1.05, y: -4 }}
+                              whileHover={{ y: -4 }}
                               whileTap={{ scale: 0.98 }}
                               onClick={() => !isUpdatingGradient && handleApplyGradient(gradient.id)}
                               className={cn(
-                                 "p-6 rounded-[2.5rem] bg-[#0b0b11]/30 backdrop-blur-xl border border-white/5 flex flex-col items-center gap-6 cursor-pointer transition-all duration-300 group/gradient relative overflow-hidden",
-                                 isSelected && "bg-[#0b0b11]/60 border-cyan-500/80 shadow-[0_0_35px_rgba(6,182,212,0.35)] scale-105 hover:scale-105 border-2"
+                                 "p-5 rounded-3xl backdrop-blur-xl border flex flex-col items-center justify-between gap-5 cursor-pointer transition-all duration-300 group/gradient relative overflow-hidden",
+                                 isSelected 
+                                   ? "bg-gradient-to-b from-[#0e172a]/95 via-[#0a101f]/95 to-[#060a14]/95 border-cyan-400/80 shadow-[0_0_35px_rgba(6,182,212,0.35)]" 
+                                   : "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-cyan-400/40 hover:bg-[#0e1224]/80 shadow-lg"
                               )}
                            >
                               {/* Ambient Orb Glow behind the card */}
@@ -1515,38 +1564,46 @@ export default function AccountSettings() {
                               )} />
 
                               {(gradient as { isNew?: boolean }).isNew && (
-                                 <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 text-black text-[7.5px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.6)] animate-pulse border border-emerald-300/50">
+                                 <div className="absolute top-3 right-3 z-30 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 text-black text-[8px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(34,211,238,0.6)] animate-pulse border border-cyan-300/60">
                                     NEW
                                  </div>
                               )}
 
-                              <div className="text-xl font-black tracking-tight my-4">
-                                 <PremiumName name="BMR.EZ" isPro={true} gradientId={gradient.id} className="text-xl font-black uppercase" />
+                              <div className="text-xl font-black tracking-tight my-4 py-2">
+                                 <PremiumName name={name || "Exismic User"} isPro={true} gradientId={gradient.id} className="text-xl font-black uppercase" />
                               </div>
                               
-                              <div className="space-y-2 text-center relative z-10">
-                                 <h4 className="text-xs font-black uppercase tracking-wider text-center drop-shadow-md text-white">
+                              <div className="space-y-1.5 text-center w-full relative z-10">
+                                 <h4 className="text-xs font-black uppercase tracking-tight text-center text-white truncate drop-shadow-sm">
                                     {gradient.name}
                                  </h4>
                                  <span className={cn(
-                                    "inline-block px-2.5 py-0.5 rounded-md text-[7px] font-extrabold uppercase tracking-widest border transition-all duration-300",
+                                    "inline-block px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border transition-all duration-300",
                                     isSelected 
-                                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" 
-                                      : "bg-white/5 border-white/5 text-zinc-500 group-hover/gradient:text-zinc-300 group-hover/gradient:border-white/10"
+                                      ? "bg-cyan-500/25 text-cyan-300 border-cyan-500/40" 
+                                      : "bg-white/[0.04] border-white/10 text-zinc-500 group-hover/gradient:text-zinc-300"
                                  )}>
-                                    PRO ELITE
+                                    Pro Elite
                                  </span>
                               </div>
                               
                               <button 
+                                 type="button"
                                  className={cn(
-                                    "w-full py-2.5 rounded-xl text-[8.5px] font-black uppercase tracking-widest border transition-all duration-300 mt-2 shadow-lg",
+                                    "w-full py-2.5 px-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-md flex items-center justify-center gap-1.5",
                                     isSelected 
-                                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 border-transparent text-white shadow-[0_0_15px_rgba(6,182,212,0.45)] hover:scale-102 font-black" 
-                                      : "bg-white/5 border-white/5 text-zinc-500 group-hover/gradient:bg-white group-hover/gradient:text-black group-hover/gradient:border-white group-hover/gradient:shadow-[0_0_15px_rgba(255,255,255,0.15)]"
+                                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] font-black" 
+                                      : "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/gradient:bg-cyan-500 group-hover/gradient:text-black group-hover/gradient:border-cyan-400 group-hover/gradient:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
                                  )}
                               >
-                                 {isSelected ? "Equipped" : "Select"}
+                                 {isSelected ? (
+                                   <>
+                                     <CheckCircle2 size={13} className="text-white" />
+                                     <span>Equipped</span>
+                                   </>
+                                 ) : (
+                                   <span>Select Style</span>
+                                 )}
                               </button>
                            </motion.div>
                         );
@@ -1554,22 +1611,25 @@ export default function AccountSettings() {
                   </div>
                </div>
 
-               {/* Footer */}
-               <div className="p-4 sm:p-6 md:p-8 border-t border-white/5 bg-zinc-950/60 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 italic">Select any style to instantly apply it to your account</span>
-                  <div className="flex gap-4">
+               {/* Footer Toolbar */}
+               <div className="p-4 sm:p-5 md:p-6 border-t border-white/10 bg-[#070814]/90 backdrop-blur-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between z-20">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                     <CheckCircle2 size={15} className="text-cyan-400 shrink-0" />
+                     <span>Click any style to preview and instantly apply it to your account</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
                      {selectedGradient && (
                         <button 
                            onClick={() => { handleApplyGradient(null); }}
                            disabled={isUpdatingGradient}
-                           className="px-6 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                           className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
                         >
-                           Remove Current Style
+                           Reset to Default
                         </button>
                      )}
                      <button 
                         onClick={() => setIsGradientModalOpen(false)}
-                        className="px-8 py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest text-[9px] hover:bg-zinc-200 transition-all shadow-xl"
+                        className="px-6 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer"
                      >
                         Done
                      </button>

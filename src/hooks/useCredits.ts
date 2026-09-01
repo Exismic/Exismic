@@ -84,6 +84,138 @@ const useCreditStore = create<CreditStore>((set) => ({
   setIsInitialized: (i) => set({ isInitialized: i }),
 }));
 
+let activeCreditsChannel: any = null;
+let activeCreditsUserId: string | null = null;
+let creditsFetchPromise: Promise<void> | null = null;
+let globalCreditsInitialized = false;
+
+function initGlobalCreditsListeners() {
+  if (typeof window === "undefined" || globalCreditsInitialized) return;
+  globalCreditsInitialized = true;
+
+  // 1. Intercept native window.fetch calls
+  if (!window.__exismicFetchIntercepted) {
+    window.__exismicFetchIntercepted = true;
+    const originalFetch = window.fetch;
+    window.fetch = async function (...args) {
+      const response = await originalFetch.apply(this, args);
+      try {
+        const url = typeof args[0] === "string" ? args[0] : (args[0] as any)?.url || "";
+        const isToolActivity = 
+          url.includes("/api/tools") || 
+          url.includes("/api/chat") || 
+          url.includes("/api/upload") || 
+          url.includes("/api/remove-bg") || 
+          url.includes("/api/shop") ||
+          url.includes("/api/community");
+
+        if (isToolActivity && response.ok) {
+          setTimeout(() => {
+            if (window.refreshExismicCredits) window.refreshExismicCredits();
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new Event("quests-updated"));
+            }
+          }, 800);
+        }
+      } catch (err) {
+        console.warn("[Credits Intercept Fetch Error]:", err);
+      }
+      return response;
+    };
+  }
+
+  // 2. Intercept XMLHttpRequests
+  if (!window.__exismicXhrIntercepted) {
+    window.__exismicXhrIntercepted = true;
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.open = function (this: XMLHttpRequest, method: string, url: string | URL, ...args: any[]) {
+      (this as any).__exismicUrl = typeof url === "string" ? url : url.toString();
+      return (originalOpen as any).apply(this, [method, url, ...args]);
+    };
+
+    XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, ...args: any[]) {
+      this.addEventListener("load", () => {
+        const url = (this as any).__exismicUrl || "";
+        const isToolActivity = 
+          url.includes("/api/tools") || 
+          url.includes("/api/chat") || 
+          url.includes("/api/upload") || 
+          url.includes("/api/remove-bg") || 
+          url.includes("/api/shop") ||
+          url.includes("/api/community");
+
+        if (isToolActivity && this.status >= 200 && this.status < 300) {
+          setTimeout(() => {
+            if (window.refreshExismicCredits) window.refreshExismicCredits();
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new Event("quests-updated"));
+            }
+          }, 800);
+        }
+      });
+      return (originalSend as any).apply(this, args);
+    };
+  }
+
+  // 3. Global single Countdown Timer
+  const updateCountdown = () => {
+    try {
+      const now = new Date();
+      const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+      const nowIST = new Date(istString);
+      
+      const nextResetIST = new Date(nowIST);
+      nextResetIST.setHours(12, 0, 0, 0); 
+      
+      if (nowIST.getTime() >= nextResetIST.getTime()) {
+        nextResetIST.setDate(nextResetIST.getDate() + 1);
+      }
+      
+      const diff = nextResetIST.getTime() - nowIST.getTime();
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      useCreditStore.getState().setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+      
+      if (hours === 0 && minutes === 0 && seconds === 0) {
+        if (window.refreshExismicCredits) window.refreshExismicCredits();
+      }
+    } catch (err) {
+      console.error("Countdown error:", err);
+    }
+  };
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // 4. Global Auth session & listener
+  const supabase = createClient();
+  const updateSessionUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const newUserId = session?.user?.id || null;
+    if (useCreditStore.getState().userId !== newUserId) {
+      useCreditStore.getState().setUserId(newUserId);
+    }
+  };
+  void updateSessionUser();
+
+  supabase.auth.onAuthStateChange((_event: any, session: any) => {
+    const newUserId = session?.user?.id || null;
+    if (useCreditStore.getState().userId !== newUserId) {
+      useCreditStore.getState().setUserId(newUserId);
+    }
+  });
+
+  // 5. Window focus refresh
+  window.addEventListener("focus", () => {
+    if (window.refreshExismicCredits) window.refreshExismicCredits();
+  });
+}
+
 export function useCredits() {
   const supabase = useMemo(() => createClient(), []);
   const store = useCreditStore();
@@ -96,7 +228,7 @@ export function useCredits() {
   const lastRefreshRef = useRef<number>(0);
   const refreshCredits = useCallback(() => {
     const now = Date.now();
-    if (now - lastRefreshRef.current < 1500) return; // Cooldown to avoid duplicate flood
+    if (now - lastRefreshRef.current < 2000) return;
     lastRefreshRef.current = now;
 
     if (useCreditStore.getState().userId) {
@@ -121,117 +253,12 @@ export function useCredits() {
     }
   }, [setState]);
 
-  // Expose reload hook globally for interceptors to invoke
   useEffect(() => {
+    initGlobalCreditsListeners();
     if (typeof window !== "undefined") {
       window.refreshExismicCredits = refreshCredits;
     }
   }, [refreshCredits]);
-
-  // Global HTTP Request Interceptors (Intercepts both native Fetch and Axios XHR)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // 1. Intercept native window.fetch calls
-    if (!window.__exismicFetchIntercepted) {
-      window.__exismicFetchIntercepted = true;
-      const originalFetch = window.fetch;
-      window.fetch = async function (...args) {
-        const response = await originalFetch.apply(this, args);
-        try {
-          const url = typeof args[0] === "string" ? args[0] : (args[0] as any)?.url || "";
-          if (url.includes("/api/tools/") && response.ok) {
-            setTimeout(() => {
-              if (window.refreshExismicCredits) window.refreshExismicCredits();
-            }, 800);
-          }
-        } catch (err) {
-          console.warn("[Credits Intercept Fetch Error]:", err);
-        }
-        return response;
-      };
-    }
-
-    // 2. Intercept XMLHttpRequests (Axios triggers XHR in client browser)
-    if (!window.__exismicXhrIntercepted) {
-      window.__exismicXhrIntercepted = true;
-      const originalOpen = XMLHttpRequest.prototype.open;
-      const originalSend = XMLHttpRequest.prototype.send;
-
-      XMLHttpRequest.prototype.open = function (this: XMLHttpRequest, method: string, url: string | URL, ...args: any[]) {
-        (this as any).__exismicUrl = typeof url === "string" ? url : url.toString();
-        return (originalOpen as any).apply(this, [method, url, ...args]);
-      };
-
-      XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, ...args: any[]) {
-        this.addEventListener("load", () => {
-          const url = (this as any).__exismicUrl || "";
-          if (url.includes("/api/tools/") && this.status >= 200 && this.status < 300) {
-            setTimeout(() => {
-              if (window.refreshExismicCredits) window.refreshExismicCredits();
-            }, 800);
-          }
-        });
-        return (originalSend as any).apply(this, args);
-      };
-    }
-  }, []);
-
-  // Robust session and countdown initialization for every hook instance
-  useEffect(() => {
-    const updateCountdown = () => {
-      try {
-        const now = new Date();
-        const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-        const nowIST = new Date(istString);
-        
-        const nextResetIST = new Date(nowIST);
-        nextResetIST.setHours(12, 0, 0, 0); 
-        
-        if (nowIST.getTime() >= nextResetIST.getTime()) {
-          nextResetIST.setDate(nextResetIST.getDate() + 1);
-        }
-        
-        const diff = nextResetIST.getTime() - nowIST.getTime();
-        
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-        
-        if (hours === 0 && minutes === 0 && seconds === 0) {
-          window.location.reload();
-        }
-      } catch (err) {
-        console.error("Countdown error:", err);
-      }
-    };
-
-    updateCountdown();
-    const timer = setInterval(updateCountdown, 1000);
-
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const newUserId = session?.user?.id || null;
-      if (useCreditStore.getState().userId !== newUserId) {
-        setUserId(newUserId);
-      }
-    };
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const newUserId = session?.user?.id || null;
-      if (useCreditStore.getState().userId !== newUserId) {
-        setUserId(newUserId);
-      }
-    });
-
-    return () => {
-      clearInterval(timer);
-      subscription.unsubscribe();
-    };
-  }, [supabase, setCountdown, setUserId]);
 
   const showNotification = useCallback((message: string, type: 'success' | 'info' | 'warning' = 'info') => {
     setNotification({ message, type });
@@ -239,78 +266,94 @@ export function useCredits() {
   }, [setNotification]);
 
   const fetchCredits = useCallback(async () => {
-    // Re-verify auth state before each fetch
     if (!userId) return;
-    
-    // Prevent refetching if we already have the state and are not loading
     if (useCreditStore.getState().state) {
       setLoading(false);
       return;
     }
-
-    try {
-      // Use no-store to avoid Next.js caching across users or sessions
-      const response = await fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' });
-      
-      if (response.status === 401) {
-        setLoading(false);
-        return;
-      }
-
-      const json = await response.json();
-
-      if (json.success && json.data) {
-        const data = json.data;
-        setState({
-          dailyCredits: data.dailyCredits,
-          bonusCredits: data.bonusCredits || 0,
-          lifetimeCredits: data.lifetimeCredits,
-          creditsLastReset: data.lastReset || new Date().toISOString(),
-          aiMessagesToday: data.aiMessagesToday || 0,
-          aiMessagesReset: new Date().toISOString(),
-          plan: data.plan || 'free',
-          dailyStreak: data.dailyStreak || 0,
-          todayClaim: data.todayClaim || null,
-        });
-      } else {
-        console.warn('Credits API returned error:', json.error);
-      }
-    } catch (err) {
-      console.warn('Failed to fetch credits via API:', err);
-    } finally {
-      setLoading(false);
+    if (creditsFetchPromise) {
+      return creditsFetchPromise;
     }
+
+    creditsFetchPromise = (async () => {
+      try {
+        const response = await fetch(`/api/user/credits?t=${Date.now()}`, { cache: 'no-store' });
+        
+        if (response.status === 401) {
+          setLoading(false);
+          return;
+        }
+
+        const json = await response.json();
+
+        if (json.success && json.data) {
+          const data = json.data;
+          setState({
+            dailyCredits: data.dailyCredits,
+            bonusCredits: data.bonusCredits || 0,
+            lifetimeCredits: data.lifetimeCredits,
+            creditsLastReset: data.lastReset || new Date().toISOString(),
+            aiMessagesToday: data.aiMessagesToday || 0,
+            aiMessagesReset: new Date().toISOString(),
+            plan: data.plan || 'free',
+            dailyStreak: data.dailyStreak || 0,
+            todayClaim: data.todayClaim || null,
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to fetch credits via API:', err);
+      } finally {
+        setLoading(false);
+        creditsFetchPromise = null;
+      }
+    })();
+
+    return creditsFetchPromise;
   }, [userId, setState, setLoading]);
 
   useEffect(() => {
     if (userId) {
-      fetchCredits();
+      void fetchCredits();
     } else {
       setLoading(false);
     }
   }, [userId, fetchCredits, setLoading]);
 
-  // Window focus listener to keep credits fresh
+  // Subscribe to real-time credit updates (safe singleton per user)
   useEffect(() => {
-    if (typeof window === "undefined" || !userId) return;
+    if (!userId) {
+      if (activeCreditsChannel) {
+        try {
+          supabase.removeChannel(activeCreditsChannel);
+        } catch {
+          // Ignore
+        }
+        activeCreditsChannel = null;
+        activeCreditsUserId = null;
+      }
+      return;
+    }
 
-    const onFocus = () => {
-      refreshCredits();
-    };
+    if (activeCreditsUserId === userId && activeCreditsChannel) {
+      return;
+    }
 
-    window.addEventListener("focus", onFocus);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [userId, refreshCredits]);
+    if (activeCreditsChannel) {
+      try {
+        supabase.removeChannel(activeCreditsChannel);
+      } catch {
+        // Ignore
+      }
+      activeCreditsChannel = null;
+    }
 
-  // Real-time listener specifically for the current user
-  useEffect(() => {
-    if (!userId) return;
+    const channelId = `realtime-credits-${userId}-${Math.random().toString(36).slice(2, 9)}`;
+    activeCreditsUserId = userId;
 
-    const channelId = `credits-${userId}-${Math.random().toString(36).substring(2, 9)}`;
-    const channel = supabase
-      .channel(channelId)
+    const channel = supabase.channel(channelId);
+    activeCreditsChannel = channel;
+
+    channel
       .on(
         'postgres_changes',
         {
@@ -319,23 +362,20 @@ export function useCredits() {
           table: 'User',
           filter: `id=eq.${userId}`,
         },
-        (payload) => {
-          const data = payload.new;
-          updateState({
-            dailyCredits: data.daily_credits,
-            bonusCredits: data.bonus_credits,
-            lifetimeCredits: data.lifetime_credits,
-            aiMessagesToday: data.ai_messages_today,
-            plan: data.plan,
-          });
+        (payload: any) => {
+          const data = payload?.new;
+          if (data) {
+            useCreditStore.getState().updateState({
+              dailyCredits: data.daily_credits,
+              bonusCredits: data.bonus_credits,
+              lifetimeCredits: data.lifetime_credits,
+              aiMessagesToday: data.ai_messages_today,
+              plan: data.plan,
+            });
+          }
         }
       )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, supabase, updateState]);
+  }, [userId, supabase]);
 
   const deductCredits = async (amount: number) => {
     if (!userId || !state) return false;

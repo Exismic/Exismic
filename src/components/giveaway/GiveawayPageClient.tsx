@@ -29,6 +29,7 @@ import {
 import { CURRENT_GIVEAWAY } from "@/lib/giveaways";
 import { useCredits } from "@/hooks/useCredits";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { cn } from "@/lib/utils";
 
 interface GiveawayData {
@@ -263,18 +264,7 @@ export function GiveawayPageClient() {
 
         <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8">
           {/* Top Breadcrumb */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="text-xs font-semibold text-zinc-400 transition hover:text-white"
-              >
-                Dashboard
-              </Link>
-              <span className="text-zinc-600">/</span>
-              <span className="text-xs font-bold text-amber-300">Giveaways</span>
-            </div>
-          </div>
+          <PageBreadcrumb items={[{ label: "Giveaways & Drops" }]} className="mb-6" />
 
           {/* Idle Obsidian Hero Card */}
           <motion.div
@@ -361,18 +351,7 @@ export function GiveawayPageClient() {
 
       <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
         {/* Top Breadcrumb */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="text-xs font-semibold text-zinc-400 transition hover:text-white"
-            >
-              Dashboard
-            </Link>
-            <span className="text-zinc-600">/</span>
-            <span className="text-xs font-bold text-amber-300">Giveaways</span>
-          </div>
-        </div>
+        <PageBreadcrumb items={[{ label: "Giveaways & Drops" }]} className="mb-6" />
 
         {/* UPCOMING STATE: Dedicated Full "NEW GIVEAWAY" Teaser Screen */}
         {isUpcoming ? (

@@ -5,6 +5,15 @@ export async function updateSession(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
 
+  // Fast-path: Let API routes handle their own specific auth/responses without double-checking in proxy
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
   const publicPages = new Set([
     "/",
     "/about",
@@ -18,27 +27,24 @@ export async function updateSession(request: NextRequest) {
     "/appeal",
     "/giveaway",
     "/giveaways",
+    "/rewards",
+    "/redeem",
   ]);
 
   const isPublicRoute =
     publicPages.has(request.nextUrl.pathname) ||
     request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname.startsWith('/api/auth') ||
-    request.nextUrl.pathname.startsWith('/api/og') ||
-    request.nextUrl.pathname.startsWith('/api/giveaways') ||
-    request.nextUrl.pathname.startsWith('/api/tools') ||
-    request.nextUrl.pathname === '/api/user/favorites' ||
-    request.nextUrl.pathname.startsWith('/api/billing/market') ||
-    request.nextUrl.pathname.startsWith('/api/webhooks') ||
-    request.nextUrl.pathname.startsWith('/api/razorpay/webhook') ||
-    request.nextUrl.pathname.startsWith('/api/paypal/webhook') ||
-    request.nextUrl.pathname.startsWith('/api/support-agent/widget') ||
+    request.nextUrl.pathname.startsWith('/developer') ||
+    request.nextUrl.pathname.startsWith('/community') ||
     request.nextUrl.pathname.startsWith('/category/') ||
     request.nextUrl.pathname.startsWith('/tools') ||
     request.nextUrl.pathname.startsWith('/pro') ||
     request.nextUrl.pathname.startsWith('/pricing') ||
     request.nextUrl.pathname.startsWith('/blog') ||
-    request.nextUrl.pathname.startsWith('/u/');
+    request.nextUrl.pathname.startsWith('/u/') ||
+    request.nextUrl.pathname.endsWith('.txt') ||
+    request.nextUrl.pathname.endsWith('.xml') ||
+    request.nextUrl.pathname.endsWith('.json');
 
   if (isPublicRoute) {
     return NextResponse.next({
@@ -46,6 +52,18 @@ export async function updateSession(request: NextRequest) {
         headers: requestHeaders,
       },
     });
+  }
+
+  // Fast check: if no auth cookie is present, redirect to login without network delay
+  const allCookies = request.cookies.getAll();
+  const hasAuthCookie = allCookies.some(
+    (c) => c.name.includes("auth-token") || c.name.startsWith("sb-")
+  );
+
+  if (!hasAuthCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/login';
+    return NextResponse.redirect(url);
   }
 
   let response = NextResponse.next({
@@ -80,13 +98,9 @@ export async function updateSession(request: NextRequest) {
   );
 
   // This will refresh session if expired - required for Server Components
-  // https://supabase.com/docs/guides/auth/server-side/nextjs
   const user = await supabase.auth.getUser();
 
   if (!user.data.user) {
-    if (request.nextUrl.pathname.startsWith('/api')) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
     return NextResponse.redirect(url);
@@ -94,3 +108,4 @@ export async function updateSession(request: NextRequest) {
 
   return response;
 }
+

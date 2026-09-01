@@ -6,9 +6,13 @@ export const PRO_DAILY_CREDITS = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS;
 export const CREDIT_COSTS = {
   "ai-img-gen": 18,
   "ai-logo": 18,
+  "ai-writer": 6,
+  "ai-code": 8,
   "image-minecraft-skin": 24,
   "minecraft-skin-maker": 24,
   "image-restorer": 18,
+  "image-bg-remover": 4,
+  "bg-remove": 4,
   "watermark-remover": 16,
   "image-eraser": 8,
   "video-enhancer": 35,
@@ -17,6 +21,15 @@ export const CREDIT_COSTS = {
   "audio-stem-splitter": 18,
   "screenshot-to-code": 20,
   "support-agent": 10,
+  "essay-outline": 5,
+  "plagiarism-checker": 6,
+  "readability-assessor": 4,
+  "pdf-to-notes": 8,
+  "landing-page-generator": 12,
+  "youtube-summarizer": 8,
+  "invoice-generator": 6,
+  "api-generate-text": 5,
+  "api-bg-remove": 4,
 } as const;
 
 export type CreditCostToolId = keyof typeof CREDIT_COSTS;

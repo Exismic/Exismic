@@ -55,7 +55,8 @@ export function SuggestToolModal({ isOpen, onClose, defaultCategory = "pdf" }: S
     checkCooldown();
 
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }: any) => {
+      const session = data?.session;
       if (session?.user?.email) {
         setUserEmail(session.user.email);
         setIsLoggedIn(true);

@@ -619,6 +619,81 @@ export async function sendProRenewalReceiptEmail(email: string, details: {
   }
 }
 
+export async function sendGiftVoucherPurchasedEmail(email: string, details: {
+  giftCode: string;
+  giftTitle: string;
+  amount: string;
+  invoiceId: string;
+  redeemUrl: string;
+  recipientName?: string | null;
+  recipientMessage?: string | null;
+}) {
+  try {
+    const safeCode = escapeEmailText(details.giftCode);
+    const safeTitle = escapeEmailText(details.giftTitle);
+    const safeAmount = escapeEmailText(details.amount);
+    const safeInvoice = escapeEmailText(details.invoiceId);
+    const safeName = details.recipientName ? escapeEmailText(details.recipientName) : null;
+    const safeMsg = details.recipientMessage ? escapeEmailText(details.recipientMessage) : null;
+
+    const { error } = await sendTrackedEmail('gift_voucher_purchased', email, {
+      from: SENDER_PAYMENT,
+      to: email,
+      subject: `Your Exismic Gift Voucher: ${details.giftTitle}`,
+      html: PREMIUM_DARK_THEME(`
+        <div class="hero-section">
+          <div class="status-badge" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.3); color:#fcd34d;">GIFT VOUCHER READY</div>
+          <h1>Your Gift Pass is <span class="accent-text" style="color:#fbbf24;">Ready.</span></h1>
+          <p>Thank you for your purchase! A single-use voucher code has been generated. Share this code or the instant redeem link with your recipient.</p>
+        </div>
+
+        <div class="info-card" style="text-align: center; padding: 28px 20px; border-color: rgba(245, 158, 11, 0.4);">
+          <div style="font-size: 11px; color: #94a3b8; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">DIGITAL VOUCHER PASS</div>
+          <div style="font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 20px;">${safeTitle}</div>
+          
+          <div style="margin: 0 auto 20px; padding: 16px 20px; background: rgba(0, 0, 0, 0.6); border: 1px dashed rgba(245, 158, 11, 0.5); border-radius: 14px; font-family: monospace; font-size: 20px; font-weight: 900; color: #fde047; letter-spacing: 3px; word-break: break-all;">
+            ${safeCode}
+          </div>
+
+          ${safeName ? `
+            <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">
+              <strong>Recipient:</strong> ${safeName}
+            </div>
+          ` : ''}
+
+          ${safeMsg ? `
+            <div style="font-size: 13px; font-style: italic; color: #94a3b8; margin: 12px auto; padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 10px; max-width: 400px;">
+              &ldquo;${safeMsg}&rdquo;
+            </div>
+          ` : ''}
+
+          <div class="info-grid" style="margin-top: 20px; text-align: left;">
+            <div class="info-row"><div class="info-cell info-label">Transaction Ref</div><div class="info-cell info-value">${safeInvoice}</div></div>
+            <div class="info-row"><div class="info-cell info-label">Amount Paid</div><div class="info-cell info-value">${safeAmount}</div></div>
+            <div class="info-row"><div class="info-cell info-label">Usage Limit</div><div class="info-cell info-value">Single-Use (1-Time)</div></div>
+          </div>
+        </div>
+
+        <a href="${details.redeemUrl}" class="cta-button" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 900;">Redeem Gift Voucher Now &rarr;</a>
+
+        <div style="margin-top: 24px; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #94a3b8; line-height: 1.6;">
+          <strong>Direct Share Link:</strong><br/>
+          <a href="${details.redeemUrl}" style="color: #38bdf8; word-break: break-all;">${details.redeemUrl}</a>
+        </div>
+      `, `Your Exismic Gift Voucher code is ${details.giftCode} (${details.giftTitle}).`),
+    }, { idempotencyKey: `gift-voucher/${details.invoiceId}` });
+
+    if (error) {
+      console.error('[Email] Gift voucher email failed:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('[Email] Gift voucher email failed:', error);
+    return false;
+  }
+}
+
 export function renderTransactionalEmail({
   preheader,
   badge,

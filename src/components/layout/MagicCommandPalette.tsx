@@ -1,72 +1,88 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Search, Sparkles, Image as ImageIcon, FileText, Code2, 
-  Wand2, X, Clock, ArrowRight, CornerDownLeft, Settings, Loader2,
-  Crown, Zap, Mic2, Music, Palette, Check, SearchIcon, Terminal
+  Search, 
+  Sparkles, 
+  X, 
+  CornerDownLeft, 
+  Loader2,
+  Crown, 
+  Zap, 
+  Bot,
+  Command,
+  FileText,
+  Mic2,
+  Video,
+  Code2,
+  ImageIcon,
+  ArrowRight,
+  SlidersHorizontal,
+  ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { TOOLS, Tool, ICON_MAP, CATEGORIES } from "@/data/tools";
+import { TOOLS, ICON_MAP } from "@/data/tools";
 
-// Custom natural language aliases mapping for smart search matching
+// Custom natural language search aliases
 const TOOL_ALIASES: Record<string, string[]> = {
-  "image-eraser": ["bg", "remove bg", "background remover", "eraser", "cutout", "object remover", "transparent", "erase bg"],
-  "ai-img-gen": ["image generator", "text to image", "generate photo", "stable diffusion", "midjourney", "art creator", "illustration", "painting", "sdxl"],
-  "audio-vocal-remover": ["vocal remover", "stem splitter", "karaoke", "separate music", "voice isolation", "split audio", "vocals", "instrumentals"],
-  "resume-builder": ["cv", "resume builder", "job application", "ats", "portfolio", "curriculum vitae", "career"],
-  "social-caption-generator": ["caption maker", "instagram post", "copywriting", "hashtag helper", "social media", "writing", "facebook", "linkedin"],
-  "screenshot-to-code": ["ui to code", "figma to code", "export code", "frontend gen", "design converter", "wireframe"],
-  "ai-code": ["ide", "editor", "monaco", "coding assistant", "agentic coding", "programmer", "software development", "vs code"]
+  "image-eraser": ["bg", "remove bg", "background remover", "eraser", "cutout", "transparent", "erase"],
+  "ai-img-gen": ["image generator", "text to image", "generate photo", "art creator", "illustration", "art", "photo"],
+  "audio-vocal-remover": ["vocal remover", "stem splitter", "karaoke", "separate music", "voice isolation", "split audio", "vocals", "instrumentals", "music"],
+  "resume-builder": ["cv", "resume builder", "job application", "portfolio", "curriculum vitae", "career"],
+  "ai-writer": ["writer", "copywriter", "scripts", "blog post", "social caption", "ai writing", "content"],
+  "video-trimmer": ["video", "cut video", "trimmer", "clip", "video editor", "slice video"],
+  "pdf-ocr": ["ocr", "pdf", "scan text", "document", "extract text", "scanner", "invoice"],
+  "ai-code": ["code", "ide", "editor", "coding assistant", "terminal", "programmer", "software"]
 };
 
-// AI Smart Commands configuration
-const AI_COMMANDS = [
+// Category filter tabs
+const CATEGORIES = [
+  { id: "all", label: "All" },
+  { id: "image", label: "Image" },
+  { id: "audio", label: "Audio" },
+  { id: "ai", label: "AI Writing" },
+  { id: "video", label: "Video" },
+  { id: "pdf", label: "PDF" }
+];
+
+// Quick Navigation items
+const QUICK_COMMANDS = [
   { 
-    id: "cmd-img-upscale", 
-    label: "Upscale image to 4K resolution", 
-    description: "AI-driven clarity and pixel restoration", 
-    route: "/tools/ai/img-gen?action=upscale",
-    category: "AI Commands",
-    icon: <Sparkles size={16} className="text-accent-purple" />
+    id: "nav-tools", 
+    label: "Explore All 50+ Tools", 
+    description: "Browse the complete collection of creative utilities", 
+    route: "/tools",
+    category: "Explore",
+    icon: <Sparkles size={16} className="text-purple-400" />
   },
   { 
-    id: "cmd-bg-isolate", 
-    label: "Isolate main subject instantly", 
-    description: "Remove background with semantic subject parsing", 
-    route: "/tools/image/eraser?auto=true",
-    category: "AI Commands",
-    icon: <Wand2 size={16} className="text-accent-cyan" />
+    id: "nav-pro", 
+    label: "Exismic Pro Plan", 
+    description: "500 daily credits, 4K downloads, and priority speed", 
+    route: "/pro",
+    category: "Membership",
+    icon: <Crown size={16} className="text-amber-400" />
   },
   { 
-    id: "cmd-caption-marketing", 
-    label: "Generate viral copywriter caption", 
-    description: "Vision-based post caption creator", 
-    route: "/tools/social-caption-generator?auto=true",
-    category: "AI Commands",
-    icon: <FileText size={16} className="text-amber-500" />
+    id: "nav-assistant", 
+    label: "Ask Exismic AI Assistant", 
+    description: "Launch smart tool concierge", 
+    route: "#",
+    category: "AI",
+    icon: <Bot size={16} className="text-cyan-400" />
   },
   { 
-    id: "cmd-resume-software", 
-    label: "Draft elite Software Engineer resume", 
-    description: "ATS-optimized templates and copy", 
-    route: "/tools/resume-builder?template=software-engineer",
-    category: "Quick Actions",
-    icon: <FileText size={16} className="text-emerald-500" />
-  },
-  { 
-    id: "cmd-code-fresh", 
-    label: "Initialize Next.js project template", 
-    description: "Autonomous file setup in Exismic IDE", 
-    route: "/tools/ai/code?new=true",
-    category: "Quick Actions",
-    icon: <Code2 size={16} className="text-accent-purple" />
+    id: "nav-shop", 
+    label: "Credit Shop Vault", 
+    description: "Claim daily bonus or purchase credit bundles", 
+    route: "/shop",
+    category: "Store",
+    icon: <Zap size={16} className="text-cyan-400" />
   }
 ];
 
-// Rich text matching highlighting
 function HighlightedText({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
   
@@ -77,7 +93,7 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
     <>
       {parts.map((part, i) => 
         part.toLowerCase() === query.toLowerCase() ? (
-          <span key={i} className="text-accent-cyan font-black bg-accent-cyan/10 px-1 py-0.5 rounded transition-all duration-300">
+          <span key={i} className="text-cyan-300 font-bold bg-cyan-500/20 px-1 py-0.5 rounded">
             {part}
           </span>
         ) : (
@@ -91,6 +107,7 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 export function MagicCommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isExecuting, setIsExecuting] = useState<string | null>(null);
   
@@ -118,14 +135,23 @@ export function MagicCommandPalette() {
       }
     };
     
+    const handleOpenCustom = () => setIsOpen(true);
+    const handleToggleCustom = () => setIsOpen((prev) => !prev);
+    window.addEventListener("open-command-palette", handleOpenCustom);
+    window.addEventListener("toggle-command-palette", handleToggleCustom);
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("open-command-palette", handleOpenCustom);
+      window.removeEventListener("toggle-command-palette", handleToggleCustom);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+      setTimeout(() => inputRef.current?.focus(), 60);
       setQuery("");
+      setSelectedCategory("all");
       setSelectedIndex(0);
       setIsExecuting(null);
       document.body.style.overflow = 'hidden';
@@ -134,58 +160,77 @@ export function MagicCommandPalette() {
     }
   }, [isOpen]);
 
-  // Compute matched items dynamically based on the search query
+  // Compute matched items dynamically
   const searchResults = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
     
-    // 1. Default State: No search query entered (Smart categorized suggestions)
+    // Filter tools by category if selected
+    let sourceTools = TOOLS;
+    if (selectedCategory !== "all") {
+      sourceTools = TOOLS.filter(t => t.category === selectedCategory);
+    }
+
+    // 1. Default State (No text typed)
     if (!trimmed) {
-      const creativeSuite = TOOLS.filter(t => ["ai-img-gen", "image-eraser", "audio-vocal-remover", "resume-builder"].includes(t.id));
-      const developerSuite = TOOLS.filter(t => ["ai-code", "screenshot-to-code"].includes(t.id));
+      if (selectedCategory !== "all") {
+        return [
+          {
+            group: `${selectedCategory.toUpperCase()} TOOLS`,
+            items: sourceTools.map(t => ({
+              id: t.id,
+              label: t.name,
+              description: t.description,
+              category: t.category,
+              route: t.href,
+              icon: ICON_MAP[t.icon] ? (() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} className="text-purple-400" />; })() : <Sparkles size={16} className="text-purple-400" />,
+              pro: t.pro
+            }))
+          }
+        ];
+      }
+
+      const popularTools = TOOLS.filter(t => [
+        "image-eraser", 
+        "ai-img-gen", 
+        "audio-vocal-remover", 
+        "ai-writer",
+        "video-trimmer", 
+        "pdf-ocr"
+      ].includes(t.id));
       
       return [
         {
-          group: "Creative AI Suite",
-          items: creativeSuite.map(t => ({
+          group: "Featured Tools",
+          items: popularTools.map(t => ({
             id: t.id,
             label: t.name,
             description: t.description,
+            category: t.category,
             route: t.href,
-            icon: ICON_MAP[t.icon] ? <span className="text-accent-purple">{(() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} />; })()}</span> : <Sparkles size={16} />,
+            icon: ICON_MAP[t.icon] ? (() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} className="text-purple-400" />; })() : <Sparkles size={16} className="text-purple-400" />,
             pro: t.pro
           }))
         },
         {
-          group: "Developer Tools",
-          items: developerSuite.map(t => ({
-            id: t.id,
-            label: t.name,
-            description: t.description,
-            route: t.href,
-            icon: ICON_MAP[t.icon] ? <span className="text-accent-cyan">{(() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} />; })()}</span> : <Code2 size={16} />,
-            pro: t.pro
-          }))
-        },
-        {
-          group: "Quick Actions",
-          items: AI_COMMANDS.map(c => ({
+          group: "Quick Navigation",
+          items: QUICK_COMMANDS.map(c => ({
             id: c.id,
             label: c.label,
             description: c.description,
+            category: "Navigation",
             route: c.route,
             icon: c.icon,
-            pro: true
+            pro: false
           }))
         }
       ];
     }
 
-    // 2. Active Search State: Dynamic score-based filtering
+    // 2. Active Search Query State
     const matchedTools: any[] = [];
     const matchedCommands: any[] = [];
 
-    // Filter tools using natural language substring matching & synonyms
-    TOOLS.forEach(tool => {
+    sourceTools.forEach(tool => {
       let score = 0;
       const name = tool.name.toLowerCase();
       const desc = tool.description.toLowerCase();
@@ -195,10 +240,9 @@ export function MagicCommandPalette() {
       if (desc.includes(trimmed)) score += 4;
       if (cat.includes(trimmed)) score += 2;
 
-      // Synonym mapping scores
       const synonyms = TOOL_ALIASES[tool.id] || [];
       if (synonyms.some(s => s.includes(trimmed) || trimmed.includes(s))) {
-        score += 15; // Give synonyms heavy priority
+        score += 15;
       }
 
       if (score > 0) {
@@ -206,46 +250,47 @@ export function MagicCommandPalette() {
           id: tool.id,
           label: tool.name,
           description: tool.description,
+          category: tool.category,
           route: tool.href,
           score,
           pro: tool.pro,
-          icon: ICON_MAP[tool.icon] ? (() => { const Icon = ICON_MAP[tool.icon]; return <Icon size={16} />; })() : <Zap size={16} />
+          icon: ICON_MAP[tool.icon] ? (() => { const Icon = ICON_MAP[tool.icon]; return <Icon size={16} className="text-cyan-400" />; })() : <Zap size={16} className="text-cyan-400" />
         });
       }
     });
 
-    // Filter AI Commands
-    AI_COMMANDS.forEach(cmd => {
-      const label = cmd.label.toLowerCase();
-      const desc = cmd.description.toLowerCase();
-      
-      if (label.includes(trimmed) || desc.includes(trimmed)) {
-        matchedCommands.push({
-          id: cmd.id,
-          label: cmd.label,
-          description: cmd.description,
-          route: cmd.route,
-          icon: cmd.icon,
-          pro: true
-        });
-      }
-    });
+    if (selectedCategory === "all") {
+      QUICK_COMMANDS.forEach(cmd => {
+        const label = cmd.label.toLowerCase();
+        const desc = cmd.description.toLowerCase();
+        
+        if (label.includes(trimmed) || desc.includes(trimmed)) {
+          matchedCommands.push({
+            id: cmd.id,
+            label: cmd.label,
+            description: cmd.description,
+            category: "Navigation",
+            route: cmd.route,
+            icon: cmd.icon,
+            pro: false
+          });
+        }
+      });
+    }
 
-    // Sort tools by match relevance score
     matchedTools.sort((a, b) => b.score - a.score);
 
     const groups = [];
     if (matchedTools.length > 0) {
-      groups.push({ group: "Tools", items: matchedTools });
+      groups.push({ group: "Matching Tools", items: matchedTools });
     }
     if (matchedCommands.length > 0) {
-      groups.push({ group: "AI Commands", items: matchedCommands });
+      groups.push({ group: "Navigation", items: matchedCommands });
     }
 
     return groups;
-  }, [query]);
+  }, [query, selectedCategory]);
 
-  // Flattened results for keyboard cursor index positioning
   const flattenedItems = useMemo(() => {
     return searchResults.flatMap(g => g.items);
   }, [searchResults]);
@@ -253,11 +298,23 @@ export function MagicCommandPalette() {
   const handleExecute = (item: any) => {
     if (isExecuting) return;
     setIsExecuting(item.id);
+
+    if (item.id === "nav-assistant" || item.route === "#") {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("exismic_restore_ai_assistant"));
+      }
+      setTimeout(() => {
+        setIsOpen(false);
+        setIsExecuting(null);
+      }, 100);
+      return;
+    }
+
     setTimeout(() => {
       setIsOpen(false);
       setIsExecuting(null);
       router.push(item.route);
-    }, 450);
+    }, 180);
   };
 
   // Keyboard navigation controller
@@ -285,76 +342,117 @@ export function MagicCommandPalette() {
     return () => window.removeEventListener("keydown", handleKeyboardNavigation);
   }, [isOpen, flattenedItems, selectedIndex, isExecuting]);
 
-  // Reset selected cursor index whenever matches rebuild
   useEffect(() => {
     setSelectedIndex(0);
-  }, [query]);
+  }, [query, selectedCategory]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-start justify-center pt-[12vh] px-4 font-sans select-none">
-          {/* Transparent Backdrop Blur Overlay */}
+        <div className="fixed inset-0 z-[200] flex items-start justify-center pt-4 sm:pt-[12vh] px-3 sm:px-4 font-sans select-none">
+          
+          {/* Backdrop Blur Overlay */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => !isExecuting && setIsOpen(false)}
-            className="absolute inset-0 bg-[#030303]/85 backdrop-blur-2xl"
+            className="absolute inset-0 bg-[#020206]/85 backdrop-blur-2xl"
           />
 
-          {/* Immersive Floating Command Bar */}
+          {/* Luxury Obsidian Search Dialog */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.96, y: -15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -15 }}
             transition={{ type: "spring", stiffness: 450, damping: 30 }}
-            className="relative w-full max-w-2xl bg-zinc-950/95 border border-white/10 rounded-[2rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.9),0_0_50px_rgba(168,85,247,0.1)] overflow-hidden flex flex-col"
+            className="relative w-full max-w-2xl bg-gradient-to-b from-[#0e1022]/95 via-[#080914]/98 to-[#05060d]/98 border border-white/10 rounded-2xl sm:rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_60px_rgba(168,85,247,0.18)] overflow-hidden flex flex-col backdrop-blur-3xl max-h-[88vh] sm:max-h-[75vh]"
           >
-            {/* Ambient Background Lights */}
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-purple/40 to-transparent z-20" />
-            <div className="absolute -top-32 -left-32 w-64 h-64 bg-accent-purple/10 blur-[100px] rounded-full pointer-events-none" />
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-accent-cyan/10 blur-[100px] rounded-full pointer-events-none" />
+            {/* Top Multi-Spectrum Glow Rim */}
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-400/70 via-cyan-400/70 to-transparent pointer-events-none" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Input Header Area */}
-            <div className="relative flex items-center px-6 py-5 border-b border-white/5">
-              <Search size={18} className="text-zinc-500 shrink-0 mr-4" />
+            <div className="relative flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-white/[0.08] gap-3">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0 shadow-[0_0_12px_rgba(168,85,247,0.25)]">
+                <Search size={16} />
+              </div>
+              
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 disabled={isExecuting !== null}
-                placeholder={isExecuting ? "Opening secure workspace..." : "Search tools, actions or commands..."}
-                className="flex-1 bg-transparent border-none outline-none text-base text-white placeholder-zinc-500 font-bold tracking-tight uppercase italic leading-none disabled:opacity-50"
+                placeholder="Search tools, actions, or features..."
+                className="flex-1 bg-transparent border-none outline-none text-sm sm:text-base text-white placeholder-zinc-500 font-medium tracking-normal leading-none disabled:opacity-50"
               />
-              <button 
+
+              {/* Clear Query Button */}
+              {query && (
+                <button 
+                  onClick={() => setQuery("")}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+
+              {/* Universal Close Button (Dedicated for Mobile & Desktop) */}
+              <button
                 onClick={() => !isExecuting && setIsOpen(false)}
-                className="p-1.5 rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-white transition-all hover:scale-105 active:scale-95 ml-4"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-zinc-300 hover:text-white transition-all text-xs font-bold cursor-pointer shrink-0 active:scale-95 shadow-sm"
+                aria-label="Close search modal"
               >
-                <X size={14} />
+                <span>Close</span>
+                <span className="hidden sm:inline text-[9px] font-mono font-bold text-zinc-500 bg-black/40 px-1 py-0.5 rounded border border-white/10">ESC</span>
+                <X size={13} className="sm:hidden" />
               </button>
             </div>
 
-            {/* Dynamic Matched Lists Body */}
-            <div className="max-h-[50vh] overflow-y-auto no-scrollbar p-3 space-y-4 relative min-h-[200px]">
+            {/* Category Filter Pills Bar */}
+            <div className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 border-b border-white/[0.05] bg-white/[0.01] overflow-x-auto no-scrollbar">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer whitespace-nowrap border shrink-0",
+                    selectedCategory === cat.id
+                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/15"
+                  )}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Matched Lists Body */}
+            <div className="flex-1 overflow-y-auto no-scrollbar p-2.5 sm:p-3.5 space-y-4 relative min-h-[220px]">
               {isExecuting && (
-                <div className="absolute inset-0 z-50 bg-black/10 backdrop-blur-[1px] rounded-b-[2rem]" />
+                <div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-[1px] rounded-b-2xl flex items-center justify-center">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/90 border border-purple-500/40 text-purple-300 text-xs font-bold shadow-2xl">
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Opening tool...</span>
+                  </div>
+                </div>
               )}
 
               {flattenedItems.length === 0 ? (
-                <div className="py-16 text-center space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mx-auto text-zinc-600">
-                    <Terminal size={20} />
+                <div className="py-16 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mx-auto text-zinc-500">
+                    <Search size={20} />
                   </div>
                   <div>
-                    <p className="text-sm font-black uppercase tracking-wider text-white italic">No matches found</p>
-                    <p className="text-[10px] uppercase font-bold text-zinc-600 tracking-widest mt-1">Try typing another keyword</p>
+                    <p className="text-sm font-bold text-zinc-200">No tools found for &ldquo;{query}&rdquo;</p>
+                    <p className="text-xs text-zinc-500 mt-1">Try searching for background remover, vocal separator, or PDF.</p>
                   </div>
                 </div>
               ) : (
                 searchResults.map((group, groupIndex) => {
-                  // Compute baseline offset index of this group relative to flattened array
                   let previousItemsCount = 0;
                   for (let i = 0; i < groupIndex; i++) {
                     previousItemsCount += searchResults[i].items.length;
@@ -362,9 +460,9 @@ export function MagicCommandPalette() {
 
                   return (
                     <div key={group.group} className="space-y-1.5">
-                      <div className="px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500 flex items-center gap-2">
+                      <div className="px-3 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-500 flex items-center gap-2">
                         <span>{group.group}</span>
-                        <div className="h-px bg-white/5 flex-1" />
+                        <div className="h-px bg-white/[0.05] flex-1" />
                       </div>
 
                       <div className="space-y-1">
@@ -380,55 +478,72 @@ export function MagicCommandPalette() {
                               onClick={() => !isExecuting && handleExecute(item)}
                               disabled={isExecuting !== null}
                               className={cn(
-                                "w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-left transition-all duration-300 group relative border",
+                                "w-full flex items-center gap-3.5 px-3.5 sm:px-4 py-3 rounded-xl sm:rounded-2xl text-left transition-all duration-150 group relative border cursor-pointer",
                                 isSelected && !isExecuting 
-                                  ? "bg-white/[0.05] border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] scale-[1.005] -translate-y-0.5" 
-                                  : "bg-transparent border-transparent hover:bg-white/[0.02]"
+                                  ? "bg-gradient-to-r from-purple-500/15 via-indigo-500/10 to-transparent border-purple-500/35 shadow-[0_4px_20px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.08)] -translate-y-0.5" 
+                                  : "bg-zinc-950/40 border-white/[0.04] hover:bg-white/[0.03] hover:border-white/[0.08]"
                               )}
                             >
-                              {/* Item icon border container */}
+                              {/* Left Accent Selection Bar */}
+                              {isSelected && (
+                                <div className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-gradient-to-b from-purple-400 to-cyan-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                              )}
+
+                              {/* Icon container */}
                               <div className={cn(
-                                "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-500",
+                                "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 border shadow-sm",
                                 isSelected 
-                                  ? "bg-white/10 text-white border border-white/15 scale-110 shadow-md" 
-                                  : "bg-zinc-900 border border-white/5 text-zinc-500 group-hover:text-zinc-300"
+                                  ? "bg-purple-500/20 text-purple-200 border-purple-500/40 scale-105 shadow-[0_0_15px_rgba(168,85,247,0.3)]" 
+                                  : "bg-white/[0.03] border-white/[0.06] text-zinc-400 group-hover:text-zinc-200"
                               )}>
                                 {item.icon}
                               </div>
 
                               {/* Title / Description */}
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 flex-wrap">
-                                  <p className={cn(
-                                    "text-xs font-black uppercase italic tracking-wider transition-colors",
-                                    isSelected ? "text-white" : "text-zinc-300"
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={cn(
+                                    "text-xs sm:text-sm font-bold transition-colors",
+                                    isSelected ? "text-white" : "text-zinc-200"
                                   )}>
                                     <HighlightedText text={item.label} query={query} />
-                                  </p>
+                                  </span>
+
+                                  {item.category && item.category !== "Navigation" && (
+                                    <span className="px-1.5 py-0.2 rounded text-[8px] font-mono font-black uppercase bg-white/[0.04] text-zinc-400 border border-white/10">
+                                      {item.category}
+                                    </span>
+                                  )}
+
                                   {item.pro && (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/20 text-accent-purple text-[8px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(168,85,247,0.1)]">
-                                      <Crown size={8} fill="currentColor" /> Pro
-                                    </div>
+                                    <span className="flex items-center gap-1 px-1.5 py-0.2 rounded text-[8px] font-mono font-black uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+                                      <Crown size={9} /> Pro
+                                    </span>
                                   )}
                                 </div>
-                                <p className="text-[10px] text-zinc-500 font-bold truncate mt-0.5 uppercase tracking-tight">
+
+                                <p className="text-[11px] sm:text-xs text-zinc-400 font-medium truncate mt-0.5">
                                   <HighlightedText text={item.description} query={query} />
                                 </p>
                               </div>
 
-                              {/* Executing Spinner / Selection Cue */}
+                              {/* Selection Cue / Arrow */}
                               {executingThis ? (
-                                <div className="shrink-0 text-accent-cyan flex items-center pr-1">
+                                <div className="shrink-0 text-purple-400 flex items-center pr-1">
                                   <Loader2 size={14} className="animate-spin" />
                                 </div>
                               ) : isSelected ? (
-                                <div className="shrink-0 flex items-center gap-2 pr-1 opacity-100 transition-opacity">
-                                  <span className="text-[8px] font-black text-zinc-500 tracking-[0.2em] italic uppercase">ACTIVATE</span>
-                                  <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 text-[10px]">
-                                    <CornerDownLeft size={10} />
+                                <div className="flex shrink-0 items-center gap-1.5 pr-1 text-purple-300 font-bold text-xs">
+                                  <span className="hidden sm:inline text-[10px] font-medium text-zinc-400">Open</span>
+                                  <div className="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-200 shadow-sm">
+                                    <CornerDownLeft size={11} />
                                   </div>
                                 </div>
-                              ) : null}
+                              ) : (
+                                <div className="hidden sm:flex shrink-0 items-center text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                                  <ChevronRight size={14} />
+                                </div>
+                              )}
                             </button>
                           );
                         })}
@@ -439,20 +554,32 @@ export function MagicCommandPalette() {
               )}
             </div>
 
-            {/* Premium Status Footer Bar */}
-            <div className="px-6 py-4 border-t border-white/5 bg-zinc-950/60 flex items-center justify-between">
-              <div className="flex items-center gap-4 text-[9px] font-black tracking-widest uppercase text-zinc-500">
-                <span className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-white/5 text-[9px]">↑↓</kbd> navigate
+            {/* Clean Responsive Footer */}
+            <div className="px-4 sm:px-6 py-3 border-t border-white/[0.07] bg-white/[0.01] flex items-center justify-between text-xs text-zinc-400 font-medium">
+              <div className="flex items-center gap-3 sm:gap-4 text-[11px]">
+                <span className="hidden sm:flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-zinc-400">↑↓</kbd> 
+                  <span>Navigate</span>
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-white/5 text-[9px]">↵</kbd> select
+                <span className="hidden sm:flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-zinc-400">↵</kbd> 
+                  <span>Select</span>
+                </span>
+                <span className="sm:hidden text-zinc-400 text-[11px]">
+                  Tap any tool to open
                 </span>
               </div>
-              <div className="text-[9px] font-black uppercase tracking-widest text-accent-purple animate-pulse flex items-center gap-1.5">
-                <Sparkles size={11} /> Magic Commands Palette
-              </div>
+
+              <button
+                onClick={() => !isExecuting && setIsOpen(false)}
+                className="text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-zinc-300">ESC</kbd> 
+                <span>to close</span>
+              </button>
             </div>
+
           </motion.div>
         </div>
       )}

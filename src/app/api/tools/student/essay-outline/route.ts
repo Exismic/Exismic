@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
+import { requireApiUser, getRequestIp, checkDistributedRateLimit, rateLimitResponse } from "@/lib/api-security";
+import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const TOOL_COST = getToolCreditCost("essay-outline", 5);
 
 async function callGroq(messages: any[], model: string = DEFAULT_GROQ_TEXT_MODEL) {
   const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
@@ -42,6 +46,25 @@ async function callGroq(messages: any[], model: string = DEFAULT_GROQ_TEXT_MODEL
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireApiUser();
+    if (authResult instanceof NextResponse) return authResult;
+    const user = authResult;
+
+    const ip = getRequestIp(req);
+    const rateCheck = await checkDistributedRateLimit(`student-outline:${user.id || ip}`, 15, 60 * 1000);
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.retryAfter);
+    }
+
+    const userCredits = await getUserCredits(user.id);
+    const available = userCredits ? getCreditTotal(userCredits) : 0;
+    if (available < TOOL_COST) {
+      return NextResponse.json(
+        { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
+        { status: 402 }
+      );
+    }
+
     const body = await req.json();
     const { topic, paperType, academicTone } = body;
 
@@ -96,9 +119,13 @@ Academic Tone: ${academicTone || "standard academic"}`;
     const content = groqResponse.choices[0].message.content.trim();
     const parsedData = JSON.parse(content);
 
+    // Atomically deduct credits
+    await deductCredits(user.id, TOOL_COST, "essay-outline");
+
     return NextResponse.json({
       success: true,
-      data: parsedData
+      data: parsedData,
+      creditsDeducted: TOOL_COST,
     });
   } catch (error: any) {
     console.error("[EssayOutline API Error]:", error.response?.data || error.message);

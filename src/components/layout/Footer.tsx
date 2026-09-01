@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Sparkles, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
@@ -70,8 +70,8 @@ export function Footer() {
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    void supabase.auth.getSession().then(({ data }: any) => {
+      setSession(data?.session || null);
     });
   }, [supabase]);
 
@@ -82,17 +82,11 @@ export function Footer() {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(124,58,237,0.08),transparent_40%,rgba(34,211,238,0.055)_80%,transparent)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
-        <motion.section
-          initial={{ opacity: 0, y: 22 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="grid items-center gap-8 border-b border-white/[0.07] py-14 md:grid-cols-[1fr_auto] md:py-20"
-        >
+        <section className="grid items-center gap-8 border-b border-white/[0.07] py-14 md:grid-cols-[1fr_auto] md:py-20">
           <div className="max-w-3xl">
-            <div className="relative overflow-hidden inline-flex min-h-8 items-center gap-2 rounded-full border border-purple-400/40 bg-gradient-to-r from-purple-500/20 via-cyan-500/15 to-purple-500/20 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+            <div className="relative overflow-hidden inline-flex min-h-8 items-center gap-2 rounded-full border border-purple-400/40 bg-gradient-to-r from-purple-500/20 via-purple-600/15 to-purple-500/20 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
               <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-              <Sparkles size={12} className="relative z-10 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+              <Layers size={12} className="relative z-10 text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
               <span className="relative z-10 text-purple-200 drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]">
                 Your Exismic workspace
               </span>
@@ -157,7 +151,7 @@ export function Footer() {
               </span>
             </Link>
           </motion.div>
-        </motion.section>
+        </section>
 
         <div className="grid gap-12 py-14 md:grid-cols-[1.1fr_1.9fr] md:py-18 lg:gap-20">
           <div>
@@ -237,7 +231,7 @@ export function Footer() {
             </Link>
             <span className="hidden h-3.5 w-px bg-white/20 sm:block" />
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 shadow-sm">
-              <Sparkles size={11} className="text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+              <ExismicMark size={14} />
               <span className="bg-gradient-to-r from-cyan-200 via-white to-purple-300 bg-clip-text text-[10px] font-black uppercase tracking-[0.2em] text-transparent">
                 Exismic AI Studio
               </span>

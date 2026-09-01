@@ -3,12 +3,9 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { Dashboard } from "@/components/tool/Dashboard";
 import { LandingPage } from "@/components/layout/LandingPage";
 import { createClient } from "@/utils/supabase/server";
-import { CategorySection } from "@/components/tool/CategorySection";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { HomeToolConcierge } from "@/components/tool/HomeToolConcierge";
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = constructMetadata({
   title: "Exismic - All-in-One AI Tools | Free Background Remover, Image Generator & More",
@@ -45,14 +42,25 @@ const faqSchema = {
   ]
 };
 
-import { Crown, ArrowRight, Zap } from "lucide-react";
-import Link from "next/link";
-
 export default async function Home() {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  const hasAuthCookie = allCookies.some(
+    (c) => c.name.includes("auth-token") || c.name.startsWith("sb-")
+  );
 
-  if (!session) {
+  let user = null;
+  if (hasAuthCookie) {
+    try {
+      const supabase = await createClient();
+      const result = await supabase.auth.getUser();
+      user = result?.data?.user || null;
+    } catch {
+      user = null;
+    }
+  }
+
+  if (!user) {
     return (
       <>
         <LandingPage />
@@ -61,29 +69,15 @@ export default async function Home() {
     );
   }
 
-  const { data: dbUser } = await supabase
-    .from('User')
-    .select('isPro, credits')
-    .eq('id', session.user.id)
-    .single();
-    
-  const isPro = dbUser?.isPro || false;
-  const credits = dbUser?.credits || 0;
-
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto py-12">
+    <>
       <JsonLd type="FAQPage" data={faqSchema} />
       {/* Main Interactive Dashboard */}
-      <Dashboard />
+      <Dashboard initialUser={user} />
 
-      {/* Atmospheric Accents */}
-      <div className="fixed inset-0 -z-50 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-[#030303]" />
-        <div className="absolute top-[10%] right-[5%] w-[30%] h-[30%] bg-accent-purple/[0.03] blur-[150px] rounded-full" />
-        <div className="absolute bottom-[10%] left-[5%] w-[30%] h-[30%] bg-accent-blue/[0.03] blur-[150px] rounded-full" />
-        <div className="absolute inset-0 scanline opacity-20" />
-      </div>
+      {/* Ambient Depth Background */}
+      <div className="fixed inset-0 -z-50 pointer-events-none bg-[#030303]" />
       <HomeToolConcierge />
-    </div>
+    </>
   );
 }

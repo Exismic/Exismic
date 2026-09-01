@@ -85,12 +85,12 @@ export function ChatSidebar() {
 
   useEffect(() => {
     async function getSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSupabaseSession(session);
+      const { data }: any = await supabase.auth.getSession();
+      setSupabaseSession(data?.session || null);
     }
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSupabaseSession(session);
     });
 

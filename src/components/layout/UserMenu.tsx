@@ -1,6 +1,6 @@
 "use client";
 
-import { User, LogOut, LogIn, Sparkles, CreditCard, Settings, ShieldCheck, ChevronRight, Crown, RefreshCw } from "lucide-react";
+import { User, LogOut, LogIn, Sparkles, CreditCard, Settings, ShieldCheck, ChevronRight, Crown, RefreshCw, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,9 +13,9 @@ import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
 import { ManageSubscriptionModal } from "../tool/ManageSubscriptionModal";
 import { CreditModal } from "../ui/CreditModal";
-import { Zap } from "lucide-react";
 import { UserProfile } from "../ui/UserProfile";
 import { VerifiedTick } from "../ui/VerifiedTick";
+import { CreditTokenIcon } from "../ui/CreditTokenIcon";
 
 export function UserMenu() {
   const { isPro, user: dbUser, isLoading: isProLoading, refresh } = usePro();
@@ -55,20 +55,15 @@ export function UserMenu() {
     };
   }, []);
 
-  const isLoading = isProLoading || isCreditsLoading;
-
   useEffect(() => {
     setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
     async function getSession() {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
     }
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSession(session);
     });
 
@@ -94,7 +89,6 @@ export function UserMenu() {
       });
       const result = await res.json();
       if (result.success) {
-        // We no longer close immediately so the modal can show its success state
         await refresh();
         router.refresh();
       } else {
@@ -108,7 +102,7 @@ export function UserMenu() {
     }
   };
 
-  if (isLoading) {
+  if (isProLoading || isCreditsLoading) {
     return <div className="w-10 h-10 rounded-full bg-white/5 animate-pulse border border-white/10" />;
   }
 
@@ -161,14 +155,9 @@ export function UserMenu() {
                 setShowUpsell(true);
               }
             }}
-            className="flex items-center gap-3 pl-2 pr-2 py-1.5 rounded-full hover:bg-white/5 transition-all cursor-pointer group/credits"
+            className="flex items-center gap-2.5 pl-2 pr-2 py-1.5 rounded-full hover:bg-white/5 transition-all cursor-pointer group/credits"
           >
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 shadow-lg",
-              isPro ? "bg-accent-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]" : "bg-zinc-800 text-zinc-400"
-            )}>
-              <Zap size={14} fill="currentColor" className={isPro ? "animate-pulse" : ""} />
-            </div>
+            <CreditTokenIcon size={24} theme={isPro ? "purple" : "blue"} />
             <span suppressHydrationWarning className="text-sm font-black tracking-tight text-white pr-2">
               {credits.toLocaleString()}
             </span>
@@ -217,9 +206,7 @@ export function UserMenu() {
               <div className="px-6 py-6 border-t border-white/[0.05] bg-white/[0.01] space-y-5 relative z-10">
                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                       <div className="w-6 h-6 rounded-lg bg-accent-purple/10 flex items-center justify-center border border-accent-purple/20">
-                          <Zap size={11} className="text-accent-purple animate-pulse" />
-                       </div>
+                       <CreditTokenIcon size={20} theme="purple" animated={false} />
                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">Credits Available</span>
                     </div>
                     <span className="text-xs font-black text-white italic tracking-tight bg-zinc-900 border border-white/5 px-2.5 py-1 rounded-md shadow-inner">{credits.toLocaleString()}</span>
@@ -277,18 +264,17 @@ export function UserMenu() {
 
                  <div className="h-px bg-white/[0.04] my-2 mx-4" />
 
-                 <button 
-                   onClick={async () => {
-                      await supabase.auth.signOut();
-                      window.location.href = "/";
-                   }}
-                   className="w-full group flex items-center gap-3.5 px-5 py-4 text-[9.5px] font-black uppercase tracking-[0.2em] text-red-500/60 hover:text-red-400 hover:bg-red-500/5 border border-transparent hover:border-red-500/10 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden"
-                 >
-                    <div className="absolute left-0 w-[3px] h-4 rounded-r-full bg-red-500 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
-                    <LogOut size={15} className="text-red-500/40 group-hover:text-red-500 group-hover:translate-x-0.5 transition-all duration-300" />
-                    Sign Out
-                 </button>
-              </div>
+                 <button                    onClick={async () => {
+                       await supabase.auth.signOut();
+                       window.location.href = "/";
+                    }}
+                    className="w-full group flex items-center gap-3.5 px-5 py-4 text-[9.5px] font-black uppercase tracking-[0.2em] text-red-500/60 hover:text-red-400 hover:bg-red-500/5 border border-transparent hover:border-red-500/10 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden"
+                  >
+                     <div className="absolute left-0 w-[3px] h-4 rounded-r-full bg-red-500 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
+                     <LogOut size={15} className="text-red-500/40 group-hover:text-red-500 group-hover:translate-x-0.5 transition-all duration-300" />
+                     Sign Out
+                  </button>
+               </div>
             </motion.div>
           )}
         </AnimatePresence>

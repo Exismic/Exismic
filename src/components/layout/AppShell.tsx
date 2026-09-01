@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { GlobalToolAssistant } from "@/components/tool/GlobalToolAssistant";
 import { WelcomeModal } from "@/components/modals/WelcomeModal";
+import { QuestCompletionToast } from "@/components/reward/QuestCompletionToast";
 import { createClient } from "@/utils/supabase/client";
 
 type AppShellProps = {
@@ -21,6 +22,8 @@ export function AppShell({ children, hasSession }: AppShellProps) {
   const [clientHasSession, setClientHasSession] = useState(hasSession);
   const refreshedForSessionRef = useRef(false);
   const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
+  const isRewardsRoute = pathname === "/rewards" || pathname.startsWith("/rewards");
+  const isStandaloneRoute = isAuthRoute || isRewardsRoute;
   const isOverviewPage = pathname === "/" || pathname === "/dashboard" || pathname === "/tools";
 
   // Dynamic Background Colors based on route
@@ -73,7 +76,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
 
     void syncSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
       if (!mounted) return;
 
       const nextHasSession = Boolean(session);
@@ -98,58 +101,50 @@ export function AppShell({ children, hasSession }: AppShellProps) {
 
   return (
     <>
-      <div className="flex min-h-screen" suppressHydrationWarning>
-        {clientHasSession && !isAuthRoute ? <Sidebar /> : null}
+      <div className="flex h-screen h-[100dvh] w-full overflow-hidden bg-[#020202]" suppressHydrationWarning>
+        {clientHasSession && !isStandaloneRoute ? <Sidebar /> : null}
         <main
           suppressHydrationWarning
-          className="relative flex min-w-0 flex-1 flex-col bg-[#020202] isolate"
+          className="relative flex min-w-0 flex-1 flex-col h-full overflow-hidden bg-[#020202] isolate"
         >
-          {/* Global Ambient Background Studio - Optimized Hardware Accelerated */}
-          {!isOverviewPage && (
+          {/* Global Ambient Background Studio - Ultra Lightweight Hardware-Accelerated */}
+          {!isOverviewPage && !isStandaloneRoute && (
             <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#030305]">
-              {/* Hardware-Accelerated Ambient Gradient Orbs */}
+              {/* Native CSS Multi-point Radial Glows (Zero GPU blur overhead) */}
               <div 
-                className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full blur-[80px] opacity-40 will-change-transform transform-gpu transition-colors duration-1000"
-                style={{ background: `radial-gradient(circle, ${primaryGlow}, transparent 70%)` }}
+                className="absolute inset-0 transition-opacity duration-1000"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(circle at 5% 5%, ${primaryGlow} 0%, transparent 50%),
+                    radial-gradient(circle at 95% 95%, ${secondaryGlow} 0%, transparent 50%),
+                    radial-gradient(circle at 50% 30%, ${tertiaryGlow} 0%, transparent 40%)
+                  `
+                }}
               />
-              
-              <div 
-                className="absolute bottom-[-10%] right-[-5%] w-[55vw] h-[55vw] rounded-full blur-[80px] opacity-35 will-change-transform transform-gpu transition-colors duration-1000"
-                style={{ background: `radial-gradient(circle, ${secondaryGlow}, transparent 70%)` }}
-              />
-
-              <div 
-                className="absolute top-[25%] left-[25%] w-[40vw] h-[40vw] rounded-full blur-[90px] opacity-25 will-change-transform transform-gpu transition-colors duration-1000"
-                style={{ background: `radial-gradient(circle, ${tertiaryGlow}, transparent 70%)` }}
-              />
-
-              {/* Fast Glass Backdrop & Inline Local Grain */}
-              <div className="absolute inset-0 bg-[#030305]/60 backdrop-blur-3xl" />
-              <div className="absolute inset-0 grain opacity-[0.03]" />
-              
-              {/* Vignette for depth */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#030305_100%)]" />
+              {/* Subtle Vignette for depth */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,#030305_100%)]" />
             </div>
           )}
 
-
-          {!isAuthRoute ? <Navbar /> : null}
+          {/* If NOT on landing page or user is logged in, keep Navbar pinned above scroll content. If on landing page (logged out), Navbar scrolls with page */}
+          {(pathname !== "/" || clientHasSession) && !isStandaloneRoute ? <Navbar /> : null}
           <div
+            id="app-main-content"
             suppressHydrationWarning
-            className="no-scrollbar relative flex flex-1 flex-col overflow-y-auto z-10"
+            className="relative flex-1 overflow-y-auto overflow-x-hidden min-h-0 z-10 scroll-smooth"
           >
-            <div className="flex-1">{children}</div>
-            {!isAuthRoute ? <Footer /> : null}
-            <div
-              suppressHydrationWarning
-              className="grain pointer-events-none fixed inset-0 z-50 opacity-[0.02]"
-            />
+            {pathname === "/" && !clientHasSession && !isStandaloneRoute ? <Navbar /> : null}
+            <div className="flex min-h-full flex-col justify-between">
+              <div className="w-full flex-1">{children}</div>
+              {!isStandaloneRoute ? <Footer /> : null}
+            </div>
           </div>
         </main>
       </div>
-      {!isAuthRoute ? <MagicCommandPalette /> : null}
-      {!isAuthRoute ? <GlobalToolAssistant /> : null}
-      {!isAuthRoute && clientHasSession ? <WelcomeModal /> : null}
+      {!isStandaloneRoute ? <MagicCommandPalette /> : null}
+      {!isStandaloneRoute && pathname !== "/" ? <GlobalToolAssistant /> : null}
+      {!isStandaloneRoute && clientHasSession ? <WelcomeModal /> : null}
+      {!isStandaloneRoute && clientHasSession ? <QuestCompletionToast /> : null}
     </>
   );
 }

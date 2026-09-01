@@ -100,11 +100,9 @@ export function constructMetadata({
       apple: icons,
     },
     metadataBase: new URL(SITE_URL),
-    alternates: resolvedCanonicalUrl
-      ? {
-          canonical: resolvedCanonicalUrl,
-        }
-      : undefined,
+    alternates: {
+      canonical: resolvedCanonicalUrl || SITE_URL,
+    },
     robots: {
       index: shouldIndex,
       follow: shouldIndex,

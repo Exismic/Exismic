@@ -146,79 +146,94 @@ export function BlogPostClient({ post }: { post: BlogPostMetadata }) {
 
       {/* Article Content */}
       <main className="max-w-3xl mx-auto px-6 py-20 prose prose-invert prose-lg prose-headings:font-black prose-headings:tracking-tight prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-p:text-zinc-300 prose-p:leading-relaxed prose-li:text-zinc-300">
-        {post.slug === 'introducing-exismic' && (
+        {post.slug === 'exismic-1-5-release' && (
           <>
             <p className="text-xl sm:text-2xl text-zinc-300 font-medium leading-relaxed mb-14">
-              The modern creative process is broken. We bounce between tabs, juggle subscriptions, and constantly interrupt our flow state to deal with cluttered interfaces. Today, we're changing that. <strong className="text-white">Welcome to Exismic.</strong>
+              Today marks an exciting milestone for our community. We are officially releasing <strong className="text-white">Exismic 1.5</strong>—an update focused on empowering your creative journey, opening our ecosystem to developers, giving you new ways to earn and share credits, and delivering a thoroughly refined user experience.
             </p>
-            
-            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">Power Without the Clutter</h2>
-            <p className="text-lg text-zinc-300 leading-relaxed">
-              Exismic is built on a single, uncompromising philosophy: every pixel on your screen must earn its place. We've stripped away the noise and combined the absolute best of AI tooling into a single, unified workspace. Whether you're generating images, removing backgrounds, or writing code, Exismic gets out of your way and lets you create.
+
+            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">
+              Daily & Weekly Quests: Earn Credits While You Create
+            </h2>
+            <p className="text-lg text-zinc-300 leading-relaxed mb-6">
+              We believe that using creative tools should be rewarding. With Exismic 1.5, we are introducing an all-new <strong className="text-white">Quests system</strong> designed to reward your everyday exploration across the studio.
             </p>
-            
-            <blockquote className="relative my-16 overflow-hidden rounded-[2.5rem] border border-cyan-400/20 bg-[radial-gradient(ellipse_at_top_right,rgba(34,211,238,0.12),transparent_60%),rgba(255,255,255,0.02)] p-8 sm:p-12 shadow-2xl">
-              <div className="absolute -left-2 top-1/2 h-20 w-1.5 -translate-y-1/2 rounded-full bg-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.8)]" />
-              <p className="text-xl sm:text-3xl font-black italic leading-tight tracking-tight text-cyan-50">
-                "We didn't just want to build another AI tool. We wanted to build the last AI workspace you'll ever need to subscribe to."
+            <p className="text-lg text-zinc-300 leading-relaxed mb-8">
+              Whether you are generating new imagery, perfecting visual assets, or testing different tools, you can now complete rotating daily and weekly milestones to earn bonus credits. It provides an engaging and natural way to keep your creative momentum going without having to worry about running low on allowances.
+            </p>
+
+            <blockquote className="relative my-16 overflow-hidden rounded-[2.5rem] border border-purple-400/20 bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.12),transparent_60%),rgba(255,255,255,0.02)] p-8 sm:p-12 shadow-2xl">
+              <div className="absolute -left-2 top-1/2 h-20 w-1.5 -translate-y-1/2 rounded-full bg-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.8)]" />
+              <p className="text-xl sm:text-3xl font-black italic leading-tight tracking-tight text-purple-50">
+                "Our goal with 1.5 was simple: reward creators for their everyday work, open our capabilities to builders everywhere, and elevate the feel of every single screen."
               </p>
             </blockquote>
 
-            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">Everything You Need, In One Place</h2>
-            <p className="text-lg text-zinc-300 leading-relaxed mb-10">
-              With the launch of Exismic, we are rolling out a suite of elite tools designed specifically for high-end creative work.
+            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">
+              Developer API: Integrate Exismic Anywhere
+            </h2>
+            <p className="text-lg text-zinc-300 leading-relaxed mb-6">
+              For builders and software teams, we are opening our doors. Developers can now generate official API keys directly from their Exismic account and bring our generation and processing capabilities into their own applications, websites, and automated workflows.
             </p>
-            
-            <ul className="space-y-6 my-10 list-none pl-0">
-              <li className="group relative flex flex-col sm:flex-row items-start gap-6 p-8 rounded-[2.5rem] bg-[#030305]/80 border border-white/5 shadow-2xl transition-all duration-500 hover:bg-white/[0.02] hover:border-white/10 hover:-translate-y-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2.5rem]" />
-                <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 p-[2px] shadow-[0_0_30px_rgba(34,211,238,0.2)] group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] transition-all">
-                  <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#050508]">
-                    <span className="bg-gradient-to-br from-cyan-300 to-blue-400 bg-clip-text text-xl font-black text-transparent">1</span>
-                  </div>
-                </div>
-                <div className="relative z-10">
-                  <strong className="block text-xl font-black tracking-tight text-white mb-2">4K-Ready Exports</strong>
-                  <p className="text-zinc-400 leading-relaxed m-0 text-base">Keep detail intact. We ensure that when supported tools produce high-resolution output, you can actually use it for professional work.</p>
-                </div>
-              </li>
+            <p className="text-lg text-zinc-300 leading-relaxed mb-8">
+              With straightforward integration options and thorough documentation, bringing the speed and quality of Exismic to your custom projects is now simpler than ever.
+            </p>
+
+            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">
+              Yearly Pro Subscriptions & Creative Gifting
+            </h2>
+            <p className="text-lg text-zinc-300 leading-relaxed mb-6">
+              To give creators greater flexibility and value, Exismic Pro is now available with an <strong className="text-white">annual subscription plan</strong>. Members who prefer a single, uninterrupted yearly plan can now enjoy uninterrupted premium features, higher allowances, and exclusive perks with substantial annual savings.
+            </p>
+            <p className="text-lg text-zinc-300 leading-relaxed mb-8">
+              Alongside yearly memberships, we are introducing our new <strong className="text-white">Gifting system</strong>. You can now gift credits as well as full Exismic Pro memberships directly to friends, collaborators, or team members—making it easy to support other creators and collaborate with full access.
+            </p>
+
+            <ul className="space-y-6 my-12 list-none pl-0">
               <li className="group relative flex flex-col sm:flex-row items-start gap-6 p-8 rounded-[2.5rem] bg-[#030305]/80 border border-white/5 shadow-2xl transition-all duration-500 hover:bg-white/[0.02] hover:border-white/10 hover:-translate-y-1">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2.5rem]" />
-                <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-400 to-pink-600 p-[2px] shadow-[0_0_30px_rgba(168,85,247,0.2)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.4)] transition-all">
+                <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-600 p-[2px] shadow-[0_0_30px_rgba(168,85,247,0.2)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.4)] transition-all">
                   <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#050508]">
-                    <span className="bg-gradient-to-br from-purple-300 to-pink-400 bg-clip-text text-xl font-black text-transparent">2</span>
+                    <span className="bg-gradient-to-br from-purple-300 to-indigo-400 bg-clip-text text-xl font-black text-transparent">✦</span>
                   </div>
                 </div>
                 <div className="relative z-10">
-                  <strong className="block text-xl font-black tracking-tight text-white mb-2">Unlimited AI Conversations</strong>
-                  <p className="text-zinc-400 leading-relaxed m-0 text-base">Think, refine, and build without a daily message ceiling. Your creative flow shouldn't be interrupted by a rate limit.</p>
+                  <strong className="block text-xl font-black tracking-tight text-white mb-2">Annual Savings</strong>
+                  <p className="text-zinc-400 leading-relaxed m-0 text-base">Enjoy all the benefits of Exismic Pro all year long with our most cost-effective membership tier to date.</p>
                 </div>
               </li>
               <li className="group relative flex flex-col sm:flex-row items-start gap-6 p-8 rounded-[2.5rem] bg-[#030305]/80 border border-white/5 shadow-2xl transition-all duration-500 hover:bg-white/[0.02] hover:border-white/10 hover:-translate-y-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2.5rem]" />
-                <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 p-[2px] shadow-[0_0_30px_rgba(52,211,153,0.2)] group-hover:shadow-[0_0_40px_rgba(52,211,153,0.4)] transition-all">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2.5rem]" />
+                <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-600 p-[2px] shadow-[0_0_30px_rgba(244,63,94,0.2)] group-hover:shadow-[0_0_40px_rgba(244,63,94,0.4)] transition-all">
                   <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#050508]">
-                    <span className="bg-gradient-to-br from-emerald-300 to-cyan-400 bg-clip-text text-xl font-black text-transparent">3</span>
+                    <span className="bg-gradient-to-br from-pink-300 to-rose-400 bg-clip-text text-xl font-black text-transparent">♥</span>
                   </div>
                 </div>
                 <div className="relative z-10">
-                  <strong className="block text-xl font-black tracking-tight text-white mb-2">Code and Creative Power Together</strong>
-                  <p className="text-zinc-400 leading-relaxed m-0 text-base">Use the same membership across Exismic AI, Code Studio, and Pro tools. It's the ultimate toolkit for the modern builder.</p>
+                  <strong className="block text-xl font-black tracking-tight text-white mb-2">Gift Credits & Memberships</strong>
+                  <p className="text-zinc-400 leading-relaxed m-0 text-base">Surprise collaborators, reward community friends, or send a creative boost with instant credit gifts and giftable Pro plans.</p>
                 </div>
               </li>
             </ul>
 
-            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">Commercial Usage Rights</h2>
+            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">
+              Visual Refinements & Enhanced Reliability
+            </h2>
+            <p className="text-lg text-zinc-300 leading-relaxed mb-6">
+              Alongside our major feature additions, Exismic 1.5 brings tons of UI changes across the entire interface. Workspaces now feature cleaner dark aesthetics, refined input controls, smoother transitions, and uncluttered layouts designed to keep your attention on what you create rather than on the tools around it.
+            </p>
             <p className="text-lg text-zinc-300 leading-relaxed mb-8">
-              When you upgrade to Exismic Pro, you aren't just getting better tools—you're getting a business partner. We include full commercial usage rights, allowing you to use eligible Pro outputs for brands, client work, and paid projects without hesitation. 
+              We have also resolved various bugs and errors across the platform, improving overall responsiveness and ensuring a reliable, fluid experience from the moment you sign in.
             </p>
 
-            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">The Road Ahead</h2>
+            <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500 mt-20 mb-8">
+              Experience Exismic 1.5 Today
+            </h2>
             <p className="text-lg text-zinc-300 leading-relaxed mb-6">
-              This is just day one. We are already hard at work on the next generation of Exismic tools, including exclusive themes, avatar frames, and animated identity styles for Pro members. 
+              All of these updates are live right now. Log in to your dashboard to check your new daily quests, explore the developer section, or upgrade your plan.
             </p>
             <p className="text-lg text-zinc-300 leading-relaxed">
-              Thank you for joining us on this journey. We can't wait to see what you create.
+              Thank you for being part of the Exismic community. We cannot wait to see everything you build with these new tools.
             </p>
           </>
         )}

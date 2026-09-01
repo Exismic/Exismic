@@ -2,8 +2,15 @@ import { PRICING_CONFIG } from "@/config/pricing";
 import { prisma } from "@/lib/prisma";
 import { type BillingPlanId, getBillingPlan } from "@/lib/billing/plans";
 import { generateTransactionReference } from "@/lib/payment-reference";
-import { sendCreditsPurchasedEmail, sendPaymentFailedEmail, sendProRenewalReceiptEmail, sendProWelcomeEmail } from "@/lib/emails";
+import { 
+  sendCreditsPurchasedEmail, 
+  sendPaymentFailedEmail, 
+  sendProRenewalReceiptEmail, 
+  sendProWelcomeEmail,
+  sendGiftVoucherPurchasedEmail
+} from "@/lib/emails";
 import { createNotification } from "@/lib/notifications";
+import { generateGiftCode } from "@/lib/gifts";
 
 type FulfillPaymentInput = {
   orderId: string;
@@ -103,14 +110,45 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
     const isProPlan = plan.id === "pro" || plan.id === "pro_yearly";
     const currentPeriodEnd = isProPlan ? periodEnd || periodEndFor(plan.id) : null;
     const existingMeta = order.metadata && typeof order.metadata === "object" ? order.metadata as Record<string, unknown> : {};
+    const isGift = Boolean(existingMeta.isGift === true || existingMeta.isGift === "true" || existingMeta.isGift === 1 || Boolean((existingMeta as any)?.isGift));
     const resolvedProviderPaymentId = providerPaymentId || order.providerPaymentId || `${order.gateway}_${order.id}`;
-    const transactionKind = isProPlan ? "pro_subscription" : "credit_purchase";
+    
+    let generatedGiftCode: string | null = null;
+    let giftType = existingMeta.giftType as string;
+
+    if (isGift) {
+      if (!giftType) {
+        giftType = isProPlan ? (plan.id === "pro_yearly" ? "pro_yearly" : "pro_monthly") : "credits";
+      }
+      generatedGiftCode = (existingMeta.giftCode as string) || generateGiftCode(giftType as any, order.credits);
+
+      // Register 1-time voucher code in DB
+      const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      await tx.promoCode.upsert({
+        where: { code: generatedGiftCode },
+        create: {
+          code: generatedGiftCode,
+          bonusCredits: giftType === "credits" ? order.credits : 0,
+          maxRedemptions: 1,
+          redemptionCount: 0,
+          expiresAt,
+        },
+        update: {},
+      });
+    }
+
+    const transactionKind = isGift 
+      ? (isProPlan ? "gift_pro_pass" : "gift_credit_pack")
+      : (isProPlan ? "pro_subscription" : "credit_purchase");
+
     const transactionMetadata = {
       billingOrderId: order.id,
       planId: plan.id,
       credits: order.credits,
       gateway: order.gateway,
       market: order.market,
+      isGift,
+      ...(generatedGiftCode ? { giftCode: generatedGiftCode, giftType } : {}),
       ...(currentPeriodEnd ? { nextBillingTime: currentPeriodEnd.toISOString() } : {}),
       ...rawMetadata,
     };
@@ -120,7 +158,13 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
       data: {
         status: "paid",
         providerPaymentId: resolvedProviderPaymentId,
-        metadata: { ...existingMeta, ...rawMetadata, fulfilledAt: new Date().toISOString() },
+        metadata: {
+          ...existingMeta,
+          ...rawMetadata,
+          isGift,
+          ...(generatedGiftCode ? { giftCode: generatedGiftCode, giftType } : {}),
+          fulfilledAt: new Date().toISOString()
+        },
       },
     });
 
@@ -147,6 +191,21 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
         metadata: transactionMetadata,
       },
     });
+
+    if (isGift) {
+      // For gift orders, we do NOT attach Pro / credits directly to the buyer's account.
+      // The recipient will redeem the generated voucher code.
+      return {
+        order: paidOrder,
+        alreadyProcessed: false,
+        transactionReference: paymentTransaction.transactionReference,
+        plan,
+        isGift: true,
+        giftCode: generatedGiftCode,
+        currentPeriodEnd: null,
+        commissionAwarded: null,
+      };
+    }
 
     await tx.userBilling.upsert({
       where: { userId: order.userId },
@@ -277,52 +336,87 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
   });
 
   if (!result.alreadyProcessed && result.plan) {
-    if (result.commissionAwarded) {
-      await createNotification(
-        result.commissionAwarded.referrerId,
-        "Referral Commission Applied!",
-        `You received +${result.commissionAwarded.amount} bonus credits from your referred friend's purchase!`,
+    if (result.isGift && result.giftCode) {
+      createNotification(
+        result.order.userId,
+        "🎁 Gift Voucher Ready!",
+        `Your gift voucher code (${result.giftCode}) is active and ready to share!`,
         "success"
-      );
-    }
+      ).catch((error) => console.error(`[Billing] Gift notification failed for order ${result.order.id}:`, error));
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: result.order.userId },
-      select: { email: true },
-    });
-    const email = dbUser?.email;
-    const reference = result.transactionReference || result.order.providerPaymentId || result.order.id;
+      const dbUser = await prisma.user.findUnique({
+        where: { id: result.order.userId },
+        select: { email: true },
+      });
+      const email = dbUser?.email || ((result.order.metadata as any)?.buyerEmail as string);
+      const reference = result.transactionReference || result.order.providerPaymentId || result.order.id;
 
-    if (email) {
-      const emailSent = (result.plan.id === "pro" || result.plan.id === "pro_yearly")
-        ? await sendProWelcomeEmail(email, {
-            invoiceId: reference,
-            amount: formatAmount(result.order.amount, result.order.currency),
-            date: (result.currentPeriodEnd || new Date()).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            }),
-          })
-        : await sendCreditsPurchasedEmail(email, {
-            credits: result.order.credits,
-            amount: formatAmount(result.order.amount, result.order.currency),
-            invoiceId: reference,
-          });
+      if (email) {
+        const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://exismic.com";
+        const redeemUrl = `${siteUrl}/redeem?code=${encodeURIComponent(result.giftCode)}`;
+        const isPro = result.plan.id === "pro" || result.plan.id === "pro_yearly";
+        const giftTitle = isPro 
+          ? (result.plan.id === "pro_yearly" ? "1-Year Exismic Pro Pass" : "1-Month Exismic Pro Pass")
+          : `${result.order.credits.toLocaleString()} AI Generation Credits`;
 
-      if (!emailSent) {
-        console.error(`[Billing] Purchase email failed for order ${result.order.id}`);
+        sendGiftVoucherPurchasedEmail(email, {
+          giftCode: result.giftCode,
+          giftTitle,
+          amount: formatAmount(result.order.amount, result.order.currency),
+          invoiceId: reference,
+          redeemUrl,
+          recipientName: (result.order.metadata as any)?.recipientName || null,
+          recipientMessage: (result.order.metadata as any)?.recipientMessage || null,
+        }).catch((err) => console.error("[Email] Gift receipt email failed:", err));
       }
-    }
+    } else {
+      if (result.commissionAwarded) {
+        await createNotification(
+          result.commissionAwarded.referrerId,
+          "Referral Commission Applied!",
+          `You received +${result.commissionAwarded.amount} bonus credits from your referred friend's purchase!`,
+          "success"
+        );
+      }
 
-    createNotification(
-      result.order.userId,
-      (result.plan.id === "pro" || result.plan.id === "pro_yearly") ? "Pro membership active" : "Credits added",
-      (result.plan.id === "pro" || result.plan.id === "pro_yearly")
-        ? "Your Exismic Pro membership is ready."
-        : `${result.order.credits.toLocaleString()} permanent credits were added to your account.`,
-      "success",
-    ).catch((error) => console.error(`[Billing] Notification failed for order ${result.order.id}:`, error));
+      const dbUser = await prisma.user.findUnique({
+        where: { id: result.order.userId },
+        select: { email: true },
+      });
+      const email = dbUser?.email;
+      const reference = result.transactionReference || result.order.providerPaymentId || result.order.id;
+
+      if (email) {
+        const emailSent = (result.plan.id === "pro" || result.plan.id === "pro_yearly")
+          ? await sendProWelcomeEmail(email, {
+              invoiceId: reference,
+              amount: formatAmount(result.order.amount, result.order.currency),
+              date: (result.currentPeriodEnd || new Date()).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              }),
+            })
+          : await sendCreditsPurchasedEmail(email, {
+              credits: result.order.credits,
+              amount: formatAmount(result.order.amount, result.order.currency),
+              invoiceId: reference,
+            });
+
+        if (!emailSent) {
+          console.error(`[Billing] Purchase email failed for order ${result.order.id}`);
+        }
+      }
+
+      createNotification(
+        result.order.userId,
+        (result.plan.id === "pro" || result.plan.id === "pro_yearly") ? "Pro membership active" : "Credits added",
+        (result.plan.id === "pro" || result.plan.id === "pro_yearly")
+          ? "Your Exismic Pro membership is ready."
+          : `${result.order.credits.toLocaleString()} permanent credits were added to your account.`,
+        "success",
+      ).catch((error) => console.error(`[Billing] Notification failed for order ${result.order.id}:`, error));
+    }
   }
 
   return result;

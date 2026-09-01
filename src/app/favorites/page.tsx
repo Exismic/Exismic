@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FavoritesMigration } from "@/components/ui/FavoritesMigration";
 import { isFavoriteToolId } from "@/lib/favorites";
 import { listFavoriteToolIds, resolveFavoriteOwner } from "@/lib/server/favorites";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,8 @@ export default async function FavoritesPage() {
   const favoritedTools = TOOLS.filter(tool => favoritedIds.includes(tool.id));
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-10 sm:space-y-12 pb-28 md:pb-32 overflow-x-hidden">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 sm:space-y-10 pb-28 md:pb-32 overflow-x-hidden">
+      <PageBreadcrumb items={[{ label: "Favorite Tools" }]} />
       <FavoritesMigration />
       {/* Header Section */}
       <div className="relative space-y-4">

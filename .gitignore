@@ -31,6 +31,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 *.log
+*.err.log
+*.out.log
+dev-server.log
+exismic-dev.*
+discord-card-dev.*
 /BILLING_TESTING.md
 /PAYPAL_SANDBOX_SETUP.md
 

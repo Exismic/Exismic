@@ -86,6 +86,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         returning id
       `;
       leadId = lead?.id ?? null;
+
+      // Dispatch webhook notification in the background
+      const { dispatchSupportAgentAlert } = await import("@/lib/support-agent/notifications");
+      dispatchSupportAgentAlert({
+        agentName: agent.name || "Exismic Support",
+        leadName,
+        leadEmail,
+        leadPhone,
+        message,
+        webhookUrl: process.env.SUPPORT_AGENT_DISCORD_WEBHOOK_URL || null,
+      }).catch((e) => console.error("[LEAD_WEBHOOK_ERROR]", e));
     }
 
     let conversationId = isUuid(body.conversationId) ? body.conversationId : undefined;

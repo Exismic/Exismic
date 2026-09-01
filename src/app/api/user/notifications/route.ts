@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { getOrCreateUser } from "@/lib/user-access";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,8 +11,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const dbUser = await getOrCreateUser(user);
+    const userId = dbUser.id;
+
     const notifications = await prisma.notification.findMany({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: 10,
     });
@@ -31,29 +35,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const dbUser = await getOrCreateUser(user);
+    const userId = dbUser.id;
+
     const body = await req.json();
     const { action, id } = body;
 
     if (action === "mark-read") {
       if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
       await prisma.notification.updateMany({
-        where: { id, userId: user.id },
+        where: { id, userId },
         data: { read: true },
+      });
+    } else if (action === "delete") {
+      if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      await prisma.notification.deleteMany({
+        where: { id, userId },
       });
     } else if (action === "mark-all-read") {
       await prisma.notification.updateMany({
-        where: { userId: user.id, read: false },
+        where: { userId, read: false },
         data: { read: true },
       });
     } else if (action === "clear-all") {
       await prisma.notification.deleteMany({
-        where: { userId: user.id },
+        where: { userId },
       });
     } else if (action === "claim") {
       if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
       
       const notification = await prisma.notification.findFirst({
-        where: { id, userId: user.id },
+        where: { id, userId },
       });
 
       if (!notification) {
@@ -71,7 +83,7 @@ export async function POST(req: NextRequest) {
       if (rewardType === "credits" && amount > 0) {
         await prisma.$transaction(async (tx) => {
           await tx.user.update({
-            where: { id: user.id },
+            where: { id: userId },
             data: {
               bonusCredits: { increment: amount },
               lifetimeCredits: { increment: amount },
@@ -80,7 +92,7 @@ export async function POST(req: NextRequest) {
 
           await tx.creditTransaction.create({
             data: {
-              userId: user.id,
+              userId,
               amount: amount,
               balanceType: "bonus",
               transactionType: "admin_reward",
@@ -94,7 +106,7 @@ export async function POST(req: NextRequest) {
         });
       } else if (rewardType === "pro" && amount > 0) {
         const userRecord = await prisma.user.findUnique({
-          where: { id: user.id },
+          where: { id: userId },
           select: { planExpiresAt: true, plan: true },
         });
 
@@ -106,7 +118,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.$transaction(async (tx) => {
           await tx.user.update({
-            where: { id: user.id },
+            where: { id: userId },
             data: {
               plan: "pro",
               planExpiresAt: newExpiry,

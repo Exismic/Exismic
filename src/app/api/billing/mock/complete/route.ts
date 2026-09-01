@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    await fulfillBillingOrder({
+    const result = await fulfillBillingOrder({
       orderId,
       providerPaymentId: `mock_pay_${orderId}`,
       rawMetadata: {
@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
       gateway: "mock",
       type,
       credits,
+      ...(result.isGift && result.giftCode ? { isGift: "true", giftCode: result.giftCode } : {}),
     });
     return NextResponse.redirect(`${origin}/billing/success?${params.toString()}`);
   } catch (error) {

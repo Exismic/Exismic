@@ -12,6 +12,9 @@ import { hasActiveProAccess } from "@/lib/user-access";
 type CreateOrderBody = {
   planId?: string;
   marketOverride?: "IN" | "GLOBAL";
+  isGift?: boolean;
+  recipientName?: string;
+  recipientMessage?: string;
 };
 
 function getRazorpayClient() {
@@ -156,12 +159,13 @@ export async function POST(req: NextRequest) {
     const plan = getBillingPlan(body.planId);
     if (!plan) return NextResponse.json({ error: "Invalid plan selected." }, { status: 400 });
 
+    const isGift = Boolean(body.isGift);
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { plan: true, subscriptionStatus: true, planExpiresAt: true },
+      select: { plan: true, subscriptionStatus: true, planExpiresAt: true, email: true },
     });
     const isProSubscriptionPlan = plan.id === "pro" || plan.id === "pro_yearly";
-    if (isProSubscriptionPlan && dbUser && hasActiveProAccess(dbUser)) {
+    if (isProSubscriptionPlan && !isGift && dbUser && hasActiveProAccess(dbUser)) {
       return NextResponse.json({ error: "Your Pro membership is already active." }, { status: 409 });
     }
 
@@ -180,11 +184,11 @@ export async function POST(req: NextRequest) {
     const market = marketInfo.market as BillingMarket;
     const basePrice = getPlanPrice(plan.id, market);
 
-    // Check for active retention discount to apply 30% price reduction on Pro subscription
+    // Check for active retention discount to apply 30% price reduction on Pro subscription (only for personal, not gift)
     let finalAmountMinor = basePrice.amountMinor;
     let appliedRetentionDiscount = false;
 
-    if (isProSubscriptionPlan) {
+    if (isProSubscriptionPlan && !isGift) {
       const activeRetentionOrder = await prisma.paymentOrder.findFirst({
         where: {
           userId: user.id,
@@ -217,6 +221,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, free: true, plan: publicPlan(plan.id, market) });
     }
 
+    const giftType = plan.id === "pro_yearly" 
+      ? "pro_yearly" 
+      : plan.id === "pro" 
+      ? "pro_monthly" 
+      : "credits";
+
     const paymentOrder = await prisma.paymentOrder.create({
       data: {
         userId: user.id,
@@ -230,6 +240,12 @@ export async function POST(req: NextRequest) {
           countryCode: marketInfo.countryCode,
           displayAmount: price.display,
           appliedRetentionDiscount,
+          isGift,
+          giftType,
+          giftCredits: plan.credits,
+          buyerEmail: dbUser?.email || user.email,
+          recipientName: body.recipientName?.trim() || null,
+          recipientMessage: body.recipientMessage?.trim() || null,
         },
       },
     });
@@ -258,12 +274,13 @@ export async function POST(req: NextRequest) {
         amount: price.amountMinor,
         currency: price.currency,
         plan: publicPlan(plan.id, market),
+        isGift,
       });
     }
     if (price.gateway === "razorpay") {
       const razorpay = getRazorpayClient();
 
-      if (isProSubscriptionPlan) {
+      if (isProSubscriptionPlan && !isGift) {
         const razorpaySubscription = await createRazorpayProSubscription(razorpay, paymentOrder.id, user.id, price, plan.id === "pro_yearly");
 
         await prisma.paymentOrder.update({
@@ -284,6 +301,7 @@ export async function POST(req: NextRequest) {
           amount: price.amountMinor,
           currency: price.currency,
           plan: publicPlan(plan.id, market),
+          isGift,
         });
       }
 
@@ -296,6 +314,7 @@ export async function POST(req: NextRequest) {
           userId: user.id,
           planId: plan.id,
           market,
+          isGift: isGift ? "true" : "false",
         },
       });
 
@@ -314,6 +333,7 @@ export async function POST(req: NextRequest) {
         amount: price.amountMinor,
         currency: price.currency,
         plan: publicPlan(plan.id, market),
+        isGift,
       });
     }
     const origin = checkoutOrigin(req);

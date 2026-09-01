@@ -10,6 +10,7 @@
     "lint": "eslint",
     "email:test": "node scripts/send-email-tests.cjs",
     "seo:audit": "node scripts/seo-audit.cjs",
+    "seo:ping": "node scripts/ping-search-engines.mjs",
     "discord:presence": "node scripts/discord-presence-worker.mjs"
   },
   "dependencies": {

@@ -24,6 +24,14 @@ export const ALLOWED_AVATAR_FRAMES = new Set([
   'hyper-violet',
   'aurora-borealis',
   'obsidian-onyx',
+  'hologram-prism',
+  'crimson-inferno',
+  'quantum-flux',
+  'celestial-platinum',
+  'plasma-storm',
+  'sakura-blossom',
+  'golden-pharaoh',
+  'dark-matter',
 ]);
 
 export const ALLOWED_NAME_GRADIENTS = new Set([
@@ -40,6 +48,14 @@ export const ALLOWED_NAME_GRADIENTS = new Set([
   'hyper-fuchsia',
   'electric-amber',
   'stealth-silver',
+  'hologram-prism',
+  'crimson-inferno',
+  'quantum-mint',
+  'aurora-borealis',
+  'plasma-neon',
+  'sakura-bloom',
+  'mythic-pharaoh',
+  'abyssal-violet',
 ]);
 
 export const ALLOWED_PROFILE_THEMES = new Set([
@@ -49,6 +65,12 @@ export const ALLOWED_PROFILE_THEMES = new Set([
   'neon-shadow',
   'royal-eclipse',
   'minimal-frost',
+  'hologram-synth',
+  'blood-inferno',
+  'tokyo-sakura',
+  'solar-flare',
+  'abyssal-singularity',
+  'cyber-matrix',
 ]);
 
 export async function getOrCreateUser(sessionUser: SessionUser) {
@@ -114,7 +136,7 @@ export function hasActiveProAccess(user: {
   if (!user) return false;
 
   const email = (user.email || '').toLowerCase();
-  if (user.role === 'admin' || email === 'syedyaseeralirayan@gmail.com' || email === 'syedrayan.dev@gmail.com') return true;
+  if (user.role === 'admin' || email === 'syedyaseeralirayan@gmail.com') return true;
 
 
   const plan = (user.plan || 'free').toLowerCase();

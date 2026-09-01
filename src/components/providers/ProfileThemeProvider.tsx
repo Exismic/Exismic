@@ -20,7 +20,13 @@ export function ProfileThemeProvider({ children }: { children: React.ReactNode }
       "theme-cosmic-nebula",
       "theme-neon-shadow",
       "theme-royal-eclipse",
-      "theme-minimal-frost"
+      "theme-minimal-frost",
+      "theme-hologram-synth",
+      "theme-blood-inferno",
+      "theme-tokyo-sakura",
+      "theme-solar-flare",
+      "theme-abyssal-singularity",
+      "theme-cyber-matrix"
     ];
 
     document.documentElement.classList.remove(...themes);
@@ -33,11 +39,11 @@ export function ProfileThemeProvider({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data }: any) => {
+      setSession(data?.session || null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSession(session);
     });
 

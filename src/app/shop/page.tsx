@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
   ArrowRight,
+  Award,
   CheckCircle2,
   Coins,
   CreditCard,
@@ -17,8 +18,8 @@ import {
   Info,
   Loader2,
   Lock,
+  Plus,
   ShieldCheck,
-  Sparkles,
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,13 +32,18 @@ import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
 import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
 import { DailyRewardLootBox } from "@/components/reward/DailyRewardLootBox";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
+import { GiftPurchaseModal } from "@/components/modals/GiftPurchaseModal";
+import { GiftSuccessModal } from "@/components/modals/GiftSuccessModal";
 
 const rarityRows = [
   { name: "Common", amount: "10", chance: "Base", color: "text-zinc-300", dot: "bg-zinc-300", aura: "from-zinc-300/25 to-white/5" },
   { name: "Uncommon", amount: "20", chance: "Often", color: "text-cyan-200", dot: "bg-cyan-300", aura: "from-cyan-300/35 to-blue-400/10" },
   { name: "Rare", amount: "50", chance: "Lucky", color: "text-blue-200", dot: "bg-blue-300", aura: "from-blue-300/35 to-violet-400/12" },
   { name: "Epic", amount: "100", chance: "Very lucky", color: "text-fuchsia-200", dot: "bg-fuchsia-300", aura: "from-fuchsia-300/40 to-purple-500/16" },
-  { name: "Legendary", amount: "250", chance: "Ultra rare", color: "text-amber-200", dot: "bg-amber-300", aura: "from-amber-200/45 to-fuchsia-400/18" },
+  { name: "Legendary", amount: "500", chance: "Jackpot", color: "text-amber-200", dot: "bg-amber-300", aura: "from-amber-300/45 to-orange-500/20" },
 ];
 
 const claimParticles = Array.from({ length: 16 }, (_, index) => ({
@@ -52,10 +58,66 @@ function getRewardVisual(rarity?: string) {
   return rarityRows.find((row) => row.name.toLowerCase() === normalized) || rarityRows[0];
 }
 
-const packStyles: Record<string, { icon: typeof Zap; gradient: string; glow: string; numberGradient: string }> = {
-  blue: { icon: Coins, gradient: "from-cyan-400/18 via-blue-500/12 to-violet-500/12", glow: "shadow-cyan-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]" },
-  purple: { icon: Diamond, gradient: "from-violet-400/20 via-fuchsia-500/12 to-cyan-400/10", glow: "shadow-violet-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#c084fc,#06b6d4,#fff)] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" },
-  gold: { icon: Crown, gradient: "from-amber-300/18 via-fuchsia-500/10 to-violet-500/12", glow: "shadow-amber-500/10", numberGradient: "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]" },
+const packStyles: Record<string, {
+  icon: typeof Zap;
+  iconColor: string;
+  iconBg: string;
+  cardBorder: string;
+  ambientGradient: string;
+  topBeam: string;
+  numberGradient: string;
+  conicGradient: string;
+  markTheme: "blue" | "purple" | "gold";
+  subtitle: string;
+  subtitleColor: string;
+  arrowBoxHover: string;
+  arrowIconHover: string;
+}> = {
+  blue: {
+    icon: Coins,
+    iconColor: "text-cyan-300",
+    iconBg: "border-cyan-400/40 bg-gradient-to-br from-cyan-500/25 via-blue-900/30 to-black/85 shadow-[0_0_20px_rgba(34,211,238,0.3)]",
+    cardBorder: "border border-cyan-500/30 bg-gradient-to-r from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-400/70 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_30px_rgba(34,211,238,0.12)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_45px_rgba(34,211,238,0.28)]",
+    ambientGradient: "from-cyan-500/18 via-blue-600/10 to-transparent",
+    topBeam: "bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.85)]",
+    numberGradient: "bg-[linear-gradient(110deg,#ffffff,#cffafe,#38bdf8,#ffffff)] drop-shadow-[0_0_18px_rgba(56,189,248,0.4)]",
+    conicGradient: "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]",
+    markTheme: "blue",
+    subtitle: "Instant Refuel",
+    subtitleColor: "text-zinc-400 group-hover/launch:text-cyan-200/90",
+    arrowBoxHover: "group-hover/launch:border-cyan-300/60 group-hover/launch:bg-cyan-300/[0.2] group-hover/launch:text-cyan-50 group-hover/launch:shadow-[0_0_30px_rgba(34,211,238,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
+    arrowIconHover: "group-hover/launch:text-cyan-100",
+  },
+  purple: {
+    icon: Diamond,
+    iconColor: "text-purple-300",
+    iconBg: "border-purple-400/45 bg-gradient-to-br from-purple-500/30 via-fuchsia-950/40 to-black/85 shadow-[0_0_25px_rgba(168,85,247,0.4)]",
+    cardBorder: "border-2 border-purple-400/85 bg-gradient-to-r from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_45px_rgba(168,85,247,0.32)] hover:border-fuchsia-300 hover:shadow-[0_30px_80px_rgba(0,0,0,0.9),0_0_65px_rgba(217,70,239,0.55)]",
+    ambientGradient: "from-purple-600/22 via-fuchsia-600/14 to-cyan-500/10",
+    topBeam: "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 shadow-[0_0_20px_rgba(217,70,239,0.95)]",
+    numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
+    conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
+    markTheme: "purple",
+    subtitle: "Best Value Pack",
+    subtitleColor: "text-zinc-400 group-hover/launch:text-fuchsia-200/90",
+    arrowBoxHover: "group-hover/launch:border-fuchsia-300/60 group-hover/launch:bg-fuchsia-300/[0.2] group-hover/launch:text-fuchsia-50 group-hover/launch:shadow-[0_0_30px_rgba(217,70,239,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
+    arrowIconHover: "group-hover/launch:text-fuchsia-100",
+  },
+  gold: {
+    icon: Crown,
+    iconColor: "text-amber-300",
+    iconBg: "border-amber-400/45 bg-gradient-to-br from-amber-500/30 via-rose-950/40 to-black/85 shadow-[0_0_25px_rgba(245,158,11,0.35)]",
+    cardBorder: "border border-amber-400/45 bg-gradient-to-r from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300/85 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.2)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_50px_rgba(245,158,11,0.38)]",
+    ambientGradient: "from-amber-500/20 via-rose-600/12 to-transparent",
+    topBeam: "bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 shadow-[0_0_18px_rgba(245,158,11,0.85)]",
+    numberGradient: "bg-[linear-gradient(110deg,#ffffff,#fde047,#fb7185,#ffffff)] drop-shadow-[0_0_20px_rgba(251,113,133,0.45)]",
+    conicGradient: "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]",
+    markTheme: "gold",
+    subtitle: "Studio Power",
+    subtitleColor: "text-zinc-400 group-hover/launch:text-amber-200/90",
+    arrowBoxHover: "group-hover/launch:border-amber-300/60 group-hover/launch:bg-amber-300/[0.2] group-hover/launch:text-amber-50 group-hover/launch:shadow-[0_0_30px_rgba(245,158,11,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
+    arrowIconHover: "group-hover/launch:text-amber-100",
+  },
 };
 
 type CreditPack = (typeof PRICING_CONFIG.CREDIT_PACKAGES)[number] & {
@@ -99,6 +161,15 @@ export default function ShopPage() {
   const [claimLocked, setClaimLocked] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showPaymentFailure, setShowPaymentFailure] = useState(false);
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [giftSuccessDetails, setGiftSuccessDetails] = useState<{
+    giftCode: string;
+    giftType: "pro" | "pro_monthly" | "pro_yearly" | "credits";
+    giftCredits?: number;
+    recipientName?: string;
+    recipientMessage?: string;
+  } | null>(null);
   const [successCredits, setSuccessCredits] = useState(0);
   const [failureReason, setFailureReason] = useState<string | undefined>();
 
@@ -341,7 +412,8 @@ export default function ShopPage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.028)_1px,transparent_1px)] bg-[size:42px_42px] opacity-35" />
       </div>
 
-      <main className="relative z-10 mx-auto max-w-7xl">
+      <main className="relative z-10 mx-auto max-w-7xl space-y-6">
+        <PageBreadcrumb items={[{ label: "Credit Shop Vault" }]} />
         <section className="mb-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <motion.div
@@ -349,7 +421,7 @@ export default function ShopPage() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.05] px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100"
             >
-              <Sparkles size={14} />
+              <Coins size={14} className="text-cyan-300" />
               Credit shop
             </motion.div>
             <h1 className="max-w-3xl text-5xl font-black uppercase leading-[0.86] tracking-tight sm:text-7xl lg:text-8xl">
@@ -363,41 +435,93 @@ export default function ShopPage() {
             </p>
           </div>
 
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-white/[0.07] via-white/[0.02] to-black/60 p-6 shadow-[0_32px_100px_rgba(0,0,0,0.7),0_0_60px_rgba(124,58,237,0.15)] backdrop-blur-3xl sm:p-8">
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.12] bg-gradient-to-br from-[#0c0e1a]/95 via-[#070810]/98 to-[#030408]/98 p-6 shadow-[0_32px_100px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl sm:p-8">
             {/* Ambient glows inside card */}
-            <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-cyan-500/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-12 -left-12 h-52 w-52 rounded-full bg-purple-500/20 blur-3xl" />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400" />
+            <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-purple-500/20 blur-3xl" />
+            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-400 shadow-[0_0_20px_rgba(34,211,238,0.7)]" />
 
             <div className="relative z-10 flex items-center justify-between gap-4">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.24em] text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
-                  <Coins size={12} className="animate-pulse text-cyan-300" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-400/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-md">
+                  <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,1)]" />
                   <span>Vault Balance</span>
                 </div>
-                <p className="mt-2 bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-5xl font-black tracking-tight text-transparent drop-shadow-[0_0_35px_rgba(34,211,238,0.25)] sm:text-6xl">
+                <p className="mt-2 bg-gradient-to-r from-white via-cyan-100 to-indigo-100 bg-clip-text text-5xl font-black tracking-tight text-transparent drop-shadow-[0_0_35px_rgba(34,211,238,0.35)] sm:text-6xl">
                   {credits.toLocaleString()}
                 </p>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-400 flex items-center gap-1.5">
+                  <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
+                  Ready for compute & tools
+                </p>
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => setIsPromoModalOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-500/15 to-yellow-500/10 px-3.5 py-1.5 text-xs font-black text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:border-amber-400 hover:bg-amber-400 hover:text-black transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Gift size={13} /> Redeem Voucher / Code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsGiftModalOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-purple-400/40 bg-gradient-to-r from-purple-500/15 to-fuchsia-500/10 px-3.5 py-1.5 text-xs font-black text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:border-purple-400 hover:bg-purple-500 hover:text-white transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Gift size={13} className="text-purple-300" /> Send Gift Pass
+                  </button>
+                </div>
               </div>
-              <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-300/30 bg-gradient-to-br from-cyan-400/20 via-purple-500/15 to-transparent text-cyan-100 shadow-[0_0_50px_rgba(34,211,238,0.25)] backdrop-blur-md">
-                <Coins size={34} className="drop-shadow-[0_0_15px_rgba(34,211,238,0.9)]" />
+
+              {/* 3D Cyber Emblem */}
+              <div className="relative group/vault-emblem shrink-0">
+                <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-fuchsia-500/20 blur-xl transition-all duration-500 group-hover/vault-emblem:opacity-100 opacity-60" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-300/35 bg-gradient-to-br from-[#0c1022]/90 via-[#070914]/95 to-[#04050a]/98 shadow-[0_12px_35px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.25),0_0_30px_rgba(34,211,238,0.25)] backdrop-blur-xl transition-transform duration-500 group-hover/vault-emblem:scale-105">
+                  <ExismicMark size={46} letter="C" theme="blue" animated={true} />
+                </div>
               </div>
             </div>
 
-            <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
-              {[
-                { label: "Daily", value: dailyCredits, icon: Zap, color: "text-amber-400 border-amber-400/20 bg-amber-400/5", glow: "shadow-[0_0_20px_rgba(251,191,36,0.1)]" },
-                { label: "Bonus", value: bonusCredits, icon: Sparkles, color: "text-purple-400 border-purple-400/20 bg-purple-400/5", glow: "shadow-[0_0_20px_rgba(168,85,247,0.1)]" },
-                { label: "Permanent", value: purchasedCredits, icon: Crown, color: "text-cyan-400 border-cyan-400/20 bg-cyan-400/5", glow: "shadow-[0_0_20px_rgba(34,211,238,0.1)]" },
-              ].map(({ label, value, icon: Icon, color, glow }) => (
-                <div key={label} className={cn("rounded-2xl border p-3.5 backdrop-blur-md transition-all duration-300 hover:scale-[1.03] hover:border-white/30", color, glow)}>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[8px] font-black uppercase tracking-[0.2em] opacity-90">{label}</p>
-                    <Icon size={13} className="opacity-90" />
+            <div className="relative z-10 mt-7 grid grid-cols-3 gap-3 sm:gap-4">
+              {/* Daily */}
+              <div className="group/stat relative overflow-hidden rounded-2xl border border-amber-400/25 bg-gradient-to-b from-amber-500/10 via-amber-950/15 to-black/60 p-4 shadow-[0_0_20px_rgba(245,158,11,0.06),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-all duration-300 hover:scale-[1.03] hover:border-amber-400/50 hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-300/90">Daily</p>
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-amber-400/30 bg-amber-400/15 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)]">
+                    <Zap size={12} className="animate-pulse" />
                   </div>
-                  <p className="mt-1.5 text-xl font-black tracking-tight text-white">{Number(value).toLocaleString()}</p>
                 </div>
-              ))}
+                <p className="mt-2 text-2xl font-black tracking-tight text-white drop-shadow-[0_0_10px_rgba(245,158,11,0.2)] sm:text-3xl">
+                  {Number(dailyCredits).toLocaleString()}
+                </p>
+                <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.14em] text-amber-300/60">Resets 24h</p>
+              </div>
+
+              {/* Bonus */}
+              <div className="group/stat relative overflow-hidden rounded-2xl border border-purple-400/25 bg-gradient-to-b from-purple-500/10 via-fuchsia-950/15 to-black/60 p-4 shadow-[0_0_20px_rgba(168,85,247,0.06),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-all duration-300 hover:scale-[1.03] hover:border-purple-400/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-300/90">Bonus</p>
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-purple-400/30 bg-purple-400/15 text-purple-300 shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                    <Gift size={12} />
+                  </div>
+                </div>
+                <p className="mt-2 text-2xl font-black tracking-tight text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.2)] sm:text-3xl">
+                  {Number(bonusCredits).toLocaleString()}
+                </p>
+                <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.14em] text-purple-300/60">Rewards</p>
+              </div>
+
+              {/* Permanent */}
+              <div className="group/stat relative overflow-hidden rounded-2xl border border-cyan-400/30 bg-gradient-to-b from-cyan-500/12 via-blue-950/15 to-black/60 p-4 shadow-[0_0_20px_rgba(34,211,238,0.08),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-all duration-300 hover:scale-[1.03] hover:border-cyan-400/60 hover:shadow-[0_0_30px_rgba(34,211,238,0.25)]">
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300/90">Permanent</p>
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-cyan-400/30 bg-cyan-400/15 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+                    <Crown size={12} />
+                  </div>
+                </div>
+                <p className="mt-2 text-2xl font-black tracking-tight text-white drop-shadow-[0_0_10px_rgba(34,211,238,0.25)] sm:text-3xl">
+                  {Number(purchasedCredits).toLocaleString()}
+                </p>
+                <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.14em] text-cyan-300/60">Never expires</p>
+              </div>
             </div>
           </div>
         </section>
@@ -441,84 +565,144 @@ export default function ShopPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.07 }}
                     className={cn(
-                      "group relative overflow-hidden rounded-[2.25rem] border bg-gradient-to-r from-[#0d0e1b]/98 via-[#080913]/98 to-[#04050a]/98 p-1.5 shadow-[0_24px_70px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl transition-all duration-300 hover:-translate-y-1",
-                      pack.popular 
-                        ? "border-2 border-purple-400/80 shadow-[0_0_40px_rgba(168,85,247,0.35)] hover:border-fuchsia-300 hover:shadow-[0_0_60px_rgba(217,70,239,0.5)]"
-                        : "border-white/15 hover:border-cyan-400/60 hover:shadow-[0_0_45px_rgba(34,211,238,0.25)]"
+                      "group relative overflow-hidden rounded-[2.25rem] p-1.5 backdrop-blur-3xl transition-all duration-300 hover:-translate-y-1",
+                      pack.style.cardBorder
                     )}
                   >
-                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-90", pack.style.gradient)} />
+                    {/* Ambient Glow */}
+                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-90", pack.style.ambientGradient)} />
                     
                     {/* Top edge neon beam */}
-                    <div className={cn(
-                      "absolute inset-x-0 top-0 h-[2px]",
-                      pack.popular ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 shadow-[0_0_18px_rgba(217,70,239,0.9)]" :
-                      pack.color === "gold" ? "bg-gradient-to-r from-amber-400 via-rose-400 to-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.7)]" :
-                      "bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 opacity-70"
-                    )} />
+                    <div className={cn("absolute inset-x-0 top-0 h-[2px]", pack.style.topBeam)} />
 
                     <div className="relative z-10 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-4.5">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-gradient-to-br from-white/10 via-black/40 to-black/80 text-white shadow-xl backdrop-blur-md transition-all duration-300 group-hover:scale-105 group-hover:border-cyan-400/40">
-                          <Icon size={30} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
+                        <div className={cn(
+                          "flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border text-white shadow-xl backdrop-blur-md transition-all duration-300 group-hover:scale-105",
+                          pack.style.iconBg
+                        )}>
+                          <Icon size={28} className={cn("transition-transform duration-300 group-hover:scale-110", pack.style.iconColor)} />
                         </div>
-                        <div>
+
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{pack.label}</p>
                             {pack.bonusCredits > 0 && (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.2)]">
-                                <Sparkles size={10} className="animate-pulse" /> +{pack.bonusCredits.toLocaleString()} Bonus
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]">
+                                <Flame size={11} className="text-emerald-300 fill-emerald-400/30" /> +{pack.bonusCredits.toLocaleString()} Bonus
                               </span>
                             )}
                             {pack.popular && (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/25 via-fuchsia-500/25 to-pink-500/25 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.35)] backdrop-blur-md">
-                                <Sparkles size={10} className="text-fuchsia-300 animate-pulse fill-fuchsia-300/30" /> Best Value
+                              <span className="inline-flex items-center gap-1 rounded-full border border-purple-400/60 bg-gradient-to-r from-purple-500/30 via-fuchsia-500/30 to-pink-500/30 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-purple-200 shadow-[0_0_16px_rgba(168,85,247,0.4)] backdrop-blur-md">
+                                <Award size={11} className="text-fuchsia-200 fill-fuchsia-400/40" /> Best Value
                               </span>
                             )}
                           </div>
                           <h3 className={cn("mt-1 text-4xl font-black bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent sm:text-5xl", pack.style.numberGradient)}>
                             {(pack.credits + (pack.bonusCredits || 0)).toLocaleString()}{" "}
-                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 drop-shadow-none">credits</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400 drop-shadow-none">credits</span>
                           </h3>
-                          <p className="mt-1 flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                          <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-zinc-300">
                             <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
                             {pack.bonusCredits > 0 ? `${pack.credits.toLocaleString()} base + ${pack.bonusCredits.toLocaleString()} bonus (never expires)` : "Permanent balance, never expires"}
                           </p>
                         </div>
                       </div>
 
-                      <div className="grid gap-2 sm:min-w-[190px]">
-                        <button
+                      <div className="flex shrink-0 items-center justify-end sm:min-w-[260px]">
+                        <motion.button
+                          type="button"
                           onClick={() => handlePurchaseClick(pack)}
                           disabled={isProcessingId !== null || !paymentsEnabled}
+                          whileHover={paymentsEnabled ? { y: -3, scale: 1.02 } : undefined}
+                          whileTap={paymentsEnabled ? { scale: 0.97 } : undefined}
                           className={cn(
-                            "group relative flex min-h-13 items-center justify-center overflow-hidden rounded-2xl p-[1.5px] font-black uppercase tracking-[0.2em] transition-all duration-500 cursor-pointer",
+                            "group/launch relative flex min-h-[60px] w-full sm:w-[265px] items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] sm:p-[3px] isolate transition-all duration-500 cursor-pointer select-none",
                             paymentsEnabled
-                              ? "text-white shadow-[0_0_30px_-5px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_-5px_rgba(34,211,238,0.7)] hover:scale-[1.02] active:scale-95"
-                              : "text-zinc-500 opacity-60 cursor-not-allowed"
+                              ? "shadow-[0_0_35px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(0,0,0,0.95)]"
+                              : "bg-zinc-800 text-zinc-500 opacity-60 cursor-not-allowed"
                           )}
                         >
                           {paymentsEnabled && (
-                            <span className="absolute inset-0 bg-[linear-gradient(110deg,#06b6d4,#3b82f6,#a855f7,#06b6d4)] bg-[length:300%_auto] animate-gradient-x" />
+                            <>
+                              {/* Continuous Seamless Rotating Neon Border (Sharp) */}
+                              <motion.span
+                                aria-hidden="true"
+                                className={cn(
+                                  "absolute -inset-[150%] opacity-100 mix-blend-screen transition-opacity duration-500 group-hover/launch:opacity-100",
+                                  pack.style.conicGradient
+                                )}
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                              />
+
+                              {/* Outer Diffusion Glow Halo */}
+                              <motion.span
+                                aria-hidden="true"
+                                className={cn(
+                                  "absolute -inset-[100%] blur-md opacity-60 mix-blend-screen transition-opacity duration-500 group-hover/launch:opacity-90",
+                                  pack.style.conicGradient
+                                )}
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                              />
+                            </>
                           )}
-                          <div className={cn(
-                            "relative z-10 flex h-full w-full items-center justify-center gap-2.5 rounded-2xl px-6 transition-all duration-500",
-                            paymentsEnabled ? "bg-[#030305] group-hover:bg-transparent" : "bg-white/[0.04] border border-white/10"
-                          )}>
+
+                          <span className="relative flex h-full w-full items-center gap-3.5 rounded-[19px] border border-white/10 bg-gradient-to-br from-[#08080d]/98 to-[#040406]/98 px-4 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#0d0d16]/98 group-hover/launch:to-[#06060a]/98">
+                            {/* Idle Shimmer Sweep */}
                             {paymentsEnabled && (
+                              <motion.div
+                                animate={{ x: ["-250%", "250%"] }}
+                                transition={{ repeat: Infinity, duration: 3, ease: "linear", repeatDelay: 1.5 }}
+                                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
+                              />
+                            )}
+
+                            {isProcessingId === pack.id ? (
+                              <div className="relative z-10 flex h-full w-full items-center justify-center gap-2 py-2 text-white">
+                                <Loader2 size={16} className="animate-spin text-cyan-400" />
+                                <span className="text-xs font-black uppercase tracking-widest">Processing...</span>
+                              </div>
+                            ) : (
                               <>
-                                <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)] bg-[length:200%_100%] animate-shine skew-x-[-25deg] pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
-                                <span className="absolute -left-full inset-y-0 w-1/2 skew-x-[-25deg] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.3),transparent)] transition-all duration-1000 group-hover:left-[200%]" />
+                                <ExismicMark
+                                  size={36}
+                                  letter="C"
+                                  theme={pack.style.markTheme}
+                                  className="transition-all duration-500 group-hover/launch:scale-110 group-hover/launch:rotate-3"
+                                />
+
+                                <span className="min-w-0 flex-1 text-left relative z-10">
+                                  <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                                    BUY • {pack.priceLabel}
+                                  </span>
+                                  <span className={cn(
+                                    "mt-0.5 block text-[8px] font-bold uppercase tracking-[0.16em] transition-colors duration-500",
+                                    pack.style.subtitleColor
+                                  )}>
+                                    {pack.style.subtitle}
+                                  </span>
+                                </span>
+
+                                {paymentsEnabled && (
+                                  <span className={cn(
+                                    "relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.04] bg-white/[0.02] text-zinc-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500",
+                                    pack.style.arrowBoxHover
+                                  )}>
+                                    <motion.div
+                                      animate={{ x: [0, 4, 0] }}
+                                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                                      className={cn("text-zinc-300 transition-colors", pack.style.arrowIconHover)}
+                                    >
+                                      <ArrowRight size={15} />
+                                    </motion.div>
+                                  </span>
+                                )}
                               </>
                             )}
-                            <div className="relative z-20 flex items-center gap-2.5 text-xs">
-                              {isProcessingId === pack.id ? <Loader2 size={16} className="animate-spin text-cyan-400" /> : (
-                                <span className="font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,1)] group-hover:text-cyan-50">{pack.priceLabel}</span>
-                              )}
-                              {paymentsEnabled && !isProcessingId && <ArrowRight size={15} className="text-cyan-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />}
-                            </div>
-                          </div>
-                        </button>
+                          </span>
+                        </motion.button>
                       </div>
                     </div>
                   </motion.div>
@@ -561,6 +745,28 @@ export default function ShopPage() {
         onRetry={() => setShowPaymentFailure(false)}
         reason={failureReason}
       />
+      <RedeemPromoModal
+        isOpen={isPromoModalOpen}
+        onClose={() => setIsPromoModalOpen(false)}
+      />
+      <GiftPurchaseModal
+        isOpen={isGiftModalOpen}
+        onClose={() => setIsGiftModalOpen(false)}
+        onSuccess={(details) => {
+          setGiftSuccessDetails(details);
+        }}
+      />
+      {giftSuccessDetails && (
+        <GiftSuccessModal
+          isOpen={Boolean(giftSuccessDetails)}
+          onClose={() => setGiftSuccessDetails(null)}
+          giftCode={giftSuccessDetails.giftCode}
+          giftType={giftSuccessDetails.giftType}
+          giftCredits={giftSuccessDetails.giftCredits}
+          recipientName={giftSuccessDetails.recipientName}
+          recipientMessage={giftSuccessDetails.recipientMessage}
+        />
+      )}
     </div>
   );
 }

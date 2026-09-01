@@ -205,7 +205,7 @@ export default function FullyFunctionalCodeStudio() {
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, currentSession: any) => {
       setSession(currentSession);
     });
 

@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUser } from '@/lib/user-access';
 
 export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
     
-    if (!sbUser || !sbUser.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!sbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const user = await prisma.user.findUnique({ where: { id: sbUser.id } });
+    const user = await getOrCreateUser(sbUser);
     if (!user) return NextResponse.json({ context: null });
 
     const context = await prisma.userContext.findUnique({
@@ -30,17 +31,12 @@ export async function POST(req: Request) {
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
     
-    if (!sbUser || !sbUser.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!sbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
     const { preferences, memories, activeProject, recentFiles } = body;
 
-    let user = await prisma.user.findUnique({ where: { id: sbUser.id } });
-    if (!user) {
-        user = await prisma.user.create({
-            data: { id: sbUser.id, email: sbUser.email, name: sbUser.user_metadata?.full_name || "User" }
-        });
-    }
+    const user = await getOrCreateUser(sbUser);
 
     const context = await prisma.userContext.upsert({
       where: { userId: user.id },

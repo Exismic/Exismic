@@ -56,7 +56,6 @@ export const NAME_GRADIENTS = [
   {
     id: "diamond-glacier",
     name: "Diamond Glacier",
-    isNew: true,
     class: "bg-gradient-to-r from-sky-300 via-cyan-200 via-blue-400 to-sky-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_18px_rgba(56,189,248,0.7)]",
     previewGlow: "from-sky-300/40 to-cyan-300/40",
     glowStyles: "rgba(56, 189, 248, 0.7)"
@@ -64,7 +63,6 @@ export const NAME_GRADIENTS = [
   {
     id: "emerald-matrix",
     name: "Emerald Matrix",
-    isNew: true,
     class: "bg-gradient-to-r from-emerald-400 via-lime-300 via-teal-400 to-emerald-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_18px_rgba(16,185,129,0.7)]",
     previewGlow: "from-emerald-400/40 to-lime-300/40",
     glowStyles: "rgba(16, 185, 129, 0.7)"
@@ -72,7 +70,6 @@ export const NAME_GRADIENTS = [
   {
     id: "solar-supernova",
     name: "Solar Supernova",
-    isNew: true,
     class: "bg-gradient-to-r from-amber-400 via-orange-500 via-red-500 to-amber-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_18px_rgba(245,158,11,0.75)]",
     previewGlow: "from-amber-400/40 to-orange-500/40",
     glowStyles: "rgba(245, 158, 11, 0.75)"
@@ -80,7 +77,6 @@ export const NAME_GRADIENTS = [
   {
     id: "hyper-fuchsia",
     name: "Hyper Fuchsia",
-    isNew: true,
     class: "bg-gradient-to-r from-fuchsia-500 via-pink-400 via-purple-500 to-fuchsia-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_18px_rgba(232,121,249,0.75)]",
     previewGlow: "from-fuchsia-500/40 to-pink-400/40",
     glowStyles: "rgba(232, 121, 249, 0.75)"
@@ -88,7 +84,6 @@ export const NAME_GRADIENTS = [
   {
     id: "electric-amber",
     name: "Electric Amber",
-    isNew: true,
     class: "bg-gradient-to-r from-yellow-400 via-amber-500 via-yellow-300 to-yellow-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_18px_rgba(250,204,21,0.75)]",
     previewGlow: "from-yellow-400/40 to-amber-500/40",
     glowStyles: "rgba(250, 204, 21, 0.75)"
@@ -96,10 +91,73 @@ export const NAME_GRADIENTS = [
   {
     id: "stealth-silver",
     name: "Stealth Silver Platinum",
-    isNew: true,
     class: "bg-gradient-to-r from-zinc-200 via-white via-zinc-400 to-zinc-200 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_18px_rgba(255,255,255,0.6)]",
     previewGlow: "from-zinc-200/40 to-white/40",
     glowStyles: "rgba(255, 255, 255, 0.6)"
+  },
+  {
+    id: "hologram-prism",
+    name: "Holographic Prism",
+    isNew: true,
+    class: "bg-gradient-to-r from-sky-400 via-pink-400 via-purple-400 via-teal-300 to-sky-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]",
+    previewGlow: "from-sky-400/40 via-pink-400/30 to-teal-400/40",
+    glowStyles: "rgba(56, 189, 248, 0.8)"
+  },
+  {
+    id: "crimson-inferno",
+    name: "Crimson Inferno",
+    isNew: true,
+    class: "bg-gradient-to-r from-red-600 via-rose-500 via-orange-600 to-red-600 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_20px_rgba(220,38,38,0.85)]",
+    previewGlow: "from-red-600/40 to-rose-600/40",
+    glowStyles: "rgba(220, 38, 38, 0.85)"
+  },
+  {
+    id: "quantum-mint",
+    name: "Quantum Mint Flux",
+    isNew: true,
+    class: "bg-gradient-to-r from-teal-300 via-cyan-400 via-emerald-300 to-teal-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(45,212,191,0.8)]",
+    previewGlow: "from-teal-300/40 to-cyan-400/40",
+    glowStyles: "rgba(45, 212, 191, 0.8)"
+  },
+  {
+    id: "aurora-borealis",
+    name: "Northern Aurora",
+    isNew: true,
+    class: "bg-gradient-to-r from-emerald-400 via-teal-300 via-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_20px_rgba(52,211,153,0.8)]",
+    previewGlow: "from-emerald-400/40 to-purple-500/40",
+    glowStyles: "rgba(52, 211, 153, 0.8)"
+  },
+  {
+    id: "plasma-neon",
+    name: "Electric Plasma",
+    isNew: true,
+    class: "bg-gradient-to-r from-yellow-300 via-cyan-400 via-indigo-400 to-yellow-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_20px_rgba(250,204,21,0.85)]",
+    previewGlow: "from-yellow-300/40 to-cyan-400/40",
+    glowStyles: "rgba(250, 204, 21, 0.85)"
+  },
+  {
+    id: "sakura-bloom",
+    name: "Sakura Cyber Blossom",
+    isNew: true,
+    class: "bg-gradient-to-r from-pink-400 via-rose-300 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(244,114,182,0.8)]",
+    previewGlow: "from-pink-400/40 to-rose-300/40",
+    glowStyles: "rgba(244, 114, 182, 0.8)"
+  },
+  {
+    id: "mythic-pharaoh",
+    name: "Mythic Pharaoh Gold",
+    isNew: true,
+    class: "bg-gradient-to-r from-yellow-500 via-amber-300 via-yellow-100 via-amber-500 to-yellow-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_22px_rgba(234,179,8,0.9)]",
+    previewGlow: "from-yellow-400/45 to-amber-500/45",
+    glowStyles: "rgba(234, 179, 8, 0.9)"
+  },
+  {
+    id: "abyssal-violet",
+    name: "Abyssal Ultra Violet",
+    isNew: true,
+    class: "bg-gradient-to-r from-purple-400 via-violet-300 via-indigo-500 to-purple-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(167,139,250,0.85)]",
+    previewGlow: "from-purple-400/40 to-indigo-500/40",
+    glowStyles: "rgba(167, 139, 250, 0.85)"
   }
 ];
 
@@ -112,23 +170,46 @@ interface PremiumNameProps {
 
 export function PremiumName({ name, isPro, gradientId, className }: PremiumNameProps) {
   if (!isPro) {
-    return <span className={className}>{name}</span>;
+    return (
+      <span
+        className={cn("inline-block", className)}
+        style={{
+          WebkitBoxDecorationBreak: "clone",
+          boxDecorationBreak: "clone",
+          paddingBottom: "0.25em",
+          marginBottom: "-0.25em",
+        }}
+      >
+        {name}
+      </span>
+    );
   }
 
   const activeGradient = NAME_GRADIENTS.find(g => g.id === gradientId) || NAME_GRADIENTS[0];
 
-  // Strip conflicting color utility classes (e.g., text-white, text-zinc-100) when rendering transparent gradient text
+  // Strip conflicting color utility classes (e.g., text-white, text-zinc-100) and line-height squishing classes
   const cleanedClassName = className
-    ? className.replace(/\btext-(white|zinc-\d+|zinc-\w+|white\/\d+|neutral-\d+|gray-\d+|slate-\d+|purple-\d+|cyan-\d+)\b/g, '')
+    ? className
+        .replace(/\btext-(white|zinc-\d+|zinc-\w+|white\/\d+|neutral-\d+|gray-\d+|slate-\d+|purple-\d+|cyan-\d+)\b/g, '')
+        .replace(/\bleading-(none|tight|3|4|5)\b/g, '')
     : '';
 
   return (
     <span 
       className={cn(
-        "inline-block font-black tracking-tight pb-1 pr-1",
+        "inline-block font-black tracking-tight leading-[1.25] overflow-visible",
         activeGradient.class,
         cleanedClassName
       )}
+      style={{
+        WebkitBoxDecorationBreak: "clone",
+        boxDecorationBreak: "clone",
+        paddingBottom: "0.25em",
+        marginBottom: "-0.25em",
+        paddingTop: "0.08em",
+        paddingRight: "0.1em",
+        display: "inline-block",
+      }}
     >
       {name}
     </span>

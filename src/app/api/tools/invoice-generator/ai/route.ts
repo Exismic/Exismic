@@ -3,9 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { hasActiveProAccess } from "@/lib/user-access";
 import { createClient } from "@/utils/supabase/server";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
+import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
+import { getToolCreditCost } from "@/lib/credit-policy";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = DEFAULT_GROQ_TEXT_MODEL;
+const TOOL_COST = getToolCreditCost("invoice-generator", 6);
 
 type InvoiceAIItem = {
   description?: string;
@@ -234,6 +237,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Exismic Ai invoice generation is a Pro feature." }, { status: 403 });
     }
 
+    const userCredits = await getUserCredits(user.id);
+    const available = userCredits ? getCreditTotal(userCredits) : 0;
+    if (available < TOOL_COST) {
+      return NextResponse.json(
+        { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
+        { status: 402 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const brief = sanitizeMultiline(body.brief, "", 3000);
 
@@ -242,7 +254,11 @@ export async function POST(req: NextRequest) {
     }
 
     const invoice = await callGroq(brief);
-    return NextResponse.json({ success: true, invoice });
+
+    // Atomically deduct credits
+    await deductCredits(user.id, TOOL_COST, "invoice-generator");
+
+    return NextResponse.json({ success: true, invoice, creditsDeducted: TOOL_COST });
   } catch (error) {
     console.error("[Invoice AI] Generation failed:", error);
     const rawMessage = error instanceof Error ? error.message : "Exismic Ai invoice generation failed.";
