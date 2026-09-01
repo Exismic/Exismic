@@ -120,39 +120,35 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             </div>
           </div>
 
-          {/* Badges & Favorite - Organized Layout */}
-          <div className="absolute top-4 right-4 sm:top-5 sm:right-5 md:top-6 md:right-6 flex flex-col items-end gap-2 sm:gap-3 z-20">
-            <div className="flex max-w-[calc(100vw-7rem)] flex-wrap justify-end gap-1.5 sm:gap-2">
-               {popular && (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/50 text-[9px] font-black uppercase tracking-[0.16em] text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                  <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-                  <Flame size={10} className="relative z-10 text-amber-400 fill-amber-400 animate-pulse shrink-0" />
-                  <span className="relative z-10">Popular</span>
-                </div>
-              )}
-              {proPowerPack && !isPro && (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-blue-500/20 backdrop-blur-md border border-cyan-300/50 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                  <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-                  <Zap size={10} className="relative z-10 fill-cyan-300 text-cyan-300 shrink-0" />
-                  <span className="relative z-10">Pro Boost</span>
-                </div>
-              )}
-              {isPro && (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 backdrop-blur-md border border-amber-300/60 text-[9px] font-black uppercase tracking-[0.16em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.35)]">
-                  <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-                  <Crown size={10} className="relative z-10 fill-amber-300 text-amber-300 shrink-0" />
-                  <span className="relative z-10">Pro</span>
-                </div>
-              )}
-              <ToolReliabilityBadge toolId={id} />
+          {/* Top Row: Icon on left, Favorite Star on right */}
+          <div className="relative z-10 flex items-start justify-between gap-3 mb-4">
+            <div className={cn(
+              "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl shrink-0",
+              "bg-[#0b0c12] border border-white/5",
+            )}>
+              <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura)} />
+              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500", isPro ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.4)_25%,transparent_50%)] group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.9)_25%,transparent_50%)]" : cn(style.spinIdle, style.spinHover))} />
+              <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
+                <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", isPro && "from-amber-500/10")} />
+                <motion.div
+                  className={cn("absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg]", isPro ? "bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" : "bg-gradient-to-r from-transparent via-white/10 to-transparent")}
+                  animate={{ left: ["-100%", "200%"] }}
+                  transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 1 }}
+                />
+              </div>
+              <Icon className={cn(
+                "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
+                "group-hover:scale-110",
+                isPro ? "text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.9)]" : style.iconGlow
+              )} />
             </div>
-            
+
             <button 
               onClick={handleFavoriteClick}
               disabled={isSavingFavorite}
               aria-label={isFavorited ? "Remove from favorites" : "Save to favorites"}
               className={cn(
-                "relative overflow-hidden w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 touch-manipulation backdrop-blur-md shadow-lg border group/star",
+                "relative overflow-hidden w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all duration-500 touch-manipulation backdrop-blur-md shadow-lg border group/star shrink-0",
                 isFavorited 
                   ? "bg-amber-500/10 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:bg-amber-500/20 hover:border-amber-400/60" 
                   : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.06] hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]",
@@ -177,29 +173,29 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             </button>
           </div>
 
-          {/* Icon Section */}
-          <div className="mb-6 sm:mb-8 relative pr-20 sm:pr-24">
-            <div className={cn(
-              "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl",
-              "bg-[#0b0c12] border border-white/5",
-            )}>
-              <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura)} />
-              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500", isPro ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.4)_25%,transparent_50%)] group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.9)_25%,transparent_50%)]" : cn(style.spinIdle, style.spinHover))} />
-              <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
-                <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", isPro && "from-amber-500/10")} />
-                <motion.div
-                  className={cn("absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg]", isPro ? "bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" : "bg-gradient-to-r from-transparent via-white/10 to-transparent")}
-                  animate={{ left: ["-100%", "200%"] }}
-                  transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 1 }}
-                />
-              </div>
-              <Icon className={cn(
-                "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
-                "group-hover:scale-110",
-                isPro ? "text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.9)]" : style.iconGlow
-              )} />
+          {/* Badges Section: Neatly placed below icon row and above title */}
+          {(popular || proPowerPack || isPro) && (
+            <div className="relative z-10 flex flex-wrap items-center gap-1.5 mb-3.5">
+              {popular && (
+                <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/40 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                  <Flame size={10} className="text-amber-400 fill-amber-400 animate-pulse shrink-0" />
+                  <span className="relative z-10">Popular</span>
+                </div>
+              )}
+              {isPro ? (
+                <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 backdrop-blur-md border border-amber-300/50 text-[9px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)]">
+                  <Crown size={10} className="fill-amber-300 text-amber-300 shrink-0" />
+                  <span className="relative z-10">Pro</span>
+                </div>
+              ) : proPowerPack ? (
+                <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-blue-500/20 backdrop-blur-md border border-cyan-300/40 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
+                  <Zap size={10} className="fill-cyan-300 text-cyan-300 shrink-0" />
+                  <span className="relative z-10">Pro Boost</span>
+                </div>
+              ) : null}
+              <ToolReliabilityBadge toolId={id} />
             </div>
-          </div>
+          )}
 
           {/* Content Section */}
           <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3">
