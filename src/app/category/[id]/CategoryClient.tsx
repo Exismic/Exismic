@@ -64,7 +64,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-12 max-w-7xl mx-auto space-y-10 sm:space-y-12 md:space-y-16 pb-28 md:pb-32 overflow-x-hidden">
+    <div className="relative z-10 p-4 sm:p-6 md:p-12 max-w-7xl mx-auto space-y-10 sm:space-y-12 md:space-y-16 pb-28 md:pb-32 overflow-x-hidden">
       <div className="space-y-6 sm:space-y-8">
         <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] text-zinc-500 hover:text-white transition-all group touch-manipulation">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
