@@ -120,6 +120,22 @@ Read SESSION_CONTINUATION.md and let's continue with Feature #4: Viral Creation 
 
 ---
 
+### 8. 🔍 Google Search Console & 2-Month Sitemap/Indexing Fix [COMPLETED]
+* **The Root Cause**: 
+  - Submitting `/sitemap.xml` with a leading slash in GSC caused Google to request `https://www.exismic.xyz//sitemap.xml`, which triggered a `308 Permanent Redirect`. GSC strictly rejects cross-host and redirecting sitemaps with *"Sitemap could not be read"*.
+  - Historical commit `fa839d4` (July 25) had enabled indexing for 49 programmatic tools simultaneously, but near-identical boilerplate FAQs had trapped them in *"Crawled - currently not indexed"*.
+  - `/pricing`, `/cookies`, `/tools/screenshot-to-code`, and `/tools/discord-card` were explicitly blocked with `noIndex: true`.
+  - Middleware was bouncing trailing-slash requests (`/tools/`, `/pricing/`) to `/auth/login` with 307 redirects.
+* **The Fix**:
+  - **Sitemap & Content**: Fixed in [`src/app/sitemap.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/sitemap.ts). Resubmitted as `sitemap.xml?v=1` &rarr; **Status: Success (117 discovered pages)**!
+  - **Unblocked Directives**: Removed `noIndex: true` from `/pricing`, `/cookies`, `/tools/screenshot-to-code`, and `/tools/discord-card`.
+  - **Middleware**: Normalized paths (stripped trailing slashes) in [`src/utils/supabase/middleware.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/utils/supabase/middleware.ts).
+  - **Google Verification**: Dual-token verification in [`src/lib/seo.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/seo.ts) supporting both DNS TXT and HTML tags.
+  - **Helpful Content Quality Engine**: Dynamically tailored features, How-To steps, and FAQ schema per category in [`src/components/seo/ToolSeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/ToolSeoSection.tsx).
+  - **Verified Live**: Tested `/pricing` in GSC URL Inspection &rarr; **Page can be indexed** with all green checks.
+
+---
+
 ## 🎯 Next Features Roadmap (Retention & Growth)
 
 ### 🔜 Feature #4: 🌐 Viral Creation Showcase Link (`/share/[id]`)
