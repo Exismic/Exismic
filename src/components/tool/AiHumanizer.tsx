@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
 
 type ToneMode = "conversational" | "academic" | "casual" | "executive" | "storyteller";
 
@@ -29,6 +32,12 @@ export default function AiHumanizer() {
   const [outputResult, setOutputResult] = useState<string | null>(null);
   const [humanScore, setHumanScore] = useState<number>(0);
   const [copied, setCopied] = useState(false);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setInputText(payload.content);
+    }
+  });
 
   const handleHumanize = async () => {
     if (!inputText.trim()) return;
@@ -125,6 +134,17 @@ export default function AiHumanizer() {
             <span className="text-[10px] font-mono text-zinc-500">{inputText.length} chars</span>
           </div>
 
+          {isPiped && pipedPayload && (
+            <PipedBadge
+              sourceName={pipedPayload.sourceToolName}
+              onClear={() => {
+                setInputText("");
+                clearPiped();
+              }}
+              className="mb-1"
+            />
+          )}
+
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -216,8 +236,21 @@ export default function AiHumanizer() {
         </div>
       </div>
 
+      {/* Chained Next Steps when text is humanized */}
+      {outputResult && (
+        <ToolWorkflowChaining
+          currentToolId="ai-humanizer"
+          categoryId="ai"
+          outputContent={outputResult}
+        />
+      )}
+
       {/* Smart Workflow Tool Recommendations */}
-      <ToolSuggestions currentToolId="ai-humanizer" categoryId="ai" />
+      <ToolSuggestions
+        currentToolId="ai-humanizer"
+        categoryId="ai"
+        outputContent={outputResult || inputText}
+      />
     </div>
   );
 }

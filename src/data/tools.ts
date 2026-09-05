@@ -591,7 +591,7 @@ export const TOOLS: Tool[] = [
     category: 'ai', 
     icon: 'MonitorCheck' as IconName, 
     href: '/tools/screenshot-to-code',
-    indexable: false,
+    indexable: true,
     suggestions: ["What frameworks do you support?","How accurate is the generated Tailwind CSS?","Can it handle complex interactive components?"], 
     popular: true,
     pro: true,

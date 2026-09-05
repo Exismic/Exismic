@@ -23,7 +23,8 @@ import {
   Flame,
   Gift,
   HelpCircle,
-  ScrollText
+  ScrollText,
+  Cloud
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -58,6 +59,7 @@ const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
   "/community": "bg-gradient-to-b from-cyan-300 via-purple-400 to-pink-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
   "/giveaway": "bg-gradient-to-b from-amber-300 via-yellow-400 to-orange-400 shadow-[0_0_16px_rgba(245,158,11,1)]",
   "/favorites": "bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(251,191,36,0.9)]",
+  "/library": "bg-gradient-to-b from-cyan-300 via-indigo-400 to-purple-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
   "/history": "bg-gradient-to-b from-blue-400 via-cyan-400 to-indigo-400 shadow-[0_0_14px_rgba(96,165,250,0.9)]",
   "/referrals": "bg-gradient-to-b from-emerald-400 via-teal-400 to-green-500 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
   "/admin": "bg-gradient-to-b from-rose-400 via-red-500 to-orange-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
@@ -108,6 +110,12 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     border: "group-hover:border-yellow-400/35",
     glow: "rgba(251,191,36,0.5)",
     text: "group-hover:text-yellow-200"
+  },
+  "/library": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-cyan-500/15 group-hover:via-indigo-950/20 group-hover:to-transparent",
+    border: "group-hover:border-cyan-400/35",
+    glow: "rgba(34,211,238,0.5)",
+    text: "group-hover:text-cyan-200"
   },
   "/history": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-blue-500/15 group-hover:via-blue-950/20 group-hover:to-transparent",
@@ -213,6 +221,7 @@ const CATEGORY_ACTIVE_BG_STYLES: Record<string, string> = {
   "/community": "bg-gradient-to-r from-cyan-500/20 via-purple-950/25 to-transparent border border-cyan-400/35 shadow-[0_4px_25px_rgba(34,211,238,0.2)]",
   "/giveaway": "bg-gradient-to-r from-amber-500/25 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_25px_rgba(245,158,11,0.25)]",
   "/favorites": "bg-gradient-to-r from-yellow-500/20 via-amber-950/25 to-transparent border border-yellow-400/35 shadow-[0_4px_25px_rgba(251,191,36,0.2)]",
+  "/library": "bg-gradient-to-r from-cyan-500/20 via-indigo-950/25 to-transparent border border-cyan-400/35 shadow-[0_4px_25px_rgba(34,211,238,0.2)]",
   "/history": "bg-gradient-to-r from-blue-500/20 via-indigo-950/25 to-transparent border border-blue-400/35 shadow-[0_4px_25px_rgba(96,165,250,0.2)]",
   "/referrals": "bg-gradient-to-r from-emerald-500/20 via-teal-950/25 to-transparent border border-emerald-400/35 shadow-[0_4px_25px_rgba(16,185,129,0.2)]",
   "/admin": "bg-gradient-to-r from-rose-500/20 via-red-950/25 to-transparent border border-rose-400/35 shadow-[0_4px_25px_rgba(244,63,94,0.2)]",
@@ -286,6 +295,15 @@ const ITEM_ICON_STYLES: Record<string, {
     activeGlowPool: "from-yellow-400/70 via-amber-500/45 to-yellow-900/60",
     activeIcon: "text-yellow-200 fill-yellow-300/50 drop-shadow-[0_0_14px_rgba(253,224,71,1)]",
     ambientGlow: "rgba(250,204,21,0.75)"
+  },
+  "/library": {
+    borderGrad: "from-cyan-400/50 via-indigo-500/15 to-transparent group-hover:from-cyan-300 group-hover:via-indigo-500/40",
+    glowPool: "from-cyan-500/35 via-indigo-600/20 to-transparent",
+    icon: "text-cyan-400 fill-cyan-500/15 drop-shadow-[0_0_10px_rgba(34,211,238,0.95)]",
+    activeBorderGrad: "from-cyan-300 via-indigo-400 to-purple-500",
+    activeGlowPool: "from-cyan-400/70 via-indigo-500/45 to-purple-900/60",
+    activeIcon: "text-cyan-200 fill-cyan-400/30 drop-shadow-[0_0_14px_rgba(34,211,238,1)]",
+    ambientGlow: "rgba(34,211,238,0.7)"
   },
   "/history": {
     borderGrad: "from-blue-500/50 via-sky-500/15 to-transparent group-hover:from-blue-400 group-hover:via-sky-500/40",
@@ -805,7 +823,7 @@ export function Sidebar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(true);
-  const { isCompact, toggleCompact } = useSidebarStore();
+  const { isCompact, toggleCompact, isFocusMode, setCompact } = useSidebarStore();
   const { isPro, user: dbUser, isLoading: isProLoading } = usePro();
   const { credits, loading: isCreditsLoading, dailyStreak, countdown } = useCredits();
   const [session, setSession] = useState<Session | null>(null);
@@ -821,6 +839,23 @@ export function Sidebar() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const isStudioRoute = useMemo(() => {
+    return (
+      pathname.includes("resume-builder") ||
+      pathname.includes("invoice-generator") ||
+      pathname.includes("image-eraser") ||
+      pathname.includes("meme-generator") ||
+      pathname.includes("screenshot-to-code") ||
+      pathname.includes("minecraft-skin")
+    );
+  }, [pathname]);
+
+  useEffect(() => {
+    if (isStudioRoute) {
+      setCompact(true);
+    }
+  }, [isStudioRoute, setCompact]);
 
   useEffect(() => {
     async function getSession() {
@@ -839,6 +874,7 @@ export function Sidebar() {
   const topItems = [
     { name: t('common.dashboard'), icon: LayoutDashboard, href: '/', accent: 'text-accent-purple', glow: 'rgba(124, 58, 237, 0.5)' },
     { name: 'Daily Vault', icon: Flame, href: '/shop', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
+    { name: 'Cloud Drive', icon: Cloud, href: '/library', accent: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
     { name: t('common.history'), icon: Clock, href: '/history', accent: 'text-blue-400', glow: 'rgba(96, 165, 250, 0.5)' },
     { name: t('common.pro'), icon: Crown, href: '/pro', accent: 'text-accent-purple', glow: 'rgba(168, 85, 247, 0.5)' },
@@ -929,8 +965,8 @@ export function Sidebar() {
               exit={{ x: -300, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className={cn(
-                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full transition-[width] duration-300 ease-in-out shrink-0 overflow-hidden",
-                isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
+                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full transition-[width,transform] duration-300 ease-in-out shrink-0 overflow-hidden",
+                isFocusMode ? "hidden" : isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
               )}
             >
               {/* Compact Toggle Button */}

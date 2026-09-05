@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
 
 type InputMode = "upload" | "text";
 
@@ -49,6 +54,13 @@ export default function PdfToNotes() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setInputMode("text");
+      setInputText(payload.content);
+    }
+  });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,6 +127,10 @@ export default function PdfToNotes() {
         characterCount: data.characterCount || inputText.length,
         notes: data.notes,
       });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+        window.dispatchEvent(new Event("credits-updated"));
+      }
     } catch (err: unknown) {
       console.error("PDF to Notes Error:", err);
       setErrorMessage(getErrorMessage(err));
@@ -325,6 +341,16 @@ export default function PdfToNotes() {
                 )
               ) : (
                 <div className="flex flex-col h-full space-y-2">
+                   {isPiped && pipedPayload && (
+                     <PipedBadge
+                       sourceName={pipedPayload.sourceToolName}
+                       onClear={() => {
+                         setInputText("");
+                         clearPiped();
+                       }}
+                       className="mb-1"
+                     />
+                   )}
                    <textarea
                      value={inputText}
                      onChange={(e) => setInputText(e.target.value)}
@@ -445,6 +471,24 @@ export default function PdfToNotes() {
                 </button>
              </div>
            )}
+
+           {result?.notes && !isProcessing && (
+             <div className="p-4 pt-0">
+               <ResultRetentionBar
+                 toolType="pdf-to-notes"
+                 toolName="PDF to Notes"
+                 title={`${result.fileName || "Document"} - Study Guide`}
+                 content={result.notes}
+                 metadata={{
+                   fileName: result.fileName,
+                   pageCount: result.pageCount,
+                 }}
+                 downloadAction={handleDownloadMarkdown}
+                 downloadLabel="Download Notes"
+                 onCopy={handleCopy}
+               />
+             </div>
+           )}
         </div>
 
       </div>
@@ -453,7 +497,7 @@ export default function PdfToNotes() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
          {[
            { label: "Document Extractor", value: "Native PDF OCR Text Parser", icon: FileText, color: "text-amber-400" },
-           { label: "Academic AI Engine", value: "Exismic Neural Synthesizer", icon: Zap, color: "text-purple-400" },
+           { label: "Study AI Assistant", value: "Exismic Study Assistant", icon: Zap, color: "text-purple-400" },
            { label: "Revision Suite", value: "Automated Q&As & Definitions", icon: HelpCircle, color: "text-cyan-400" }
          ].map((stat, i) => (
            <div key={i} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0c0d17]/80 p-4 backdrop-blur-2xl">
@@ -467,6 +511,22 @@ export default function PdfToNotes() {
            </div>
          ))}
       </div>
+
+      {/* Chained Next Steps when notes are generated */}
+      {result?.notes && (
+        <ToolWorkflowChaining
+          currentToolId="pdf-to-notes"
+          categoryId="student"
+          outputContent={result.notes}
+        />
+      )}
+
+      {/* Category Companion Suggestions */}
+      <ToolSuggestions
+        currentToolId="pdf-to-notes"
+        categoryId="student"
+        outputContent={result?.notes || inputText}
+      />
 
     </div>
   );

@@ -32,7 +32,7 @@ export default function VideoEnhancerPage() {
                 Video Enhancer
               </h1>
               <p className="mx-auto max-w-2xl text-base font-medium leading-relaxed text-gray-400 sm:text-lg md:text-xl">
-                Restore clarity, eliminate noise, and stabilize shaky footage with professional FFmpeg neural filters.
+                Restore clarity, eliminate noise, and stabilize shaky footage with professional AI video enhancement filters.
               </p>
             </div>
 
@@ -54,7 +54,7 @@ export default function VideoEnhancerPage() {
 
       <footer className="mt-20 text-center pb-12">
         <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">
-          Powered by Exismic Neural Processing Units
+          Powered by Exismic AI Engine
         </p>
       </footer>
     </div>

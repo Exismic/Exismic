@@ -24,6 +24,9 @@ import Link from "next/link";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
 import axios from "axios";
 
 interface ScanResult {
@@ -58,6 +61,12 @@ export default function ResumeAnalyzer() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "keywords" | "suggestions">("overview");
   const [isGeneratingJobDesc, setIsGeneratingJobDesc] = useState(false);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setJobDescription(payload.content);
+    }
+  });
 
   const handleAutoGenerateJobDesc = async () => {
     if (!file) return;
@@ -281,6 +290,17 @@ export default function ResumeAnalyzer() {
                       )}
                     </div>
                     
+                    {isPiped && pipedPayload && (
+                      <PipedBadge
+                        sourceName={pipedPayload.sourceToolName}
+                        onClear={() => {
+                          setJobDescription("");
+                          clearPiped();
+                        }}
+                        className="mb-2"
+                      />
+                    )}
+
                     <textarea 
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
@@ -580,7 +600,15 @@ export default function ResumeAnalyzer() {
       </div>
 
       {/* Smart Workflow Tool Recommendations */}
-      <ToolSuggestions currentToolId="resume-analyzer" categoryId="productivity" />
+      <ToolWorkflowChaining
+        currentToolId="resume-analyzer"
+        categoryId="productivity"
+        outputContent={
+          result
+            ? `Job Context:\n${jobDescription}\n\nATS Score: ${result.atsScore}%\nMissing Keywords: ${result.keywords.missing.join(", ")}\nRecommendations:\n${result.suggestions.join("\n")}`
+            : jobDescription
+        }
+      />
 
       {/* Global analysis loader overlay */}
       <AnimatePresence>

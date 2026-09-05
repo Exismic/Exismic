@@ -18,6 +18,7 @@ interface DailyRewardLootBoxProps {
   countdown: string;
   claimResult: { amount: number; rarity: string; type?: "temporary" | "permanent" } | null;
   onClaim: () => Promise<void>;
+  embedded?: boolean;
 }
 
 interface SparkleItem {
@@ -35,6 +36,7 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
   countdown,
   claimResult,
   onClaim,
+  embedded = false,
 }) => {
   const [animStage, setAnimStage] = useState<"idle" | "pause" | "charging" | "explosion" | "revealed">("idle");
   const [vfxStage, setVfxStage] = useState<VFXStage>("idle");
@@ -169,6 +171,7 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
     }, 16);
 
     await new Promise((r) => setTimeout(r, chargeDuration));
+    soundController.stopCharge();
     if (claimPromise) await claimPromise;
 
     // 4. White Fullscreen Flash (90ms)
@@ -224,7 +227,12 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/15 bg-[#05060d] p-6 shadow-[0_32px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(34,211,238,0.15)] backdrop-blur-3xl sm:p-8">
+    <div className={cn(
+      "relative w-full overflow-hidden transition-all duration-300",
+      embedded
+        ? "rounded-2xl border border-white/10 bg-black/40 p-4 sm:p-5 shadow-2xl backdrop-blur-xl"
+        : "rounded-[2.5rem] border border-white/15 bg-[#05060d] p-6 shadow-[0_32px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(34,211,238,0.15)] backdrop-blur-3xl sm:p-8"
+    )}>
       {/* 1. Fullscreen / Container Blinding Flash */}
       <AnimatePresence>
         {flashActive && (
@@ -300,8 +308,9 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
           transform: `translate3d(${parallaxOffset.x}px, ${parallaxOffset.y}px, 0px)`,
         }}
       >
-        {/* Header Bar */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Header Bar: Only render when standalone (not embedded in modal) */}
+        {!embedded && (
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <p
@@ -383,6 +392,7 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
             </button>
           </div>
         </div>
+        )}
 
         {/* Hero Card Container */}
         <motion.div
@@ -410,7 +420,12 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
           style={{
             transform: `translate3d(${shakeOffset.x}px, ${shakeOffset.y}px, 0px) rotate(${shakeOffset.rotate}deg)`,
           }}
-          className="relative overflow-hidden rounded-[2.25rem] border border-white/15 bg-[#030408]/95 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl transition-shadow duration-300 sm:p-8"
+          className={cn(
+            "relative overflow-hidden transition-shadow duration-300 backdrop-blur-2xl",
+            embedded
+              ? "rounded-2xl border border-white/10 bg-black/50 p-4 sm:p-5 shadow-none"
+              : "rounded-[2.25rem] border border-white/15 bg-[#030408]/95 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_20px_50px_rgba(0,0,0,0.8)] sm:p-8"
+          )}
         >
           {/* Specular Interactive Lighting Gradient */}
           <div
@@ -430,9 +445,15 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
             />
           )}
 
-          <div className="relative grid gap-6 md:grid-cols-[200px_1fr] md:items-center">
+          <div className={cn(
+            "relative grid gap-4 items-center",
+            embedded ? "grid-cols-1 sm:grid-cols-[160px_1fr]" : "grid-cols-1 md:grid-cols-[200px_1fr]"
+          )}>
             {/* Loot Box Hero Visual Center: Sci-Fi Hexagonal Quantum Energy Vault */}
-            <div className="relative mx-auto flex h-52 w-52 items-center justify-center">
+            <div className={cn(
+              "relative mx-auto flex items-center justify-center shrink-0",
+              embedded ? "h-40 w-40" : "h-52 w-52"
+            )}>
               <QuantumEnergyVault
                 rarity={currentRarity}
                 stage={animStage}
@@ -443,10 +464,10 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
             </div>
 
             {/* Description & Action Details */}
-            <div className="text-center md:text-left">
+            <div className="text-center sm:text-left">
               <div
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-3.5 py-1 text-[9.5px] font-black uppercase tracking-[0.22em] transition-colors duration-500",
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-0.5 text-[9px] font-black uppercase tracking-[0.22em] transition-colors duration-500",
                   rarityConfig.badgeBorder,
                   rarityConfig.badgeBg,
                   rarityConfig.badgeText
@@ -463,7 +484,7 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
 
               <h3
                 className={cn(
-                  "mt-3 text-2xl font-black uppercase tracking-tight sm:text-3xl transition-all duration-500",
+                  "mt-2 text-xl sm:text-2xl font-black uppercase tracking-tight transition-all duration-500",
                   currentRarity === "legendary"
                     ? "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]"
                     : currentRarity === "epic"
@@ -477,13 +498,13 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
                   ? "Unlocking Daily Reward..."
                   : animStage === "revealed"
                   ? `+${displayCount} Credits`.trim()
-                  : "Tap to Open Daily Reward"}
+                  : "Tap to Open Vault"}
               </h3>
 
-              <p className="mt-3 text-xs font-medium leading-relaxed text-zinc-400">
+              <p className="mt-1.5 text-xs font-medium leading-relaxed text-zinc-400">
                 {animStage === "revealed"
                   ? "Claimed and added to your balance. Come back tomorrow for another daily reward drop!"
-                  : "Daily rewards drop bonus credits every 24 hours. Higher streaks increase your chance for Epic & Legendary permanent credit rewards."}
+                  : "Daily drops give free bonus credits every 24 hours. Keep your streak active to unlock higher rarities and milestone rewards."}
               </p>
             </div>
           </div>
@@ -500,7 +521,8 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
           }
           transition={{ duration: 4.1, repeat: Infinity, ease: "easeInOut" }}
           className={cn(
-            "group relative mt-6 flex min-h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl text-xs font-black uppercase tracking-[0.24em] transition-all duration-300",
+            "group relative flex w-full items-center justify-center gap-3 overflow-hidden text-xs font-black uppercase tracking-[0.24em] transition-all duration-300",
+            embedded ? "mt-3.5 min-h-12 rounded-xl" : "mt-6 min-h-16 rounded-2xl",
             claimLocked
               ? "border border-emerald-400/40 bg-emerald-500/10 text-emerald-300 shadow-[0_0_25px_rgba(52,211,153,0.15)] cursor-not-allowed"
               : "border border-white/90 bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-[1.015] hover:bg-white hover:shadow-[0_0_60px_rgba(255,255,255,0.65)] active:scale-[0.97]"

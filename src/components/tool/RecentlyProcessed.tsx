@@ -25,6 +25,7 @@ import { TOOLS } from "@/data/tools";
 import { isDownloadableResultUrl, normalizeHistoryToolType, type ResultFileType } from "@/lib/results";
 import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
 import { getFunctionalStorageItem } from "@/lib/cookie-consent";
+import { getGuestFileHistory, HISTORY_UPDATED_EVENT } from "@/lib/history";
 
 interface ProcessedItem {
   id: string;
@@ -86,6 +87,7 @@ function readHistoryPreferences() {
 export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProcessedProps) {
   const [items, setItems] = useState<ProcessedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [preferences, setPreferences] = useState(readHistoryPreferences);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -98,33 +100,51 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
 
     historyFetchRef.current = (async () => {
       try {
-        const response = await fetch(`/api/files/history?limit=${limit}`, { cache: "no-store" });
-        if (response.ok) {
-          const data = await response.json();
-          setItems(data);
-          return data;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setIsGuest(false);
+          const response = await fetch(`/api/files/history?limit=${limit}`, { cache: "no-store" });
+          if (response.ok) {
+            const data = await response.json();
+            setItems(data);
+            return data;
+          }
+        } else {
+          // Guest mode: load directly from client browser vault
+          setIsGuest(true);
+          const guestHistory = getGuestFileHistory();
+          const mapped: ProcessedItem[] = guestHistory.map((g) => ({
+            id: g.id,
+            originalName: g.originalName,
+            toolType: g.toolType,
+            originalUrl: g.originalUrl,
+            resultUrl: g.resultUrl,
+            fileType: g.fileType,
+            timestamp: g.timestamp || g.createdAt,
+            status: g.status,
+            createdAt: g.createdAt,
+          }));
+          setItems(mapped.slice(0, limit));
+          return mapped;
         }
       } catch (error) {
         console.error("Failed to fetch history:", error);
       } finally {
         historyFetchRef.current = null;
+        setLoading(false);
       }
     })();
 
     return historyFetchRef.current;
-  }, [limit]);
+  }, [limit, supabase]);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
-      if (currentSession?.user) {
-        await loadHistory();
-      }
-      setLoading(false);
-    };
+    loadHistory();
 
-    getSession();
+    const handleHistoryUpdated = () => {
+      loadHistory();
+    };
+    window.addEventListener(HISTORY_UPDATED_EVENT, handleHistoryUpdated);
 
     const handlePreferencesUpdate = (event: Event) => {
       const detail = (event as CustomEvent).detail || {};
@@ -135,20 +155,14 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
     };
     window.addEventListener("exismic-preferences-updated", handlePreferencesUpdate);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      if (!session?.user) {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      loadHistory().finally(() => setLoading(false));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadHistory();
     });
 
     return () => {
       subscription.unsubscribe();
       window.removeEventListener("exismic-preferences-updated", handlePreferencesUpdate);
+      window.removeEventListener(HISTORY_UPDATED_EVENT, handleHistoryUpdated);
     };
   }, [supabase, loadHistory]);
 
@@ -172,6 +186,18 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
 
   const deleteItem = async (id: string) => {
     try {
+      if (id.startsWith("guest_") || isGuest) {
+        const guestHistory = getGuestFileHistory();
+        const updated = guestHistory.filter((i) => i.id !== id);
+        try {
+          localStorage.setItem("exismic_guest_history", JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+        setItems((prev) => prev.filter((item) => item.id !== id));
+        return;
+      }
+
       const response = await fetch(`/api/files/history?id=${id}`, {
         method: "DELETE",
       });
@@ -328,6 +354,29 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Guest Retention Vault Banner */}
+      {isGuest && items.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-zinc-950/80 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-3.5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-300">
+              <Sparkles size={20} />
+            </div>
+            <div className="text-left">
+              <h4 className="text-sm font-black text-white uppercase tracking-wider">Browser History Vault Active</h4>
+              <p className="text-xs text-zinc-400">
+                You have {items.length} creation{items.length === 1 ? "" : "s"} saved locally. Create a free account to sync across devices & claim 50 free daily credits!
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/auth/signup"
+            className="shrink-0 rounded-xl bg-white px-5 py-2.5 text-xs font-black uppercase tracking-wider text-black transition hover:bg-zinc-200 shadow-lg active:scale-95"
+          >
+            Claim Cloud Vault
+          </Link>
         </div>
       )}
 

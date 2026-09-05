@@ -63,7 +63,10 @@ export function constructMetadata({
       telephone: false,
     },
     verification: {
-      google: "8BBWHS5KOph0mfoJRgzFXCePJogKxSd33dFUFhdRi4w",
+      google: [
+        "8BBWHS5KOph0mfoJRgzFXCePJogKxSd33dFUFhdRi4w",
+        "b6q4nUGUZFpX680fVbWBZmpb72n5uZMZpSnTK-9g7U0"
+      ],
     },
     keywords: keywords || [
       "AI tools", "free background remover", "AI image generator", 

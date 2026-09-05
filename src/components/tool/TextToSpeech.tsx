@@ -284,7 +284,7 @@ export function TextToSpeech() {
                     <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shadow-lg"><CheckCircle2 size={32} /></div>
                     <div>
                         <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">Speech Generated</h2>
-                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">High-quality neural synthesis ready</p>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Studio-quality audio ready</p>
                     </div>
                 </div>
                 <button onClick={reset} className="px-6 py-3 rounded-xl border border-white/10 text-zinc-500 hover:text-white hover:bg-white/5 font-black text-[10px] uppercase tracking-widest transition-all gap-2 flex items-center">
@@ -326,7 +326,7 @@ export function TextToSpeech() {
                                     />
                                 </div>
                                 <div className="flex justify-between text-[10px] font-black text-zinc-600 uppercase tracking-widest">
-                                    <span>Playing Neural Audio</span>
+                                    <span>Playing Audio</span>
                                     <span>High Fidelity</span>
                                 </div>
                             </div>

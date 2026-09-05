@@ -1445,4 +1445,110 @@ export async function sendGiveawayLaunchAnnouncementEmail(details: {
   }
 }
 
+export async function sendToolResultEmail(details: {
+  email: string;
+  toolType: string;
+  toolName?: string;
+  title?: string;
+  content?: string;
+  fileUrl?: string;
+}) {
+  const safeName = details.toolName ? escapeEmailText(details.toolName) : "Tool Output";
+  const safeTitle = details.title ? escapeEmailText(details.title) : "Generation Result";
+  const safeContent = details.content ? escapeEmailText(details.content) : "";
+
+  const contentHtml = `
+    <div style="max-width:520px; margin:0 auto 20px; border-radius:24px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.5); padding:24px; text-align:left;">
+      <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:#a78bfa; margin-bottom:8px;">${safeName}</div>
+      <div style="font-size:18px; font-weight:900; color:#ffffff; margin-bottom:14px;">${safeTitle}</div>
+      ${details.fileUrl ? `
+        <div style="margin:16px 0;">
+          <a href="${details.fileUrl}" style="display:inline-block; border-radius:14px; background:linear-gradient(90deg,#8b5cf6,#06b6d4); color:#ffffff; text-decoration:none; padding:12px 24px; font-size:13px; font-weight:900;">Download / View File &rarr;</a>
+        </div>
+      ` : ''}
+      ${safeContent ? `
+        <div style="margin-top:14px; max-height:400px; overflow-y:auto; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:16px; font-family:monospace; font-size:12px; line-height:1.6; color:#e2e8f0; white-space:pre-wrap; word-break:break-word;">
+${safeContent}
+        </div>
+      ` : ''}
+    </div>
+    <a href="${SITE_URL}/tools/${details.toolType || ''}" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:16px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(139,92,246,0.34);">Open in Exismic Studio &rarr;</a>
+  `;
+
+  try {
+    const { error } = await sendTrackedEmail('tool_result', details.email, {
+      from: SENDER_NOREPLY,
+      to: details.email,
+      replyTo: `noreply@${EMAIL_SENDER_DOMAIN}`,
+      subject: `Your ${details.toolName || 'Exismic'} Output: ${details.title || 'Generation'}`,
+      html: renderTransactionalEmail({
+        preheader: `Here is your generated ${details.toolName || 'tool output'} from Exismic.`,
+        badge: `${details.toolName || 'Result Ready'}`,
+        title: 'Your <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Saved Result</span>',
+        body: `Here is the result you generated with Exismic's <strong>${safeName}</strong>.`,
+        content: contentHtml,
+        footerNote: "You received this email because you chose to export your work from Exismic.",
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('Tool result email error:', err);
+    return false;
+  }
+}
+
+export async function sendStreakExpiryWarningEmail(details: {
+  email: string;
+  name?: string | null;
+  streak: number;
+  hoursRemaining: number;
+  hasShield: boolean;
+}) {
+  const safeName = details.name ? escapeEmailText(details.name) : "Creator";
+  const hoursText = details.hoursRemaining === 1 ? "1 hour" : `${details.hoursRemaining} hours`;
+
+  const shieldNotice = details.hasShield
+    ? `<div style="margin-top:14px; padding:12px 16px; border-radius:14px; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); font-size:13px; color:#86efac; line-height:1.5;">
+        &#128737;&#65039; <strong>Streak Shield Active:</strong> You have an equipped shield that will protect you once, but check in now to keep it saved for emergencies!
+       </div>`
+    : `<div style="margin-top:14px; padding:12px 16px; border-radius:14px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); font-size:13px; color:#fca5a5; line-height:1.5;">
+        &#9888;&#65039; <strong>No Shield Equipped:</strong> Missing today's claim will reset your ${details.streak}-day streak back to 0 at 12:00 PM IST!
+       </div>`;
+
+  const contentHtml = `
+    <div style="max-width:520px; margin:0 auto 24px; border-radius:24px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.5); padding:28px 24px; text-align:center;">
+      <div style="font-size:54px; margin-bottom:12px; line-height:1;">&#128293;</div>
+      <div style="font-size:32px; font-weight:950; color:#f97316; letter-spacing:-0.5px;">${details.streak}-Day Streak at Risk!</div>
+      <p style="margin:12px 0 20px; color:#cbd5e1; font-size:15px; line-height:1.6;">
+        Hey ${safeName}, your streak is about to break in <strong>${hoursText}</strong>. Claim today's free vault drop before 12:00 PM IST to protect your progress and keep climbing the milestone rewards.
+      </p>
+      ${shieldNotice}
+    </div>
+    <a href="${SITE_URL}/shop" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#f97316,#ef4444,#ec4899); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:16px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(249,115,22,0.35);">Save My Streak Now &rarr;</a>
+  `;
+
+  try {
+    const { error } = await sendTrackedEmail('streak_reminder', details.email, {
+      from: SENDER_NOREPLY,
+      to: details.email,
+      replyTo: `noreply@${EMAIL_SENDER_DOMAIN}`,
+      subject: `🔥 Urgent: Your ${details.streak}-day streak will break in ${hoursText}!`,
+      html: renderTransactionalEmail({
+        preheader: `Don't lose your ${details.streak}-day streak! Claim your daily reward in ${hoursText}.`,
+        badge: 'Streak Expiry Alert',
+        title: 'Your <span style="background:linear-gradient(90deg,#fb923c,#f87171,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fb923c;">Streak is Ending</span>',
+        body: `You have ${hoursText} remaining before today's reset resets your daily momentum.`,
+        content: contentHtml,
+        footerNote: 'You received this notification because your Exismic daily check-in streak is active.',
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('[Email] Streak reminder email failed:', err);
+    return false;
+  }
+}
+
+
+
 

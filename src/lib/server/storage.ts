@@ -64,3 +64,34 @@ export async function uploadProcessedFile(
 
   return urlData.publicUrl;
 }
+
+/**
+ * Deletes a file from Supabase Storage by its file path or public URL.
+ */
+export async function deleteStorageFile(fileUrlOrName: string): Promise<boolean> {
+  try {
+    const bucketName = "results";
+    let fileName = fileUrlOrName;
+
+    if (fileUrlOrName.includes("/storage/v1/object/public/results/")) {
+      fileName = fileUrlOrName.split("/storage/v1/object/public/results/")[1];
+    } else if (fileUrlOrName.includes("/results/")) {
+      fileName = fileUrlOrName.split("/results/")[1];
+    }
+
+    if (!fileName) return false;
+
+    // Clean any query params
+    fileName = fileName.split("?")[0];
+
+    const { error } = await supabaseAdmin.storage.from(bucketName).remove([fileName]);
+    if (error) {
+      console.warn(`[Storage] Failed to delete ${fileName} from Supabase:`, error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[Storage] Exception deleting file:", err);
+    return false;
+  }
+}

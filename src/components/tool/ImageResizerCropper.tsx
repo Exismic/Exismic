@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import Cropper, { Area } from "react-easy-crop";
 import { cn } from "@/lib/utils";
+import { consumePipelineItem, pipelineUrlToFile } from "@/lib/pipeline";
+import { saveFileHistory } from "@/lib/history";
 
 interface Asset {
   id: string;
@@ -90,6 +92,20 @@ export function ImageResizerCropper() {
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     loadFile(e.target.files?.[0]);
   };
+
+  // Consume incoming pipeline asset (e.g. from Background Remover or other image tools)
+  useEffect(() => {
+    const item = consumePipelineItem();
+    if (item && item.url && item.fileType === "image") {
+      pipelineUrlToFile(item.url, item.name || "pipeline-image.png")
+        .then((file) => {
+          loadFile(file);
+        })
+        .catch((err) => {
+          console.warn("Failed to load pipeline asset into resizer:", err);
+        });
+    }
+  }, []);
 
   useEffect(() => {
     setResult(null);
@@ -187,6 +203,14 @@ export function ImageResizerCropper() {
       const data = await response.json();
       if (data.success) {
         setResult({ url: data.result, size: data.size, width: data.width, height: data.height, format: data.format });
+        saveFileHistory({
+          toolType: "image-resizer",
+          originalName: asset.name,
+          resultUrl: data.result,
+          fileType: "image",
+          status: "completed",
+          metadata: { width: data.width, height: data.height, format: data.format }
+        }).catch((e) => console.warn("Failed to save resize to history:", e));
       } else {
         throw new Error(data.error || "Resize failed");
       }

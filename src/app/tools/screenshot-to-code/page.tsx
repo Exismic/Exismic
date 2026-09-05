@@ -9,7 +9,6 @@ export const metadata: Metadata = constructMetadata({
   title: "AI Screenshot to Code - Convert UI Designs to React & Tailwind",
   description: "Transform your UI screenshots into clean, production-ready React and Tailwind CSS code instantly using advanced AI vision models.",
   canonicalUrl: `${SITE_URL}/tools/screenshot-to-code`,
-  noIndex: true,
 });
 
 export default function ScreenshotToCodePage() {

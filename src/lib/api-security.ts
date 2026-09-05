@@ -28,16 +28,8 @@ export async function getOptionalApiUser(): Promise<User | null> {
 }
 
 export async function requireProApiUser(): Promise<User | NextResponse> {
-  const authUser = await requireApiUser();
-  if (authUser instanceof NextResponse) return authUser;
-  const appUser = await getOrCreateUser(authUser);
-  if (!hasActiveProAccess(appUser)) {
-    return NextResponse.json(
-      { error: "Exismic Pro is required for this tool.", code: "PRO_REQUIRED", proRequired: true },
-      { status: 403 },
-    );
-  }
-  return authUser;
+  // All tools now accessible to registered users via the unified credit system
+  return requireApiUser();
 }
 
 export function getRequestIp(request: NextRequest) {

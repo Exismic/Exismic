@@ -14,6 +14,11 @@ export async function updateSession(request: NextRequest) {
     });
   }
 
+  const rawPath = request.nextUrl.pathname;
+  const normalizedPath = (rawPath.length > 1 && rawPath.endsWith('/'))
+    ? rawPath.slice(0, -1)
+    : rawPath;
+
   const publicPages = new Set([
     "/",
     "/about",
@@ -29,22 +34,49 @@ export async function updateSession(request: NextRequest) {
     "/giveaways",
     "/rewards",
     "/redeem",
+    "/pricing",
+    "/pro",
+    "/tools",
+    "/blog",
+    "/features",
+    "/roadmap",
+    "/status",
+    "/community",
+    "/creators",
+    "/gallery",
+    "/explore",
+    "/trending",
+    "/marketplace",
+    "/templates",
+    "/wallpapers",
+    "/ai-art",
+    "/guides",
+    "/docs",
+    "/press",
+    "/affiliates",
+    "/partners",
+    "/creators-program",
+    "/compare",
+    "/alternatives"
   ]);
 
   const isPublicRoute =
-    publicPages.has(request.nextUrl.pathname) ||
-    request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname.startsWith('/developer') ||
-    request.nextUrl.pathname.startsWith('/community') ||
-    request.nextUrl.pathname.startsWith('/category/') ||
-    request.nextUrl.pathname.startsWith('/tools') ||
-    request.nextUrl.pathname.startsWith('/pro') ||
-    request.nextUrl.pathname.startsWith('/pricing') ||
-    request.nextUrl.pathname.startsWith('/blog') ||
-    request.nextUrl.pathname.startsWith('/u/') ||
-    request.nextUrl.pathname.endsWith('.txt') ||
-    request.nextUrl.pathname.endsWith('.xml') ||
-    request.nextUrl.pathname.endsWith('.json');
+    publicPages.has(normalizedPath) ||
+    normalizedPath.startsWith('/auth') ||
+    normalizedPath.startsWith('/developer') ||
+    normalizedPath.startsWith('/community') ||
+    normalizedPath.startsWith('/category') ||
+    normalizedPath.startsWith('/tools') ||
+    normalizedPath.startsWith('/tool') ||
+    normalizedPath.startsWith('/pro') ||
+    normalizedPath.startsWith('/pricing') ||
+    normalizedPath.startsWith('/blog') ||
+    normalizedPath.startsWith('/u/') ||
+    normalizedPath.startsWith('/sitemap') ||
+    normalizedPath.startsWith('/robots') ||
+    normalizedPath.endsWith('.txt') ||
+    normalizedPath.endsWith('.xml') ||
+    normalizedPath.endsWith('.json');
 
   if (isPublicRoute) {
     return NextResponse.next({

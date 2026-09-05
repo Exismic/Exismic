@@ -38,10 +38,12 @@ import OcrExtractor from "@/components/tool/OcrExtractor";
 import Link from "next/link";
 import { 
   Upload, 
-  Play,
-  CheckCircle2,
-  Sparkles,
-  Download
+  Play, 
+  CheckCircle2, 
+  AlertCircle, 
+  Crown, 
+  Sparkles, 
+  Download 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -58,6 +60,11 @@ import { PRICING_CONFIG } from "@/config/pricing";
 import { SITE_URL } from "@/lib/seo";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
+import { ToolAuthGateCard } from "@/components/tool/ToolAuthGateModal";
+import { ToolCreditGateCard } from "@/components/tool/ToolCreditGateModal";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
 
 interface ToolDetailClientProps {
   tool: Tool;
@@ -69,12 +76,18 @@ interface ToolDetailClientProps {
 
 export function ToolDetailClient({ tool, category, relatedTools, categoryId, toolId }: ToolDetailClientProps) {
   const endpoint = `/api/tools/${categoryId}/${toolId.replace('img-', '').replace('vid-', '').replace('pdf-', '')}`;
-  const { processFile, isProcessing, progress, error, result, reset } = useToolProcessor(endpoint);
+  const { processFile, isProcessing, progress, error, result, reset, authRequired, creditsRequired } = useToolProcessor(endpoint);
   
   const [fileName, setFileName] = useState<string | null>(null);
   const [textInput, setTextInput] = useState("");
   const [showShareToast, setShowShareToast] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setTextInput(payload.content);
+    }
+  });
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -236,7 +249,10 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   };
 
   const PageContent = (
-    <div className="mx-auto max-w-[1440px] space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28">
+    <div className={cn(
+      "mx-auto space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
+      isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]"
+    )}>
       {tool.indexable !== false && (
         <>
           <Script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -421,6 +437,16 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                  ) : (
                                    <div className="w-full space-y-8 text-left">
                                      <div className="relative">
+                                       {isPiped && pipedPayload && (
+                                         <PipedBadge
+                                           sourceName={pipedPayload.sourceToolName}
+                                           onClear={() => {
+                                             setTextInput("");
+                                             clearPiped();
+                                           }}
+                                           className="mb-3"
+                                         />
+                                       )}
                                        <textarea 
                                          className="min-h-[260px] w-full resize-none rounded-lg border border-white/10 bg-zinc-900/50 p-5 text-base text-white shadow-inner outline-none transition-all placeholder-zinc-700 focus:border-cyan-300/40 focus:ring-4 focus:ring-cyan-300/5 sm:min-h-[300px] sm:p-7 sm:text-lg"
                                          placeholder={tool.placeholderPrompt || "Enter your instructions here..."}
@@ -448,39 +474,52 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                  </div>
                               </div>
                             )}
-                            {error && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-lg border border-red-500/20 bg-red-500/[0.04] p-6 text-center"
-                              >
-                                <div className="flex size-14 items-center justify-center rounded-md border border-red-400/20 bg-red-500/10 text-red-200">
-                                  <Sparkles size={28} />
-                                </div>
-                                <div className="max-w-md space-y-2">
-                                  <p className="text-xl font-black tracking-tight text-white">Processing failed</p>
-                                  <p className="text-sm font-medium leading-relaxed text-zinc-400">{error}</p>
-                                </div>
-                                <button onClick={reset} className="min-h-12 rounded-md bg-white px-6 text-xs font-bold text-black transition-all hover:bg-zinc-200">
-                                  Try again
-                                </button>
-                              </motion.div>
-                            )}
-                            {result && (
-                               <div className="flex flex-col items-stretch justify-between gap-5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.04] p-5 sm:flex-row sm:items-center sm:p-6">
-                                  <div className="flex items-center gap-4 text-left">
-                                     <div className="flex size-14 shrink-0 items-center justify-center rounded-md bg-emerald-400/10 text-emerald-300"><CheckCircle2 size={26} /></div>
-                                     <div>
-                                        <p className="text-xl font-bold tracking-tight text-white">Ready to download</p>
-                                        <p className="text-zinc-500 font-medium">Your content has been processed and is ready.</p>
+                             {authRequired && (
+                               <ToolAuthGateCard toolName={tool.name} />
+                             )}
+                             {creditsRequired && (
+                               <ToolCreditGateCard requiredCredits={10} availableCredits={0} />
+                             )}
+                             {error && !authRequired && !creditsRequired && (
+                               <motion.div
+                                 initial={{ opacity: 0, y: 10 }}
+                                 animate={{ opacity: 1, y: 0 }}
+                                 exit={{ opacity: 0, y: -10 }}
+                                 className="flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-lg border border-red-500/20 bg-red-500/[0.04] p-6 text-center"
+                               >
+                                 <div className="flex size-14 items-center justify-center rounded-md border border-red-400/20 bg-red-500/10 text-red-200">
+                                   <AlertCircle size={28} />
+                                 </div>
+                                 <div className="max-w-md space-y-2">
+                                   <p className="text-xl font-black tracking-tight text-white">Notice</p>
+                                   <p className="text-sm font-medium leading-relaxed text-zinc-400">{error}</p>
+                                 </div>
+                                 <button onClick={reset} className="min-h-12 rounded-md bg-white px-6 text-xs font-bold text-black transition-all hover:bg-zinc-200">
+                                   Try again
+                                 </button>
+                               </motion.div>
+                             )}
+                             {result && (
+                                <div className="space-y-6">
+                                  <div className="flex flex-col items-stretch justify-between gap-5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.04] p-5 sm:flex-row sm:items-center sm:p-6">
+                                     <div className="flex items-center gap-4 text-left">
+                                        <div className="flex size-14 shrink-0 items-center justify-center rounded-md bg-emerald-400/10 text-emerald-300"><CheckCircle2 size={26} /></div>
+                                        <div>
+                                           <p className="text-xl font-bold tracking-tight text-white">Ready to download</p>
+                                           <p className="text-zinc-500 font-medium">Your content has been processed and is ready.</p>
+                                        </div>
                                      </div>
+                                     <a href={displayResult || "#"} download={`exismic-${tool.id}-result.txt`} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-400 px-6 text-xs font-bold text-black transition-all hover:bg-emerald-300 sm:w-auto">
+                                        <Download size={20} /> Download result
+                                     </a>
                                   </div>
-                                  <a href={displayResult || "#"} download={`exismic-${tool.id}-result.txt`} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-400 px-6 text-xs font-bold text-black transition-all hover:bg-emerald-300 sm:w-auto">
-                                     <Download size={20} /> Download result
-                                  </a>
-                               </div>
-                            )}
+                                  <ToolWorkflowChaining
+                                     currentToolId={tool.id}
+                                     categoryId={categoryId}
+                                     outputContent={typeof displayResult === "string" ? displayResult : null}
+                                   />
+                                </div>
+                             )}
                          </AnimatePresence>
                       </div>
                    </div>
@@ -505,7 +544,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                <div className="group relative overflow-hidden rounded-lg border border-violet-300/15 bg-violet-300/[0.04] p-5 sm:p-6">
                   <div className="relative z-10 space-y-4">
                      <div className="flex size-11 items-center justify-center rounded-md bg-violet-300/10 text-violet-200">
-                        <Sparkles size={20} />
+                        <Crown size={20} />
                      </div>
                      <div>
                        <h3 className="text-lg font-bold tracking-tight text-white">Exismic Pro</h3>
@@ -531,7 +570,11 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
        />
 
        {/* Smart Workflow Tool Recommendations */}
-       <ToolSuggestions currentToolId={tool.id} categoryId={categoryId} />
+       <ToolSuggestions
+         currentToolId={tool.id}
+         categoryId={categoryId}
+         outputContent={typeof displayResult === "string" ? displayResult : null}
+       />
     </div>
   );
 

@@ -11,11 +11,14 @@ import {
   Zap,
   Check,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
+import { consumePipelineItem, pipelineUrlToFile, sendToTool } from "@/lib/pipeline";
+import { saveFileHistory } from "@/lib/history";
 
 interface ConvFile {
   id: string;
@@ -40,6 +43,32 @@ export function ImageFormatConverter() {
   const [targetFormat, setTargetFormat] = useState<TargetFormat>("WEBP");
   const [quality, setQuality] = useState(90);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  // Consume pipeline asset if passed from another tool (e.g. Background Remover)
+  useEffect(() => {
+    const item = consumePipelineItem();
+    if (item && item.url) {
+      pipelineUrlToFile(item.url, item.name || "input-image.png")
+        .then((file) => {
+          const entry: ConvFile = {
+            id: Math.random().toString(36).substring(2, 9),
+            file,
+            preview: URL.createObjectURL(file),
+            originalSize: file.size,
+            originalFormat: file.name.split(".").pop()?.toUpperCase() || "PNG",
+            progress: 0,
+            status: "idle",
+          };
+          setFiles((prev) => {
+            if (prev.some((p) => p.file.name === file.name && p.originalSize === file.size)) {
+              return prev;
+            }
+            return [...prev, entry];
+          });
+        })
+        .catch((err) => console.warn("Failed to load pipeline asset:", err));
+    }
+  }, []);
 
   useEffect(() => {
     setFiles(prev => prev.map(file => {
@@ -101,6 +130,13 @@ export function ImageFormatConverter() {
       const data = await response.json();
       
       if (data.success) {
+        saveFileHistory({
+          originalName: `converted_${item.file.name.split('.')[0]}.${(data.format || targetFormat).toLowerCase()}`,
+          toolType: "image-converter",
+          fileType: "image",
+          resultUrl: data.result,
+        }).catch((err) => console.warn("Failed to auto-save converted file to history:", err));
+
         setFiles(prev => prev.map(f => f.id === item.id ? { 
           ...f, 
           status: "done", 
@@ -218,35 +254,39 @@ export function ImageFormatConverter() {
 
          {/* RIGHT: WORKSPACE */}
          <div className="space-y-5 lg:col-span-8">
-            <div 
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); handleUpload(e.dataTransfer.files); }}
-              className="group relative flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-zinc-950/65 px-5 py-10 text-center shadow-xl transition-all hover:border-cyan-300/40 hover:bg-cyan-300/[0.03]"
-            >
-               <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e.target.files)} />
-               <div className="mb-5 flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-200 shadow-lg transition-all group-hover:border-cyan-300/30">
-                  <Upload size={28} />
-               </div>
-               <h4 className="text-lg font-bold text-white">Choose images to convert</h4>
-               <p className="mt-2 text-sm font-medium text-zinc-500">Drop images here or browse from your device.</p>
-            </div>
-
-            <AnimatePresence>
-               {files.length > 0 && (
-                 <motion.div 
-                   initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-                   className="space-y-6"
-                 >
-                    <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-                       <h5 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">{files.length} Assets Loaded</h5>
-                       <div className="flex gap-2">
-                          <button onClick={convertAll} disabled={isBulkProcessing || files.every(f => f.status === "done")} className="flex min-h-11 items-center gap-2 rounded-md px-3 text-[10px] font-bold uppercase tracking-wider text-cyan-200 transition-colors hover:bg-cyan-300/10 hover:text-white">
-                             {isBulkProcessing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-                             Convert Batch
-                          </button>
-                          <button onClick={() => setFiles([])} className="min-h-11 rounded-md px-3 text-[10px] font-bold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-400/10 hover:text-red-300">Clear all</button>
-                       </div>
+            {files.length === 0 ? (
+              <div 
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); handleUpload(e.dataTransfer.files); }}
+                className="group relative flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-zinc-950/65 px-5 py-10 text-center shadow-xl transition-all hover:border-cyan-300/40 hover:bg-cyan-300/[0.03]"
+              >
+                 <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e.target.files)} />
+                 <div className="mb-5 flex size-16 items-center justify-center rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-200 shadow-lg transition-all group-hover:border-cyan-300/30">
+                    <Upload size={28} />
+                 </div>
+                 <h4 className="text-lg font-bold text-white">Choose images to convert</h4>
+                 <p className="mt-2 text-sm font-medium text-zinc-500">Drop images here or browse from your device.</p>
+              </div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                 <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+                    <h5 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">{files.length} Asset{files.length > 1 ? "s" : ""} Loaded</h5>
+                    <div className="flex items-center gap-2">
+                       <label className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:bg-white/10 hover:text-white">
+                          <Plus size={13} />
+                          <span>Add more</span>
+                          <input type="file" multiple className="hidden" onChange={(e) => handleUpload(e.target.files)} />
+                       </label>
+                       <button onClick={convertAll} disabled={isBulkProcessing || files.every(f => f.status === "done")} className="flex min-h-11 items-center gap-2 rounded-md px-3 text-[10px] font-bold uppercase tracking-wider text-cyan-200 transition-colors hover:bg-cyan-300/10 hover:text-white">
+                          {isBulkProcessing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                          Convert Batch
+                       </button>
+                       <button onClick={() => setFiles([])} className="min-h-11 rounded-md px-3 text-[10px] font-bold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-400/10 hover:text-red-300">Clear all</button>
                     </div>
+                 </div>
 
                     <div className="custom-scrollbar max-h-[600px] space-y-3 overflow-y-auto pr-1">
                        {files.map((item) => (
@@ -295,16 +335,44 @@ export function ImageFormatConverter() {
                                )}
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-2">
                                {item.status === "done" && (
-                                 <button onClick={() => {
-                                   const a = document.createElement("a");
-                                   a.href = item.resultUrl!;
-                                   a.download = `converted_${item.file.name.split('.')[0]}.${(item.resultFormat || targetFormat).toLowerCase()}`;
-                                   a.click();
-                                 }} className="flex size-11 items-center justify-center rounded-md bg-white text-black shadow-lg transition-all hover:bg-zinc-200" title="Download converted image">
-                                    <Download size={18} />
-                                 </button>
+                                 <>
+                                   <button 
+                                     onClick={() => sendToTool("/tools/image/compressor", {
+                                       name: `converted-${item.file.name}`,
+                                       url: item.resultUrl!,
+                                       fileType: "image",
+                                       sourceToolId: "image-converter"
+                                     })}
+                                     className="flex min-h-11 items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 text-[10px] font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
+                                     title="Send to Compressor"
+                                   >
+                                     <Zap size={13} className="text-amber-400" />
+                                     <span>Compress</span>
+                                   </button>
+                                   <button 
+                                     onClick={() => sendToTool("/tools/image/resizer", {
+                                       name: `converted-${item.file.name}`,
+                                       url: item.resultUrl!,
+                                       fileType: "image",
+                                       sourceToolId: "image-converter"
+                                     })}
+                                     className="flex min-h-11 items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 text-[10px] font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
+                                     title="Send to Resizer & Cropper"
+                                   >
+                                     <ArrowRight size={13} className="text-cyan-400" />
+                                     <span>Resize</span>
+                                   </button>
+                                   <button onClick={() => {
+                                     const a = document.createElement("a");
+                                     a.href = item.resultUrl!;
+                                     a.download = `converted_${item.file.name.split('.')[0]}.${(item.resultFormat || targetFormat).toLowerCase()}`;
+                                     a.click();
+                                   }} className="flex size-11 items-center justify-center rounded-md bg-white text-black shadow-lg transition-all hover:bg-zinc-200" title="Download converted image">
+                                      <Download size={18} />
+                                   </button>
+                                 </>
                                )}
                                <button onClick={() => removeFile(item.id)} className="flex size-11 items-center justify-center rounded-md text-zinc-600 transition-all hover:bg-red-500/10 hover:text-red-400 focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100" title="Remove image">
                                   <Trash2 size={18} />
@@ -340,7 +408,6 @@ export function ImageFormatConverter() {
                     </div>
                  </motion.div>
                )}
-            </AnimatePresence>
          </div>
       </div>
     </div>

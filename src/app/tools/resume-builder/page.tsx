@@ -11,7 +11,7 @@ export const metadata: Metadata = constructMetadata({
 export default function ResumeBuilderPage() {
   return (
     <main className="min-h-screen bg-black">
-      <div className="pt-32 px-6">
+      <div className="pt-16 sm:pt-20 px-2 sm:px-4 lg:px-6">
         <ResumeBuilder />
       </div>
     </main>

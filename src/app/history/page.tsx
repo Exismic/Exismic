@@ -1,4 +1,5 @@
-import { History, Clock, Layers } from "lucide-react";
+import { History, Clock, Layers, Cloud } from "lucide-react";
+import Link from "next/link";
 import { RecentlyProcessed } from "@/components/tool/RecentlyProcessed";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
@@ -41,9 +42,18 @@ export default function HistoryPage() {
               </div>
             </div>
 
-            <div className="flex min-h-11 w-fit items-center gap-2.5 rounded-2xl border border-cyan-400/25 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent px-5 py-2.5 text-xs font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-              <Clock size={15} className="text-cyan-400" />
-              <span>Last 50 Results</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/library"
+                className="flex min-h-11 items-center gap-2 rounded-2xl border border-purple-400/40 bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-cyan-500/20 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:brightness-125 transition-all"
+              >
+                <Cloud size={15} className="text-cyan-400" />
+                <span>Open Cloud Drive</span>
+              </Link>
+              <div className="flex min-h-11 w-fit items-center gap-2.5 rounded-2xl border border-cyan-400/25 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent px-5 py-2.5 text-xs font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+                <Clock size={15} className="text-cyan-400" />
+                <span>Last 50 Results</span>
+              </div>
             </div>
           </div>
         </header>

@@ -404,18 +404,15 @@ export function ScreenshotToCode() {
                          <button
                            key={fw.id}
                            onClick={() => setFramework(fw.id)}
-                           disabled={fw.pro && !isPro}
                            className={cn(
-                             "group flex items-center justify-between p-5 rounded-2xl border transition-all relative overflow-hidden",
-                             framework === fw.id ? "bg-violet-600 border-violet-500 text-white shadow-xl" : "bg-white/5 border-white/5 text-zinc-500 hover:bg-white/10",
-                             fw.pro && !isPro && "opacity-60 grayscale cursor-not-allowed"
+                             "group flex items-center justify-between p-5 rounded-2xl border transition-all relative overflow-hidden cursor-pointer",
+                             framework === fw.id ? "bg-violet-600 border-violet-500 text-white shadow-xl" : "bg-white/5 border-white/5 text-zinc-500 hover:bg-white/10"
                            )}
                          >
                             <div className="flex items-center gap-4 relative z-10">
                                <fw.icon className={cn("w-5 h-5", framework === fw.id ? "text-white" : "text-violet-400")} />
                                <span className="text-xs font-black uppercase tracking-widest">{fw.label}</span>
                             </div>
-                            
                             {fw.pro && (
                               <div className="relative z-10 flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/20 text-[7px] font-black">
                                  <Crown size={8} className="text-amber-400" />

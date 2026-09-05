@@ -3,15 +3,16 @@
 import React, { useState } from "react";
 import { 
   FileSignature, 
-  Sparkles, 
+  Send, 
   Copy, 
   CheckCircle2, 
   RefreshCw, 
   Briefcase, 
-  Target, 
-  Plus,
-  Trash2
+  Target
 } from "lucide-react";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 
 export default function ResumeBulletGenerator() {
@@ -21,6 +22,12 @@ export default function ResumeBulletGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [bullets, setBullets] = useState<string[]>([]);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setTaskDetails(payload.content);
+    }
+  });
 
   const handleGenerate = async () => {
     if (!jobTitle.trim()) return;
@@ -90,9 +97,19 @@ export default function ResumeBulletGenerator() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form Inputs */}
         <div className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md">
+          {isPiped && pipedPayload && (
+            <PipedBadge
+              sourceName={pipedPayload.sourceToolName}
+              onClear={() => {
+                setTaskDetails("");
+                clearPiped();
+              }}
+            />
+          )}
+
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-              <Briefcase size={14} className="text-indigo-400" /> Target Job Title
+              <Briefcase size={14} className="text-indigo-400" /> Target Job Title *
             </label>
             <input
               type="text"
@@ -118,7 +135,7 @@ export default function ResumeBulletGenerator() {
 
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
-              Raw Task / Project Details (Optional)
+              Raw Task / Project Details
             </label>
             <textarea
               value={taskDetails}
@@ -141,52 +158,71 @@ export default function ResumeBulletGenerator() {
               </>
             ) : (
               <>
-                <Sparkles size={16} />
+                <Send size={16} />
                 <span>Generate STAR Bullets</span>
               </>
             )}
           </button>
         </div>
 
-        {/* Results List */}
-        <div className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md flex flex-col">
+        {/* Output List */}
+        <div className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md">
           <label className="text-xs font-black uppercase tracking-wider text-zinc-300 flex items-center gap-2">
             <FileSignature size={15} className="text-indigo-400" />
-            Generated Resume Bullets
+            Generated Accomplishment Bullets
           </label>
 
-          <div className="space-y-3 flex-1 overflow-y-auto min-h-[300px]">
-            {bullets.length > 0 ? (
-              bullets.map((b, i) => (
-                <div
-                  key={i}
-                  className="group relative p-4 rounded-2xl border border-white/10 bg-black/40 hover:border-indigo-500/40 transition-all space-y-2"
+          {bullets.length === 0 ? (
+            <div className="min-h-[280px] rounded-2xl border border-white/10 bg-black/50 flex flex-col items-center justify-center text-center p-8 text-zinc-600 space-y-3">
+              <FileSignature size={36} className="opacity-40" />
+              <p className="text-xs font-medium max-w-xs">
+                Fill out the job title and click generate to craft metric-driven STAR bullet points.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {bullets.map((bullet, idx) => (
+                <div 
+                  key={idx} 
+                  className="group relative p-4 rounded-2xl bg-black/60 border border-white/10 hover:border-indigo-500/40 transition-all flex items-start justify-between gap-3 shadow-sm"
                 >
-                  <p className="text-xs text-zinc-200 leading-relaxed font-sans">• {b}</p>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => copyBullet(b, i)}
-                      className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      {copiedIdx === i ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                      <span>{copiedIdx === i ? "Copied" : "Copy"}</span>
-                    </button>
-                  </div>
+                  <p className="text-sm text-zinc-200 leading-relaxed font-sans flex-1">
+                    • {bullet}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => copyBullet(bullet, idx)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-zinc-400 hover:text-white transition-colors shrink-0 cursor-pointer"
+                    title="Copy bullet"
+                  >
+                    {copiedIdx === idx ? (
+                      <CheckCircle2 size={16} className="text-emerald-400" />
+                    ) : (
+                      <Copy size={16} />
+                    )}
+                  </button>
                 </div>
-              ))
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center text-zinc-600 space-y-3 py-16">
-                <FileSignature size={36} className="opacity-40" />
-                <p className="text-xs font-medium max-w-xs">Fill in your job title and click "Generate STAR Bullets" to create ATS resume bullet points.</p>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Smart Workflow Tool Recommendations */}
-      <ToolSuggestions currentToolId="resume-bullet-generator" categoryId="productivity" />
+      {/* Chained next steps when bullets are ready */}
+      {bullets.length > 0 && (
+        <ToolWorkflowChaining
+          currentToolId="resume-bullet-generator"
+          categoryId="productivity"
+          outputContent={bullets.map(b => `• ${b}`).join("\n")}
+        />
+      )}
+
+      {/* Suggested companion tools */}
+      <ToolSuggestions
+        currentToolId="resume-bullet-generator"
+        categoryId="productivity"
+        outputContent={bullets.map(b => `• ${b}`).join("\n")}
+      />
     </div>
   );
 }

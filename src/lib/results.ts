@@ -4,6 +4,7 @@ export type ResultStatus = "completed" | "failed" | "processing";
 const TOOL_TYPE_ALIASES: Record<string, string> = {
   "bg-remove": "image-eraser",
   "remove-bg": "image-eraser",
+  "image-bg-remover": "image-eraser",
   "img-compressor": "image-compressor",
   "img-resizer": "image-resizer",
   "img-converter": "image-converter",

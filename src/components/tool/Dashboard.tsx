@@ -30,6 +30,7 @@ import {
   Moon,
   Sunset,
   Sunrise,
+  Check,
   type LucideIcon
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -55,6 +56,11 @@ const CreditModal = dynamic(
 
 const DailyQuestsModal = dynamic(
   () => import("../reward/DailyQuestsModal").then((mod) => mod.DailyQuestsModal),
+  { ssr: false }
+);
+
+const DailyRewardModal = dynamic(
+  () => import("../reward/DailyRewardModal").then((mod) => mod.DailyRewardModal),
   { ssr: false }
 );
 
@@ -178,6 +184,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
   const { 
     credits, 
     dailyStreak, 
+    todayClaim,
     countdown, 
     loading: creditsLoading 
   } = useCredits();
@@ -197,6 +204,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
   const [gradientOverride, setGradientOverride] = useState<string | null>(null);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const [questsModalOpen, setQuestsModalOpen] = useState(false);
+  const [dailyRewardModalOpen, setDailyRewardModalOpen] = useState(false);
   
   // Interactive Dashboard States
   const [searchQuery, setSearchQuery] = useState("");
@@ -457,7 +465,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
               }
            />
 
-           {/* Card 2: Daily Quest Streak & Quests Tracker */}
+           {/* Card 2: Daily Quest Streak & Mystery Vault */}
            <StatCard 
               label="Daily Quest Streak" 
               value={
@@ -473,21 +481,40 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
               icon={Flame}
               color="amber"
               loading={creditsLoading}
+              onClick={() => setDailyRewardModalOpen(true)}
               badge={
-                <button
-                  type="button"
-                  onClick={() => setQuestsModalOpen(true)}
-                  className="group/btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-400/30 text-[10px] font-black text-amber-200 uppercase tracking-wider hover:bg-amber-400/25 hover:border-amber-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.35)] transition-all cursor-pointer select-none active:scale-95"
-                >
-                  <Trophy size={11} className="text-amber-300" />
-                  <span>QUESTS</span>
-                  <ArrowRight size={11} className="transition-transform group-hover/btn:translate-x-0.5" />
-                </button>
+                !todayClaim ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500/25 to-amber-500/25 border border-orange-400/50 text-[10px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_15px_rgba(249,115,22,0.35)] shrink-0">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-400"></span>
+                    </span>
+                    <span>Ready</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 shrink-0">
+                    <Check size={11} className="text-emerald-400" />
+                    <span>Claimed</span>
+                  </span>
+                )
               }
               footer={
-                <div className="flex items-center text-[10.5px] text-amber-200/90 font-medium">
-                  <Gift size={12} className="text-amber-400 mr-1.5 shrink-0" />
-                  <span>+5 Daily Reward Check-in</span>
+                <div className="flex items-center justify-between w-full text-[11px] font-medium text-amber-200/90 pt-1">
+                  <span className="flex items-center gap-1.5 truncate">
+                    <Gift size={12} className={cn("shrink-0", !todayClaim ? "text-orange-400 animate-bounce" : "text-amber-400")} />
+                    <span className="truncate">{!todayClaim ? "Open Mystery Vault" : `Resets in ${countdown || "12h"}`}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuestsModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 hover:bg-amber-400/20 border border-amber-400/20 text-[10px] font-bold text-amber-300 transition-colors shrink-0 cursor-pointer"
+                  >
+                    <Trophy size={10} />
+                    <span>Quests</span>
+                  </button>
                 </div>
               }
            />
@@ -897,6 +924,12 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
       <DailyQuestsModal 
         isOpen={questsModalOpen}
         onClose={() => setQuestsModalOpen(false)}
+      />
+
+      {/* Dynamic Daily Mystery Vault Modal */}
+      <DailyRewardModal 
+        isOpen={dailyRewardModalOpen}
+        onClose={() => setDailyRewardModalOpen(false)}
       />
 
       <style jsx global>{`

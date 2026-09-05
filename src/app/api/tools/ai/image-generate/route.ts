@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
     const priority = isPro || user.subscriptionStatus === "active";
     const queue = priority ? "priority" : "normal";
     const processingLabel = priority ? "Processing with Priority..." : "Processing...";
-    const noWatermark = priority;
+    const noWatermark = true;
     const commercialLicense = priority;
 
     // --- STEP A: Try Together.ai (Ultra Fast Flux Schnell) ---

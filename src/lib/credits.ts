@@ -344,7 +344,8 @@ export async function addBonusCredits(userId: string, amount: number, reason?: s
 
 export function calculateEffectiveStreak(
   dailyStreak?: number | null,
-  lastClaimDate?: Date | string | null
+  lastClaimDate?: Date | string | null,
+  streakShields?: number | null
 ): number {
   if (!dailyStreak || !lastClaimDate) return 0;
 
@@ -358,6 +359,10 @@ export function calculateEffectiveStreak(
   const diffInDays = Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000));
 
   if (diffInDays === 0 || diffInDays === 1) {
+    return dailyStreak;
+  }
+  // If user missed 1 day (diffInDays === 2) and has a shield, their streak is preserved pending claim!
+  if (diffInDays === 2 && (streakShields || 0) > 0) {
     return dailyStreak;
   }
   return 0;
@@ -376,6 +381,9 @@ export async function getUserCredits(userId: string) {
         plan: true,
         dailyStreak: true,
         lastClaimDate: true,
+        streakShields: true,
+        streakFreezeUsedAt: true,
+        streakMilestonesClaimed: true,
       },
     });
 
@@ -396,16 +404,29 @@ export async function getUserCredits(userId: string) {
         plan: true,
         dailyStreak: true,
         lastClaimDate: true,
+        streakShields: true,
+        streakFreezeUsedAt: true,
+        streakMilestonesClaimed: true,
       },
     });
 
     if (!updatedUser) return null;
 
-    const effectiveStreak = calculateEffectiveStreak(updatedUser.dailyStreak, updatedUser.lastClaimDate);
+    const effectiveStreak = calculateEffectiveStreak(
+      updatedUser.dailyStreak,
+      updatedUser.lastClaimDate,
+      updatedUser.streakShields
+    );
+
+    const rawClaimed = updatedUser.streakMilestonesClaimed;
+    const claimedMilestones: string[] = Array.isArray(rawClaimed)
+      ? (rawClaimed as unknown as string[])
+      : [];
 
     return {
       ...updatedUser,
       dailyStreak: effectiveStreak,
+      streakMilestonesClaimed: claimedMilestones,
     };
   } catch (err) {
     console.error(`[CREDITS] Error getting credits for ${userId}:`, err);
@@ -433,11 +454,17 @@ export async function claimDailyShopCredits(userId: string) {
 
       const user = await transaction.user.findUnique({
         where: { id: userId },
-        select: { dailyStreak: true, lastClaimDate: true }
+        select: {
+          dailyStreak: true,
+          lastClaimDate: true,
+          streakShields: true,
+          streakMilestonesClaimed: true,
+        },
       });
 
       const todayUtc = Date.UTC(claimDate.getUTCFullYear(), claimDate.getUTCMonth(), claimDate.getUTCDate());
       let newStreak = 1;
+      let shieldConsumed = false;
 
       if (user?.lastClaimDate) {
         const lastDate = new Date(user.lastClaimDate);
@@ -449,6 +476,10 @@ export async function claimDailyShopCredits(userId: string) {
             newStreak = (user.dailyStreak || 0) + 1;
           } else if (diffInDays === 0) {
             newStreak = user.dailyStreak || 1;
+          } else if (diffInDays === 2 && (user.streakShields || 0) > 0) {
+            // Shield saved the streak!
+            newStreak = (user.dailyStreak || 0) + 1;
+            shieldConsumed = true;
           } else {
             newStreak = 1;
           }
@@ -474,11 +505,21 @@ export async function claimDailyShopCredits(userId: string) {
         },
       });
 
+      // Calculate updated shield count
+      let currentShields = (user?.streakShields || 0) - (shieldConsumed ? 1 : 0);
+      let bonusShieldEarned = false;
+      if (newStreak % 7 === 0 && currentShields < 2) {
+        currentShields += 1;
+        bonusShieldEarned = true;
+      }
+
       const updatedUser = await transaction.user.update({
         where: { id: userId },
         data: {
           dailyStreak: newStreak,
           lastClaimDate: claimDate,
+          streakShields: currentShields,
+          ...(shieldConsumed ? { streakFreezeUsedAt: new Date() } : {}),
           ...(reward.type === "permanent"
             ? { lifetimeCredits: { increment: finalAmount } }
             : { bonusCredits: { increment: finalAmount } }),
@@ -488,6 +529,9 @@ export async function claimDailyShopCredits(userId: string) {
           bonusCredits: true,
           lifetimeCredits: true,
           dailyStreak: true,
+          streakShields: true,
+          streakFreezeUsedAt: true,
+          streakMilestonesClaimed: true,
         },
       });
 
@@ -497,12 +541,27 @@ export async function claimDailyShopCredits(userId: string) {
           amount: finalAmount,
           balanceType: reward.type === "permanent" ? "permanent" : "bonus",
           transactionType: "shop_bonus",
-          description: `Daily shop reward (${newStreak}-day streak): ${reward.rarity} (${reward.type})`,
-          metadata: { rarity: reward.rarity, type: reward.type, streak: newStreak, claimId: claim.id },
+          description: `Daily shop reward (${newStreak}-day streak): ${reward.rarity} (${reward.type})${shieldConsumed ? " [Shield Preserved]" : ""}`,
+          metadata: {
+            rarity: reward.rarity,
+            type: reward.type,
+            streak: newStreak,
+            claimId: claim.id,
+            shieldConsumed,
+            bonusShieldEarned,
+          },
         },
       });
 
-      return { claim, credits: updatedUser, streak: newStreak, finalAmount, reward };
+      return {
+        claim,
+        credits: updatedUser,
+        streak: newStreak,
+        finalAmount,
+        reward,
+        shieldConsumed,
+        bonusShieldEarned,
+      };
     });
 
     return {
@@ -512,6 +571,8 @@ export async function claimDailyShopCredits(userId: string) {
       type: result.reward.type,
       streak: result.streak,
       credits: result.credits,
+      shieldConsumed: result.shieldConsumed,
+      bonusShieldEarned: result.bonusShieldEarned,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -539,6 +600,162 @@ export async function claimDailyShopCredits(userId: string) {
     }
     console.error("[CREDITS] Daily shop claim failed:", err);
     return { success: false as const, error: "Could not claim today's reward." };
+  }
+}
+
+export async function buyStreakShield(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        dailyCredits: true,
+        bonusCredits: true,
+        lifetimeCredits: true,
+        streakShields: true,
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    if ((user.streakShields || 0) >= 2) {
+      return { success: false, error: "Maximum shields reached (limit: 2)." };
+    }
+
+    const totalCredits = (user.dailyCredits || 0) + (user.bonusCredits || 0) + (user.lifetimeCredits || 0);
+    const SHIELD_COST = 30;
+
+    if (totalCredits < SHIELD_COST) {
+      return { success: false, error: `Insufficient credits. You need ${SHIELD_COST} credits to equip a Streak Shield.` };
+    }
+
+    // Deduct 30 credits
+    const deductRes = await deductCredits(userId, SHIELD_COST, "streak_shield_purchase");
+    if (!deductRes.success) {
+      return { success: false, error: deductRes.error || "Failed to deduct credits" };
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        streakShields: { increment: 1 },
+      },
+      select: {
+        streakShields: true,
+        dailyCredits: true,
+        bonusCredits: true,
+        lifetimeCredits: true,
+      },
+    });
+
+    return {
+      success: true,
+      streakShields: updatedUser.streakShields,
+      credits: updatedUser,
+    };
+  } catch (err) {
+    console.error("[CREDITS] buyStreakShield failed:", err);
+    return { success: false, error: "Failed to purchase Streak Shield." };
+  }
+}
+
+export const STREAK_MILESTONES = {
+  3: { credits: 25, type: "bonus" as const, name: "3-Day Ignition", shield: 0 },
+  7: { credits: 75, type: "bonus" as const, name: "Weekly Champion", shield: 1 },
+  14: { credits: 150, type: "bonus" as const, name: "Fortnight Fire", shield: 0, cosmetic: "neon_fire" },
+  30: { credits: 500, type: "permanent" as const, name: "Monthly Mythic", shield: 0, cosmetic: "mythic_gold" },
+} as const;
+
+export async function claimStreakMilestone(userId: string, milestoneDay: number) {
+  const milestone = STREAK_MILESTONES[milestoneDay as keyof typeof STREAK_MILESTONES];
+  if (!milestone) {
+    return { success: false, error: "Invalid milestone day" };
+  }
+
+  try {
+    const result = await prisma.$transaction(async (transaction) => {
+      const user = await transaction.user.findUnique({
+        where: { id: userId },
+        select: {
+          dailyStreak: true,
+          lastClaimDate: true,
+          streakShields: true,
+          streakMilestonesClaimed: true,
+        },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const effectiveStreak = calculateEffectiveStreak(user.dailyStreak, user.lastClaimDate, user.streakShields);
+      if (effectiveStreak < milestoneDay) {
+        throw new Error(`Your streak (${effectiveStreak}) has not reached the ${milestoneDay}-day milestone yet.`);
+      }
+
+      const rawClaimed = user.streakMilestonesClaimed;
+      const claimed: string[] = Array.isArray(rawClaimed)
+        ? (rawClaimed as unknown as string[])
+        : [];
+      const milestoneKey = milestoneDay.toString();
+      if (claimed.includes(milestoneKey)) {
+        throw new Error(`Milestone for day ${milestoneDay} has already been claimed.`);
+      }
+
+      const shouldAddShield = milestone.shield > 0 && (user.streakShields || 0) < 2;
+
+      const updatedUser = await transaction.user.update({
+        where: { id: userId },
+        data: {
+          streakMilestonesClaimed: [...claimed, milestoneKey],
+          ...(milestone.type === "permanent"
+            ? { lifetimeCredits: { increment: milestone.credits } }
+            : { bonusCredits: { increment: milestone.credits } }),
+          ...(shouldAddShield ? { streakShields: { increment: 1 } } : {}),
+        },
+        select: {
+          dailyCredits: true,
+          bonusCredits: true,
+          lifetimeCredits: true,
+          dailyStreak: true,
+          streakShields: true,
+          streakMilestonesClaimed: true,
+        },
+      });
+
+      await transaction.creditTransaction.create({
+        data: {
+          userId,
+          amount: milestone.credits,
+          balanceType: milestone.type,
+          transactionType: "shop_bonus",
+          description: `Milestone ${milestoneDay} Days unlocked: ${milestone.name} (+${milestone.credits} credits${shouldAddShield ? " + 1 Shield" : ""})`,
+          metadata: {
+            milestoneDay,
+            milestoneName: milestone.name,
+            shieldAwarded: shouldAddShield,
+            cosmetic: "cosmetic" in milestone ? milestone.cosmetic : undefined,
+          },
+        },
+      });
+
+      return {
+        milestone,
+        credits: updatedUser,
+        shieldAwarded: shouldAddShield,
+      };
+    });
+
+    return {
+      success: true,
+      milestone: result.milestone,
+      credits: result.credits,
+      shieldAwarded: result.shieldAwarded,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, error: msg };
   }
 }
 

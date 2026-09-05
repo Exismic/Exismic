@@ -440,7 +440,7 @@ export default function TextTo3D() {
             <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] max-w-sm leading-relaxed">
               {isGeneratingConcept 
                 ? "Rendering Stable Diffusion 2D orthographic perspectives." 
-                : "TripoSR neural networks isolating background layers and compiling vertex texture mappings."
+                : "AI isolating background layers and generating 3D textures."
               }
             </p>
           </motion.div>

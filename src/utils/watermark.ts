@@ -143,16 +143,10 @@ export async function downloadWithBrandPolicy({
   let finalBlob: Blob;
 
   if (imageBlob) {
-    finalBlob = isPro ? imageBlob : await stampWatermarkOnImage(imageBlob);
+    finalBlob = imageBlob;
   } else if (imageUrl) {
-    if (isPro) {
-      // Direct clean download
-      const res = await fetch(imageUrl);
-      finalBlob = await res.blob();
-    } else {
-      // Watermarked export for free tier
-      finalBlob = await stampWatermarkOnImage(imageUrl);
-    }
+    const res = await fetch(imageUrl);
+    finalBlob = await res.blob();
   } else {
     throw new Error('No image provided for download');
   }

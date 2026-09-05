@@ -233,30 +233,32 @@ export async function POST(req: NextRequest) {
       select: { plan: true, planExpiresAt: true },
     });
 
-    if (!dbUser || !hasActiveProAccess(dbUser)) {
-      return NextResponse.json({ error: "Exismic Ai invoice generation is a Pro feature." }, { status: 403 });
-    }
+    const isPro = dbUser && hasActiveProAccess(dbUser);
 
-    const userCredits = await getUserCredits(user.id);
-    const available = userCredits ? getCreditTotal(userCredits) : 0;
-    if (available < TOOL_COST) {
-      return NextResponse.json(
-        { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
-        { status: 402 }
-      );
+    if (!isPro) {
+      const userCredits = await getUserCredits(user.id);
+      const available = userCredits ? getCreditTotal(userCredits) : 0;
+      if (available < TOOL_COST) {
+        return NextResponse.json(
+          { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS", requiredCredits: TOOL_COST, available },
+          { status: 402 }
+        );
+      }
     }
 
     const body = await req.json().catch(() => ({}));
     const brief = sanitizeMultiline(body.brief, "", 3000);
 
     if (brief.length < 8) {
-      return NextResponse.json({ error: "Tell Exismic Ai a little more about the invoice." }, { status: 400 });
+      return NextResponse.json({ error: "Tell Exismic AI a little more about the invoice." }, { status: 400 });
     }
 
     const invoice = await callGroq(brief);
 
-    // Atomically deduct credits
-    await deductCredits(user.id, TOOL_COST, "invoice-generator");
+    // Deduct credits for non-pro users
+    if (!isPro) {
+      await deductCredits(user.id, TOOL_COST, "invoice-generator");
+    }
 
     return NextResponse.json({ success: true, invoice, creditsDeducted: TOOL_COST });
   } catch (error) {

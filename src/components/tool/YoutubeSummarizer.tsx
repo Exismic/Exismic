@@ -19,6 +19,17 @@ import {
 } from "lucide-react";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import axios from "axios";
+import { ToolAuthGateModal } from "@/components/tool/ToolAuthGateModal";
+import { ToolCreditGateModal } from "@/components/tool/ToolCreditGateModal";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { 
+  trackToolRun, 
+  trackToolSuccess, 
+  trackToolError, 
+  trackAuthWallHit, 
+  trackCreditWallHit 
+} from "@/lib/analytics";
 
 const YoutubeIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" className={className}>
@@ -58,6 +69,9 @@ export default function YoutubeSummarizer() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
 
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+
   const handleSampleClick = (sampleUrl: string) => {
     setUrl(sampleUrl);
     setError(null);
@@ -65,7 +79,7 @@ export default function YoutubeSummarizer() {
 
   const simulateProgress = () => {
     setProgress(5);
-    setStatus("Connecting to YouTube server...");
+    setStatus("Connecting to YouTube...");
     
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -74,15 +88,15 @@ export default function YoutubeSummarizer() {
           return 95;
         }
         if (prev > 70) {
-          setStatus("Generating formatted summaries and takeaways...");
+          setStatus("Formatting summary and key takeaways...");
           return prev + 1;
         }
         if (prev > 40) {
-          setStatus("Analyzing transcript text using Exismic LLM...");
+          setStatus("Reading transcript and finding the best points...");
           return prev + 2;
         }
         if (prev > 15) {
-          setStatus("Parsing subtitle timestamps...");
+          setStatus("Cleaning subtitles and timestamps...");
           return prev + 4;
         }
         return prev + 5;
@@ -97,6 +111,7 @@ export default function YoutubeSummarizer() {
     setIsProcessing(true);
     setError(null);
     setProgress(0);
+    trackToolRun("youtube-summarizer", "ai");
 
     const progressInterval = simulateProgress();
 
@@ -108,18 +123,35 @@ export default function YoutubeSummarizer() {
 
       clearInterval(progressInterval);
       setProgress(100);
-      setStatus("Processing complete!");
+      setStatus("Done!");
 
       setResult(response.data.result);
       setVideoTitle(response.data.title);
       setVideoId(response.data.videoId);
       setSegments(response.data.segments || []);
       setActiveTab(selectedFormat);
+      trackToolSuccess("youtube-summarizer");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+        window.dispatchEvent(new Event("credits-updated"));
+      }
     } catch (err: any) {
       clearInterval(progressInterval);
       console.error(err);
-      const errMsg = err.response?.data?.error || err.message || "Failed to process YouTube video.";
+      const status = err.response?.status;
+      if (status === 401) {
+        setShowAuthModal(true);
+        trackAuthWallHit("youtube-summarizer");
+        return;
+      }
+      if (status === 402) {
+        setShowCreditModal(true);
+        trackCreditWallHit("youtube-summarizer", 8);
+        return;
+      }
+      const errMsg = err.response?.data?.error || err.message || "Could not summarize this YouTube video. Please check the link.";
       setError(errMsg);
+      trackToolError("youtube-summarizer", errMsg);
     } finally {
       setIsProcessing(false);
     }
@@ -382,6 +414,19 @@ export default function YoutubeSummarizer() {
                   )}
                 </div>
 
+                {/* Retention Action Bar: Email Result, Cloud Library, Quests */}
+                <ResultRetentionBar
+                  toolType="youtube-summarizer"
+                  toolName="YouTube Summarizer"
+                  title={videoTitle ? `${videoTitle} - Summary` : "YouTube Video Summary"}
+                  content={result}
+                  metadata={{ videoId, format: activeTab }}
+                  downloadAction={handleDownload}
+                  downloadLabel="Download Text"
+                  onCopy={handleCopy}
+                  className="mt-4"
+                />
+
               </motion.div>
             )}
           </AnimatePresence>
@@ -394,9 +439,9 @@ export default function YoutubeSummarizer() {
             accentColor="text-red-400"
             steps={AUD_STEPS}
             stats={result ? [
-              { label: "Synthesis Engine", value: "Exismic Layout Engine" },
-              { label: "Spoken Words", value: `~${result.split(/\s+/).length.toLocaleString()}` },
-              { label: "Original Video ID", value: videoId }
+              { label: "Speed", value: "Instant AI" },
+              { label: "Words Processed", value: `~${result.split(/\s+/).length.toLocaleString()}` },
+              { label: "YouTube ID", value: videoId }
             ] : []}
           />
 
@@ -404,13 +449,33 @@ export default function YoutubeSummarizer() {
             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4 animate-shake">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
               <div className="space-y-1">
-                <p className="uppercase tracking-[0.2em]">Transcription Error</p>
+                <p className="uppercase tracking-[0.2em]">Notice</p>
                 <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Cross-Tool Next Steps */}
+      {result && (
+        <ToolWorkflowChaining currentToolId="youtube-summarizer" outputContent={result} />
+      )}
+
+      {/* Auth and Credit Modals */}
+      <ToolAuthGateModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        toolName="YouTube Summarizer"
+        icon={<YoutubeIcon size={30} className="text-red-500" />}
+      />
+
+      <ToolCreditGateModal
+        isOpen={showCreditModal}
+        onClose={() => setShowCreditModal(false)}
+        requiredCredits={8}
+        availableCredits={0}
+      />
 
       {/* Full screen synthesis loader */}
       <AnimatePresence>
@@ -432,7 +497,7 @@ export default function YoutubeSummarizer() {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.4em]">Drafting content notes</p>
+            <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.4em]">Writing summary notes</p>
           </motion.div>
         )}
       </AnimatePresence>

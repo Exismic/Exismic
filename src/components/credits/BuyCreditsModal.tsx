@@ -1,67 +1,187 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Coins,
-  Diamond,
-  Crown,
-  Flame,
-  Award,
-  Zap, 
+  Crown, 
+  Coins, 
+  Sparkles, 
+  Loader2, 
   X, 
-  Check, 
   ShieldCheck, 
-  ArrowRight,
-  Loader2,
-  CreditCard,
-  ExternalLink,
-  Ticket
+  ArrowRight, 
+  Zap, 
+  Diamond, 
+  Flame, 
+  Award,
+  Palette,
+  CheckCircle2,
+  Clock,
+  RefreshCw
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useCredits } from "@/hooks/useCredits";
-import GradientText from "@/components/ui/GradientText";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
+import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { ExismicMark } from "@/components/ui/ExismicLogo";
+import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
-import { GiftCardPaymentModal } from "@/components/modals/GiftCardPaymentModal";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
-import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
-import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
-import { ExismicMark } from "@/components/ui/ExismicLogo";
+import { useCredits } from "@/hooks/useCredits";
 
-const CREDIT_TIERS = PRICING_CONFIG.CREDIT_PACKAGES;
-
-interface RazorpayResponse {
-  razorpay_order_id?: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
+interface CreditPackOption {
+  id: string;
+  label: string;
+  displayCredits: string;
+  subtitle: string;
+  bonusCredits?: number;
+  popular?: boolean;
+  style: {
+    icon: typeof Zap;
+    iconColor: string;
+    iconBg: string;
+    cardBorder: string;
+    ambientGradient: string;
+    topBeam: string;
+    numberGradient: string;
+    conicGradient: string;
+    markTheme: "blue" | "purple" | "gold";
+    subtitle: string;
+    subtitleColor: string;
+    arrowBoxHover: string;
+    arrowIconHover: string;
+  };
+  credits: number;
+  inrPrice: number;
+  usdPrice: number;
 }
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  'Zap': Coins,
-  'Sparkles': Diamond,
-  'Crown': Crown,
-  'Coins': Coins,
-  'Diamond': Diamond,
-};
+const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
+  {
+    id: "starter",
+    label: "STARTER PACK",
+    displayCredits: "500",
+    subtitle: "Permanent balance, never expires",
+    bonusCredits: 0,
+    style: {
+      icon: Coins,
+      iconColor: "text-cyan-300",
+      iconBg: "border-cyan-400/40 bg-gradient-to-br from-cyan-500/25 via-blue-900/30 to-black/85 shadow-[0_0_20px_rgba(34,211,238,0.3)]",
+      cardBorder: "border border-cyan-500/40 bg-gradient-to-r from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-400/80 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_30px_rgba(34,211,238,0.15)]",
+      ambientGradient: "from-cyan-500/18 via-blue-600/10 to-transparent",
+      topBeam: "bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.85)]",
+      numberGradient: "bg-[linear-gradient(110deg,#ffffff,#cffafe,#38bdf8,#ffffff)] drop-shadow-[0_0_18px_rgba(56,189,248,0.4)]",
+      conicGradient: "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]",
+      markTheme: "blue",
+      subtitle: "Instant Refuel",
+      subtitleColor: "text-zinc-400 group-hover/launch:text-cyan-200/90",
+      arrowBoxHover: "group-hover/launch:border-cyan-300/60 group-hover/launch:bg-cyan-300/[0.2] group-hover/launch:text-cyan-50 group-hover/launch:shadow-[0_0_30px_rgba(34,211,238,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
+      arrowIconHover: "group-hover/launch:text-cyan-100",
+    },
+    credits: 500,
+    inrPrice: 299,
+    usdPrice: 3.99,
+  },
+  {
+    id: "creator",
+    label: "CREATOR CHOICE",
+    displayCredits: "2,000",
+    subtitle: "1,500 base + 500 bonus (never expires)",
+    bonusCredits: 500,
+    popular: true,
+    style: {
+      icon: Diamond,
+      iconColor: "text-purple-300",
+      iconBg: "border-purple-400/45 bg-gradient-to-br from-purple-500/30 via-fuchsia-950/40 to-black/85 shadow-[0_0_25px_rgba(168,85,247,0.4)]",
+      cardBorder: "border-2 border-purple-400/85 bg-gradient-to-r from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_45px_rgba(168,85,247,0.35)] hover:border-fuchsia-300",
+      ambientGradient: "from-purple-600/22 via-fuchsia-600/14 to-cyan-500/10",
+      topBeam: "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 shadow-[0_0_20px_rgba(217,70,239,0.95)]",
+      numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
+      conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
+      markTheme: "purple",
+      subtitle: "Best Value Pack",
+      subtitleColor: "text-zinc-400 group-hover/launch:text-fuchsia-200/90",
+      arrowBoxHover: "group-hover/launch:border-fuchsia-300/60 group-hover/launch:bg-fuchsia-300/[0.2] group-hover/launch:text-fuchsia-50 group-hover/launch:shadow-[0_0_30px_rgba(217,70,239,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
+      arrowIconHover: "group-hover/launch:text-fuchsia-100",
+    },
+    credits: 2000,
+    inrPrice: 699,
+    usdPrice: 8.99,
+  },
+  {
+    id: "ultimate",
+    label: "STUDIO POWER",
+    displayCredits: "6,000",
+    subtitle: "5,000 base + 1,000 bonus (never expires)",
+    bonusCredits: 1000,
+    style: {
+      icon: Crown,
+      iconColor: "text-amber-300",
+      iconBg: "border-amber-400/45 bg-gradient-to-br from-amber-500/30 via-rose-950/40 to-black/85 shadow-[0_0_25px_rgba(245,158,11,0.35)]",
+      cardBorder: "border border-amber-400/45 bg-gradient-to-r from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300/85 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.2)]",
+      ambientGradient: "from-amber-500/20 via-rose-600/12 to-transparent",
+      topBeam: "bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 shadow-[0_0_18px_rgba(245,158,11,0.85)]",
+      numberGradient: "bg-[linear-gradient(110deg,#ffffff,#fde047,#fb7185,#ffffff)] drop-shadow-[0_0_20px_rgba(251,113,133,0.45)]",
+      conicGradient: "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]",
+      markTheme: "gold",
+      subtitle: "Studio Power",
+      subtitleColor: "text-zinc-400 group-hover/launch:text-amber-200/90",
+      arrowBoxHover: "group-hover/launch:border-amber-300/60 group-hover/launch:bg-amber-300/[0.2] group-hover/launch:text-amber-50 group-hover/launch:shadow-[0_0_30px_rgba(245,158,11,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
+      arrowIconHover: "group-hover/launch:text-amber-100",
+    },
+    credits: 6000,
+    inrPrice: 1499,
+    usdPrice: 19.99,
+  },
+];
 
-export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showFailure, setShowFailure] = useState(false);
-  const [showGiftModal, setShowGiftModal] = useState(false);
-  const [lastCreditsAdded, setLastCreditsAdded] = useState(0);
-  const [failureReason, setFailureReason] = useState<string | undefined>();
+export interface BuyCreditsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialCategory?: "pro" | "credits";
+  initialPlanId?: string;
+}
+
+export function BuyCreditsModal({
+  isOpen,
+  onClose,
+  initialCategory = "credits",
+  initialPlanId,
+}: BuyCreditsModalProps) {
+  const [activeCategory, setActiveCategory] = useState<"pro" | "credits">(initialCategory);
   const [isIndia, setIsIndia] = useState(false);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [timeUntilReset, setTimeUntilReset] = useState("00h 00m 00s");
+
+  // Post-purchase modals
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successType, setSuccessType] = useState<"pro" | "credits">("credits");
+  const [successCredits, setSuccessCredits] = useState(0);
+  const [showFailure, setShowFailure] = useState(false);
+  const [failureReason, setFailureReason] = useState<string | undefined>();
+
+  // Payment Terms / Alternative Checkout
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [termsPlan, setTermsPlan] = useState<{
+    id: string;
+    title: string;
+    credits: number;
+    priceDisplay: string;
+    category: "pro" | "credits";
+  } | null>(null);
+
+  const { credits, refreshCredits } = useCredits();
+
+  useEffect(() => {
+    if (initialCategory) {
+      setActiveCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   useEffect(() => {
     let active = true;
     fetch("/api/billing/market", { cache: "no-store" })
-      .then((response) => response.json())
+      .then((res) => res.json())
       .then((data) => {
         if (active && (data?.market === "IN" || data?.market === "GLOBAL")) {
           setIsIndia(data.countryCode === "UNKNOWN" ? getIsIndia() : data.market === "IN");
@@ -75,421 +195,610 @@ export function BuyCreditsModal({ isOpen, onClose }: { isOpen: boolean, onClose:
     };
   }, []);
 
-  const marketOverride = isIndia ? "IN" : "GLOBAL";
-  const gatewayName = isIndia ? "Razorpay" : "PayPal";
-  const { refreshCredits } = useCredits();
-  const activeTierObj = CREDIT_TIERS.find((t) => t.id === selectedTier);
+  // 24h Reset Timer
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const nowInIst = new Date(now.getTime() + istOffsetMs);
+      const nextMidnightIstUtc =
+        Date.UTC(
+          nowInIst.getUTCFullYear(),
+          nowInIst.getUTCMonth(),
+          nowInIst.getUTCDate() + 1
+        ) - istOffsetMs;
 
-  const handlePurchase = async () => {
-    if (!paymentsEnabled) return;
-    if (!selectedTier) return;
-    const tier = CREDIT_TIERS.find(t => t.id === selectedTier);
-    if (!tier) return;
+      const diff = Math.max(0, nextMidnightIstUtc - now.getTime());
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeUntilReset(
+        `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m ${s.toString().padStart(2, "0")}s`
+      );
+    };
 
-    setIsProcessing(true);
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleOpenCheckoutOptions = (
+    planId: string, 
+    planTitle: string, 
+    creditsNum: number, 
+    inrPrice: number, 
+    usdPrice: number, 
+    category: "pro" | "credits"
+  ) => {
+    const priceDisplay = isIndia ? `₹${inrPrice}` : `$${usdPrice}`;
+    setTermsPlan({
+      id: planId,
+      title: planTitle,
+      credits: creditsNum,
+      priceDisplay,
+      category,
+    });
+    setIsTermsOpen(true);
+  };
+
+  const handleCheckoutPlan = async (planId: string, planTitle: string, planCredits: number, category: "pro" | "credits") => {
+    setErrorMessage(null);
+    setLoadingId(planId);
 
     try {
-      const checkoutRequest = createCheckoutSignal();
-      const orderRes = await fetch("/api/billing/create-order", {
+      const res = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: checkoutRequest.signal,
         body: JSON.stringify({
-          planId: tier.billingPlanId || tier.id,
-          marketOverride,
+          planId,
+          isGift: false,
+          marketOverride: isIndia ? "IN" : "GLOBAL",
         }),
-      }).finally(checkoutRequest.clear);
+      });
 
-      const data = await orderRes.json().catch(() => null);
-      if (!orderRes.ok || !data?.success) {
-        console.warn(`[${gatewayName}] Credit modal checkout unavailable:`, data?.error || `Could not start ${gatewayName} checkout.`);
-        setShowFailure(true);
-        setIsProcessing(false);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Checkout initiation failed. Please try again.");
+      }
+
+      if (data.gateway === "mock" && data.approvalUrl) {
+        window.location.href = data.approvalUrl;
         return;
       }
 
       if (data.gateway === "razorpay") {
-        const Razorpay = await loadRazorpayCheckout();
-        if (!data.razorpayOrderId) throw new Error("Credit checkout could not start. Please refresh and try again.");
+        if (typeof window === "undefined" || !window.Razorpay) {
+          throw new Error("Payment gateway is loading. Please try again in a moment.");
+        }
 
-        const razorpay = new Razorpay({
+        const razorpay = new window.Razorpay({
           key: data.keyId,
           amount: data.amount,
           currency: data.currency,
           name: "Exismic",
-          description: data.plan?.name || `${tier.credits.toLocaleString()} credits`,
-          order_id: data.razorpayOrderId,
-          theme: { color: "#8b5cf6" },
-          modal: {
-            ondismiss: () => setIsProcessing(false),
-          },
-          handler: async (paymentResponse: RazorpayResponse) => {
-            const verifyResponse = await fetch("/api/billing/razorpay/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(paymentResponse),
-            });
-            const verifyData = await verifyResponse.json().catch(() => null);
-            if (!verifyResponse.ok || !verifyData?.success) {
-              const reason = verifyData?.error || "Payment verification failed.";
-              console.warn("Credit payment verification failed:", reason);
-              setFailureReason(reason);
+          description: planTitle,
+          order_id: data.razorpayOrderId || data.providerOrderId,
+          handler: async (response: any) => {
+            try {
+              const verifyRes = await fetch("/api/billing/razorpay/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(response),
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyRes.ok && verifyData.success) {
+                await refreshCredits();
+                setSuccessType(category);
+                setSuccessCredits(planCredits);
+                setShowSuccess(true);
+                onClose();
+              } else {
+                setFailureReason(verifyData.error || "Payment verification could not be completed.");
+                setShowFailure(true);
+              }
+            } catch (err: any) {
+              setFailureReason(err.message || "Failed to verify payment.");
               setShowFailure(true);
-              setIsProcessing(false);
-              return;
+            } finally {
+              setLoadingId(null);
             }
-            setLastCreditsAdded(tier.credits);
-            await refreshCredits();
-            setShowSuccess(true);
-            setIsProcessing(false);
           },
+          prefill: {},
+          theme: { color: "#8b5cf6" },
         });
-        razorpay.on("payment.failed", (failure: unknown) => {
-          reportPaymentFailure(data.orderId, failure);
-          setFailureReason("Payment was not completed. No charge was added to your account.");
+
+        razorpay.on("payment.failed", (resp: any) => {
+          setFailureReason(resp?.error?.description || "Payment was not completed.");
           setShowFailure(true);
-          setIsProcessing(false);
+          setLoadingId(null);
         });
+
         razorpay.open();
         return;
       }
 
-      if (!data?.approvalUrl) throw new Error("PayPal did not return an approval link.");
-      window.location.href = data.approvalUrl;
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : `${gatewayName} checkout failed`;
-      console.warn(`${gatewayName} checkout unavailable:`, reason);
-      setFailureReason(reason);
+      if (data.approvalUrl) {
+        window.location.href = data.approvalUrl;
+        return;
+      }
+
+      throw new Error("Payment gateway did not return checkout parameters.");
+    } catch (err: any) {
+      setFailureReason(err.message || "Checkout failed. Please try again.");
       setShowFailure(true);
-      setIsProcessing(false);
+      setLoadingId(null);
     }
   };
 
-  return (
-    <Portal>
-      <AnimatePresence>
-        {isOpen && (
-        <div key="buy-credits-modal" className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 md:p-8 pt-16 sm:pt-20">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-3xl"
-          />
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Buy credits"
-            className="glass-dark relative max-h-[calc(100vh-5rem)] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/10 p-5 shadow-4xl sm:rounded-[3rem] sm:p-8 md:p-12 my-auto"
-          >
-            {/* Background Glow */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-accent-purple/10 blur-[120px] pointer-events-none" />
-            
-            <button 
-              onClick={onClose}
-              aria-label="Close credit purchase"
-              className="sticky top-0 z-20 ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-zinc-900/90 text-zinc-500 transition-all hover:bg-zinc-800 hover:text-white sm:absolute sm:right-8 sm:top-8"
-            >
-              <X size={20} />
-            </button>
+  if (!isOpen) return null;
 
-            <div className="relative z-10 space-y-8 sm:space-y-12">
-              <div className="text-center space-y-4">
-                 <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 mb-2">
-                    <Zap size={14} className="text-accent-purple" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-accent-purple">Power Reserve</span>
-                 </div>
-                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white sm:text-5xl md:text-6xl">
-                    Refuel your <GradientText>Permanent Reserve.</GradientText>
-                 </h2>
-                 <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-                    Purchase credits that <span className="text-white">never expire.</span> Daily and bonus credits are used first, then permanent reserve.
-                 </p>
+  return (
+    <>
+      <Portal>
+        <AnimatePresence>
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/90 backdrop-blur-3xl"
+            />
+
+            {/* Modal Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 15 }}
+              transition={{ type: "spring", stiffness: 360, damping: 28 }}
+              className="relative w-full max-w-5xl rounded-[2.5rem] border border-white/10 bg-[#05050a]/95 p-5 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(245,158,11,0.12)] overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92vh]"
+            >
+              {/* Top Light Accent */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400 via-fuchsia-400 to-amber-400 shadow-[0_0_20px_rgba(34,211,238,0.7)]" />
+              <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-500/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-600/15 blur-3xl" />
+
+              {/* Header */}
+              <div className="relative z-10 flex items-center justify-between pb-5 border-b border-white/[0.08] shrink-0">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative flex h-13 w-13 items-center justify-center rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-400/25 via-yellow-500/15 to-purple-600/20 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
+                    <Coins size={26} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse" />
+                    <Sparkles size={14} className="absolute -top-1 -right-1 text-yellow-300 animate-spin" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                        Refill Credits & Unlock Pro
+                      </h2>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                        INSTANT ACTIVATION
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400 font-medium mt-0.5">
+                      Never wait for daily limits. Choose a permanent credit refill or upgrade to Pro for 10x capacity.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  aria-label="Close modal"
+                  className="relative z-50 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer shadow-md"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              {!paymentsEnabled ? (
-                <div className="flex flex-col items-center space-y-6 py-7 sm:space-y-8 sm:py-12">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] border border-amber-300/20 bg-amber-300/[0.06] text-amber-200 shadow-[0_0_40px_rgba(251,191,36,0.08)]">
-                    <ShieldCheck size={32} />
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto pt-5 pb-2 space-y-5 custom-scrollbar pr-1">
+                
+                {/* Live Balance & Reset Pill */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.025] px-4 py-3 shadow-inner">
+                  <div className="flex items-center gap-2.5">
+                    <Zap size={16} className="text-amber-400 fill-amber-400/30" />
+                    <span className="text-xs text-zinc-300 font-semibold">Your Balance:</span>
+                    <span className="text-xs font-black text-amber-300 tracking-wide bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+                      {credits.toLocaleString()} Credits
+                    </span>
                   </div>
-                  <div className="text-center space-y-3">
-                    <h3 className="text-2xl font-black uppercase tracking-tight text-white">Credit purchases unavailable</h3>
-                    <p className="mx-auto max-w-md text-sm font-medium leading-6 text-zinc-400">
-                      New credit purchases are paused right now. Please check back soon.
-                    </p>
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-200/70">Currently unavailable</p>
+
+                  <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium">
+                    <Clock size={14} className="text-cyan-400" />
+                    <span>Free 50 credits replenish in:</span>
+                    <span className="font-mono font-bold text-cyan-300 bg-cyan-400/10 px-2 py-0.5 rounded-md border border-cyan-400/20">
+                      {timeUntilReset}
+                    </span>
                   </div>
-                  <button 
-                    onClick={onClose}
-                    className="min-h-12 rounded-xl border border-white/10 bg-white/[0.03] px-8 text-[10px] font-black uppercase tracking-[0.22em] text-white transition-all hover:bg-white/[0.06]"
+                </div>
+
+                {/* Category Tab Switcher */}
+                <div className="flex rounded-2xl border border-white/10 bg-black/50 p-1.5 gap-1.5 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory("credits")}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer",
+                      activeCategory === "credits"
+                        ? "bg-gradient-to-r from-purple-500/25 via-fuchsia-500/25 to-pink-500/25 border border-purple-400/70 text-purple-200 shadow-[0_0_25px_rgba(168,85,247,0.3)]"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                    )}
                   >
-                    Close
+                    <Coins size={15} className={activeCategory === "credits" ? "text-purple-300" : "text-zinc-500"} />
+                    <span>Credit Packs (Never Expire)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory("pro")}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer",
+                      activeCategory === "pro"
+                        ? "bg-gradient-to-r from-cyan-500/25 via-blue-500/25 to-cyan-500/25 border border-cyan-400/70 text-cyan-200 shadow-[0_0_25px_rgba(6,182,212,0.3)]"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                    )}
+                  >
+                    <Crown size={15} className={activeCategory === "pro" ? "text-cyan-300" : "text-zinc-500"} />
+                    <span>Exismic Pro (10x Allowance)</span>
                   </button>
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {CREDIT_TIERS.map((tier) => (
-                      <motion.div
-                        key={tier.id}
-                        whileHover={{ y: -10 }}
-                        onClick={() => setSelectedTier(tier.id)}
-                        className={cn(
-                          "group relative cursor-pointer rounded-[1.75rem] border p-5 transition-all duration-500 sm:rounded-[2.5rem] sm:p-8",
-                          selectedTier === tier.id 
-                            ? "bg-white/[0.05] border-accent-purple shadow-[0_20px_40px_rgba(124,58,237,0.15)]" 
-                            : "bg-white/[0.02] border-white/5 hover:border-white/20"
-                        )}
-                      >
-                         {tier.popular && (
-                           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white text-[9px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(168,85,247,0.5)] border border-purple-300/40 flex items-center gap-1">
-                              <Award size={10} className="text-fuchsia-100 fill-fuchsia-200/40" />
-                              <span>Best Value</span>
-                           </div>
-                         )}
 
-                         <div className="space-y-8">
-                            <div className={cn(
-                              "w-14 h-14 rounded-2xl flex items-center justify-center transition-all border shadow-lg",
-                              tier.color === 'blue' ? "bg-cyan-500/15 border-cyan-400/30 text-cyan-300 shadow-cyan-500/10" :
-                              tier.color === 'purple' ? "bg-purple-500/15 border-purple-400/30 text-purple-300 shadow-purple-500/10" :
-                              "bg-amber-500/15 border-amber-400/30 text-amber-300 shadow-amber-500/10"
-                            )}>
-                               {(() => {
-                                  const Icon = ICON_MAP[tier.icon as string] || Coins;
-                                  return <Icon size={26} />;
-                                })()}
+                {/* TAB 1: CREDIT PACKS */}
+                {activeCategory === "credits" && (
+                  <div className="space-y-4">
+                    {CREDIT_PACK_OPTIONS.map((pack) => {
+                      const Icon = pack.style.icon;
+                      const priceLabel = isIndia ? `₹${pack.inrPrice}` : `$${pack.usdPrice}`;
+
+                      return (
+                        <motion.div
+                          key={pack.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={cn(
+                            "group relative overflow-hidden rounded-[2.25rem] p-1.5 backdrop-blur-3xl transition-all duration-300 hover:-translate-y-0.5",
+                            pack.style.cardBorder
+                          )}
+                        >
+                          <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-90", pack.style.ambientGradient)} />
+                          <div className={cn("absolute inset-x-0 top-0 h-[2px]", pack.style.topBeam)} />
+
+                          <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between">
+                            
+                            <div className="flex items-center gap-4.5 min-w-0">
+                              <div className={cn(
+                                "flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border text-white shadow-xl backdrop-blur-md transition-all duration-300 group-hover:scale-105",
+                                pack.style.iconBg
+                              )}>
+                                <Icon size={28} className={cn("transition-transform duration-300 group-hover:scale-110", pack.style.iconColor)} />
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{pack.label}</p>
+                                  {pack.bonusCredits !== undefined && pack.bonusCredits > 0 && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]">
+                                      <Flame size={11} className="text-emerald-300 fill-emerald-400/30" /> +{pack.bonusCredits.toLocaleString()} Bonus
+                                    </span>
+                                  )}
+                                  {pack.popular && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-purple-400/60 bg-gradient-to-r from-purple-500/30 via-fuchsia-500/30 to-pink-500/30 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-purple-200 shadow-[0_0_16px_rgba(168,85,247,0.4)] backdrop-blur-md">
+                                      <Award size={11} className="text-fuchsia-200 fill-fuchsia-400/40" /> Best Value
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h3 className={cn("mt-1 text-3xl sm:text-4xl font-black bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight", pack.style.numberGradient)}>
+                                  {pack.displayCredits}{" "}
+                                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-400 drop-shadow-none">
+                                    credits
+                                  </span>
+                                </h3>
+
+                                <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-zinc-300">
+                                  <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+                                  <span>{pack.subtitle}</span>
+                                </p>
+                              </div>
                             </div>
 
-                            <div className="space-y-1">
-                               <div className="flex items-center justify-between">
-                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{tier.label}</h4>
-                                 {tier.bonusCredits > 0 && (
-                                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.2)]">
-                                     <Flame size={9} className="text-emerald-300 fill-emerald-400/30" /> +{tier.bonusCredits} Bonus
-                                   </span>
-                                 )}
-                               </div>
-                               <div className="flex items-baseline gap-2">
-                                  <span className={cn(
-                                    "bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent text-5xl font-black italic",
-                                    tier.color === 'blue' ? "bg-[linear-gradient(110deg,#fff,#93c5fd,#3b82f6,#fff)] drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]" :
-                                    tier.color === 'purple' ? "bg-[linear-gradient(110deg,#fff,#c084fc,#06b6d4,#fff)] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" :
-                                    "bg-[linear-gradient(110deg,#fff,#fcd34d,#f43f5e,#fff)] drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]"
-                                  )}>{tier.credits + (tier.bonusCredits || 0)}</span>
-                                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">PERM</span>
-                               </div>
+                            <div className="flex shrink-0 items-center justify-end sm:min-w-[260px]">
+                              <motion.button
+                                type="button"
+                                onClick={() => handleOpenCheckoutOptions(pack.id, pack.label, pack.credits, pack.inrPrice, pack.usdPrice, "credits")}
+                                disabled={loadingId !== null}
+                                whileHover={{ y: -2, scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="group/launch relative flex min-h-[58px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+                              >
+                                <motion.span
+                                  aria-hidden="true"
+                                  className={cn("absolute -inset-[150%] opacity-100 mix-blend-screen", pack.style.conicGradient)}
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                />
+                                <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[17px] border border-white/10 bg-gradient-to-br from-[#0e081c]/98 via-[#090514]/98 to-[#030107]/98 px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#170e2e]/98 group-hover/launch:to-[#090514]/98">
+                                  <div className="flex items-center gap-3">
+                                    <ExismicMark size={36} letter="C" theme={pack.style.markTheme} animated={true} />
+                                    <div className="text-left">
+                                      <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
+                                        GET {pack.displayCredits} • {priceLabel}
+                                      </span>
+                                      <span className={cn("block text-[9px] font-bold uppercase tracking-[0.14em]", pack.style.subtitleColor)}>
+                                        Card, UPI & Instant Checkout
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <ArrowRight size={16} className="text-white transition-transform group-hover/launch:translate-x-1" />
+                                </span>
+                              </motion.button>
                             </div>
 
-                            <div className="h-px bg-white/5" />
-
-                            <div className="space-y-3">
-                               <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
-                                  <Check size={14} className="text-cyan-400" />
-                                  <span>Instant Delivery</span>
-                               </div>
-                               <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
-                                  <Check size={14} className="text-cyan-400" />
-                                  <span>No Expiry</span>
-                               </div>
-                            </div>
-
-                            <div className="text-center pt-4">
-                               <div className="flex flex-col items-center">
-                                 <span className="text-xl font-black text-white">
-                                   {isIndia ? `₹${tier.priceINR}` : `$${tier.priceUSD}`}
-                                 </span>
-                                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{gatewayName} checkout</span>
-                               </div>
-                            </div>
-                         </div>
-
-                         {selectedTier === tier.id && (
-                            <div className="absolute inset-0 border-2 border-cyan-400/80 rounded-[2.5rem] shadow-[0_0_30px_rgba(34,211,238,0.25)] pointer-events-none" />
-                         )}
-                      </motion.div>
-                    ))}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
+                )}
 
-                  <div className="flex flex-col items-center gap-6 pt-6">
-                     <motion.button 
-                       type="button"
-                       onClick={handlePurchase}
-                       disabled={!selectedTier || isProcessing || !paymentsEnabled}
-                       whileHover={selectedTier && paymentsEnabled ? { y: -3, scale: 1.02 } : undefined}
-                       whileTap={selectedTier && paymentsEnabled ? { scale: 0.97 } : undefined}
-                       className={cn(
-                         "group/launch relative flex min-h-[60px] w-full max-w-sm items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] sm:p-[3px] isolate transition-all duration-500 cursor-pointer select-none",
-                         selectedTier && paymentsEnabled
-                           ? "shadow-[0_0_35px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(0,0,0,0.95)]"
-                           : "bg-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
-                       )}
-                     >
-                       {selectedTier && paymentsEnabled && (
-                         <>
-                           {/* Continuous Seamless Rotating Neon Border (Sharp) */}
-                           <motion.span
-                             aria-hidden="true"
-                             className={cn(
-                               "absolute -inset-[150%] opacity-100 mix-blend-screen transition-opacity duration-500 group-hover/launch:opacity-100",
-                               activeTierObj?.id === "tier-1" || activeTierObj?.credits === 500
-                                 ? "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]"
-                                 : activeTierObj?.id === "tier-3" || activeTierObj?.credits === 6000
-                                   ? "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]"
-                                   : "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]"
-                             )}
-                             animate={{ rotate: 360 }}
-                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                           />
+                {/* TAB 2: PRO PASSES */}
+                {activeCategory === "pro" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Monthly Pro Pass */}
+                    <div className="group relative overflow-hidden rounded-[2.35rem] p-[2px] backdrop-blur-3xl transition-all duration-300 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-b from-cyan-500/40 via-white/10 to-transparent flex flex-col justify-between">
+                      <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl opacity-60 group-hover:opacity-100" />
+                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
 
-                           {/* Outer Diffusion Glow Halo */}
-                           <motion.span
-                             aria-hidden="true"
-                             className={cn(
-                               "absolute -inset-[100%] blur-md opacity-60 mix-blend-screen transition-opacity duration-500 group-hover/launch:opacity-90",
-                               activeTierObj?.id === "tier-1" || activeTierObj?.credits === 500
-                                 ? "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]"
-                                 : activeTierObj?.id === "tier-3" || activeTierObj?.credits === 6000
-                                   ? "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]"
-                                   : "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]"
-                             )}
-                             animate={{ rotate: 360 }}
-                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                           />
-                         </>
-                       )}
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-6 sm:p-7">
+                        <div>
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
+                                <Crown size={20} className="text-cyan-300 fill-cyan-400/30" />
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-black text-white tracking-tight">1-Month Pro Pass</h3>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Monthly Unlimited</p>
+                              </div>
+                            </div>
+                            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-0.5 text-[9.5px] font-black uppercase tracking-wider text-zinc-300">
+                              Flexible
+                            </span>
+                          </div>
 
-                       <span className="relative flex h-full w-full items-center gap-3.5 rounded-[19px] border border-white/10 bg-gradient-to-br from-[#08080d]/98 to-[#040406]/98 px-4 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#0d0d16]/98 group-hover/launch:to-[#06060a]/98">
-                         {/* Idle Shimmer Sweep */}
-                         {selectedTier && paymentsEnabled && (
-                           <motion.div
-                             animate={{ x: ["-250%", "250%"] }}
-                             transition={{ repeat: Infinity, duration: 3, ease: "linear", repeatDelay: 1.5 }}
-                             className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
-                           />
-                         )}
+                          <div className="mt-5">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-4xl sm:text-5xl font-black bg-[linear-gradient(110deg,#fff_15%,#a5f3fc_50%,#38bdf8_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
+                                {isIndia ? "₹499" : "$6.99"}
+                              </span>
+                              <span className="text-xs font-black uppercase tracking-widest text-cyan-300/80">/month</span>
+                            </div>
+                            <p className="mt-1.5 text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
+                              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                              <span>500 Daily Compute Credits (15,000/mo)</span>
+                            </p>
+                          </div>
 
-                         {isProcessing ? (
-                           <div className="relative z-10 flex h-full w-full items-center justify-center gap-2 py-2 text-white">
-                             <Loader2 size={16} className="animate-spin text-cyan-400" />
-                             <span className="text-xs font-black uppercase tracking-widest">Processing...</span>
-                           </div>
-                         ) : selectedTier && paymentsEnabled ? (
-                           <>
-                             <ExismicMark
-                               size={36}
-                               letter="C"
-                               theme={
-                                 activeTierObj?.id === "tier-1" || activeTierObj?.credits === 500
-                                   ? "blue"
-                                   : activeTierObj?.id === "tier-3" || activeTierObj?.credits === 6000
-                                     ? "gold"
-                                     : "purple"
-                               }
-                               className="transition-all duration-500 group-hover/launch:scale-110 group-hover/launch:rotate-3"
-                             />
+                          <div className="mt-5 space-y-2.5">
+                            {[
+                              { icon: Coins, text: "500 Daily Compute Credits", sub: "Restores automatically every 24h", chip: "15,000 / mo", color: "text-cyan-300" },
+                              { icon: Zap, text: "Priority GPU Render Queue", sub: "Instant AI compute on all tools", chip: "Fast Queue", color: "text-sky-300" },
+                              { icon: Palette, text: "All 50+ Studio AI Tools", sub: "4K ultra-res & no watermarks", chip: "All Tools", color: "text-indigo-300" },
+                              { icon: ShieldCheck, text: "Commercial License", sub: "Full ownership for client work", chip: "Commercial", color: "text-emerald-300" },
+                            ].map((item, idx) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div key={idx} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-2.5">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <ItemIcon size={16} className={cn("shrink-0", item.color)} />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-white truncate">{item.text}</p>
+                                      <p className="text-[10px] text-zinc-400 truncate">{item.sub}</p>
+                                    </div>
+                                  </div>
+                                  <span className="text-[8.5px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-500/10 border border-cyan-400/25 px-2 py-0.5 rounded-full shrink-0">
+                                    {item.chip}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                             <span className="min-w-0 flex-1 text-left relative z-10">
-                               <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
-                                 BUY • {activeTierObj ? (isIndia ? `₹${activeTierObj.priceINR}` : `$${activeTierObj.priceUSD}`) : ""}
-                               </span>
-                               <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors duration-500 group-hover/launch:text-cyan-200/90">
-                                 {activeTierObj ? `${(activeTierObj.credits + (activeTierObj.bonusCredits || 0)).toLocaleString()} Credits` : "Instant Delivery"}
-                               </span>
-                             </span>
+                        <div className="mt-6">
+                          <motion.button
+                            type="button"
+                            onClick={() => handleOpenCheckoutOptions("pro", "1-Month Pro Pass", 15000, PRICING_CONFIG.PRO_PLAN.INR, PRICING_CONFIG.PRO_PLAN.USD, "pro")}
+                            disabled={loadingId !== null}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="group/launch relative flex min-h-[58px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
+                          >
+                            <motion.span
+                              aria-hidden="true"
+                              className="absolute -inset-[150%] opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8_25%,#3b82f6_50%,#67e8f9_75%,#06b6d4_100%)]"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            />
+                            <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[17px] border border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98">
+                              <div className="flex items-center gap-3">
+                                <ExismicMark size={36} letter="P" theme="blue" animated={true} />
+                                <div className="text-left">
+                                  <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
+                                    UPGRADE 1-MONTH • {isIndia ? "₹499" : "$6.99"}
+                                  </span>
+                                  <span className="block text-[9px] font-bold uppercase tracking-[0.14em] text-cyan-300/90">
+                                    Card, UPI & Instant Activation
+                                  </span>
+                                </div>
+                              </div>
+                              <ArrowRight size={16} className="text-cyan-300 transition-transform group-hover/launch:translate-x-1" />
+                            </span>
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
 
-                             <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.04] bg-white/[0.02] text-zinc-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 group-hover/launch:border-cyan-300/60 group-hover/launch:bg-cyan-300/[0.2] group-hover/launch:text-cyan-50 group-hover/launch:shadow-[0_0_30px_rgba(34,211,238,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]">
-                               <motion.div
-                                 animate={{ x: [0, 4, 0] }}
-                                 transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                                 className="text-zinc-300 group-hover/launch:text-cyan-100 transition-colors"
-                               >
-                                 <ArrowRight size={15} />
-                               </motion.div>
-                             </span>
-                           </>
-                         ) : (
-                           <div className="relative z-10 flex h-full w-full items-center justify-center py-2">
-                             <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Select a credit pack</span>
-                           </div>
-                         )}
-                       </span>
-                     </motion.button>
+                    {/* Annual VIP Pro Pass */}
+                    <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-b from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col justify-between">
+                      <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl opacity-80 group-hover:opacity-100" />
+                      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-400 shadow-[0_0_25px_rgba(168,85,247,1)]" />
 
-                     {/* Gift Card Option */}
-                     {paymentsEnabled && selectedTier && (
-                       <button
-                         type="button"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setShowGiftModal(true);
-                         }}
-                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all shadow-md shadow-amber-500/5 cursor-pointer relative z-20"
-                       >
-                         <Ticket className="w-4 h-4 text-amber-400" />
-                         <span>Pay with Gift Card (Minecoins, Play, Xbox)</span>
-                       </button>
-                     )}
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-6 sm:p-7">
+                        <div>
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
+                                <Sparkles size={20} className="text-purple-300 fill-purple-400/20" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="text-lg font-black text-white tracking-tight">1-Year VIP Pro</h3>
+                                  <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-white">
+                                    Best Value
+                                  </span>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-300">12 Months Full Access</p>
+                              </div>
+                            </div>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)]">
+                              <Flame size={11} className="text-amber-300 fill-amber-400/40" /> Save 28%
+                            </span>
+                          </div>
 
-                     <div className="flex items-center gap-4 text-zinc-700">
-                        <ShieldCheck size={14} />
-                        <span className="text-[8px] font-black uppercase tracking-widest italic">Secure checkout</span>
-                     </div>
+                          <div className="mt-5">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-4xl sm:text-5xl font-black bg-[linear-gradient(110deg,#fff_10%,#e9d5ff_40%,#d946ef_70%,#c084fc_90%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_35px_rgba(168,85,247,0.45)]">
+                                {isIndia ? "₹4,499" : "$59.99"}
+                              </span>
+                              <span className="text-xs font-black uppercase tracking-widest text-purple-300">/year</span>
+                            </div>
+                            <p className="mt-1.5 text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
+                              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                              <span>182,500 Total Compute Credits (500/day for 365d)</span>
+                            </p>
+                          </div>
+
+                          <div className="mt-5 space-y-2.5">
+                            {[
+                              { icon: Coins, text: "182,500 Total Creative Credits", sub: "500 daily allowance for 365 days", chip: "365 Days", color: "text-purple-300" },
+                              { icon: Flame, text: "VIP Immediate Compute Queue", sub: "Top-priority rendering capacity", chip: "VIP Queue", color: "text-fuchsia-300" },
+                              { icon: Palette, text: "Full Studio Suite & 4K Exports", sub: "Maximum resolution & priority models", chip: "Full Suite", color: "text-pink-300" },
+                              { icon: ShieldCheck, text: "1-Year Commercial License", sub: "Full client & commercial revenue rights", chip: "Save 28%", color: "text-emerald-300" },
+                            ].map((item, idx) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div key={idx} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-2.5">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <ItemIcon size={16} className={cn("shrink-0", item.color)} />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-white truncate">{item.text}</p>
+                                      <p className="text-[10px] text-zinc-400 truncate">{item.sub}</p>
+                                    </div>
+                                  </div>
+                                  <span className="text-[8.5px] font-black uppercase tracking-wider text-purple-200 bg-purple-500/15 border border-purple-400/30 px-2 py-0.5 rounded-full shrink-0">
+                                    {item.chip}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="mt-6">
+                          <motion.button
+                            type="button"
+                            onClick={() => handleOpenCheckoutOptions("pro_yearly", "1-Year VIP Pro Pass", 182500, PRICING_CONFIG.PRO_YEARLY_PLAN.INR, PRICING_CONFIG.PRO_YEARLY_PLAN.USD, "pro")}
+                            disabled={loadingId !== null}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="group/launch relative flex min-h-[58px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(168,85,247,0.6)]"
+                          >
+                            <motion.span
+                              aria-hidden="true"
+                              className="absolute -inset-[150%] opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,#a855f7,#d946ef_25%,#ec4899_50%,#c084fc_75%,#a855f7_100%)]"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            />
+                            <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[17px] border border-purple-400/40 bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1b0d33]/98 group-hover/launch:to-[#0a0514]/98">
+                              <div className="flex items-center gap-3">
+                                <ExismicMark size={36} letter="P" theme="purple" animated={true} />
+                                <div className="text-left">
+                                  <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
+                                    UPGRADE 1-YEAR • {isIndia ? "₹4,499" : "$59.99"}
+                                  </span>
+                                  <span className="block text-[9px] font-bold uppercase tracking-[0.14em] text-purple-300">
+                                    Card, UPI & Instant Activation
+                                  </span>
+                                </div>
+                              </div>
+                              <ArrowRight size={16} className="text-purple-300 transition-transform group-hover/launch:translate-x-1" />
+                            </span>
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
-                </>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
+                )}
 
-      {showGiftModal && selectedTier && (
-        <GiftCardPaymentModal
-          isOpen={showGiftModal}
-          onClose={() => setShowGiftModal(false)}
-          planId={selectedTier}
-          planName={CREDIT_TIERS.find(t => t.id === selectedTier)?.label || "Credit Pack"}
-          priceDisplay={
-            isIndia 
-              ? `₹${CREDIT_TIERS.find(t => t.id === selectedTier)?.priceINR}`
-              : `$${CREDIT_TIERS.find(t => t.id === selectedTier)?.priceUSD}`
-          }
-        />
-      )}
+              </div>
 
-      {showSuccess && (
-        <PaymentSuccessModal 
-          key="success-modal"
-          isOpen={showSuccess} 
-          onClose={() => {
-            setShowSuccess(false);
-            onClose();
+              {/* Secure Checkout Guarantee Footer */}
+              <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-zinc-400 font-medium shrink-0">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-emerald-400" />
+                  <span>100% Secure Checkout • Instant Delivery • Cancel Anytime</span>
+                </div>
+                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-wider">
+                  256-BIT ENCRYPTED
+                </span>
+              </div>
+
+            </motion.div>
+          </div>
+        </AnimatePresence>
+      </Portal>
+
+      {/* Payment Terms & Alternative Checkout Modal */}
+      {isTermsOpen && termsPlan && (
+        <PaymentTermsModal
+          isOpen={isTermsOpen}
+          onClose={() => setIsTermsOpen(false)}
+          onConfirm={() => {
+            setIsTermsOpen(false);
+            handleCheckoutPlan(termsPlan.id, termsPlan.title, termsPlan.credits, termsPlan.category);
           }}
-          type="credits"
-          amount={lastCreditsAdded}
+          type={termsPlan.category}
+          planId={termsPlan.id}
+          packName={termsPlan.title}
+          price={termsPlan.priceDisplay}
+          gateway={isIndia ? "razorpay" : "paypal"}
         />
       )}
 
-      {showFailure && (
-        <PaymentFailureModal 
-          key="failure-modal"
-          isOpen={showFailure} 
-          onClose={() => setShowFailure(false)}
-          onRetry={() => {
-            setShowFailure(false);
-            setFailureReason(undefined);
-            handlePurchase();
-          }}
-          reason={failureReason}
-        />
-      )}
-    </AnimatePresence>
-  </Portal>
+      {/* Post-Purchase Success Confirmation */}
+      <PaymentSuccessModal
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        type={successType}
+        amount={successCredits}
+      />
+
+      {/* Payment Failure Modal */}
+      <PaymentFailureModal
+        isOpen={showFailure}
+        onClose={() => setShowFailure(false)}
+        onRetry={() => {
+          setShowFailure(false);
+        }}
+        reason={failureReason}
+      />
+    </>
   );
 }
-

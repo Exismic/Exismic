@@ -31,7 +31,8 @@ import {
   ArrowRight,
   HelpCircle,
   LayoutGrid,
-  Rocket
+  Rocket,
+  Flame
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,11 @@ const CreditModal = dynamic(
 
 const DailyQuestsModal = dynamic(
   () => import("../reward/DailyQuestsModal").then((mod) => mod.DailyQuestsModal),
+  { ssr: false }
+);
+
+const DailyRewardModal = dynamic(
+  () => import("../reward/DailyRewardModal").then((mod) => mod.DailyRewardModal),
   { ssr: false }
 );
 
@@ -76,6 +82,7 @@ export function Navbar() {
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isQuestsModalOpen, setIsQuestsModalOpen] = useState(false);
+  const [isDailyRewardOpen, setIsDailyRewardOpen] = useState(false);
   const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
   
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -86,7 +93,7 @@ export function Navbar() {
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
   const { isPro, isLoading: isProLoading, user: dbUser, authUser, refresh: refreshPro } = usePro();
-  const { credits, showUpsell, setShowUpsell } = useCredits();
+  const { credits, showUpsell, setShowUpsell, dailyStreak, todayClaim, countdown } = useCredits();
   const { unclaimedCount, completedCount, totalAvailable } = useQuests();
 
   const [localFrameId, setLocalFrameId] = useState<string | null>(null);
@@ -683,6 +690,126 @@ export function Navbar() {
                   </div>
                 </Link>
 
+                {/* 1.5. Daily Mystery Vault & Streak Pill */}
+                <button
+                  type="button"
+                  onClick={() => setIsDailyRewardOpen(true)}
+                  title={
+                    !todayClaim
+                      ? `Daily Mystery Vault READY! ${dailyStreak || 0}d streak · Click to unlock free drop`
+                      : `Daily Streak: ${dailyStreak || 0}d · Next drop resets in ${countdown || "12:00:00"}`
+                  }
+                  className={cn(
+                    "group/daily relative flex h-10 cursor-pointer items-center rounded-full p-[1px] select-none isolate transition-all duration-500 hover:scale-[1.03] active:scale-95 touch-manipulation notranslate",
+                    !todayClaim
+                      ? "shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_22px_rgba(249,115,22,0.45)] hover:shadow-[0_15px_45px_rgba(249,115,22,0.7),0_0_30px_rgba(234,88,12,0.5)]"
+                      : "shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_16px_rgba(245,158,11,0.18)] hover:shadow-[0_15px_40px_rgba(245,158,11,0.35)]"
+                  )}
+                  translate="no"
+                >
+                  {/* Radiant Flame/Amber Outer Halo Glow */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-0 rounded-full transition-all duration-500 pointer-events-none",
+                      !todayClaim
+                        ? "bg-gradient-to-r from-orange-500/70 via-amber-400/80 to-red-500/70 opacity-90 blur-[4px] animate-pulse"
+                        : "bg-gradient-to-r from-orange-500/35 via-amber-400/40 to-yellow-500/35 opacity-60 blur-[2px] group-hover/daily:opacity-90 group-hover/daily:blur-[4px]"
+                    )}
+                  />
+
+                  {/* Metallic Gradient Outer Border Rim */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-0 rounded-full p-[1px] transition-all duration-300 pointer-events-none",
+                      !todayClaim
+                        ? "bg-gradient-to-r from-orange-400 via-amber-200 to-orange-400"
+                        : "bg-gradient-to-r from-orange-500/50 via-amber-400/60 to-yellow-600/50 group-hover/daily:from-orange-400/90 group-hover/daily:via-amber-300 group-hover/daily:to-orange-500/90"
+                    )}
+                  />
+
+                  {/* Glassmorphic Cyber-Obsidian Core */}
+                  <div
+                    className={cn(
+                      "relative flex h-full items-center gap-2 overflow-hidden rounded-full pl-2 pr-3.5 backdrop-blur-2xl border transition-all duration-300",
+                      !todayClaim
+                        ? "bg-gradient-to-r from-[#180b03]/95 via-[#1a0e05]/95 to-[#120703]/95 border-orange-400/50 group-hover/daily:border-orange-300/80"
+                        : "bg-gradient-to-r from-[#0c0704]/95 via-[#100b07]/95 to-[#0b0705]/95 border-orange-500/20 group-hover/daily:border-orange-400/50 group-hover/daily:bg-[#140c06]/95"
+                    )}
+                  >
+                    {/* Ambient Radial Lighting & Sheen Reflection */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_20%_50%,rgba(249,115,22,0.25),transparent_48%),radial-gradient(circle_at_85%_50%,rgba(234,88,12,0.18),transparent_42%)]"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-y-0 -left-12 w-12 skew-x-[-22deg] bg-gradient-to-r from-transparent via-amber-100/30 to-transparent blur-[1px] transition-transform duration-1000 group-hover/daily:translate-x-56"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-0 inset-x-3 h-[1px] bg-gradient-to-r from-transparent via-amber-200/40 to-transparent"
+                    />
+
+                    {/* Flame Emblem */}
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <div
+                        className={cn(
+                          "relative flex items-center justify-center h-6 w-6 rounded-lg transition-all duration-300 group-hover/daily:scale-110",
+                          !todayClaim
+                            ? "bg-gradient-to-b from-orange-500/40 via-amber-500/30 to-red-600/30 border border-orange-400/80 shadow-[0_0_12px_rgba(249,115,22,0.7),inset_0_1px_2px_rgba(255,255,255,0.6)]"
+                            : "bg-gradient-to-b from-orange-500/25 via-amber-500/15 to-stone-900/30 border border-orange-400/40 shadow-[0_0_8px_rgba(249,115,22,0.3)]"
+                        )}
+                      >
+                        <Flame
+                          size={13}
+                          className={cn(
+                            "transition-all duration-300",
+                            !todayClaim
+                              ? "text-orange-200 fill-orange-400 drop-shadow-[0_0_6px_rgba(249,115,22,1)] animate-bounce"
+                              : "text-amber-400 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"
+                          )}
+                        />
+                      </div>
+
+                      {/* Floating Ping Beacon if unclaimed */}
+                      {!todayClaim && (
+                        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-90"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300 shadow-[0_0_6px_rgba(249,115,22,1)]"></span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Streak Number */}
+                    <span
+                      suppressHydrationWarning
+                      className="relative z-10 font-sans text-[12.5px] font-black tracking-tight bg-gradient-to-b from-white via-amber-100 to-amber-200 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(249,115,22,0.4)] notranslate"
+                      translate="no"
+                    >
+                      {dailyStreak || 1}d
+                    </span>
+
+                    {/* Luxury Embossed Typography */}
+                    <span className="relative z-10 font-sans text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-orange-200 via-amber-100 to-yellow-200 bg-clip-text text-transparent drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-all">
+                      STREAK
+                    </span>
+
+                    {/* Dynamic Status / Call to Action */}
+                    {!todayClaim ? (
+                      <span className="relative z-10 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-black font-black text-[8.5px] tracking-wider shadow-[0_0_12px_rgba(249,115,22,0.9)] animate-pulse shrink-0">
+                        <Sparkles size={9} className="shrink-0 text-black" />
+                        CLAIM
+                      </span>
+                    ) : (
+                      <span className="relative z-10 flex items-center px-1.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-400/25 text-[8.5px] font-bold tabular-nums text-orange-200/85 shrink-0 group-hover/daily:text-orange-100 transition-all font-mono">
+                        {countdown || "ACTIVE"}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
                 {/* 2. Ultra Premium Quests & Challenges Trigger Button */}
                 <button
                   type="button"
@@ -852,6 +979,28 @@ export function Navbar() {
 
                         {/* Navigation Actions */}
                         <div className="space-y-1">
+                          <button
+                            onClick={() => {
+                              setUserDropdownOpen(false);
+                              setIsDailyRewardOpen(true);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-orange-200 hover:text-white bg-gradient-to-r from-orange-500/[0.08] to-transparent hover:from-orange-500/20 hover:to-orange-500/5 border border-orange-400/20 hover:border-orange-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropvault shadow-[0_0_15px_rgba(249,115,22,0.06)] hover:shadow-[0_0_25px_rgba(249,115,22,0.2)]"
+                          >
+                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-300 group-hover/dropvault:scale-110 transition-transform shrink-0">
+                              <Flame size={13} className="text-orange-300 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]" />
+                            </div>
+                            <span className="font-sans font-black tracking-wider bg-gradient-to-r from-orange-100 to-amber-300 bg-clip-text text-transparent">Daily Mystery Vault</span>
+                            {!todayClaim ? (
+                              <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1">
+                                <Sparkles size={9} />
+                                CLAIM DROP
+                              </span>
+                            ) : (
+                              <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
+                                {dailyStreak}D STREAK
+                              </span>
+                            )}
+                          </button>
                           <button
                             onClick={() => {
                               setUserDropdownOpen(false);
@@ -1223,6 +1372,29 @@ export function Navbar() {
                         type="button"
                         onClick={() => {
                           setUserDropdownOpen(false);
+                          setIsDailyRewardOpen(true);
+                        }}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10.5px] font-black uppercase tracking-[0.13em] text-orange-200 bg-gradient-to-r from-orange-500/[0.12] to-amber-500/[0.04] active:bg-orange-400/20 border border-orange-400/30 transition-all text-left shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                      >
+                        <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-400/40 text-orange-400 shrink-0">
+                          <Flame size={15} className="text-orange-400 drop-shadow-[0_0_6px_rgba(249,115,22,0.8)]" />
+                        </div>
+                        <span className="bg-gradient-to-r from-orange-100 to-amber-200 bg-clip-text text-transparent font-black">Daily Mystery Vault</span>
+                        {!todayClaim ? (
+                          <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 text-black animate-pulse font-mono shadow-[0_0_10px_rgba(249,115,22,0.8)] flex items-center gap-1">
+                            <Sparkles size={9} />
+                            CLAIM DROP
+                          </span>
+                        ) : (
+                          <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
+                            {dailyStreak}D STREAK
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserDropdownOpen(false);
                           setIsQuestsModalOpen(true);
                         }}
                         className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10.5px] font-black uppercase tracking-[0.13em] text-amber-200 bg-gradient-to-r from-amber-500/[0.08] to-transparent active:bg-amber-400/20 border border-amber-400/20 transition-all text-left shadow-[0_0_15px_rgba(245,158,11,0.06)]"
@@ -1343,6 +1515,12 @@ export function Navbar() {
       <DailyQuestsModal
         isOpen={isQuestsModalOpen}
         onClose={() => setIsQuestsModalOpen(false)}
+      />
+
+      {/* Daily Mystery Vault / LootBox Modal */}
+      <DailyRewardModal
+        isOpen={isDailyRewardOpen}
+        onClose={() => setIsDailyRewardOpen(false)}
       />
 
       {/* Gift / Promo Code Redemption Modal */}

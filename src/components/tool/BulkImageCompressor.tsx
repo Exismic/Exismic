@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { saveFileHistory } from "@/lib/history";
 import { detectCompressorCapabilities, processCompressLocally } from "@/lib/client-compressor";
+import { consumePipelineItem, pipelineUrlToFile } from "@/lib/pipeline";
 
 interface CompressedFile {
   id: string;
@@ -84,6 +85,28 @@ export function BulkImageCompressor() {
       setFiles(prev => [...prev, ...newEntries]);
     }
   };
+
+  // Consume incoming pipeline asset (e.g. from Background Remover)
+  useEffect(() => {
+    const item = consumePipelineItem();
+    if (item && item.url && item.fileType === "image") {
+      pipelineUrlToFile(item.url, item.name || "pipeline-image.png")
+        .then((file) => {
+          const newEntry: CompressedFile = {
+            id: Math.random().toString(36).substr(2, 9),
+            file,
+            preview: URL.createObjectURL(file),
+            originalSize: file.size,
+            progress: 0,
+            status: "idle",
+          };
+          setFiles((prev) => [...prev, newEntry]);
+        })
+        .catch((err) => {
+          console.warn("Failed to load pipeline asset into compressor:", err);
+        });
+    }
+  }, []);
 
   const removeFile = (id: string) => {
     setFiles(prev => {

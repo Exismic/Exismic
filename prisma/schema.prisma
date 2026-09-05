@@ -31,6 +31,10 @@ model User {
   lifetimeCredits        Int                     @default(0) @map("lifetime_credits")
   dailyStreak            Int                     @default(0) @map("daily_streak")
   lastClaimDate          DateTime?               @map("last_claim_date") @db.Date
+  streakShields          Int                     @default(0) @map("streak_shields")
+  streakFreezeUsedAt     DateTime?               @map("streak_freeze_used_at")
+  lastStreakReminderSentAt DateTime?             @map("last_streak_reminder_sent_at")
+  streakMilestonesClaimed Json?                  @map("streak_milestones_claimed")
   planExpiresAt          DateTime?               @map("plan_expires_at")
   subscriptionStatus     String                  @default("none") @map("subscription_status")
   customAvatarUrl        String?                 @map("custom_avatar_url")

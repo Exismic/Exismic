@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const requestedLimit = Number.parseInt(searchParams.get("limit") || "20", 10);
     const limit = Number.isFinite(requestedLimit)
-      ? Math.min(Math.max(requestedLimit, 1), 100)
+      ? Math.min(Math.max(requestedLimit, 1), 500)
       : 20;
 
     if (searchParams.get("summary") === "1") {

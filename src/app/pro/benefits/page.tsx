@@ -33,12 +33,6 @@ export default function ProBenefitsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "creative" | "speed" | "style">("all");
 
-  useEffect(() => {
-    if (!isLoading && !isPro) {
-      router.push('/pro');
-    }
-  }, [isPro, isLoading, router]);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#030308] flex flex-col items-center justify-center space-y-4">
@@ -50,8 +44,6 @@ export default function ProBenefitsPage() {
       </div>
     );
   }
-
-  if (!isPro) return null;
 
   const benefits = [
     { 
@@ -223,13 +215,20 @@ export default function ProBenefitsPage() {
                   <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400">Membership Tier</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xl font-black uppercase tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-200 to-white">
-                      ELITE MEMBER
+                      {isPro ? "ELITE MEMBER" : "FREE TIER"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 pt-1">
-                    <CheckCircle2 size={13} className="text-emerald-400" />
-                    <span>All Perks Unlocked</span>
-                  </div>
+                  {isPro ? (
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 pt-1">
+                      <CheckCircle2 size={13} className="text-emerald-400" />
+                      <span>All Perks Unlocked</span>
+                    </div>
+                  ) : (
+                    <Link href="/pro" className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-300 hover:text-cyan-200 pt-1 transition-colors">
+                      <span>Upgrade to Unlock</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                  )}
                 </div>
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-[0_0_30px_rgba(168,85,247,0.3)] shrink-0">
                   <Crown size={28} className="drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] animate-pulse" />
@@ -356,31 +355,85 @@ export default function ProBenefitsPage() {
           {/* Glowing Center Radial */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.15)_0%,transparent_70%)] pointer-events-none" />
           
-          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-            <div className="w-16 h-16 rounded-3xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-300 mx-auto shadow-[0_0_35px_rgba(168,85,247,0.3)]">
-              <Sparkles size={32} className="animate-pulse" />
+          <div className="relative z-10 max-w-2xl mx-auto space-y-7">
+            {/* VIP Crown Badge (Replaces random sparkle) */}
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500/20 via-purple-500/20 to-cyan-500/10 border border-amber-400/40 flex items-center justify-center text-amber-300 mx-auto shadow-[0_0_35px_rgba(245,158,11,0.25)]">
+              <Crown size={32} className="text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
-              Ready to Craft <br />
-              <GradientText className="from-purple-300 via-fuchsia-200 to-cyan-300">Your Next Masterpiece?</GradientText>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+              {isPro ? (
+                <>
+                  Ready to Craft <br />
+                  <span className="bg-gradient-to-r from-purple-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">
+                    Your Next Masterpiece?
+                  </span>
+                </>
+              ) : (
+                <>
+                  Unlock All <br />
+                  <span className="bg-gradient-to-r from-amber-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
+                    VIP Privileges
+                  </span>
+                </>
+              )}
             </h2>
 
-            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Your VIP status is active with unrestricted privileges. Jump right in and start creating without limits.
+            <p className="text-zinc-300 text-sm sm:text-base font-medium leading-relaxed max-w-xl mx-auto">
+              {isPro 
+                ? "Your VIP status is active with unrestricted privileges. Jump right in and start creating without limits."
+                : "Get 500 credits every day, instant generation speed, crystal-clear 4K exports, and full commercial rights."
+              }
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link 
-                href="/" 
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-extrabold uppercase tracking-wider text-xs shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
-              >
-                <span>Launch Studio Dashboard</span>
-                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
+            {/* Quick Benefit Cards for non-Pro */}
+            {!isPro && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-left">
+                <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
+                  <Zap size={18} className="text-amber-400 mx-auto mb-1.5" />
+                  <span className="text-[11px] font-bold text-white block">500 Credits/Day</span>
+                  <span className="text-[10px] text-zinc-500">10x Free Tier</span>
+                </div>
+                <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
+                  <Crown size={18} className="text-purple-400 mx-auto mb-1.5" />
+                  <span className="text-[11px] font-bold text-white block">VIP Speed</span>
+                  <span className="text-[10px] text-zinc-500">Skip the line</span>
+                </div>
+                <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
+                  <Diamond size={18} className="text-cyan-400 mx-auto mb-1.5" />
+                  <span className="text-[11px] font-bold text-white block">Ultra HD 4K</span>
+                  <span className="text-[10px] text-zinc-500">Sharpest detail</span>
+                </div>
+                <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
+                  <ShieldCheck size={18} className="text-emerald-400 mx-auto mb-1.5" />
+                  <span className="text-[11px] font-bold text-white block">Commercial Use</span>
+                  <span className="text-[10px] text-zinc-500">Client projects</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+              {isPro ? (
+                <Link 
+                  href="/" 
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-extrabold uppercase tracking-wider text-xs shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                >
+                  <span>Launch Studio Dashboard</span>
+                  <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <Link 
+                  href="/pro" 
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-cyan-400 hover:brightness-110 text-white font-extrabold uppercase tracking-wider text-xs shadow-[0_0_35px_rgba(168,85,247,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 group"
+                >
+                  <Crown size={16} className="text-amber-300" />
+                  <span>Upgrade to Exismic Pro</span>
+                  <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              )}
               <Link 
                 href="/tools" 
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-extrabold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white font-extrabold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-2"
               >
                 Browse All Tools
               </Link>

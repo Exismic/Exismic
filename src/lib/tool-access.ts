@@ -66,20 +66,13 @@ export async function resolveToolAccess(
 
   const appUser = await getOrCreateUser(authUser);
   const isPro = hasActiveProAccess(appUser);
-  if (options.mode === "pro" && !isPro) {
-    return NextResponse.json(
-      {
-        error: "Exismic Pro is required for this tool.",
-        code: "PRO_REQUIRED",
-        proRequired: true,
-      },
-      { status: 403 },
-    );
-  }
 
-  const creditCost = options.mode === "free-quality"
-    ? (outputTier === "hd" ? Math.max(0, options.creditCost || 0) : 0)
-    : Math.max(0, options.creditCost || 0);
+  // Free users can access any tool by spending credits according to usage
+  const creditCost = isPro
+    ? 0
+    : options.mode === "free-quality"
+      ? (outputTier === "hd" ? Math.max(0, options.creditCost || 0) : 0)
+      : Math.max(0, options.creditCost || 10);
 
   if (creditCost > 0) {
     const credits = await getUserCredits(appUser.id);

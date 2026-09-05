@@ -296,31 +296,7 @@ export function CollageMaker() {
         });
       }
 
-      // Draw subtle brand watermark badge if !isPro
-      if (!isPro) {
-        ctx.save();
-        const scale = Math.max(1, width / 1500);
-        const badgeW = 200 * scale;
-        const badgeH = 48 * scale;
-        const badgeX = width - badgeW - 30 * scale;
-        const badgeY = height - badgeH - 30 * scale;
 
-        ctx.fillStyle = "rgba(10, 12, 20, 0.85)";
-        ctx.beginPath();
-        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 12 * scale);
-        ctx.fill();
-
-        ctx.lineWidth = 1.5 * scale;
-        ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
-        ctx.stroke();
-
-        ctx.font = `900 ${15 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("⚡ exismic.xyz", badgeX + badgeW / 2, badgeY + badgeH / 2);
-        ctx.restore();
-      }
 
       const exportFormat = bgColor === 'transparent' ? 'png' : 'jpg';
       setResultFormat(exportFormat);
@@ -381,7 +357,7 @@ export function CollageMaker() {
                       <div className="flex items-center justify-between border-b border-white/5 pb-4">
                          <div className="flex items-center gap-3">
                             <Layers size={18} className="text-accent-purple" />
-                            <h3 className="text-sm font-black uppercase tracking-widest text-white">Neural Elements</h3>
+                            <h3 className="text-sm font-black uppercase tracking-widest text-white">Design Elements</h3>
                          </div>
                          <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{items.length}/9 ACTIVE</span>
                       </div>
@@ -472,7 +448,7 @@ export function CollageMaker() {
                          </div>
                          <div className="space-y-3">
                             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                               <span>Neural Curvature</span>
+                               <span>Corner Rounding</span>
                                <span>{borderRadius}PX</span>
                             </div>
                             <input type="range" min={0} max={100} value={borderRadius} onChange={(e) => setBorderRadius(parseInt(e.target.value))} className="w-full accent-accent-purple" />
@@ -670,7 +646,7 @@ export function CollageMaker() {
                                    collageRatio === '4:5' ? '2000x2500' :
                                    collageRatio === '9:16' ? '2000x3555' :
                                    collageRatio === '16:9' ? '3555x2000' :
-                                   collageRatio === '3:2' ? '3000x2000' : '2000x3000'} Neural Ultra-HD
+                                   collageRatio === '3:2' ? '3000x2000' : '2000x3000'} Ultra-HD
                                </div>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4">

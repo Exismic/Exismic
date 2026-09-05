@@ -3,7 +3,6 @@ import { ToolDetailClient } from "@/app/tools/[category]/[toolId]/ToolDetailClie
 import { getToolMetadata, getToolJsonLd } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
-import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 
 export async function generateCategoryToolMetadata(category: string, toolId: string): Promise<Metadata> {
   return getToolMetadata(toolId, category);
@@ -42,16 +41,6 @@ export async function renderCategoryToolPage(categoryId: string, toolId: string)
         categoryId={categoryId} 
         toolId={toolId} 
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
-        <ToolSeoSection 
-          toolName={tool.name}
-          toolDescription={tool.seoDescription || tool.description}
-          categoryName={category.name}
-          categoryId={categoryId}
-          toolSlug={tool.id}
-          showRelatedTools={true}
-        />
-      </div>
     </>
   );
 }

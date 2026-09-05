@@ -51,6 +51,9 @@ export async function GET() {
         plan: credits.plan,
         lastReset: credits.creditsLastReset,
         dailyStreak: credits.dailyStreak || 0,
+        streakShields: credits.streakShields ?? 0,
+        streakFreezeUsedAt: credits.streakFreezeUsedAt || null,
+        streakMilestonesClaimed: credits.streakMilestonesClaimed || [],
         todayClaim: todayClaim || null,
       }
     }, {

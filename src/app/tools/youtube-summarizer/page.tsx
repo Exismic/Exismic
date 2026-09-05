@@ -1,6 +1,7 @@
 import { getToolMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import YoutubeSummarizer from "@/components/tool/YoutubeSummarizer";
+import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 
 const YoutubeIcon = ({ className = "" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -36,6 +37,15 @@ export default function YoutubeSummarizerPage() {
         <main>
           <YoutubeSummarizer />
         </main>
+
+        <ToolSeoSection
+          toolName="YouTube AI Summarizer"
+          toolDescription="Turn any YouTube video into clear summaries, bullet notes, study guides, and social threads in seconds."
+          categoryName="AI & Writing Tools"
+          categoryId="ai"
+          toolSlug="/tools/youtube-summarizer"
+          showRelatedTools={true}
+        />
       </div>
 
       {/* Atmospheric backgrounds */}

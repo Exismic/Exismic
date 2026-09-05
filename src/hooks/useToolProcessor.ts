@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { 
+  trackToolRun, 
+  trackToolSuccess, 
+  trackToolError, 
+  trackAuthWallHit, 
+  trackCreditWallHit 
+} from "@/lib/analytics";
 
 function getProcessingErrorMessage(error: unknown) {
   if (axios.isAxiosError<{ error?: string }>(error)) {
@@ -16,12 +23,19 @@ export function useToolProcessor(toolEndpoint: string) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [authRequired, setAuthRequired] = useState(false);
+  const [creditsRequired, setCreditsRequired] = useState(false);
+
+  const toolName = toolEndpoint.split("/").filter(Boolean).pop() || "tool";
 
   const processFile = async (file: File) => {
     setIsProcessing(true);
     setProgress(0);
     setError(null);
     setResult(null);
+    setAuthRequired(false);
+    setCreditsRequired(false);
+    trackToolRun(toolName);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -31,9 +45,6 @@ export function useToolProcessor(toolEndpoint: string) {
     }, 500);
 
     try {
-      // Phase 2: Simple POST request
-      // In a real prod setup, we'd use SSE or WebSockets for real progress
-      // Here we simulate progress while waiting for the response
       const response = await axios.post(toolEndpoint, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -42,12 +53,30 @@ export function useToolProcessor(toolEndpoint: string) {
       setProgress(100);
       setResult(response.data.result);
       setIsProcessing(false);
+      trackToolSuccess(toolName);
       
       return response.data;
     } catch (err: unknown) {
       clearInterval(progressInterval);
       setIsProcessing(false);
-      setError(getProcessingErrorMessage(err));
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401) {
+          setAuthRequired(true);
+          trackAuthWallHit(toolName);
+          return;
+        }
+        if (status === 402) {
+          setCreditsRequired(true);
+          trackCreditWallHit(toolName);
+          return;
+        }
+      }
+
+      const errMsg = getProcessingErrorMessage(err);
+      setError(errMsg);
+      trackToolError(toolName, errMsg);
       console.error("Processing Error:", err);
     }
   };
@@ -58,10 +87,14 @@ export function useToolProcessor(toolEndpoint: string) {
     progress,
     error,
     result,
+    authRequired,
+    creditsRequired,
     reset: () => {
       setResult(null);
       setProgress(0);
       setError(null);
+      setAuthRequired(false);
+      setCreditsRequired(false);
     }
   };
 }

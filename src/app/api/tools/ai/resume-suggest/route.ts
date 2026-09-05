@@ -72,24 +72,47 @@ function sanitizeAtsInsight(value: unknown): AtsInsight {
   };
 }
 
-async function requireProUser() {
+import { deductCredits, getCreditTotal } from "@/lib/credits";
+
+async function checkResumeAccess(cost: number) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user?.id) {
-    return { error: "Please sign in to use Exismic Ai resume features.", status: 401 };
+    return { error: "Please sign in to use Exismic AI resume features.", status: 401 };
   }
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { plan: true, planExpiresAt: true },
+    select: { id: true, plan: true, planExpiresAt: true, dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
   });
 
-  if (!dbUser || !hasActiveProAccess(dbUser)) {
-    return { error: "Full resume generation and ATS matching are Pro features.", status: 403 };
+  if (!dbUser) {
+    return { error: "User profile not found.", status: 404 };
   }
 
-  return { status: 200 };
+  // Pro users have unlimited/daily pro access
+  if (hasActiveProAccess(dbUser)) {
+    return { status: 200 };
+  }
+
+  // Non-pro users can use credits
+  const totalCredits = getCreditTotal(dbUser);
+  if (totalCredits < cost) {
+    return { 
+      error: `Insufficient credits. This requires ${cost} credits, but you have ${totalCredits}.`, 
+      status: 402,
+      required: cost,
+      available: totalCredits
+    };
+  }
+
+  try {
+    await deductCredits(user.id, cost, "resume-suggest");
+    return { status: 200 };
+  } catch (err) {
+    return { error: "Could not deduct credits for resume generation.", status: 500 };
+  }
 }
 
 async function callGroq(messages: GroqMessage[], jsonMode = false) {
@@ -236,10 +259,15 @@ export async function POST(req: NextRequest) {
     const role = sanitizeText(body.role, "", 220);
     const context = sanitizeText(body.context, "", 2500);
 
-    if (mode === "full" || mode === "ats") {
-      const gate = await requireProUser();
+    if (mode === "full") {
+      const gate = await checkResumeAccess(15);
       if (gate.status !== 200) {
-        return NextResponse.json({ error: gate.error }, { status: gate.status });
+        return NextResponse.json({ error: gate.error, required: gate.required, available: gate.available }, { status: gate.status });
+      }
+    } else if (mode === "ats") {
+      const gate = await checkResumeAccess(10);
+      if (gate.status !== 200) {
+        return NextResponse.json({ error: gate.error, required: gate.required, available: gate.available }, { status: gate.status });
       }
     }
 

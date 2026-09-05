@@ -22,6 +22,9 @@ export interface CreditState {
   aiMessagesReset: string;
   plan: 'free' | 'pro';
   dailyStreak?: number;
+  streakShields?: number;
+  streakFreezeUsedAt?: string | null;
+  streakMilestonesClaimed?: string[];
   todayClaim?: { amount: number; rarity: string; type?: "temporary" | "permanent" } | null;
 }
 
@@ -245,6 +248,9 @@ export function useCredits() {
               aiMessagesReset: new Date().toISOString(),
               plan: json.data.plan || 'free',
               dailyStreak: json.data.dailyStreak || 0,
+              streakShields: json.data.streakShields ?? 0,
+              streakFreezeUsedAt: json.data.streakFreezeUsedAt || null,
+              streakMilestonesClaimed: json.data.streakMilestonesClaimed || [],
               todayClaim: json.data.todayClaim || null,
             });
           }
@@ -297,6 +303,9 @@ export function useCredits() {
             aiMessagesReset: new Date().toISOString(),
             plan: data.plan || 'free',
             dailyStreak: data.dailyStreak || 0,
+            streakShields: data.streakShields ?? 0,
+            streakFreezeUsedAt: data.streakFreezeUsedAt || null,
+            streakMilestonesClaimed: data.streakMilestonesClaimed || [],
             todayClaim: data.todayClaim || null,
           });
         }
@@ -495,6 +504,9 @@ export function useCredits() {
     plan: state?.plan ?? 'free',
     isPro: state?.plan === 'pro',
     dailyStreak: state?.dailyStreak ?? 0,
+    streakShields: state?.streakShields ?? 0,
+    streakFreezeUsedAt: state?.streakFreezeUsedAt ?? null,
+    streakMilestonesClaimed: state?.streakMilestonesClaimed ?? [],
     todayClaim: state?.todayClaim ?? null,
     loading,
     userId,

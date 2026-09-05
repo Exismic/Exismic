@@ -97,7 +97,7 @@ export default function ResultPage() {
   const handleShare = () => {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
-      alert("Neural Link Copied to Clipboard!");
+      alert("Link copied to clipboard!");
     }
   };
 

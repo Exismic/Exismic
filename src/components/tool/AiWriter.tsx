@@ -36,6 +36,11 @@ const LENGTHS = ["Short", "Medium", "Long"];
 const WRITER_TABS: Array<"write" | "preview"> = ["write", "preview"];
 
 import { useCredits } from "@/hooks/useCredits";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
 
 export default function AiWriter() {
   const { credits, deductCredits, setShowUpsell } = useCredits();
@@ -48,6 +53,12 @@ export default function AiWriter() {
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setPrompt(payload.content);
+    }
+  });
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result);
@@ -93,6 +104,10 @@ export default function AiWriter() {
 
       const data = await response.json();
       setResult(data.content);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+        window.dispatchEvent(new Event("credits-updated"));
+      }
     } catch (error: unknown) {
       console.error(error);
       setResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to the AI system."}`);
@@ -146,6 +161,15 @@ export default function AiWriter() {
                       exit={{ opacity: 0 }}
                       className="space-y-8"
                     >
+                       {isPiped && pipedPayload && (
+                         <PipedBadge
+                           sourceName={pipedPayload.sourceToolName}
+                           onClear={() => {
+                             setPrompt("");
+                             clearPiped();
+                           }}
+                         />
+                       )}
                        <textarea
                          ref={textareaRef}
                          value={prompt}
@@ -228,6 +252,17 @@ export default function AiWriter() {
                </div>
             </div>
           </div>
+
+          {result && !isGenerating && (
+            <ResultRetentionBar
+              toolType="ai-writer"
+              toolName="AI Writer"
+              title={prompt ? `Writer Output: ${prompt.slice(0, 40)}...` : "Written Article"}
+              content={result}
+              metadata={{ tone, length, prompt }}
+              onCopy={handleCopy}
+            />
+          )}
         </div>
 
         {/* Sidebar Configuration */}
@@ -316,6 +351,22 @@ export default function AiWriter() {
             </div>
         </div>
       </div>
+
+      {/* Chained Next Steps when writing is ready */}
+      {result && (
+        <ToolWorkflowChaining
+          currentToolId="ai-writer"
+          categoryId="ai"
+          outputContent={result}
+        />
+      )}
+
+      {/* Category Companion Suggestions */}
+      <ToolSuggestions
+        currentToolId="ai-writer"
+        categoryId="ai"
+        outputContent={result || prompt}
+      />
     </div>
   );
 }

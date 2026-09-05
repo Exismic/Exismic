@@ -23,17 +23,12 @@ async function prepareOutput(buffer: Buffer, tier: "standard" | "hd") {
 
 export async function POST(req: NextRequest) {
   return withToolHandler(req, {
-    toolId: "image-bg-remover",
+    toolId: "image-eraser",
     allowedTypes: ["image/png", "image/jpeg", "image/webp"],
     maxSize: 10 * 1024 * 1024, // 10MB
     creditCost: 4,
-    accessMode: "authenticated",
+    accessMode: "free-quality",
   }, async (buffer, jobId, _formData, context) => {
-    // Guarantee 10x speed boost for Priority mode vs Free tier
-    if (!context.priority) {
-      await new Promise((resolve) => setTimeout(resolve, 5500));
-    }
-
     const providerBuffer = await sharp(buffer, { failOn: "none" })
       .rotate()
       .png()

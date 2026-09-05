@@ -26,10 +26,22 @@ import {
   Wand2,
   Wrench,
   X,
+  Maximize2,
+  Minimize2,
+  ZoomIn,
+  ZoomOut,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
 import { usePro } from "@/hooks/usePro";
+import { useCredits } from "@/hooks/useCredits";
+import { useSidebarStore } from "@/hooks/useSidebarStore";
 import { getFunctionalStorageItem, removeFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import {
   RESUME_ACCENT_COLORS,
@@ -75,7 +87,7 @@ const SECTION_NAV: Array<{ id: ActiveSection; label: string; icon: typeof User }
 const TOP_TABS: Array<{ id: ActiveTab; label: string; icon: typeof User }> = [
   { id: "content", label: "Content", icon: User },
   { id: "design", label: "Design", icon: Layout },
-  { id: "ai", label: "Exismic Ai", icon: Sparkles },
+  { id: "ai", label: "AI Generator", icon: Wand2 },
 ];
 
 const inputClass = "w-full min-h-12 rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white placeholder:text-zinc-700 outline-none transition-all focus:border-violet-300/50 focus:ring-4 focus:ring-violet-500/10";
@@ -98,6 +110,9 @@ function uniqueSkills(skills: string[]) {
 
 export function ResumeBuilder() {
   const { isPro } = usePro();
+  const { credits, refreshCredits, setShowUpsell } = useCredits();
+  const { isCompact, toggleCompact, isFocusMode, toggleFocusMode } = useSidebarStore();
+  const [zoom, setZoom] = useState<number>(0.85);
   const [data, setData] = useState<ResumeData>(() => createEmptyResume());
   const [activeTab, setActiveTab] = useState<ActiveTab>("content");
   const [activeSection, setActiveSection] = useState<ActiveSection>("personal");
@@ -114,8 +129,23 @@ export function ResumeBuilder() {
   const [PDFRenderer, setPDFRenderer] = useState<PDFRendererModule | null>(null);
   const [ResumePDF, setResumePDF] = useState<ResumePDFComponent | null>(null);
 
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setNotice(`Imported content from ${payload.sourceToolName}. You can add it to your experience or skills.`);
+    }
+  });
+
   useEffect(() => {
     setIsClient(true);
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 1440) {
+        setZoom(0.78);
+      } else if (window.innerWidth < 1680) {
+        setZoom(0.85);
+      } else {
+        setZoom(0.95);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -352,7 +382,6 @@ export function ResumeBuilder() {
   };
 
   const generateFullResume = async () => {
-    if (!isPro) return;
     setIsGenerating("full-resume");
     setAiError(null);
 
@@ -369,24 +398,32 @@ export function ResumeBuilder() {
       });
       const result = await response.json() as ResumeSuggestResponse;
 
-      if (!response.ok || !result.success || !result.resume) {
-        throw new Error(result.error || "Exismic Ai could not build the resume.");
+      if (response.status === 402 || result.error?.toLowerCase().includes("credits")) {
+        setShowUpsell(true);
+        throw new Error(result.error || "Insufficient credits. Please top up to build your resume.");
       }
 
+      if (!response.ok || !result.success || !result.resume) {
+        throw new Error(result.error || "Exismic AI could not build the resume.");
+      }
+
+      await refreshCredits();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+      }
       setData(normalizeResumeData(result.resume));
       setActiveTab("content");
       setActiveSection("personal");
-      setNotice("Exismic Ai built your resume draft.");
+      setNotice("Exismic AI built your resume draft.");
       window.setTimeout(() => setNotice(null), 2500);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : "Exismic Ai could not build the resume.");
+      setAiError(error instanceof Error ? error.message : "Exismic AI could not build the resume.");
     } finally {
       setIsGenerating(null);
     }
   };
 
   const runAtsMatch = async () => {
-    if (!isPro) return;
     setIsGenerating("ats");
     setAiError(null);
 
@@ -404,10 +441,19 @@ export function ResumeBuilder() {
       });
       const result = await response.json() as ResumeSuggestResponse;
 
+      if (response.status === 402 || result.error?.toLowerCase().includes("credits")) {
+        setShowUpsell(true);
+        throw new Error(result.error || "Insufficient credits. Please top up to run ATS match.");
+      }
+
       if (!response.ok || !result.success || !result.insight) {
         throw new Error(result.error || "ATS analysis failed.");
       }
 
+      await refreshCredits();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+      }
       setAtsInsight(result.insight);
     } catch (error) {
       setAiError(error instanceof Error ? error.message : "ATS analysis failed.");
@@ -432,6 +478,9 @@ export function ResumeBuilder() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+      }
     } catch (error) {
       console.error("PDF generation failed:", error);
       setAiError("PDF export failed. Please try again.");
@@ -441,30 +490,76 @@ export function ResumeBuilder() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-24">
-      <div className="mb-5 rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 sm:p-5 backdrop-blur-2xl">
+    <div className="w-full max-w-[1720px] mx-auto px-2 sm:px-4 lg:px-6 pb-24">
+      <div className="mb-5 rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 sm:p-5 backdrop-blur-2xl shadow-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_18px_60px_rgba(124,58,237,0.25)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_18px_60px_rgba(124,58,237,0.25)] shrink-0">
               <FileText size={21} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-200/70">Resume Studio</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-200/70">Resume Studio</p>
+                <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                  Full Workspace
+                </span>
+              </div>
               <h1 className="text-2xl font-black text-white">AI Resume Builder</h1>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
             <ScorePill label="Ready" value={`${completionScore}%`} />
-            <button onClick={fillSample} className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 transition hover:text-white">
+            <button onClick={fillSample} className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 transition hover:text-white cursor-pointer">
               Sample
             </button>
-            <button onClick={saveDraft} className="min-h-11 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 text-xs font-black uppercase text-emerald-100 transition hover:bg-emerald-300/15">
-              Save
+            <button onClick={saveDraft} className="min-h-11 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 text-xs font-black uppercase text-emerald-100 transition hover:bg-emerald-300/15 cursor-pointer">
+              Save Draft
             </button>
+
+            {/* Studio Workspace Layout Toggles */}
+            <div className="hidden lg:flex items-center gap-1.5 pl-2 border-l border-white/10">
+              <button
+                type="button"
+                onClick={toggleCompact}
+                title={isCompact ? "Expand Sidebar" : "Collapse Sidebar"}
+                className={cn(
+                  "min-h-11 px-3.5 rounded-2xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer",
+                  isCompact ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                )}
+              >
+                {isCompact ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+                <span className="text-[11px] font-bold">{isCompact ? "Show Sidebar" : "Compact"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleFocusMode}
+                title={isFocusMode ? "Exit Focus Mode" : "Focus Studio (Hide UI)"}
+                className={cn(
+                  "min-h-11 px-3.5 rounded-2xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer",
+                  isFocusMode ? "border-violet-400/40 bg-violet-500/20 text-violet-200 shadow-lg" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                )}
+              >
+                {isFocusMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                <span className="text-[11px] font-bold">{isFocusMode ? "Exit Focus" : "Focus Studio"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {isPiped && pipedPayload && (
+        <div className="mb-5">
+          <PipedBadge
+            sourceName={pipedPayload.sourceToolName}
+            onClear={() => {
+              setNotice(null);
+              clearPiped();
+            }}
+          />
+        </div>
+      )}
 
       {(notice || aiError) && (
         <div className={cn(
@@ -687,19 +782,19 @@ export function ResumeBuilder() {
 
               {activeTab === "ai" && (
                 <motion.div key="ai" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5 p-5">
-                  <Panel title="Exismic Ai Resume" icon={Sparkles}>
-                    <ProNotice isPro={isPro} />
+                  <Panel title="AI Resume Generator" icon={Wand2}>
+                    <ProNotice isPro={isPro} credits={credits} />
                     <input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Target role, e.g. Frontend Developer" className={inputClass} />
-                    <textarea value={aiBrief} onChange={(event) => setAiBrief(event.target.value)} disabled={!isPro} placeholder="Briefly describe your experience, education, projects, strongest skills, achievements, and target industry." className={cn(textareaClass, "min-h-36", !isPro && "opacity-50")} />
-                    <textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} disabled={!isPro} placeholder="Paste a job description for ATS matching and targeted resume generation." className={cn(textareaClass, "min-h-36", !isPro && "opacity-50")} />
+                    <textarea value={aiBrief} onChange={(event) => setAiBrief(event.target.value)} placeholder="Briefly describe your experience, education, projects, strongest skills, achievements, and target industry." className={cn(textareaClass, "min-h-36")} />
+                    <textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste a job description for ATS matching and targeted resume generation." className={cn(textareaClass, "min-h-36")} />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button onClick={generateFullResume} disabled={!isPro || !aiBrief.trim() || isGenerating === "full-resume"} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 via-cyan-400 to-emerald-300 px-4 text-xs font-black uppercase tracking-widest text-white transition hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
+                      <button onClick={generateFullResume} disabled={!aiBrief.trim() || isGenerating === "full-resume"} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 via-cyan-400 to-emerald-300 px-4 text-xs font-black uppercase tracking-widest text-white transition hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
                         {isGenerating === "full-resume" ? <Loader2 size={17} className="animate-spin" /> : <Wand2 size={17} />}
-                        Build Resume
+                        {isPro ? "Build Resume (Pro)" : "Build Resume (15 Credits)"}
                       </button>
-                      <button onClick={runAtsMatch} disabled={!isPro || !jobDescription.trim() || isGenerating === "ats"} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-4 text-xs font-black uppercase tracking-widest text-cyan-100 transition hover:bg-cyan-300/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
+                      <button onClick={runAtsMatch} disabled={!jobDescription.trim() || isGenerating === "ats"} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-4 text-xs font-black uppercase tracking-widest text-cyan-100 transition hover:bg-cyan-300/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
                         {isGenerating === "ats" ? <Loader2 size={17} className="animate-spin" /> : <Target size={17} />}
-                        ATS Match
+                        {isPro ? "ATS Match (Pro)" : "ATS Match (10 Credits)"}
                       </button>
                     </div>
                   </Panel>
@@ -736,6 +831,58 @@ export function ResumeBuilder() {
 
         <section className="xl:col-span-7">
           <div className="sticky top-24 space-y-4">
+            {/* Canvas Zoom and Dimensions Control Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-white/[0.03] border border-white/10 rounded-2xl backdrop-blur-xl">
+              <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
+                <FileText size={15} className="text-cyan-400" />
+                <span className="text-white font-black text-xs uppercase tracking-wider">A4 Live Sheet</span>
+                <span className="text-zinc-500 text-[11px] hidden sm:inline">· Standard ATS Canvas</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.max(0.6, Math.round((z - 0.08) * 100) / 100))}
+                  className="size-8 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+                  title="Zoom Out"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <span className="text-xs font-mono font-black text-white min-w-12 text-center select-none">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.min(1.2, Math.round((z + 0.08) * 100) / 100))}
+                  className="size-8 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+                  title="Zoom In"
+                >
+                  <ZoomIn size={14} />
+                </button>
+                <div className="h-4 w-px bg-white/10 mx-1" />
+                <button
+                  type="button"
+                  onClick={() => setZoom(0.78)}
+                  className={cn(
+                    "px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
+                    Math.abs(zoom - 0.78) < 0.03 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
+                  )}
+                >
+                  Fit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom(1)}
+                  className={cn(
+                    "px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
+                    zoom === 1 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
+                  )}
+                >
+                  100%
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <ScorePill label="Complete" value={`${completionScore}%`} />
               <ScorePill label="Sections" value={`${data.experience.length + data.education.length + data.projects.length}`} />
@@ -747,13 +894,34 @@ export function ResumeBuilder() {
                 Missing: {missingFields.join(", ")}
               </div>
             )}
-            <ResumePreview data={data} accentColor={accentColor} selectedTemplate={selectedTemplate} />
+            <ResumePreview data={data} accentColor={accentColor} selectedTemplate={selectedTemplate} zoom={zoom} />
+
+            {/* Retention Bar: Email Resume, Save to Cloud Vault, Daily Quests */}
+            <ResultRetentionBar
+              toolType="resume-builder"
+              toolName="Resume Builder"
+              title={data.personalInfo.fullName ? `${data.personalInfo.fullName} - Resume` : "My Resume"}
+              content={resumeToText(data)}
+              metadata={{
+                template: selectedTemplate,
+                accentColor,
+                completionScore,
+                role: targetRole || "Professional",
+              }}
+              downloadAction={handleExport}
+              downloadLabel="Download PDF"
+              className="mt-4"
+            />
           </div>
         </section>
       </div>
 
-      {/* Smart Workflow Tool Recommendations */}
-      <ToolSuggestions currentToolId="resume-builder" categoryId="productivity" />
+      {/* Smart Workflow Tool Recommendations with Live Resume Content Piping */}
+      <ToolWorkflowChaining
+        currentToolId="resume-builder"
+        categoryId="productivity"
+        getContent={() => resumeToText(data)}
+      />
     </div>
   );
 }
@@ -842,29 +1010,24 @@ function SkillInput({ onAdd }: { onAdd: (skill: string) => void }) {
   );
 }
 
-function ProNotice({ isPro }: { isPro: boolean }) {
+function ProNotice({ isPro, credits }: { isPro: boolean; credits: number }) {
   if (isPro) {
     return (
-      <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm font-bold leading-relaxed text-cyan-100">
-        Exismic Ai can build a full resume draft and score it against a job description.
+      <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm font-bold leading-relaxed text-cyan-100 flex items-center justify-between">
+        <span>✨ Pro Active: Unlimited resume generation & ATS audits included.</span>
       </div>
     );
   }
 
   return (
-    <div className="rounded-3xl border border-amber-300/20 bg-amber-300/10 p-4">
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/25 text-amber-100">
-          <Lock size={17} />
-        </div>
-        <div>
-          <p className="text-sm font-black text-white">Exismic Ai is Pro only</p>
-          <p className="mt-1 text-xs font-bold leading-relaxed text-amber-100/75">Upgrade to generate full resumes and ATS analysis from a short brief.</p>
-          <Link href="/pro" className="mt-3 inline-flex min-h-10 items-center rounded-2xl bg-amber-300 px-4 text-xs font-black uppercase tracking-widest text-black">
-            Upgrade
-          </Link>
-        </div>
+    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 flex items-center justify-between text-xs font-bold text-zinc-300">
+      <div className="flex items-center gap-2.5">
+        <Sparkles size={16} className="text-cyan-400 shrink-0" />
+        <span>Use your daily credits to generate a complete resume or run ATS keyword scans.</span>
       </div>
+      <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-500/10 border border-cyan-400/20 px-2.5 py-1 rounded-full shrink-0">
+        {credits} Credits Available
+      </span>
     </div>
   );
 }
@@ -893,7 +1056,17 @@ function ScorePill({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ResumePreview({ data, accentColor, selectedTemplate }: { data: ResumeData; accentColor: string; selectedTemplate: ResumeTemplateId }) {
+function ResumePreview({
+  data,
+  accentColor,
+  selectedTemplate,
+  zoom = 1,
+}: {
+  data: ResumeData;
+  accentColor: string;
+  selectedTemplate: ResumeTemplateId;
+  zoom?: number;
+}) {
   const role = data.experience[0]?.role || "Professional Resume";
   const name = data.personalInfo.fullName || "Your Name";
   const initials = name
@@ -909,7 +1082,7 @@ function ResumePreview({ data, accentColor, selectedTemplate }: { data: ResumeDa
     data.personalInfo.website ? { icon: LinkIcon, text: data.personalInfo.website } : null,
   ].filter((item): item is { icon: typeof Mail; text: string } => Boolean(item));
   const pageClass = cn(
-    "mx-auto min-h-[1020px] w-[760px] text-black shadow-2xl",
+    "min-h-[1020px] w-[760px] text-black shadow-2xl rounded-sm shrink-0",
     selectedTemplate === "modern" && "bg-white p-12",
     selectedTemplate === "executive" && "bg-[#fbfaf7] p-10",
     selectedTemplate === "creative" && "bg-[#fffafb] p-10",
@@ -917,8 +1090,16 @@ function ResumePreview({ data, accentColor, selectedTemplate }: { data: ResumeDa
   );
 
   return (
-    <div className="overflow-x-auto rounded-[2rem] border border-white/10 bg-zinc-950/80 p-3 shadow-[0_35px_100px_rgba(0,0,0,0.45)]">
-      <div className={pageClass}>
+    <div className="w-full overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-950/80 p-2 sm:p-4 shadow-[0_35px_100px_rgba(0,0,0,0.45)] flex justify-center">
+      <div
+        className="transition-transform duration-200 origin-top flex justify-center"
+        style={{
+          transform: `scale(${zoom})`,
+          width: 760,
+          marginBottom: zoom < 1 ? `-${Math.round((1 - zoom) * 1050)}px` : 0,
+        }}
+      >
+        <div className={pageClass}>
         <PreviewHeader
           accentColor={accentColor}
           contactItems={contactItems}
@@ -950,6 +1131,7 @@ function ResumePreview({ data, accentColor, selectedTemplate }: { data: ResumeDa
             {data.skills.length > 0 && <SkillsPreview accentColor={accentColor} skills={data.skills} template={selectedTemplate} />}
           </>
         )}
+        </div>
       </div>
     </div>
   );

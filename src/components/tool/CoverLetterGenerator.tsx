@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { 
   FileText, 
-  Sparkles, 
+  Send, 
   Copy, 
   CheckCircle2, 
   RefreshCw, 
@@ -12,6 +12,10 @@ import {
   Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 
 export default function CoverLetterGenerator() {
   const [jobTitle, setJobTitle] = useState("");
@@ -21,6 +25,12 @@ export default function CoverLetterGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setUserBackground(payload.content);
+    }
+  });
 
   const handleGenerate = async () => {
     if (!jobTitle.trim() || !companyName.trim()) return;
@@ -86,6 +96,16 @@ export default function CoverLetterGenerator() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form */}
         <div className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md flex flex-col">
+          {isPiped && pipedPayload && (
+            <PipedBadge
+              sourceName={pipedPayload.sourceToolName}
+              onClear={() => {
+                setUserBackground("");
+                clearPiped();
+              }}
+            />
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-wider text-zinc-300 flex items-center gap-2">
@@ -125,12 +145,12 @@ export default function CoverLetterGenerator() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-400">Your Experience & Background (Optional)</label>
+            <label className="text-xs font-bold text-zinc-400">Your Experience & Background</label>
             <textarea
               value={userBackground}
               onChange={(e) => setUserBackground(e.target.value)}
               placeholder="Highlight 3-4 key achievements, years of experience, or core skills..."
-              className="w-full min-h-[100px] rounded-xl border border-white/10 bg-black/50 p-4 text-sm text-zinc-200 placeholder-zinc-600 focus:border-purple-500 focus:outline-none resize-none"
+              className="w-full min-h-[120px] rounded-xl border border-white/10 bg-black/50 p-4 text-sm text-zinc-200 placeholder-zinc-600 focus:border-purple-500 focus:outline-none resize-none"
             />
           </div>
 
@@ -147,7 +167,7 @@ export default function CoverLetterGenerator() {
               </>
             ) : (
               <>
-                <Sparkles size={16} />
+                <Send size={16} />
                 <span>Generate Cover Letter</span>
               </>
             )}
@@ -184,6 +204,22 @@ export default function CoverLetterGenerator() {
           )}
         </div>
       </div>
+
+      {/* Chained Next Steps when cover letter is ready */}
+      {coverLetter && (
+        <ToolWorkflowChaining
+          currentToolId="cover-letter-generator"
+          categoryId="productivity"
+          outputContent={coverLetter}
+        />
+      )}
+
+      {/* Suggested companions */}
+      <ToolSuggestions
+        currentToolId="cover-letter-generator"
+        categoryId="productivity"
+        outputContent={coverLetter}
+      />
     </div>
   );
 }

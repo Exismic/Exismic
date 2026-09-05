@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { 
   CheckCheck, 
-  Sparkles, 
   Copy, 
   CheckCircle2, 
   RefreshCw, 
@@ -14,6 +13,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
 
 interface Correction {
   original: string;
@@ -28,6 +30,12 @@ export default function GrammarChecker() {
   const [correctedText, setCorrectedText] = useState<string | null>(null);
   const [corrections, setCorrections] = useState<Correction[]>([]);
   const [copied, setCopied] = useState(false);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setInputText(payload.content);
+    }
+  });
 
   const handleCheck = async () => {
     if (!inputText.trim()) return;
@@ -97,6 +105,17 @@ export default function GrammarChecker() {
             <span className="text-[10px] font-mono text-zinc-500">{inputText.length} chars</span>
           </div>
 
+          {isPiped && pipedPayload && (
+            <PipedBadge
+              sourceName={pipedPayload.sourceToolName}
+              onClear={() => {
+                setInputText("");
+                clearPiped();
+              }}
+              className="mb-1"
+            />
+          )}
+
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -117,7 +136,7 @@ export default function GrammarChecker() {
               </>
             ) : (
               <>
-                <Sparkles size={16} />
+                <CheckCheck size={16} />
                 <span>Check & Correct Text</span>
               </>
             )}
@@ -157,8 +176,21 @@ export default function GrammarChecker() {
         </div>
       </div>
 
+      {/* Chained Next Steps when corrected text is ready */}
+      {correctedText && (
+        <ToolWorkflowChaining
+          currentToolId="grammar-checker"
+          categoryId="ai"
+          outputContent={correctedText}
+        />
+      )}
+
       {/* Smart Workflow Tool Recommendations */}
-      <ToolSuggestions currentToolId="grammar-checker" categoryId="ai" />
+      <ToolSuggestions
+        currentToolId="grammar-checker"
+        categoryId="ai"
+        outputContent={correctedText || inputText}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Check, Crown, LockKeyhole, Sparkles, Zap } from "lucide-react";
+import { Check, Crown, LockKeyhole, SlidersHorizontal, Zap } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { getQualityToolPolicy, type OutputTier } from "@/lib/tool-quality-policy";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ export function ToolQualitySelector({ toolId }: { toolId: string }) {
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-2">
              <div className="flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.15)]">
-                <Sparkles size={11} className="text-cyan-300 animate-pulse" />
+                <SlidersHorizontal size={11} className="text-cyan-300" />
                 Output Quality Mode
              </div>
           </div>

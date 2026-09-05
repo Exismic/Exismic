@@ -19,6 +19,10 @@ import {
   Keyboard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 
 interface Flashcard {
   front: string;
@@ -42,6 +46,12 @@ export default function FlashcardGenerator() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setTopic(payload.content.slice(0, 500));
+    }
+  });
 
   const handleGenerate = async (selectedTopic?: string) => {
     const targetTopic = selectedTopic || topic;
@@ -203,6 +213,16 @@ export default function FlashcardGenerator() {
                 </label>
                 <span className="text-[10px] text-zinc-500 font-mono uppercase">AI Generator</span>
               </div>
+              {isPiped && pipedPayload && (
+                <PipedBadge
+                  sourceName={pipedPayload.sourceToolName}
+                  onClear={() => {
+                    setTopic("");
+                    clearPiped();
+                  }}
+                  className="mb-1"
+                />
+              )}
               <textarea
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
@@ -485,6 +505,20 @@ export default function FlashcardGenerator() {
         </div>
 
       </div>
+
+      {/* Recommended Next Steps */}
+      <ToolWorkflowChaining
+        currentToolId="flashcard-generator"
+        categoryId="student"
+        outputContent={cards.map(c => `Q: ${c.front}\nA: ${c.back}`).join("\n\n") || topic}
+      />
+
+      {/* Category Companion Suggestions */}
+      <ToolSuggestions
+        currentToolId="flashcard-generator"
+        categoryId="student"
+        outputContent={cards.map(c => `Q: ${c.front}\nA: ${c.back}`).join("\n\n") || topic}
+      />
     </div>
   );
 }

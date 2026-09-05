@@ -23,11 +23,20 @@ import {
   Sparkles,
   Trash2,
   Wand2,
+  Maximize2,
+  Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
+import { useCredits } from "@/hooks/useCredits";
+import { useSidebarStore } from "@/hooks/useSidebarStore";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
 import { getFunctionalStorageItem, removeFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 
 interface InvoiceItem {
@@ -250,8 +259,11 @@ function dataUrlToBytes(dataUrl: string) {
   return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
 }
 
-export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps) {
+export function InvoiceGenerator({ category, tool }: InvoiceGeneratorProps) {
   const { isPro, user } = usePro();
+  const { credits, refreshCredits, setShowUpsell } = useCredits();
+  const { isCompact, toggleCompact, isFocusMode, toggleFocusMode } = useSidebarStore();
+  const [zoom, setZoom] = useState<number>(1);
   const [data, setData] = useState<InvoiceData>(() => createDefaultInvoice("INV-0000"));
   const [isGenerating, setIsGenerating] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -385,7 +397,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
   };
 
   const applyExismicAI = async () => {
-    if (!isPro || !aiBrief.trim()) return;
+    if (!aiBrief.trim()) return;
     setAiStatus("thinking");
     setAiError(null);
 
@@ -397,9 +409,16 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
       });
       const payload = await response.json().catch(() => ({}));
 
-      if (!response.ok) {
-        throw new Error(payload.error || "Exismic Ai could not build this invoice.");
+      if (response.status === 402 || payload.error?.toLowerCase().includes("credits")) {
+        setShowUpsell(true);
+        throw new Error(payload.error || "Insufficient credits. Please top up to use AI invoice generator.");
       }
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Exismic AI could not build this invoice.");
+      }
+
+      await refreshCredits();
 
       const invoice = (payload.invoice || {}) as AIInvoiceResult;
       const invoiceNumber = invoice.invoiceNumber || `INV-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -448,6 +467,10 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
         paymentInstructions: invoice.paymentInstructions || `Please include invoice ${invoiceNumber} in the payment reference. Contact us if any billing detail needs adjustment.`,
       }));
       setAiStatus("done");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+        window.dispatchEvent(new Event("credits-updated"));
+      }
       window.setTimeout(() => setAiStatus("idle"), 2500);
     } catch (error) {
       setAiError(error instanceof Error ? error.message : "Exismic Ai could not build this invoice.");
@@ -692,6 +715,9 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 
       if (user) await saveToHistory();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quests-updated"));
+      }
     } catch (error) {
       console.error("PDF generation failed:", error);
     } finally {
@@ -706,18 +732,23 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] [background-size:52px_52px] opacity-40" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-28 space-y-8">
+      <div className="relative z-10 max-w-[1720px] mx-auto px-3 sm:px-6 pt-20 pb-28 space-y-8">
         <header className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
           <div className="space-y-4">
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-indigo-300/20 bg-indigo-400/10 shadow-[0_0_40px_rgba(99,102,241,0.1)]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-indigo-300/20 bg-indigo-400/10 shadow-[0_0_40px_rgba(99,102,241,0.1)] shrink-0">
                 <ReceiptText className="h-8 w-8 text-indigo-300" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-500">
-                  {category?.name || "Productivity"} / Professional billing
-                </p>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white">
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-500">
+                    {category?.name || "Productivity"} / Professional billing
+                  </p>
+                  <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                    Full Workspace
+                  </span>
+                </div>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
                   {tool?.name || "Invoice Generator"}
                 </h1>
               </div>
@@ -727,19 +758,48 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:flex gap-3">
-            <button onClick={fillSample} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 hover:text-white transition-all flex items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={fillSample} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer">
               <Wand2 size={15} />
               Sample
             </button>
-            <button onClick={saveDraft} className="min-h-12 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 text-xs font-black uppercase text-cyan-100 transition-all flex items-center justify-center gap-2">
+            <button onClick={saveDraft} className="min-h-12 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 text-xs font-black uppercase text-cyan-100 transition-all flex items-center justify-center gap-2 cursor-pointer">
               <Save size={15} />
               Save Draft
             </button>
-            <button onClick={clearDraft} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2">
+            <button onClick={clearDraft} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer">
               <RefreshCw size={15} />
               New
             </button>
+
+            {/* Studio Workspace Layout Toggles */}
+            <div className="hidden lg:flex items-center gap-1.5 pl-2 border-l border-white/10">
+              <button
+                type="button"
+                onClick={toggleCompact}
+                title={isCompact ? "Expand Sidebar" : "Collapse Sidebar"}
+                className={cn(
+                  "min-h-12 px-3.5 rounded-2xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer",
+                  isCompact ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                )}
+              >
+                {isCompact ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+                <span className="text-[11px] font-bold">{isCompact ? "Show Sidebar" : "Compact"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleFocusMode}
+                title={isFocusMode ? "Exit Focus Mode" : "Focus Studio (Hide UI)"}
+                className={cn(
+                  "min-h-12 px-3.5 rounded-2xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer",
+                  isFocusMode ? "border-indigo-400/40 bg-indigo-500/20 text-indigo-200 shadow-lg" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                )}
+              >
+                {isFocusMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                <span className="text-[11px] font-bold">{isFocusMode ? "Exit Focus" : "Focus Studio"}</span>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -762,7 +822,7 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
                     <div>
                       <p className="text-sm font-black text-white">Brief to advanced invoice</p>
                       <p className="mt-1 text-xs font-medium leading-relaxed text-cyan-100/70">
-                        Pro-only: describe the client, work, amounts, due date, tax, and discount. Exismic Ai fills the invoice cleanly.
+                        Describe the client, work, amounts, due date, tax, and discount. Exismic AI fills the invoice cleanly.
                       </p>
                     </div>
                   </div>
@@ -770,29 +830,25 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
                 <textarea
                   value={aiBrief}
                   onChange={(event) => setAiBrief(event.target.value)}
-                  disabled={!isPro}
                   placeholder="Example: Create an invoice for Northstar Creative for brand identity $2200, landing page $1800, consulting 10 hours at $120, tax 8.25%, discount 5%, due in 14 days..."
-                  className={cn(textareaClass, "min-h-32", !isPro && "opacity-60")}
+                  className={cn(textareaClass, "min-h-32")}
                 />
-                {isPro ? (
-                  <button
-                    onClick={applyExismicAI}
-                    disabled={!aiBrief.trim() || aiStatus === "thinking"}
-                    className="relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 via-cyan-400 to-emerald-300 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_18px_60px_rgba(6,182,212,0.2)] transition-all hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <span className="absolute inset-0 bg-white/20 translate-x-[-120%] skew-x-12 transition-transform duration-1000 hover:translate-x-[120%]" />
-                    {aiStatus === "thinking" ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
-                    {aiStatus === "thinking" ? "Exismic Ai Building..." : aiStatus === "done" ? "Invoice Filled" : "Generate With Exismic Ai"}
-                  </button>
-                ) : (
-                  <Link
-                    href="/pro"
-                    className="relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-amber-300/20 bg-amber-300/10 text-xs font-black uppercase tracking-[0.18em] text-amber-100 transition-all hover:bg-amber-300/15 active:scale-95"
-                  >
-                    <Crown size={17} />
-                    Upgrade for Exismic Ai
-                  </Link>
-                )}
+                <button
+                  onClick={applyExismicAI}
+                  disabled={!aiBrief.trim() || aiStatus === "thinking"}
+                  className="relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 via-cyan-400 to-emerald-300 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_18px_60px_rgba(6,182,212,0.2)] transition-all hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                >
+                  <span className="absolute inset-0 bg-white/20 translate-x-[-120%] skew-x-12 transition-transform duration-1000 hover:translate-x-[120%]" />
+                  {aiStatus === "thinking" ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
+                  {aiStatus === "thinking" 
+                    ? "Exismic AI Building..." 
+                    : aiStatus === "done" 
+                    ? "Invoice Filled" 
+                    : isPro 
+                    ? "Generate With AI (Pro)" 
+                    : "Generate With AI (8 Credits)"
+                  }
+                </button>
                 {aiError && (
                   <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-rose-100">
                     {aiError}
@@ -999,13 +1055,76 @@ export function InvoiceGeneratorClient({ tool, category }: InvoiceGeneratorProps
               </div>
             )}
 
-            <InvoicePreview data={data} subtotal={subtotal} discountAmount={discountAmount} taxAmount={taxAmount} total={total} currencySymbol={currency.symbol} />
+            {/* Live Canvas Zoom Controls */}
+            <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl border border-white/10 bg-white/[0.035] text-xs font-bold text-zinc-300">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Preview Scale</span>
+                <span className="text-[11px] font-mono text-indigo-300 font-black">{Math.round(zoom * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.05).toFixed(2))))}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer"
+                  title="Zoom Out"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.min(1.4, Number((z + 0.05).toFixed(2))))}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition cursor-pointer"
+                  title="Zoom In"
+                >
+                  <ZoomIn size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom(0.85)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
+                    zoom === 0.85 ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
+                  )}
+                >
+                  Fit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom(1)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
+                    zoom === 1 ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
+                  )}
+                >
+                  100%
+                </button>
+              </div>
+            </div>
+
+            <InvoicePreview data={data} subtotal={subtotal} discountAmount={discountAmount} taxAmount={taxAmount} total={total} currencySymbol={currency.symbol} zoom={zoom} />
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <StatPill label="Subtotal" value={formatMoney(subtotal, data.currency)} />
               <StatPill label="Discount" value={`-${formatMoney(discountAmount, data.currency)}`} />
               <StatPill label="Total" value={formatMoney(total, data.currency)} highlight />
             </div>
+
+            {/* Retention Bar: Email Invoice, Save to Cloud Vault, Daily Quests */}
+            <ResultRetentionBar
+              toolType="invoice-generator"
+              toolName="Invoice Generator"
+              title={`Invoice #${data.invoiceNumber || "Draft"} - ${data.clientName || "Client"}`}
+              content={`Invoice #${data.invoiceNumber}\nSender: ${data.senderName}\nClient: ${data.clientName}\nTotal: ${formatMoney(total, data.currency)}\nDue: ${data.dueDate}\nItems:\n${data.items.map(i => `• ${i.description} (${i.quantity}x @ ${formatMoney(i.price, data.currency)})`).join("\n")}`}
+              metadata={{
+                invoiceNumber: data.invoiceNumber,
+                clientName: data.clientName,
+                total,
+                status: data.status,
+              }}
+              downloadAction={generatePDF}
+              downloadLabel="Download PDF"
+              className="mt-4"
+            />
           </div>
         </section>
       </div>
@@ -1059,6 +1178,7 @@ function InvoicePreview({
   taxAmount,
   total,
   currencySymbol,
+  zoom = 1,
 }: {
   data: InvoiceData;
   subtotal: number;
@@ -1066,6 +1186,7 @@ function InvoicePreview({
   taxAmount: number;
   total: number;
   currencySymbol: string;
+  zoom?: number;
 }) {
   const previewItems = data.items.slice(0, 6);
   const templateClass =
@@ -1076,8 +1197,16 @@ function InvoicePreview({
         : "";
 
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-zinc-950/70 p-3 shadow-[0_35px_100px_rgba(0,0,0,0.45)]">
-      <div className={cn("relative mx-auto aspect-[1/1.41] w-full max-w-[760px] overflow-hidden rounded-[1.5rem] bg-white text-black shadow-2xl", templateClass)} style={{ borderColor: data.themeColor }}>
+    <div className="rounded-[2rem] border border-white/10 bg-zinc-950/70 p-3 shadow-[0_35px_100px_rgba(0,0,0,0.45)] overflow-hidden flex justify-center">
+      <div
+        className="w-full transition-transform duration-200 origin-top flex justify-center"
+        style={{
+          transform: `scale(${zoom})`,
+          transformOrigin: "top center",
+          marginBottom: zoom < 1 ? `-${Math.round((1 - zoom) * 850)}px` : 0,
+        }}
+      >
+        <div className={cn("relative mx-auto aspect-[1/1.41] w-full max-w-[760px] overflow-hidden rounded-[1.5rem] bg-white text-black shadow-2xl", templateClass)} style={{ borderColor: data.themeColor }}>
         {data.template === "modern" && <div className="h-24 w-full" style={{ backgroundColor: data.themeColor }} />}
         <div className={cn("absolute inset-0 p-6 sm:p-8", data.template === "modern" && "pt-8 text-white")}>
           <div className="flex items-start justify-between gap-4">
@@ -1157,6 +1286,7 @@ function InvoicePreview({
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
@@ -1189,3 +1319,5 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+export { InvoiceGenerator as InvoiceGeneratorClient };

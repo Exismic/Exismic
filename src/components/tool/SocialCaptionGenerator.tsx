@@ -22,6 +22,10 @@ import {
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { ToolUploader } from "./ToolUploader";
+import { usePipedContent } from "@/lib/tool-piping";
+import { PipedBadge } from "@/components/tool/PipedBadge";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 
 const PLATFORMS = [
   { id: "instagram", label: "Instagram", icon: () => (
@@ -78,6 +82,12 @@ export function SocialCaptionGenerator() {
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const lastFileRef = useRef<File | null>(null);
+
+  const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
+    if (payload.content) {
+      setTopic(payload.content.slice(0, 500));
+    }
+  });
 
   const handleUpload = async (files: File[]) => {
     if (files.length === 0) return;
@@ -186,6 +196,16 @@ export function SocialCaptionGenerator() {
                        Surprise Me
                     </button>
                   </div>
+                  {isPiped && pipedPayload && (
+                    <PipedBadge
+                      sourceName={pipedPayload.sourceToolName}
+                      onClear={() => {
+                        setTopic("");
+                        clearPiped();
+                      }}
+                      className="mb-2"
+                    />
+                  )}
                   <div className="relative group">
                      <textarea
                        value={topic}
@@ -354,6 +374,20 @@ export function SocialCaptionGenerator() {
            </AnimatePresence>
         </div>
       </div>
+      
+      {/* Recommended Next Steps */}
+      <ToolWorkflowChaining
+        currentToolId="social-caption-generator"
+        categoryId="ai"
+        outputContent={captions.map(c => c.caption).join("\n\n") || topic}
+      />
+
+      {/* Category Companion Suggestions */}
+      <ToolSuggestions
+        currentToolId="social-caption-generator"
+        categoryId="ai"
+        outputContent={captions.map(c => c.caption).join("\n\n") || topic}
+      />
     </div>
   );
 }

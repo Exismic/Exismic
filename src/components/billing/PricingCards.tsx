@@ -142,8 +142,8 @@ export function PricingCards() {
         ))}
       </div>
 
-      <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-600">
-        <ShieldCheck size={13} /> Server-verified payments. No client-side price trust.
+      <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
+        <ShieldCheck size={14} className="text-emerald-400" /> 100% Secure Checkout • Instant Delivery • Cancel Anytime
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ import axios from "axios";
 import { useCredits } from "@/hooks/useCredits";
 import { downloadWithBrandPolicy } from "@/utils/watermark";
 import { Loader2 } from "lucide-react";
+import { MediaPipelineBar } from "./MediaPipelineBar";
 
 interface GeneratorOptions {
   prompt: string;
@@ -557,6 +558,18 @@ export function ImageGeneratorTool() {
                                   Includes subtle <span className="text-zinc-400 font-bold">exismic.xyz</span> badge • <a href="/pro" className="text-amber-400 font-bold hover:underline">Upgrade to Pro</a> for 100% clean commercial exports
                                </p>
                             )}
+
+                            {/* 1-Click Next Action Pipeline */}
+                            <MediaPipelineBar
+                              imageUrl={results[0]}
+                              imageName={`exismic-ai-${Date.now()}.png`}
+                              sourceToolId="ai-img-gen"
+                              sourceToolName="AI Image Generator"
+                              actions={["eraser", "meme", "resizer", "compressor", "converter"]}
+                              title="Quick Action Pipeline"
+                              subtitle="Carry this AI masterpiece directly into companion tools with zero re-uploading"
+                              className="mt-4"
+                            />
                          </div>
                      </div>
                    ) : (

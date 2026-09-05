@@ -97,27 +97,30 @@ class SoundController {
       this.chargeSubOsc = ctx.createOscillator();
       this.chargeGain = ctx.createGain();
 
-      const baseFreq = 70 + pitchOffset * 18;
+      const baseFreq = 110 + pitchOffset * 15;
+      const maxDuration = 1.4; // Safe hard cap so sound can never hang indefinitely
       
-      // Main Sawtooth Riser
-      this.chargeOsc.type = "sawtooth";
+      // Warm Cinematic Harmonic Riser (Triangle instead of harsh abrasive sawtooth)
+      this.chargeOsc.type = "triangle";
       this.chargeOsc.frequency.setValueAtTime(baseFreq, now);
-      this.chargeOsc.frequency.exponentialRampToValueAtTime(baseFreq * 4.5, now + 1.8);
+      this.chargeOsc.frequency.exponentialRampToValueAtTime(baseFreq * 2.8, now + 1.1);
 
-      // Sub-Bass Riser
+      // Deep, Smooth Sub Riser (Warm sine)
       this.chargeSubOsc.type = "sine";
-      this.chargeSubOsc.frequency.setValueAtTime(40, now);
-      this.chargeSubOsc.frequency.exponentialRampToValueAtTime(160, now + 1.8);
+      this.chargeSubOsc.frequency.setValueAtTime(55, now);
+      this.chargeSubOsc.frequency.exponentialRampToValueAtTime(120, now + 1.1);
 
-      // Low pass filter with sweeping resonance
+      // Warm Gentle Lowpass Filter (Eliminates high-pitch ear-piercing buzzing)
       const filter = ctx.createBiquadFilter();
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(150, now);
-      filter.frequency.exponentialRampToValueAtTime(2400, now + 1.8);
-      filter.Q.setValueAtTime(3, now);
+      filter.frequency.setValueAtTime(200, now);
+      filter.frequency.exponentialRampToValueAtTime(850, now + 1.1);
+      filter.Q.setValueAtTime(0.8, now);
 
-      this.chargeGain.gain.setValueAtTime(0.01, now);
-      this.chargeGain.gain.linearRampToValueAtTime(0.25, now + 1.6);
+      // Gentle, pleasant volume envelope (Max 0.07 instead of loud 0.25)
+      this.chargeGain.gain.setValueAtTime(0.005, now);
+      this.chargeGain.gain.linearRampToValueAtTime(0.065, now + 0.9);
+      this.chargeGain.gain.exponentialRampToValueAtTime(0.0001, now + maxDuration);
 
       this.chargeOsc.connect(filter);
       this.chargeSubOsc.connect(filter);
@@ -126,6 +129,8 @@ class SoundController {
 
       this.chargeOsc.start(now);
       this.chargeSubOsc.start(now);
+      this.chargeOsc.stop(now + maxDuration);
+      this.chargeSubOsc.stop(now + maxDuration);
     } catch {
       // Ignore
     }
@@ -135,20 +140,19 @@ class SoundController {
     if (this.chargeGain && this.ctx) {
       try {
         const now = this.ctx.currentTime;
-        this.chargeGain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+        this.chargeGain.gain.cancelScheduledValues(now);
+        this.chargeGain.gain.linearRampToValueAtTime(0.0001, now + 0.04);
         setTimeout(() => {
           if (this.chargeOsc) {
-            this.chargeOsc.stop();
-            this.chargeOsc.disconnect();
+            try { this.chargeOsc.stop(); this.chargeOsc.disconnect(); } catch {}
             this.chargeOsc = null;
           }
           if (this.chargeSubOsc) {
-            this.chargeSubOsc.stop();
-            this.chargeSubOsc.disconnect();
+            try { this.chargeSubOsc.stop(); this.chargeSubOsc.disconnect(); } catch {}
             this.chargeSubOsc = null;
           }
           this.chargeGain = null;
-        }, 60);
+        }, 50);
       } catch {
         this.chargeOsc = null;
         this.chargeSubOsc = null;
@@ -167,7 +171,7 @@ class SoundController {
     try {
       const now = ctx.currentTime;
 
-      // 1. Heavy Punch Sub-Bass Impact Drop
+      // 1. Warm Soft Punch Sub-Bass Drop
       const subOsc = ctx.createOscillator();
       const subGain = ctx.createGain();
 
@@ -175,20 +179,20 @@ class SoundController {
       const isLegendary = rarity.toLowerCase() === "legendary";
       const isEpic = rarity.toLowerCase() === "epic";
 
-      const startSub = isLegendary ? 180 : isEpic ? 140 : 110;
+      const startSub = isLegendary ? 140 : isEpic ? 120 : 95;
       subOsc.frequency.setValueAtTime(startSub, now);
-      subOsc.frequency.exponentialRampToValueAtTime(20, now + 0.55);
+      subOsc.frequency.exponentialRampToValueAtTime(28, now + 0.45);
 
-      subGain.gain.setValueAtTime(isLegendary ? 0.55 : isEpic ? 0.4 : 0.28, now);
-      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      subGain.gain.setValueAtTime(isLegendary ? 0.22 : isEpic ? 0.18 : 0.14, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
 
       subOsc.connect(subGain);
       subGain.connect(ctx.destination);
       subOsc.start(now);
-      subOsc.stop(now + 0.6);
+      subOsc.stop(now + 0.5);
 
-      // 2. White Noise Detonation Burst
-      const bufferSize = ctx.sampleRate * 0.35;
+      // 2. Soft Tactile Sparkle Puff (Subtle, warm, non-piercing)
+      const bufferSize = ctx.sampleRate * 0.2;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const output = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
@@ -199,20 +203,19 @@ class SoundController {
       whiteNoise.buffer = buffer;
 
       const noiseFilter = ctx.createBiquadFilter();
-      noiseFilter.type = "bandpass";
-      noiseFilter.frequency.setValueAtTime(isLegendary ? 1200 : 900, now);
-      noiseFilter.Q.setValueAtTime(1.2, now);
+      noiseFilter.type = "lowpass";
+      noiseFilter.frequency.setValueAtTime(1400, now);
 
       const noiseGain = ctx.createGain();
-      noiseGain.gain.setValueAtTime(isLegendary ? 0.35 : 0.22, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      noiseGain.gain.setValueAtTime(0.05, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0005, now + 0.2);
 
       whiteNoise.connect(noiseFilter);
       noiseFilter.connect(noiseGain);
       noiseGain.connect(ctx.destination);
 
       whiteNoise.start(now);
-      whiteNoise.stop(now + 0.35);
+      whiteNoise.stop(now + 0.2);
 
       // 3. Victory Harmonic Chime Sequence
       const notes = isLegendary
