@@ -19,6 +19,7 @@ import {
   RefreshCw,
   BadgePercent,
   Tag,
+  Zap,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
@@ -1087,7 +1088,7 @@ export function PaymentTermsModal({
                     type="button"
                     onClick={onClose}
                     disabled={isProcessing}
-                    className="w-28 shrink-0 h-12 flex items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer"
+                    className="w-28 shrink-0 min-h-12 py-3.5 px-5 flex items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.04] text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1101,36 +1102,35 @@ export function PaymentTermsModal({
                     }}
                     disabled={!agreed || isProcessing}
                     className={cn(
-                      "group relative flex-1 h-12 flex items-center justify-center overflow-hidden rounded-xl text-xs font-black tracking-wide transition-all duration-300 cursor-pointer select-none",
+                      "group relative flex-1 min-h-12 py-3.5 px-6 rounded-full flex items-center justify-center gap-3 font-black uppercase tracking-[0.16em] text-xs sm:text-sm transition-all duration-300 isolate overflow-hidden cursor-pointer select-none",
                       agreed
-                        ? "border border-cyan-300/40 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.4),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] hover:border-cyan-200/60 active:scale-[0.99]"
-                        : "cursor-not-allowed border border-white/[0.06] bg-white/[0.03] text-zinc-600 opacity-40 shadow-none"
+                        ? "bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-600 text-white shadow-[0_0_28px_rgba(6,182,212,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.65)] hover:scale-[1.01] active:scale-[0.99]"
+                        : "cursor-not-allowed border border-white/[0.08] bg-white/[0.03] text-zinc-600 opacity-40 shadow-none"
                     )}
                   >
                     {/* Shimmer sweep on active */}
                     {agreed && (
-                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full" />
+                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full rounded-full" />
                     )}
-                    <span className="relative z-10 flex items-center justify-center gap-2.5 px-3">
-                      {isProcessing ? (
-                        <>
-                          <Loader2 size={16} className="animate-spin text-white" />
-                          <span>Processing Checkout...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="font-extrabold uppercase tracking-wider text-white">
-                            Proceed to {gatewayName}
+                    {isProcessing ? (
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <Loader2 size={16} className="animate-spin text-white" />
+                        <span>Processing Checkout...</span>
+                      </span>
+                    ) : (
+                      <span className="relative z-10 flex items-center justify-center gap-2.5 sm:gap-3">
+                        <Zap size={16} className="text-white fill-white/20 shrink-0 animate-pulse" />
+                        <span className="font-black uppercase tracking-[0.16em] text-white">
+                          Proceed to {gatewayName}
+                        </span>
+                        {displayFinalAmount && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-black/40 border border-white/25 text-white font-mono text-xs font-black tracking-tight shadow-inner shrink-0">
+                            {displayFinalAmount}
                           </span>
-                          {displayFinalAmount && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-black/40 border border-white/20 text-white font-mono text-[11px] font-black tracking-tight shadow-inner">
-                              {displayFinalAmount}
-                            </span>
-                          )}
-                          <ArrowRight size={15} strokeWidth={2.5} className="text-cyan-200 transition-transform duration-200 group-hover:translate-x-1 shrink-0" />
-                        </>
-                      )}
-                    </span>
+                        )}
+                        <ArrowRight size={16} strokeWidth={2.5} className="text-white transition-transform duration-300 group-hover:translate-x-1 shrink-0" />
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>

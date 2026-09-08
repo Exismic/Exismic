@@ -995,153 +995,157 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                        className="absolute right-0 mt-4 w-[340px] bg-zinc-950/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_40px_80px_rgba(0,0,0,0.8)] z-50 overflow-hidden"
+                        className="absolute right-0 mt-2 w-[340px] max-h-[calc(100vh-5.5rem)] bg-zinc-950/95 backdrop-blur-3xl border border-white/10 rounded-[2.25rem] shadow-[0_40px_80px_rgba(0,0,0,0.85)] z-50 overflow-hidden flex flex-col"
                       >
-                        {/* Profile Header */}
-                        <UserProfile 
-                          fullName={fullName} 
-                          email={authUser?.email} 
-                          avatarUrl={avatarUrl} 
-                          isPro={isPro} 
-                          frameId={localFrameId || undefined}
-                          gradientId={localGradientId}
-                          variant="menu-header" 
-                        />
+                        {/* Scrollable Main Content */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
+                          {/* Profile Header */}
+                          <UserProfile 
+                            fullName={fullName} 
+                            email={authUser?.email} 
+                            avatarUrl={avatarUrl} 
+                            isPro={isPro} 
+                            frameId={localFrameId || undefined}
+                            gradientId={localGradientId}
+                            variant="menu-header" 
+                          />
 
-                        <div className="px-6 pb-6 space-y-6">
-                          {/* Usage Progress Tracker */}
-                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                          <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-zinc-500">
-                            <span>AI Generations</span>
-                            <span className="text-white">{usageCount} / {totalLimit}</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-linear-to-r from-accent-purple to-accent-cyan rounded-full"
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Navigation Actions */}
-                        <div className="space-y-1">
-                          <button
-                            onClick={() => {
-                              setUserDropdownOpen(false);
-                              setIsDailyRewardOpen(true);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-orange-200 hover:text-white bg-gradient-to-r from-orange-500/[0.08] to-transparent hover:from-orange-500/20 hover:to-orange-500/5 border border-orange-400/20 hover:border-orange-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropvault shadow-[0_0_15px_rgba(249,115,22,0.06)] hover:shadow-[0_0_25px_rgba(249,115,22,0.2)]"
-                          >
-                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-300 group-hover/dropvault:scale-110 transition-transform shrink-0">
-                              <Flame size={13} className="text-orange-300 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]" />
-                            </div>
-                            <span className="font-sans font-black tracking-wider bg-gradient-to-r from-orange-100 to-amber-300 bg-clip-text text-transparent">Daily Mystery Vault</span>
-                            {!todayClaim ? (
-                              <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1">
-                                <Gift size={9} className="shrink-0 text-black fill-black/20" />
-                                CLAIM DROP
-                              </span>
-                            ) : (
-                              <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
-                                {dailyStreak}D STREAK
-                              </span>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setUserDropdownOpen(false);
-                              setIsQuestsModalOpen(true);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-200 hover:text-white bg-gradient-to-r from-amber-500/[0.08] to-transparent hover:from-amber-500/20 hover:to-amber-500/5 border border-amber-400/20 hover:border-amber-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropquest shadow-[0_0_15px_rgba(245,158,11,0.06)] hover:shadow-[0_0_25px_rgba(245,158,11,0.2)]"
-                          >
-                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 group-hover/dropquest:scale-110 transition-transform shrink-0">
-                              <Trophy size={13} className="text-amber-300 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]" />
-                            </div>
-                            <span className="font-sans font-black tracking-wider bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent">Daily Quests</span>
-                            {unclaimedCount > 0 ? (
-                              <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-pulse font-mono flex items-center gap-1">
-                                <Trophy size={9} className="shrink-0 text-amber-950" />
-                                +{unclaimedCount} CLAIM
-                              </span>
-                            ) : completedCount === totalAvailable && totalAvailable > 0 ? (
-                              <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                COMPLETED
-                              </span>
-                            ) : (
-                              <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/25">
-                                {completedCount}/{totalAvailable}
-                              </span>
-                            )}
-                          </button>
-                          <Link href="/shop" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
-                            <Coins size={14} className="text-amber-400" />
-                            <span>Credit Shop Vault</span>
-                            <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setUserDropdownOpen(false);
-                              setIsRedeemModalOpen(true);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider text-left"
-                          >
-                            <Gift size={14} className="text-amber-400" />
-                            <span>Redeem Code / Voucher</span>
-                            <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
-                          </button>
-                          <Link href="/account/settings" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
-                            <Settings size={14} />
-                            <span>Account Settings</span>
-                          </Link>
-                          {isAdmin && (
-                            <Link 
-                              href="/admin" 
-                              onClick={() => setUserDropdownOpen(false)} 
-                              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-300 hover:text-white bg-gradient-to-r from-rose-500/[0.08] to-transparent hover:from-rose-500/20 hover:to-rose-500/5 border border-rose-500/20 hover:border-rose-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/admin shadow-[0_0_15px_rgba(244,63,94,0.06)] hover:shadow-[0_0_25px_rgba(244,63,94,0.2)]"
-                            >
-                              <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 group-hover/admin:scale-110 transition-transform shrink-0">
-                                <ShieldCheck size={13} className="text-rose-300 drop-shadow-[0_0_5px_rgba(244,63,94,0.8)]" />
+                          <div className="px-5 pb-4 space-y-4">
+                            {/* Usage Progress Tracker */}
+                            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2.5">
+                              <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-zinc-500">
+                                <span>AI Generations</span>
+                                <span className="text-white">{usageCount} / {totalLimit}</span>
                               </div>
-                              <span className="font-sans font-black tracking-wider bg-gradient-to-r from-rose-100 to-rose-300 bg-clip-text text-transparent">Admin Panel</span>
-                              <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono tracking-wider">
-                                ADMIN
-                              </span>
-                            </Link>
-                          )}
-                          {isPro ? (
-                            <button 
-                              onClick={() => setIsManageModalOpen(true)}
-                              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider text-left"
-                            >
-                              <CreditCard size={14} />
-                              <span>Manage Subscription</span>
-                            </button>
-                          ) : (
-                            <Link href="/pro" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-accent-purple hover:text-white hover:bg-accent-purple/10 transition-all text-xs font-black uppercase tracking-wider">
-                              <Crown size={14} />
-                              <span>Upgrade to Pro</span>
-                            </Link>
-                          )}
+                              <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-linear-to-r from-accent-purple to-accent-cyan rounded-full"
+                                  style={{ width: `${progressPercent}%` }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Navigation Actions */}
+                            <div className="space-y-1">
+                              <button
+                                onClick={() => {
+                                  setUserDropdownOpen(false);
+                                  setIsDailyRewardOpen(true);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-orange-200 hover:text-white bg-gradient-to-r from-orange-500/[0.08] to-transparent hover:from-orange-500/20 hover:to-orange-500/5 border border-orange-400/20 hover:border-orange-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropvault shadow-[0_0_15px_rgba(249,115,22,0.06)] hover:shadow-[0_0_25px_rgba(249,115,22,0.2)]"
+                              >
+                                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-300 group-hover/dropvault:scale-110 transition-transform shrink-0">
+                                  <Flame size={13} className="text-orange-300 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]" />
+                                </div>
+                                <span className="font-sans font-black tracking-wider bg-gradient-to-r from-orange-100 to-amber-300 bg-clip-text text-transparent">Daily Mystery Vault</span>
+                                {!todayClaim ? (
+                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1">
+                                    <Gift size={9} className="shrink-0 text-black fill-black/20" />
+                                    CLAIM DROP
+                                  </span>
+                                ) : (
+                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
+                                    {dailyStreak}D STREAK
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setUserDropdownOpen(false);
+                                  setIsQuestsModalOpen(true);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-200 hover:text-white bg-gradient-to-r from-amber-500/[0.08] to-transparent hover:from-amber-500/20 hover:to-amber-500/5 border border-amber-400/20 hover:border-amber-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropquest shadow-[0_0_15px_rgba(245,158,11,0.06)] hover:shadow-[0_0_25px_rgba(245,158,11,0.2)]"
+                              >
+                                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 group-hover/dropquest:scale-110 transition-transform shrink-0">
+                                  <Trophy size={13} className="text-amber-300 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]" />
+                                </div>
+                                <span className="font-sans font-black tracking-wider bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent">Daily Quests</span>
+                                {unclaimedCount > 0 ? (
+                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-pulse font-mono flex items-center gap-1">
+                                    <Trophy size={9} className="shrink-0 text-amber-950" />
+                                    +{unclaimedCount} CLAIM
+                                  </span>
+                                ) : completedCount === totalAvailable && totalAvailable > 0 ? (
+                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                    COMPLETED
+                                  </span>
+                                ) : (
+                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/25">
+                                    {completedCount}/{totalAvailable}
+                                  </span>
+                                )}
+                              </button>
+                              <Link href="/shop" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
+                                <Coins size={14} className="text-amber-400" />
+                                <span>Credit Shop Vault</span>
+                                <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setUserDropdownOpen(false);
+                                  setIsRedeemModalOpen(true);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider text-left"
+                              >
+                                <Gift size={14} className="text-amber-400" />
+                                <span>Redeem Code / Voucher</span>
+                                <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
+                              </button>
+                              <Link href="/account/settings" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
+                                <Settings size={14} />
+                                <span>Account Settings</span>
+                              </Link>
+                              {isAdmin && (
+                                <Link 
+                                  href="/admin" 
+                                  onClick={() => setUserDropdownOpen(false)} 
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-300 hover:text-white bg-gradient-to-r from-rose-500/[0.08] to-transparent hover:from-rose-500/20 hover:to-rose-500/5 border border-rose-500/20 hover:border-rose-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/admin shadow-[0_0_15px_rgba(244,63,94,0.06)] hover:shadow-[0_0_25px_rgba(244,63,94,0.2)]"
+                                >
+                                  <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 group-hover/admin:scale-110 transition-transform shrink-0">
+                                    <ShieldCheck size={13} className="text-rose-300 drop-shadow-[0_0_5px_rgba(244,63,94,0.8)]" />
+                                  </div>
+                                  <span className="font-sans font-black tracking-wider bg-gradient-to-r from-rose-100 to-rose-300 bg-clip-text text-transparent">Admin Panel</span>
+                                  <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono tracking-wider">
+                                    ADMIN
+                                  </span>
+                                </Link>
+                              )}
+                              {isPro ? (
+                                <button 
+                                  onClick={() => setIsManageModalOpen(true)}
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider text-left"
+                                >
+                                  <CreditCard size={14} />
+                                  <span>Manage Subscription</span>
+                                </button>
+                              ) : (
+                                <Link href="/pro" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-accent-purple hover:text-white hover:bg-accent-purple/10 transition-all text-xs font-black uppercase tracking-wider">
+                                  <Crown size={14} />
+                                  <span>Upgrade to Pro</span>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="h-px bg-white/5" />
-
-                        {/* Log Out */}
-                        <button 
-                          onClick={async () => {
-                            const supabase = createClient();
-                            await supabase.auth.signOut();
-                            setUserDropdownOpen(false);
-                            router.push('/');
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all text-xs font-bold uppercase tracking-wider text-left"
-                        >
-                          <LogOut size={14} />
-                          <span>Log Out</span>
-                        </button>
-                      </div>
-                    </motion.div>
+                        {/* Pinned Log Out Footer */}
+                        <div className="shrink-0 p-3 bg-black/60 border-t border-white/[0.08] backdrop-blur-xl">
+                          <button 
+                            type="button"
+                            onClick={async () => {
+                              const supabase = createClient();
+                              await supabase.auth.signOut();
+                              setUserDropdownOpen(false);
+                              router.push('/');
+                            }}
+                            className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all text-xs font-black uppercase tracking-wider cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.12)] active:scale-[0.98]"
+                          >
+                            <LogOut size={14} className="text-red-400" />
+                            <span>Log Out</span>
+                          </button>
+                        </div>
+                      </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
