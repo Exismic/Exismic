@@ -536,6 +536,8 @@ export default function AdminPage() {
           setAuthorized(true);
           // Load users tab initially
           await loadUsers(1, "", "all", "all");
+          // Preload configs so maintenance status is instantly visible
+          await loadConfigs();
         }
       } catch (error) {
         console.error("Failed to load admin stats:", error);
@@ -1092,11 +1094,91 @@ export default function AdminPage() {
             <Skeleton className="h-96 w-full bg-white/5 border border-white/10 rounded-3xl" />
           </div>
         ) : (
-          <div className="space-y-10">
+          <div className="space-y-8">
+            {/* Live System Status & Instant Maintenance Mode Switcher Banner */}
+            <div className={cn(
+              "p-5 sm:p-6 rounded-3xl border backdrop-blur-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-2xl",
+              configs.maintenance_mode === "true"
+                ? "bg-gradient-to-r from-red-500/15 via-amber-500/10 to-red-500/5 border-red-500/30 text-amber-200 shadow-[0_0_35px_rgba(239,68,68,0.2)]"
+                : "bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-emerald-500/5 border-emerald-500/25 text-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.1)]"
+            )}>
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-xl",
+                  configs.maintenance_mode === "true"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
+                    : "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                )}>
+                  {configs.maintenance_mode === "true" ? (
+                    <AlertTriangle size={22} className="animate-pulse text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  ) : (
+                    <CheckCircle2 size={22} className="text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-xs font-black uppercase tracking-wider text-white">
+                      Platform Status:
+                    </span>
+                    <span className={cn(
+                      "px-3 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider border shadow-inner",
+                      configs.maintenance_mode === "true"
+                        ? "bg-red-500/20 border-red-500/40 text-red-300 animate-pulse"
+                        : "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
+                    )}>
+                      {configs.maintenance_mode === "true" ? "● Maintenance Mode (Public Blocked)" : "● Live & Operational (Public Active)"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 font-medium">
+                    {configs.maintenance_mode === "true"
+                      ? "System-wide block is active for all non-admin accounts. Click Toggle OFF to restore public access."
+                      : "The website is completely live and open for all users and search engines."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleUpdateConfig("maintenance_mode", configs.maintenance_mode === "true" ? "false" : "true")}
+                  disabled={updatingConfigKey === "maintenance_mode"}
+                  className={cn(
+                    "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all border active:scale-95 disabled:opacity-50 cursor-pointer flex items-center gap-2.5 shadow-xl select-none",
+                    configs.maintenance_mode === "true"
+                      ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-black border-emerald-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.6)] font-black"
+                      : "bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500 hover:text-white hover:shadow-[0_0_25px_rgba(239,68,68,0.5)] font-black"
+                  )}
+                >
+                  {updatingConfigKey === "maintenance_mode" ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : configs.maintenance_mode === "true" ? (
+                    <>
+                      <CheckCircle2 size={16} />
+                      <span>Toggle OFF (Go Live)</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle size={16} />
+                      <span>Activate Maintenance</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* Custom Admin Navigation Tab Bar */}
             <div className="flex overflow-x-auto gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md max-w-fit scrollbar-none">
               {[
                 { id: "users", label: "Users Directory", icon: Users },
+                { 
+                  id: "config", 
+                  label: configs.maintenance_mode === "true" ? "System Config (Locked)" : "System Config & Maintenance", 
+                  icon: Settings,
+                  highlight: configs.maintenance_mode === "true"
+                },
                 { id: "quests_vault", label: "Quests & Vault", icon: Flame },
                 { id: "sparks_economy", label: "Sparks & Shop", icon: Zap },
                 { id: "orders_revenue", label: "Orders & Pro", icon: WalletCards },
@@ -1109,20 +1191,24 @@ export default function AdminPage() {
                 { id: "promos", label: "Promo Codes", icon: Coins },
                 { id: "referrals", label: "Referrals", icon: Clock },
                 { id: "logs", label: "System Logs", icon: FileText },
-                { id: "config", label: "System Config", icon: Settings },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95",
+                    "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 cursor-pointer",
                     activeTab === tab.id
                       ? "bg-accent-purple text-black shadow-[0_0_15px_rgba(139,92,246,0.3)]"
-                      : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                      : tab.highlight
+                        ? "text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
                   )}
                 >
                   <tab.icon size={14} />
-                  {tab.label}
+                  <span>{tab.label}</span>
+                  {tab.highlight && (
+                    <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
+                  )}
                 </button>
               ))}
             </div>
