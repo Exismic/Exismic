@@ -245,6 +245,7 @@ interface CreatorInsigniaProps {
   className?: string;
   showTooltip?: boolean;
   tooltipPlacement?: "top" | "bottom";
+  tooltipAlign?: "center" | "right" | "left";
 }
 
 export function CreatorInsignia({
@@ -253,6 +254,7 @@ export function CreatorInsignia({
   className,
   showTooltip = true,
   tooltipPlacement = "bottom",
+  tooltipAlign = "right",
 }: CreatorInsigniaProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -272,6 +274,12 @@ export function CreatorInsignia({
     epic: "text-purple-400 bg-purple-500/10 border-purple-500/30",
     legendary: "text-amber-400 bg-amber-500/10 border-amber-500/30",
   }[insignia.tier];
+
+  const alignStyles = {
+    center: "left-1/2 -translate-x-1/2",
+    right: "right-0",
+    left: "left-0",
+  }[tooltipAlign];
 
   return (
     <div
@@ -296,9 +304,8 @@ export function CreatorInsignia({
         <div
           className={cn(
             "absolute z-50 pointer-events-none w-56 p-3 rounded-2xl bg-[#090912]/95 border border-white/20 shadow-[0_15px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 not-italic font-normal normal-case tracking-normal text-left font-sans",
-            tooltipPlacement === "top"
-              ? "bottom-full left-1/2 -translate-x-1/2 mb-2.5"
-              : "top-full left-1/2 -translate-x-1/2 mt-2.5"
+            tooltipPlacement === "top" ? "bottom-full mb-2.5" : "top-full mt-2.5",
+            alignStyles
           )}
         >
           <div className="flex items-center justify-between gap-2 mb-1.5">

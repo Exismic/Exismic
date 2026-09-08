@@ -360,6 +360,18 @@ export function PaymentTermsModal({
       ? "Your transaction will be processed securely through Razorpay using UPI, cards, wallets, or net banking. Exismic does not see or store your payment details."
       : "Your transaction will be processed securely through PayPal. Exismic does not see or store your payment details.";
 
+  const displayFinalAmount = useMemo(() => {
+    if (appliedCoupon?.displayFinal) return appliedCoupon.displayFinal;
+    if (planId === "pro" && isLaunchDiscountEligible) {
+      return gateway === "razorpay" ? "₹299" : "$3.99";
+    }
+    if (price) return price;
+    if (planId === "pro_yearly") {
+      return gateway === "razorpay" ? "₹3,999" : "$49.99";
+    }
+    return gateway === "razorpay" ? "₹499" : "$6.99";
+  }, [appliedCoupon, planId, isLaunchDiscountEligible, gateway, price]);
+
   const handleBrandChange = (brandId: string) => {
     setSelectedBrand(brandId);
     setGiftCode("");
@@ -438,7 +450,7 @@ export function PaymentTermsModal({
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
             role="dialog"
             aria-modal="true"
-            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border-2 border-cyan-400/40 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
+            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border border-white/10 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_35px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
           >
             {/* Background Mesh & Radial Ambient Glow */}
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
@@ -1091,7 +1103,7 @@ export function PaymentTermsModal({
                     className={cn(
                       "group relative flex-1 h-12 flex items-center justify-center overflow-hidden rounded-xl text-xs font-black tracking-wide transition-all duration-300 cursor-pointer select-none",
                       agreed
-                        ? "border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.45),inset_0_1px_0_rgba(255,255,255,0.35)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 active:scale-[0.99]"
+                        ? "border border-cyan-300/40 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.4),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] hover:border-cyan-200/60 active:scale-[0.99]"
                         : "cursor-not-allowed border border-white/[0.06] bg-white/[0.03] text-zinc-600 opacity-40 shadow-none"
                     )}
                   >
@@ -1099,7 +1111,7 @@ export function PaymentTermsModal({
                     {agreed && (
                       <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full" />
                     )}
-                    <span className="relative z-10 flex items-center justify-center gap-2.5">
+                    <span className="relative z-10 flex items-center justify-center gap-2.5 px-3">
                       {isProcessing ? (
                         <>
                           <Loader2 size={16} className="animate-spin text-white" />
@@ -1110,12 +1122,12 @@ export function PaymentTermsModal({
                           <span className="font-extrabold uppercase tracking-wider text-white">
                             Proceed to {gatewayName}
                           </span>
-                          {appliedCoupon && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-black/40 border border-white/20 text-cyan-200 font-mono text-[11px] font-black tracking-tight shadow-inner">
-                              {appliedCoupon.displayFinal}
+                          {displayFinalAmount && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-black/40 border border-white/20 text-white font-mono text-[11px] font-black tracking-tight shadow-inner">
+                              {displayFinalAmount}
                             </span>
                           )}
-                          <ArrowRight size={15} strokeWidth={2.5} className="text-cyan-200 transition-transform duration-200 group-hover:translate-x-1" />
+                          <ArrowRight size={15} strokeWidth={2.5} className="text-cyan-200 transition-transform duration-200 group-hover:translate-x-1 shrink-0" />
                         </>
                       )}
                     </span>

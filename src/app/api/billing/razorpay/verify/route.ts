@@ -82,6 +82,23 @@ export async function POST(req: NextRequest) {
       const subscription = await razorpay.subscriptions.fetch(providerCheckoutId);
       const subscriptionRecord = subscription as unknown as Record<string, unknown>;
       periodEnd = dateFromUnix(subscriptionRecord.current_end) || dateFromUnix(subscriptionRecord.charge_at);
+
+      // If this was an introductory launch discount subscription, schedule switch to standard plan at cycle end
+      const orderMeta = paymentOrder.metadata as Record<string, unknown> | null;
+      const isLaunchDiscount = Boolean(orderMeta?.isLaunchDiscount || (subscriptionRecord.notes as any)?.isLaunchDiscount === "true");
+      const standardPlanId = orderMeta?.standardPlanId || (subscriptionRecord.notes as any)?.standardPlanId;
+
+      if (isLaunchDiscount && standardPlanId && typeof standardPlanId === "string" && standardPlanId.startsWith("plan_")) {
+        try {
+          await (razorpay as any).subscriptions.update(providerCheckoutId, {
+            plan_id: standardPlanId,
+            schedule_change_at: "cycle_end",
+          });
+          console.log(`[Razorpay] Scheduled standard plan migration (${standardPlanId}) at cycle_end for ${providerCheckoutId}`);
+        } catch (schedErr) {
+          console.warn("[Razorpay] Could not schedule cycle_end plan update:", schedErr);
+        }
+      }
     } else if (String(payment.order_id || "") !== providerCheckoutId) {
       return NextResponse.json({ error: "Payment does not belong to this order." }, { status: 400 });
     }

@@ -800,9 +800,11 @@ export default function AccountSettings() {
                          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                             
                             {/* Left: Centerpiece Live Profile Identity Card */}
-                            <div className="lg:col-span-5 relative rounded-[2rem] border border-white/10 bg-gradient-to-b from-[#0f1120]/95 via-[#090b16]/95 to-[#05060d]/98 p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl flex flex-col justify-between overflow-hidden">
+                            <div className="lg:col-span-5 relative rounded-[2rem] border border-white/10 bg-gradient-to-b from-[#0f1120]/95 via-[#090b16]/95 to-[#05060d]/98 p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl flex flex-col justify-between">
                                {/* Ambient glow inside identity card */}
-                               <div className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-purple-500/15 blur-[70px]" />
+                               <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+                                  <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-purple-500/15 blur-[70px]" />
+                               </div>
                                
                                {/* Card Header: Live indicator & Tier status */}
                                <div className="flex items-center justify-between gap-2 relative z-10">

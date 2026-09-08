@@ -98,6 +98,8 @@ function productionConfigurationError(gateway: "razorpay" | "paypal" | "none", p
   return null;
 }
 
+const razorpayPlanCache = new Map<string, string>();
+
 async function createRazorpayProSubscription(
   razorpay: ReturnType<typeof getRazorpayClient>,
   paymentOrderId: string,
@@ -106,27 +108,105 @@ async function createRazorpayProSubscription(
   isYearly = false,
   regularPriceMinor?: number,
 ) {
-  let planId = getRazorpayProPlanId(isYearly);
   const subscriptionApi = razorpay as RazorpaySubscriptionApi;
   const isIntroductoryDiscount = Boolean(regularPriceMinor && regularPriceMinor > price.amountMinor);
 
+  if (isIntroductoryDiscount) {
+    // 1. Ensure standard regular plan exists for migration after month 1
+    let standardPlanId = getRazorpayProPlanId(isYearly);
+    const standardCacheKey = `${price.currency}:${isYearly ? "yearly" : "monthly"}:${regularPriceMinor}`;
+    if (!standardPlanId && razorpayPlanCache.has(standardCacheKey)) {
+      standardPlanId = razorpayPlanCache.get(standardCacheKey);
+    }
+    if (!standardPlanId) {
+      try {
+        const standardPlan = await subscriptionApi.plans.create({
+          period: isYearly ? "yearly" : "monthly",
+          interval: 1,
+          item: {
+            name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"} (Standard)`,
+            description: `Standard ${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership`,
+            amount: regularPriceMinor!,
+            currency: price.currency,
+          },
+          notes: { source: "exismic_standard_pro_plan" },
+        });
+        standardPlanId = String(standardPlan.id);
+        razorpayPlanCache.set(standardCacheKey, standardPlanId);
+      } catch (planErr) {
+        console.warn("[Razorpay Standard Plan Creation Warning]", planErr);
+      }
+    }
+
+    // 2. Ensure promotional plan exists at the discounted price (e.g. ₹299 / 29900 paise)
+    const promoCacheKey = `promo:${price.currency}:${isYearly ? "yearly" : "monthly"}:${price.amountMinor}`;
+    let promoPlanId = razorpayPlanCache.get(promoCacheKey);
+    if (!promoPlanId) {
+      try {
+        const promoPlan = await subscriptionApi.plans.create({
+          period: isYearly ? "yearly" : "monthly",
+          interval: 1,
+          item: {
+            name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"} (Launch Special)`,
+            description: `First month Exismic Pro membership at ₹299 launch discount`,
+            amount: price.amountMinor,
+            currency: price.currency,
+          },
+          notes: {
+            source: "exismic_v16_launch_plan",
+          },
+        });
+        promoPlanId = String(promoPlan.id);
+        razorpayPlanCache.set(promoCacheKey, promoPlanId);
+      } catch (planErr) {
+        console.error("[Razorpay Promo Plan Creation Failed]", planErr);
+        throw new Error(`Razorpay Pro launch special subscription plan could not be created.`);
+      }
+    }
+
+    // 3. Create the subscription on the promo plan with ZERO negative addons
+    const subscriptionPayload: any = {
+      plan_id: promoPlanId,
+      total_count: isYearly ? 30 : 360,
+      quantity: 1,
+      customer_notify: 1,
+      notes: {
+        billingOrderId: paymentOrderId,
+        userId,
+        planId: isYearly ? "pro_yearly" : "pro",
+        market: "IN",
+        isLaunchDiscount: "true",
+        standardPlanId: standardPlanId || "",
+      },
+    };
+
+    return subscriptionApi.subscriptions.create(subscriptionPayload);
+  }
+
+  // Standard non-discount flow
+  let planId = getRazorpayProPlanId(isYearly);
+  const cacheKey = `${price.currency}:${isYearly ? "yearly" : "monthly"}:${price.amountMinor}`;
+  if (!planId && razorpayPlanCache.has(cacheKey)) {
+    planId = razorpayPlanCache.get(cacheKey);
+  }
+
   if (!planId) {
-    const planAmountMinor = isIntroductoryDiscount ? regularPriceMinor! : price.amountMinor;
     try {
       const plan = await subscriptionApi.plans.create({
         period: isYearly ? "yearly" : "monthly",
         interval: 1,
         item: {
-          name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}${isIntroductoryDiscount ? " (Promo)" : ""}`,
-          description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership${isIntroductoryDiscount ? " (with 1st month launch discount)" : ""}`,
-          amount: planAmountMinor,
+          name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}`,
+          description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership`,
+          amount: price.amountMinor,
           currency: price.currency,
         },
         notes: {
-          source: isIntroductoryDiscount ? "exismic_v16_launch_plan" : "exismic_dynamic_plan",
+          source: "exismic_dynamic_plan",
         },
       });
       planId = String(plan.id);
+      razorpayPlanCache.set(cacheKey, planId);
     } catch (planErr) {
       console.error("[Razorpay Plan Creation Failed]", planErr);
       throw new Error(`Razorpay Pro ${isYearly ? "yearly" : "monthly"} subscription plan could not be created.`);
@@ -143,22 +223,9 @@ async function createRazorpayProSubscription(
       userId,
       planId: isYearly ? "pro_yearly" : "pro",
       market: "IN",
-      isLaunchDiscount: isIntroductoryDiscount ? "true" : "false",
+      isLaunchDiscount: "false",
     },
   };
-
-  if (isIntroductoryDiscount) {
-    const discountAmount = regularPriceMinor! - price.amountMinor;
-    subscriptionPayload.addons = [
-      {
-        item: {
-          name: "v1.6 Launch Special Discount",
-          amount: -discountAmount,
-          currency: price.currency,
-        },
-      },
-    ];
-  }
 
   return subscriptionApi.subscriptions.create(subscriptionPayload);
 }
@@ -445,7 +512,11 @@ export async function POST(req: NextRequest) {
           where: { id: paymentOrder.id },
           data: {
             providerOrderId: razorpaySubscription.id,
-            metadata: asInputJson({ ...(paymentOrder.metadata as object), razorpaySubscription }),
+            metadata: asInputJson({
+              ...(paymentOrder.metadata as object),
+              razorpaySubscription,
+              standardPlanId: (razorpaySubscription as any)?.notes?.standardPlanId || null,
+            }),
           },
         });
 

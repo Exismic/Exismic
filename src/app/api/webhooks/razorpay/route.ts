@@ -1,9 +1,17 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import Razorpay from "razorpay";
 import { fulfillBillingOrder, fulfillProRenewal, recordBillingFailure } from "@/lib/billing/fulfillment";
 import { prisma } from "@/lib/prisma";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { sendPaymentFailedEmail } from "@/lib/emails";
+
+function getRazorpayClient() {
+  const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!key_id || !key_secret) throw new Error("Razorpay is not configured.");
+  return new Razorpay({ key_id, key_secret });
+}
 
 type RazorpayWebhookPayload = {
   event?: string;
@@ -210,6 +218,24 @@ export async function POST(req: NextRequest) {
         rawMetadata: { verifiedBy: "razorpay_webhook", webhookEventId: providerEventId, razorpaySubscriptionId: stringField(payment, "subscription_id") || null },
       });
       alreadyProcessed = result.alreadyProcessed;
+    }
+
+    // If this subscription had an introductory launch discount, schedule migration to standard plan at cycle end
+    const subNotes = (subscription?.notes as any) || (payment?.notes as any) || {};
+    const orderMeta = (paymentOrder.metadata as any) || {};
+    const isLaunchDiscount = Boolean(orderMeta.isLaunchDiscount || subNotes.isLaunchDiscount === "true");
+    const standardPlanId = orderMeta.standardPlanId || subNotes.standardPlanId;
+    if (isLaunchDiscount && standardPlanId && typeof standardPlanId === "string" && standardPlanId.startsWith("plan_") && providerOrderId.startsWith("sub_")) {
+      try {
+        const razorpay = getRazorpayClient();
+        await (razorpay as any).subscriptions.update(providerOrderId, {
+          plan_id: standardPlanId,
+          schedule_change_at: "cycle_end",
+        });
+        console.log(`[Razorpay Webhook] Scheduled standard plan migration (${standardPlanId}) at cycle_end for ${providerOrderId}`);
+      } catch (schedErr) {
+        console.warn("[Razorpay Webhook] Could not schedule cycle_end plan update:", schedErr);
+      }
     }
 
     await prisma.paymentEvent.updateMany({
