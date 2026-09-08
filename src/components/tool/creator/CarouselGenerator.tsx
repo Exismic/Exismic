@@ -357,43 +357,25 @@ export default function CarouselGenerator() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-rose-950/60 via-purple-950/40 to-neutral-950 border border-rose-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
-              <Layers className="w-3.5 h-3.5" /> High-DPI Carousel Builder
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              AI Social Carousel & Slide Deck Generator
-            </h1>
-            <p className="text-neutral-300 text-sm sm:text-base leading-relaxed">
-              Design multi-slide PDF carousels for LinkedIn and Instagram. Customize theme colors, aspect ratios, handles, and export 1080p high-resolution decks instantly.
-            </p>
-          </div>
-
-          {/* Quick AI Presets */}
-          <div className="shrink-0 space-y-2">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Wand2 className="w-3.5 h-3.5 text-rose-400" /> AI Deck Outlines
-            </label>
-            <div className="flex flex-col gap-1.5">
-              {AI_PRESETS.map((preset) => (
-                <button
-                  key={preset.topic}
-                  onClick={() => {
-                    setSlides(preset.slides);
-                    setActiveSlideIndex(0);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold text-left transition-all truncate max-w-xs"
-                >
-                  ✨ {preset.topic}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+    <div className="w-full space-y-8">
+      {/* Quick AI Presets Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
+          <Wand2 size={13} className="text-rose-400" /> Deck Outlines:
+        </span>
+        {AI_PRESETS.map((preset) => (
+          <button
+            key={preset.topic}
+            type="button"
+            onClick={() => {
+              setSlides(preset.slides);
+              setActiveSlideIndex(0);
+            }}
+            className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-rose-500/10 hover:border-rose-500/40 text-zinc-300 hover:text-rose-300 font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
+          >
+            <span>✨ {preset.topic}</span>
+          </button>
+        ))}
       </div>
 
       {/* Main Controls Grid */}

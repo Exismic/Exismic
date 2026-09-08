@@ -1,6 +1,6 @@
 import UuidGenerator from "@/components/tool/UuidGenerator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
-import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 
 export const metadata = constructMetadata({
   title: "Free UUID Generator - Generate Random v4 UUIDs Online | Exismic",
@@ -11,16 +11,13 @@ export const metadata = constructMetadata({
 
 export default function Page() {
   return (
-    <>
+    <ToolPageShell
+      toolId="uuid-generator"
+      categoryId="developer"
+      customTitle="UUID / GUID Generator"
+      customDescription="Generate bulk RFC 4122 Version-4 UUIDs for database primary keys, API tokens, and seed scripts."
+    >
       <UuidGenerator />
-      <ToolSeoSection
-        toolName="UUID / GUID Generator"
-        toolDescription="Generate random, unique RFC 4122 Version-4 UUIDs and GUIDs instantly in bulk for databases, APIs, and software engineering."
-        categoryName="Developer Tools"
-        categoryId="developer"
-        toolSlug="/tools/uuid-generator"
-      />
-    </>
+    </ToolPageShell>
   );
 }
-

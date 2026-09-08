@@ -16,7 +16,9 @@ import {
   CreditCard,
   History,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  BadgePercent,
+  Tag,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
@@ -163,7 +165,7 @@ interface UserPastOrder {
 interface PaymentTermsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (couponCode?: string) => void;
   type: "pro" | "credits";
   price?: string;
   packName?: string;
@@ -192,6 +194,18 @@ export function PaymentTermsModal({
   const [paymentMethod, setPaymentMethod] = useState<"gateway" | "giftcard" | "history">("gateway");
   const [agreed, setAgreed] = useState(false);
 
+  // Coupon / Discount Voucher State
+  const [couponInput, setCouponInput] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountLabel: string;
+    displayDiscount: string;
+    displayFinal: string;
+    note?: string;
+  } | null>(null);
+
   // Gift Card Form State
   const [selectedBrand, setSelectedBrand] = useState<string>("minecoins");
   const [giftCode, setGiftCode] = useState<string>("");
@@ -218,9 +232,43 @@ export function PaymentTermsModal({
     [selectedBrand, giftCode]
   );
 
+  const [isLaunchDiscountEligible, setIsLaunchDiscountEligible] = useState(false);
+  const [checkingLaunchEligibility, setCheckingLaunchEligibility] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      if (planId === "pro") {
+        setCheckingLaunchEligibility(true);
+        fetch("/api/billing/launch-discount-status")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.eligible) {
+              setIsLaunchDiscountEligible(true);
+              const isIndia = gateway === "razorpay";
+              const discountLabel = isIndia ? "₹200 OFF" : "$3.00 OFF";
+              const displayDiscount = isIndia ? "₹200" : "$3.00";
+              const displayFinal = isIndia ? "₹299" : "$3.99";
+              setAppliedCoupon({
+                code: "V16LAUNCH",
+                discountLabel,
+                displayDiscount,
+                displayFinal,
+                note: `v1.6 Launch Special: First month for ${displayFinal}, renews at standard ${price || (isIndia ? "₹499" : "$6.99")}/mo. Cancel anytime.`,
+              });
+              setCouponInput("V16LAUNCH");
+            } else {
+              setIsLaunchDiscountEligible(false);
+            }
+          })
+          .catch((err) => {
+            console.error("Failed checking launch discount:", err);
+            setIsLaunchDiscountEligible(false);
+          })
+          .finally(() => {
+            setCheckingLaunchEligibility(false);
+          });
+      }
     } else {
       document.body.style.overflow = "";
       setAgreed(false);
@@ -229,11 +277,61 @@ export function PaymentTermsModal({
       setGiftError(null);
       setSubmittedGift(null);
       setIsSubmittingGift(false);
+      setCouponInput("");
+      setCouponError(null);
+      setAppliedCoupon(null);
+      setIsValidatingCoupon(false);
+      setIsLaunchDiscountEligible(false);
     }
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [isOpen, planId, gateway, price]);
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim() || isValidatingCoupon) return;
+    setCouponError(null);
+    setIsValidatingCoupon(true);
+
+    try {
+      const res = await fetch("/api/billing/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponInput.trim(),
+          planId,
+          marketOverride: gateway === "razorpay" ? "IN" : "GLOBAL",
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.valid) {
+        setCouponError(data?.error || "Invalid coupon code.");
+        setAppliedCoupon(null);
+      } else {
+        setAppliedCoupon({
+          code: data.code,
+          discountLabel: data.discountLabel,
+          displayDiscount: data.displayDiscount,
+          displayFinal: data.displayFinal,
+          note: data.note,
+        });
+        setCouponError(null);
+      }
+    } catch {
+      setCouponError("Network error validating coupon.");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  };
 
   const loadUserHistory = async () => {
     setLoadingHistory(true);
@@ -340,12 +438,11 @@ export function PaymentTermsModal({
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
             role="dialog"
             aria-modal="true"
-            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border border-white/[0.14] bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_60px_rgba(34,211,238,0.1)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
+            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border-2 border-cyan-400/40 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
           >
             {/* Background Mesh & Radial Ambient Glow */}
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(34,211,238,0.18),rgba(15,23,42,0))]" />
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
 
             {/* Close Button */}
             <button
@@ -372,7 +469,15 @@ export function PaymentTermsModal({
                 {price && (
                   <>
                     <span className="text-cyan-400/50">•</span>
-                    <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent font-extrabold">{price}</span>
+                    {appliedCoupon ? (
+                      <span className="inline-flex items-center gap-1.5 font-extrabold">
+                        <span className="line-through text-zinc-500 font-semibold">{price}</span>
+                        <span className="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent font-black">{appliedCoupon.displayFinal}</span>
+                        <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold">{appliedCoupon.discountLabel}</span>
+                      </span>
+                    ) : (
+                      <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent font-extrabold">{price}</span>
+                    )}
                   </>
                 )}
               </div>
@@ -448,6 +553,158 @@ export function PaymentTermsModal({
                     </div>
                   </div>
 
+                  {/* Luxury Coupon & Voucher Code Field */}
+                  {planId === "pro" && isLaunchDiscountEligible ? (
+                    <div className="rounded-2xl border border-emerald-400/35 bg-gradient-to-b from-emerald-950/30 via-emerald-950/10 to-transparent p-4 text-left shadow-[0_0_25px_rgba(52,211,153,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] relative overflow-hidden">
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <label className="text-[10.5px] font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                          <BadgePercent size={14} className="text-emerald-400" />
+                          <span>v1.6 Launch Special (One-Time)</span>
+                        </label>
+                        <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]">
+                          Auto-Applied
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-emerald-400/30 bg-black/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="h-8 w-8 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 text-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.2)]">
+                            <Ticket size={16} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-white tracking-wide truncate">
+                              Code: <span className="font-mono text-emerald-300 font-black">V16LAUNCH</span>
+                            </p>
+                            <p className="text-[11px] text-zinc-300 leading-tight">
+                              First month for <span className="font-bold text-emerald-300">{appliedCoupon?.displayFinal || (gateway === "razorpay" ? "₹299" : "$3.99")}</span> (regular {price || (gateway === "razorpay" ? "₹499" : "$6.99")})
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="block text-xs font-black text-emerald-400 font-mono">
+                            Save {appliedCoupon?.displayDiscount || (gateway === "razorpay" ? "₹200" : "$3.00")}
+                          </span>
+                          <span className="text-[9px] text-zinc-400 font-semibold uppercase">1st Month</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-2.5 flex items-center gap-2 text-[11px] text-zinc-300 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2">
+                        <Lock size={13} className="text-amber-400 shrink-0" />
+                        <span className="leading-snug">
+                          Promo codes are locked — launch discount is active from our side. Renewals from month 2 charge standard rates.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-white/[0.1] bg-white/[0.02] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <label className="text-[10.5px] font-black uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                          <Ticket size={13} className="text-purple-400" />
+                          <span>Have a Discount Coupon?</span>
+                        </label>
+                        {appliedCoupon && (
+                          <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]">
+                            -{appliedCoupon.discountLabel} Applied
+                          </span>
+                        )}
+                      </div>
+
+                      <form onSubmit={handleApplyCoupon} className="space-y-2.5">
+                        <div className="relative flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Ticket size={14} className={cn(
+                              "absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors",
+                              appliedCoupon ? "text-emerald-400" : "text-zinc-500"
+                            )} />
+                            <input
+                              type="text"
+                              value={couponInput}
+                              onChange={(e) => {
+                                const val = e.target.value.toUpperCase();
+                                setCouponInput(val);
+                                if (couponError) setCouponError(null);
+                                // Immediately revoke discount if code is modified or removed!
+                                if (appliedCoupon && val.trim() !== appliedCoupon.code) {
+                                  setAppliedCoupon(null);
+                                }
+                              }}
+                              placeholder="Enter coupon code (e.g. OFF100 / PRO20)"
+                              className={cn(
+                                "w-full rounded-xl pl-9 pr-8 py-2.5 text-xs font-mono tracking-wider transition-all focus:outline-none",
+                                appliedCoupon
+                                  ? "bg-emerald-950/25 border border-emerald-400/60 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.15)] placeholder:text-emerald-400/40"
+                                  : "bg-black/60 border border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
+                              )}
+                            />
+                            {couponInput && (
+                              <button
+                                type="button"
+                                onClick={handleRemoveCoupon}
+                                aria-label="Clear coupon code"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
+                          </div>
+
+                          {appliedCoupon && couponInput.trim() === appliedCoupon.code ? (
+                            <button
+                              type="button"
+                              onClick={handleRemoveCoupon}
+                              className="px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 active:scale-95 shrink-0"
+                            >
+                              Remove
+                            </button>
+                          ) : (
+                            <button
+                              type="submit"
+                              disabled={isValidatingCoupon || !couponInput.trim()}
+                              className={cn(
+                                "px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 shrink-0 select-none",
+                                couponInput.trim() && !isValidatingCoupon
+                                  ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-white shadow-md shadow-purple-500/30 hover:brightness-110 active:scale-95 hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                                  : "bg-white/[0.04] border border-white/[0.08] text-zinc-500 cursor-not-allowed"
+                              )}
+                            >
+                              {isValidatingCoupon ? (
+                                <>
+                                  <Loader2 size={13} className="animate-spin text-white" />
+                                  <span>Checking...</span>
+                                </>
+                              ) : (
+                                "Apply"
+                              )}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Active Coupon Banner */}
+                        {appliedCoupon && (
+                          <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-400/40 bg-emerald-950/20 px-3 py-2 text-xs">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                              <span className="text-[11px] font-medium text-emerald-300">
+                                {appliedCoupon.note || `${appliedCoupon.discountLabel} discount applied to this order!`}
+                              </span>
+                            </div>
+                            <span className="font-mono text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+                              Saved {appliedCoupon.displayDiscount}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Error Message */}
+                        {couponError && (
+                          <p className="text-[11px] text-rose-400 font-medium px-1 leading-tight flex items-start gap-1">
+                            <span className="font-bold">•</span>
+                            <span>{couponError}</span>
+                          </p>
+                        )}
+                      </form>
+                    </div>
+                  )}
+
                   {/* Terms Section */}
                   <div className="space-y-3 text-left">
                     <p className="text-[9px] font-black uppercase tracking-[0.22em] text-zinc-400">Important Terms</p>
@@ -457,7 +714,7 @@ export function PaymentTermsModal({
                           <div className="flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-white/[0.01] p-3.5 text-xs text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-white/15">
                             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-gradient-to-b from-cyan-400/20 to-blue-500/10 text-[10px] font-black text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</span>
                             <span className="leading-relaxed">
-                              <strong className="text-white font-black">Automatic Renewal:</strong> Your Pro subscription automatically renews {planId === "pro_yearly" ? "annually (yearly)" : "monthly"}. Cancel anytime in account settings.
+                              <strong className="text-white font-black">Automatic Renewal:</strong> Your Pro subscription automatically renews {planId === "pro_yearly" ? "annually (yearly)" : "monthly"}{planId === "pro" && isLaunchDiscountEligible ? ` at standard price (${gateway === "razorpay" ? "₹499" : "$6.99"}/mo) starting month 2` : ""}. Cancel anytime in account settings.
                             </span>
                           </div>
 
@@ -692,13 +949,13 @@ export function PaymentTermsModal({
                         className={cn(
                           "w-full py-4 px-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer",
                           isExactLength && !isSubmittingGift
-                            ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-neutral-950 shadow-lg shadow-cyan-500/25 hover:brightness-110 active:scale-[0.98]"
+                            ? "bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 hover:brightness-110 active:scale-[0.98]"
                             : "bg-white/[0.04] border border-white/[0.08] text-zinc-500 opacity-40 cursor-not-allowed grayscale pointer-events-none"
                         )}
                       >
                         {isSubmittingGift ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin text-neutral-950" />
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
                             <span>Validating & Submitting...</span>
                           </>
                         ) : (
@@ -813,40 +1070,52 @@ export function PaymentTermsModal({
             {/* Actions Footer */}
             {paymentMethod === "gateway" && (
               <div className="relative z-10 shrink-0 border-t border-white/[0.08] bg-gradient-to-b from-[#06070e]/90 to-[#030408]/98 p-5 sm:p-6 backdrop-blur-2xl">
-                <div className="grid grid-cols-2 gap-3.5">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={onClose}
                     disabled={isProcessing}
-                    className="flex min-h-[50px] items-center justify-center rounded-xl border border-white/[0.12] bg-gradient-to-b from-white/[0.06] to-white/[0.02] text-[11px] font-black uppercase tracking-[0.18em] text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition-all duration-200 hover:border-white/25 hover:bg-white/10 hover:text-white active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                    className="w-28 shrink-0 h-12 flex items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    onClick={onConfirm}
+                    onClick={() => {
+                      const codeToSend = (planId === "pro" && isLaunchDiscountEligible)
+                        ? "V16LAUNCH"
+                        : (appliedCoupon && couponInput.trim() === appliedCoupon.code ? appliedCoupon.code : (couponInput.trim() || undefined));
+                      onConfirm(codeToSend);
+                    }}
                     disabled={!agreed || isProcessing}
                     className={cn(
-                      "group relative flex min-h-[50px] items-center justify-center overflow-hidden rounded-xl text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-300 cursor-pointer select-none",
+                      "group relative flex-1 h-12 flex items-center justify-center overflow-hidden rounded-xl text-xs font-black tracking-wide transition-all duration-300 cursor-pointer select-none",
                       agreed
-                        ? "border border-cyan-300/60 bg-gradient-to-r from-cyan-500 via-emerald-400 to-cyan-400 text-black shadow-[0_0_30px_rgba(34,211,238,0.5),inset_0_1px_0_rgba(255,255,255,0.5)] hover:shadow-[0_0_40px_rgba(34,211,238,0.75)] hover:scale-[1.02] active:scale-[0.98]"
+                        ? "border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.45),inset_0_1px_0_rgba(255,255,255,0.35)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 active:scale-[0.99]"
                         : "cursor-not-allowed border border-white/[0.06] bg-white/[0.03] text-zinc-600 opacity-40 shadow-none"
                     )}
                   >
                     {/* Shimmer sweep on active */}
                     {agreed && (
-                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-22deg] transition-transform duration-1000 group-hover:translate-x-full" />
+                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full" />
                     )}
-                    <span className="relative z-10 flex items-center gap-2 font-black">
+                    <span className="relative z-10 flex items-center justify-center gap-2.5">
                       {isProcessing ? (
                         <>
-                          <Loader2 size={16} className="animate-spin text-black" />
-                          <span>Processing...</span>
+                          <Loader2 size={16} className="animate-spin text-white" />
+                          <span>Processing Checkout...</span>
                         </>
                       ) : (
                         <>
-                          <span>Proceed to {gatewayName}</span>
-                          <ArrowRight size={15} strokeWidth={2.5} className="transition-transform duration-200 group-hover:translate-x-1" />
+                          <span className="font-extrabold uppercase tracking-wider text-white">
+                            Proceed to {gatewayName}
+                          </span>
+                          {appliedCoupon && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-black/40 border border-white/20 text-cyan-200 font-mono text-[11px] font-black tracking-tight shadow-inner">
+                              {appliedCoupon.displayFinal}
+                            </span>
+                          )}
+                          <ArrowRight size={15} strokeWidth={2.5} className="text-cyan-200 transition-transform duration-200 group-hover:translate-x-1" />
                         </>
                       )}
                     </span>

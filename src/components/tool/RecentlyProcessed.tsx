@@ -16,7 +16,8 @@ import {
   Search,
   Check,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -25,7 +26,12 @@ import { TOOLS } from "@/data/tools";
 import { isDownloadableResultUrl, normalizeHistoryToolType, type ResultFileType } from "@/lib/results";
 import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
 import { getFunctionalStorageItem } from "@/lib/cookie-consent";
-import { getGuestFileHistory, HISTORY_UPDATED_EVENT } from "@/lib/history";
+import { 
+  getGuestFileHistory, 
+  HISTORY_UPDATED_EVENT, 
+  getReplayUrl, 
+  type ToolHistoryMetadata 
+} from "@/lib/history";
 
 interface ProcessedItem {
   id: string;
@@ -37,6 +43,7 @@ interface ProcessedItem {
   timestamp: string; // mapped from createdAt
   status: string;
   createdAt: string;
+  metadata?: ToolHistoryMetadata | Record<string, any>;
 }
 
 const FileIcon = ({ type }: { type: string }) => {
@@ -123,6 +130,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
             timestamp: g.timestamp || g.createdAt,
             status: g.status,
             createdAt: g.createdAt,
+            metadata: g.metadata,
           }));
           setItems(mapped.slice(0, limit));
           return mapped;
@@ -211,16 +219,25 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
 
   const getToolInfo = (toolId: string) => {
     const normalizedToolId = normalizeHistoryToolType(toolId);
-    const tool = TOOLS.find(t => t.id === normalizedToolId);
+    const tool = TOOLS.find(t => 
+      t.id === normalizedToolId || 
+      t.id === toolId ||
+      t.href.endsWith(`/${toolId}`) ||
+      t.href.endsWith(`/${normalizedToolId}`)
+    );
     return {
       name: tool?.name || "AI Tool",
       href: tool?.href || "/tools"
     };
   };
 
-  // Filter items based on search and category inputs
+  // Filter items based on search and category inputs (searching titles, tool types, and metadata prompts)
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.originalName.toLowerCase().includes(searchTerm.toLowerCase());
+    const meta = (item.metadata || {}) as ToolHistoryMetadata;
+    const promptText = typeof meta.prompt === "string" ? meta.prompt : "";
+    const matchesSearch = item.originalName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      promptText.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.toolType.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || item.fileType.toLowerCase().includes(selectedCategory);
     return matchesSearch && matchesCategory;
   });
@@ -249,9 +266,10 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
               <div className="p-4 space-y-3">
                 <SkeletonLine className="h-4 w-4/5" />
                 <SkeletonLine className="w-1/2" />
-                <div className="mt-4 flex flex-col gap-2">
-                  <Skeleton className="h-10 rounded-xl" />
-                  <Skeleton className="h-10 rounded-xl" />
+                <div className="mt-4 grid grid-cols-12 gap-1.5">
+                  <Skeleton className="col-span-5 h-9 rounded-xl" />
+                  <Skeleton className="col-span-4 h-9 rounded-xl" />
+                  <Skeleton className="col-span-3 h-9 rounded-xl" />
                 </div>
               </div>
             </div>
@@ -288,66 +306,66 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
 
   return (
     <section className="px-0 space-y-8 md:space-y-10 overflow-x-hidden">
-      {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-            <History size={20} />
-          </div>
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase italic">
-              {fullPage ? "All Saved Results" : "Recent Creations"}
-            </h2>
-            <p className="text-xs font-semibold text-zinc-400 flex items-center gap-2 mt-0.5">
-              <span>{filteredItems.length} {filteredItems.length === 1 ? "file" : "files"} available</span>
-              {preferences.autoRefreshHistory && <span className="text-cyan-300 font-bold">• Live Sync</span>}
-            </p>
-          </div>
-        </div>
-        
-        {!fullPage && (
-          <Link 
-            href="/history" 
-            className="group flex min-h-11 w-fit items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/30 hover:bg-cyan-500/10 text-xs font-bold text-zinc-300 hover:text-white transition-all shadow-md"
-          >
-            <span>View Full Vault</span>
-            <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-cyan-400" />
-          </Link>
-        )}
-      </div>
-
-      {/* Interactive Search and Category Filters */}
-      {fullPage && (
-        <div className="flex flex-col lg:flex-row items-center gap-4 bg-[#0a0c16]/80 border border-white/10 p-3 sm:p-4 rounded-3xl backdrop-blur-2xl relative z-30 shadow-2xl">
-          <div className="relative flex-1 w-full">
-            <input 
-              type="text" 
-              placeholder="Search processed files by name..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 bg-white/[0.04] border border-white/10 hover:border-white/20 focus:border-cyan-400/50 focus:bg-cyan-950/20 focus:shadow-[0_0_20px_rgba(34,211,238,0.15)] rounded-2xl pl-11 pr-4 text-xs font-bold text-white placeholder-zinc-500 outline-none transition-all"
-            />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-              <Search size={16} strokeWidth={2.5} />
+      {/* Section Header (Only shown when not fullPage to prevent duplicate headers) */}
+      {!fullPage && (
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+              <History size={18} />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                Recent Creations
+              </h2>
+              <p className="text-xs text-zinc-400 flex items-center gap-2 mt-0.5">
+                <span>{filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}</span>
+                {preferences.autoRefreshHistory && <span className="text-cyan-400 font-semibold">• Live Sync</span>}
+              </p>
             </div>
           </div>
           
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <Link 
+            href="/history" 
+            className="group flex min-h-10 w-fit items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/30 hover:bg-cyan-500/10 text-xs font-semibold text-zinc-300 hover:text-white transition-all shadow-sm active:scale-95"
+          >
+            <span>View All</span>
+            <ExternalLink size={13} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-cyan-400" />
+          </Link>
+        </div>
+      )}
+
+      {/* Interactive Search and Category Filters */}
+      {fullPage && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/[0.02] border border-white/[0.07] p-2.5 sm:p-3 rounded-2xl backdrop-blur-xl">
+          <div className="relative flex-1 w-full max-w-md">
+            <input 
+              type="text" 
+              placeholder="Search by prompt, name, or tool..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-10 bg-white/[0.04] border border-white/10 hover:border-white/20 focus:border-cyan-400/50 focus:bg-cyan-950/20 rounded-xl pl-10 pr-4 text-xs font-medium text-white placeholder-zinc-500 outline-none transition-all"
+            />
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400">
+              <Search size={15} />
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
             {[
-              { id: "all", label: "All Formats" },
+              { id: "all", label: "All" },
               { id: "image", label: "Images" },
-              { id: "audio", label: "Audios" },
-              { id: "video", label: "Videos" },
-              { id: "pdf", label: "Documents" },
+              { id: "audio", label: "Audio" },
+              { id: "video", label: "Video" },
+              { id: "pdf", label: "PDF" },
             ].map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                   selectedCategory === cat.id 
-                    ? "bg-cyan-400 text-black shadow-[0_0_15px_rgba(34,211,238,0.4)]" 
-                    : "bg-white/[0.03] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.08]"
+                    ? "bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.3)]" 
+                    : "bg-white/[0.03] border border-white/5 text-zinc-400 hover:text-white hover:bg-white/[0.08]"
                 )}
               >
                 {cat.label}
@@ -408,6 +426,37 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                   : isDownloadableResultUrl(item.originalUrl)
                     ? item.originalUrl
                     : null;
+                const meta = (item.metadata || {}) as ToolHistoryMetadata;
+                const runUrl = getReplayUrl(item.toolType, meta, "run");
+                const editUrl = getReplayUrl(item.toolType, meta, "edit");
+
+                const metaAny = (item.metadata || {}) as any;
+                const promptToDisplay = 
+                  meta.prompt || 
+                  metaAny.design?.description || 
+                  metaAny.design?.name || 
+                  (item.originalUrl && !item.originalUrl.startsWith("http") && !item.originalUrl.startsWith("data:") ? item.originalUrl : null) ||
+                  (item.originalName && item.originalName.length > 20 && !item.originalName.includes(".png") && !item.originalName.includes(".jpg") ? item.originalName : null);
+
+                // Extract settings pills
+                const settingsTags: string[] = [];
+                if (meta.aspectRatio) settingsTags.push(String(meta.aspectRatio));
+                if (meta.style && meta.style !== "none") settingsTags.push(`Style: ${meta.styleName || meta.style}`);
+                if (meta.armModel) settingsTags.push(`Model: ${String(meta.armModel).toUpperCase()}`);
+                if (meta.model) settingsTags.push(`AI: ${meta.model}`);
+                if (meta.tier) settingsTags.push(`Tier: ${String(meta.tier).toUpperCase()}`);
+                if (meta.quality) settingsTags.push(`Quality: ${meta.quality}`);
+                if (meta.templateName) settingsTags.push(`Template: ${meta.templateName}`);
+                if (meta.targetFormat) settingsTags.push(`Format: ${meta.targetFormat}`);
+                if (meta.width && meta.height && !meta.aspectRatio) settingsTags.push(`${meta.width}×${meta.height}`);
+                if (meta.settings && typeof meta.settings === "object") {
+                  Object.entries(meta.settings).forEach(([k, v]) => {
+                    if (v && typeof v !== "object" && !settingsTags.some(t => t.toLowerCase().includes(String(v).toLowerCase()))) {
+                      settingsTags.push(`${k}: ${v}`);
+                    }
+                  });
+                }
+
                 return (
                   <motion.div
                     key={item.id}
@@ -422,17 +471,17 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       stiffness: 140,
                       damping: 18
                     }}
-                    className="w-full h-full p-2.5 rounded-[2rem] bg-[#0c0d1c]/90 backdrop-blur-2xl border border-white/10 group hover:border-cyan-400/40 hover:shadow-[0_20px_60px_rgba(6,182,212,0.15)] transition-all duration-500 relative touch-manipulation overflow-hidden shadow-xl hover:-translate-y-1.5 flex flex-col justify-between"
+                    className="w-full h-full p-2.5 rounded-2xl bg-[#090a14]/90 backdrop-blur-xl border border-white/[0.08] group hover:border-cyan-400/40 hover:shadow-[0_15px_50px_rgba(6,182,212,0.12)] transition-all duration-300 relative touch-manipulation overflow-hidden shadow-lg hover:-translate-y-1 flex flex-col justify-between"
                   >
-                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-cyan-500/0 via-purple-500/0 to-transparent group-hover:from-cyan-500/5 group-hover:via-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/0 via-purple-500/0 to-transparent group-hover:from-cyan-500/5 group-hover:via-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     
                     {/* Media Preview Box */}
                     <div>
-                      <div className="relative aspect-[16/10] rounded-[1.5rem] overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center transition-transform duration-700 group-hover:scale-[0.99]">
+                      <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center transition-transform duration-500 group-hover:scale-[0.99]">
                         {(item.fileType === 'image' || item.resultUrl?.match(/\.(webp|jpg|jpeg|gif|png)/i)) && downloadableUrl ? (
                           <>
                             <img 
-                              src={downloadableUrl}
+                              src={downloadableUrl} 
                               alt={item.originalName} 
                               loading={preferences.highFidelityPreview ? "eager" : "lazy"}
                               decoding={preferences.highFidelityPreview ? "sync" : "async"}
@@ -489,30 +538,69 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       </div>
 
                       {/* File Details */}
-                      <div className="p-3.5 sm:p-4 space-y-2">
-                        <p className="text-white font-black text-sm break-words line-clamp-1 uppercase italic tracking-tight group-hover:text-cyan-300 transition-colors" title={item.originalName}>
-                          {item.originalName}
-                        </p>
+                      <div className="p-3.5 sm:p-4 space-y-2.5">
+                        {/* Tool Badge & Timestamp */}
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">
-                            {toolInfo.name}
+                          <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+                            <Sparkles size={10} className="shrink-0 text-cyan-400" />
+                            <span className="truncate max-w-[130px]">{toolInfo.name}</span>
                           </span>
-                          <div className="flex items-center gap-1 text-[10px] font-semibold text-zinc-500 shrink-0">
-                            <History size={11} className="shrink-0 text-zinc-600" />
+                          <div className="flex items-center gap-1 text-[10px] font-medium text-zinc-400 shrink-0">
+                            <History size={11} className="shrink-0 text-zinc-500" />
                             <span>{formatTimeAgo(item.createdAt)}</span>
                           </div>
                         </div>
+
+                        {/* Title / Quoted Input */}
+                        {promptToDisplay ? (
+                          <p className="text-white font-semibold text-sm line-clamp-2 italic px-0.5 tracking-normal text-zinc-100 group-hover:text-cyan-300 transition-colors" title={String(promptToDisplay)}>
+                            “{String(promptToDisplay)}”
+                          </p>
+                        ) : (
+                          <p className="text-white font-black text-sm break-words line-clamp-1 uppercase italic px-0.5 tracking-normal group-hover:text-cyan-300 transition-colors" title={item.originalName}>
+                            {item.originalName}
+                          </p>
+                        )}
+
+                        {/* Settings Pills */}
+                        {settingsTags.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                            {settingsTags.slice(0, 3).map((tag, idx) => (
+                              <span 
+                                key={idx} 
+                                className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-[10px] font-semibold text-zinc-300 tracking-tight"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {settingsTags.length > 3 && (
+                              <span className="text-[10px] font-semibold text-zinc-500">
+                                +{settingsTags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="p-3.5 pt-0 flex flex-col gap-2 w-full">
-                      <Link 
-                        href={toolInfo.href}
-                        className="group/btn flex w-full min-h-[2.4rem] items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/40 hover:bg-cyan-500/10 text-zinc-300 hover:text-white font-bold text-xs transition-all active:scale-95 text-center"
+                    {/* Action Buttons: [ 🔄 Run Again | ✏️ Edit | 💾 Save ] */}
+                    <div className="p-3.5 pt-0 grid grid-cols-12 gap-1.5 w-full items-center">
+                      <Link
+                        href={runUrl}
+                        className="col-span-5 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-gradient-to-r from-cyan-500/20 via-cyan-500/10 to-blue-500/20 hover:from-cyan-500 hover:via-cyan-400 hover:to-blue-500 border border-cyan-500/30 hover:border-transparent text-cyan-300 hover:text-black font-black text-[11px] uppercase tracking-wider shadow-sm hover:shadow-[0_0_18px_rgba(6,182,212,0.4)] transition-all active:scale-95 group/run text-center"
+                        title="Re-run immediately with exact preserved settings"
                       >
-                        <RefreshCw size={12} className="group-hover/btn:rotate-180 transition-transform duration-700 text-cyan-400 shrink-0" />
-                        <span>Open in Tool / Retry</span>
+                        <RefreshCw size={12} className="group-hover/run:rotate-180 transition-transform duration-700 text-cyan-400 group-hover/run:text-black shrink-0" />
+                        <span className="truncate">Run Again</span>
+                      </Link>
+
+                      <Link
+                        href={editUrl}
+                        className="col-span-4 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 text-zinc-300 hover:text-white font-bold text-[11px] uppercase tracking-wider transition-all active:scale-95 group/edit text-center"
+                        title="Pre-fill inputs in workspace to customize"
+                      >
+                        <Pencil size={11} className="text-zinc-400 group-hover/edit:text-cyan-300 shrink-0" />
+                        <span className="truncate">Edit</span>
                       </Link>
 
                       {downloadableUrl ? (
@@ -521,15 +609,16 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                           download={item.originalName}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex w-full min-h-[2.5rem] items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-600 to-indigo-600 hover:from-cyan-400 hover:via-purple-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.35)] transition-all active:scale-95"
+                          className="col-span-3 flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-600 border border-purple-500/30 hover:border-transparent text-purple-300 hover:text-white font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-sm hover:shadow-[0_0_15px_rgba(168,85,247,0.35)] text-center"
+                          title="Save / Download result file"
                         >
-                          <Download size={13} className="shrink-0" />
-                          <span>Save Result</span>
+                          <Download size={12} className="shrink-0" />
+                          <span>Save</span>
                         </a>
                       ) : (
-                        <div className="flex w-full min-h-[2.5rem] items-center justify-center gap-2 py-2 px-4 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-500 font-bold text-xs uppercase tracking-wider">
-                          <FileText size={13} className="shrink-0 text-zinc-600" />
-                          <span>Processed</span>
+                        <div className="col-span-3 flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl bg-white/[0.02] border border-white/5 text-zinc-600 font-bold text-[11px] uppercase tracking-wider text-center cursor-not-allowed">
+                          <Download size={12} className="shrink-0 text-zinc-700" />
+                          <span>Save</span>
                         </div>
                       )}
                     </div>

@@ -9,69 +9,21 @@ type SessionUser = {
   };
 };
 
-export const ALLOWED_AVATAR_FRAMES = new Set([
-  'neon-glow',
-  'luxury-gold',
-  'cosmic-nebula',
-  'purple-energy',
-  'cyberpunk-vibe',
-  'cyan-beast',
-  'royal-purple',
-  'futuristic-hex',
-  'emerald-viper',
-  'diamond-ice',
-  'solar-flare',
-  'hyper-violet',
-  'aurora-borealis',
-  'obsidian-onyx',
-  'hologram-prism',
-  'crimson-inferno',
-  'quantum-flux',
-  'celestial-platinum',
-  'plasma-storm',
-  'sakura-blossom',
-  'golden-pharaoh',
-  'dark-matter',
-]);
-
-export const ALLOWED_NAME_GRADIENTS = new Set([
-  'cyber-purple',
-  'luxury-gold',
-  'cosmic-rainbow',
-  'neon-emerald',
-  'royal-crimson',
-  'void-blue',
-  'sunset-flame',
-  'diamond-glacier',
-  'emerald-matrix',
-  'solar-supernova',
-  'hyper-fuchsia',
-  'electric-amber',
-  'stealth-silver',
-  'hologram-prism',
-  'crimson-inferno',
-  'quantum-mint',
-  'aurora-borealis',
-  'plasma-neon',
-  'sakura-bloom',
-  'mythic-pharaoh',
-  'abyssal-violet',
-]);
-
-export const ALLOWED_PROFILE_THEMES = new Set([
-  'cyber-pulse',
-  'luxury-void',
-  'cosmic-nebula',
-  'neon-shadow',
-  'royal-eclipse',
-  'minimal-frost',
-  'hologram-synth',
-  'blood-inferno',
-  'tokyo-sakura',
-  'solar-flare',
-  'abyssal-singularity',
-  'cyber-matrix',
-]);
+export {
+  ALLOWED_AVATAR_FRAMES,
+  ALLOWED_NAME_GRADIENTS,
+  ALLOWED_INSIGNIAS,
+  ALLOWED_CANOPIES,
+  PRO_INCLUDED_AVATAR_FRAMES,
+  PRO_INCLUDED_NAME_STYLES,
+  PRO_INCLUDED_INSIGNIAS,
+  PRO_INCLUDED_CANOPIES,
+  hasActiveProAccess,
+  canUserUseAvatarFrame,
+  canUserUseNameGradient,
+  canUserUseInsignia,
+  canUserUseCanopy,
+} from '@/config/cosmetics-access';
 
 export async function getOrCreateUser(sessionUser: SessionUser) {
   const email = sessionUser.email?.trim().toLowerCase() || null;
@@ -123,34 +75,4 @@ export async function getOrCreateUser(sessionUser: SessionUser) {
   }
 
   return newUser;
-}
-
-export function hasActiveProAccess(user: {
-  email?: string | null;
-  plan?: string | null;
-  subscriptionStatus?: string | null;
-  planExpiresAt?: Date | string | null;
-  role?: string | null;
-  dailyCredits?: number | null;
-} | null | undefined) {
-  if (!user) return false;
-
-  const email = (user.email || '').toLowerCase();
-  if (user.role === 'admin' || email === 'syedyaseeralirayan@gmail.com') return true;
-
-
-  const plan = (user.plan || 'free').toLowerCase();
-  const subscriptionStatus = (user.subscriptionStatus || 'none').toLowerCase();
-
-  const isProPlan = plan.includes('pro') || (plan !== 'free' && plan !== 'none');
-  const isSubActive = subscriptionStatus === 'active' || subscriptionStatus === 'pro';
-  const hasProCredits = (user.dailyCredits ?? 0) >= 500;
-
-  const hasEntitlement = isProPlan || isSubActive || hasProCredits;
-
-  if (!hasEntitlement) return false;
-
-  if (!user.planExpiresAt) return true;
-  const expiresAt = new Date(user.planExpiresAt);
-  return Number.isNaN(expiresAt.getTime()) || expiresAt > new Date();
 }

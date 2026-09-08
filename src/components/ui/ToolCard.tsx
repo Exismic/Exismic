@@ -31,6 +31,20 @@ interface ToolCardProps {
 
 
 
+const CATEGORY_LABELS: Record<string, string> = {
+  image: "Image Studio",
+  video: "Video Studio",
+  audio: "Audio Lab",
+  pdf: "PDF Suite",
+  ai: "AI Magic",
+  productivity: "Productivity",
+  business: "Business & Finance",
+  seo: "SEO Suite",
+  developer: "Developer Tool",
+  student: "Student & Academic",
+  creator: "Creator & Social",
+};
+
 export function ToolCard({ id, name, description, icon, href, popular, pro, isProTool, proPowerPack, category, index = 0, initialFavorited = false, className }: ToolCardProps) {
   const isPro = pro || isProTool;
   const unavailable = isToolUnavailable(id);
@@ -80,13 +94,11 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
     >
       <Link href={href} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
         <div className={cn(
-          "relative h-full min-h-[260px] flex flex-col p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
-          "before:absolute before:inset-x-0 before:top-0 before:h-[1.5px] before:bg-gradient-to-r before:transition-all before:duration-500 z-10",
-          "after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-white/5 after:pointer-events-none z-0",
+          "relative h-full min-h-[280px] flex flex-col p-5 sm:p-6 md:p-7 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
           unavailable && "opacity-85",
           isPro 
-            ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90 border-amber-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_25px_rgba(245,158,11,0.2)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.45)] before:from-amber-500/0 before:via-amber-300/90 before:to-amber-500/0" 
-            : cn("bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90 transition-all duration-500 border", style.cardBorder, style.topBeam),
+            ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90 border-2 border-amber-400/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.3)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.55)]" 
+            : cn("bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90 transition-all duration-500 border-2", style.cardBorder),
           "md:group-hover:scale-[1.03] active:scale-[0.99]"
         )}>
           {/* Shine Animation Layer */}
@@ -173,64 +185,66 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             </button>
           </div>
 
-          {/* Badges Section: Neatly placed below icon row and above title */}
-          {(popular || proPowerPack || isPro) && (
-            <div className="relative z-10 flex flex-wrap items-center gap-1.5 mb-3.5">
-              {popular && (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/40 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
-                  <Flame size={10} className="text-amber-400 fill-amber-400 animate-pulse shrink-0" />
-                  <span className="relative z-10">Popular</span>
-                </div>
-              )}
-              {isPro ? (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 backdrop-blur-md border border-amber-300/50 text-[9px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)]">
-                  <Crown size={10} className="fill-amber-300 text-amber-300 shrink-0" />
-                  <span className="relative z-10">Pro</span>
-                </div>
-              ) : proPowerPack ? (
-                <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-blue-500/20 backdrop-blur-md border border-cyan-300/40 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
-                  <Zap size={10} className="fill-cyan-300 text-cyan-300 shrink-0" />
-                  <span className="relative z-10">Pro Boost</span>
-                </div>
-              ) : null}
-              <ToolReliabilityBadge toolId={id} />
-            </div>
-          )}
-
-          {/* Content Section */}
-          <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3">
-            <h3 className={cn(
-              "text-xl sm:text-2xl font-black tracking-tighter leading-tight transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
-              isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.2)]" : style.textGrad
-            )}>
-              {name}
-            </h3>
-            <p className="text-xs sm:text-[13px] font-medium text-zinc-500 line-clamp-3 sm:line-clamp-2 leading-relaxed tracking-tight group-hover:text-zinc-300 transition-colors break-words">
-              {description}
-            </p>
+          {/* Badges Section: Always present with consistent min-h to preserve uniform vertical rhythm across cards */}
+          <div className="relative z-10 flex flex-wrap items-center gap-1.5 mb-3 sm:mb-3.5 min-h-[22px]">
+            {popular && (
+              <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/40 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                <Flame size={10} className="text-amber-400 fill-amber-400 animate-pulse shrink-0" />
+                <span className="relative z-10">Popular</span>
+              </div>
+            )}
+            {isPro ? (
+              <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 backdrop-blur-md border border-amber-300/50 text-[9px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)]">
+                <Crown size={10} className="fill-amber-300 text-amber-300 shrink-0" />
+                <span className="relative z-10">Pro</span>
+              </div>
+            ) : proPowerPack ? (
+              <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-blue-500/20 backdrop-blur-md border border-cyan-300/40 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
+                <Zap size={10} className="fill-cyan-300 text-cyan-300 shrink-0" />
+                <span className="relative z-10">Pro Boost</span>
+              </div>
+            ) : null}
+            {!popular && !isPro && !proPowerPack && (
+              <div className={cn(
+                "relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full backdrop-blur-md border text-[9px] font-black uppercase tracking-[0.14em]",
+                style.badge
+              )}>
+                <span className="relative z-10">{CATEGORY_LABELS[category] || "Studio Tool"}</span>
+              </div>
+            )}
+            <ToolReliabilityBadge toolId={id} />
           </div>
 
-          {/* Premium Button CTA */}
-          <div className="mt-6 sm:mt-8">
-            <div className={cn(
-              "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu",
-              isPro 
-                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:scale-[1.02] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]" 
-                : cn("group-hover:scale-[1.02]", style.buttonGrad)
-            )}>
-              <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
-              <span className="relative z-10 flex items-center gap-2 sm:gap-3">
-                {unavailable ? "View status" : "Launch Tool"}
-                <ArrowRight size={15} className="transition-transform group-hover:translate-x-1.5" />
-              </span>
+          {/* Content Section: Unified typography block with tight, cohesive title-to-description rhythm */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between relative z-10">
+            <div>
+              <h3 className={cn(
+                "text-lg sm:text-xl font-black tracking-tight leading-snug transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.2)]" : style.textGrad
+              )}>
+                {name}
+              </h3>
+              <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-4 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words">
+                {description}
+              </p>
+            </div>
+
+            {/* Premium Button CTA: Uniformly anchored with tight bottom breathing room */}
+            <div className="mt-4 sm:mt-5 pt-1">
+              <div className={cn(
+                "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu",
+                isPro 
+                  ? "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:scale-[1.02] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]" 
+                  : cn("group-hover:scale-[1.02]", style.buttonGrad)
+              )}>
+                <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
+                <span className="relative z-10 flex items-center gap-2 sm:gap-3">
+                  {unavailable ? "View status" : "Launch Tool"}
+                  <ArrowRight size={15} className="transition-transform group-hover:translate-x-1.5" />
+                </span>
+              </div>
             </div>
           </div>
-
-          {/* Ambient Bottom Glow */}
-          <div className={cn(
-            "absolute inset-x-16 bottom-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-[0.5px]",
-            isPro ? "bg-linear-to-r from-transparent via-amber-400 to-transparent" : "bg-linear-to-r from-transparent via-white/50 to-transparent"
-          )} />
         </div>
       </Link>
     </motion.div>

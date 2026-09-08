@@ -66,9 +66,9 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
       icon: Coins,
       iconColor: "text-cyan-300",
       iconBg: "border-cyan-400/40 bg-gradient-to-br from-cyan-500/25 via-blue-900/30 to-black/85 shadow-[0_0_20px_rgba(34,211,238,0.3)]",
-      cardBorder: "border border-cyan-500/40 bg-gradient-to-r from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-400/80 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_30px_rgba(34,211,238,0.15)]",
+      cardBorder: "border-2 border-cyan-400/80 bg-gradient-to-r from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.3),0_20px_60px_rgba(0,0,0,0.85)]",
       ambientGradient: "from-cyan-500/18 via-blue-600/10 to-transparent",
-      topBeam: "bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.85)]",
+      topBeam: "",
       numberGradient: "bg-[linear-gradient(110deg,#ffffff,#cffafe,#38bdf8,#ffffff)] drop-shadow-[0_0_18px_rgba(56,189,248,0.4)]",
       conicGradient: "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]",
       markTheme: "blue",
@@ -92,9 +92,9 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
       icon: Diamond,
       iconColor: "text-purple-300",
       iconBg: "border-purple-400/45 bg-gradient-to-br from-purple-500/30 via-fuchsia-950/40 to-black/85 shadow-[0_0_25px_rgba(168,85,247,0.4)]",
-      cardBorder: "border-2 border-purple-400/85 bg-gradient-to-r from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_45px_rgba(168,85,247,0.35)] hover:border-fuchsia-300",
+      cardBorder: "border-2 border-purple-400/85 bg-gradient-to-r from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_0_30px_rgba(168,85,247,0.35),0_24px_70px_rgba(0,0,0,0.85)] hover:border-fuchsia-300",
       ambientGradient: "from-purple-600/22 via-fuchsia-600/14 to-cyan-500/10",
-      topBeam: "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 shadow-[0_0_20px_rgba(217,70,239,0.95)]",
+      topBeam: "",
       numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
       conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
       markTheme: "purple",
@@ -117,9 +117,9 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
       icon: Crown,
       iconColor: "text-amber-300",
       iconBg: "border-amber-400/45 bg-gradient-to-br from-amber-500/30 via-rose-950/40 to-black/85 shadow-[0_0_25px_rgba(245,158,11,0.35)]",
-      cardBorder: "border border-amber-400/45 bg-gradient-to-r from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300/85 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.2)]",
+      cardBorder: "border-2 border-amber-400/80 bg-gradient-to-r from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3),0_20px_60px_rgba(0,0,0,0.85)]",
       ambientGradient: "from-amber-500/20 via-rose-600/12 to-transparent",
-      topBeam: "bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 shadow-[0_0_18px_rgba(245,158,11,0.85)]",
+      topBeam: "",
       numberGradient: "bg-[linear-gradient(110deg,#ffffff,#fde047,#fb7185,#ffffff)] drop-shadow-[0_0_20px_rgba(251,113,133,0.45)]",
       conicGradient: "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]",
       markTheme: "gold",
@@ -241,7 +241,13 @@ export function BuyCreditsModal({
     setIsTermsOpen(true);
   };
 
-  const handleCheckoutPlan = async (planId: string, planTitle: string, planCredits: number, category: "pro" | "credits") => {
+  const handleCheckoutPlan = async (
+    planId: string, 
+    planTitle: string, 
+    planCredits: number, 
+    category: "pro" | "credits",
+    couponCode?: string
+  ) => {
     setErrorMessage(null);
     setLoadingId(planId);
 
@@ -253,6 +259,7 @@ export function BuyCreditsModal({
           planId,
           isGift: false,
           marketOverride: isIndia ? "IN" : "GLOBAL",
+          couponCode: couponCode || undefined,
         }),
       });
 
@@ -352,10 +359,8 @@ export function BuyCreditsModal({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 15 }}
               transition={{ type: "spring", stiffness: 360, damping: 28 }}
-              className="relative w-full max-w-5xl rounded-[2.5rem] border border-white/10 bg-[#05050a]/95 p-5 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(245,158,11,0.12)] overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92vh]"
+              className="relative w-full max-w-5xl rounded-[2.5rem] border-2 border-amber-400/40 bg-[#05050a]/95 p-5 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(245,158,11,0.2)] overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92vh]"
             >
-              {/* Top Light Accent */}
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400 via-fuchsia-400 to-amber-400 shadow-[0_0_20px_rgba(34,211,238,0.7)]" />
               <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-500/15 blur-3xl" />
               <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-600/15 blur-3xl" />
 
@@ -465,7 +470,6 @@ export function BuyCreditsModal({
                           )}
                         >
                           <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-90", pack.style.ambientGradient)} />
-                          <div className={cn("absolute inset-x-0 top-0 h-[2px]", pack.style.topBeam)} />
 
                           <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between">
                             
@@ -550,9 +554,8 @@ export function BuyCreditsModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
                     {/* Monthly Pro Pass */}
-                    <div className="group relative overflow-hidden rounded-[2.35rem] p-[2px] backdrop-blur-3xl transition-all duration-300 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-b from-cyan-500/40 via-white/10 to-transparent flex flex-col justify-between">
+                    <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-400/80 via-sky-500/50 to-indigo-500/60 flex flex-col justify-between">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl opacity-60 group-hover:opacity-100" />
-                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
 
                       <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-6 sm:p-7">
                         <div>
@@ -645,9 +648,8 @@ export function BuyCreditsModal({
                     </div>
 
                     {/* Annual VIP Pro Pass */}
-                    <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-b from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col justify-between">
+                    <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-br from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col justify-between">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl opacity-80 group-hover:opacity-100" />
-                      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-400 shadow-[0_0_25px_rgba(168,85,247,1)]" />
 
                       <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-6 sm:p-7">
                         <div>
@@ -770,9 +772,9 @@ export function BuyCreditsModal({
         <PaymentTermsModal
           isOpen={isTermsOpen}
           onClose={() => setIsTermsOpen(false)}
-          onConfirm={() => {
+          onConfirm={(couponCode) => {
             setIsTermsOpen(false);
-            handleCheckoutPlan(termsPlan.id, termsPlan.title, termsPlan.credits, termsPlan.category);
+            handleCheckoutPlan(termsPlan.id, termsPlan.title, termsPlan.credits, termsPlan.category, couponCode);
           }}
           type={termsPlan.category}
           planId={termsPlan.id}

@@ -229,16 +229,20 @@ export function useCredits() {
 
   // Memoized background refresh function with request deduplication
   const lastRefreshRef = useRef<number>(0);
-  const refreshCredits = useCallback(() => {
+  const refreshCredits = useCallback((force?: boolean | unknown) => {
+    const isForce = typeof force === "boolean" ? force : false;
     const now = Date.now();
-    if (now - lastRefreshRef.current < 2000) return;
+    if (!isForce && now - lastRefreshRef.current < 2000) return;
     lastRefreshRef.current = now;
 
     if (useCreditStore.getState().userId) {
       fetch(`/api/user/credits?t=${now}`, { cache: 'no-store' })
-        .then(res => res.json())
+        .then(async (res) => {
+          if (!res.ok) return null;
+          return res.json().catch(() => null);
+        })
         .then(json => {
-          if (json.success && json.data) {
+          if (json?.success && json?.data) {
             setState({
               dailyCredits: json.data.dailyCredits,
               bonusCredits: json.data.bonusCredits || 0,
@@ -290,9 +294,20 @@ export function useCredits() {
           return;
         }
 
-        const json = await response.json();
+        if (!response.ok) {
+          setLoading(false);
+          // Auto-retry once after 1.5s if cold start or temporary failure
+          setTimeout(() => {
+            if (!useCreditStore.getState().state && useCreditStore.getState().userId) {
+              void fetchCredits();
+            }
+          }, 1500);
+          return;
+        }
 
-        if (json.success && json.data) {
+        const json = await response.json().catch(() => null);
+
+        if (json?.success && json?.data) {
           const data = json.data;
           setState({
             dailyCredits: data.dailyCredits,

@@ -71,6 +71,22 @@ export async function updateSession(request: NextRequest) {
     normalizedPath.startsWith('/pro') ||
     normalizedPath.startsWith('/pricing') ||
     normalizedPath.startsWith('/blog') ||
+    normalizedPath.startsWith('/rewards') ||
+    normalizedPath.startsWith('/shop') ||
+    normalizedPath.startsWith('/help') ||
+    normalizedPath.startsWith('/terms-of-service') ||
+    normalizedPath.startsWith('/privacy-policy') ||
+    normalizedPath.startsWith('/cookies') ||
+    normalizedPath.startsWith('/changelog') ||
+    normalizedPath.startsWith('/about') ||
+    normalizedPath.startsWith('/careers') ||
+    normalizedPath.startsWith('/giveaway') ||
+    normalizedPath.startsWith('/giveaways') ||
+    normalizedPath.startsWith('/redeem') ||
+    normalizedPath.startsWith('/appeal') ||
+    normalizedPath.startsWith('/guidelines') ||
+    normalizedPath.startsWith('/docs') ||
+    normalizedPath.startsWith('/guides') ||
     normalizedPath.startsWith('/u/') ||
     normalizedPath.startsWith('/sitemap') ||
     normalizedPath.startsWith('/robots') ||
@@ -95,6 +111,7 @@ export async function updateSession(request: NextRequest) {
   if (!hasAuthCookie) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
+    url.searchParams.set('returnUrl', rawPath);
     return NextResponse.redirect(url);
   }
 
@@ -135,6 +152,7 @@ export async function updateSession(request: NextRequest) {
   if (!user.data.user) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
+    url.searchParams.set('returnUrl', rawPath);
     return NextResponse.redirect(url);
   }
 

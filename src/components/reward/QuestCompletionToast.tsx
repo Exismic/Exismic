@@ -7,6 +7,7 @@ import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { QuestItem, useQuests } from "@/hooks/useQuests";
 import { useCredits } from "@/hooks/useCredits";
+import { SparkIcon } from "@/components/ui/SparkIcon";
 import { soundController } from "./SoundController";
 
 export function QuestCompletionToast() {
@@ -120,6 +121,9 @@ export function QuestCompletionToast() {
     if (success) {
       setIsClaimed(true);
       refreshCredits();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("sparks-updated"));
+      }
 
       confetti({
         particleCount: activeQuest.type === "weekly" ? 100 : 70,
@@ -243,9 +247,14 @@ export function QuestCompletionToast() {
 
                 {/* Reward Pill and Claim Button */}
                 <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-white/[0.08]">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black tracking-wider bg-amber-400/15 border border-amber-400/35 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]">
-                    <Coins size={12} className="text-amber-400" />
-                    +{activeQuest.rewardCredits} Credits
+                  <span className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.15)]",
+                    activeQuest.type === "weekly"
+                      ? "bg-purple-500/15 border border-purple-400/35 text-purple-200"
+                      : "bg-amber-400/15 border border-amber-400/35 text-amber-300"
+                  )}>
+                    <SparkIcon size={14} variant={activeQuest.type === "weekly" ? "purple" : "amber"} />
+                    <span>+{(activeQuest.rewardSparks ?? activeQuest.rewardCredits ?? 10)} Sparks</span>
                   </span>
 
                   {isClaimed ? (

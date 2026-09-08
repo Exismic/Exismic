@@ -137,6 +137,31 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
       });
     }
 
+    // Burn coupon code if one was applied to this order so it can never be used again
+    const appliedCouponCode = existingMeta.appliedCouponCode as string | undefined;
+    if (appliedCouponCode) {
+      const promo = await tx.promoCode.findUnique({ where: { code: appliedCouponCode } });
+      if (promo) {
+        await tx.promoCode.update({
+          where: { id: promo.id },
+          data: { redemptionCount: { increment: 1 } },
+        });
+        await tx.promoRedemption.upsert({
+          where: {
+            promoId_userId: {
+              promoId: promo.id,
+              userId: order.userId,
+            },
+          },
+          create: {
+            promoId: promo.id,
+            userId: order.userId,
+          },
+          update: {},
+        });
+      }
+    }
+
     const transactionKind = isGift 
       ? (isProPlan ? "gift_pro_pass" : "gift_credit_pack")
       : (isProPlan ? "pro_subscription" : "credit_purchase");

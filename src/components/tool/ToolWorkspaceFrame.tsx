@@ -47,13 +47,12 @@ export function ToolWorkspaceHeader({
         <div className="flex min-w-0 items-start gap-5 sm:gap-7">
           {/* Logo Box Container */}
           <div className="relative group flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center">
-             {/* Idle ambient breathing aura */}
-             <div className={cn("absolute -inset-4 rounded-full blur-2xl animate-pulse", isPro ? "bg-amber-500/25" : (CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20"))} />
+             {/* Idle ambient breathing aura strictly matching category color */}
+             <div className={cn("absolute -inset-4 rounded-full blur-2xl animate-pulse", CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20")} />
              
-             {/* Spinning gradient border (idle) */}
+             {/* Spinning gradient border matching category color */}
              <div className={cn("absolute inset-0 rounded-2xl animate-[spin_4s_linear_infinite]",
-               isPro ? "bg-[conic-gradient(from_0deg,rgba(251,191,36,1)_0%,rgba(245,158,11,1)_33%,rgba(253,230,138,1)_66%,rgba(251,191,36,1)_100%)]"
-                     : (CATEGORY_ANIM_STYLES[categoryId]?.spinIdle || CATEGORY_ANIM_STYLES.pdf.spinIdle)
+               CATEGORY_ANIM_STYLES[categoryId]?.spinIdle || CATEGORY_ANIM_STYLES.image.spinIdle
              )} />
              
              {/* Inner glass box to cover the middle of the spinning gradient, leaving only the border */}
@@ -66,7 +65,7 @@ export function ToolWorkspaceHeader({
                   animate={{ y: [0, -3, 0] }}
                   transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
                 >
-                  <Icon size={32} className={cn("relative z-20 transition-transform duration-300 group-hover:scale-110", isPro ? "text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]" : (CATEGORY_ANIM_STYLES[categoryId]?.iconGlow || CATEGORY_ANIM_STYLES.pdf.iconGlow))} />
+                  <Icon size={32} className={cn("relative z-20 transition-transform duration-300 group-hover:scale-110", CATEGORY_ANIM_STYLES[categoryId]?.iconGlow || CATEGORY_ANIM_STYLES.image.iconGlow)} />
                 </motion.div>
 
                 {/* Shimmer sweep effect (idle) */}
@@ -80,7 +79,7 @@ export function ToolWorkspaceHeader({
 
           <div className="min-w-0 pt-1 sm:pt-2">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] shadow-lg", isPro ? "border border-amber-400/30 bg-amber-400/10 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]" : (CATEGORY_ANIM_STYLES[categoryId]?.badge || CATEGORY_ANIM_STYLES.pdf.badge))}>
+              <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] shadow-lg", (CATEGORY_ANIM_STYLES[categoryId]?.badge || CATEGORY_ANIM_STYLES.image.badge))}>
                 {categoryName} workspace
               </span>
               {isPro && (
@@ -94,13 +93,14 @@ export function ToolWorkspaceHeader({
             
             <div className="relative inline-block">
                {/* Background glow for the text */}
-               <h1 className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.2] tracking-tight pb-2 blur-xl opacity-30 select-none pointer-events-none", isPro ? "text-amber-400" : "text-white")}>
+               <h1 className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 blur-xl opacity-30 select-none pointer-events-none",
+                 CATEGORY_ANIM_STYLES[categoryId]?.iconGlow || "text-cyan-400"
+               )}>
                  {name}
                </h1>
                <div className="relative flex items-center gap-4">
-                 <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-[1.2] tracking-tight pb-2 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
-                   isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]"
-                         : (CATEGORY_ANIM_STYLES[categoryId]?.textGrad || CATEGORY_ANIM_STYLES.pdf.textGrad)
+                 <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                   CATEGORY_ANIM_STYLES[categoryId]?.textGrad || CATEGORY_ANIM_STYLES.image.textGrad
                  )}>
                    {name}
                  </h1>

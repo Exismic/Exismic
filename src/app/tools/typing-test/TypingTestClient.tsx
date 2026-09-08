@@ -473,32 +473,12 @@ export default function TypingSpeedTesterPage() {
   const topMistakes = Object.entries(heatmap).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-[#020204] text-white overflow-x-hidden selection:bg-purple-500/30">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.1),transparent_32%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] [background-size:48px_48px] opacity-40" />
-      </div>
-
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-28 space-y-8">
-        <section className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 items-start">
-          <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-              <div className="space-y-4">
-                <div className="inline-flex min-h-10 items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 text-[10px] font-black uppercase tracking-widest text-cyan-200">
-                  <Sparkles size={14} />
-                  AI Typing Lab
-                </div>
-                <div className="space-y-3">
-                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight py-2">
-                    Typing Speed Tester
-                  </h1>
-                  <p className="max-w-2xl text-sm sm:text-base text-zinc-400 font-medium leading-relaxed">
-                    Train WPM, accuracy, consistency, weak keys, and daily streaks in a focused premium typing arena.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:flex gap-3">
+    <div className="w-full space-y-6">
+      <section className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 items-start">
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Duration Mode</span>
+            <div className="grid grid-cols-2 sm:flex gap-3">
                 {MODE_OPTIONS.map((item) => (
                   <button
                     key={item.id}
@@ -781,8 +761,7 @@ export default function TypingSpeedTesterPage() {
             </motion.section>
           )}
         </AnimatePresence>
-      </main>
-    </div>
+      </div>
   );
 }
 

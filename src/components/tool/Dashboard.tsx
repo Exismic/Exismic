@@ -31,19 +31,21 @@ import {
   Sunset,
   Sunrise,
   Check,
+  Coins,
   type LucideIcon
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { TOOLS } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import { RecentlyProcessed } from "./RecentlyProcessed";
+import { PersonalizedHomeSection } from "./PersonalizedHomeSection";
+import { SparkIcon } from "@/components/ui/SparkIcon";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { PremiumName } from "@/components/ui/PremiumName";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
-import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { ProBackground } from "@/components/pro/ProBackground";
 import { CyberAliveBackground } from "@/components/ui/CyberAliveBackground";
@@ -78,95 +80,8 @@ type StatCardProps = {
   onClick?: () => void;
 };
 
-const QUICK_ACTIONS = [
-  { 
-    name: "Remove BG", 
-    href: "/tools/image/eraser", 
-    icon: Brush, 
-    badge: "POPULAR", 
-    theme: {
-      idleBg: "bg-gradient-to-br from-purple-950/80 via-indigo-950/50 to-zinc-950/90",
-      border: "border-purple-500/50 hover:border-purple-300",
-      glow: "shadow-[0_0_25px_rgba(168,85,247,0.3)] hover:shadow-[0_0_45px_rgba(168,85,247,0.7)]",
-      iconBg: "bg-purple-500/20 border-purple-400/50 text-purple-200",
-      badge: "bg-purple-500/30 border-purple-400/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.5)]",
-      pulseColor: "bg-purple-400"
-    }
-  },
-  { 
-    name: "Generate 4K Art", 
-    href: "/tools/ai/img-gen", 
-    icon: ImageIcon, 
-    badge: "AI 4K", 
-    theme: {
-      idleBg: "bg-gradient-to-br from-cyan-950/80 via-blue-950/50 to-zinc-950/90",
-      border: "border-cyan-500/50 hover:border-cyan-300",
-      glow: "shadow-[0_0_25px_rgba(6,182,212,0.3)] hover:shadow-[0_0_45px_rgba(6,182,212,0.7)]",
-      iconBg: "bg-cyan-500/20 border-cyan-400/50 text-cyan-200",
-      badge: "bg-cyan-500/30 border-cyan-400/50 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.5)]",
-      pulseColor: "bg-cyan-400"
-    }
-  },
-  { 
-    name: "Support Agent", 
-    href: "/tools/support-agent", 
-    icon: Bot, 
-    badge: "B2B BOT", 
-    theme: {
-      idleBg: "bg-gradient-to-br from-amber-950/80 via-yellow-950/50 to-zinc-950/90",
-      border: "border-amber-500/50 hover:border-amber-300",
-      glow: "shadow-[0_0_25px_rgba(245,158,11,0.3)] hover:shadow-[0_0_45px_rgba(245,158,11,0.7)]",
-      iconBg: "bg-amber-500/20 border-amber-400/50 text-amber-200",
-      badge: "bg-amber-500/30 border-amber-400/50 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.5)]",
-      pulseColor: "bg-amber-400"
-    }
-  },
-  { 
-    name: "Vocal Remover", 
-    href: "/tools/audio/vocal-remover", 
-    icon: Mic2, 
-    badge: "AUDIO STEM", 
-    theme: {
-      idleBg: "bg-gradient-to-br from-pink-950/80 via-rose-950/50 to-zinc-950/90",
-      border: "border-pink-500/50 hover:border-pink-300",
-      glow: "shadow-[0_0_25px_rgba(236,72,153,0.3)] hover:shadow-[0_0_45px_rgba(236,72,153,0.7)]",
-      iconBg: "bg-pink-500/20 border-pink-400/50 text-pink-200",
-      badge: "bg-pink-500/30 border-pink-400/50 text-pink-200 shadow-[0_0_12px_rgba(236,72,153,0.5)]",
-      pulseColor: "bg-pink-400"
-    }
-  },
-  { 
-    name: "PDF Tools", 
-    href: "/tools/pdf/merger", 
-    icon: FileText, 
-    badge: "PDF DOC", 
-    theme: {
-      idleBg: "bg-gradient-to-br from-red-950/80 via-rose-950/50 to-zinc-950/90",
-      border: "border-red-500/50 hover:border-red-300",
-      glow: "shadow-[0_0_25px_rgba(239,68,68,0.3)] hover:shadow-[0_0_45px_rgba(239,68,68,0.7)]",
-      iconBg: "bg-red-500/20 border-red-400/50 text-red-200",
-      badge: "bg-red-500/30 border-red-400/50 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.5)]",
-      pulseColor: "bg-red-400"
-    }
-  },
-  { 
-    name: "Minecraft 3D", 
-    href: "/tools/image/minecraft-skin", 
-    icon: Gamepad2, 
-    badge: "🔥 HOT", 
-    theme: {
-      idleBg: "bg-gradient-to-br from-emerald-950/80 via-green-950/50 to-zinc-950/90",
-      border: "border-emerald-500/50 hover:border-lime-300",
-      glow: "shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_45px_rgba(34,197,94,0.75)]",
-      iconBg: "bg-emerald-500/20 border-emerald-400/50 text-emerald-200",
-      badge: "bg-emerald-500/30 border-emerald-400/50 text-emerald-200 shadow-[0_0_12px_rgba(168,85,247,0.5)]",
-      pulseColor: "bg-lime-400"
-    }
-  },
-];
-
 const CATEGORY_TABS = [
-  { id: "all", label: "All Tools", icon: Sparkles },
+  { id: "all", label: "All Tools", icon: LayoutGrid },
   { id: "creative", label: "AI & Design", icon: Wand2 },
   { id: "dev", label: "Developer", icon: Code2 },
   { id: "productivity", label: "Productivity", icon: Layers },
@@ -195,10 +110,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
     verifiedIsPro ||
     statsIsPro ||
     dbUser?.is_pro ||
-    dbUser?.role === "admin" ||
-    dbUser?.plan === "pro" ||
-    effectiveAuthUser?.email === "syedyaseeralirayan@gmail.com" ||
-    dbUser?.email === "syedyaseeralirayan@gmail.com"
+    dbUser?.plan === "pro"
   );
   const [favorites, setFavorites] = useState<string[]>([]);
   const [gradientOverride, setGradientOverride] = useState<string | null>(null);
@@ -273,7 +185,10 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
     }
   };
 
-  const [greeting, setGreeting] = useState<{ text: string; icon: typeof Sun }>(getGreetingByHour);
+  const [greeting, setGreeting] = useState<{ text: string; icon: typeof Sun }>({
+    text: "Good morning",
+    icon: Sunrise,
+  });
 
   useEffect(() => {
     setGreeting(getGreetingByHour());
@@ -298,11 +213,11 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
       );
     }
     if (activeTab === "creative") {
-      result = result.filter(t => t.category === "image" || t.category === "ai" || t.category === "audio");
+      result = result.filter(t => ["ai", "image", "video", "audio", "creator"].includes(t.category));
     } else if (activeTab === "dev") {
-      result = result.filter(t => t.category === "ai" || t.category === "productivity");
+      result = result.filter(t => ["developer", "seo"].includes(t.category));
     } else if (activeTab === "productivity") {
-      result = result.filter(t => t.category === "productivity" || t.category === "pdf");
+      result = result.filter(t => ["productivity", "student", "business", "pdf"].includes(t.category));
     } else if (activeTab === "favorites") {
       result = result.filter(t => favorites.includes(t.id));
     }
@@ -316,250 +231,151 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-8 md:pt-14 pb-36 md:pb-32 space-y-12 md:space-y-16">
         
-        {/* 1. ULTRA-PREMIUM HERO COCKPIT HEADER */}
-        <section className="relative space-y-8">
-
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            {/* Left Hero Greeting */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-3.5 max-w-2xl"
-            >
-              <div className="flex items-center gap-2.5 flex-wrap">
-                {(() => {
-                  const GreetingIcon = greeting.icon;
-                  return (
-                    <div 
-                      suppressHydrationWarning
-                      className="relative overflow-hidden inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-cyan-500/15 border border-purple-500/30 text-purple-300 text-[11px] font-black uppercase tracking-widest backdrop-blur-xl shadow-[0_0_20px_rgba(168,85,247,0.2)]"
-                    >
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-400"></span>
-                      </span>
-                      <GreetingIcon size={13} className="text-amber-400 animate-pulse" />
-                      <span suppressHydrationWarning>{greeting.text}</span>
-                    </div>
-                  );
-                })()}
-
-                {isPro && (
-                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/40 text-amber-300 text-[11px] font-black uppercase tracking-widest backdrop-blur-xl shadow-[0_0_20px_rgba(245,158,11,0.25)]">
-                    <Crown size={12} className="fill-amber-400 text-amber-400" />
-                    <span>Pro Studio Active</span>
-                  </div>
-                )}
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white flex flex-wrap items-center gap-x-3.5 gap-y-1 py-1 overflow-visible drop-shadow-[0_2px_20px_rgba(255,255,255,0.1)]">
-                 Welcome back, <PremiumName name={userName} isPro={isPro} gradientId={localGradientId} className="text-4xl sm:text-5xl lg:text-6xl" />
-              </h1>
-
-              <p className="text-zinc-400 text-base sm:text-lg font-medium leading-relaxed tracking-tight">
-                 Your next-gen AI workspace. Launch engines, process media, and build products seamlessly.
-              </p>
-            </motion.div>
-          </div>
-
-          {/* QUICK LAUNCH GRID (UNCONSTRAINED, NO SCROLLBAR, FULL NEON BURST) */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-4 pt-2"
-          >
-            <div className="flex items-center gap-2 pl-12 lg:pl-0">
-              <Sparkles size={14} className="text-purple-400 animate-pulse shrink-0" />
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-300">Quick Launch Cockpit</span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4">
-              {QUICK_ACTIONS.map((qa) => {
-                const Icon = qa.icon;
-                return (
-                  <Link
-                    key={qa.name}
-                    href={qa.href}
-                    className={cn(
-                      "group relative isolate flex flex-col justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl border backdrop-blur-3xl transition-all duration-300 hover:scale-[1.04] active:scale-95 min-w-0",
-                      qa.theme.idleBg,
-                      qa.theme.border,
-                      qa.theme.glow
-                    )}
-                  >
-                    {/* Continuous Hover Shine Beam (Clipped to pill border) */}
-                    <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-10">
-                      <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                    </div>
-
-                    {/* Top Row: Icon Box & Badge */}
-                    <div className="flex items-center justify-between gap-1.5 relative z-20 w-full min-w-0">
-                      <div className={cn(
-                        "w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-inner shrink-0",
-                        qa.theme.iconBg
-                      )}>
-                        <Icon size={18} className="sm:w-5 sm:h-5" />
-                      </div>
-
-                      <span className={cn(
-                        "relative z-20 text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border shrink-0 max-w-[55%] truncate text-center",
-                        qa.theme.badge
-                      )}>
-                        {qa.badge}
-                      </span>
-                    </div>
-
-                    {/* Bottom Row: Tool Title & Status Dot */}
-                    <div className="flex items-center justify-between gap-1 relative z-20 w-full pt-1 min-w-0">
-                      <span className="text-xs sm:text-sm font-black text-white tracking-tight truncate group-hover:text-white transition-colors">
-                        {qa.name}
-                      </span>
-                      <span className="relative flex h-2 w-2 shrink-0 ml-1">
-                        <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", qa.theme.pulseColor)} />
-                        <span className={cn("relative inline-flex rounded-full h-2 w-2", qa.theme.pulseColor)} />
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </motion.div>
-        </section>
-
-        {/* 2. STATS ROW (⚡️ LIVE REACTOR & STREAK COCKPIT WIDGETS) */}
-        <section className="grid gap-4 sm:gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
-           {/* Card 1: Live Energy Reactor Vault */}
-           <StatCard 
-              label="Credits Remaining" 
-              value={
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-300 drop-shadow-[0_2px_15px_rgba(6,182,212,0.4)]">
-                    {credits.toLocaleString()}
-                  </span>
-                  <span className="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-400/30 text-cyan-200">
-                    {isPro ? "500 Daily" : "Available"}
-                  </span>
-                </div>
-              }
-              icon={CreditTokenIcon}
-              color="cyan"
-              loading={creditsLoading}
-              progress={Math.min(100, Math.round((credits / (isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50)) * 100))}
-              badge={
-                <button
-                  type="button"
-                  onClick={() => setCreditModalOpen(true)}
-                  className="group/btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-[10px] font-black text-cyan-200 uppercase tracking-wider hover:bg-cyan-400/25 hover:border-cyan-300 hover:shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all cursor-pointer select-none active:scale-95"
-                >
-                  <span>+ TOP UP</span>
-                  <ArrowRight size={11} className="transition-transform group-hover/btn:translate-x-0.5" />
-                </button>
-              }
-              footer={
-                <div className="flex items-center text-[10.5px] text-cyan-300 font-mono">
-                  <Clock size={12} className="text-cyan-400 mr-1.5 shrink-0" />
-                  <span>Resets in {countdown || "12:00:00"}</span>
-                </div>
-              }
-           />
-
-           {/* Card 2: Daily Quest Streak & Mystery Vault */}
-           <StatCard 
-              label="Daily Quest Streak" 
-              value={
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 drop-shadow-[0_2px_15px_rgba(245,158,11,0.4)]">
-                    {dailyStreak || 1}
-                  </span>
-                  <span className="text-sm font-bold text-amber-200/90 lowercase">
-                    {(dailyStreak || 1) === 1 ? "day" : "days"}
-                  </span>
-                </div>
-              }
-              icon={Flame}
-              color="amber"
-              loading={creditsLoading}
-              onClick={() => setDailyRewardModalOpen(true)}
-              badge={
-                !todayClaim ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500/25 to-amber-500/25 border border-orange-400/50 text-[10px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_15px_rgba(249,115,22,0.35)] shrink-0">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-400"></span>
+        {/* 1. EXECUTIVE STUDIO COCKPIT (GREETING + VITALS HUD + LAUNCHPAD + WORKSTATION + DISCOVERY) */}
+        <PersonalizedHomeSection
+          userName={userName}
+          isPro={isPro}
+          initialFavorites={favorites}
+          gradientId={localGradientId}
+          greeting={greeting}
+          statsSlot={
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Card 1: Live Energy Reactor Vault */}
+              <StatCard 
+                label="Credits Remaining" 
+                value={
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-300 drop-shadow-[0_2px_15px_rgba(6,182,212,0.4)]">
+                      {credits.toLocaleString()}
                     </span>
-                    <span>Ready</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 shrink-0">
-                    <Check size={11} className="text-emerald-400" />
-                    <span>Claimed</span>
-                  </span>
-                )
-              }
-              footer={
-                <div className="flex items-center justify-between w-full text-[11px] font-medium text-amber-200/90 pt-1">
-                  <span className="flex items-center gap-1.5 truncate">
-                    <Gift size={12} className={cn("shrink-0", !todayClaim ? "text-orange-400 animate-bounce" : "text-amber-400")} />
-                    <span className="truncate">{!todayClaim ? "Open Mystery Vault" : `Resets in ${countdown || "12h"}`}</span>
-                  </span>
+                    <span className="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-400/30 text-cyan-200">
+                      {isPro ? "500 Daily" : "Available"}
+                    </span>
+                  </div>
+                }
+                icon={Coins}
+                color="cyan"
+                loading={creditsLoading}
+                progress={Math.min(100, Math.round((credits / (isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50)) * 100))}
+                badge={
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setQuestsModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 hover:bg-amber-400/20 border border-amber-400/20 text-[10px] font-bold text-amber-300 transition-colors shrink-0 cursor-pointer"
+                    onClick={() => setCreditModalOpen(true)}
+                    className="group/btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-[10px] font-black text-cyan-200 uppercase tracking-wider hover:bg-cyan-400/25 hover:border-cyan-300 hover:shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all cursor-pointer select-none active:scale-95"
                   >
-                    <Trophy size={10} />
-                    <span>Quests</span>
+                    <span>+ TOP UP</span>
+                    <ArrowRight size={11} className="transition-transform group-hover/btn:translate-x-0.5" />
                   </button>
-                </div>
-              }
-           />
+                }
+                footer={
+                  <div className="flex items-center text-[10.5px] text-cyan-300 font-mono">
+                    <Clock size={12} className="text-cyan-400 mr-1.5 shrink-0" />
+                    <span>Resets in {countdown || "12:00:00"}</span>
+                  </div>
+                }
+              />
 
-           {/* Card 3: Studio Activity Velocity */}
-           <StatCard 
-              label="Tools Used Today" 
-              value={toolsUsedToday} 
-              icon={Activity}
-              color="purple"
-              loading={statsLoading}
-              footer={
-                <div className="text-[10.5px] text-purple-200/90 font-medium">
-                  <span>{totalGenerations.toLocaleString()} Total Runs</span>
-                </div>
-              }
-           />
-
-           {/* Card 4: Studio Membership Tier */}
-           <StatCard 
-              label="Membership Status" 
-              value={isPro ? "PRO STUDIO" : "FREE TIER"} 
-              icon={isPro ? Crown : ShieldCheck}
-              color={isPro ? "gold" : "zinc"}
-              loading={statsLoading || proLoading}
-              isPro={isPro}
-              href="/pro/benefits"
-              footer={
-                <div className="text-[10.5px] font-semibold">
-                  {isPro ? (
-                    <span className="text-amber-300 flex items-center gap-1.5">
-                      <Crown size={12} className="fill-amber-300 text-amber-300 shrink-0" />
-                      Pro Active
+              {/* Card 2: Daily Quest Streak & Mystery Vault */}
+              <StatCard 
+                label="Daily Quest Streak" 
+                value={
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 drop-shadow-[0_2px_15px_rgba(245,158,11,0.4)]">
+                      {dailyStreak ?? 0}
                     </span>
+                    <span className="text-sm font-bold text-amber-200/90 lowercase">
+                      {(dailyStreak ?? 0) === 1 ? "day" : "days"}
+                    </span>
+                  </div>
+                }
+                icon={Flame}
+                color="amber"
+                loading={creditsLoading}
+                onClick={() => setDailyRewardModalOpen(true)}
+                badge={
+                  !todayClaim ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDailyRewardModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-[10px] font-black uppercase tracking-wider text-black shadow-[0_0_15px_rgba(249,115,22,0.5)] hover:shadow-[0_0_22px_rgba(249,115,22,0.8)] transition-all cursor-pointer active:scale-95 animate-pulse shrink-0"
+                    >
+                      <Gift size={11} className="shrink-0 text-black fill-black/20" />
+                      <span>CLAIM DROP</span>
+                    </button>
                   ) : (
-                    <span className="text-purple-300 group-hover:text-cyan-200 transition-colors flex items-center gap-1">
-                      Upgrade to Pro <ArrowRight size={11} className="transition-transform group-hover:translate-x-0.5" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 shrink-0">
+                      <Check size={11} className="text-emerald-400" />
+                      <span>Claimed</span>
                     </span>
-                  )}
-                </div>
-              }
-           />
-        </section>
+                  )
+                }
+                footer={
+                  <div className="flex items-center justify-between w-full text-[11px] font-medium text-amber-200/90">
+                    <span className="flex items-center gap-1.5 font-semibold text-amber-200 whitespace-nowrap">
+                      <Gift size={12} className={cn("shrink-0", !todayClaim ? "text-orange-400 animate-bounce" : "text-amber-400")} />
+                      <span>{!todayClaim ? "Daily Vault Ready" : `Resets in ${countdown || "12h"}`}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQuestsModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-400/25 border border-amber-400/30 text-[10px] font-bold text-amber-200 hover:text-white transition-colors shrink-0 cursor-pointer"
+                    >
+                      <Trophy size={11} className="text-amber-300" />
+                      <span>Quests</span>
+                    </button>
+                  </div>
+                }
+              />
 
-        {/* 3. FUTURISTIC 3D CYBER SUITE COMMAND DECK */}
+              {/* Card 3: Studio Activity Velocity */}
+              <StatCard 
+                label="Tools Used Today" 
+                value={toolsUsedToday} 
+                icon={Activity}
+                color="purple"
+                loading={statsLoading}
+                footer={
+                  <div className="text-[10.5px] text-purple-200/90 font-medium">
+                    <span>{totalGenerations.toLocaleString()} Total Runs</span>
+                  </div>
+                }
+              />
+
+              {/* Card 4: Studio Membership Tier */}
+              <StatCard 
+                label="Membership Status" 
+                value={isPro ? "PRO STUDIO" : "FREE TIER"} 
+                icon={isPro ? Crown : ShieldCheck}
+                color={isPro ? "gold" : "zinc"}
+                loading={statsLoading || proLoading}
+                isPro={isPro}
+                href="/pro/benefits"
+                footer={
+                  <div className="text-[10.5px] font-semibold">
+                    {isPro ? (
+                      <span className="text-amber-300 flex items-center gap-1.5">
+                        <Crown size={12} className="fill-amber-300 text-amber-300 shrink-0" />
+                        Pro Active
+                      </span>
+                    ) : (
+                      <span className="text-purple-300 group-hover:text-cyan-200 transition-colors flex items-center gap-1">
+                        Upgrade to Pro <ArrowRight size={11} className="transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                    )}
+                  </div>
+                }
+              />
+            </div>
+          }
+        />
+
+        {/* 2. FUTURISTIC 3D CYBER SUITE COMMAND DECK */}
         <section className="space-y-4 pt-2">
           {/* Header Title Bar */}
           <div className="flex items-center justify-between px-2">
@@ -599,11 +415,11 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
               const suiteToolCount = tab.id === "all" 
                 ? TOOLS.length 
                 : tab.id === "creative"
-                  ? TOOLS.filter(t => t.category === "image" || t.category === "ai" || t.category === "audio").length
+                  ? TOOLS.filter(t => ["ai", "image", "video", "audio", "creator"].includes(t.category)).length
                   : tab.id === "dev"
-                    ? TOOLS.filter(t => t.category === "ai" || t.category === "productivity").length
+                    ? TOOLS.filter(t => ["developer", "seo"].includes(t.category)).length
                     : tab.id === "productivity"
-                      ? TOOLS.filter(t => t.category === "productivity" || t.category === "pdf").length
+                      ? TOOLS.filter(t => ["productivity", "student", "business", "pdf"].includes(t.category)).length
                       : tab.id === "favorites"
                         ? favorites.length 
                         : 0;
@@ -745,7 +561,9 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                       "text-[10px] font-bold tracking-tight",
                       isActive ? (tab.id === "favorites" ? "text-amber-950/80" : "text-white/80") : "text-zinc-400 group-hover:text-zinc-200"
                     )}>
-                      {suiteToolCount} {suiteToolCount === 1 ? "Tool" : "Tools"}
+                      {tab.id === "favorites"
+                        ? `${suiteToolCount} ${suiteToolCount === 1 ? "Saved" : "Saved"}`
+                        : `${suiteToolCount} ${suiteToolCount === 1 ? "Tool" : "Tools"}`}
                     </span>
 
                     {isActive && (
@@ -859,57 +677,6 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
             </div>
           </section>
         )}
-
-        {/* 6. RECENT ACTIVITY */}
-        <section className="space-y-8 pt-8 border-t border-white/5">
-           <div className="flex items-center gap-3">
-              <History className="text-zinc-400" size={20} />
-              <h3 className="text-2xl font-black text-white tracking-tight">Recent Activity</h3>
-           </div>
-           <RecentlyProcessed />
-        </section>
-
-        {/* 7. FAVORITES SECTION */}
-        <section className="pt-16 pb-8 space-y-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-               <Star className="text-amber-400 fill-amber-400/20" size={24} />
-               <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Your <span className="inline-block pr-3 py-0.5 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 drop-shadow-sm">Favorites</span></h2>
-            </div>
-            {favorites.length > 0 && (
-              <div className="flex items-center gap-4">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{favorites.length} saved tools</p>
-                 {favorites.length > 6 && (
-                   <Link href="/favorites" className="flex items-center gap-1.5 text-xs font-bold text-amber-500 hover:text-amber-400 transition-colors uppercase tracking-widest">
-                     View All <ArrowRight size={14} />
-                   </Link>
-                 )}
-              </div>
-            )}
-          </div>
-          
-          {favorites.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
-              {favorites.slice(0, 6).map((toolId, i) => {
-                const tool = TOOLS.find(t => t.id === toolId);
-                if (!tool) return null;
-                return (
-                  <ToolCard key={tool.id} {...tool} index={i} initialFavorited={true} />
-                );
-              })}
-            </div>
-          ) : (
-            <div className="py-16 sm:py-20 px-5 text-center space-y-6 bg-zinc-950/50 rounded-[2rem] sm:rounded-[3rem] border border-white/5 backdrop-blur-xl">
-               <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto shadow-[0_0_30px_rgba(245,158,11,0.1)]">
-                  <Star size={32} className="fill-amber-500/20 animate-pulse" />
-               </div>
-               <div className="space-y-2">
-                  <h3 className="text-xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">No favorites yet</h3>
-                  <p className="text-zinc-400 text-xs font-medium">Click the premium star icon on any tool card to add it to your collection.</p>
-               </div>
-            </div>
-          )}
-        </section>
       </div>
 
       {/* Dynamic Credit Vault Modal */}

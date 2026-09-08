@@ -31,7 +31,8 @@ import {
   Sparkles,
   Settings,
   ShoppingBag,
-  CornerDownLeft
+  CornerDownLeft,
+  Coins
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -54,8 +55,9 @@ interface ChatMessage {
 
 const QUICK_PROMPTS = [
   { label: "How do credits work and refill?", icon: CreditCard },
+  { label: "What are Sparks and how to earn them?", icon: Sparkles },
+  { label: "Are currency spends refundable?", icon: ShieldCheck },
   { label: "What benefits come with Pro?", icon: Crown },
-  { label: "How do I generate developer API keys?", icon: Key },
   { label: "Where can I report a bug with a tool?", icon: Bug },
   { label: "What file types are supported?", icon: Layers },
 ];
@@ -763,9 +765,7 @@ export default function HelpPage() {
         <PageBreadcrumb items={[{ label: "Support & Help Center" }]} />
 
         {/* Hero Section with Live Authenticated User Status Strip */}
-        <header className="relative isolate overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-b from-[#0e0c1f]/95 via-[#090814]/95 to-[#04040a]/98 p-6 sm:p-10 lg:p-12 shadow-2xl backdrop-blur-2xl space-y-8">
-          {/* Top Laser Gradient Accent */}
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_25px_rgba(34,211,238,0.8)] z-30" />
+        <header className="relative isolate overflow-hidden rounded-[2.5rem] border-2 border-cyan-400/40 bg-gradient-to-b from-[#0e0c1f]/95 via-[#090814]/95 to-[#04040a]/98 p-6 sm:p-10 lg:p-12 shadow-[0_30px_100px_rgba(0,0,0,0.8),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-2xl space-y-8">
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div className="space-y-4 max-w-2xl">
@@ -897,11 +897,8 @@ export default function HelpPage() {
               className="space-y-6"
             >
               {/* Main Open Studio Workspace */}
-              <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_-10px_rgba(6,182,212,0.15)] flex flex-col min-h-[640px] max-h-[760px] ring-1 ring-white/[0.05]">
+              <div className="relative overflow-hidden rounded-[2rem] border-2 border-cyan-400/40 bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(6,182,212,0.25)] flex flex-col min-h-[640px] max-h-[760px]">
                 
-                {/* Ambient Top Glow Laser */}
-                <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/90 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.8)] z-30" />
-
                 {/* Subtle Ambient Studio Lighting */}
                 <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-3/4 h-48 bg-gradient-to-b from-cyan-500/[0.08] via-blue-600/[0.03] to-transparent blur-3xl -z-0" />
                 <div className="pointer-events-none absolute -bottom-20 right-0 w-80 h-80 bg-purple-600/[0.04] blur-3xl -z-0" />
@@ -1145,11 +1142,8 @@ export default function HelpPage() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.99 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_-10px_rgba(168,85,247,0.15)] p-6 sm:p-10 ring-1 ring-white/[0.05]"
+                  className="relative overflow-hidden rounded-[2rem] border-2 border-purple-500/40 bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(168,85,247,0.25)] p-6 sm:p-10"
                 >
-                  {/* Radiant Top Glow Laser */}
-                  <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/90 to-transparent shadow-[0_0_20px_rgba(168,85,247,0.8)] z-30" />
-
                   {/* Ambient Backdrop Glows */}
                   <div className="pointer-events-none absolute -top-28 left-1/2 -translate-x-1/2 w-3/4 h-52 bg-gradient-to-b from-purple-600/[0.08] via-indigo-600/[0.03] to-transparent blur-3xl -z-0" />
                   <div className="pointer-events-none absolute -bottom-24 -left-20 w-72 h-72 bg-pink-600/[0.04] blur-3xl -z-0" />
@@ -1462,10 +1456,8 @@ export default function HelpPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="relative overflow-hidden p-6 sm:p-7 rounded-[2rem] border border-white/[0.08] hover:border-white/[0.14] bg-[#070814]/90 backdrop-blur-2xl shadow-xl space-y-5 transition-all ring-1 ring-white/[0.05]"
+                  className="relative overflow-hidden p-6 sm:p-7 rounded-[2rem] border-2 border-cyan-400/30 hover:border-cyan-400/50 bg-[#070814]/90 backdrop-blur-2xl shadow-xl hover:shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_25px_rgba(34,211,238,0.2)] space-y-5 transition-all"
                 >
-                  <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.7)]" />
-                  
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.2)] shrink-0">
                       <Mail size={18} />
@@ -1503,10 +1495,8 @@ export default function HelpPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="relative overflow-hidden p-6 sm:p-7 rounded-[2rem] border border-white/[0.08] hover:border-white/[0.14] bg-[#070814]/90 backdrop-blur-2xl shadow-xl space-y-4 transition-all ring-1 ring-white/[0.05]"
+                  className="relative overflow-hidden p-6 sm:p-7 rounded-[2rem] border-2 border-purple-500/30 hover:border-purple-500/50 bg-[#070814]/90 backdrop-blur-2xl shadow-xl hover:shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_25px_rgba(168,85,247,0.2)] space-y-4 transition-all"
                 >
-                  <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/80 to-transparent shadow-[0_0_15px_rgba(168,85,247,0.7)]" />
-
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/25 text-purple-400 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.2)] shrink-0">
                       <Key size={18} />
@@ -1574,10 +1564,31 @@ export default function HelpPage() {
               },
               { 
                 q: "How do credit refills work?", 
-                a: "Free users receive daily allowances that refill every 24 hours. Extra credits bought from the shop never expire.", 
+                a: "Free users receive a daily credit allowance that refills every 24 hours. Extra top-up credits bought from the shop are permanent and never expire.", 
                 icon: CreditCard,
                 iconColor: "text-purple-400",
                 badgeColor: "bg-purple-500/10 border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+              },
+              { 
+                q: "What are Exismic Sparks and how do I earn them?", 
+                a: "Sparks are platform reward points you earn by completing daily directives, weekly challenges, and maintaining login streaks. Spend them on cosmetics, shields, and shop discount vouchers.", 
+                icon: Flame,
+                iconColor: "text-amber-400",
+                badgeColor: "bg-amber-500/10 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              },
+              { 
+                q: "Are spent Sparks or Credits refundable?", 
+                a: "No. All spends are strictly final. Once you spend Credits to run tools or spend Sparks on cosmetics, shields, or vouchers, the transaction cannot be refunded, reversed, or replaced under any circumstance.", 
+                icon: AlertTriangle,
+                iconColor: "text-rose-400",
+                badgeColor: "bg-rose-500/10 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+              },
+              { 
+                q: "Can Sparks or Credits be converted into cash?", 
+                a: "No. Credits and Sparks are strictly digital utility tokens designed exclusively for the platform. They have no cash value, cannot be withdrawn for money, and cannot be traded between accounts.", 
+                icon: Coins,
+                iconColor: "text-teal-400",
+                badgeColor: "bg-teal-500/10 border-teal-500/20 shadow-[0_0_15px_rgba(20,184,166,0.15)]"
               },
               { 
                 q: "Can I use Exismic tools for commercial work?", 
@@ -1590,11 +1601,8 @@ export default function HelpPage() {
               <motion.div 
                 key={i}
                 whileHover={{ y: -3 }}
-                className="group relative p-6 sm:p-7 rounded-2xl border border-white/[0.08] hover:border-white/[0.18] bg-[#070814]/90 hover:bg-[#0a0c1e]/95 backdrop-blur-2xl transition-all duration-300 shadow-xl hover:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.8),0_0_30px_-5px_rgba(168,85,247,0.15)] flex flex-col justify-between overflow-hidden ring-1 ring-white/[0.05]"
+                className="group relative p-6 sm:p-7 rounded-2xl border-2 border-white/[0.08] hover:border-purple-400/40 bg-[#070814]/90 hover:bg-[#0a0c1e]/95 backdrop-blur-2xl transition-all duration-300 shadow-xl hover:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.8),0_0_30px_-5px_rgba(168,85,247,0.25)] flex flex-col justify-between overflow-hidden"
               >
-                {/* Subtle top laser glow highlight on hover */}
-                <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-400/0 group-hover:via-purple-400/60 to-transparent transition-all duration-500" />
-                
                 {/* Subtle ambient light bloom */}
                 <div className="pointer-events-none absolute -top-12 -right-12 w-32 h-32 bg-purple-500/[0.03] group-hover:bg-purple-500/[0.08] rounded-full blur-2xl transition-all duration-500" />
 

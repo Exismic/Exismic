@@ -39,26 +39,7 @@ export default function RegexTester() {
   }, [pattern, flags, testText]);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-6 lg:p-8">
-      {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-lime-500/20 bg-gradient-to-br from-lime-950/40 via-zinc-950 to-black p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-lime-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/30 text-lime-300 text-xs font-black uppercase tracking-wider">
-              <Terminal size={14} className="text-lime-400" />
-              <span>Regex Engine</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
-              Regex Tester & Debugger
-            </h1>
-            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Test and evaluate JavaScript regular expression patterns in real-time with match count and syntax validation.
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       {/* Inputs */}
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">

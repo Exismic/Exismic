@@ -113,11 +113,11 @@ export function RedeemClient() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.1)]">
-            Redeem Your <span className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-transparent">Gift Pass</span>
+            Redeem Your <span className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-transparent">Voucher Code</span>
           </h1>
 
           <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed">
-            Enter your 1-time gift voucher code, Pro pass, or reward code below to instantly activate generation credits or Pro status.
+            Enter your 1-time voucher code, credit promo, or Pro pass code below to instantly activate generation credits or Pro status.
           </p>
         </div>
 
@@ -125,16 +125,15 @@ export function RedeemClient() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-[2.5rem] border border-amber-400/35 bg-[#090912]/90 p-6 sm:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_50px_rgba(245,158,11,0.15)] backdrop-blur-3xl overflow-hidden"
+          className="relative rounded-[2.5rem] border-2 border-amber-400/55 bg-[#090912]/90 p-6 sm:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_40px_rgba(245,158,11,0.2)] backdrop-blur-3xl overflow-hidden"
         >
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/80 to-transparent" />
           <div className="absolute -top-20 -right-20 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
           {!successData ? (
             <form onSubmit={handleRedeem} className="space-y-5">
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-zinc-300 mb-2">
-                  Enter Voucher / Gift Code
+                  Enter Voucher / Promo Code
                 </label>
                 <div className="relative">
                   <input
@@ -183,7 +182,7 @@ export function RedeemClient() {
                 ) : (
                   <>
                     <Sparkles size={16} className="fill-amber-950" />
-                    <span>Redeem Code & Activate Pass</span>
+                    <span>Redeem Code & Activate Reward</span>
                     <ArrowRight size={15} />
                   </>
                 )}

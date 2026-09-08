@@ -51,7 +51,7 @@ export default function AiHumanizer() {
         body: JSON.stringify({
           prompt: `Humanize the following text so it sounds 100% natural, engaging, and human-written while maintaining original meaning. Use a ${tone} tone and ${varianceLevel} sentence structure variation:\n\n${inputText}`,
           toolId: "ai-humanizer",
-          systemInstruction: "You are an expert editor who rewrites stiff, repetitive AI-generated text into authentic, fluent, human writing with natural perplexity and sentence burstiness."
+          systemInstruction: "You are an expert editor who rewrites stiff, repetitive AI-generated text into authentic, fluent, human writing with natural rhythm and clear flow."
         })
       });
 
@@ -95,33 +95,7 @@ export default function AiHumanizer() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-6 lg:p-8">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-purple-500/20 bg-gradient-to-br from-purple-950/40 via-zinc-950 to-black p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-black uppercase tracking-wider">
-              <PenTool size={14} className="text-purple-400" />
-              <span>AI Writing & Bypass</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
-              AI Text Humanizer
-            </h1>
-            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Transform stiff, robotic AI generated text from ChatGPT or Gemini into natural, fluent human writing with rich perplexity.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0">
-            <ShieldCheck size={24} className="text-emerald-400" />
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">AI Detector Pass</p>
-              <p className="text-sm font-bold text-white">98.4% Average Score</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       {/* Main Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Card */}

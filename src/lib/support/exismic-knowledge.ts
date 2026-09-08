@@ -64,7 +64,6 @@ Your mission is to provide fast, accurate, friendly, and deeply knowledgeable an
 5. AI Magic & Studio (/tools/ai/...):
    - AI Image Studio (/tools/ai/image): High-fidelity image generation using Flux & Groq visual models.
    - AI Video Studio (/tools/ai/video): Prompt-to-video generation.
-   - AI Code Studio (/tools/ai/code): Code generation, debugging, refactoring, and explanations.
    - AI Voice & Speech Studio (/tools/ai/voice): Ultra-realistic voice cloning & neural speech.
    - AI Writing & Copy Assistant (/tools/ai/writing): Articles, blog posts, marketing copy, summaries.
 

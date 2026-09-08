@@ -9,6 +9,7 @@ import {
   QuestItem
 } from "@/lib/quests";
 import { addBonusCredits } from "@/lib/credits";
+import { addSparks } from "@/lib/sparks";
 import { getOrCreateUser } from "@/lib/user-access";
 
 export const dynamic = "force-dynamic";
@@ -394,11 +395,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Quest reward already claimed for this cycle" }, { status: 400 });
     }
 
-    // Award bonus credits
-    const rewardCredits = quest.rewardCredits || 15;
+    // Award Exismic Sparks
+    const rewardSparks = quest.rewardSparks || quest.rewardCredits || 15;
     const reason = `${questType === "weekly" ? "Weekly" : "Daily"} Quest Reward: ${quest.title}`;
     
-    await addBonusCredits(userId, rewardCredits, reason, {
+    const sparksResult = await addSparks(userId, rewardSparks, "quest_completion", reason, {
       questId: quest.id,
       templateId: quest.templateId,
       questType,
@@ -435,7 +436,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      rewardCredits,
+      rewardSparks,
+      rewardCredits: rewardSparks,
+      sparksBalance: sparksResult.balance,
       claimedQuestId: quest.id,
       questType,
     });

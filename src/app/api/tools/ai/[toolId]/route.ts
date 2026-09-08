@@ -51,8 +51,6 @@ export async function POST(
       systemPrompt = "You are an expert content summarizer. Provide a concise and clear summary of the input while retaining all key information.";
     } else if (toolId === "translator") {
       systemPrompt = "You are a master translator. Accurately translate the following text into the requested language, maintaining the original tone and context.";
-    } else if (toolId === "code-gen") {
-      systemPrompt = "You are a senior software engineer. Generate clean, efficient, and well-documented code based on the user's requirements. Provide only the code block.";
     } else if (toolId === "chat") {
       systemPrompt = "You are a friendly and intelligent AI assistant. Engage in conversation and help the user with their needs.";
     } else if (toolId === "slides") {

@@ -1,5 +1,6 @@
 import React from "react";
 import HookScriptGenerator from "@/components/tool/creator/HookScriptGenerator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 import { getToolMetadata } from "@/lib/seo";
 
 export async function generateMetadata() {
@@ -7,5 +8,10 @@ export async function generateMetadata() {
 }
 
 export default function HookScriptGeneratorPage() {
-  return <HookScriptGenerator />;
+  return (
+    <ToolPageShell toolId="hook-script-generator" categoryId="creator">
+      <HookScriptGenerator />
+    </ToolPageShell>
+  );
 }
+

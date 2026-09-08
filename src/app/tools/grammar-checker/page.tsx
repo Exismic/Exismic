@@ -1,4 +1,5 @@
 import GrammarChecker from "@/components/tool/GrammarChecker";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free AI Grammar Checker & Style Editor Online | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <GrammarChecker />;
+  return (
+    <ToolPageShell
+      toolId="grammar-checker"
+      categoryId="productivity"
+      customTitle="Grammar & Style Checker"
+      customDescription="Fix spelling mistakes, grammatical errors, and phrasing with real-time AI suggestions."
+    >
+      <GrammarChecker />
+    </ToolPageShell>
+  );
 }

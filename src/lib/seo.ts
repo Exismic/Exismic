@@ -71,7 +71,7 @@ export function constructMetadata({
     keywords: keywords || [
       "AI tools", "free background remover", "AI image generator", 
       "vocal remover", "AI writer", "photo restorer", "PDF tools", 
-      "exismic", "AI video editor", "magic eraser online", "screenshot to code",
+      "exismic", "AI video editor", "magic eraser online", "AI audio engine",
       "AI resume builder", "social caption generator", "invoice generator"
     ],
     openGraph: {

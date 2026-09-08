@@ -116,45 +116,8 @@ export default function HashtagGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] px-4 pb-6 pt-24 font-sans text-white selection:bg-cyan-500/30 sm:px-6 md:px-12 md:pb-12 md:pt-28" suppressHydrationWarning>
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="text-center md:text-left">
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-center md:justify-start gap-3 mb-4"
-            >
-              <div className="p-2 bg-cyan-600/20 rounded-xl">
-                <Hash className="w-8 h-8 text-cyan-400" />
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-cyan-400">
-                Hashtag Generator
-              </h1>
-            </motion.div>
-            <motion.p
-              initial={false}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
-            >
-              Build focused, platform-aware hashtag sets for your content.
-            </motion.p>
-          </div>
-
-          <button 
-            onClick={() => setIsFavorite(!isFavorite)}
-            className={cn(
-              "p-4 rounded-2xl border transition-all self-center md:self-end",
-              isFavorite ? "bg-cyan-600 border-cyan-500 text-white shadow-lg shadow-cyan-600/20" : "bg-white/5 border-white/10 text-gray-500"
-            )}
-          >
-             <Star className={cn("w-5 h-5", isFavorite && "fill-current")} />
-          </button>
-        </header>
-
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <div className="w-full space-y-8" suppressHydrationWarning>
+      <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Controls Column */}
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-3xl shadow-2xl">
@@ -366,11 +329,6 @@ export default function HashtagGenerator() {
              </AnimatePresence>
           </div>
         </main>
-      </div>
-
-      {/* Atmospheric Background */}
-      <div className="fixed top-0 right-0 -z-10 w-[700px] h-[700px] bg-cyan-600/[0.04] blur-[150px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 -z-10 w-[600px] h-[600px] bg-purple-600/[0.03] blur-[150px] rounded-full pointer-events-none animate-pulse" />
     </div>
   );
 }

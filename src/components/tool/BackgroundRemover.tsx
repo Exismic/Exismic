@@ -358,8 +358,13 @@ export function BackgroundRemover() {
             fileType: "image",
             status: "completed",
             metadata: {
+              prompt: `Background Cutout: ${currentFile.name}`,
               tier: activeTier,
-              batch: filesToProcess.length > 1,
+              targetHref: "/tools/image/eraser",
+              settings: {
+                tier: activeTier.toUpperCase(),
+                batch: filesToProcess.length > 1 ? "Batch" : "Single",
+              },
             },
           }).catch((err) => console.warn("Failed to auto-save cutout to history:", err));
         }
@@ -451,6 +456,15 @@ export function BackgroundRemover() {
           resultUrl: data.result,
           fileType: "image",
           status: "completed",
+          metadata: {
+            prompt: `Object Erased: ${fileName}`,
+            tier: activeTier,
+            targetHref: "/tools/image/eraser",
+            settings: {
+              tier: activeTier.toUpperCase(),
+              mode: "Object Eraser",
+            },
+          },
         });
       } else {
         throw new Error(data.error || "Erasure failed");

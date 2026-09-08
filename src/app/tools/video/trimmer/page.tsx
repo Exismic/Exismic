@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
-import VideoTrimmerPage from "./VideoTrimmerClient";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
+import VideoTrimmer from "@/components/tool/VideoTrimmer";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free Online Video Trimmer & Cutter | Exismic",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "video-trimmer" || t.href === "/tools/video/trimmer") || {
-    id: "video-trimmer",
-    name: "Free Online Video Trimmer & Cutter | Exismic",
-    description: "Trim and cut videos easily in your browser. Set precise start and end times to crop unwanted sections fast.",
-    href: "/tools/video/trimmer"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <VideoTrimmerPage />
-    </>
+    <ToolPageShell
+      toolId="video-trimmer"
+      categoryId="video"
+      customTitle="Video Trimmer"
+      customDescription="Trim and cut videos with frame-accurate precision directly in your browser without quality loss."
+    >
+      <VideoTrimmer />
+    </ToolPageShell>
   );
 }

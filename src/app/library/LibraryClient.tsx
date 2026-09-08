@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { useCredits } from "@/hooks/useCredits";
 import { sendToTool } from "@/lib/pipeline";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
+import { MinecraftIcon } from "@/components/ui/MinecraftIcon";
 import { ResultFileType } from "@/lib/results";
 
 interface DriveFile {
@@ -101,7 +102,7 @@ function formatTimeAgo(dateString: string) {
 function getToolBadge(toolType: string): { label: string; color: string; icon: any } {
   const t = toolType.toLowerCase();
   if (t.includes("minecraft-skin")) {
-    return { label: "MC Skin", color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", icon: Gamepad2 };
+    return { label: "MC Skin", color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", icon: MinecraftIcon };
   }
   if (t.includes("eraser") || t.includes("bg-remove")) {
     return { label: "Cutout", color: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30", icon: Scissors };
@@ -412,9 +413,7 @@ export function LibraryClient() {
   return (
     <div className="space-y-6">
       {/* 1. Header Banner & Obsidian Glass Deck */}
-      <header className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.12] bg-[linear-gradient(135deg,#0d0e20_0%,#090a16_50%,#060812_100%)] p-6 sm:p-8 md:p-10 shadow-[0_30px_100px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)]">
-        {/* Neon Laser Line on Top */}
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 via-purple-500 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+      <header className="relative overflow-hidden rounded-[2.5rem] border-2 border-cyan-400/40 bg-[linear-gradient(135deg,#0d0e20_0%,#090a16_50%,#060812_100%)] p-6 sm:p-8 md:p-10 shadow-[0_30px_100px_rgba(0,0,0,0.8),0_0_40px_rgba(34,211,238,0.2)]">
 
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3.5">

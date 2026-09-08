@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import TypingSpeedTesterPage from "./TypingTestClient";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "AI Typing Speed Test & WPM Trainer Online | Exismic",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "typing-test" || t.href === "/tools/typing-test") || {
-    id: "typing-test",
-    name: "AI Typing Speed Test & WPM Trainer Online | Exismic",
-    description: "Test your typing speed (WPM) and accuracy with interactive prompts. Improve your keyboard efficiency with real-time feedback.",
-    href: "/tools/typing-test"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <ToolPageShell
+      toolId="typing-test"
+      categoryId="productivity"
+      customTitle="Typing Speed Test"
+      customDescription="Test your typing speed (WPM), accuracy, and consistency with live feedback and customizable duration modes."
+    >
       <TypingSpeedTesterPage />
-    </>
+    </ToolPageShell>
   );
 }

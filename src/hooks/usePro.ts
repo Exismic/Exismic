@@ -21,8 +21,6 @@ export interface ProUserRecord {
   avatar_frame?: string | null;
   name_gradient?: string | null;
   custom_avatar_url?: string | null;
-  theme_preference?: string | null;
-  profile_theme?: string | null;
   discord_user_id?: string | null;
   aiGenerationsUsed?: number;
   aiGenerationsLimit?: number;
@@ -32,8 +30,6 @@ export interface ProUserRecord {
 
 function resolveProStatus(data: ProUserRecord | null) {
   if (!data) return false;
-  const email = (data.email || '').toLowerCase();
-  if (data.role === "admin" || email === "syedyaseeralirayan@gmail.com") return true;
   if (data.is_pro === true) return true;
 
   const plan = (data.plan || data.planType || "free").toLowerCase();
@@ -144,6 +140,13 @@ async function loadGlobalProStatus(showLoading = false, force = false): Promise<
           isLoading: false,
           isInitialized: true,
         });
+        if (currentAuthUser) {
+          setTimeout(() => {
+            if (!useProStore.getState().user) {
+              void loadGlobalProStatus(false, true);
+            }
+          }, 1500);
+        }
       }
     } catch (err) {
       console.error("usePro status refresh error:", err);

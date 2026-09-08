@@ -36,6 +36,11 @@ export async function POST() {
       amount: result.amount,
       rarity: result.rarity,
       type: result.type,
+      streak: result.streak,
+      shieldConsumed: result.shieldConsumed,
+      bonusShieldEarned: result.bonusShieldEarned,
+      hasDoubleLuck: result.hasDoubleLuck,
+      hasIgnitionBoost: result.hasIgnitionBoost,
       credits: result.credits,
       totalCredits: result.credits ? getCreditTotal(result.credits) : undefined,
     });

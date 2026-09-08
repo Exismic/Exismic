@@ -32,13 +32,15 @@ import {
   HelpCircle,
   LayoutGrid,
   Rocket,
-  Flame
+  Flame,
+  ShieldCheck
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
 import { useQuests } from "@/hooks/useQuests";
+import { isAdminEmail } from "@/lib/admin";
 import dynamic from "next/dynamic";
 
 const ManageSubscriptionModal = dynamic(
@@ -95,6 +97,7 @@ export function Navbar() {
   const { isPro, isLoading: isProLoading, user: dbUser, authUser, refresh: refreshPro } = usePro();
   const { credits, showUpsell, setShowUpsell, dailyStreak, todayClaim, countdown } = useCredits();
   const { unclaimedCount, completedCount, totalAvailable } = useQuests();
+  const isAdmin = dbUser?.role === 'admin' || isAdminEmail(authUser?.email) || isAdminEmail(dbUser?.email);
 
   const [localFrameId, setLocalFrameId] = useState<string | null>(null);
   const [localGradientId, setLocalGradientId] = useState<string | null>(null);
@@ -206,7 +209,6 @@ export function Navbar() {
     { name: "Dashboard", href: "/" },
     { name: "Tools", href: "#", isDropdown: true },
     { name: "AI Chat", href: "/chat" },
-    { name: "Code Studio", href: "/tools/ai/code" },
     { name: "Shop", href: "/shop" },
     { name: "Explore", href: "/tools" },
   ];
@@ -236,8 +238,6 @@ export function Navbar() {
         return Star;
       case "AI Chat":
         return MessageSquare;
-      case "Code Studio":
-        return Code2;
       case "Shop":
         return Coins;
       case "Explore":
@@ -255,7 +255,6 @@ export function Navbar() {
     if (link.isDropdown) {
       const isSpecializedWorkspace =
         pathname.startsWith("/tools/ai/chat") ||
-        pathname.startsWith("/tools/ai/code") ||
         pathname.startsWith("/chat");
 
       return toolsDropdownOpen ||
@@ -265,10 +264,6 @@ export function Navbar() {
 
     if (link.name === "AI Chat") {
       return pathname.startsWith("/chat") || pathname.startsWith("/tools/ai/chat");
-    }
-
-    if (link.name === "Code Studio") {
-      return pathname.startsWith("/tools/ai/code");
     }
 
     if (link.name === "Explore") {
@@ -357,114 +352,118 @@ export function Navbar() {
             </div>
           )}
 
-          {/* Desktop Center: Floating Glassmorphic Capsule ONLY for landing page visitors */}
+          {/* Desktop Center: Floating Obsidian Glass Capsule for landing page visitors */}
           {!authUser ? (
             <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center z-50">
               <div className="relative group/navisland">
-                {/* Radiant Ambient Aura */}
+                {/* Subtle Ambient Backlight Glow */}
                 <div 
                   aria-hidden="true"
-                  className="pointer-events-none absolute -inset-1.5 rounded-full bg-gradient-to-r from-purple-600/40 via-cyan-500/35 to-pink-500/40 opacity-50 blur-[12px] group-hover/navisland:opacity-100 group-hover/navisland:blur-[16px] transition-all duration-500"
+                  className="pointer-events-none absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600/15 via-cyan-500/15 to-purple-600/15 opacity-0 group-hover/navisland:opacity-100 blur-xl transition-opacity duration-500"
                 />
 
-                {/* Metallic Radiant Border Rim */}
-                <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-purple-500/60 via-cyan-400/60 to-pink-500/60 shadow-[0_0_30px_rgba(168,85,247,0.3),0_0_20px_rgba(34,211,238,0.2)]">
-                  {/* Main Glassmorphic Capsule */}
-                  <nav 
-                    className="relative flex items-center gap-1.5 px-2 py-1.5 rounded-full bg-[#070818]/95 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-300 select-none"
-                    onMouseLeave={() => setHoveredNavTab(null)}
+                {/* Main Glassmorphic Capsule */}
+                <nav 
+                  className="relative flex items-center gap-1 p-1 rounded-full border border-white/[0.08] bg-[#080914]/85 hover:border-white/15 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 select-none"
+                  onMouseLeave={() => setHoveredNavTab(null)}
+                >
+                  {/* Subtle Top Hairline Highlight */}
+                  <div 
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                  />
+
+                  {/* 1. Tools */}
+                  <Link 
+                    href="/tools" 
+                    onMouseEnter={() => setHoveredNavTab("tools")}
+                    className={cn(
+                      "group/item relative flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 select-none z-10",
+                      pathname === "/tools" ? "text-white" : "text-zinc-400 hover:text-white"
+                    )}
                   >
-                    {/* Top Edge Ambient Prismatic Hairline */}
-                    <div 
-                      aria-hidden="true"
-                      className="pointer-events-none absolute top-0 inset-x-8 h-[1px] bg-gradient-to-r from-transparent via-cyan-200/60 to-transparent"
-                    />
+                    {(hoveredNavTab === "tools" || (pathname === "/tools" && !hoveredNavTab)) && (
+                      <motion.div
+                        layoutId="navPillHighlight"
+                        className="absolute inset-0 rounded-full bg-white/[0.08] border border-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <LayoutGrid size={14} className={cn(
+                      "transition-colors duration-200",
+                      pathname === "/tools" || hoveredNavTab === "tools" ? "text-purple-300" : "text-zinc-400 group-hover/item:text-purple-300"
+                    )} />
+                    <span className="relative z-10">Tools</span>
+                  </Link>
 
-                    {/* 1. Tools */}
-                    <Link 
-                      href="/tools" 
-                      onMouseEnter={() => setHoveredNavTab("tools")}
-                      className={cn(
-                        "group/item relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 select-none z-10",
-                        pathname === "/tools" ? "text-purple-200" : "text-zinc-300 hover:text-purple-200"
-                      )}
-                    >
-                      {(hoveredNavTab === "tools" || (pathname === "/tools" && !hoveredNavTab)) && (
-                        <motion.div
-                          layoutId="navPillHighlight"
-                          className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600/35 via-indigo-600/30 to-purple-600/25 border border-purple-400/60 shadow-[0_0_20px_rgba(168,85,247,0.45)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                        />
-                      )}
-                      <LayoutGrid size={14} className={cn(
-                        "transition-transform duration-300 group-hover/item:scale-110",
-                        pathname === "/tools" ? "text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,1)]" : "text-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.7)] group-hover/item:text-purple-200"
-                      )} />
-                      <span className="relative z-10">Tools</span>
-                    </Link>
+                  {/* 2. Featured */}
+                  <button 
+                    type="button"
+                    onClick={() => handleScrollTo("explore")}
+                    onMouseEnter={() => setHoveredNavTab("featured")}
+                    className="group/item relative flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-zinc-400 hover:text-white transition-all duration-200 select-none z-10 cursor-pointer"
+                  >
+                    {hoveredNavTab === "featured" && (
+                      <motion.div
+                        layoutId="navPillHighlight"
+                        className="absolute inset-0 rounded-full bg-white/[0.08] border border-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <Zap size={14} className={cn(
+                      "transition-colors duration-200",
+                      hoveredNavTab === "featured" ? "text-cyan-300" : "text-zinc-400 group-hover/item:text-cyan-300"
+                    )} />
+                    <span className="relative z-10">Featured</span>
+                  </button>
 
-                    {/* 2. Featured Showcase */}
-                    <button 
-                      type="button"
-                      onClick={() => handleScrollTo("explore")}
-                      onMouseEnter={() => setHoveredNavTab("featured")}
-                      className="group/item relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-zinc-300 hover:text-cyan-200 transition-all duration-200 select-none z-10 cursor-pointer"
-                    >
-                      {hoveredNavTab === "featured" && (
-                        <motion.div
-                          layoutId="navPillHighlight"
-                          className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/35 via-blue-600/30 to-cyan-500/25 border border-cyan-400/60 shadow-[0_0_20px_rgba(34,211,238,0.45)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                        />
-                      )}
-                      <Zap size={14} className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)] group-hover/item:text-cyan-200 group-hover/item:scale-110 transition-transform duration-200" />
-                      <span className="relative z-10">Featured</span>
-                    </button>
+                  {/* 3. Pro */}
+                  <Link 
+                    href="/pro" 
+                    onMouseEnter={() => setHoveredNavTab("pro")}
+                    className={cn(
+                      "group/pro relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 select-none z-10",
+                      pathname === "/pro" ? "text-amber-200" : "text-zinc-400 hover:text-amber-200"
+                    )}
+                  >
+                    {(hoveredNavTab === "pro" || (pathname === "/pro" && !hoveredNavTab)) && (
+                      <motion.div
+                        layoutId="navPillHighlight"
+                        className="absolute inset-0 rounded-full bg-amber-400/[0.08] border border-amber-400/20 shadow-[0_2px_12px_rgba(245,158,11,0.15)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <Crown size={14} className={cn(
+                      "transition-colors duration-200",
+                      pathname === "/pro" || hoveredNavTab === "pro" ? "text-amber-300" : "text-zinc-400 group-hover/pro:text-amber-300"
+                    )} />
+                    <span className="relative z-10">Pro</span>
+                    <span className="relative z-10 px-1.5 py-0.2 rounded-md bg-amber-400/15 border border-amber-400/30 text-amber-300 font-bold text-[9px] tracking-wider">
+                      10X
+                    </span>
+                  </Link>
 
-                    {/* 3. Pro Plan */}
-                    <Link 
-                      href="/pro" 
-                      onMouseEnter={() => setHoveredNavTab("pro")}
-                      className={cn(
-                        "group/pro relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black transition-all duration-200 select-none z-10",
-                        pathname === "/pro" ? "text-amber-100" : "text-amber-200 hover:text-white"
-                      )}
-                    >
-                      {hoveredNavTab === "pro" || pathname === "/pro" ? (
-                        <motion.div
-                          layoutId="navPillHighlight"
-                          className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/35 via-yellow-500/25 to-amber-500/35 border border-amber-400/70 shadow-[0_0_25px_rgba(245,158,11,0.55)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                        />
-                      ) : null}
-                      <Crown size={14} className="text-amber-400 fill-amber-400/40 group-hover/pro:scale-110 group-hover/pro:text-yellow-200 transition-transform drop-shadow-[0_0_8px_rgba(251,191,36,1)]" />
-                      <span className="relative z-10 bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-400 bg-clip-text text-transparent group-hover/pro:from-white group-hover/pro:to-amber-200 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
-                        Pro
-                      </span>
-                      <span className="relative z-10 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 font-black text-[8.5px] tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.8)]">
-                        10X
-                      </span>
-                    </Link>
-
-                    {/* 4. FAQ */}
-                    <button 
-                      type="button"
-                      onClick={() => handleScrollTo("faq")}
-                      onMouseEnter={() => setHoveredNavTab("faq")}
-                      className="group/item relative flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-zinc-300 hover:text-fuchsia-200 transition-all duration-200 select-none z-10 cursor-pointer"
-                    >
-                      {hoveredNavTab === "faq" && (
-                        <motion.div
-                          layoutId="navPillHighlight"
-                          className="absolute inset-0 rounded-full bg-gradient-to-r from-fuchsia-500/30 to-pink-500/25 border border-fuchsia-400/60 shadow-[0_0_20px_rgba(217,70,239,0.45)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                        />
-                      )}
-                      <HelpCircle size={14} className="text-fuchsia-400 drop-shadow-[0_0_6px_rgba(217,70,239,0.8)] group-hover/item:text-fuchsia-200 transition-colors" />
-                      <span className="relative z-10">FAQ</span>
-                    </button>
-                  </nav>
-                </div>
+                  {/* 4. FAQ */}
+                  <button 
+                    type="button"
+                    onClick={() => handleScrollTo("faq")}
+                    onMouseEnter={() => setHoveredNavTab("faq")}
+                    className="group/item relative flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-zinc-400 hover:text-white transition-all duration-200 select-none z-10 cursor-pointer"
+                  >
+                    {hoveredNavTab === "faq" && (
+                      <motion.div
+                        layoutId="navPillHighlight"
+                        className="absolute inset-0 rounded-full bg-white/[0.08] border border-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      />
+                    )}
+                    <HelpCircle size={14} className={cn(
+                      "transition-colors duration-200",
+                      hoveredNavTab === "faq" ? "text-zinc-200" : "text-zinc-400 group-hover/item:text-zinc-200"
+                    )} />
+                    <span className="relative z-10">FAQ</span>
+                  </button>
+                </nav>
               </div>
             </div>
           ) : null}
@@ -562,13 +561,13 @@ export function Navbar() {
                             <div className="space-y-4">
                               <div className="text-[10px] font-black tracking-widest text-accent-cyan uppercase pl-2">Developer Tools</div>
                               <div className="space-y-1">
-                                <Link href="/tools/ai/code" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
+                                <Link href="/tools/developer/json-to-types" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
                                   <div className="w-9 h-9 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]">
                                     <Code2 size={16} />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="text-xs font-black text-white italic">Code Studio</div>
-                                    <div className="text-[10px] text-zinc-500 line-clamp-1">Full stack AI coding terminal</div>
+                                    <div className="text-xs font-black text-white italic">JSON to Types</div>
+                                    <div className="text-[10px] text-zinc-500 line-clamp-1">TypeScript & interface generator</div>
                                   </div>
                                 </Link>
                                 <Link href="/chat" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
@@ -643,14 +642,21 @@ export function Navbar() {
                     className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/40 via-sky-400/50 to-indigo-600/40 opacity-70 blur-[3px] group-hover/vault:opacity-100 group-hover/vault:blur-[6px] transition-all duration-500 pointer-events-none"
                   />
 
-                  {/* Metallic Gradient Outer Border Rim */}
+                  {/* Substantial Metallic Outer Border Rim with Revolving Laser Beam */}
                   <span
                     aria-hidden="true"
-                    className="absolute inset-0 rounded-full p-[1px] bg-gradient-to-r from-cyan-400/50 via-sky-300/70 to-indigo-400/50 group-hover/vault:from-cyan-300 group-hover/vault:via-white group-hover/vault:to-indigo-300 transition-all duration-300 pointer-events-none"
-                  />
+                    className="absolute inset-0 rounded-full p-[1.5px] overflow-hidden pointer-events-none transition-all duration-300"
+                  >
+                    {/* Rich Solid Metallic Gradient Base */}
+                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/60 via-sky-300/80 to-indigo-400/60 group-hover/vault:from-cyan-300 group-hover/vault:via-white group-hover/vault:to-indigo-300 transition-all duration-300" />
+
+                    {/* Revolving Orbiting Laser Comet (AFK / Idle) */}
+                    <span className="absolute inset-[-140px] m-auto h-[280px] w-[280px] aspect-square animate-border-orbit opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0_270deg,rgba(6,182,212,0.5)_300deg,#38bdf8_330deg,#ffffff_355deg,transparent_360deg)]" />
+                    <span className="absolute inset-[-140px] m-auto h-[280px] w-[280px] aspect-square animate-border-orbit blur-[3px] opacity-90 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_300deg,#67e8f9_335deg,#ffffff_355deg,transparent_360deg)]" />
+                  </span>
 
                   {/* Glassmorphic Cyber-Obsidian Core */}
-                  <div className="relative flex h-full items-center gap-2.5 overflow-hidden rounded-full pl-2 pr-3.5 bg-gradient-to-r from-[#060814]/95 via-[#0b1026]/95 to-[#080718]/95 border border-cyan-400/25 group-hover/vault:border-cyan-300/60 backdrop-blur-2xl transition-all duration-300">
+                  <div className="relative z-10 flex h-full items-center gap-2.5 overflow-hidden rounded-full pl-2 pr-3.5 bg-gradient-to-r from-[#060814]/95 via-[#0b1026]/95 to-[#080718]/95 border border-cyan-400/30 group-hover/vault:border-cyan-300/60 backdrop-blur-2xl transition-all duration-300">
                     {/* Ambient Radial Lighting & Sheen Reflection */}
                     <div
                       aria-hidden="true"
@@ -714,28 +720,47 @@ export function Navbar() {
                       "absolute inset-0 rounded-full transition-all duration-500 pointer-events-none",
                       !todayClaim
                         ? "bg-gradient-to-r from-orange-500/70 via-amber-400/80 to-red-500/70 opacity-90 blur-[4px] animate-pulse"
-                        : "bg-gradient-to-r from-orange-500/35 via-amber-400/40 to-yellow-500/35 opacity-60 blur-[2px] group-hover/daily:opacity-90 group-hover/daily:blur-[4px]"
+                        : "bg-gradient-to-r from-orange-500/40 via-amber-400/45 to-yellow-500/40 opacity-70 blur-[3px] group-hover/daily:opacity-95 group-hover/daily:blur-[5px]"
                     )}
                   />
 
-                  {/* Metallic Gradient Outer Border Rim */}
+                  {/* Substantial Metallic Outer Border Rim with Revolving Laser Beam */}
                   <span
                     aria-hidden="true"
-                    className={cn(
-                      "absolute inset-0 rounded-full p-[1px] transition-all duration-300 pointer-events-none",
-                      !todayClaim
-                        ? "bg-gradient-to-r from-orange-400 via-amber-200 to-orange-400"
-                        : "bg-gradient-to-r from-orange-500/50 via-amber-400/60 to-yellow-600/50 group-hover/daily:from-orange-400/90 group-hover/daily:via-amber-300 group-hover/daily:to-orange-500/90"
-                    )}
-                  />
+                    className="absolute inset-0 rounded-full p-[1.5px] overflow-hidden pointer-events-none transition-all duration-300"
+                  >
+                    {/* Rich Solid Metallic Gradient Base */}
+                    <span
+                      className={cn(
+                        "absolute inset-0 rounded-full transition-all duration-300",
+                        !todayClaim
+                          ? "bg-gradient-to-r from-orange-400 via-amber-200 to-orange-400"
+                          : "bg-gradient-to-r from-orange-500/60 via-amber-400/70 to-yellow-600/60 group-hover/daily:from-orange-400 group-hover/daily:via-amber-300 group-hover/daily:to-orange-500"
+                      )}
+                    />
+
+                    {/* Revolving Orbiting Laser Comet (AFK / Idle) */}
+                    <span
+                      className={cn(
+                        "absolute inset-[-140px] m-auto h-[280px] w-[280px] aspect-square opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0_270deg,rgba(234,88,12,0.5)_300deg,#f59e0b_330deg,#ffffff_355deg,transparent_360deg)]",
+                        !todayClaim ? "animate-border-orbit-fast" : "animate-border-orbit"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "absolute inset-[-140px] m-auto h-[280px] w-[280px] aspect-square blur-[3px] opacity-90 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0_260deg,#ea580c_300deg,#fbbf24_335deg,#ffffff_355deg,transparent_360deg)]",
+                        !todayClaim ? "animate-border-orbit-fast" : "animate-border-orbit"
+                      )}
+                    />
+                  </span>
 
                   {/* Glassmorphic Cyber-Obsidian Core */}
                   <div
                     className={cn(
-                      "relative flex h-full items-center gap-2 overflow-hidden rounded-full pl-2 pr-3.5 backdrop-blur-2xl border transition-all duration-300",
+                      "relative z-10 flex h-full items-center gap-2 overflow-hidden rounded-full pl-2 pr-3.5 backdrop-blur-2xl border transition-all duration-300",
                       !todayClaim
                         ? "bg-gradient-to-r from-[#180b03]/95 via-[#1a0e05]/95 to-[#120703]/95 border-orange-400/50 group-hover/daily:border-orange-300/80"
-                        : "bg-gradient-to-r from-[#0c0704]/95 via-[#100b07]/95 to-[#0b0705]/95 border-orange-500/20 group-hover/daily:border-orange-400/50 group-hover/daily:bg-[#140c06]/95"
+                        : "bg-gradient-to-r from-[#0c0704]/95 via-[#100b07]/95 to-[#0b0705]/95 border-orange-500/30 group-hover/daily:border-orange-400/60 group-hover/daily:bg-[#140c06]/95"
                     )}
                   >
                     {/* Ambient Radial Lighting & Sheen Reflection */}
@@ -788,7 +813,7 @@ export function Navbar() {
                       className="relative z-10 font-sans text-[12.5px] font-black tracking-tight bg-gradient-to-b from-white via-amber-100 to-amber-200 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(249,115,22,0.4)] notranslate"
                       translate="no"
                     >
-                      {dailyStreak || 1}d
+                      {dailyStreak ?? 0}d
                     </span>
 
                     {/* Luxury Embossed Typography */}
@@ -798,8 +823,8 @@ export function Navbar() {
 
                     {/* Dynamic Status / Call to Action */}
                     {!todayClaim ? (
-                      <span className="relative z-10 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-black font-black text-[8.5px] tracking-wider shadow-[0_0_12px_rgba(249,115,22,0.9)] animate-pulse shrink-0">
-                        <Sparkles size={9} className="shrink-0 text-black" />
+                      <span className="relative z-10 flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-black font-black text-[8.5px] tracking-wider shadow-[0_0_12px_rgba(249,115,22,0.9)] animate-pulse shrink-0">
+                        <Gift size={9} className="shrink-0 text-black fill-black/20" />
                         CLAIM
                       </span>
                     ) : (
@@ -834,27 +859,47 @@ export function Navbar() {
                       "absolute inset-0 rounded-full transition-all duration-500 pointer-events-none",
                       unclaimedCount > 0
                         ? "bg-gradient-to-r from-amber-500/70 via-yellow-400/80 to-amber-600/70 opacity-90 blur-[4px] animate-pulse"
-                        : "bg-gradient-to-r from-amber-500/40 via-yellow-400/45 to-orange-500/40 opacity-60 blur-[2px] group-hover/quests:opacity-100 group-hover/quests:blur-[4px]"
+                        : "bg-gradient-to-r from-amber-500/40 via-yellow-400/45 to-orange-500/40 opacity-70 blur-[3px] group-hover/quests:opacity-95 group-hover/quests:blur-[5px]"
                     )}
                   />
-                  {/* Metallic Gradient Outer Border Rim */}
+
+                  {/* Substantial Metallic Outer Border Rim with Revolving Laser Beam */}
                   <span
                     aria-hidden="true"
-                    className={cn(
-                      "absolute inset-0 rounded-full p-[1px] transition-all duration-300 pointer-events-none",
-                      unclaimedCount > 0
-                        ? "bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400"
-                        : "bg-gradient-to-r from-amber-500/50 via-yellow-400/70 to-amber-600/50 group-hover/quests:from-amber-400/90 group-hover/quests:via-yellow-300 group-hover/quests:to-amber-500/90"
-                    )}
-                  />
+                    className="absolute inset-0 rounded-full p-[1.5px] overflow-hidden pointer-events-none transition-all duration-300"
+                  >
+                    {/* Rich Solid Metallic Gradient Base */}
+                    <span
+                      className={cn(
+                        "absolute inset-0 rounded-full transition-all duration-300",
+                        unclaimedCount > 0
+                          ? "bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400"
+                          : "bg-gradient-to-r from-amber-500/60 via-yellow-400/70 to-amber-600/60 group-hover/quests:from-amber-400 group-hover/quests:via-yellow-300 group-hover/quests:to-amber-500"
+                      )}
+                    />
+
+                    {/* Revolving Orbiting Laser Comet (AFK / Idle) */}
+                    <span
+                      className={cn(
+                        "absolute inset-[-140px] m-auto h-[280px] w-[280px] aspect-square opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0_270deg,rgba(217,119,6,0.5)_300deg,#facc15_330deg,#ffffff_355deg,transparent_360deg)]",
+                        unclaimedCount > 0 ? "animate-border-orbit-fast" : "animate-border-orbit-slow"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "absolute inset-[-140px] m-auto h-[280px] w-[280px] aspect-square blur-[3px] opacity-90 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0_260deg,#d97706_300deg,#fde047_335deg,#ffffff_355deg,transparent_360deg)]",
+                        unclaimedCount > 0 ? "animate-border-orbit-fast" : "animate-border-orbit-slow"
+                      )}
+                    />
+                  </span>
 
                   {/* Glassmorphic Luxury Obsidian Core */}
                   <div
                     className={cn(
-                      "relative flex h-full items-center gap-2 overflow-hidden rounded-full pl-2 pr-3.5 backdrop-blur-2xl border transition-all duration-300",
+                      "relative z-10 flex h-full items-center gap-2 overflow-hidden rounded-full pl-2 pr-3.5 backdrop-blur-2xl border transition-all duration-300",
                       unclaimedCount > 0
                         ? "bg-gradient-to-r from-[#170e05]/95 via-[#1a1106]/95 to-[#120917]/95 border-amber-400/50 group-hover/quests:border-amber-300/80"
-                        : "bg-gradient-to-r from-[#09070f]/95 via-[#0e0a14]/95 to-[#0b0810]/95 border-amber-400/20 group-hover/quests:border-amber-300/50 group-hover/quests:bg-[#120e1a]/95"
+                        : "bg-gradient-to-r from-[#09070f]/95 via-[#0e0a14]/95 to-[#0b0810]/95 border-amber-400/30 group-hover/quests:border-amber-300/60 group-hover/quests:bg-[#120e1a]/95"
                     )}
                   >
                     {/* Ambient Radial Lighting & Sheen Reflection */}
@@ -950,7 +995,7 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                        className="absolute right-0 mt-4 w-[320px] bg-zinc-950/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_40px_80px_rgba(0,0,0,0.8)] z-50 overflow-hidden p-6 space-y-6"
+                        className="absolute right-0 mt-4 w-[340px] bg-zinc-950/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_40px_80px_rgba(0,0,0,0.8)] z-50 overflow-hidden"
                       >
                         {/* Profile Header */}
                         <UserProfile 
@@ -963,7 +1008,8 @@ export function Navbar() {
                           variant="menu-header" 
                         />
 
-                        {/* Usage Progress Tracker */}
+                        <div className="px-6 pb-6 space-y-6">
+                          {/* Usage Progress Tracker */}
                         <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
                           <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-zinc-500">
                             <span>AI Generations</span>
@@ -992,7 +1038,7 @@ export function Navbar() {
                             <span className="font-sans font-black tracking-wider bg-gradient-to-r from-orange-100 to-amber-300 bg-clip-text text-transparent">Daily Mystery Vault</span>
                             {!todayClaim ? (
                               <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1">
-                                <Sparkles size={9} />
+                                <Gift size={9} className="shrink-0 text-black fill-black/20" />
                                 CLAIM DROP
                               </span>
                             ) : (
@@ -1014,7 +1060,7 @@ export function Navbar() {
                             <span className="font-sans font-black tracking-wider bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent">Daily Quests</span>
                             {unclaimedCount > 0 ? (
                               <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-pulse font-mono flex items-center gap-1">
-                                <Sparkles size={9} />
+                                <Trophy size={9} className="shrink-0 text-amber-950" />
                                 +{unclaimedCount} CLAIM
                               </span>
                             ) : completedCount === totalAvailable && totalAvailable > 0 ? (
@@ -1041,13 +1087,28 @@ export function Navbar() {
                             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider text-left"
                           >
                             <Gift size={14} className="text-amber-400" />
-                            <span>Redeem Gift Pass</span>
+                            <span>Redeem Code / Voucher</span>
                             <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
                           </button>
                           <Link href="/account/settings" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
                             <Settings size={14} />
                             <span>Account Settings</span>
                           </Link>
+                          {isAdmin && (
+                            <Link 
+                              href="/admin" 
+                              onClick={() => setUserDropdownOpen(false)} 
+                              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-300 hover:text-white bg-gradient-to-r from-rose-500/[0.08] to-transparent hover:from-rose-500/20 hover:to-rose-500/5 border border-rose-500/20 hover:border-rose-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/admin shadow-[0_0_15px_rgba(244,63,94,0.06)] hover:shadow-[0_0_25px_rgba(244,63,94,0.2)]"
+                            >
+                              <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 group-hover/admin:scale-110 transition-transform shrink-0">
+                                <ShieldCheck size={13} className="text-rose-300 drop-shadow-[0_0_5px_rgba(244,63,94,0.8)]" />
+                              </div>
+                              <span className="font-sans font-black tracking-wider bg-gradient-to-r from-rose-100 to-rose-300 bg-clip-text text-transparent">Admin Panel</span>
+                              <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono tracking-wider">
+                                ADMIN
+                              </span>
+                            </Link>
+                          )}
                           {isPro ? (
                             <button 
                               onClick={() => setIsManageModalOpen(true)}
@@ -1079,46 +1140,35 @@ export function Navbar() {
                           <LogOut size={14} />
                           <span>Log Out</span>
                         </button>
-                      </motion.div>
+                      </div>
+                    </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3 select-none">
-                {/* Log In Button - High-Octane Glass with Neon Prismatic Aura & Light Sweep */}
-                <Link href="/auth/login" className="group/login relative select-none">
-                  {/* Ambient Halo Glow */}
-                  <div className="pointer-events-none absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600/60 via-indigo-500/50 to-cyan-400/60 opacity-40 blur-[8px] group-hover/login:opacity-100 group-hover/login:blur-[12px] group-hover/login:scale-105 transition-all duration-300" />
-                  
-                  {/* 1.5px Prismatic Border Rim */}
-                  <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-purple-500/70 via-cyan-400/70 to-indigo-500/70 group-hover/login:from-purple-400 group-hover/login:via-cyan-300 group-hover/login:to-pink-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] group-hover/login:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all duration-300">
-                    <div className="h-10 px-4.5 rounded-full bg-gradient-to-r from-[#0a0c1e]/95 via-[#101432]/95 to-[#0b0e24]/95 hover:from-[#13173d] hover:to-[#171c4a] text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_16px_rgba(0,0,0,0.6)] transition-all active:scale-95 overflow-hidden relative">
-                      {/* Light Sweep Shimmer */}
-                      <div className="pointer-events-none absolute inset-y-0 -left-12 w-8 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/30 to-transparent blur-[1px] group-hover/login:translate-x-36 transition-transform duration-700 ease-out" />
-                      
-                      <LogIn size={14} className="text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.9)] group-hover/login:translate-x-0.5 group-hover/login:text-cyan-200 transition-all duration-200" />
-                      <span className="bg-gradient-to-r from-white via-zinc-100 to-cyan-200 bg-clip-text text-transparent group-hover/login:from-white group-hover/login:to-white tracking-wide">
-                        Log in
-                      </span>
-                    </div>
-                  </div>
+              <div className="flex items-center gap-2 select-none">
+                {/* Clean, Refined Log In Link */}
+                <Link 
+                  href="/auth/login" 
+                  className="px-3.5 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-all tracking-wide cursor-pointer"
+                >
+                  Log in
                 </Link>
 
-                {/* Try for Free Ultra Bold Radiant Jewel Button */}
+                {/* Jewel CTA: Try for Free */}
                 <Link href="/tools" className="group/tryfree relative select-none">
-                  {/* Outer Intense Radiant Aura */}
-                  <div className="pointer-events-none absolute -inset-1.5 rounded-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-400 opacity-80 blur-[10px] group-hover/tryfree:opacity-100 group-hover/tryfree:blur-[16px] group-hover/tryfree:scale-105 transition-all duration-300 animate-pulse" />
+                  {/* Soft Ambient Halo */}
+                  <div className="pointer-events-none absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-500 opacity-35 blur-[10px] group-hover/tryfree:opacity-75 group-hover/tryfree:blur-[14px] transition-all duration-300" />
                   
-                  {/* 1.5px Prismatic Border Rim */}
-                  <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-pink-400 via-cyan-300 via-yellow-200 to-purple-400 shadow-[0_0_25px_rgba(217,70,239,0.5),0_0_15px_rgba(6,182,212,0.4)] group-hover/tryfree:shadow-[0_0_35px_rgba(217,70,239,0.8),0_0_20px_rgba(6,182,212,0.6)] transition-all duration-300">
-                    <button className="h-10 px-5.5 rounded-full bg-gradient-to-r from-[#a21caf] via-[#6366f1] to-[#0891b2] hover:from-[#c026d3] hover:via-[#4f46e5] hover:to-[#06b6d4] text-white font-black uppercase tracking-wider text-xs flex items-center gap-2.5 cursor-pointer shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.7),0_8px_25px_rgba(147,51,234,0.6)] transition-all relative overflow-hidden active:scale-95">
-                      {/* Dynamic Metallic Light Sweep */}
-                      <div className="pointer-events-none absolute inset-y-0 -left-16 w-12 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/40 to-transparent blur-[2px] group-hover/tryfree:translate-x-48 transition-transform duration-1000 ease-out" />
+                  {/* Outer Shimmer Border */}
+                  <div className="relative p-[1px] rounded-full bg-gradient-to-r from-purple-400/50 via-indigo-300/50 to-cyan-400/50 group-hover/tryfree:from-purple-300 group-hover/tryfree:via-white/70 group-hover/tryfree:to-cyan-300 transition-all duration-300">
+                    <button className="h-9 px-4.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:via-indigo-500 hover:to-cyan-500 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_4px_16px_rgba(0,0,0,0.4)] transition-all relative overflow-hidden active:scale-95">
+                      {/* Smooth Light Sweep */}
+                      <div className="pointer-events-none absolute inset-y-0 -left-12 w-8 skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/30 to-transparent blur-[1px] group-hover/tryfree:translate-x-44 transition-transform duration-700 ease-out" />
                       
-                      <Rocket size={14} className="text-cyan-100 drop-shadow-[0_0_10px_rgba(34,211,238,1)] group-hover/tryfree:-translate-y-1 group-hover/tryfree:translate-x-1 group-hover/tryfree:rotate-12 transition-transform duration-300" />
-                      <span className="tracking-wider drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">Try for Free</span>
-                      <ArrowRight size={14} className="text-white drop-shadow-[0_0_6px_rgba(255,255,255,1)] group-hover/tryfree:translate-x-1 transition-transform duration-300" />
+                      <span className="tracking-wide">Try for Free</span>
+                      <ArrowRight size={13} className="group-hover/tryfree:translate-x-0.5 transition-transform duration-200" />
                     </button>
                   </div>
                 </Link>
@@ -1382,7 +1432,7 @@ export function Navbar() {
                         <span className="bg-gradient-to-r from-orange-100 to-amber-200 bg-clip-text text-transparent font-black">Daily Mystery Vault</span>
                         {!todayClaim ? (
                           <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 text-black animate-pulse font-mono shadow-[0_0_10px_rgba(249,115,22,0.8)] flex items-center gap-1">
-                            <Sparkles size={9} />
+                            <Gift size={9} className="shrink-0 text-black fill-black/20" />
                             CLAIM DROP
                           </span>
                         ) : (
@@ -1405,7 +1455,7 @@ export function Navbar() {
                         <span className="bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent font-black">Quests & Rewards</span>
                         {unclaimedCount > 0 ? (
                           <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 animate-pulse font-mono shadow-[0_0_10px_rgba(245,158,11,0.8)] flex items-center gap-1">
-                            <Sparkles size={9} />
+                            <Gift size={9} className="shrink-0 text-amber-950" />
                             +{unclaimedCount} READY
                           </span>
                         ) : completedCount === totalAvailable && totalAvailable > 0 ? (
@@ -1436,7 +1486,7 @@ export function Navbar() {
                         className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10 text-left"
                       >
                         <Gift size={16} className="text-amber-400" />
-                        Redeem Gift Pass
+                        Redeem Code / Voucher
                         <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
                       </button>
                       <Link
@@ -1457,6 +1507,19 @@ export function Navbar() {
                         Settings & Security
                         <ChevronDown size={14} className="ml-auto -rotate-90 text-zinc-700" />
                       </Link>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-rose-300 bg-rose-500/10 border border-rose-500/20 transition-colors active:bg-rose-500/20"
+                        >
+                          <ShieldCheck size={16} className="text-rose-400" />
+                          Admin Panel
+                          <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono">
+                            ADMIN
+                          </span>
+                        </Link>
+                      )}
                       <button
                         type="button"
                         onClick={() => {

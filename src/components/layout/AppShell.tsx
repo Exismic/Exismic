@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { GlobalToolAssistant } from "@/components/tool/GlobalToolAssistant";
 import { WelcomeModal } from "@/components/modals/WelcomeModal";
+import { LaunchOfferModal } from "@/components/modals/LaunchOfferModal";
 import { QuestCompletionToast } from "@/components/reward/QuestCompletionToast";
 import { createClient } from "@/utils/supabase/client";
 
@@ -22,7 +23,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
   const [clientHasSession, setClientHasSession] = useState(hasSession);
   const refreshedForSessionRef = useRef(false);
   const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
-  const isRewardsRoute = pathname === "/rewards" || pathname.startsWith("/rewards");
+  const isRewardsRoute = pathname === "/rewards";
   const isStandaloneRoute = isAuthRoute || isRewardsRoute;
   const isOverviewPage = pathname === "/" || pathname === "/dashboard" || pathname === "/tools";
 
@@ -145,6 +146,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
       {!isStandaloneRoute && pathname !== "/" ? <GlobalToolAssistant /> : null}
       {!isStandaloneRoute && clientHasSession ? <WelcomeModal /> : null}
       {!isStandaloneRoute && clientHasSession ? <QuestCompletionToast /> : null}
+      {!isStandaloneRoute ? <LaunchOfferModal /> : null}
     </>
   );
 }

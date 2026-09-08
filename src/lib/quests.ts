@@ -16,6 +16,7 @@ export interface QuestItem {
   target: number;
   current: number;
   rewardCredits: number;
+  rewardSparks: number;
   actionUrl: string;
   actionLabel: string;
   completed: boolean;
@@ -495,7 +496,8 @@ export function generateQuestsForUser(
     
     const step = tpl.targetMax > tpl.targetMin ? (target - tpl.targetMin) / (tpl.targetMax - tpl.targetMin) : 0.5;
     const rawReward = tpl.rewardMin + step * (tpl.rewardMax - tpl.rewardMin);
-    const rewardCredits = Math.round(rawReward / 5) * 5;
+    const rewardSparks = Math.round(rawReward / 5) * 5;
+    const rewardCredits = rewardSparks;
 
     const current = tpl.evaluateProgress(activity);
     const completed = current >= target;
@@ -512,6 +514,7 @@ export function generateQuestsForUser(
       target,
       current: Math.min(current, target),
       rewardCredits,
+      rewardSparks,
       actionUrl: tpl.actionUrl,
       actionLabel: tpl.actionLabel,
       completed,
@@ -533,6 +536,7 @@ export const DAILY_QUESTS: QuestItem[] = DAILY_QUEST_TEMPLATES.slice(0, 4).map((
   target: tpl.targetMin,
   current: 0,
   rewardCredits: tpl.rewardMin,
+  rewardSparks: tpl.rewardMin,
   actionUrl: tpl.actionUrl,
   actionLabel: tpl.actionLabel,
   completed: false,

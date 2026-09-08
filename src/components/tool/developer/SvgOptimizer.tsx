@@ -44,20 +44,7 @@ export default function SvgOptimizer() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8">
-      {/* Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-lime-950/40 via-emerald-900/20 to-neutral-900 border border-lime-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/30 text-lime-300 text-xs font-semibold uppercase tracking-wider">
-          <FileCode className="w-3.5 h-3.5" /> SVG Compression Engine
-        </div>
-        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          SVG Optimizer & File Cleaner (SVGO)
-        </h2>
-        <p className="text-neutral-400 text-sm sm:text-base max-w-2xl">
-          Strip unnecessary XML metadata, Figma/Illustrator junk, and redundant inline attributes to compress SVG payload size by 40-70%.
-        </p>
-      </div>
-
+    <div className="w-full space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Input Column */}
         <div className="lg:col-span-6 space-y-4 p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 backdrop-blur-xl shadow-xl">

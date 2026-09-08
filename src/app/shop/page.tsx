@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -77,9 +78,9 @@ const packStyles: Record<string, {
     icon: Coins,
     iconColor: "text-cyan-300",
     iconBg: "border-cyan-400/40 bg-gradient-to-br from-cyan-500/25 via-blue-900/30 to-black/85 shadow-[0_0_20px_rgba(34,211,238,0.3)]",
-    cardBorder: "border border-cyan-500/30 bg-gradient-to-r from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-400/70 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_30px_rgba(34,211,238,0.12)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_45px_rgba(34,211,238,0.28)]",
+    cardBorder: "border-2 border-cyan-400/80 bg-gradient-to-r from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(34,211,238,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
     ambientGradient: "from-cyan-500/18 via-blue-600/10 to-transparent",
-    topBeam: "bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.85)]",
+    topBeam: "",
     numberGradient: "bg-[linear-gradient(110deg,#ffffff,#cffafe,#38bdf8,#ffffff)] drop-shadow-[0_0_18px_rgba(56,189,248,0.4)]",
     conicGradient: "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]",
     markTheme: "blue",
@@ -92,9 +93,9 @@ const packStyles: Record<string, {
     icon: Diamond,
     iconColor: "text-purple-300",
     iconBg: "border-purple-400/45 bg-gradient-to-br from-purple-500/30 via-fuchsia-950/40 to-black/85 shadow-[0_0_25px_rgba(168,85,247,0.4)]",
-    cardBorder: "border-2 border-purple-400/85 bg-gradient-to-r from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_45px_rgba(168,85,247,0.32)] hover:border-fuchsia-300 hover:shadow-[0_30px_80px_rgba(0,0,0,0.9),0_0_65px_rgba(217,70,239,0.55)]",
+    cardBorder: "border-2 border-purple-400/85 bg-gradient-to-r from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_0_30px_rgba(168,85,247,0.35),0_24px_70px_rgba(0,0,0,0.85)] hover:border-fuchsia-300 hover:shadow-[0_0_55px_rgba(217,70,239,0.55),0_30px_80px_rgba(0,0,0,0.9)]",
     ambientGradient: "from-purple-600/22 via-fuchsia-600/14 to-cyan-500/10",
-    topBeam: "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 shadow-[0_0_20px_rgba(217,70,239,0.95)]",
+    topBeam: "",
     numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
     conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
     markTheme: "purple",
@@ -107,9 +108,9 @@ const packStyles: Record<string, {
     icon: Crown,
     iconColor: "text-amber-300",
     iconBg: "border-amber-400/45 bg-gradient-to-br from-amber-500/30 via-rose-950/40 to-black/85 shadow-[0_0_25px_rgba(245,158,11,0.35)]",
-    cardBorder: "border border-amber-400/45 bg-gradient-to-r from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300/85 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(245,158,11,0.2)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_50px_rgba(245,158,11,0.38)]",
+    cardBorder: "border-2 border-amber-400/80 bg-gradient-to-r from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(245,158,11,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
     ambientGradient: "from-amber-500/20 via-rose-600/12 to-transparent",
-    topBeam: "bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 shadow-[0_0_18px_rgba(245,158,11,0.85)]",
+    topBeam: "",
     numberGradient: "bg-[linear-gradient(110deg,#ffffff,#fde047,#fb7185,#ffffff)] drop-shadow-[0_0_20px_rgba(251,113,133,0.45)]",
     conicGradient: "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(239,68,68,1)_33%,rgba(252,211,77,1)_66%,rgba(245,158,11,1)_100%)]",
     markTheme: "gold",
@@ -314,7 +315,7 @@ export default function ShopPage() {
     setIsTermsModalOpen(true);
   };
 
-  const handlePurchaseConfirm = async () => {
+  const handlePurchaseConfirm = async (couponCode?: string) => {
     if (!selectedPack) return;
     setIsProcessingId(selectedPack.id);
     setIsTermsModalOpen(false);
@@ -328,6 +329,7 @@ export default function ShopPage() {
         body: JSON.stringify({
           planId: selectedPack.billingPlanId || selectedPack.id,
           marketOverride,
+          couponCode: couponCode || undefined,
         }),
       }).finally(checkoutRequest.clear);
       const data = await response.json().catch(() => null);
@@ -431,15 +433,23 @@ export default function ShopPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-2xl text-base font-medium leading-8 text-zinc-400 sm:text-lg">
-              Daily credits reset for normal usage. Bonus rewards and permanent credits sit on top, ready for heavier Pro tools.
+              Daily credits refill every 24 hours for routine usage. Permanent reserve credits sit on top, never expire, and are ready for heavy workloads.
             </p>
+            <div className="mt-4 flex items-center gap-3">
+              <Link
+                href="/rewards/guide"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 text-xs font-bold text-cyan-300 hover:border-cyan-300 hover:text-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)] group"
+              >
+                <span>Credit Rules & Non-Refund Policy</span>
+                <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.12] bg-gradient-to-br from-[#0c0e1a]/95 via-[#070810]/98 to-[#030408]/98 p-6 shadow-[0_32px_100px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl sm:p-8">
+          <div className="relative overflow-hidden rounded-[2.5rem] border-2 border-cyan-400/40 bg-gradient-to-br from-[#0c0e1a]/95 via-[#070810]/98 to-[#030408]/98 p-6 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-3xl sm:p-8">
             {/* Ambient glows inside card */}
             <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-purple-500/20 blur-3xl" />
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-400 shadow-[0_0_20px_rgba(34,211,238,0.7)]" />
 
             <div className="relative z-10 flex items-center justify-between gap-4">
               <div>
@@ -571,9 +581,6 @@ export default function ShopPage() {
                   >
                     {/* Ambient Glow */}
                     <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-90", pack.style.ambientGradient)} />
-                    
-                    {/* Top edge neon beam */}
-                    <div className={cn("absolute inset-x-0 top-0 h-[2px]", pack.style.topBeam)} />
 
                     <div className="relative z-10 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-4.5">

@@ -14,7 +14,10 @@ import {
   Sparkles,
   Store,
   Users,
+  Clock,
+  Wrench,
 } from "lucide-react";
+import { isToolUnavailable } from "@/lib/tool-reliability";
 import {
   SUPPORT_AGENT_FEATURES,
   SUPPORT_AGENT_PRICING,
@@ -31,7 +34,15 @@ export const metadata: Metadata = constructMetadata({
 const featureIcons = [BookOpen, MessageSquare, Users, Handshake, MessagesSquare, BarChart3];
 const useCaseIcons = [Store, Bot, Sparkles, Users, Code2, MessageSquare];
 
+import { SupportAgentMaintenanceScreen } from "@/components/support-agent/SupportAgentMaintenanceScreen";
+
 export default function SupportAgentLandingPage() {
+  const isUnavailable = isToolUnavailable("support-agent");
+
+  if (isUnavailable) {
+    return <SupportAgentMaintenanceScreen />;
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#030305] text-white">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -42,26 +53,47 @@ export default function SupportAgentLandingPage() {
 
       <section className="mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:px-10">
         <div className="space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100">
-            <Bot className="h-4 w-4" />
-            Exismic Support Agent
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100">
+              <Bot className="h-4 w-4" />
+              Exismic Support Agent
+            </div>
+            {isUnavailable && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+                <Clock className="h-3.5 w-3.5 animate-pulse" />
+                Under Maintenance
+              </div>
+            )}
           </div>
           <div className="space-y-5">
             <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               AI support agents for your website
             </h1>
             <p className="max-w-2xl text-base font-semibold leading-8 text-zinc-400 sm:text-lg">
-              Train Exismic with your FAQs, policies, documents, and product details. Then embed a support chatbot on your website in minutes.
+              {isUnavailable
+                ? "The Exismic Support Agent engine and knowledge base embed systems are currently undergoing scheduled upgrades and optimizations. It will be back online shortly."
+                : "Train Exismic with your FAQs, policies, documents, and product details. Then embed a support chatbot on your website in minutes."}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/dashboard/support-agent/new"
-              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-400 px-6 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[0_24px_90px_rgba(34,211,238,0.22)] transition hover:scale-[1.02]"
-            >
-              Create support agent
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            {isUnavailable ? (
+              <Link
+                href="/dashboard/support-agent"
+                className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-6 py-4 text-xs font-black uppercase tracking-[0.2em] text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition hover:bg-amber-400/20"
+              >
+                <Wrench className="h-4 w-4" />
+                Maintenance Details
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard/support-agent/new"
+                className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-400 px-6 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[0_24px_90px_rgba(34,211,238,0.22)] transition hover:scale-[1.02]"
+              >
+                Create support agent
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
             <Link
               href="#pricing"
               className="inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 py-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-200 transition hover:bg-white/[0.06]"

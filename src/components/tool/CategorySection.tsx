@@ -125,14 +125,14 @@ export function CategorySection() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 w-full">
+                    <div className="flex-1 min-w-0 w-full">
                       <h3 className={cn(
-                        "text-xl sm:text-2xl font-black tracking-tighter leading-tight transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+                        "text-lg sm:text-xl font-black tracking-tight leading-snug transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
                         style.textGrad
                       )}>
                         {cat.name}
                       </h3>
-                      <p className="text-xs sm:text-[13px] font-medium text-zinc-500 line-clamp-3 sm:line-clamp-2 leading-relaxed tracking-tight group-hover:text-zinc-300 transition-colors break-words mx-auto">
+                      <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-3 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words mx-auto">
                         {cat.description}
                       </p>
                     </div>

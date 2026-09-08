@@ -260,16 +260,9 @@ export function HomeToolConcierge() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 280, damping: 27 }}
-            className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-h-[min(660px,calc(100dvh-1.5rem))] max-w-[475px] flex-col overflow-hidden rounded-[26px] border border-white/[0.12] bg-[#070814]/95 shadow-[0_32px_100px_rgba(0,0,0,0.88),0_0_60px_rgba(124,58,237,0.15)] backdrop-blur-3xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:max-h-[min(670px,calc(100dvh-3rem))] sm:w-[475px]"
+            className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-h-[min(660px,calc(100dvh-1.5rem))] max-w-[475px] flex-col overflow-hidden rounded-[26px] border-2 border-purple-500/50 bg-[#070814]/95 shadow-[0_32px_100px_rgba(0,0,0,0.88),0_0_50px_rgba(124,58,237,0.25)] backdrop-blur-3xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:max-h-[min(670px,calc(100dvh-3rem))] sm:w-[475px]"
             aria-label="Exismic Ai tool concierge"
           >
-            {/* Top Glowing Laser Streak */}
-            <motion.div
-              aria-hidden="true"
-              className="absolute inset-x-0 top-0 z-30 h-[2px] bg-[linear-gradient(90deg,transparent,#8b5cf6,#ec4899,#22d3ee,transparent)] bg-[length:200%_100%]"
-              animate={{ backgroundPosition: ["100% 0%", "-100% 0%"] }}
-              transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
-            />
 
             {/* Ambient Background Glows */}
             <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-cyan-500/10 blur-3xl" />

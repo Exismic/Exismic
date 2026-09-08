@@ -200,17 +200,17 @@ export function UserProfile({
 
   // menu-header
   return (
-    <div className={cn("p-8 pb-6 text-center space-y-6 flex flex-col items-center relative overflow-hidden", className)}>
+    <div className={cn("pt-12 px-6 pb-6 text-center space-y-5 flex flex-col items-center relative", className)}>
       {/* Cinematic animated atmospheric glows reflecting the user's active theme */}
-      <div className="absolute inset-0 pointer-events-none z-0">
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[2.5rem]">
         <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.08)_0%,transparent_60%)] animate-pulse duration-[6000ms]" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.01] via-transparent to-black/40" />
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
-      <div className="relative inline-block select-none z-10 scale-105 transition-transform duration-500 hover:scale-110">
+      <div className="relative inline-block select-none z-10 transition-transform duration-500 hover:scale-105">
         {/* Soft magical floating aura ring behind avatar */}
-        <div className="absolute -inset-4 bg-linear-to-tr from-accent-purple/10 via-accent-cyan/5 to-pink-500/10 rounded-full opacity-60 blur-xl animate-pulse" />
+        <div className="absolute -inset-2.5 bg-gradient-to-tr from-purple-500/20 via-cyan-400/20 to-pink-500/20 rounded-full opacity-60 blur-lg animate-pulse pointer-events-none" />
         
         <AvatarWithFrame 
           avatarUrl={avatarUrl}

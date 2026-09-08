@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import YouTubeThumbnailMaker from "./YoutubeThumbnailClient";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free YouTube Thumbnail Maker - Design High-CTR Thumbnails | Exismic",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "youtube-thumbnail" || t.href === "/tools/youtube/thumbnail") || {
-    id: "youtube-thumbnail",
-    name: "Free YouTube Thumbnail Maker",
-    description: "Design eye-catching, high-converting YouTube thumbnails quickly with our intuitive editor and high-impact typography.",
-    href: "/tools/youtube/thumbnail"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <ToolPageShell
+      toolId="youtube-thumbnail"
+      categoryId="creator"
+      customTitle="YouTube Thumbnail Maker"
+      customDescription="Design eye-catching, high-converting YouTube thumbnails quickly with an interactive editor and custom typography."
+    >
       <YouTubeThumbnailMaker />
-    </>
+    </ToolPageShell>
   );
 }

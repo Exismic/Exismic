@@ -1,1975 +1,1691 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
-  Star,
-  Flame,
-  Zap,
   Crown,
-  CheckCircle2,
+  Zap,
+  Coins,
+  ShieldCheck,
+  Flame,
   Gift,
   ArrowRight,
-  HelpCircle,
-  BarChart2,
-  Calendar,
-  ExternalLink,
+  CheckCircle2,
+  Check,
+  Lock,
+  Gem,
+  Info,
+  Loader2,
+  Ticket,
+  ChevronRight,
+  ChevronDown,
   Target,
   Trophy,
-  Loader2,
-  ShieldCheck,
-  ChevronRight,
-  TrendingUp,
-  Check,
-  MessageSquare,
-  Ticket,
-  Copy,
-  ArrowLeft,
-  Coins,
-  QrCode,
-  Layers,
-  ChevronUp,
   Volume2,
   VolumeX,
+  Layers,
+  Palette,
   Clock,
-  Award,
-  Radio,
-  Cpu,
-  RefreshCw,
-  Compass,
-  CheckCheck
+  X,
+  RotateCcw,
+  Type,
+  User,
+  Eye,
+  EyeOff,
+  Copy,
+  HelpCircle,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useCredits } from "@/hooks/useCredits";
+import { useSparks } from "@/hooks/useSparks";
 import {
-  RewardItem,
-  EarningQuest,
-  DailyPoll,
-  RewardProfileData,
-  REWARDS_CATALOG,
-  EARNING_QUESTS,
-} from "@/config/rewards";
-import { cn } from "@/lib/utils";
-import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
-import { RewardsBackgroundVFX } from "@/components/reward/RewardsBackgroundVFX";
-import { TargetSelectorModal } from "@/components/reward/TargetSelectorModal";
+  SparksShopItem,
+  RotationTimers,
+  PERMANENT_SHOP_ITEMS,
+  FREE_SPARKS_GIFT_EXPIRES_AT,
+  formatTimeRemaining,
+} from "@/config/sparks-shop";
+import { SparkIcon, SparkBadge } from "@/components/ui/SparkIcon";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { DailyQuestsModal } from "@/components/reward/DailyQuestsModal";
+import { AvatarWithFrame } from "@/components/ui/AvatarWithFrame";
+import { PremiumName } from "@/components/ui/PremiumName";
+import { CreatorInsignia } from "@/components/ui/CreatorInsignia";
 import { soundController } from "@/components/reward/SoundController";
+import { RewardsBackgroundVFX } from "@/components/reward/RewardsBackgroundVFX";
+import { getIsIndia } from "@/config/pricing";
+import { cn } from "@/lib/utils";
 
-interface TriviaClientQuestion {
-  id: number;
-  question: string;
-  options: string[];
-}
-
-export type ToastTopic =
-  | "streak"
-  | "trivia"
-  | "poll"
-  | "quest"
-  | "vault"
-  | "copy"
-  | "target"
-  | "sound"
-  | "error"
-  | "info";
-
-export interface ToastPayload {
-  title: string;
-  message?: string;
-  points?: string;
-  topic?: ToastTopic;
-  type?: "success" | "error" | "info";
-}
+// Card color themes matching /shop luxury obsidian aesthetics
+const cardStyles: Record<
+  string,
+  {
+    iconBg: string;
+    iconColor: string;
+    cardBorder: string;
+    ambientGradient: string;
+    topBeam: string;
+    numberGradient: string;
+    conicGradient: string;
+    subtitleColor: string;
+    titleHoverColor: string;
+  }
+> = {
+  amber: {
+    iconBg:
+      "border-amber-400/45 bg-gradient-to-br from-amber-500/30 via-orange-950/40 to-black/85 shadow-[0_0_25px_rgba(245,158,11,0.4)]",
+    iconColor: "text-amber-300",
+    cardBorder:
+      "border-2 border-amber-400/80 bg-gradient-to-b from-[#170e08]/98 via-[#0f0a07]/98 to-[#050302]/98 hover:border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(245,158,11,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-amber-500/20 via-orange-600/12 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#fde047,#fbbf24,#ffffff)] drop-shadow-[0_0_20px_rgba(245,158,11,0.45)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(234,179,8,1)_33%,rgba(251,191,36,1)_66%,rgba(245,158,11,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-amber-200/90",
+    titleHoverColor: "group-hover/card:text-amber-300 group-hover/card:drop-shadow-[0_0_12px_rgba(245,158,11,0.45)]",
+  },
+  cyan: {
+    iconBg:
+      "border-cyan-400/40 bg-gradient-to-br from-cyan-500/25 via-blue-900/30 to-black/85 shadow-[0_0_20px_rgba(34,211,238,0.3)]",
+    iconColor: "text-cyan-300",
+    cardBorder:
+      "border-2 border-cyan-400/80 bg-gradient-to-b from-[#0a0d1c]/98 via-[#060813]/98 to-[#030408]/98 hover:border-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(34,211,238,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-cyan-500/18 via-blue-600/10 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#cffafe,#38bdf8,#ffffff)] drop-shadow-[0_0_18px_rgba(56,189,248,0.4)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(6,182,212,1)_0%,rgba(59,130,246,1)_33%,rgba(103,232,249,1)_66%,rgba(6,182,212,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-cyan-200/90",
+    titleHoverColor: "group-hover/card:text-cyan-300 group-hover/card:drop-shadow-[0_0_12px_rgba(34,211,238,0.45)]",
+  },
+  purple: {
+    iconBg:
+      "border-purple-400/45 bg-gradient-to-br from-purple-500/30 via-fuchsia-950/40 to-black/85 shadow-[0_0_25px_rgba(168,85,247,0.4)]",
+    iconColor: "text-purple-300",
+    cardBorder:
+      "border-2 border-purple-400/80 bg-gradient-to-b from-[#120c22]/98 via-[#0b0817]/98 to-[#04030a]/98 shadow-[0_0_25px_rgba(168,85,247,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:border-fuchsia-300 hover:shadow-[0_0_50px_rgba(217,70,239,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-purple-600/22 via-fuchsia-600/14 to-cyan-500/10",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-fuchsia-200/90",
+    titleHoverColor: "group-hover/card:text-purple-300 group-hover/card:drop-shadow-[0_0_12px_rgba(168,85,247,0.45)]",
+  },
+  fuchsia: {
+    iconBg:
+      "border-pink-400/50 bg-gradient-to-br from-pink-500/35 via-rose-950/45 to-black/85 shadow-[0_0_30px_rgba(244,114,182,0.45)]",
+    iconColor: "text-pink-300",
+    cardBorder:
+      "border-2 border-pink-400/80 bg-gradient-to-b from-[#190a16]/98 via-[#10060e]/98 to-[#040103]/98 shadow-[0_0_25px_rgba(244,114,182,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:border-pink-300 hover:shadow-[0_0_50px_rgba(244,114,182,0.6),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-pink-600/25 via-rose-600/15 to-purple-600/12",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#fbcfe8,#fb7185,#ffffff)] drop-shadow-[0_0_22px_rgba(244,114,182,0.5)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(244,114,182,1)_0%,rgba(251,113,133,1)_33%,rgba(192,132,252,1)_66%,rgba(244,114,182,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-pink-200/90",
+    titleHoverColor: "group-hover/card:text-pink-300 group-hover/card:drop-shadow-[0_0_12px_rgba(244,114,182,0.45)]",
+  },
+  emerald: {
+    iconBg:
+      "border-emerald-400/45 bg-gradient-to-br from-emerald-500/30 via-teal-950/40 to-black/85 shadow-[0_0_25px_rgba(16,185,129,0.35)]",
+    iconColor: "text-emerald-300",
+    cardBorder:
+      "border-2 border-emerald-400/80 bg-gradient-to-b from-[#071510]/98 via-[#040e0b]/98 to-[#020504]/98 hover:border-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(16,185,129,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-emerald-500/20 via-teal-600/10 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#a7f3d0,#34d399,#ffffff)] drop-shadow-[0_0_20px_rgba(52,211,153,0.45)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(16,185,129,1)_0%,rgba(45,212,191,1)_33%,rgba(110,231,183,1)_66%,rgba(16,185,129,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-emerald-200/90",
+    titleHoverColor: "group-hover/card:text-emerald-300 group-hover/card:drop-shadow-[0_0_12px_rgba(52,211,153,0.45)]",
+  },
+  rose: {
+    iconBg:
+      "border-rose-400/45 bg-gradient-to-br from-rose-500/30 via-pink-950/40 to-black/85 shadow-[0_0_25px_rgba(244,63,94,0.35)]",
+    iconColor: "text-rose-300",
+    cardBorder:
+      "border-2 border-rose-400/80 bg-gradient-to-b from-[#17090e]/98 via-[#0f0509]/98 to-[#050204]/98 hover:border-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(244,63,94,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-rose-500/20 via-pink-600/12 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#fecdd3,#fb7185,#ffffff)] drop-shadow-[0_0_20px_rgba(251,113,133,0.45)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(244,63,94,1)_0%,rgba(251,113,133,1)_33%,rgba(244,114,182,1)_66%,rgba(244,63,94,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-rose-200/90",
+    titleHoverColor: "group-hover/card:text-rose-300 group-hover/card:drop-shadow-[0_0_12px_rgba(251,113,133,0.45)]",
+  },
+  red: {
+    iconBg:
+      "border-red-500/45 bg-gradient-to-br from-red-600/30 via-rose-950/40 to-black/85 shadow-[0_0_25px_rgba(239,68,68,0.4)]",
+    iconColor: "text-red-400",
+    cardBorder:
+      "border-2 border-red-500/80 bg-gradient-to-b from-[#180808]/98 via-[#100404]/98 to-[#050202]/98 hover:border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(239,68,68,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-red-600/22 via-orange-600/12 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#fca5a5,#ef4444,#ffffff)] drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(220,38,38,1)_0%,rgba(239,68,68,1)_33%,rgba(249,115,22,1)_66%,rgba(220,38,38,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-red-300/90",
+    titleHoverColor: "group-hover/card:text-red-400 group-hover/card:drop-shadow-[0_0_12px_rgba(239,68,68,0.5)]",
+  },
+  blue: {
+    iconBg:
+      "border-blue-500/45 bg-gradient-to-br from-blue-600/30 via-indigo-950/40 to-black/85 shadow-[0_0_25px_rgba(59,130,246,0.4)]",
+    iconColor: "text-blue-300",
+    cardBorder:
+      "border-2 border-blue-400/80 bg-gradient-to-b from-[#070b1a]/98 via-[#040712]/98 to-[#020308]/98 hover:border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.3),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(59,130,246,0.55),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-blue-600/20 via-indigo-600/12 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#93c5fd,#3b82f6,#ffffff)] drop-shadow-[0_0_20px_rgba(59,130,246,0.45)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(37,99,235,1)_0%,rgba(59,130,246,1)_33%,rgba(96,165,250,1)_66%,rgba(37,99,235,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-blue-200/90",
+    titleHoverColor: "group-hover/card:text-sky-300 group-hover/card:drop-shadow-[0_0_12px_rgba(56,189,248,0.5)]",
+  },
+  silver: {
+    iconBg:
+      "border-slate-300/40 bg-gradient-to-br from-slate-200/20 via-zinc-800/40 to-black/85 shadow-[0_0_20px_rgba(226,232,240,0.3)]",
+    iconColor: "text-slate-200",
+    cardBorder:
+      "border-2 border-slate-300/80 bg-gradient-to-b from-[#12141a]/98 via-[#0c0d12]/98 to-[#050608]/98 hover:border-white shadow-[0_0_25px_rgba(226,232,240,0.25),0_20px_60px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(255,255,255,0.45),0_25px_70px_rgba(0,0,0,0.9)]",
+    ambientGradient: "from-slate-300/18 via-zinc-500/10 to-transparent",
+    topBeam: "",
+    numberGradient:
+      "bg-[linear-gradient(110deg,#ffffff,#f1f5f9,#cbd5e1,#ffffff)] drop-shadow-[0_0_18px_rgba(255,255,255,0.4)]",
+    conicGradient:
+      "bg-[conic-gradient(from_0deg,rgba(226,232,240,1)_0%,rgba(255,255,255,1)_33%,rgba(148,163,184,1)_66%,rgba(226,232,240,1)_100%)]",
+    subtitleColor: "text-zinc-400 group-hover/card:text-slate-200/90",
+    titleHoverColor: "group-hover/card:text-white group-hover/card:drop-shadow-[0_0_14px_rgba(255,255,255,0.8)]",
+  },
+};
 
 export default function RewardsPage() {
   const router = useRouter();
+  const { user } = useAuth(null);
+  const { streakShields, refreshCredits } = useCredits();
+  const {
+    sparks,
+    lifetimeSparks,
+    unlockedAvatarFrames,
+    unlockedNameGradients,
+    unlockedInsignias,
+    unlockedCanopies,
+    activeAvatarFrame,
+    activeNameGradient,
+    activeInsignia,
+    activeCanopy,
+    catalog,
+    weeklyLegendaryItems,
+    threeDayEpicItems,
+    dailyRareItems,
+    timers,
+    loading,
+    redeemItem,
+    equipCosmetic,
+    equippingId,
+    voucherCooldowns,
+    hasClaimedFreeSparks,
+  } = useSparks();
 
-  // Core States
-  const [profile, setProfile] = useState<RewardProfileData | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [todayTrivia, setTodayTrivia] = useState<TriviaClientQuestion[]>([]);
-  const [todayPoll, setTodayPoll] = useState<DailyPoll | null>(null);
-  const [catalog, setCatalog] = useState<RewardItem[]>(REWARDS_CATALOG);
-  const [quests, setQuests] = useState<EarningQuest[]>(EARNING_QUESTS);
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  // Sound Mute
+  // Navigation & Filter Tabs
+  const [activeCategory, setActiveCategory] = useState<
+    "all" | "perks" | "vouchers" | "weekly" | "three_day" | "daily" | "cosmetics" | "pro" | "credits"
+  >("all");
+
+  const [isQuestsModalOpen, setIsQuestsModalOpen] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<SparksShopItem | null>(null);
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [redeemSuccessData, setRedeemSuccessData] = useState<{
+    item: SparksShopItem;
+    voucherCode?: string;
+  } | null>(null);
+  const [hasCopiedVoucher, setHasCopiedVoucher] = useState(false);
+  const [isActivatingVoucher, setIsActivatingVoucher] = useState(false);
+  const [voucherActivatedSuccess, setVoucherActivatedSuccess] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Tabs
-  const [activeQuestTab, setActiveQuestTab] = useState<"all" | "growth" | "partner" | "community">("all");
-  const [activeCatalogTab, setActiveCatalogTab] = useState<"all" | "credits" | "pro" | "cosmetic">("all");
+  // User-chosen Target Goal Tracking (defaults to null if not chosen)
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [isGoalPickerOpen, setIsGoalPickerOpen] = useState(false);
+  const [isIndia, setIsIndia] = useState<boolean>(() => getIsIndia());
 
-  // Interaction Modals
-  const [isCheckingIn, setIsCheckingIn] = useState(false);
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-  const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [quizReviewData, setQuizReviewData] = useState<any[] | null>(null);
-  const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false);
-
-  const [selectedPollOption, setSelectedPollOption] = useState<string | null>(null);
-  const [isVotingPoll, setIsVotingPoll] = useState(false);
-
-  // Quest Submit Modal
-  const [activeSubmittingQuest, setActiveSubmittingQuest] = useState<EarningQuest | null>(null);
-  const [questProofUrl, setQuestProofUrl] = useState("");
-  const [isCompletingQuest, setIsCompletingQuest] = useState(false);
-
-  // Target Selector Modal
-  const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
-
-  // Redemption & Voucher States
-  const [selectedRedeemReward, setSelectedRedeemReward] = useState<RewardItem | null>(null);
-  const [isRedeeming, setIsRedeeming] = useState(false);
-  const [generatedVoucher, setGeneratedVoucher] = useState<{
-    reward: RewardItem;
-    voucherCode: string;
-  } | null>(null);
-  const [copiedCode, setCopiedCode] = useState(false);
-
-  // In-App Promo Code Modal
-  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-  const [prefilledPromoCode, setPrefilledPromoCode] = useState("");
-
-  // Toast
-  const [toastData, setToastData] = useState<ToastPayload | null>(null);
-
-  const showToast = (
-    payloadOrText: ToastPayload | string,
-    fallbackType: "success" | "error" | "info" = "info",
-    fallbackTopic: ToastTopic = "info"
-  ) => {
-    if (typeof payloadOrText === "string") {
-      setToastData({
-        title: payloadOrText,
-        type: fallbackType,
-        topic: fallbackTopic,
+  useEffect(() => {
+    let active = true;
+    fetch("/api/billing/market", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (active && (data?.market === "IN" || data?.market === "GLOBAL")) {
+          setIsIndia(data.countryCode === "UNKNOWN" ? getIsIndia() : data.market === "IN");
+        }
+      })
+      .catch(() => {
+        if (active) setIsIndia(getIsIndia());
       });
-    } else {
-      setToastData(payloadOrText);
-    }
-    setTimeout(() => setToastData(null), 4000);
-  };
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const triggerConfetti = (rarity: "normal" | "epic" | "legendary" = "normal") => {
+  useEffect(() => {
     try {
-      soundController.playExplosion(rarity);
-      confetti({
-        particleCount: rarity === "legendary" ? 140 : rarity === "epic" ? 90 : 60,
-        spread: 80,
-        origin: { y: 0.55 },
-        colors: ["#38bdf8", "#a855f7", "#fbbf24", "#34d399", "#f43f5e", "#ffffff"],
-      });
-    } catch {}
+      const stored = localStorage.getItem("exismic:sparks_target_goal_id");
+      if (stored) {
+        setSelectedGoalId(stored);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleSelectGoal = (itemId: string | null) => {
+    soundController.playClick();
+    setSelectedGoalId(itemId);
+    setIsGoalPickerOpen(false);
+    try {
+      if (itemId) {
+        localStorage.setItem("exismic:sparks_target_goal_id", itemId);
+      } else {
+        localStorage.removeItem("exismic:sparks_target_goal_id");
+      }
+    } catch {
+      // ignore
+    }
   };
+
+  const selectedGoal = useMemo(() => {
+    if (!selectedGoalId) return null;
+    return catalog.find((i) => i.id === selectedGoalId) || null;
+  }, [catalog, selectedGoalId]);
+
+  const goalProgress = useMemo(() => {
+    if (!selectedGoal) return { current: 0, target: 100, percentage: 0, remaining: 0 };
+    const current = sparks;
+    const target = selectedGoal.costSparks;
+    const percentage = Math.min(100, Math.round((current / target) * 100));
+    const remaining = Math.max(0, target - current);
+    return { current, target, percentage, remaining };
+  }, [sparks, selectedGoal]);
+
+  const isItemOwned = (item: SparksShopItem) => {
+    if (item.type === "avatar_frame") return unlockedAvatarFrames.includes(String(item.value));
+    if (item.type === "name_gradient") return unlockedNameGradients.includes(String(item.value));
+    if (item.type === "creator_insignia") return unlockedInsignias.includes(String(item.value));
+    if (item.type === "studio_canopy") return unlockedCanopies.includes(String(item.value));
+    return false;
+  };
+
+  const filteredItems = useMemo(() => {
+    let baseList = catalog;
+    if (activeCategory === "perks") baseList = catalog.filter((i) => i.category === "perks");
+    else if (activeCategory === "vouchers") baseList = catalog.filter((i) => i.category === "vouchers");
+    else if (activeCategory === "cosmetics") baseList = catalog.filter((i) => i.category === "cosmetic");
+    else if (activeCategory === "weekly") baseList = weeklyLegendaryItems;
+    else if (activeCategory === "three_day") baseList = threeDayEpicItems;
+    else if (activeCategory === "daily") baseList = dailyRareItems;
+    else if (activeCategory === "pro") baseList = catalog.filter((i) => i.category === "pro");
+    else if (activeCategory === "credits") baseList = catalog.filter((i) => i.category === "credits");
+
+    // Filter out already claimed free sparks or expired event
+    return baseList.filter((item) => {
+      if (item.id === "sparks_free_gift_100" || item.type === "free_sparks") {
+        if (hasClaimedFreeSparks) return false;
+        if (now > FREE_SPARKS_GIFT_EXPIRES_AT.getTime()) return false;
+        return true;
+      }
+      return !isItemOwned(item);
+    });
+  }, [
+    catalog,
+    activeCategory,
+    weeklyLegendaryItems,
+    threeDayEpicItems,
+    dailyRareItems,
+    unlockedAvatarFrames,
+    unlockedNameGradients,
+    unlockedInsignias,
+    unlockedCanopies,
+    hasClaimedFreeSparks,
+    now,
+  ]);
 
   const handleToggleMute = () => {
     const muted = soundController.toggleMute();
     setIsMuted(muted);
-    showToast({
-      title: muted ? "Audio Effects Muted" : "Audio Effects Enabled",
-      message: muted ? "Tactile audio feedback disabled" : "Tactile Web Audio feedback active",
-      topic: "sound",
-      type: "info",
-    });
   };
 
-  const fetchRewardsData = async () => {
-    try {
-      const res = await fetch("/api/rewards/profile", { cache: "no-store" });
-      const data = await res.json();
-      if (data.success) {
-        setProfile(data.profile);
-        setIsLoggedIn(data.isLoggedIn);
-        setTodayTrivia(data.todayTrivia || []);
-        setTodayPoll(data.todayPoll || null);
-        if (data.catalog) setCatalog(data.catalog);
-        if (data.quests) setQuests(data.quests);
-      }
-    } catch (err) {
-      console.warn("Failed to fetch rewards profile:", err);
-    } finally {
-      setLoading(false);
-    }
+  const formatVoucherCountdown = (remainingMs: number): string => {
+    if (remainingMs <= 0) return "";
+    const totalSec = Math.floor(remainingMs / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds}s`;
   };
 
-  useEffect(() => {
-    fetchRewardsData();
-  }, []);
-
-  const selectedGoal = useMemo(() => {
-    if (!profile) return catalog.find((r) => r.id === "reward_pro_30d") || catalog[0];
-    return (
-      catalog.find((r) => r.id === profile.selectedGoalId) ||
-      catalog.find((r) => r.id === "reward_pro_30d") ||
-      catalog[0]
-    );
-  }, [profile, catalog]);
-
-  const goalProgress = useMemo(() => {
-    if (!profile || !selectedGoal) return { current: 0, target: 8000, percentage: 0 };
-    const current = profile.points || 0;
-    const target = selectedGoal.costPoints || 100;
-    const percentage = Math.min(100, Math.round((current / target) * 100));
-    return { current, target, percentage };
-  }, [profile, selectedGoal]);
-
-  // Today's completion count (Check-in, Trivia, Poll)
-  const completedDropsCount = useMemo(() => {
-    if (!profile) return 0;
-    let count = 0;
-    if (profile.hasCheckedInToday) count++;
-    if (profile.hasCompletedQuizToday) count++;
-    if (profile.hasVotedPollToday) count++;
-    return count;
-  }, [profile]);
-
-  const handleCopyVoucher = (code: string) => {
+  const handleOpenRedeemModal = (item: SparksShopItem) => {
     soundController.playClick();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(code);
-      setCopiedCode(true);
-      showToast({
-        title: "Voucher Code Copied!",
-        message: "Ready to paste & redeem for instant credits or Pro.",
-        topic: "copy",
-        type: "success",
-      });
-      setTimeout(() => setCopiedCode(false), 2500);
-    }
-  };
-
-  const handleDailyCheckIn = async () => {
-    soundController.playClick();
-    if (!isLoggedIn) {
+    if (!user) {
       router.push("/auth/signin?next=/rewards");
       return;
     }
-    if (profile?.hasCheckedInToday) return;
-
-    setIsCheckingIn(true);
-    try {
-      const res = await fetch("/api/rewards/tasks/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ taskId: "daily_check_in" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                points: data.newTotal,
-                lifetimePoints: prev.lifetimePoints + data.pointsAwarded,
-                hasCheckedInToday: true,
-                currentStreak: data.streak,
-              }
-            : null
-        );
-        triggerConfetti(data.streak >= 7 ? "legendary" : "normal");
-        showToast({
-          title: "Daily Drop Claimed!",
-          message: `Streak extended to ${data.streak} ${data.streak === 1 ? "Day" : "Days"}! 🔥`,
-          points: `+${data.pointsAwarded} RP`,
-          topic: "streak",
-          type: "success",
-        });
-      } else {
-        showToast({
-          title: "Check-in Failed",
-          message: data.error || "Could not claim daily drop.",
-          topic: "error",
-          type: "error",
-        });
-      }
-    } catch {
-      showToast({
-        title: "Check-in Error",
-        message: "Failed to connect to server.",
-        topic: "error",
-        type: "error",
-      });
-    } finally {
-      setIsCheckingIn(false);
+    if (item.type === "shop_voucher" && voucherCooldowns?.[item.id]) {
+      const remaining = new Date(voucherCooldowns[item.id].availableAt).getTime() - Date.now();
+      if (remaining > 0) return;
     }
+    setSelectedReward(item);
   };
 
-  const handleQuizSubmit = async () => {
-    soundController.playClick();
-    if (!isLoggedIn) {
-      router.push("/auth/signin?next=/rewards");
-      return;
-    }
-
-    const answersArray = todayTrivia.map((_, idx) => quizAnswers[idx] ?? -1);
-    if (answersArray.some((ans) => ans === -1)) {
-      showToast({
-        title: "Incomplete Trivia",
-        message: "Please answer all 3 questions first before submitting.",
-        topic: "trivia",
-        type: "error",
-      });
-      return;
-    }
-
-    setIsSubmittingQuiz(true);
-    try {
-      const res = await fetch("/api/rewards/tasks/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskId: "daily_quiz",
-          answers: answersArray,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setQuizSubmitted(true);
-        setQuizReviewData(data.triviaReview || null);
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                points: data.newTotal,
-                lifetimePoints: prev.lifetimePoints + data.pointsAwarded,
-                hasCompletedQuizToday: true,
-              }
-            : null
-        );
-        triggerConfetti("epic");
-        showToast({
-          title: "Tech Trivia Complete!",
-          message: "Trivia reward points added to your balance.",
-          points: `+${data.pointsAwarded} RP`,
-          topic: "trivia",
-          type: "success",
-        });
-      } else {
-        showToast({
-          title: "Submission Failed",
-          message: data.error || "Could not submit trivia answers.",
-          topic: "error",
-          type: "error",
-        });
-      }
-    } catch {
-      showToast({
-        title: "Quiz Error",
-        message: "Failed to submit answers.",
-        topic: "error",
-        type: "error",
-      });
-    } finally {
-      setIsSubmittingQuiz(false);
-    }
-  };
-
-  const handlePollVote = async (optionId: string) => {
-    soundController.playClick();
-    if (!isLoggedIn) {
-      router.push("/auth/signin?next=/rewards");
-      return;
-    }
-    if (profile?.hasVotedPollToday) return;
-
-    setSelectedPollOption(optionId);
-    setIsVotingPoll(true);
-    try {
-      const res = await fetch("/api/rewards/tasks/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskId: "daily_poll",
-          pollOptionId: optionId,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                points: data.newTotal,
-                lifetimePoints: prev.lifetimePoints + data.pointsAwarded,
-                hasVotedPollToday: true,
-              }
-            : null
-        );
-        setTodayPoll((prev) =>
-          prev
-            ? {
-                ...prev,
-                totalVotes: prev.totalVotes + 1,
-                options: prev.options.map((opt) =>
-                  opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
-                ),
-              }
-            : null
-        );
-        soundController.playShine();
-        showToast({
-          title: "Poll Vote Recorded!",
-          message: "Points credited to your balance.",
-          points: `+${data.pointsAwarded} RP`,
-          topic: "poll",
-          type: "success",
-        });
-      } else {
-        showToast({
-          title: "Vote Failed",
-          message: data.error || "Could not record vote.",
-          topic: "error",
-          type: "error",
-        });
-      }
-    } catch {
-      showToast({
-        title: "Poll Error",
-        message: "Failed to submit vote.",
-        topic: "error",
-        type: "error",
-      });
-    } finally {
-      setIsVotingPoll(false);
-    }
-  };
-
-  const handleQuestClick = async (quest: EarningQuest) => {
-    soundController.playClick();
-    if (!isLoggedIn) {
-      router.push("/auth/signin?next=/rewards");
-      return;
-    }
-
-    if (profile?.completedQuestIds?.includes(quest.id)) {
-      showToast({
-        title: "Quest Already Completed",
-        message: "You have already collected points for this quest.",
-        topic: "quest",
-        type: "info",
-      });
-      return;
-    }
-
-    if (quest.type === "submit_url") {
-      setActiveSubmittingQuest(quest);
-      setQuestProofUrl("");
-      return;
-    }
-
-    if (quest.actionUrl) {
-      window.open(quest.actionUrl, "_blank", "noopener,noreferrer");
-    }
-
-    setIsCompletingQuest(true);
-    try {
-      const res = await fetch("/api/rewards/tasks/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ taskId: quest.id }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                points: data.newTotal,
-                lifetimePoints: prev.lifetimePoints + data.pointsAwarded,
-                completedQuestIds: [...prev.completedQuestIds, quest.id],
-              }
-            : null
-        );
-        triggerConfetti("normal");
-        showToast({
-          title: "Bounty Reward Claimed!",
-          message: `${quest.title} completed successfully.`,
-          points: `+${data.pointsAwarded} RP`,
-          topic: "quest",
-          type: "success",
-        });
-      }
-    } catch {
-    } finally {
-      setIsCompletingQuest(false);
-    }
-  };
-
-  const handleSubmitProofQuest = async () => {
-    soundController.playClick();
-    if (!activeSubmittingQuest) return;
-    if (!questProofUrl.trim()) {
-      showToast({
-        title: "Link Required",
-        message: "Please provide a verification link or note.",
-        topic: "quest",
-        type: "error",
-      });
-      return;
-    }
-
-    setIsCompletingQuest(true);
-    try {
-      const res = await fetch("/api/rewards/tasks/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskId: activeSubmittingQuest.id,
-          proofUrl: questProofUrl.trim(),
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                points: data.newTotal,
-                lifetimePoints: prev.lifetimePoints + data.pointsAwarded,
-                completedQuestIds: [...prev.completedQuestIds, activeSubmittingQuest.id],
-              }
-            : null
-        );
-        triggerConfetti("epic");
-        showToast({
-          title: "Bounty Proof Submitted!",
-          message: `Verification received for ${activeSubmittingQuest.title}.`,
-          points: `+${data.pointsAwarded} RP`,
-          topic: "quest",
-          type: "success",
-        });
-        setActiveSubmittingQuest(null);
-      } else {
-        showToast({
-          title: "Submission Failed",
-          message: data.error || "Failed to submit bounty proof.",
-          topic: "error",
-          type: "error",
-        });
-      }
-    } catch {
-      showToast({
-        title: "Submission Error",
-        message: "Failed to submit proof.",
-        topic: "error",
-        type: "error",
-      });
-    } finally {
-      setIsCompletingQuest(false);
-    }
-  };
-
-  const handleSetGoal = async (reward: RewardItem) => {
-    soundController.playClick();
-    if (!isLoggedIn) {
-      router.push("/auth/signin?next=/rewards");
-      return;
-    }
-
-    try {
-      await fetch("/api/rewards/tasks/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selectedGoalId: reward.id }),
-      });
-      setProfile((prev) => (prev ? { ...prev, selectedGoalId: reward.id } : null));
-      soundController.playShine();
-      showToast({
-        title: "Target Goal Updated!",
-        message: `Now tracking progress towards ${reward.title}.`,
-        topic: "target",
-        type: "success",
-      });
-    } catch {
-      showToast({
-        title: "Update Failed",
-        message: "Failed to update target goal.",
-        topic: "error",
-        type: "error",
-      });
-    }
-  };
-
-  const handleConfirmRedemption = async () => {
-    if (!selectedRedeemReward) return;
-
+  const handleConfirmRedeem = async () => {
+    if (!selectedReward) return;
     setIsRedeeming(true);
+    soundController.playClick();
+
     try {
-      const res = await fetch("/api/rewards/redeem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rewardId: selectedRedeemReward.id }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                points: data.remainingPoints,
-                recentRedemptions: [
-                  {
-                    id: `red_${Date.now()}`,
-                    rewardTitle: selectedRedeemReward.title,
-                    costPoints: selectedRedeemReward.costPoints,
-                    voucherCode: data.voucherCode,
-                    redeemedAt: new Date().toISOString(),
-                    status: "active",
-                  },
-                  ...prev.recentRedemptions,
-                ],
-              }
-            : null
+      const result = await redeemItem(selectedReward.id);
+      if (result.success) {
+        soundController.playExplosion(
+          selectedReward.rarity === "Mythic" || selectedReward.rarity === "Legendary"
+            ? "legendary"
+            : "epic"
         );
-        setGeneratedVoucher({
-          reward: selectedRedeemReward,
-          voucherCode: data.voucherCode,
+        confetti({
+          particleCount: selectedReward.rarity === "Mythic" ? 160 : 100,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ["#f59e0b", "#38bdf8", "#ec4899", "#a855f7", "#ffffff"],
         });
-        setSelectedRedeemReward(null);
-        triggerConfetti("legendary");
+        const voucherCode = (result.details as Record<string, unknown> | undefined)?.voucherCode as string | undefined;
+        setRedeemSuccessData({
+          item: selectedReward,
+          voucherCode,
+        });
+        setHasCopiedVoucher(false);
+        setVoucherActivatedSuccess(false);
+        setSelectedReward(null);
+        void refreshCredits();
       } else {
-        showToast({
-          title: "Redemption Failed",
-          message: data.error || "Could not redeem voucher code.",
-          topic: "error",
-          type: "error",
-        });
+        alert(result.error || "Redemption could not be processed.");
       }
     } catch {
-      showToast({
-        title: "Network Error",
-        message: "Failed to connect to server during redemption.",
-        topic: "error",
-        type: "error",
-      });
+      alert("Network error during redemption.");
     } finally {
       setIsRedeeming(false);
     }
   };
 
-  const filteredQuests = useMemo(() => {
-    if (activeQuestTab === "all") return quests;
-    return quests.filter((q) => q.category === activeQuestTab);
-  }, [quests, activeQuestTab]);
+  const handleCopyVoucher = (code: string) => {
+    try {
+      navigator.clipboard.writeText(code);
+      setHasCopiedVoucher(true);
+      soundController.playClick();
+      setTimeout(() => setHasCopiedVoucher(false), 2500);
+    } catch {
+      // fallback
+    }
+  };
 
-  const filteredCatalog = useMemo(() => {
-    if (activeCatalogTab === "all") return catalog;
-    return catalog.filter((r) => r.category === activeCatalogTab);
-  }, [catalog, activeCatalogTab]);
+  const handleActivateVoucher = async (code: string) => {
+    setIsActivatingVoucher(true);
+    soundController.playClick();
+    try {
+      const res = await fetch("/api/user/promos/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setVoucherActivatedSuccess(true);
+        void refreshCredits();
+        soundController.playExplosion("legendary");
+        confetti({
+          particleCount: 140,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ["#f59e0b", "#38bdf8", "#ec4899", "#ffffff"],
+        });
+      } else {
+        alert(data.error || "Could not activate pass code.");
+      }
+    } catch {
+      alert("Network error activating pass code.");
+    } finally {
+      setIsActivatingVoucher(false);
+    }
+  };
 
-  // Streak Stepper Days 1..7 data
-  const streakDays = [
-    { day: 1, points: "+15 RP" },
-    { day: 2, points: "+20 RP" },
-    { day: 3, points: "+25 RP" },
-    { day: 4, points: "+30 RP" },
-    { day: 5, points: "+35 RP" },
-    { day: 6, points: "+40 RP" },
-    { day: 7, points: "+65 RP", isMega: true },
-  ];
+  const handleToggleCosmetic = async (item: SparksShopItem, isEquipped: boolean) => {
+    soundController.playClick();
+    if (item.type === "avatar_frame") {
+      await equipCosmetic("avatar_frame", isEquipped ? null : String(item.value));
+    } else if (item.type === "name_gradient") {
+      await equipCosmetic("name_gradient", isEquipped ? null : String(item.value));
+    } else if (item.type === "creator_insignia") {
+      await equipCosmetic("creator_insignia", isEquipped ? null : String(item.value));
+    } else if (item.type === "studio_canopy") {
+      await equipCosmetic("studio_canopy", isEquipped ? null : String(item.value));
+    }
+  };
+
+  const displayUserName = user?.user_metadata?.full_name || user?.user_metadata?.name || "CREATOR";
+  const displayAvatarUrl =
+    user?.user_metadata?.custom_avatar_url ||
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(displayUserName)}&backgroundColor=0c0e18`;
 
   return (
-    <div className="relative min-h-screen bg-[#04050a] text-zinc-100 selection:bg-amber-500/25 selection:text-amber-200">
-      {/* Background Cyber Mesh & Canvas VFX */}
+    <div className="relative min-h-screen overflow-hidden bg-[#030303] px-4 pb-24 pt-4 sm:pt-6 lg:pt-7 text-white selection:bg-amber-500/30 sm:px-6 lg:px-8">
+      {/* Background Mesh VFX */}
       <RewardsBackgroundVFX />
 
-      {/* Insane Gamified Toast Notification */}
-      <AnimatePresence>
-        {toastData && (
-          <motion.div
-            initial={{ opacity: 0, y: -24, scale: 0.92, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -20, scale: 0.92, filter: "blur(6px)" }}
-            transition={{ type: "spring", stiffness: 450, damping: 30 }}
-            className={cn(
-              "fixed top-20 right-4 sm:right-8 z-50 overflow-hidden rounded-2xl border p-4 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl min-w-[320px] max-w-md",
-              toastData.topic === "streak" &&
-                "border-orange-500/50 bg-gradient-to-r from-[#200e06]/95 via-[#130904]/95 to-[#080402]/95 shadow-[0_0_40px_rgba(249,115,22,0.35)]",
-              toastData.topic === "trivia" &&
-                "border-purple-500/50 bg-gradient-to-r from-[#1a0e2f]/95 via-[#10091d]/95 to-[#07040d]/95 shadow-[0_0_40px_rgba(168,85,247,0.35)]",
-              toastData.topic === "poll" &&
-                "border-cyan-500/50 bg-gradient-to-r from-[#0a1827]/95 via-[#060f19]/95 to-[#03070c]/95 shadow-[0_0_40px_rgba(6,182,212,0.35)]",
-              toastData.topic === "quest" &&
-                "border-amber-400/50 bg-gradient-to-r from-[#1c1607]/95 via-[#120e04]/95 to-[#070501]/95 shadow-[0_0_40px_rgba(245,158,11,0.35)]",
-              toastData.topic === "vault" &&
-                "border-amber-400/60 bg-gradient-to-r from-[#211708]/95 via-[#140e04]/95 to-[#080501]/95 shadow-[0_0_50px_rgba(245,158,11,0.45)]",
-              toastData.topic === "copy" &&
-                "border-cyan-400/50 bg-gradient-to-r from-[#091827]/95 via-[#050e18]/95 to-[#02070c]/95 shadow-[0_0_35px_rgba(6,182,212,0.3)]",
-              toastData.topic === "target" &&
-                "border-amber-400/50 bg-gradient-to-r from-[#1c1607]/95 via-[#120e04]/95 to-[#070501]/95 shadow-[0_0_35px_rgba(245,158,11,0.35)]",
-              toastData.topic === "error" &&
-                "border-rose-500/50 bg-gradient-to-r from-[#23090e]/95 via-[#150509]/95 to-[#090204]/95 shadow-[0_0_40px_rgba(244,63,94,0.35)]",
-              (!toastData.topic || toastData.topic === "info" || toastData.topic === "sound") &&
-                "border-white/[0.12] bg-[#0c0e18]/95 shadow-[0_0_30px_rgba(255,255,255,0.08)]"
-            )}
+      {/* Cyber Glow Ambient Orbs */}
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute left-1/2 top-0 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.18),transparent_68%)] blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[520px] w-[680px] rounded-full bg-[radial-gradient(circle,rgba(6,182,212,0.12),transparent_66%)] blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:42px_42px] opacity-35" />
+      </div>
+
+      <main className="relative z-10 mx-auto max-w-7xl space-y-5 sm:space-y-6">
+        {/* Navigation Breadcrumb */}
+        <div className="flex items-center justify-between">
+          <PageBreadcrumb items={[{ label: "Sparks Exchange Vault" }]} />
+          <button
+            onClick={handleToggleMute}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-zinc-400 backdrop-blur-md transition-all hover:border-amber-400/40 hover:text-amber-300 cursor-pointer"
+            title={isMuted ? "Enable Sound Effects" : "Mute Sound Effects"}
           >
-            {/* Top Laser Accent Beam */}
-            <div
-              className={cn(
-                "absolute inset-x-0 top-0 h-[2px]",
-                toastData.topic === "streak" &&
-                  "bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 shadow-[0_0_15px_rgba(249,115,22,0.9)]",
-                toastData.topic === "trivia" &&
-                  "bg-gradient-to-r from-purple-500 via-fuchsia-400 to-indigo-400 shadow-[0_0_15px_rgba(168,85,247,0.9)]",
-                toastData.topic === "poll" &&
-                  "bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-300 shadow-[0_0_15px_rgba(6,182,212,0.9)]",
-                (toastData.topic === "quest" || toastData.topic === "vault" || toastData.topic === "target") &&
-                  "bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 shadow-[0_0_15px_rgba(245,158,11,0.9)]",
-                toastData.topic === "copy" &&
-                  "bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-300 shadow-[0_0_15px_rgba(6,182,212,0.9)]",
-                toastData.topic === "error" &&
-                  "bg-gradient-to-r from-rose-500 via-red-500 to-pink-500 shadow-[0_0_15px_rgba(244,63,94,0.9)]",
-                (!toastData.topic || toastData.topic === "info" || toastData.topic === "sound") &&
-                  "bg-gradient-to-r from-zinc-400 via-white to-zinc-400"
-              )}
-            />
-
-            <div className="flex items-center gap-3.5">
-              {/* Topic-Specific Pedestal Icon */}
-              <div
-                className={cn(
-                  "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border shadow-lg",
-                  toastData.topic === "streak" &&
-                    "border-orange-400/40 bg-gradient-to-br from-orange-500/30 to-amber-500/10 text-orange-300 shadow-[0_0_18px_rgba(249,115,22,0.5)]",
-                  toastData.topic === "trivia" &&
-                    "border-purple-400/40 bg-gradient-to-br from-purple-500/30 to-fuchsia-500/10 text-purple-300 shadow-[0_0_18px_rgba(168,85,247,0.5)]",
-                  toastData.topic === "poll" &&
-                    "border-cyan-400/40 bg-gradient-to-br from-cyan-500/30 to-blue-500/10 text-cyan-300 shadow-[0_0_18px_rgba(6,182,212,0.5)]",
-                  (toastData.topic === "quest" || toastData.topic === "target") &&
-                    "border-amber-400/40 bg-gradient-to-br from-amber-500/30 to-yellow-500/10 text-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.5)]",
-                  toastData.topic === "vault" &&
-                    "border-amber-400/50 bg-gradient-to-br from-amber-500/35 to-orange-500/15 text-amber-300 shadow-[0_0_22px_rgba(245,158,11,0.6)]",
-                  toastData.topic === "copy" &&
-                    "border-cyan-400/40 bg-gradient-to-br from-cyan-500/30 to-blue-500/10 text-cyan-300 shadow-[0_0_18px_rgba(6,182,212,0.5)]",
-                  toastData.topic === "error" &&
-                    "border-rose-400/40 bg-gradient-to-br from-rose-500/30 to-red-500/10 text-rose-300 shadow-[0_0_18px_rgba(244,63,94,0.5)]",
-                  (!toastData.topic || toastData.topic === "info" || toastData.topic === "sound") &&
-                    "border-white/[0.12] bg-white/[0.06] text-zinc-200"
-                )}
-              >
-                {toastData.topic === "streak" ? (
-                  <Flame className="h-5 w-5 fill-orange-400 text-orange-400 animate-pulse" />
-                ) : toastData.topic === "trivia" ? (
-                  <HelpCircle className="h-5 w-5 text-purple-300" />
-                ) : toastData.topic === "poll" ? (
-                  <BarChart2 className="h-5 w-5 text-cyan-300" />
-                ) : toastData.topic === "quest" ? (
-                  <Zap className="h-5 w-5 fill-amber-300 text-amber-300" />
-                ) : toastData.topic === "vault" ? (
-                  <Gift className="h-5 w-5 text-amber-300 animate-bounce" />
-                ) : toastData.topic === "target" ? (
-                  <Target className="h-5 w-5 text-amber-300 animate-spin [animation-duration:10s]" />
-                ) : toastData.topic === "copy" ? (
-                  <CheckCheck className="h-5 w-5 text-cyan-300" />
-                ) : toastData.topic === "sound" ? (
-                  <Volume2 className="h-5 w-5 text-zinc-300" />
-                ) : toastData.topic === "error" ? (
-                  <ShieldCheck className="h-5 w-5 text-rose-400" />
-                ) : (
-                  <Coins className="h-5 w-5 fill-amber-400 text-amber-400" />
-                )}
-              </div>
-
-              {/* Text Information */}
-              <div className="flex-1 min-w-0">
-                <div className="font-mono text-[9px] font-black uppercase tracking-widest text-zinc-400">
-                  {toastData.topic === "streak"
-                    ? "DAILY DROP • STREAK"
-                    : toastData.topic === "trivia"
-                    ? "TECH TRIVIA • COMPLETED"
-                    : toastData.topic === "poll"
-                    ? "COMMUNITY POLL • VOTED"
-                    : toastData.topic === "quest"
-                    ? "BOUNTY • CLAIMED"
-                    : toastData.topic === "vault"
-                    ? "REWARDS SHOP • UNLOCKED"
-                    : toastData.topic === "target"
-                    ? "TARGET GOAL • UPDATED"
-                    : toastData.topic === "copy"
-                    ? "VOUCHER CODE • COPIED"
-                    : toastData.topic === "error"
-                    ? "SYSTEM ALERT"
-                    : "EXISMIC REWARDS"}
-                </div>
-                <div className="font-black text-sm text-white truncate mt-0.5">
-                  {toastData.title}
-                </div>
-                {toastData.message && (
-                  <div className="text-xs text-zinc-400 truncate mt-0.5">
-                    {toastData.message}
-                  </div>
-                )}
-              </div>
-
-              {/* Points Pill */}
-              {toastData.points && (
-                <div className="shrink-0 flex items-center gap-1 font-mono text-xs font-black text-amber-200 bg-amber-400/15 border border-amber-400/35 px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.25)]">
-                  {toastData.points}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ======================================================== */}
-      {/* HEADER BAR */}
-      {/* ======================================================== */}
-      <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#050711]/90 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-          {/* Logo Branding */}
-          <div className="flex items-center gap-6">
-            <Link
-              href="/rewards"
-              onMouseEnter={() => soundController.playHover()}
-              className="group flex items-center gap-3"
-            >
-              <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-500/25 via-orange-500/20 to-yellow-600/10 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.6)]">
-                <Star className="h-4 w-4 fill-amber-300 animate-pulse" />
-                <div className="absolute inset-0 rounded-xl bg-amber-400/20 opacity-0 blur-md group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-black uppercase tracking-wider text-white">
-                    Exismic{" "}
-                    <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(245,158,11,0.5)]">
-                      Rewards
-                    </span>
-                  </span>
-                  <span className="hidden sm:inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.2 text-[9px] font-mono font-black uppercase tracking-widest text-amber-300">
-                    Hub
-                  </span>
-                </div>
-                <span className="text-[10px] text-zinc-400 font-medium hidden md:inline-block">
-                  Earn free Pro &amp; credits
-                </span>
-              </div>
-            </Link>
-
-            <nav className="hidden lg:flex items-center gap-1 pl-6 border-l border-white/[0.08] text-xs font-bold text-zinc-400">
-              <a
-                href="#drops"
-                onMouseEnter={() => soundController.playHover()}
-                className="px-3 py-1.5 rounded-lg hover:text-amber-300 hover:bg-white/[0.04] transition-all"
-              >
-                Daily Drops
-              </a>
-              <a
-                href="#bounties"
-                onMouseEnter={() => soundController.playHover()}
-                className="px-3 py-1.5 rounded-lg hover:text-cyan-300 hover:bg-white/[0.04] transition-all"
-              >
-                Bounties
-              </a>
-              <a
-                href="#shop"
-                onMouseEnter={() => soundController.playHover()}
-                className="px-3 py-1.5 rounded-lg hover:text-purple-300 hover:bg-white/[0.04] transition-all"
-              >
-                Rewards Shop
-              </a>
-              <a
-                href="#codes"
-                onMouseEnter={() => soundController.playHover()}
-                className="px-3 py-1.5 rounded-lg hover:text-amber-300 hover:bg-white/[0.04] transition-all"
-              >
-                My Codes
-              </a>
-            </nav>
-          </div>
-
-          {/* Right Header Bar Actions */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Live Point Counter with Glowing Shimmer */}
-            <div
-              onMouseEnter={() => soundController.playHover()}
-              className="relative group flex items-center gap-2 overflow-hidden rounded-xl border border-amber-400/35 bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-orange-500/5 px-3.5 py-1.5 shadow-[0_0_18px_rgba(245,158,11,0.2)] hover:border-amber-400/60 transition-all"
-            >
-              <div className="absolute inset-x-0 -top-full h-full bg-gradient-to-b from-white/20 to-transparent group-hover:top-full transition-all duration-700 pointer-events-none" />
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-black shadow-[0_0_10px_rgba(245,158,11,0.8)]">
-                <Star className="h-3 w-3 fill-black" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-mono text-xs font-black text-amber-200 tracking-wide">
-                  {(profile?.points || 0).toLocaleString()}{" "}
-                  <span className="text-[10px] text-amber-400 font-bold">RP</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Sound Effects Toggle */}
-            <button
-              onClick={handleToggleMute}
-              title={isMuted ? "Unmute Sound Effects" : "Mute Sound Effects"}
-              className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-zinc-900/60 text-zinc-400 hover:border-white/[0.2] hover:text-white transition-all"
-            >
-              {isMuted ? <VolumeX className="h-4 w-4 text-zinc-500" /> : <Volume2 className="h-4 w-4 text-amber-300" />}
-            </button>
-
-            {/* Redeem Promo Code Modal Trigger */}
-            <button
-              onClick={() => {
-                soundController.playClick();
-                setPrefilledPromoCode("");
-                setIsPromoModalOpen(true);
-              }}
-              onMouseEnter={() => soundController.playHover()}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-white/[0.1] bg-gradient-to-r from-zinc-800/80 to-zinc-900/80 px-3.5 py-1.5 text-xs font-bold text-zinc-200 hover:border-cyan-400/50 hover:text-cyan-200 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all"
-            >
-              <QrCode className="h-3.5 w-3.5 text-cyan-400" /> Redeem Code
-            </button>
-
-            {/* Back to Studio */}
-            <Link
-              href="/"
-              onMouseEnter={() => soundController.playHover()}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-cyan-200 hover:bg-cyan-500/25 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Studio
-            </Link>
-          </div>
+            {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} className="text-amber-400 animate-pulse" />}
+            <span>{isMuted ? "Muted" : "Audio FX"}</span>
+          </button>
         </div>
-      </header>
 
+        {/* Hero Section */}
+        <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/[0.08] px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.2)] backdrop-blur-md"
+            >
+              <SparkIcon size={15} variant="amber" animated />
+              <span>Exismic Sparks Exchange</span>
+            </motion.div>
+            <h1 className="max-w-3xl text-5xl font-black uppercase leading-[0.88] tracking-tight sm:text-7xl lg:text-8xl">
+              Spend your{" "}
+              <span className="block bg-[linear-gradient(110deg,#ffffff,#fde047,#fbbf24,#f59e0b,#ffffff)] bg-[length:240%_100%] bg-clip-text text-transparent animate-[gradient-shift_8s_ease-in-out_infinite]">
+                Exismic Sparks.
+              </span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-base font-medium leading-relaxed text-zinc-400 sm:text-lg">
+              Earn Sparks by completing daily quests. Spend them on Pro passes, credits, avatar frames, and custom name styles.
+            </p>
 
-      {/* ======================================================== */}
-      {/* MAIN GAMIFIED CONTENT */}
-      {/* ======================================================== */}
-      <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
-        {/* ======================================================== */}
-        {/* HERO SECTION */}
-        {/* ======================================================== */}
-        <div className="relative overflow-hidden rounded-3xl border border-amber-400/25 bg-gradient-to-b from-[#0f1324]/95 via-[#090b17]/95 to-[#05060e]/95 p-6 sm:p-8 lg:p-10 shadow-[0_25px_80px_rgba(0,0,0,0.8),0_0_50px_rgba(245,158,11,0.08)] backdrop-blur-xl">
-          {/* Top Multi-Gradient Neon Laser Beam */}
-          <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-amber-400 via-cyan-400 via-purple-400 to-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.9)] animate-pulse" />
+            {/* Quick Actions Row */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsQuestsModalOpen(true)}
+                className="group/btn inline-flex items-center gap-2.5 rounded-2xl border border-amber-400/45 bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-orange-500/20 px-5 py-3 text-xs font-black uppercase tracking-wider text-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.25)] backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-amber-300 hover:shadow-[0_0_35px_rgba(245,158,11,0.4)] active:scale-95 cursor-pointer"
+              >
+                <Trophy size={16} className="text-amber-300 group-hover/btn:rotate-12 transition-transform" />
+                <span>Earn Sparks via Quests</span>
+                <ChevronRight size={14} className="text-amber-400 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
 
-          {/* Decorative Cyber Notches */}
-          <div className="pointer-events-none absolute -top-12 -left-12 h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/[0.06] px-4 py-3 text-xs font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.15)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-400/15 hover:text-white active:scale-95"
+              >
+                <Coins size={15} className="text-cyan-300" />
+                <span>Instant Credits</span>
+              </Link>
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
-            {/* Left Column: Headline & Status HUD */}
-            <div className="space-y-5 lg:col-span-7">
-              {/* Clean Pill */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent px-3.5 py-1 text-[11px] font-black uppercase tracking-widest text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
-                </span>
-                Zero-Cost Rewards • 100% Free
+              <Link
+                href="/rewards/guide"
+                className="inline-flex items-center gap-2 rounded-2xl border border-purple-400/30 bg-purple-500/[0.08] px-4 py-3 text-xs font-black uppercase tracking-wider text-purple-200 shadow-[0_0_20px_rgba(168,85,247,0.15)] backdrop-blur-xl transition-all duration-300 hover:border-purple-300 hover:bg-purple-500/20 hover:text-white active:scale-95"
+              >
+                <HelpCircle size={15} className="text-purple-300" />
+                <span>Guide & Policy</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Treasury HUD Card */}
+          <div className="relative overflow-hidden rounded-[2.5rem] border-2 border-amber-400/50 bg-gradient-to-br from-[#120c06]/98 via-[#090603]/98 to-[#030201]/98 p-6 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_40px_rgba(245,158,11,0.25)] backdrop-blur-3xl sm:p-8">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-amber-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-cyan-500/15 blur-3xl" />
+
+            <div className="relative z-10 flex items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/35 bg-amber-400/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] backdrop-blur-md">
+                  <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,1)]" />
+                  <span>Available Sparks</span>
+                </div>
+                <div className="mt-2 flex items-baseline gap-3">
+                  <p className="bg-gradient-to-r from-white via-amber-100 to-yellow-200 bg-clip-text text-5xl font-black tracking-tight text-transparent drop-shadow-[0_0_35px_rgba(245,158,11,0.35)] sm:text-6xl">
+                    {sparks.toLocaleString()}
+                  </p>
+                  <span className="text-xs font-black uppercase tracking-widest text-amber-400/90">
+                    Sparks
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-400 flex items-center gap-1.5">
+                  <ShieldCheck size={13} className="text-amber-400 shrink-0" />
+                  Earned from Quests • Ready to Spend
+                </p>
               </div>
 
-              {/* Main Glowing Title */}
-              <h1 className="text-3xl font-black uppercase tracking-tight sm:text-5xl lg:text-6xl text-white leading-[1.05]">
-                Level Up &amp; Unlock <br />
-                <span className="bg-gradient-to-r from-amber-300 via-yellow-200 via-orange-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(245,158,11,0.45)]">
-                  Free Pro &amp; Credits.
-                </span>
-              </h1>
-
-              <p className="max-w-xl text-sm leading-relaxed text-zinc-300">
-                Complete daily drops, test your tech trivia skills, and try partner tools to collect Reward Points. Generate instant voucher codes to activate credits or Pro passes with zero payment.
-              </p>
-
-              {/* Stats HUD Row */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                {/* 1. Points Balance Card */}
-                <div
-                  onMouseEnter={() => soundController.playHover()}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 via-[#131728] to-[#0a0c16] px-4 py-3 shadow-[0_0_25px_rgba(245,158,11,0.1)] transition-all hover:border-amber-400/60 hover:scale-[1.02]"
-                >
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-black shadow-[0_0_20px_rgba(245,158,11,0.6)]">
-                    <Star className="h-5 w-5 fill-black" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-wider text-amber-300/80">
-                      Points Balance
-                    </div>
-                    <div className="font-mono text-xl font-black text-white">
-                      {(profile?.points || 0).toLocaleString()}{" "}
-                      <span className="text-xs text-amber-400 font-bold">RP</span>
-                    </div>
-                    <div className="text-[9px] font-mono text-zinc-500">
-                      Lifetime: {(profile?.lifetimePoints || 0).toLocaleString()} RP
-                    </div>
-                  </div>
+              {/* 3D Custom Spark Insignia */}
+              <div className="relative group/emblem shrink-0">
+                <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-amber-500/30 via-orange-500/20 to-yellow-500/30 blur-xl transition-all duration-500 group-hover/emblem:opacity-100 opacity-60" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-amber-400/40 bg-gradient-to-br from-[#1c1206]/95 via-[#100a03]/98 to-[#040301]/98 shadow-[0_12px_35px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.25),0_0_30px_rgba(245,158,11,0.3)] backdrop-blur-xl transition-transform duration-500 group-hover/emblem:scale-105">
+                  <SparkIcon size={44} variant="amber" animated />
                 </div>
-
-                {/* 2. Streak Flame Card */}
-                <div
-                  onMouseEnter={() => soundController.playHover()}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-500/15 via-[#131728] to-[#0a0c16] px-4 py-3 shadow-[0_0_25px_rgba(249,115,22,0.1)] transition-all hover:border-orange-500/60 hover:scale-[1.02]"
-                >
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-orange-500 to-rose-400 text-black shadow-[0_0_20px_rgba(249,115,22,0.6)]">
-                    <Flame className="h-5 w-5 fill-black animate-pulse" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-wider text-orange-300/80">
-                      Daily Streak
-                    </div>
-                    <div className="font-mono text-xl font-black text-white">
-                      {profile?.currentStreak || 0}{" "}
-                      <span className="text-xs text-orange-400 font-bold">
-                        {(profile?.currentStreak || 0) === 1 ? "Day" : "Days"}
-                      </span>
-                    </div>
-                    <div className="text-[9px] font-mono text-orange-300/80">
-                      {profile?.currentStreak && profile.currentStreak >= 7
-                        ? "🔥 Mega Drop Active"
-                        : "Next Mega Drop: Day 7"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Daily Completion Meter */}
-                <div
-                  onMouseEnter={() => soundController.playHover()}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/15 via-[#131728] to-[#0a0c16] px-4 py-3 shadow-[0_0_25px_rgba(6,182,212,0.1)] transition-all hover:border-cyan-500/60 hover:scale-[1.02]"
-                >
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-400 text-black shadow-[0_0_20px_rgba(6,182,212,0.6)]">
-                    <CheckCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-wider text-cyan-300/80">
-                      Today's Drops
-                    </div>
-                    <div className="font-mono text-xl font-black text-white">
-                      {completedDropsCount}{" "}
-                      <span className="text-xs text-cyan-400 font-bold">/ 3 Done</span>
-                    </div>
-                    <div className="text-[9px] font-mono text-cyan-300/80">
-                      {completedDropsCount === 3 ? "All Complete! ✨" : "Claim drops below"}
-                    </div>
-                  </div>
-                </div>
-
-                {!isLoggedIn && (
-                  <Link
-                    href="/auth/signin?next=/rewards"
-                    className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-white via-zinc-100 to-zinc-200 px-5 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-95 transition-all"
-                  >
-                    Sign In <ArrowRight className="h-4 w-4" />
-                  </Link>
-                )}
               </div>
             </div>
 
-            {/* Right Column: Holographic Target Reward Vault Card */}
-            <div className="lg:col-span-5">
-              <div
-                onMouseEnter={() => soundController.playHover()}
-                className="relative overflow-hidden rounded-3xl border border-amber-400/40 bg-gradient-to-b from-[#12162a]/95 via-[#0b0e1d]/95 to-[#060814]/95 p-6 shadow-[0_0_40px_rgba(245,158,11,0.15)] backdrop-blur-2xl transition-all"
-              >
-                {/* Glowing Laser Border Line */}
-                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400" />
-
-                <div className="flex items-center justify-between pb-3 text-xs text-zinc-400">
-                  <span className="font-black uppercase tracking-wider flex items-center gap-2 text-amber-300">
-                    <Target className="h-4 w-4 animate-spin [animation-duration:12s]" /> Target Reward
-                  </span>
-                  <span className="font-mono font-black text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-lg">
-                    {goalProgress.percentage}%
-                  </span>
+            {/* Interactive Target Goal Selector / Tracker */}
+            <div className="relative z-10 mt-6 rounded-2xl border border-amber-400/20 bg-black/40 p-4 backdrop-blur-xl">
+              <div className="flex items-center justify-between text-xs gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Target size={14} className="text-amber-400 shrink-0" />
+                  <span className="font-bold text-zinc-400 shrink-0">Savings Goal:</span>
+                  {selectedGoal ? (
+                    <span className="font-black text-amber-300 truncate">
+                      {selectedGoal.title}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500 italic text-xs truncate">
+                      No target set — save freely or pick any reward
+                    </span>
+                  )}
                 </div>
 
-                {selectedGoal && (
-                  <div className="flex items-start justify-between gap-4 py-2">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-black text-white">
-                          {selectedGoal.title}
-                        </span>
-                        <span className="font-mono text-[9px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
-                          {selectedGoal.badge || "PRO PASS"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed">
-                        {selectedGoal.description}
+                <div className="flex items-center gap-2 shrink-0">
+                  {selectedGoal && (
+                    <span className="font-black text-amber-400 font-mono">
+                      {goalProgress.percentage}%
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsGoalPickerOpen(!isGoalPickerOpen)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-amber-400/30 bg-amber-400/10 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-400/20 transition-all cursor-pointer"
+                  >
+                    <span>{selectedGoal ? "Change" : "Set Goal"}</span>
+                    <ChevronDown size={11} className={cn("transition-transform", isGoalPickerOpen && "rotate-180")} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Goal Picker Dropdown */}
+              <AnimatePresence>
+                {isGoalPickerOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 overflow-hidden border-t border-white/10 pt-3 space-y-2"
+                  >
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">
+                        Sparks Vault
+                      </p>
+                      <p className="text-sm font-black text-white">
+                        {unlockedAvatarFrames.length + unlockedNameGradients.length} Owned
                       </p>
                     </div>
-
-                    <div className="shrink-0 text-right">
-                      <div className="font-mono text-sm font-black text-amber-300 bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-                        {selectedGoal.costPoints.toLocaleString()} RP
-                      </div>
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+                      {selectedGoalId && (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectGoal(null)}
+                          className="w-full flex items-center justify-between p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] text-left text-xs text-zinc-400 transition-colors cursor-pointer"
+                        >
+                          <span>✕ Clear Tracked Goal (Free Spending)</span>
+                        </button>
+                      )}
+                      {catalog.filter((item) => !isItemOwned(item)).map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleSelectGoal(item.id)}
+                          className={cn(
+                            "w-full flex items-center justify-between p-2 rounded-xl border text-left text-xs transition-all cursor-pointer",
+                            selectedGoalId === item.id
+                              ? "border-amber-400/60 bg-amber-500/15 text-amber-200 font-bold"
+                              : "border-white/5 bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="font-black truncate">{item.title}</span>
+                            <span className="text-[10px] text-zinc-400 uppercase tracking-wider">({item.category})</span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0 text-amber-300 font-black text-[11px] font-mono">
+                            <SparkIcon size={12} variant="amber" />
+                            <span>{item.costSparks.toLocaleString()}</span>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </div>
+                  </motion.div>
                 )}
+              </AnimatePresence>
 
-                {/* Progress bar */}
-                <div className="mt-4 space-y-2">
-                  <div className="relative h-3 w-full overflow-hidden rounded-full bg-zinc-900 border border-white/[0.08]">
+              {/* Progress Bar (if a goal is selected) */}
+              {selectedGoal && (
+                <>
+                  <div className="relative mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-white/10 p-0.5">
                     <motion.div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 shadow-[0_0_12px_rgba(245,158,11,0.8)]"
                       initial={{ width: 0 }}
                       animate={{ width: `${goalProgress.percentage}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
-                      className="relative h-full bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 shadow-[0_0_15px_rgba(245,158,11,0.8)]"
-                    >
-                      <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.25)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.25)_50%,rgba(255,255,255,0.25)_75%,transparent_75%,transparent)] bg-[size:16px_16px] animate-[move-stripe_1.5s_linear_infinite]" />
-                    </motion.div>
+                    />
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
-                    <span className="font-mono text-[11px]">
-                      <strong className="text-white">{(profile?.points || 0).toLocaleString()}</strong> / {selectedGoal?.costPoints.toLocaleString()} RP
+                  <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <span>
+                      {sparks.toLocaleString()} / {selectedGoal.costSparks.toLocaleString()} Sparks
                     </span>
-                    <button
-                      onClick={() => {
-                        soundController.playClick();
-                        setIsTargetModalOpen(true);
-                      }}
-                      className="font-bold text-amber-400 hover:text-amber-200 flex items-center gap-1 hover:underline transition-all"
-                    >
-                      <Compass className="h-3.5 w-3.5" /> Switch Target
-                    </button>
+                    <span>
+                      {goalProgress.remaining > 0
+                        ? `${goalProgress.remaining.toLocaleString()} more needed`
+                        : "Ready to redeem!"}
+                    </span>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
-          </div>
-        </div>
 
-        {/* ======================================================== */}
-        {/* SECTION 1: DAILY DROPS ARCADE */}
-        {/* ======================================================== */}
-        <section id="drops" className="space-y-5 scroll-mt-24">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/25 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                <Calendar className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-lg font-black uppercase tracking-wider text-white">
-                  Daily Drops
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Collect free daily points every 24 hours to fuel your rewards progress.
+            {/* Micro Stats Row: Replaced AI Sparkles with Luxury Gem & Wardrobe Insignias */}
+            <div className="relative z-10 mt-4 grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
+                <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                  Lifetime Accumulated
                 </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
-              <Clock className="h-3.5 w-3.5 text-amber-400" /> Resets every 24h at 00:00 UTC
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {/* Card 1: 7-Day Streak Drop with Visual Stepper */}
-            <div
-              onMouseEnter={() => soundController.playHover()}
-              className="flex flex-col justify-between rounded-3xl border border-amber-400/30 bg-gradient-to-b from-[#111425]/90 via-[#0a0c18]/90 to-[#060710]/90 p-6 shadow-[0_0_30px_rgba(245,158,11,0.1)] transition-all hover:border-amber-400/60 hover:shadow-[0_0_40px_rgba(245,158,11,0.2)]"
-            >
-              <div>
-                <div className="flex items-center justify-between pb-3">
-                  <span className="font-mono text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/25 px-2.5 py-1 rounded-lg">
-                    +15 to +65 RP
+                <div className="mt-1 flex items-center gap-1.5">
+                  <SparkIcon size={14} variant="amber" />
+                  <span className="text-lg font-black text-white">
+                    {lifetimeSparks.toLocaleString()}
                   </span>
-                  {profile?.hasCheckedInToday ? (
-                    <span className="text-xs font-black text-emerald-400 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
-                      <Check className="h-3.5 w-3.5" /> Claimed Today
-                    </span>
-                  ) : (
-                    <span className="text-xs font-bold text-orange-300 flex items-center gap-1">
-                      <Flame className="h-3.5 w-3.5 text-orange-400 fill-orange-400 animate-pulse" /> Ready to Claim
-                    </span>
-                  )}
                 </div>
+              </div>
 
-                <h3 className="text-base font-black text-white flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-orange-400 fill-orange-400" /> 7-Day Streak Road
-                </h3>
-                <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                  Log in daily to scale your streak. Reach Day 7 to open the +65 RP Mega Bonus Chest!
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
+                <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                  Cosmetics Unlocked
                 </p>
-
-                {/* Visual 7-Day Stepper Nodes */}
-                <div className="mt-4 grid grid-cols-7 gap-1.5 text-center">
-                  {streakDays.map((node) => {
-                    const currentStreak = profile?.currentStreak || 0;
-                    const isPassed = currentStreak >= node.day;
-                    const isCurrent = currentStreak + 1 === node.day && !profile?.hasCheckedInToday;
-
-                    return (
-                      <div
-                        key={node.day}
-                        className={cn(
-                          "flex flex-col items-center justify-center rounded-xl border py-2 px-1 transition-all",
-                          node.isMega && "border-amber-400/50 bg-amber-400/10 text-amber-200",
-                          isPassed && "border-emerald-500/40 bg-emerald-950/40 text-emerald-300",
-                          isCurrent && "border-amber-400 bg-amber-400/20 text-amber-200 ring-2 ring-amber-400/40 animate-pulse",
-                          !isPassed && !isCurrent && !node.isMega && "border-white/[0.06] bg-zinc-900/40 text-zinc-500"
-                        )}
-                      >
-                        <span className="text-[9px] font-mono font-bold uppercase">D{node.day}</span>
-                        {node.isMega ? (
-                          <Gift className="h-3.5 w-3.5 my-0.5 text-amber-300" />
-                        ) : isPassed ? (
-                          <Check className="h-3.5 w-3.5 my-0.5 text-emerald-400" />
-                        ) : (
-                          <Coins className="h-3.5 w-3.5 my-0.5 text-zinc-500" />
-                        )}
-                        <span className="text-[8px] font-mono font-black">{node.points}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mt-6">
-                {profile?.hasCheckedInToday ? (
-                  <div className="w-full text-center py-3 text-xs font-black uppercase tracking-wider text-emerald-300 bg-emerald-950/30 rounded-2xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] flex items-center justify-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> Drop Claimed • Check back tomorrow
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleDailyCheckIn}
-                    disabled={isCheckingIn}
-                    onMouseEnter={() => soundController.playHover()}
-                    className="relative group w-full overflow-hidden rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:shadow-[0_0_45px_rgba(245,158,11,0.8)] active:scale-98 transition-all disabled:opacity-50"
-                  >
-                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex items-center justify-center gap-2">
-                      {isCheckingIn ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Flame className="h-4 w-4 fill-black text-black" /> Claim Daily Drop (+15 RP)
-                        </>
-                      )}
-                    </div>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Card 2: Daily AI Tech Trivia */}
-            <div
-              onMouseEnter={() => soundController.playHover()}
-              className="flex flex-col justify-between rounded-3xl border border-purple-500/30 bg-gradient-to-b from-[#17122c]/90 via-[#0d091d]/90 to-[#060410]/90 p-6 shadow-[0_0_30px_rgba(168,85,247,0.1)] transition-all hover:border-purple-500/60 hover:shadow-[0_0_40px_rgba(168,85,247,0.2)]"
-            >
-              <div>
-                <div className="flex items-center justify-between pb-3">
-                  <span className="font-mono text-[10px] font-black uppercase tracking-wider text-purple-300 bg-purple-400/10 border border-purple-400/25 px-2.5 py-1 rounded-lg">
-                    +30 RP
+                <div className="mt-1 flex items-center gap-1.5">
+                  <Gem size={15} className="text-fuchsia-400 fill-fuchsia-400/25" />
+                  <span className="text-lg font-black text-white">
+                    {unlockedAvatarFrames.length + unlockedNameGradients.length} Owned
                   </span>
-                  {profile?.hasCompletedQuizToday ? (
-                    <span className="text-xs font-black text-emerald-400 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
-                      <Check className="h-3.5 w-3.5" /> Completed
-                    </span>
-                  ) : (
-                    <span className="text-xs font-bold text-purple-300 flex items-center gap-1">
-                      <Cpu className="h-3.5 w-3.5 animate-pulse" /> 3 Questions Ready
-                    </span>
-                  )}
                 </div>
-
-                <h3 className="text-base font-black text-white flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4 text-purple-400" /> Daily Tech Trivia
-                </h3>
-                <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                  Answer 3 quick tech, coding &amp; AI questions. Earn 10 points per correct answer!
-                </p>
-
-                {/* Trivia Matrix Preview Box */}
-                <div className="mt-4 rounded-2xl border border-purple-500/20 bg-purple-950/20 p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 font-medium">Questions:</span>
-                    <span className="font-mono font-bold text-purple-300">3 AI / Web Questions</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 font-medium">Reward:</span>
-                    <span className="font-mono font-bold text-purple-300">+10 RP per answer</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 font-medium">Difficulty:</span>
-                    <span className="font-mono text-purple-300 font-bold">Adaptive</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => {
-                    soundController.playClick();
-                    setIsQuizModalOpen(true);
-                  }}
-                  onMouseEnter={() => soundController.playHover()}
-                  className={cn(
-                    "w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-black uppercase tracking-wider transition-all",
-                    profile?.hasCompletedQuizToday
-                      ? "border border-purple-500/40 bg-purple-950/40 text-purple-200 hover:bg-purple-900/50"
-                      : "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-white shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:shadow-[0_0_45px_rgba(168,85,247,0.8)] active:scale-98"
-                  )}
-                >
-                  {profile?.hasCompletedQuizToday ? (
-                    <>
-                      <Check className="h-4 w-4" /> View Quiz Review
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="h-4 w-4" /> Play Tech Trivia (+30 RP)
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Card 3: Community Pulse Poll */}
-            <div
-              onMouseEnter={() => soundController.playHover()}
-              className="flex flex-col justify-between rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#10192a]/90 via-[#0a0f1c]/90 to-[#040810]/90 p-6 shadow-[0_0_30px_rgba(6,182,212,0.1)] transition-all hover:border-cyan-500/60 hover:shadow-[0_0_40px_rgba(6,182,212,0.2)]"
-            >
-              <div>
-                <div className="flex items-center justify-between pb-3">
-                  <span className="font-mono text-[10px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-400/10 border border-cyan-400/25 px-2.5 py-1 rounded-lg">
-                    +20 RP
-                  </span>
-                  {profile?.hasVotedPollToday ? (
-                    <span className="text-xs font-black text-emerald-400 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
-                      <Check className="h-3.5 w-3.5" /> Voted
-                    </span>
-                  ) : (
-                    <span className="text-xs font-bold text-cyan-300 flex items-center gap-1">
-                      <Radio className="h-3.5 w-3.5 animate-pulse" /> Live Voting
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-base font-black text-white flex items-center gap-2">
-                  <BarChart2 className="h-4 w-4 text-cyan-400" /> Community Pulse Poll
-                </h3>
-                <p className="mt-1 text-xs text-zinc-400 line-clamp-2">
-                  {todayPoll?.question || "Vote to claim instant points and shape future features."}
-                </p>
-
-                {/* Poll Options */}
-                <div className="mt-4 space-y-2">
-                  {todayPoll?.options?.map((option) => {
-                    const percentage =
-                      todayPoll.totalVotes > 0
-                        ? Math.round((option.votes / todayPoll.totalVotes) * 100)
-                        : 0;
-
-                    return (
-                      <button
-                        key={option.id}
-                        onClick={() => handlePollVote(option.id)}
-                        disabled={profile?.hasVotedPollToday || isVotingPoll}
-                        onMouseEnter={() => soundController.playHover()}
-                        className={cn(
-                          "relative w-full overflow-hidden rounded-xl border p-2.5 text-left text-xs transition-all",
-                          profile?.hasVotedPollToday
-                            ? "border-white/[0.08] bg-zinc-900/60"
-                            : "border-white/[0.08] bg-zinc-900/40 hover:border-cyan-400/50 hover:bg-zinc-900/80"
-                        )}
-                      >
-                        {profile?.hasVotedPollToday && (
-                          <div
-                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 transition-all duration-700"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        )}
-                        <div className="relative z-10 flex items-center justify-between px-1">
-                          <span className="text-zinc-200 line-clamp-1 font-medium">{option.text}</span>
-                          {profile?.hasVotedPollToday && (
-                            <span className="font-mono text-xs font-black text-cyan-300 pl-2">
-                              {percentage}%
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/[0.06] text-center">
-                <span className="text-[11px] font-mono text-zinc-500">
-                  {todayPoll?.totalVotes || 0} community members voted
-                </span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ======================================================== */}
-        {/* SECTION 2: BOUNTIES & OFFERS */}
-        {/* ======================================================== */}
-        <section id="bounties" className="space-y-5 scroll-mt-24">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.08] pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                <Zap className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-lg font-black uppercase tracking-wider text-white">
-                  Bounties &amp; Quests
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Complete social missions and partner trials to claim large bonus points.
-                </p>
-              </div>
-            </div>
+        {/* Category & Rotation Filter Tabs */}
+        <section className="border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scrollbar-none">
+            {(
+              [
+                { id: "all", label: "All Rewards", icon: Layers },
+                { id: "weekly", label: `Weekly Vault (${weeklyLegendaryItems.length})`, icon: Crown },
+                { id: "three_day", label: `3-Day Vault (${threeDayEpicItems.length})`, icon: Zap },
+                { id: "daily", label: `Daily Drops (${dailyRareItems.length})`, icon: RotateCcw },
+                { id: "perks", label: "Perks & Shields", icon: ShieldCheck },
+                { id: "vouchers", label: "Shop Vouchers", icon: Ticket },
+                { id: "cosmetics", label: "All Cosmetics", icon: Gem },
+              ] as const
+            ).map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeCategory === tab.id;
 
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap gap-1.5 text-xs font-bold">
-              {[
-                { id: "all", label: "All Missions" },
-                { id: "growth", label: "Social & Bounty" },
-                { id: "partner", label: "Partner Free Trials" },
-                { id: "community", label: "Community" },
-              ].map((tab) => (
+              return (
                 <button
                   key={tab.id}
                   onClick={() => {
-                    soundController.playClick();
-                    setActiveQuestTab(tab.id as any);
+                    soundController.playHover();
+                    setActiveCategory(tab.id);
                   }}
-                  onMouseEnter={() => soundController.playHover()}
                   className={cn(
-                    "rounded-xl px-3.5 py-1.5 transition-all",
-                    activeQuestTab === tab.id
-                      ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)] font-black"
-                      : "border border-white/[0.08] bg-zinc-900/60 text-zinc-400 hover:border-white/[0.2] hover:text-white"
+                    "group relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap",
+                    isActive
+                      ? "border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.25)]"
+                      : "border border-white/10 bg-white/[0.02] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                   )}
                 >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredQuests.map((quest) => {
-              const isCompleted = profile?.completedQuestIds?.includes(quest.id);
-
-              return (
-                <div
-                  key={quest.id}
-                  onMouseEnter={() => soundController.playHover()}
-                  className={cn(
-                    "group relative flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300",
-                    isCompleted
-                      ? "border-emerald-500/20 bg-emerald-950/[0.07] opacity-75"
-                      : "border-white/[0.08] bg-gradient-to-b from-[#0c0f1e]/90 to-[#070914]/90 hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] hover:scale-[1.01]"
-                  )}
-                >
-                  <div>
-                    <div className="flex items-center justify-between pb-2">
-                      <span className="font-mono text-[10px] font-black text-cyan-300 bg-cyan-400/10 border border-cyan-400/25 px-2.5 py-0.5 rounded-lg shadow-[0_0_10px_rgba(6,182,212,0.15)]">
-                        {quest.badge}
-                      </span>
-                      {quest.partnerName && (
-                        <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest">
-                          {quest.partnerName}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-base font-bold text-white mt-1 group-hover:text-cyan-200 transition-colors">
-                      {quest.title}
-                    </div>
-                    <div className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                      {quest.description}
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-white/[0.06]">
-                    {isCompleted ? (
-                      <div className="text-center py-2 text-xs font-bold text-emerald-400 flex items-center justify-center gap-1.5 bg-emerald-950/30 rounded-xl border border-emerald-500/20">
-                        <Check className="h-4 w-4" /> Quest Completed
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleQuestClick(quest)}
-                        disabled={isCompletingQuest}
-                        onMouseEnter={() => soundController.playHover()}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-400/35 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent py-2.5 text-xs font-black uppercase tracking-wider text-cyan-200 hover:bg-cyan-500/25 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-98 transition-all"
-                      >
-                        {quest.actionLabel} <ExternalLink className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ======================================================== */}
-        {/* SECTION 3: REWARDS SHOP */}
-        {/* ======================================================== */}
-        <section id="shop" className="space-y-5 scroll-mt-24">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.08] pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/25 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                <Gift className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-lg font-black uppercase tracking-wider text-white">
-                  Rewards Shop
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Redeem earned points for unique voucher codes and activate compute or Pro immediately.
-                </p>
-              </div>
-            </div>
-
-            {/* Catalog Filter Pills */}
-            <div className="flex flex-wrap gap-1.5 text-xs font-bold">
-              {[
-                { id: "all", label: "All Items" },
-                { id: "credits", label: "⚡ Credits Top-Ups" },
-                { id: "pro", label: "👑 Pro Passes" },
-                { id: "cosmetic", label: "✨ Cosmetics" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    soundController.playClick();
-                    setActiveCatalogTab(tab.id as any);
-                  }}
-                  onMouseEnter={() => soundController.playHover()}
-                  className={cn(
-                    "rounded-xl px-3.5 py-1.5 transition-all",
-                    activeCatalogTab === tab.id
-                      ? "bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-[0_0_20px_rgba(245,158,11,0.4)] font-black"
-                      : "border border-white/[0.08] bg-zinc-900/60 text-zinc-400 hover:border-white/[0.2] hover:text-white"
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCatalog.map((reward) => {
-              const userPoints = profile?.points || 0;
-              const canAfford = userPoints >= reward.costPoints;
-              const isSelectedGoal = profile?.selectedGoalId === reward.id;
-
-              return (
-                <div
-                  key={reward.id}
-                  onMouseEnter={() => soundController.playHover()}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#111425]/90 via-[#0a0c18]/90 to-[#05060f]/90 p-6 shadow-[0_0_30px_rgba(0,0,0,0.6)] hover:border-amber-400/50 hover:shadow-[0_0_40px_rgba(245,158,11,0.2)] hover:scale-[1.01] transition-all"
-                >
-                  {/* Top Laser Accent */}
-                  <div
+                  <Icon
+                    size={14}
                     className={cn(
-                      "absolute inset-x-0 top-0 h-[2px]",
-                      reward.category === "pro"
-                        ? "bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300"
-                        : reward.category === "cosmetic"
-                        ? "bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400"
-                        : "bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400"
+                      "transition-colors",
+                      isActive ? "text-amber-400" : "text-zinc-400 group-hover:text-zinc-200"
                     )}
                   />
-
-                  <div>
-                    <div className="flex items-center justify-between pb-3">
-                      <span className="font-mono text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/25 px-2.5 py-0.5 rounded-lg shadow-[0_0_10px_rgba(245,158,11,0.15)]">
-                        {reward.badge || reward.category}
-                      </span>
-                      {isSelectedGoal && (
-                        <span className="text-[11px] font-black text-amber-300 flex items-center gap-1 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full">
-                          <Target className="h-3 w-3" /> Active Target
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Glowing Pedestal Icon */}
-                    <div className="my-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-transparent text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)] group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all">
-                      {reward.category === "pro" ? (
-                        <Crown className="h-6 w-6" />
-                      ) : reward.category === "cosmetic" ? (
-                        <Star className="h-6 w-6" />
-                      ) : (
-                        <Zap className="h-6 w-6" />
-                      )}
-                    </div>
-
-                    <div className="text-lg font-black text-white group-hover:text-amber-200 transition-colors">
-                      {reward.title}
-                    </div>
-                    <div className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                      {reward.description}
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-white/[0.06] space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-400 font-medium">Cost</span>
-                      <span className="font-mono font-black text-amber-300 text-base">
-                        {reward.costPoints.toLocaleString()} RP
-                      </span>
-                    </div>
-
-                    {canAfford ? (
-                      <button
-                        onClick={() => {
-                          soundController.playClick();
-                          setSelectedRedeemReward(reward);
-                        }}
-                        onMouseEnter={() => soundController.playHover()}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:shadow-[0_0_40px_rgba(245,158,11,0.8)] active:scale-98 transition-all"
-                      >
-                        <Ticket className="h-4 w-4 fill-black" /> Claim Voucher Code
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleSetGoal(reward)}
-                        onMouseEnter={() => soundController.playHover()}
-                        className={cn(
-                          "w-full py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border",
-                          isSelectedGoal
-                            ? "border-amber-400/40 bg-amber-400/15 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
-                            : "border-white/[0.08] bg-zinc-900/60 text-zinc-300 hover:border-amber-400/40 hover:text-white"
-                        )}
-                      >
-                        {isSelectedGoal
-                          ? "Current Target Goal"
-                          : `Need ${(reward.costPoints - userPoints).toLocaleString()} more RP (Set Target)`}
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  <span>{tab.label}</span>
+                </button>
               );
             })}
           </div>
         </section>
 
-        {/* ======================================================== */}
-        {/* SECTION 4: MY CLAIMED CODES TERMINAL */}
-        {/* ======================================================== */}
-        <section
-          id="codes"
-          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#0c0f1f]/95 to-[#060812]/95 p-6 sm:p-8 space-y-5 scroll-mt-24 shadow-2xl"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-white/[0.08] gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/25">
-                <Ticket className="h-4 w-4" />
+        {/* Reward Cards Grid */}
+        <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredItems.map((item, index) => {
+            const style = cardStyles[item.accentColor] || cardStyles.amber;
+            const isAffordable = sparks >= item.costSparks;
+            const isTarget = selectedGoalId === item.id;
+
+            // Cosmetic Ownership
+            const isUnlocked = isItemOwned(item);
+
+            const isEquipped =
+              item.type === "avatar_frame"
+                ? activeAvatarFrame === item.value
+                : item.type === "name_gradient"
+                ? activeNameGradient === item.value
+                : item.type === "creator_insignia"
+                ? activeInsignia === item.value
+                : item.type === "studio_canopy"
+                ? activeCanopy === item.value
+                : false;
+
+            // Rotation reset countdown label
+            const rotationCountdown =
+              item.rotationTier === "weekly"
+                ? `Resets in ${timers.weeklyCountdown}`
+                : item.rotationTier === "three_day"
+                ? `Resets in ${timers.threeDayCountdown}`
+                : item.rotationTier === "daily"
+                ? `Resets in ${timers.dailyCountdown}`
+                : null;
+
+            // Voucher weekly purchase cooldown
+            const cooldownInfo = item.type === "shop_voucher" ? voucherCooldowns?.[item.id] : null;
+            const remainingCooldownMs = cooldownInfo
+              ? Math.max(0, new Date(cooldownInfo.availableAt).getTime() - now)
+              : 0;
+            const isOnVoucherCooldown = remainingCooldownMs > 0;
+            const voucherCooldownText = isOnVoucherCooldown ? formatVoucherCountdown(remainingCooldownMs) : null;
+
+            return (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04 }}
+                className={cn(
+                  "group/card relative flex flex-col justify-between overflow-hidden rounded-[2.25rem] p-1.5 backdrop-blur-3xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_90px_rgba(0,0,0,0.95)]",
+                  style.cardBorder
+                )}
+              >
+                {/* Ambient Card Glow */}
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-gradient-to-br opacity-65 transition-opacity duration-300 group-hover/card:opacity-100",
+                    style.ambientGradient
+                  )}
+                />
+
+                <div className="relative z-10 p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    {/* Top Row: Rarity + Rotation Timer Badge + Target Pin */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider",
+                            item.rarity === "Legendary"
+                              ? "border-amber-400/50 bg-amber-500/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                              : item.rarity === "Epic"
+                              ? "border-purple-400/50 bg-purple-500/20 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                              : item.rarity === "Rare"
+                              ? "border-cyan-400/40 bg-cyan-500/15 text-cyan-300"
+                              : item.rarity === "Mythic"
+                              ? "border-pink-400/50 bg-pink-500/20 text-pink-300 shadow-[0_0_12px_rgba(244,114,182,0.25)]"
+                              : "border-white/10 bg-white/[0.04] text-zinc-300"
+                          )}
+                        >
+                          <span className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            item.rarity === "Legendary" ? "bg-amber-400 animate-pulse" :
+                            item.rarity === "Epic" ? "bg-purple-400 animate-pulse" :
+                            item.rarity === "Mythic" ? "bg-pink-400 animate-pulse" :
+                            "bg-cyan-400"
+                          )} />
+                          {item.rarity}
+                        </span>
+
+                        {item.type === "free_sparks" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-950/80 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+                            <Clock size={10} className="text-amber-400 animate-pulse" />
+                            Ends in {formatTimeRemaining(FREE_SPARKS_GIFT_EXPIRES_AT, new Date(now))}
+                          </span>
+                        )}
+
+                        {rotationCountdown && item.type !== "free_sparks" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2.5 py-0.5 text-[9px] font-bold font-mono uppercase tracking-wider text-zinc-300 shadow-sm">
+                            <Clock size={10} className="text-amber-400 animate-pulse" />
+                            {rotationCountdown}
+                          </span>
+                        )}
+
+                        {item.type === "shop_voucher" && isOnVoucherCooldown && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/50 bg-purple-950/85 px-2.5 py-0.5 text-[9px] font-black font-mono uppercase tracking-wider text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.35)]">
+                            <Clock size={10} className="text-purple-400 animate-pulse" />
+                            Restocks in {voucherCooldownText}
+                          </span>
+                        )}
+
+                        {item.type === "shop_voucher" && !isOnVoucherCooldown && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-purple-400/40 bg-purple-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-purple-300">
+                            Limit: 1/Week
+                          </span>
+                        )}
+
+                        {item.popular && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-pink-400/40 bg-pink-400/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-pink-300 shadow-[0_0_10px_rgba(244,114,182,0.2)]">
+                            <Flame size={10} className="fill-pink-400/40" /> Top Pick
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Goal Pin Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          soundController.playClick();
+                          setSelectedGoalId(item.id);
+                        }}
+                        className={cn(
+                          "rounded-xl px-2.5 py-1 transition-all cursor-pointer flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider border",
+                          isTarget
+                            ? "bg-amber-400/25 text-amber-300 border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.35)]"
+                            : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5 border-white/5"
+                        )}
+                        title={isTarget ? "Target goal active (Click to untrack)" : "Track as primary savings goal"}
+                      >
+                        <Target size={11} className={isTarget ? "text-amber-400 animate-pulse" : ""} />
+                        <span className="hidden sm:inline">{isTarget ? "Tracked" : "Goal"}</span>
+                      </button>
+                    </div>
+
+                    {/* Middle: Visual Showcase Presentation */}
+                    {item.type === "name_gradient" ? (
+                      /* HOLOGRAPHIC NAME STAGE */
+                      <div className="my-4 space-y-3">
+                        <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-[#0e101f]/90 to-[#05060d]/95 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_15px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl group/stage flex flex-col justify-between min-h-[155px]">
+                          {/* Inner radiant glow */}
+                          <div
+                            className={cn(
+                              "pointer-events-none absolute -inset-10 rounded-full opacity-30 blur-2xl transition-opacity duration-500 group-hover/stage:opacity-60 bg-gradient-to-r",
+                              style.ambientGradient
+                            )}
+                          />
+
+                          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                              Name Preview
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                              {item.rarity}
+                            </span>
+                          </div>
+
+                          {/* Huge, Radiant, High-Impact Name Style Preview */}
+                          <div className="relative z-10 my-2 text-center py-2 overflow-visible">
+                            <PremiumName
+                              name={displayUserName}
+                              isPro={true}
+                              gradientId={String(item.value)}
+                              className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-normal"
+                            />
+                          </div>
+
+                          <div className="relative z-10 flex items-center justify-between border-t border-white/[0.06] pt-2 text-[9px] font-medium text-zinc-400">
+                            <span className="truncate max-w-[150px]">{item.subtitle}</span>
+                            <span className="text-zinc-500">Profile Name Style</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.18em]", style.subtitleColor)}>
+                            {item.subtitle}
+                          </p>
+                          <h3 className={cn("mt-0.5 text-base font-black text-white transition-colors duration-200", style.titleHoverColor)}>
+                            {item.title}
+                          </h3>
+                          <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-400">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    ) : item.type === "avatar_frame" ? (
+                      /* LUXURY CENTERED AVATAR FRAME PEDESTAL STAGE */
+                      <div className="my-4 space-y-3">
+                        <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-[#0e101f]/90 to-[#05060d]/95 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_15px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl group/stage flex flex-col justify-between min-h-[155px]">
+                          {/* Ambient halo behind avatar */}
+                          <div
+                            className={cn(
+                              "pointer-events-none absolute -inset-10 rounded-full opacity-35 blur-2xl transition-opacity duration-500 group-hover/stage:opacity-70 bg-gradient-to-b",
+                              style.ambientGradient
+                            )}
+                          />
+
+                          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                              Frame Preview
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                              {item.rarity}
+                            </span>
+                          </div>
+
+                          {/* Centered Avatar Preview */}
+                          <div className="relative z-10 my-2 flex items-center justify-center py-1">
+                            <div className="relative flex items-center justify-center transition-transform duration-300 group-hover/stage:scale-105">
+                              <AvatarWithFrame
+                                size={72}
+                                frameId={String(item.value)}
+                                displayName={displayUserName}
+                                avatarUrl={displayAvatarUrl}
+                                isPro={true}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="relative z-10 flex items-center justify-between border-t border-white/[0.06] pt-2 text-[9px] font-medium text-zinc-400">
+                            <span className="truncate max-w-[150px]">{displayUserName}</span>
+                            <span className="text-zinc-500">Profile Avatar</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.18em]", style.subtitleColor)}>
+                            {item.subtitle}
+                          </p>
+                          <h3 className={cn("mt-0.5 text-base font-black text-white transition-colors duration-200", style.titleHoverColor)}>
+                            {item.title}
+                          </h3>
+                          <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-400">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    ) : item.type === "creator_insignia" ? (
+                      /* APEX CREATOR INSIGNIA STAGE */
+                      <div className="my-4 space-y-3">
+                        <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-[#0e101f]/90 to-[#05060d]/95 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_15px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl group/stage flex flex-col justify-between min-h-[155px]">
+                          <div
+                            className={cn(
+                              "pointer-events-none absolute -inset-10 rounded-full opacity-35 blur-2xl transition-opacity duration-500 group-hover/stage:opacity-70 bg-gradient-to-b",
+                              style.ambientGradient
+                            )}
+                          />
+                          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                              Badge Preview
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                              {item.rarity}
+                            </span>
+                          </div>
+
+                          <div className="relative z-10 my-1 flex flex-col items-center justify-center py-2 gap-2">
+                            <div className="p-3 rounded-2xl bg-black/60 border border-white/15 shadow-2xl">
+                              <CreatorInsignia insigniaId={String(item.value)} size="xl" showTooltip={false} />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-black text-white">{displayUserName}</span>
+                              <CreatorInsignia insigniaId={String(item.value)} size="sm" showTooltip={false} />
+                            </div>
+                          </div>
+
+                          <div className="relative z-10 flex items-center justify-between border-t border-white/[0.06] pt-2 text-[9px] font-medium text-zinc-400">
+                            <span className="truncate max-w-[150px]">{item.subtitle}</span>
+                            <span className="text-zinc-500">Beside Username</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.18em]", style.subtitleColor)}>
+                            {item.subtitle}
+                          </p>
+                          <h3 className={cn("mt-0.5 text-base font-black text-white transition-colors duration-200", style.titleHoverColor)}>
+                            {item.title}
+                          </h3>
+                          <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-400">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      /* STREAK SHIELDS, VOUCHERS, PERKS & LEGACY VIP ACCESS STAGE */
+                      <div className="my-4 space-y-3">
+                        <div className={cn(
+                          "relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_20px_45px_rgba(0,0,0,0.7)] backdrop-blur-xl group/stage flex flex-col justify-between min-h-[162px] transition-colors duration-300",
+                          item.accentColor === "amber"
+                            ? "border-amber-500/40 bg-gradient-to-b from-[#1e1105]/90 via-[#100802]/95 to-[#040200]/98"
+                            : item.accentColor === "purple"
+                            ? "border-purple-500/40 bg-gradient-to-b from-[#180b2a]/90 via-[#0c0516]/95 to-[#040208]/98"
+                            : item.accentColor === "fuchsia"
+                            ? "border-pink-500/40 bg-gradient-to-b from-[#1c0a22]/90 via-[#0e0511]/95 to-[#040105]/98"
+                            : item.accentColor === "emerald"
+                            ? "border-emerald-500/40 bg-gradient-to-b from-[#081a14]/90 via-[#030d0a]/95 to-[#010504]/98"
+                            : "border-cyan-500/40 bg-gradient-to-b from-[#081824]/90 via-[#040e16]/95 to-[#010408]/98"
+                        )}>
+                          {/* Ambient radial glow matching rarity */}
+                          <div
+                            className={cn(
+                              "pointer-events-none absolute -inset-6 rounded-full opacity-40 blur-2xl transition-opacity duration-500 group-hover/stage:opacity-75 bg-gradient-to-b",
+                              style.ambientGradient
+                            )}
+                          />
+
+                          {/* Top Row inside Stage: Badge + Tier */}
+                          <div className="relative z-10 flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-300">
+                              <span className={cn(
+                                "h-1.5 w-1.5 rounded-full animate-pulse",
+                                item.accentColor === "amber"
+                                  ? "bg-amber-400"
+                                  : item.accentColor === "purple"
+                                  ? "bg-purple-400"
+                                  : item.accentColor === "fuchsia"
+                                  ? "bg-pink-400"
+                                  : item.accentColor === "emerald"
+                                  ? "bg-emerald-400"
+                                  : "bg-cyan-400"
+                              )} />
+                              {item.type === "streak_shield"
+                                ? "Streak Protection"
+                                : item.type === "shop_voucher"
+                                ? (Number(item.value) === 20 ? "Monthly Pro Voucher" : "Shop Voucher")
+                                : item.type === "credits_emergency"
+                                ? "Emergency Refuel"
+                                : item.category === "pro"
+                                ? "Pro Pass"
+                                : "Credits"}
+                            </span>
+                            <span className={cn(
+                              "text-[9px] font-mono font-black uppercase tracking-wider",
+                              item.accentColor === "amber"
+                                ? "text-amber-300"
+                                : item.accentColor === "purple"
+                                ? "text-purple-300"
+                                : item.accentColor === "fuchsia"
+                                ? "text-pink-300"
+                                : item.accentColor === "emerald"
+                                ? "text-emerald-300"
+                                : "text-cyan-300"
+                            )}>
+                              {item.rarity}
+                            </span>
+                          </div>
+
+                          {/* Center: Open, Radiant Trophy / Shield / Voucher Emblem */}
+                          {item.type === "free_sparks" ? (
+                            <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
+                              <div className="relative flex h-13 w-13 items-center justify-center rounded-2xl border border-amber-400/70 bg-gradient-to-br from-amber-500/40 via-yellow-950/60 to-black/85 text-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-transform duration-300 group-hover/stage:scale-110">
+                                <Gift size={28} className="fill-amber-400/25 text-amber-300 drop-shadow-lg" />
+                              </div>
+
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className="text-xl sm:text-2xl font-black tracking-tight text-amber-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.8)] font-mono">
+                                    +100
+                                  </span>
+                                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                                    Sparks
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-bold text-amber-200/90 uppercase tracking-wider mt-0.5">
+                                  Special Gift · Available for 7 Days
+                                </span>
+                              </div>
+                            </div>
+                          ) : item.type === "streak_shield" ? (
+                            <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
+                              <div className={cn(
+                                "relative flex h-13 w-13 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover/stage:scale-110",
+                                item.accentColor === "amber"
+                                  ? "border-amber-400/60 bg-gradient-to-br from-amber-500/30 to-orange-950/60 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.4)]"
+                                  : "border-cyan-400/60 bg-gradient-to-br from-cyan-500/30 to-blue-950/60 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.4)]"
+                              )}>
+                                <ShieldCheck size={26} className={cn(
+                                  "drop-shadow-md",
+                                  item.accentColor === "amber" ? "fill-amber-400/20 text-amber-300" : "fill-cyan-400/20 text-cyan-300"
+                                )} />
+                              </div>
+
+                              <div className="flex flex-col items-center">
+                                <span className={cn(
+                                  "text-sm sm:text-base font-black uppercase tracking-wide",
+                                  item.accentColor === "amber"
+                                    ? "text-amber-100 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]"
+                                    : "text-cyan-100 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+                                )}>
+                                  {Number(item.value) > 1 ? `+${item.value} Streak Shields (Bundle)` : "+1 Streak Shield"}
+                                </span>
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
+                                  Auto-Preserve Streak · Never Expires
+                                </span>
+                              </div>
+                            </div>
+                          ) : item.type === "shop_voucher" ? (
+                            <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
+                              <div className={cn(
+                                "relative flex h-13 w-13 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover/stage:scale-110",
+                                item.accentColor === "fuchsia"
+                                  ? "border-pink-400/60 bg-gradient-to-br from-pink-500/30 to-rose-950/60 text-pink-300 shadow-[0_0_25px_rgba(244,114,182,0.4)]"
+                                  : "border-purple-400/60 bg-gradient-to-br from-purple-500/30 to-fuchsia-950/60 text-purple-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]"
+                              )}>
+                                <Ticket size={26} className={cn(
+                                  "drop-shadow-md",
+                                  item.accentColor === "fuchsia" ? "fill-pink-400/20 text-pink-300" : "fill-purple-400/20 text-purple-300"
+                                )} />
+                              </div>
+
+                              <div className="flex flex-col items-center">
+                                <span className={cn(
+                                  "text-sm sm:text-base font-black uppercase tracking-wide",
+                                  item.accentColor === "fuchsia"
+                                    ? "text-pink-100 drop-shadow-[0_0_10px_rgba(244,114,182,0.6)]"
+                                    : "text-purple-100 drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]"
+                                )}>
+                                  {Number(item.value) === 20 ? "20% OFF Pro Pass" : (isIndia ? "₹100 OFF" : "$1.50 OFF")}
+                                </span>
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
+                                  {Number(item.value) === 20
+                                    ? "Monthly Pro Pass · Single Use"
+                                    : (isIndia ? "Single-Use Coupon · Min Order ₹249" : "Single-Use Coupon · Min Order $3.00")}
+                                </span>
+                              </div>
+                            </div>
+                          ) : item.type === "credits_emergency" ? (
+                            <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
+                              <div className="relative flex h-13 w-13 items-center justify-center rounded-2xl border border-emerald-400/60 bg-gradient-to-br from-emerald-500/30 to-teal-950/60 text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-transform duration-300 group-hover/stage:scale-110">
+                                <Zap size={26} className="fill-emerald-400/20 drop-shadow-md" />
+                              </div>
+
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className="text-xl sm:text-2xl font-black tracking-tight text-emerald-300 drop-shadow-[0_0_12px_rgba(16,185,129,0.7)] font-mono">
+                                    +25
+                                  </span>
+                                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                                    Credits
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
+                                  Emergency Refuel · 24h Pass
+                                </span>
+                              </div>
+                            </div>
+                          ) : item.category === "pro" ? (
+                            <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
+                              <div className={cn(
+                                "relative flex h-13 w-13 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover/stage:scale-110",
+                                style.iconBg
+                              )}>
+                                <Crown size={26} className="fill-current drop-shadow-md" />
+                              </div>
+
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className={cn("text-xl sm:text-2xl font-black tracking-tight font-mono", style.iconColor)}>
+                                    +{item.value}h
+                                  </span>
+                                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                                    Pro Access
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
+                                  Digital Pass · VIP Creator
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
+                              <div className={cn(
+                                "relative flex h-13 w-13 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover/stage:scale-110",
+                                style.iconBg
+                              )}>
+                                <Coins size={26} className="fill-current drop-shadow-md" />
+                              </div>
+
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className="text-xl sm:text-2xl font-black tracking-tight text-cyan-300 drop-shadow-[0_0_12px_rgba(34,211,238,0.7)] font-mono">
+                                    +{item.value}
+                                  </span>
+                                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                                    Credits
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
+                                  Permanent Balance · Never Expires
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Stage Footer Row */}
+                          <div className="relative z-10 flex items-center justify-between border-t border-white/[0.08] pt-1.5 text-[8.5px] font-bold uppercase tracking-wider text-zinc-400">
+                            <span className="flex items-center gap-1.5 text-zinc-300">
+                              {item.type === "free_sparks" ? (
+                                <Gift size={11} className="text-amber-300" />
+                              ) : item.type === "streak_shield" ? (
+                                <ShieldCheck size={11} className={item.accentColor === "amber" ? "text-amber-300" : "text-cyan-300"} />
+                              ) : item.type === "shop_voucher" ? (
+                                <Ticket size={11} className={item.accentColor === "fuchsia" ? "text-pink-300" : "text-purple-300"} />
+                              ) : item.type === "credits_emergency" ? (
+                                <Zap size={11} className="text-emerald-300" />
+                              ) : item.category === "pro" ? (
+                                <Crown size={11} className={item.rarity === "Mythic" ? "text-pink-300" : item.rarity === "Epic" ? "text-purple-300" : "text-amber-300"} />
+                              ) : (
+                                <Coins size={11} className="text-cyan-300" />
+                              )}
+                              <span>
+                                {item.type === "free_sparks"
+                                  ? "One-Time Free Gift"
+                                  : item.type === "streak_shield"
+                                  ? `Shield Vault: ${(streakShields ?? 0)}/3`
+                                  : item.type === "shop_voucher"
+                                  ? (Number(item.value) === 20 ? "Monthly Pro Pass" : "Shop Coupon")
+                                  : item.type === "credits_emergency"
+                                  ? "Emergency Refuel"
+                                  : item.category === "pro"
+                                  ? "Digital Pass"
+                                  : "Account Top-Up"}
+                              </span>
+                            </span>
+                            <span className={cn(
+                              "font-black font-mono",
+                              item.type === "free_sparks"
+                                ? "text-emerald-300"
+                                : item.accentColor === "amber"
+                                ? "text-amber-300"
+                                : item.accentColor === "purple"
+                                ? "text-purple-300"
+                                : item.accentColor === "fuchsia"
+                                ? "text-pink-300"
+                                : item.accentColor === "emerald"
+                                ? "text-emerald-300"
+                                : "text-cyan-300"
+                            )}>
+                              {item.type === "free_sparks" ? "100% FREE" : "INSTANT DELIVERY"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.18em]", style.subtitleColor)}>
+                            {item.subtitle}
+                          </p>
+                          <h3 className={cn("mt-0.5 text-base font-black text-white transition-colors duration-200", style.titleHoverColor)}>
+                            {item.type === "shop_voucher" && Number(item.value) === 100
+                              ? (isIndia ? "₹100 OFF Shop Voucher" : "$1.50 OFF Shop Voucher")
+                              : item.title}
+                          </h3>
+                          <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-400">
+                            {item.type === "shop_voucher" && Number(item.value) === 100
+                              ? (isIndia
+                                  ? "Generates a single-use coupon code valid for ₹100 off purchases of ₹249 or more in the Shop."
+                                  : "Generates a single-use coupon code valid for $1.50 off purchases of $3.00 or more in the Shop.")
+                              : item.description}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom: Price and Redeem/Equip/Remove Action */}
+                  <div className="mt-4 pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                          Price
+                        </span>
+                        {!isUnlocked && (
+                          <button
+                            type="button"
+                            onClick={() => handleSelectGoal(selectedGoalId === item.id ? null : item.id)}
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider transition-all cursor-pointer",
+                              selectedGoalId === item.id
+                                ? "bg-amber-400/20 text-amber-300 border border-amber-400/40"
+                                : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/5 hover:border-white/20"
+                            )}
+                            title={selectedGoalId === item.id ? "Click to untrack goal" : "Track this item as your savings goal in the HUD"}
+                          >
+                            <Target size={10} className={selectedGoalId === item.id ? "text-amber-400" : ""} />
+                            <span>{selectedGoalId === item.id ? "Tracked" : "Track Goal"}</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {item.type === "free_sparks" || item.costSparks === 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                            FREE
+                          </span>
+                        ) : (
+                          <>
+                            <SparkIcon size={16} variant="amber" />
+                            <span className="text-xl font-black text-white">
+                              {item.costSparks.toLocaleString()}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Button: Handles Redeem, Equip, and Remove (Unequip) */}
+                    {isUnlocked ? (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleCosmetic(item, isEquipped)}
+                        disabled={equippingId === item.id || equippingId === "removing"}
+                        className={cn(
+                          "group/equip inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95",
+                          isEquipped
+                            ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:border-rose-400/50 hover:bg-rose-500/15 hover:text-rose-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                            : "border-purple-400/40 bg-purple-500/20 text-purple-200 hover:border-purple-400 hover:bg-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                        )}
+                        title={isEquipped ? "Click to Remove / Unequip" : "Equip to Profile"}
+                      >
+                        {equippingId === item.id || equippingId === "removing" ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : isEquipped ? (
+                          <>
+                            <Check size={13} className="text-emerald-400 group-hover/equip:hidden" />
+                            <X size={13} className="text-rose-400 hidden group-hover/equip:inline-block" />
+                            <span className="group-hover/equip:hidden">Equipped</span>
+                            <span className="hidden group-hover/equip:inline-block">Remove</span>
+                          </>
+                        ) : (
+                          <>
+                            <Gem size={13} />
+                            <span>Equip</span>
+                          </>
+                        )}
+                      </button>
+                    ) : item.type === "free_sparks" ? (
+                      <motion.button
+                        type="button"
+                        onClick={() => handleOpenRedeemModal(item)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="group/btn relative flex items-center justify-center overflow-hidden rounded-[18px] p-[2px] isolate transition-all duration-300 cursor-pointer select-none shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)]"
+                      >
+                        <motion.span
+                          aria-hidden="true"
+                          className="absolute -inset-[150%] opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,rgba(245,158,11,1)_0%,rgba(234,179,8,1)_33%,rgba(251,191,36,1)_66%,rgba(245,158,11,1)_100%)]"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        />
+                        <span className="relative flex items-center gap-2 rounded-[16px] border border-amber-400/50 bg-gradient-to-br from-[#1c1206]/98 to-[#0b0803]/98 px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-200 backdrop-blur-xl">
+                          <Gift size={14} className="text-amber-400" />
+                          <span>Claim Gift</span>
+                          <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform text-amber-400" />
+                        </span>
+                      </motion.button>
+                    ) : item.type === "streak_shield" && (streakShields ?? 0) >= 3 ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-950/40 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.15)] select-none">
+                        <ShieldCheck size={13} className="text-cyan-400" />
+                        <span>Vault Full (3/3)</span>
+                      </span>
+                    ) : item.type === "shop_voucher" && isOnVoucherCooldown ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-xl border border-purple-400/40 bg-purple-950/60 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)] select-none cursor-not-allowed">
+                        <Clock size={13} className="text-purple-400 animate-pulse" />
+                        <span>Restocks in {voucherCooldownText}</span>
+                      </span>
+                    ) : (
+                      <motion.button
+                        type="button"
+                        onClick={() => handleOpenRedeemModal(item)}
+                        whileHover={isAffordable ? { scale: 1.02 } : undefined}
+                        whileTap={isAffordable ? { scale: 0.98 } : undefined}
+                        disabled={!isAffordable}
+                        className={cn(
+                          "group/btn relative flex items-center justify-center overflow-hidden rounded-[18px] p-[2px] isolate transition-all duration-300 cursor-pointer select-none",
+                          isAffordable
+                            ? "shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_35px_rgba(245,158,11,0.4)]"
+                            : "bg-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
+                        )}
+                      >
+                        {isAffordable && (
+                          <motion.span
+                            aria-hidden="true"
+                            className={cn(
+                              "absolute -inset-[150%] opacity-100 mix-blend-screen",
+                              style.conicGradient
+                            )}
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                          />
+                        )}
+
+                        <span className="relative flex items-center gap-2 rounded-[16px] border border-white/10 bg-gradient-to-br from-[#0c0c12]/98 to-[#050508]/98 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-white backdrop-blur-xl">
+                          <SparkIcon size={14} variant="amber" />
+                          <span>
+                            {isAffordable
+                              ? "Redeem"
+                              : `Need ${(item.costSparks - sparks).toLocaleString()}`}
+                          </span>
+                          {isAffordable && (
+                            <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                          )}
+                        </span>
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </section>
+
+        {/* Bottom Banner: Quests Accelerator */}
+        <section className="relative overflow-hidden rounded-[2.5rem] border border-amber-400/30 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-cyan-500/10 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.7)] backdrop-blur-3xl">
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-400/15 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
+                <Trophy size={32} />
               </div>
               <div>
-                <h2 className="text-base font-black uppercase tracking-wider text-white">
-                  My Claimed Voucher Codes
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Your generated vouchers are saved here and ready for activation anytime.
+                <h3 className="text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
+                  Want more Sparks?
+                </h3>
+                <p className="mt-1 text-sm font-medium text-zinc-300">
+                  Daily quests give 10–25 Sparks each. Weekly quests give up to 100 Sparks. Zero money required.
                 </p>
               </div>
             </div>
 
             <button
-              onClick={() => {
-                soundController.playClick();
-                setPrefilledPromoCode("");
-                setIsPromoModalOpen(true);
-              }}
-              onMouseEnter={() => soundController.playHover()}
-              className="rounded-xl border border-amber-400/35 bg-gradient-to-r from-amber-400/15 to-transparent px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-300 hover:bg-amber-400 hover:text-black transition-all shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+              type="button"
+              onClick={() => setIsQuestsModalOpen(true)}
+              className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-amber-400/50 bg-amber-400 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-black shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all hover:bg-amber-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
-              Redeem Code on Exismic
+              <SparkIcon size={16} variant="amber" />
+              <span>Open Creator Quests</span>
             </button>
           </div>
-
-          {profile?.recentRedemptions && profile.recentRedemptions.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {profile.recentRedemptions.map((red: any) => (
-                <div
-                  key={red.id}
-                  onMouseEnter={() => soundController.playHover()}
-                  className="flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-4 hover:border-amber-400/40 transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-white text-sm">{red.rewardTitle}</div>
-                      <div className="text-[11px] text-zinc-500 font-mono">
-                        Claimed {new Date(red.redeemedAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <span className="font-mono text-[10px] font-bold text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
-                      {red.costPoints.toLocaleString()} RP
-                    </span>
-                  </div>
-
-                  {red.voucherCode && (
-                    <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center gap-2">
-                      <div className="flex-1 font-mono text-xs font-black text-amber-300 bg-black/80 px-3 py-2 rounded-xl border border-amber-400/20 select-all tracking-wider">
-                        {red.voucherCode}
-                      </div>
-                      <button
-                        onClick={() => handleCopyVoucher(red.voucherCode)}
-                        className="p-2 rounded-xl border border-white/[0.1] bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-all"
-                        title="Copy Code"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          soundController.playClick();
-                          setPrefilledPromoCode(red.voucherCode);
-                          setIsPromoModalOpen(true);
-                        }}
-                        className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-black hover:brightness-110 transition-all"
-                      >
-                        Redeem
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-10 text-center space-y-2">
-              <Ticket className="h-8 w-8 text-zinc-600 mx-auto" />
-              <div className="text-xs font-bold text-zinc-400">No claimed vouchers yet.</div>
-              <p className="text-[11px] text-zinc-500">
-                Complete daily drops and bounties above to collect Reward Points!
-              </p>
-            </div>
-          )}
         </section>
       </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-white/[0.08] bg-[#030408] py-10 text-center text-xs text-zinc-500">
-        <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-            <span className="font-bold text-zinc-300">Exismic Rewards</span>
-          </div>
-          <div className="flex items-center gap-6 text-zinc-400">
-            <Link href="/terms-of-service" className="hover:text-zinc-200">Terms</Link>
-            <Link href="/privacy-policy" className="hover:text-zinc-200">Privacy</Link>
-            <Link href="/help" className="hover:text-zinc-200">Support</Link>
-            <Link href="/" className="text-amber-400 hover:text-amber-200 font-bold">Studio</Link>
-          </div>
-        </div>
-      </footer>
+      {/* Daily Quests Modal */}
+      <DailyQuestsModal
+        isOpen={isQuestsModalOpen}
+        onClose={() => setIsQuestsModalOpen(false)}
+      />
 
-      {/* ======================================================== */}
-      {/* GAMIFIED MODAL: TECH TRIVIA */}
-      {/* ======================================================== */}
+      {/* Redemption Confirmation Modal */}
       <AnimatePresence>
-        {isQuizModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+        {selectedReward && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedReward(null)}
+              className="absolute inset-0 bg-black/85 backdrop-blur-md"
+            />
+
             <motion.div
               initial={{ opacity: 0, scale: 0.94, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 12 }}
-              className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-purple-500/40 bg-gradient-to-b from-[#140f26] via-[#0d091a] to-[#070510] p-6 text-white shadow-[0_0_60px_rgba(168,85,247,0.2)]"
+              className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] border-2 border-amber-400/50 bg-gradient-to-b from-[#140e06]/98 via-[#0b0803]/98 to-[#030201]/98 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_50px_rgba(245,158,11,0.25)] sm:p-8"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                    <HelpCircle className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black uppercase tracking-wider text-white">
-                      Daily Tech Trivia
-                    </h3>
-                    <p className="text-xs text-zinc-400">10 RP per correct answer • Instant credit</p>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
+                  <SparkIcon size={13} variant="amber" />
+                  <span>{selectedReward.type === "free_sparks" ? "Claim Your Free Gift" : "Confirm Redemption"}</span>
                 </div>
                 <button
-                  onClick={() => setIsQuizModalOpen(false)}
-                  className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  type="button"
+                  onClick={() => setSelectedReward(null)}
+                  className="rounded-xl border border-white/10 bg-white/5 p-2 text-zinc-400 hover:text-white cursor-pointer"
                 >
-                  ✕
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="mt-5 space-y-4">
-                {todayTrivia.map((q, qIndex) => {
-                  const review = quizReviewData ? quizReviewData[qIndex] : null;
-
-                  return (
-                    <div
-                      key={q.id}
-                      className="space-y-3 rounded-2xl border border-white/[0.08] bg-zinc-900/50 p-4"
-                    >
-                      <div className="text-xs font-bold text-white flex items-start gap-2">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/20 font-mono text-[11px] text-purple-300 border border-purple-500/30">
-                          {qIndex + 1}
-                        </span>
-                        <span>{q.question}</span>
-                      </div>
-
-                      <div className="space-y-2 pt-1">
-                        {q.options.map((opt, optIndex) => {
-                          const isSelected = quizAnswers[qIndex] === optIndex;
-                          const isCorrect = review ? review.correctIndex === optIndex : null;
-
-                          return (
-                            <button
-                              key={optIndex}
-                              onClick={() => {
-                                soundController.playClick();
-                                !quizSubmitted &&
-                                  setQuizAnswers((prev) => ({ ...prev, [qIndex]: optIndex }));
-                              }}
-                              disabled={quizSubmitted || profile?.hasCompletedQuizToday}
-                              onMouseEnter={() => soundController.playHover()}
-                              className={cn(
-                                "flex w-full items-center justify-between rounded-xl border p-3 text-left text-xs transition-all",
-                                isCorrect === true &&
-                                  "border-emerald-500 bg-emerald-950/50 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.2)]",
-                                isCorrect === false &&
-                                  isSelected &&
-                                  "border-rose-500 bg-rose-950/50 text-rose-200",
-                                isCorrect === null &&
-                                  isSelected &&
-                                  "border-purple-400 bg-purple-950/60 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.25)]",
-                                isCorrect === null &&
-                                  !isSelected &&
-                                  "border-white/[0.08] bg-zinc-900/60 hover:border-purple-400/40 hover:bg-zinc-900"
-                              )}
-                            >
-                              <span className="font-medium">{opt}</span>
-                              {isCorrect === true && (
-                                <Check className="h-4 w-4 text-emerald-400" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {review && (
-                        <div className="mt-2 rounded-xl bg-purple-950/40 p-3 text-[11px] text-purple-200 border border-purple-500/30 leading-relaxed">
-                          💡 <strong>Explanation:</strong> {review.explanation}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="mt-6 flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-400/15 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                  {selectedReward.type === "free_sparks" ? (
+                    <Gift size={28} className="animate-bounce" style={{ animationDuration: "2s" }} />
+                  ) : selectedReward.type === "streak_shield" ? (
+                    <ShieldCheck size={28} />
+                  ) : selectedReward.type === "shop_voucher" ? (
+                    <Ticket size={28} />
+                  ) : selectedReward.type === "credits_emergency" ? (
+                    <Zap size={28} />
+                  ) : selectedReward.category === "pro" ? (
+                    <Crown size={28} />
+                  ) : selectedReward.category === "cosmetic" ? (
+                    <Palette size={28} />
+                  ) : (
+                    <Coins size={28} />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-white">{selectedReward.title}</h3>
+                  <p className="text-xs text-zinc-400">{selectedReward.subtitle}</p>
+                </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-2 border-t border-white/[0.08] pt-4">
-                <button
-                  onClick={() => setIsQuizModalOpen(false)}
-                  className="rounded-xl border border-zinc-700 px-4 py-2 text-xs font-bold text-zinc-300 hover:bg-zinc-800"
-                >
-                  Close
-                </button>
-                {!profile?.hasCompletedQuizToday && !quizSubmitted && (
-                  <button
-                    onClick={handleQuizSubmit}
-                    disabled={isSubmittingQuiz}
-                    className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:brightness-110 disabled:opacity-50"
-                  >
-                    {isSubmittingQuiz ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Submit Answers (+30 RP)"
-                    )}
-                  </button>
+              {/* Summary */}
+              <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-black/50 p-4">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-zinc-400">Current Balance:</span>
+                  <SparkBadge amount={sparks} size="sm" variant="amber" />
+                </div>
+                {selectedReward.type === "free_sparks" ? (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-zinc-400">Free Gift:</span>
+                    <span className="font-black text-amber-300">+100 Sparks</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-zinc-400">Redemption Cost:</span>
+                    <span className="font-black text-rose-400">
+                      -{selectedReward.costSparks.toLocaleString()} Sparks
+                    </span>
+                  </div>
                 )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ======================================================== */}
-      {/* MODAL: SUBMIT BOUNTY PROOF */}
-      {/* ======================================================== */}
-      <AnimatePresence>
-        {activeSubmittingQuest && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 12 }}
-              className="relative w-full max-w-md rounded-3xl border border-cyan-400/40 bg-[#0d1020] p-6 text-white shadow-2xl"
-            >
-              <h3 className="text-base font-black uppercase tracking-wider text-white">
-                {activeSubmittingQuest.title}
-              </h3>
-              <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                {activeSubmittingQuest.description}
-              </p>
-
-              <div className="mt-4">
-                <label className="text-[11px] font-black uppercase tracking-wider text-zinc-300">
-                  Verification Link / Note:
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://tiktok.com/@... or youtube link"
-                  value={questProofUrl}
-                  onChange={(e) => setQuestProofUrl(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-cyan-400 focus:outline-none"
-                />
+                <div className="h-[1px] bg-white/10" />
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-white">New Balance:</span>
+                  <SparkBadge
+                    amount={
+                      selectedReward.type === "free_sparks"
+                        ? sparks + 100
+                        : Math.max(0, sparks - selectedReward.costSparks)
+                    }
+                    size="sm"
+                    variant="amber"
+                  />
+                </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-2">
+              {/* Clear Info Note */}
+              <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-cyan-400/20 bg-cyan-950/20 p-3 text-xs text-cyan-200">
+                <Info size={16} className="text-cyan-400 shrink-0 mt-0.5" />
+                <p>
+                  {selectedReward.type === "free_sparks"
+                    ? "This gift is completely free for every creator! Claim your 100 Sparks once during this 7-day event."
+                    : selectedReward.type === "streak_shield"
+                    ? "This shield will automatically protect your daily streak if you ever miss logging in for a day (holds up to 3 shields total)."
+                    : selectedReward.type === "shop_voucher"
+                    ? "Generates an instant single-use discount coupon code that you can copy and redeem on your next Credit Pack or Pro Pass purchase in the Shop!"
+                    : selectedReward.type === "credits_emergency"
+                    ? "Adds 25 emergency compute credits immediately to your account to complete your current studio runs (valid for 24 hours)."
+                    : selectedReward.type === "pro_pass"
+                    ? `This pass provides full Pro access for ${selectedReward.value} hours.`
+                    : selectedReward.category === "credits"
+                    ? "Credits are added directly to your account immediately with zero cooldown."
+                    : "Permanently unlocks this cosmetic in your profile closet. You can equip or remove it at any time."}
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="mt-6 flex items-center justify-end gap-3">
                 <button
-                  onClick={() => setActiveSubmittingQuest(null)}
-                  className="rounded-xl border border-zinc-700 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-zinc-800"
+                  type="button"
+                  onClick={() => setSelectedReward(null)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-300 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleSubmitProofQuest}
-                  disabled={isCompletingQuest}
-                  className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-400 px-5 py-2 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:brightness-110 disabled:opacity-50"
-                >
-                  {isCompletingQuest ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Proof"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
-      {/* ======================================================== */}
-      {/* MODAL: CONFIRM REDEMPTION */}
-      {/* ======================================================== */}
-      <AnimatePresence>
-        {selectedRedeemReward && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 12 }}
-              className="relative w-full max-w-md rounded-3xl border border-amber-400/40 bg-gradient-to-b from-[#141224] to-[#090814] p-6 text-white shadow-[0_0_50px_rgba(245,158,11,0.2)]"
-            >
-              <h3 className="text-base font-black uppercase tracking-wider text-white">
-                Claim Reward Voucher
-              </h3>
-              <p className="mt-1 text-xs text-zinc-400">
-                You are about to spend{" "}
-                <strong className="text-amber-300">
-                  {selectedRedeemReward.costPoints.toLocaleString()} RP
-                </strong>{" "}
-                for:
-              </p>
-
-              <div className="my-4 rounded-2xl border border-amber-400/25 bg-amber-400/[0.05] p-4">
-                <div className="text-sm font-black text-white">{selectedRedeemReward.title}</div>
-                <div className="text-xs text-zinc-400 mt-1">{selectedRedeemReward.description}</div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
                 <button
-                  onClick={() => setSelectedRedeemReward(null)}
-                  className="rounded-xl border border-zinc-700 px-4 py-2 text-xs font-bold text-zinc-400 hover:bg-zinc-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmRedemption}
+                  type="button"
+                  onClick={handleConfirmRedeem}
                   disabled={isRedeeming}
-                  className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 px-5 py-2 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:brightness-110 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-400 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:bg-amber-300 active:scale-95 cursor-pointer disabled:opacity-60"
                 >
                   {isRedeeming ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Processing...</span>
+                    </>
                   ) : (
-                    "Generate Voucher Code"
+                    <>
+                      <SparkIcon size={14} variant="amber" />
+                      <span>{selectedReward.type === "free_sparks" ? "Claim 100 Free Sparks" : "Confirm Redemption"}</span>
+                    </>
                   )}
                 </button>
               </div>
@@ -1978,87 +1694,139 @@ export default function RewardsPage() {
         )}
       </AnimatePresence>
 
-      {/* ======================================================== */}
-      {/* MODAL: CODE DISPLAY POPUP (VAULT UNLOCK REVEAL) */}
-      {/* ======================================================== */}
+      {/* Redemption Success Celebration Modal */}
       <AnimatePresence>
-        {generatedVoucher && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-lg">
+        {redeemSuccessData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.88, y: 16 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setRedeemSuccessData(null)}
+              className="absolute inset-0 bg-black/85 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.88, y: 16 }}
-              className="relative w-full max-w-md overflow-hidden rounded-3xl border border-amber-400/60 bg-gradient-to-b from-[#1c1430] via-[#100b20] to-[#080512] p-8 text-center text-white shadow-[0_0_80px_rgba(245,158,11,0.4)]"
+              exit={{ opacity: 0, scale: 0.9, y: 16 }}
+              className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border-2 border-amber-400/60 bg-gradient-to-b from-[#1c1206]/98 via-[#0e0903]/98 to-[#030201]/98 p-6 text-center shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(245,158,11,0.35)] sm:p-8"
             >
-              {/* Radiant Light Beam */}
-              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-200 to-orange-400 shadow-[0_0_25px_rgba(245,158,11,1)]" />
-
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-400/20 text-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.5)]">
-                <Gift className="h-7 w-7 animate-bounce" />
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-amber-400/50 bg-gradient-to-br from-amber-500/30 to-yellow-500/10 text-amber-300 shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+                {redeemSuccessData.item.type === "free_sparks" ? (
+                  <Gift size={42} className="text-amber-400" />
+                ) : (
+                  <CheckCircle2 size={42} />
+                )}
               </div>
 
-              <h3 className="mt-4 text-lg font-black uppercase tracking-wider text-white">
-                Voucher Unlocked!
+              <h3 className="mt-5 text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
+                {redeemSuccessData.item.type === "free_sparks"
+                  ? "+100 Free Sparks Added!"
+                  : redeemSuccessData.voucherCode
+                  ? "Voucher Code Ready!"
+                  : "Reward Claimed!"}
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">{generatedVoucher.reward.title}</p>
+              <p className="mt-2 text-sm text-zinc-300 font-medium">
+                {redeemSuccessData.item.type === "free_sparks" ? (
+                  <>Enjoy your free gift! Your Sparks are ready to spend in the shop.</>
+                ) : (
+                  <>
+                    You have successfully unlocked{" "}
+                    <span className="font-bold text-amber-300">{redeemSuccessData.item.title}</span>!
+                  </>
+                )}
+              </p>
 
-              {/* Perforated Holographic Code Card */}
-              <div className="my-5 rounded-2xl border border-amber-400/40 bg-black/90 p-4 shadow-[0_0_30px_rgba(245,158,11,0.2)]">
-                <div className="font-mono text-2xl font-black text-amber-300 select-all tracking-widest drop-shadow-[0_0_15px_rgba(245,158,11,0.7)]">
-                  {generatedVoucher.voucherCode}
+              {/* Shop Voucher Box */}
+              {redeemSuccessData.voucherCode && (
+                <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-950/20 p-4 text-left">
+                  <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-amber-400/80">
+                    <span>
+                      {redeemSuccessData.item.id === "sparks_shop_voucher_20pct"
+                        ? "20% OFF Monthly Pro Code"
+                        : "Shop Discount Code"}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-normal">
+                      {redeemSuccessData.item.id === "sparks_shop_voucher_20pct"
+                        ? "Monthly Pro Pass only"
+                        : (isIndia ? "Min order ₹249" : "Min order $3.00")}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-amber-400/40 bg-black/60 px-3.5 py-2.5">
+                    <span className="font-mono text-base font-black tracking-widest text-amber-300 select-all">
+                      {redeemSuccessData.voucherCode}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyVoucher(redeemSuccessData.voucherCode!)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-xs font-bold text-amber-300 hover:bg-amber-400/20 active:scale-95 transition-all cursor-pointer"
+                    >
+                      {hasCopiedVoucher ? (
+                        <>
+                          <Check size={13} className="text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={13} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="mt-2 text-[11px] text-zinc-400 leading-relaxed">
+                    Paste this code in the coupon field at checkout in the Shop to receive your discount!
+                  </p>
                 </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="mt-6 flex flex-col gap-2.5">
+                {redeemSuccessData.voucherCode && (
+                  <Link
+                    href={redeemSuccessData.item.id === "sparks_shop_voucher_20pct" ? "/pro" : "/shop"}
+                    onClick={() => setRedeemSuccessData(null)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-amber-400/60 bg-gradient-to-r from-amber-400 to-yellow-400 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:from-amber-300 hover:to-yellow-300 active:scale-95 cursor-pointer"
+                  >
+                    <Ticket size={14} className="fill-black" />
+                    <span>Go to Shop to Use Code</span>
+                  </Link>
+                )}
+
+                {voucherActivatedSuccess && (
+                  <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 py-2.5 text-xs font-bold text-emerald-400">
+                    <CheckCircle2 size={16} />
+                    <span>Pro Pass Activated Successfully!</span>
+                  </div>
+                )}
+
+                {redeemSuccessData.item.category === "cosmetic" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      equipCosmetic(redeemSuccessData.item.type as "avatar_frame" | "name_gradient", String(redeemSuccessData.item.value));
+                      setRedeemSuccessData(null);
+                    }}
+                    className="w-full rounded-xl border border-purple-400/50 bg-purple-500/20 py-3 text-xs font-black uppercase tracking-wider text-purple-200 hover:bg-purple-500/30 active:scale-95 cursor-pointer"
+                  >
+                    Equip to Profile Now
+                  </button>
+                )}
+
                 <button
-                  onClick={() => handleCopyVoucher(generatedVoucher.voucherCode)}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-zinc-800 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-zinc-700 transition-all"
+                  type="button"
+                  onClick={() => setRedeemSuccessData(null)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 text-xs font-black uppercase tracking-wider text-zinc-300 hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
                 >
-                  <Copy className="h-4 w-4" /> {copiedCode ? "Copied!" : "Copy Code"}
-                </button>
-                <button
-                  onClick={() => {
-                    const codeToRedeem = generatedVoucher.voucherCode;
-                    setGeneratedVoucher(null);
-                    setPrefilledPromoCode(codeToRedeem);
-                    setIsPromoModalOpen(true);
-                  }}
-                  className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:brightness-110 transition-all"
-                >
-                  Redeem Now
+                  Done
                 </button>
               </div>
-
-              <button
-                onClick={() => setGeneratedVoucher(null)}
-                className="mt-4 text-xs font-medium text-zinc-500 hover:text-zinc-300"
-              >
-                Close &amp; View All Vouchers
-              </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* TARGET SELECTOR MODAL */}
-      <TargetSelectorModal
-        isOpen={isTargetModalOpen}
-        onClose={() => setIsTargetModalOpen(false)}
-        catalog={catalog}
-        selectedGoalId={profile?.selectedGoalId || "reward_pro_30d"}
-        userPoints={profile?.points || 0}
-        onSelectTarget={handleSetGoal}
-      />
-
-      {/* IN-APP PROMO MODAL */}
-      <RedeemPromoModal
-        isOpen={isPromoModalOpen}
-        initialCode={prefilledPromoCode}
-        onClose={() => {
-          setIsPromoModalOpen(false);
-          setPrefilledPromoCode("");
-        }}
-      />
     </div>
   );
 }

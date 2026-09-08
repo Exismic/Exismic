@@ -224,11 +224,10 @@ export function ManageSubscriptionModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 18 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
-            className="pointer-events-auto relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[640px] flex-col overflow-hidden rounded-[26px] border border-white/[0.11] bg-[#07070b]/98 shadow-[0_42px_120px_rgba(0,0,0,0.86),0_0_80px_rgba(124,58,237,0.08)]"
+            className="pointer-events-auto relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[640px] flex-col overflow-hidden rounded-[26px] border-2 border-cyan-400/40 bg-[#07070b]/98 shadow-[0_42px_120px_rgba(0,0,0,0.86),0_0_50px_rgba(34,211,238,0.2)]"
           >
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] [background-size:34px_34px] [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)]" />
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(34,211,238,0.12),rgba(15,23,42,0))]" />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400" />
 
             <header className="relative z-10 flex min-h-20 shrink-0 items-center justify-between border-b border-white/[0.07] px-5 sm:px-7">
               <div className="flex min-w-0 items-center gap-3">

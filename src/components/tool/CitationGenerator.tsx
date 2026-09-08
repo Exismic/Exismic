@@ -165,62 +165,43 @@ export default function CitationGenerator() {
   }, [outputFormat, fullCitation, bibtexCitation, author, year, title, publisher, url]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-6 lg:p-8 selection:bg-amber-500/30 selection:text-amber-200">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-gradient-to-r from-amber-950/40 via-zinc-950 to-indigo-950/30 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
-        <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold uppercase tracking-widest shadow-inner">
-              <BookOpen size={14} className="text-amber-400" />
-              <span>Academic Writing Engine</span>
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase bg-gradient-to-r from-white via-amber-100 to-zinc-400 bg-clip-text text-transparent">
-              Academic Citation Generator
-            </h1>
-            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Generate flawless APA 7, MLA 9, Chicago 17th, and Harvard style reference entries & in-text citations.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 bg-white/[0.03] border border-white/10 rounded-2xl p-2.5 backdrop-blur-md">
-            {(["apa", "mla", "chicago", "harvard"] as Style[]).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStyle(s)}
-                className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
-                  style === s 
-                    ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20 scale-105 font-bold" 
-                    : "text-zinc-400 hover:text-white hover:bg-white/5"
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+    <div className="w-full space-y-6 selection:bg-amber-500/30 selection:text-amber-200">
+      {/* Top Actions: Style Selector & Preset Quick Load */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
+        <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/10 rounded-2xl p-1.5 backdrop-blur-md">
+          {(["apa", "mla", "chicago", "harvard"] as Style[]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStyle(s)}
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+                style === s 
+                  ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20 font-bold" 
+                  : "text-zinc-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              {s}
+            </button>
+          ))}
         </div>
-      </div>
 
-      {/* Preset Quick Load Bar */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-1 text-xs">
-        <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
-          <Sparkles size={12} className="text-amber-400" /> Quick Samples:
-        </span>
-        {PRESETS.map((preset) => (
-          <button
-            key={preset.name}
-            type="button"
-            onClick={() => loadPreset(preset)}
-            className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-amber-500/10 hover:border-amber-500/40 text-zinc-300 hover:text-amber-300 font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
-          >
-            <Bookmark size={13} className="text-amber-400" />
-            <span>{preset.name}</span>
-          </button>
-        ))}
+        <div className="flex items-center gap-2 overflow-x-auto text-xs">
+          <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
+            <Sparkles size={12} className="text-amber-400" /> Samples:
+          </span>
+          {PRESETS.map((preset) => (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => loadPreset(preset)}
+              className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-amber-500/10 hover:border-amber-500/40 text-zinc-300 hover:text-amber-300 font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
+            >
+              <Bookmark size={13} className="text-amber-400" />
+              <span>{preset.name}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Main Grid */}

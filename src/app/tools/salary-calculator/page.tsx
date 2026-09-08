@@ -1,4 +1,5 @@
 import SalaryCalculator from "@/components/tool/SalaryCalculator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free CTC to In-Hand Salary Calculator India - New vs Old Tax Regime | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <SalaryCalculator />;
+  return (
+    <ToolPageShell
+      toolId="salary-calculator"
+      categoryId="business"
+      customTitle="CTC to In-Hand Salary Calculator"
+      customDescription="Calculate net monthly take-home salary from your annual CTC package with tax and EPF deductions."
+    >
+      <SalaryCalculator />
+    </ToolPageShell>
+  );
 }

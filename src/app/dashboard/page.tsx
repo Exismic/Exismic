@@ -15,15 +15,15 @@ export const metadata: Metadata = constructMetadata({
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     return <LandingPage />;
   }
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto py-8 md:py-12">
-      <Dashboard />
+      <Dashboard initialUser={user} />
     </div>
   );
 }

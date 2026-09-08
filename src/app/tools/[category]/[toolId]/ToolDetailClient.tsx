@@ -43,7 +43,8 @@ import {
   AlertCircle, 
   Crown, 
   Sparkles, 
-  Download 
+  Download,
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -255,9 +256,9 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     )}>
       {tool.indexable !== false && (
         <>
-          <Script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-          <Script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-          <Script id={`tool-faq-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+          <script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          <script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+          <script id={`tool-faq-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         </>
       )}
       {categoryId === 'pdf' && (
@@ -323,7 +324,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                     
                     <div className="space-y-6 flex flex-col items-center">
                       <div className={cn("inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-opacity-10 backdrop-blur-md shadow-lg text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]", isGold ? "border-amber-400/30 bg-amber-400/10 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]" : animStyle.badge)}>
-                        <Sparkles size={14} className={isGold ? "text-amber-400" : "opacity-80"} />
+                        <Clock size={14} className={isGold ? "text-amber-400" : "opacity-80"} />
                         In Development
                       </div>
                       <h2 className={cn("text-5xl sm:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]", isGold ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]" : animStyle.textGrad)}>

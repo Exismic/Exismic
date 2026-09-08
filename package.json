@@ -17,7 +17,6 @@
     "@auth/prisma-adapter": "^2.11.1",
     "@gradio/client": "^2.3.1",
     "@imgly/background-removal": "^1.7.0",
-    "@monaco-editor/react": "^4.7.0",
     "@prisma/client": "^6.19.3",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.10.2",

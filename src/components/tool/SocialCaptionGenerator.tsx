@@ -146,19 +146,19 @@ export function SocialCaptionGenerator() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-12 pb-32">
+    <div className="w-full space-y-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         
         {/* Left Side: Inputs */}
         <div className="lg:col-span-5 space-y-8">
-          <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-10 backdrop-blur-3xl shadow-4xl sticky top-24">
-            <div className="flex items-center justify-between mb-10">
+          <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 sm:p-10 backdrop-blur-3xl shadow-4xl sticky top-24">
+            <div className="flex items-center justify-between mb-8">
                <div>
-                  <h3 className="text-3xl font-black uppercase tracking-tight italic">Caption AI</h3>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] mt-2">Viral Content Engine</p>
+                  <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Caption Settings</h3>
+                  <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mt-1">Platform & Audience Style</p>
                </div>
-               <div className="p-4 bg-violet-600/20 rounded-2xl border border-violet-500/20">
-                  <Sparkles className="w-6 h-6 text-violet-400" />
+               <div className="p-3 bg-rose-500/20 rounded-2xl border border-rose-500/20">
+                  <Sparkles className="w-5 h-5 text-rose-400" />
                </div>
             </div>
 

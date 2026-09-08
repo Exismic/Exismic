@@ -359,27 +359,16 @@ export default function LinkedinFormatter() {
   const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
-      {/* Header Banner */}
-      <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-blue-950/60 via-indigo-950/40 to-neutral-950 border border-blue-500/20 shadow-2xl backdrop-blur-xl z-30">
-        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+    <div className="w-full space-y-6">
+      {/* Top Quick Actions Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+        <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <Share2 className="w-4 h-4 text-rose-400" />
+          <span className="font-semibold text-zinc-200">Post Formatting & Hook Optimizer</span>
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
-              <Share2 className="w-3.5 h-3.5" /> LinkedIn Growth Suite
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              LinkedIn Post Formatter & Hook Score Analyzer
-            </h1>
-            <p className="text-neutral-300 text-sm sm:text-base leading-relaxed">
-              Format long-form text with unicode styling, custom bullet icons, double spacing, and real-time hook strength evaluation to maximize feed reach.
-            </p>
-          </div>
 
-          {/* Quick Template Selector - Custom Premium Dropdown */}
-          <div className="shrink-0 space-y-2 relative" ref={templateDropdownRef}>
+        {/* Quick Template Selector */}
+        <div className="relative" ref={templateDropdownRef}>
             <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
               <Wand2 className="w-3.5 h-3.5 text-blue-400" /> Hook Templates
             </label>
@@ -471,7 +460,6 @@ export default function LinkedinFormatter() {
             </AnimatePresence>
           </div>
         </div>
-      </div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import QRCodeGenerator from "./QrCodeClient";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free Custom QR Code Generator with Logo | Exismic",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "productivity-qr" || t.href === "/tools/qr-code") || {
-    id: "productivity-qr",
-    name: "Free Custom QR Code Generator with Logo | Exismic",
-    description: "Create customized high-resolution QR codes with custom colors, logos, and styling. Download PNG or SVG instantly for free.",
-    href: "/tools/qr-code"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <ToolPageShell
+      toolId="productivity-qr"
+      categoryId="productivity"
+      customTitle="QR Code Studio"
+      customDescription="Generate customized high-resolution QR codes with custom colors, logos, and instant PNG downloads."
+    >
       <QRCodeGenerator />
-    </>
+    </ToolPageShell>
   );
 }

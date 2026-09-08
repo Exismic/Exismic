@@ -214,7 +214,17 @@ export function BulkImageCompressor() {
         originalName: item.file.name,
         resultUrl: compressionData.resultUrl,
         fileType: "image",
-        status: "completed"
+        status: "completed",
+        metadata: {
+          prompt: `Compressed: ${item.file.name}`,
+          quality: `${quality}%`,
+          outputFormat: (compressionData.format || "WEBP").toUpperCase(),
+          targetHref: "/tools/image/compressor",
+          settings: {
+            quality: `${quality}%`,
+            format: (compressionData.format || "WEBP").toUpperCase(),
+          },
+        },
       });
     }
   };

@@ -137,8 +137,11 @@ import {
   Clapperboard,
   ScanEye
 } from 'lucide-react';
+import { MinecraftIcon } from '@/components/ui/MinecraftIcon';
 
 export const ICON_MAP = {
+  Minecraft: MinecraftIcon,
+  MinecraftIcon,
   Wand2, 
   Trash2, 
   Maximize, 
@@ -301,6 +304,7 @@ export interface Tool {
   seoDescription?: string;
   seoKeywords?: string[];
   indexable?: boolean;
+  hidden?: boolean;
 }
 
 export interface Category {
@@ -313,25 +317,25 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: 'image', name: 'Image Tools', description: 'Make and edit great photos with AI.', icon: 'ImageIcon' as IconName, color: 'text-accent-purple', glow: 'rgba(168, 85, 247, 0.5)' },
-  { id: 'video', name: 'Video Tools', description: 'Edit videos and remove backgrounds easily.', icon: 'Video' as IconName, color: 'text-accent-blue', glow: 'rgba(59, 130, 246, 0.5)' },
-  { id: 'audio', name: 'Audio & Music', description: 'Separate voice from music and make new songs.', icon: 'Music' as IconName, color: 'text-accent-cyan', glow: 'rgba(6, 182, 212, 0.5)' },
-  { id: 'pdf', name: 'PDF Tools', description: 'Put PDFs together, split them, or change their type.', icon: 'FileText' as IconName, color: 'text-emerald-500', glow: 'rgba(16, 185, 129, 0.5)' },
-  { id: 'ai', name: 'AI Magic', description: 'Write, code, and chat with a smart AI friend.', icon: 'Sparkles' as IconName, color: 'text-amber-500', glow: 'rgba(245, 158, 11, 0.5)' },
-  { id: 'productivity', name: 'Productivity', description: 'Useful tools for your everyday work.', icon: 'Zap' as IconName, color: 'text-accent-blue', glow: 'rgba(59, 130, 246, 0.5)' },
-  { id: 'business', name: 'Business & Finance', description: 'Calculators, invoices, and financial utilities for smart creators and businesses.', icon: 'Receipt' as IconName, color: 'text-orange-400', glow: 'rgba(255, 140, 0, 0.5)' },
-  { id: 'seo', name: 'SEO Tools', description: 'Boost search rankings with meta tags, sitemaps, robots.txt, and schema generators.', icon: 'SearchCode' as IconName, color: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
-  { id: 'developer', name: 'Developer Tools', description: 'Formatters, encoders, hash generators, regex testers, and web dev utilities.', icon: 'Terminal' as IconName, color: 'text-lime-400', glow: 'rgba(163, 230, 53, 0.5)' },
-  { id: 'student', name: 'Student & Academic', description: 'AI study notes, flashcard generators, math solvers, citations, and unit converters.', icon: 'GraduationCap' as IconName, color: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
-  { id: 'creator', name: 'Creator & Social', description: 'AI scripts, thumbnail analyzers, carousels, and LinkedIn viral tools.', icon: 'Share2' as IconName, color: 'text-rose-400', glow: 'rgba(244, 63, 94, 0.5)' },
+  { id: 'image', name: 'Image Tools', description: 'Remove backgrounds, crop, compress, and create stunning visual art in seconds.', icon: 'ImageIcon' as IconName, color: 'text-cyan-400', glow: 'rgba(6, 182, 212, 0.5)' },
+  { id: 'video', name: 'Video Tools', description: 'Trim clips, auto-generate captions, enhance quality, and export smooth GIFs.', icon: 'Video' as IconName, color: 'text-violet-400', glow: 'rgba(139, 92, 246, 0.5)' },
+  { id: 'audio', name: 'Audio & Music', description: 'Isolate vocals, clean noisy recordings, generate sound effects, and produce music.', icon: 'Music' as IconName, color: 'text-pink-400', glow: 'rgba(236, 72, 153, 0.5)' },
+  { id: 'pdf', name: 'PDF Tools', description: 'Merge, split, shrink file sizes, extract text, and convert documents effortlessly.', icon: 'FileText' as IconName, color: 'text-red-400', glow: 'rgba(239, 68, 68, 0.5)' },
+  { id: 'ai', name: 'AI Magic', description: 'Generate original art, build web apps, brainstorm ideas, and chat with AI.', icon: 'Sparkles' as IconName, color: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
+  { id: 'productivity', name: 'Productivity', description: 'Build resumes, test typing speed, design color schemes, and streamline your day.', icon: 'Zap' as IconName, color: 'text-emerald-400', glow: 'rgba(16, 185, 129, 0.5)' },
+  { id: 'business', name: 'Business & Finance', description: 'Create branded client invoices, calculate profits and taxes, and plan budgets.', icon: 'Receipt' as IconName, color: 'text-orange-400', glow: 'rgba(255, 153, 51, 0.5)' },
+  { id: 'seo', name: 'SEO Tools', description: 'Boost search rankings, optimize headlines, preview social links, and grow traffic.', icon: 'SearchCode' as IconName, color: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
+  { id: 'developer', name: 'Developer Tools', description: 'Handy utilities to format data, test matching rules, create IDs, and clean graphics.', icon: 'Terminal' as IconName, color: 'text-lime-400', glow: 'rgba(163, 230, 53, 0.5)' },
+  { id: 'student', name: 'Student & Academic', description: 'Turn lectures into study guides, create flip flashcards, solve math, and cite sources.', icon: 'GraduationCap' as IconName, color: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
+  { id: 'creator', name: 'Creator & Social', description: 'Write viral video hooks, design swipeable carousels, analyze thumbnails, and format posts.', icon: 'Share2' as IconName, color: 'text-rose-400', glow: 'rgba(244, 63, 94, 0.5)' },
 ];
 
-export const TOOLS: Tool[] = [
+export const ALL_TOOLS: Tool[] = [
   // Image Tools
   { 
     id: 'image-eraser', 
     name: 'Background Remover', 
-    description: "Instantly and accurately remove backgrounds from your photos using advanced AI vision models.", 
+    description: "Instantly remove distracting backgrounds from your portraits, product shots, or selfies. Get clean cutouts with smooth edges ready to drop into any new design or video.", 
     category: 'image', 
     icon: 'Eraser' as IconName, 
     href: '/tools/image/eraser',
@@ -347,7 +351,7 @@ export const TOOLS: Tool[] = [
   { 
     id: 'image-compressor', 
     name: 'Bulk Compressor', 
-    description: 'Compress multiple images at once without noticeable quality loss to save space and bandwidth.', 
+    description: "Shrink large image files in seconds without losing sharpness or clarity. Perfect for speeding up your website, saving disk space, and sharing photos faster.", 
     category: 'image', 
     icon: 'Minimize2' as IconName, 
     href: '/tools/image/compressor',
@@ -358,22 +362,22 @@ export const TOOLS: Tool[] = [
     seoDescription: "Compress multiple images at once. Our AI-driven compressor reduces file sizes while maintaining professional image quality.",
     seoKeywords: ["bulk image compressor","compress image online","reduce image file size","jpeg compressor","png compressor","Exismic"]
   },
-  { id: 'image-resizer', name: 'Resizer & Cropper', description: 'Easily resize, crop, and reframe your photos to the perfect dimensions for any platform.', category: 'image', icon: 'Crop' as IconName, href: '/tools/image/resizer',
+  { id: 'image-resizer', name: 'Resizer & Cropper', description: "Crop, zoom, and reshape your photos to the perfect dimensions for Instagram, YouTube, Twitter, and website banners with zero stretching or blurry edges.", category: 'image', icon: 'Crop' as IconName, href: '/tools/image/resizer',
     suggestions: ["What are the best dimensions for Instagram?","How do I crop without ruining the composition?","Will resizing reduce the image quality?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Image Resizer & Cropper - Resize Photos for Social Media Online",
     seoDescription: "Free online image resizer and cropper. Resize photos, adjust pixel dimensions, and crop images for Instagram, Twitter, or web.",
     seoKeywords: ["image resizer","crop photo online","resize photo free","social media photo resizer","Exismic"] },
-  { id: 'image-converter', name: 'Format Converter', description: 'Quickly convert images between popular formats like JPG, PNG, WEBP, and more with high fidelity.', category: 'image', icon: 'FileType' as IconName, href: '/tools/image/converter',
+  { id: 'image-converter', name: 'Format Converter', description: "Quickly change your photos between JPG, PNG, WEBP, and other formats in one simple click, keeping colors vibrant and file quality crystal clear.", category: 'image', icon: 'FileType' as IconName, href: '/tools/image/converter',
     suggestions: ["What is the difference between WEBP and PNG?","Which format is best for transparent images?","How do I convert a batch of images?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Online Image Format Converter - Convert JPG, PNG, WEBP & More",
     seoDescription: "Convert images online between JPG, PNG, WEBP, and GIF formats instantly without quality loss.",
     seoKeywords: ["image converter","convert jpg to webp","convert png to jpg","online image format converter","Exismic"] },
-  { id: 'watermark-remover', name: 'Watermark Remover', description: "Seamlessly remove watermarks, text, or logos from your images without leaving any traces.", category: 'image', icon: 'Stamp' as IconName, href: '/tools/image/watermark-remover',
+  { id: 'watermark-remover', name: 'Watermark Remover', description: "Erase unwanted logos, timestamps, and watermarks from your pictures cleanly. Restore your photos to their original look with seamless blending.", category: 'image', icon: 'Stamp' as IconName, href: '/tools/image/watermark-remover',
     suggestions: ["Can it remove large transparent text?","Will the removed area look blurry?","How does it handle watermarks on complex backgrounds?"], proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Watermark Remover Online - Remove Text & Logos from Images",
     seoDescription: "Remove watermarks, logos, and unwanted text from photos using AI inpainting algorithms.",
     seoKeywords: ["watermark remover","remove logo from photo","remove text from image","free watermark remover","Exismic"] },
   {
     id: 'svg-vectorizer',
     name: 'Image Vectorizer',
-    description: 'Convert bitmap images like JPG and PNG into scalable vector graphics (SVG) using server-side contour tracing.',
+    description: "Turn low-res logos, sketches, and graphics into infinitely scalable artwork. Zoom in as much as you want without seeing any pixels or jagged edges.",
     category: 'image',
     icon: 'Spline' as IconName,
     href: '/tools/image/vectorizer',
@@ -392,44 +396,44 @@ export const TOOLS: Tool[] = [
       "raster to vector trace"
     ]
   },
-  { id: 'image-collage', name: 'Collage Maker', description: 'Combine multiple photos into beautiful, customizable collage layouts for social media or printing.', category: 'image', icon: 'LayoutGrid' as IconName, href: '/tools/image/collage',
+  { id: 'image-collage', name: 'Collage Maker', description: "Combine your favorite photos into beautiful photo grids and multi-picture moodboards. Customize borders, spacing, and layouts for social posts and prints.", category: 'image', icon: 'LayoutGrid' as IconName, href: '/tools/image/collage',
     suggestions: ["What are the best layouts for Instagram stories?","How do I add borders between images?","Can I adjust the spacing between photos?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Online Collage Maker - Create Photo Grids & Layouts Instantly",
     seoDescription: "Create beautiful photo collages and grid layouts online for social media or print. Free collage maker.",
     seoKeywords: ["collage maker","photo grid creator","make photo collage online","instagram collage maker","Exismic"] },
-  { id: 'image-minecraft-skin', name: 'AI Minecraft Skin Maker', description: 'Design valid 64x64 Minecraft skins with AI prompts and preview them instantly in a 3D environment.', category: 'image', icon: 'Gamepad2' as IconName, href: '/tools/image/minecraft-skin',
+  { id: 'image-minecraft-skin', name: 'AI Minecraft Skin Maker', description: "Create unique custom Minecraft character skins just by describing what you want. Spin and inspect your new look in 3D before taking it straight into your game.", category: 'image', icon: 'Minecraft' as IconName, href: '/tools/image/minecraft-skin',
     suggestions: ["Help me write a prompt for a futuristic knight","How do I fix issues with the arms/legs?","Can I upload a reference image?"], popular: true, proPowerPack: true, seoTitle: "AI Minecraft Skin Maker - Create Game-Ready 64x64 Skins", seoDescription: "Create original Minecraft-compatible skins from a prompt or reference image. Preview in 3D, regenerate body parts, and download a valid 64x64 PNG.",
     seoKeywords: ["minecraft skin maker","ai minecraft skin generator","create 64x64 minecraft skin","custom minecraft skin 3d","Exismic"] },
-  { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: 'Create eye-catching, high-conversion YouTube thumbnails quickly with our intuitive editor.', category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail',
+  { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: "Design punchy, high-click video thumbnails that stand out in crowded feeds. Add bold titles, glowing outlines, and sticker accents that grab instant attention.", category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail',
     suggestions: ["What makes a high-converting thumbnail?","Which fonts are best for readability on mobile?","How do I add a glow effect around my subject?"], popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design High-CTR Thumbnails Fast",
     seoDescription: "Free YouTube Thumbnail Maker. Create high-CTR thumbnails with custom typography, glows, and templates.",
     seoKeywords: ["youtube thumbnail maker","thumbnail creator free","high ctr thumbnail design","youtube thumbnail generator","Exismic"] },
-  { id: 'meme-generator', name: 'Meme Generator', description: 'Generate viral and funny memes in seconds using classic templates or your own images.', category: 'image', icon: 'Laugh' as IconName, href: '/tools/meme-generator',
+  { id: 'meme-generator', name: 'Meme Generator', description: "Turn funny ideas into viral social memes in seconds. Pick from classic meme templates or upload your own photos, add bold caption text, and share everywhere.", category: 'image', icon: 'Laugh' as IconName, href: '/tools/meme-generator',
     suggestions: ["What are the trending meme formats right now?","How do I change the font to Impact?","Can I upload my own blank template?"], popular: true, seoTitle: "Online Meme Generator - Create Funny Memes with AI Instantly",
     seoDescription: "Create funny memes online with AI meme generator. Choose popular templates or upload your own images watermark-free.",
     seoKeywords: ["meme generator","online meme maker","funny meme creator","meme templates","drake meme maker","Exismic"] },
 
   // Video Tools
-  { id: 'video-trimmer', name: 'Video Trimmer', description: 'Precisely cut, trim, and adjust the duration of your video clips with ease.', category: 'video', icon: 'Scissors' as IconName, href: '/tools/video/trimmer',
+  { id: 'video-trimmer', name: 'Video Trimmer', description: "Cut away awkward pauses, trim the start and end, and keep only the best moments of your footage with an easy, frame-accurate timeline slider.", category: 'video', icon: 'Scissors' as IconName, href: '/tools/video/trimmer',
     suggestions: ["How do I make precise frame-level cuts?","Will trimming re-encode and lose quality?","Can I trim multiple segments at once?"], requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Online Video Trimmer - Cut & Trim Video Clips Free",
     seoDescription: "Trim and cut videos online free. Crop MP4 and WebM videos easily with accurate time slider controls.",
     seoKeywords: ["video trimmer","cut video online","trim mp4 free","online video cutter","Exismic"] },
-  { id: 'video-compressor', name: 'Video Compressor', description: 'Drastically reduce video file sizes for easier sharing while maintaining crisp visual quality.', category: 'video', icon: 'FileArchive' as IconName, href: '/tools/video/compressor',
+  { id: 'video-compressor', name: 'Video Compressor', description: "Drastically reduce heavy video file sizes so you can upload faster and share over chat or email, while keeping your video crisp, colorful, and smooth.", category: 'video', icon: 'FileArchive' as IconName, href: '/tools/video/compressor',
     suggestions: ["What is the best bitrate for Discord/Twitter?","How do I keep the audio quality high while compressing?","Which codec is most universally supported?"], requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Free Video Compressor Online - Reduce Video Size Fast",
     seoDescription: "Compress MP4 and WebM video files without losing visual clarity. Reduce video file size fast for web upload.",
     seoKeywords: ["video compressor","compress video online","reduce mp4 file size","video file shrinker","Exismic"] },
-  { id: 'video-subtitles', name: 'Subtitle Generator', description: 'Automatically generate and sync highly accurate subtitles for your videos using speech recognition.', category: 'video', icon: 'Captions' as IconName, href: '/tools/video/subtitles',
+  { id: 'video-subtitles', name: 'Subtitle Generator', description: "Automatically generate and sync captions for your videos in seconds. Make your TikToks, Reels, and Shorts easy to follow and enjoy even with the sound off.", category: 'video', icon: 'Captions' as IconName, href: '/tools/video/subtitles',
     suggestions: ["How do I fix misheard words?","Can I translate the subtitles to another language?","How do I style the font and background of the text?"], requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Auto Subtitle Generator Online - Add Subtitles to Video Free",
     seoDescription: "Auto generate subtitles for videos using AI speech recognition. Download SRT files or burn captions into video.",
     seoKeywords: ["auto subtitle generator","video captions maker","ai srt generator","free video subtitles creator","Exismic"] },
-  { id: 'video-enhancer', name: 'Video Enhancer', description: 'Upscale, denoise, and significantly improve the overall visual quality of your videos.', category: 'video', icon: 'Tv2' as IconName, href: '/tools/video/enhancer',
+  { id: 'video-enhancer', name: 'Video Enhancer', description: "Breathe new life into blurry or low-light clips. Sharpen soft details, smooth out visual grain, and make your videos look like they were shot on a pro camera.", category: 'video', icon: 'Tv2' as IconName, href: '/tools/video/enhancer',
     suggestions: ["Can this upscale 720p to 4K?","Does it remove grain and noise?","How long does upscaling usually take?"], popular: true, proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "AI Video Enhancer Online - Upscale & Improve Video Quality Free",
     seoDescription: "Upscale and enhance video quality online with AI vision processing. Improve contrast, resolution, and sharpness.",
     seoKeywords: ["video enhancer","ai video upscaler","enhance video quality","fix low res video","Exismic"] },
-  { id: 'video-gif', name: 'Video to GIF', description: "Convert segments of your videos into high-quality, perfectly looping animated GIFs.", category: 'video', icon: 'Repeat' as IconName, href: '/tools/video/to-gif',
+  { id: 'video-gif', name: 'Video to GIF', description: "Turn fun video reactions and highlights into smooth, looping animated GIFs ready to drop into Discord, Slack, tweets, and social group chats.", category: 'video', icon: 'Repeat' as IconName, href: '/tools/video/to-gif',
     suggestions: ["How do I make the GIF loop perfectly?","What frame rate is best for a smooth GIF?","How do I reduce the GIF file size?"], requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Video to GIF Converter - Create Moving GIFS from Video Online",
     seoDescription: "Convert video files (MP4, MOV, WEBM) to high quality animated GIFs online with custom frame rate and loop settings.",
     seoKeywords: ["video to gif converter","convert mp4 to gif","make animated gif from video","Exismic"] },
-  { id: 'video-merger', name: 'Video Merger', description: 'Seamlessly join and transition between multiple video clips to create one unified montage.', category: 'video', icon: 'Combine' as IconName, href: '/tools/video/merger',
+  { id: 'video-merger', name: 'Video Merger', description: "Stitch multiple video clips together into one seamless movie or reel. Arrange your scenes in order and export a finished compilation in minutes.", category: 'video', icon: 'Combine' as IconName, href: '/tools/video/merger',
     suggestions: ["How do I add crossfade transitions between clips?","Do the clips need to have the same resolution?","Can I add background music to the merged video?"], requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Online Video Merger - Join & Combine Video Clips Free",
     seoDescription: "Combine and merge multiple video clips into a single video file online. Free MP4 joiner and combiner.",
     seoKeywords: ["video merger","combine videos online","join mp4 files","video joiner free","Exismic"] },
@@ -438,7 +442,7 @@ export const TOOLS: Tool[] = [
   { 
     id: 'audio-vocal-remover', 
     name: 'Vocal Remover', 
-    description: 'Extract and isolate vocals from any track, leaving you with perfect studio-quality instrumentals.', 
+    description: "Strip out the singing from any song to create clean karaoke instrumentals, or isolate the vocals to use as an acapella track in your own remixes.", 
     category: 'audio', 
     icon: 'MicOff' as IconName, 
     href: '/tools/audio/vocal-remover',
@@ -450,30 +454,30 @@ export const TOOLS: Tool[] = [
     seoDescription: "The best free AI vocal remover. Separate vocals from instrumentals in any song with professional studio-grade quality.",
     seoKeywords: ["vocal remover","extract vocals from song","acapella maker","karaoke maker online","isolate vocals","Exismic"]
   },
-  { id: 'audio-stem-splitter', name: 'Full Stem Splitter', description: 'Deconstruct fully mixed songs into isolated stems like vocals, drums, bass, and melodies.', category: 'audio', icon: 'Sliders' as IconName, href: '/tools/audio/stem-splitter',
+  { id: 'audio-stem-splitter', name: 'Full Stem Splitter', description: "Separate full songs into individual tracks for drums, bass, vocals, and instruments. Perfect for remixing, sampling, or practicing your instrument.", category: 'audio', icon: 'Sliders' as IconName, href: '/tools/audio/stem-splitter',
     suggestions: ["How cleanly does it separate the bass from the drums?","Can I mute specific instruments?","What is the difference between 2-stem and 4-stem split?"], pro: true, isProTool: true, requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Stem Splitter Online - Split Songs into Vocals, Drums & Bass",
     seoDescription: "Split audio tracks into separate stems: vocals, drums, bass, instruments, and melody using AI music separation.",
     seoKeywords: ["audio stem splitter","separate music stems","isolate drums bass vocals","ai music stem extractor","Exismic"] },
-  { id: 'audio-noise-remover', name: 'Noise Remover', description: 'Clean up your audio recordings by intelligently removing background hums, buzzes, and noise.', category: 'audio', icon: 'VolumeX' as IconName, href: '/tools/audio/noise-remover',
+  { id: 'audio-noise-remover', name: 'Noise Remover', description: "Silence air conditioning hums, microphone hiss, wind rumble, and room echo from your voice recordings so you sound clean and professional.", category: 'audio', icon: 'VolumeX' as IconName, href: '/tools/audio/noise-remover',
     suggestions: ["Will it remove wind noise?","Does it affect the quality of the main voice?","How do I deal with echo or reverb?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Noise Remover Online - Remove Background Noise from Audio Free",
     seoDescription: "Clean background noise from audio recordings. Remove hiss, hum, traffic, and fan noise from voice recordings.",
     seoKeywords: ["audio noise remover","clean voice recording","remove background noise from audio","voice denoiser","Exismic"] },
-  { id: 'audio-tts', name: 'Text to Speech', description: 'Convert written text into highly realistic, human-sounding voiceovers with natural cadence.', category: 'audio', icon: 'Type' as IconName, href: '/tools/audio/tts',
+  { id: 'audio-tts', name: 'Text to Speech', description: "Turn typed scripts and articles into expressive, natural voiceovers for YouTube videos, podcasts, and presentations without needing a microphone.", category: 'audio', icon: 'Type' as IconName, href: '/tools/audio/tts',
     suggestions: ["Which voice sounds the most natural?","How do I add pauses or emphasis?","Can it speak in different accents?"], requiresFileUpload: false, placeholderPrompt: 'Type what you want the voice to say here...', seoTitle: "Free Text to Speech Online - Realistic AI Voice Generator",
     seoDescription: "Generate natural text-to-speech AI voices online. Convert written text to realistic MP3 audio speech.",
     seoKeywords: ["text to speech ai","ai voice generator","tts online free","realistic voice generator","Exismic"] },
-  { id: 'audio-stt', name: 'Speech to Text', description: 'Transcribe your audio recordings into accurate, readable text using advanced whisper models.', category: 'audio', icon: 'FileAudio' as IconName, href: '/tools/audio/stt',
+  { id: 'audio-stt', name: 'Speech to Text', description: "Turn spoken interviews, podcasts, voice memos, and meetings into clean, readable text transcripts you can search, copy, and edit effortlessly.", category: 'audio', icon: 'FileAudio' as IconName, href: '/tools/audio/stt',
     suggestions: ["How accurate is it with heavy accents?","Does it automatically add punctuation?","Can it differentiate between multiple speakers?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "Speech to Text Converter Online - Transcribe Audio to Text Free",
     seoDescription: "Convert audio and voice recordings to accurate text transcripts using automatic speech recognition AI.",
     seoKeywords: ["speech to text online","audio transcription ai","convert voice to text","free audio transcriber","Exismic"] },
-  { id: 'audio-voice-changer', name: 'Voice Changer', description: 'Transform your voice to sound entirely different while preserving your original emotion and pacing.', category: 'audio', icon: 'Speech' as IconName, href: '/tools/audio/voice-changer',
+  { id: 'audio-voice-changer', name: 'Voice Changer', description: "Alter your voice to sound like different characters, deep announcers, or robotic effects while keeping your natural tone and speech rhythm intact.", category: 'audio', icon: 'Speech' as IconName, href: '/tools/audio/voice-changer',
     suggestions: ["How do I make my voice sound like a robot?","Will it preserve my original emotion and pitch?","Does it work in real-time?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Voice Changer Online - Change Your Voice Instantly Free",
     seoDescription: "Change and modulate voice audio recordings with AI voice filters. Transform pitch, speed, and character tone.",
     seoKeywords: ["voice changer online","ai voice filter","voice tone modulator","change voice pitch","Exismic"] },
   {
     id: 'sfx-generator',
     name: 'AI Sound Effects',
-    description: 'Generate high-quality custom sound effects for videos, games, or apps using text prompts.',
+    description: "Type what you want to hear and get custom sound effects for your games, videos, and apps. From laser blasts to cinematic whooshes in seconds.",
     category: 'audio',
     icon: 'AudioWaveform' as IconName,
     href: '/tools/sfx-generator',
@@ -496,34 +500,34 @@ export const TOOLS: Tool[] = [
   },
 
   // PDF Tools
-  { id: 'pdf-merger', name: 'PDF Merger', description: 'Combine multiple PDF documents into a single, beautifully organized file with ease.', category: 'pdf', icon: 'FolderPlus' as IconName, href: '/tools/pdf/merger',
+  { id: 'pdf-merger', name: 'PDF Merger', description: "Combine multiple reports, invoices, or scanned documents into one neat, organized PDF package with an easy drag-and-drop page order.", category: 'pdf', icon: 'FolderPlus' as IconName, href: '/tools/pdf/merger',
     suggestions: ["Can I rearrange the order of the files?","Is there a file size limit for merging?","Will it keep the original formatting?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "Free PDF Merger Online - Join Multiple PDFs into One File",
     seoDescription: "Merge multiple PDF files into one unified PDF document online for free. Reorder pages and combine fast.",
     seoKeywords: ["pdf merger","combine pdf files","merge pdf online free","pdf joiner","Exismic"] },
-  { id: 'pdf-splitter', name: 'PDF Splitter', description: 'Extract specific pages or split large PDF documents into multiple smaller, manageable files.', category: 'pdf', icon: 'Scissors' as IconName, href: '/tools/pdf/splitter',
+  { id: 'pdf-splitter', name: 'PDF Splitter', description: "Break apart huge multi-page documents into separate files, or extract only the exact pages you need to email to your team or clients.", category: 'pdf', icon: 'Scissors' as IconName, href: '/tools/pdf/splitter',
     suggestions: ["How do I extract only pages 5 to 10?","Can I split every page into a separate file?","Will the split files retain their text selectability?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "Online PDF Splitter - Split & Extract PDF Pages Free",
     seoDescription: "Split a large PDF file into separate single pages or custom page ranges online instantly.",
     seoKeywords: ["pdf splitter","split pdf pages","separate pdf file","extract pages from pdf","Exismic"] },
-  { id: 'pdf-compressor', name: 'PDF Compressor', description: 'Significantly reduce the file size of heavy PDFs to make them easier to attach and share.', category: 'pdf', icon: 'FolderDown' as IconName, href: '/tools/pdf/compressor',
+  { id: 'pdf-compressor', name: 'PDF Compressor', description: "Shrink bulky PDF files down to lightweight sizes that glide through email attachments, without turning text or graphics into a blurry mess.", category: 'pdf', icon: 'FolderDown' as IconName, href: '/tools/pdf/compressor',
     suggestions: ["Will compressing make the images blurry?","What is the recommended compression level for email?","Does it remove invisible metadata to save space?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "PDF Compressor Online - Reduce PDF File Size Free",
     seoDescription: "Compress PDF file size without reducing readability or image quality. Free online PDF file shrinker.",
     seoKeywords: ["pdf compressor","reduce pdf size online","compress pdf file","shrink pdf free","Exismic"] },
-  { id: 'pdf-to-img', name: 'PDF to Image', description: 'Convert every page of your PDF into high-quality JPG or PNG image files instantly.', category: 'pdf', icon: 'FileImage' as IconName, href: '/tools/pdf/to-img',
+  { id: 'pdf-to-img', name: 'PDF to Image', description: "Save any page from your PDF document as high-resolution JPG or PNG pictures so you can easily post them on social media or insert into presentations.", category: 'pdf', icon: 'FileImage' as IconName, href: '/tools/pdf/to-img',
     suggestions: ["Should I choose JPG or PNG?","How do I increase the resolution of the output images?","Can I download all pages as a ZIP file?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "PDF to Image Converter - Convert PDF Pages to JPG/PNG Online",
     seoDescription: "Convert PDF pages into high-resolution JPG or PNG images online. Extract embedded images from PDFs.",
     seoKeywords: ["pdf to image converter","pdf to jpg","pdf to png free","convert pdf to image online","Exismic"] },
-  { id: 'pdf-img-to-pdf', name: 'Image to PDF', description: 'Compile your photos and images into a single, cohesive PDF document for easy viewing.', category: 'pdf', icon: 'FileUp' as IconName, href: '/tools/pdf/img-to-pdf',
+  { id: 'pdf-img-to-pdf', name: 'Image to PDF', description: "Bundle your receipts, scanned pages, and photo collections into a clean, easy-to-read PDF file that anyone can open on phone or desktop.", category: 'pdf', icon: 'FileUp' as IconName, href: '/tools/pdf/img-to-pdf',
     suggestions: ["How do I ensure the images fit the page properly?","Can I add a margin around the images?","Will it preserve the original image quality?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Image to PDF Converter - Convert Photos to PDF Online Free",
     seoDescription: "Convert images (JPG, PNG, WEBP) to PDF documents online. Combine multiple photos into a single PDF file.",
     seoKeywords: ["image to pdf converter","jpg to pdf","convert photo to pdf","images to single pdf","Exismic"] },
-  { id: 'pdf-to-word', name: 'PDF to Word', description: 'Convert static PDF files back into fully editable Word documents without losing formatting.', category: 'pdf', icon: 'FileOutput' as IconName, href: '/tools/pdf/to-word',
+  { id: 'pdf-to-word', name: 'PDF to Word', description: "Turn locked PDF documents back into editable documents so you can rewrite text, adjust tables, and make updates without starting from scratch.", category: 'pdf', icon: 'FileOutput' as IconName, href: '/tools/pdf/to-word',
     suggestions: ["Will it preserve complex tables and formatting?","Can I edit the text directly after converting?","How does it handle scanned documents?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "PDF to Word Converter Online - Convert PDF to Editable Doc Free",
     seoDescription: "Convert PDF documents into editable Word (DOCX) files online while maintaining formatting.",
     seoKeywords: ["pdf to word converter","convert pdf to docx","editable pdf to word","free pdf to docx","Exismic"] },
   { 
     id: 'pdf-ocr', 
     name: 'OCR Extractor', 
-    description: 'Extract usable, editable text from scanned PDFs, physical documents, and image files.', 
+    description: "Copy text directly out of book scans, photo receipts, and non-selectable PDFs. Turn printed words into editable text in a single click.", 
     category: 'pdf', 
     icon: 'ScanText' as IconName, 
     href: '/tools/pdf/ocr',
@@ -537,14 +541,14 @@ export const TOOLS: Tool[] = [
   },
 
   // AI Magic
-  { id: 'ai-writer', name: 'AI Writer', description: "Draft essays, marketing copy, or creative stories instantly with an intelligent AI assistant.", category: 'ai', icon: 'Feather' as IconName, href: '/tools/ai/writer',
+  { id: 'ai-writer', name: 'AI Writer', description: "Beat writer's block instantly. Draft creative blog posts, persuasive emails, video scripts, and marketing copy with an assistant that matches your tone.", category: 'ai', icon: 'Feather' as IconName, href: '/tools/ai/writer',
     suggestions: ["Write a prompt for a persuasive sales email","How can I change the tone to be more professional?","Can you help me expand on a short bullet point?"], popular: true, pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "Free AI Content Writer - Generate Articles, Scripts & Copy with AI",
     seoDescription: "AI Writing Assistant & Article Generator. Create blog posts, essays, emails, and marketing copy in seconds.",
     seoKeywords: ["ai writer","ai essay generator","article writer online","ai content writer free","Exismic"] },
   { 
     id: 'ai-img-gen', 
     name: 'AI Image Generator', 
-    description: 'Transform your text prompts into breathtaking, high-resolution digital art and photography.', 
+    description: "Type any creative prompt and bring it to life as vibrant digital art, photorealistic portraits, or fantasy landscapes with rich detail and lighting.", 
     category: 'ai', 
     icon: 'Sparkles' as IconName, 
     href: '/tools/ai/img-gen',
@@ -558,54 +562,34 @@ export const TOOLS: Tool[] = [
     seoDescription: "The most powerful free AI image generator. Create professional art, photos, and designs simply by typing what you want to see.",
     seoKeywords: ["ai image generator","text to image ai","free ai art generator","flux Schnell image generator","Exismic"]
   },
-  { id: 'ai-chat', name: 'AI Chat', description: "Engage in deep, conversational dialogue with an advanced AI that can answer complex questions.", category: 'ai', icon: 'MessagesSquare' as IconName, href: '/chat', indexable: false,
+  { id: 'ai-chat', name: 'AI Chat', description: "Brainstorm new project ideas, break down complicated topics into simple steps, and get instant answers from a friendly, knowledgeable creative partner.", category: 'ai', icon: 'MessagesSquare' as IconName, href: '/chat', indexable: false,
     suggestions: ["What kind of tasks can you help me with?","Can you remember context from earlier in the conversation?","How do I get you to adopt a specific persona?"], pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Chat Assistant - Smart Conversational AI with GPT Power",
     seoDescription: "Chat with smart AI models online. Ask questions, solve complex tasks, code, and brainstorm ideas.",
     seoKeywords: ["ai chat online","talk to ai","ai assistant chat","free ai chat bot","Exismic"] },
   {
     id: 'support-agent',
     name: 'Exismic Support Agent',
-    description: 'Deploy a highly capable AI customer-support chatbot trained specifically on your business data.',
+    description: "Give your business an always-on assistant that answers customer questions, troubleshoots problems, and guides visitors using your specific FAQs.",
     category: 'ai',
     icon: 'Bot' as IconName,
     href: '/tools/support-agent',
     suggestions: ["How do I upgrade my Exismic account?","Where can I find my billing history?","I found a bug, how do I report it?"],
-    popular: true,
+    popular: false,
+    hidden: true,
+    indexable: false,
     requiresFileUpload: false,
     seoTitle: "Exismic Support Agent - AI Customer Support Chatbot Builder",
     seoDescription: "Build a premium AI support agent for your business website. Train Exismic with FAQs, documents, policies, and product details, then embed a chatbot in minutes.",
     seoKeywords: ["exismic support agent","ai customer support agent","help desk assistant","Exismic"]
   },
-  { id: 'ai-code', name: 'Exismic Code Studio', description: 'A next-generation AI code editor and autonomous agent to build entire applications seamlessly.', category: 'ai', icon: 'Laptop' as IconName, href: '/tools/ai/code', indexable: false,
-    suggestions: ["Help me plan the architecture for a new app","How do I debug a confusing React error?","Can you explain this snippet of code to me?"], popular: true, pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Code Generator - Write & Debug Code with AI Assistant",
-    seoDescription: "Build, edit, compile, and preview codebases with Exismic's AI Code Studio. Interactive browser sandbox with real-time AI code generation.",
-    seoKeywords: ["ai code studio","live code compiler","ai code generator","browser code sandbox","Exismic"] },
-  { id: 'ai-logo', name: 'AI Logo Generator', description: 'Design premium, brand-ready professional logos in seconds without any design experience.', category: 'ai', icon: 'Stamp' as IconName, href: '/tools/ai/logo',
+  { id: 'ai-logo', name: 'AI Logo Generator', description: "Create distinctive, modern logo concepts for your new brand, YouTube channel, or side project in seconds with customized colors and visual styles.", category: 'ai', icon: 'Stamp' as IconName, href: '/tools/ai/logo',
     suggestions: ["What styles are best for a tech startup?","How do I ensure the logo is minimalist?","Can I specify exact brand colors?"], pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "Free AI Logo Generator - Create Professional Logos in Seconds",
     seoDescription: "Design professional vector AI logos for your business or brand. Input prompts and generate icon styles fast.",
     seoKeywords: ["ai logo generator","logo design ai","make logo online free","brand logo creator","Exismic"] },
-  { 
-    id: 'screenshot-to-code', 
-    name: 'Screenshot to Code', 
-    description: 'Instantly convert UI screenshots or wireframes into clean, production-ready React and Tailwind code.', 
-    category: 'ai', 
-    icon: 'MonitorCheck' as IconName, 
-    href: '/tools/screenshot-to-code',
-    indexable: true,
-    suggestions: ["What frameworks do you support?","How accurate is the generated Tailwind CSS?","Can it handle complex interactive components?"], 
-    popular: true,
-    pro: true,
-    isProTool: true,
-    requiresFileUpload: true,
-    acceptedFileTypes: ['image/*'],
-    seoTitle: "AI Screenshot to Code - Convert UI Designs to React & Tailwind Online",
-    seoDescription: "The most powerful AI screenshot to code converter. Transform UI designs, website screenshots, and hand-drawn sketches into production-ready React and Tailwind CSS code.",
-    seoKeywords: ["screenshot to code","image to HTML CSS code","ui design to code","screenshot to react component","Exismic"]
-  },
   {
     id: 'landing-page-generator',
     name: 'AI Landing Page',
-    description: 'Instantly generate fully styled, responsive landing page drafts and HTML templates from text prompts.',
+    description: "Describe your product or service and get a complete, eye-catching website layout with hero sections, benefit lists, and call-to-action buttons.",
     category: 'ai',
     icon: 'Layout' as IconName,
     href: '/tools/landing-page-generator',
@@ -627,7 +611,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'youtube-summarizer',
     name: 'YouTube AI Summarizer',
-    description: 'Convert any YouTube video URL into a comprehensive blog post, social media thread, or bulleted summary notes instantly.',
+    description: "Paste any YouTube video link to get the core takeaways, timestamped bullet points, and key quotes without having to sit through an hour-long video.",
     category: 'ai',
     icon: 'PlaySquare' as IconName,
     href: '/tools/youtube-summarizer',
@@ -649,7 +633,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'qr-generator',
     name: 'Artistic AI QR Code',
-    description: 'Transform standard black-and-white QR codes into scannable, beautiful generative AI artwork.',
+    description: "Turn plain black-and-white QR squares into artistic, eye-catching visual art that people love scanning on posters, menus, and business cards.",
     category: 'ai',
     icon: 'QrCode' as IconName,
     href: '/tools/qr-generator',
@@ -671,7 +655,7 @@ export const TOOLS: Tool[] = [
 /*  {
     id: 'text-to-3d',
     name: 'Text-to-3D Generator',
-    description: 'Transform your text descriptions into fully textured, interactive 3D model meshes (GLB format).',
+    description: "Describe any object or prop and watch it generate as an interactive 3D model that you can spin, inspect, and drop into your creative projects.",
     category: 'ai',
     icon: 'Box' as IconName,
     href: '/tools/text-to-3d',
@@ -694,7 +678,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'ambient-mixer',
     name: 'Cinematic Ambient Mixer',
-    description: 'Mix custom ambient soundscapes for study, work, or relaxation combined with AI-generated backing loops.',
+    description: "Layer calming rain, crackling fires, soft winds, and synth waves into your ideal background soundscape for deep focus, studying, or winding down.",
     category: 'audio',
     icon: 'Headphones' as IconName,
     href: '/tools/ambient-mixer',
@@ -715,34 +699,34 @@ export const TOOLS: Tool[] = [
   },
 
   // Productivity Tools
-  { id: 'productivity-qr', name: 'QR Code Generator', description: 'Create customizable, scannable QR codes for your websites, social links, or digital business cards.', category: 'productivity', icon: 'QrCode' as IconName, href: '/tools/qr-code',
+  { id: 'productivity-qr', name: 'QR Code Generator', description: "Build clean, scannable QR codes for your portfolio links, social profiles, WiFi networks, and shop menus with custom colors and logo inserts.", category: 'productivity', icon: 'QrCode' as IconName, href: '/tools/qr-code',
     suggestions: ["Can I change the color of the QR code?","How do I add my logo to the center?","Will this QR code expire?"], requiresFileUpload: false, seoTitle: "Free QR Code Generator - Create Custom QR Codes for Links & Text",
     seoDescription: "Create customized high-resolution QR codes with custom colors, logos, and styling. Download PNG or SVG instantly for free.",
     seoKeywords: ["qr code generator","custom qr code","qr code with logo","free qr maker","Exismic"] },
-  { id: 'productivity-passgen', name: 'Password Generator', description: 'Generate cryptographically strong, complex passwords to ensure your online accounts stay secure.', category: 'developer', icon: 'KeyRound' as IconName, href: '/tools/productivity/passgen',
+  { id: 'productivity-passgen', name: 'Password Generator', description: "Generate unhackable, super-strong passwords with random letters, numbers, and symbols to keep all your creative and business accounts safe.", category: 'developer', icon: 'KeyRound' as IconName, href: '/tools/productivity/passgen',
     suggestions: ["What makes a password truly secure?","How many characters should I use?","Can I exclude ambiguous characters like I and l?"], requiresFileUpload: false, seoTitle: "Secure Password Generator - Create Strong & Unique Passwords Free",
     seoDescription: "Generate strong, cryptographically secure passwords online with customizable length and symbol parameters.",
     seoKeywords: ["password generator","strong password maker","secure password generator","random password tool","Exismic"] },
-  { id: 'productivity-units', name: 'Unit Converter', description: 'Quickly and accurately convert measurements between a massive variety of different units.', category: 'student', icon: 'Ruler' as IconName, href: '/tools/productivity/units',
+  { id: 'productivity-units', name: 'Unit Converter', description: "Easily convert between inches, meters, kilograms, cups, Fahrenheit, and dozens of everyday measurements with instant, error-free results.", category: 'student', icon: 'Ruler' as IconName, href: '/tools/productivity/units',
     suggestions: ["How do I convert complex derived units?","Does it support metric to imperial conversions?","Can I save my most used conversions?"], requiresFileUpload: false, seoTitle: "Online Unit Converter - Convert Length, Weight, Temp & More Free",
     seoDescription: "Convert length, weight, temperature, data speed, and currency units online instantly.",
     seoKeywords: ["unit converter","convert measurement units","length converter","weight unit converter","Exismic"] },
-  { id: 'productivity-palette', name: 'Palette Generator', description: 'Craft stunning, aesthetically pleasing color palettes and schemes for your next design project.', category: 'productivity', icon: 'Palette' as IconName, href: '/tools/productivity/palette',
+  { id: 'productivity-palette', name: 'Palette Generator', description: "Discover beautiful color combinations and harmonious themes for your next design, brand identity, or website mockup with one-click hex copies.", category: 'productivity', icon: 'Palette' as IconName, href: '/tools/productivity/palette',
     suggestions: ["Help me generate a cyberpunk color scheme","What are the rules of color harmony?","How do I export this palette to Tailwind?"], requiresFileUpload: false, seoTitle: "AI Color Palette Generator - Create Beautiful Color Schemes Online",
     seoDescription: "Generate harmonious color palettes, extract dominant colors from images, and export HEX/RGB color codes.",
     seoKeywords: ["color palette generator","hex color picker","color scheme creator","palette from image","Exismic"] },
-  { id: 'productivity-json', name: 'JSON Formatter', description: 'Beautify, validate, and structure your messy JSON data so it is perfectly readable.', category: 'developer', icon: 'Braces' as IconName, href: '/tools/productivity/json',
+  { id: 'productivity-json', name: 'JSON Formatter', description: "Clean up jumbled, one-line data feeds into tidy, colorful, well-spaced layouts that are effortless to read, inspect, and copy into your projects.", category: 'developer', icon: 'Braces' as IconName, href: '/tools/productivity/json',
     suggestions: ["How do I fix a trailing comma error?","Can it minify the JSON instead of formatting it?","Does it support sorting the keys alphabetically?"], requiresFileUpload: false, seoTitle: "Online JSON Formatter & Validator - Pretty Print JSON Free",
     seoDescription: "Validate, format, prettify, and minify JSON data online with syntax error highlighting.",
     seoKeywords: ["json formatter","prettify json","json validator","json minifier","Exismic"] },
-  { id: 'hashtag-generator', name: 'Hashtag Generator', description: 'Discover trending and highly relevant hashtags to maximize reach for your social media content.', category: 'productivity', icon: 'Hash' as IconName, href: '/tools/hashtag-generator',
+  { id: 'hashtag-generator', name: 'Hashtag Generator', description: "Find trending and high-reach hashtags for your niche so your Instagram reels, TikToks, and tweets get discovered by the right audience.", category: 'productivity', icon: 'Hash' as IconName, href: '/tools/hashtag-generator',
     suggestions: ["What is the ideal number of hashtags for Instagram?","How do I mix broad and niche tags?","Can it generate hashtags based on an image?"], popular: true, seoTitle: "Free Hashtag Generator - Find Trending Hashtags for Social Media",
     seoDescription: "Generate viral, high-reach hashtags for Instagram, TikTok, YouTube, and X. AI-powered hashtag recommendation engine free online.",
     seoKeywords: ["hashtag generator","instagram hashtags","tiktok hashtags","viral hashtags","Exismic"] },
   {
     id: 'typing-test',
     name: 'Typing Speed Tester',
-    description: 'Measure your Words Per Minute (WPM), accuracy, and consistency with premium AI-style typing drills.',
+    description: "Put your fingers to the test with fun typing drills. Track your words per minute, beat your personal records, and sharpen your keyboard speed.",
     category: 'productivity',
     icon: 'Keyboard' as IconName,
     href: '/tools/typing-test',
@@ -756,7 +740,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'resume-builder',
     name: 'Resume / CV Builder',
-    description: 'Craft a highly professional, ATS-optimized resume in minutes with intelligent AI formatting assistance.',
+    description: "Build a polished, modern resume that hiring managers love reading. Pick a clean layout, organize your experience, and download a ready-to-send PDF.",
     category: 'productivity',
     icon: 'FileUser' as IconName,
     href: '/tools/resume-builder',
@@ -771,7 +755,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'resume-analyzer',
     name: 'AI Resume Scanner',
-    description: 'Analyze your resume against any job description, check ATS compatibility, and get actionable improvement recommendations.',
+    description: "See how well your resume matches your dream job opening. Get friendly suggestions on missing skills and keyword improvements before you apply.",
     category: 'productivity',
     icon: 'ScanSearch' as IconName,
     href: '/tools/resume-analyzer',
@@ -797,7 +781,7 @@ export const TOOLS: Tool[] = [
   { 
     id: 'invoice-generator', 
     name: 'Invoice Generator', 
-    description: 'Design and export professional, branded invoices for your freelance clients or small business.', 
+    description: "Create beautiful, branded invoices for your freelance clients in minutes. Add your logo, list your deliverables, calculate totals, and save as PDF.", 
     category: 'productivity', 
     icon: 'Receipt' as IconName, 
     href: '/tools/invoice-generator',
@@ -810,7 +794,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'social-caption-generator',
     name: 'Social Caption Gen',
-    description: 'Generate viral, platform-optimized social media captions that perfectly match the vibe of your uploaded photo.',
+    description: "Upload any photo and get catchy, ready-to-post captions with great hooks, emojis, and hashtags tailored for Instagram, TikTok, and LinkedIn.",
     category: 'ai',
     icon: 'MessageSquarePlus' as IconName,
     href: '/tools/social-caption-generator',
@@ -828,7 +812,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'ai-humanizer',
     name: 'AI Humanizer',
-    description: 'Transform rigid AI text into natural, human-sounding writing that passes AI detectors and reads effortlessly.',
+    description: "Turn stiff, robotic writing into warm, natural, and engaging sentences that sound genuinely human and connect with your real-world readers.",
     category: 'ai',
     icon: 'UserCheck' as IconName,
     href: '/tools/ai-humanizer',
@@ -841,12 +825,12 @@ export const TOOLS: Tool[] = [
   {
     id: 'ai-detector',
     name: 'AI Content Detector',
-    description: 'Analyze text perplexity and burstiness to detect AI-generated content with detailed sentence-level confidence scores.',
+    description: "Check your writing to spot sentences that feel generic or computer-generated, with highlighted areas you can tweak for a more authentic voice.",
     category: 'ai',
     icon: 'ShieldCheck' as IconName,
     href: '/tools/ai-detector',
     popular: true,
-    suggestions: ["Is this essay written by ChatGPT?", "Scan article for AI probability", "Analyze sentence perplexity"],
+    suggestions: ["Is this essay written by ChatGPT?", "Scan article for AI text", "Check paragraph authenticity"],
     seoTitle: "Free AI Content Detector - Scan Text for ChatGPT & AI Writing",
     seoDescription: "Accurately check if text was generated by AI models like ChatGPT, GPT-4, or Claude. Get sentence-by-sentence analysis and confidence scores.",
     seoKeywords: ["ai detector","ai content checker","gpt detector free","check ai text","Exismic"]
@@ -854,7 +838,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'grammar-checker',
     name: 'Grammar & Style Checker',
-    description: 'Fix spelling, grammar, punctuation, and style flaws in real-time with smart AI suggestions and one-click fixes.',
+    description: "Catch awkward phrasing, typos, and punctuation slips before you hit send. Polish your writing with friendly suggestions that keep your natural voice.",
     category: 'ai',
     icon: 'SpellCheck' as IconName,
     href: '/tools/grammar-checker',
@@ -867,7 +851,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'resume-bullet-generator',
     name: 'Resume Bullet Generator',
-    description: 'Generate high-impact, STAR-framework metric bullet points tailored to your target job title and achievements.',
+    description: "Turn your daily job tasks into powerful, achievement-driven bullet points that show the real impact and results you delivered to your past teams.",
     category: 'productivity',
     icon: 'ListPlus' as IconName,
     href: '/tools/resume-bullet-generator',
@@ -879,7 +863,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'email-reply-generator',
     name: 'Email Reply Generator',
-    description: 'Craft professional, persuasive, and perfectly-toned email responses in seconds based on context and intent.',
+    description: "Never stress over a tricky email again. Draft polite, professional, and persuasive replies in seconds whether you are saying yes, negotiating, or declining.",
     category: 'ai',
     icon: 'MailCheck' as IconName,
     href: '/tools/email-reply-generator',
@@ -891,7 +875,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'cover-letter-generator',
     name: 'Cover Letter Generator',
-    description: 'Generate compelling, personalized cover letters tailored to specific job descriptions and your work history.',
+    description: "Draft a personalized, enthusiastic cover letter that highlights why you're a great fit for the company, without sounding like a boring template.",
     category: 'productivity',
     icon: 'MailPlus' as IconName,
     href: '/tools/cover-letter-generator',
@@ -905,7 +889,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'gst-calculator',
     name: 'GST Calculator (India)',
-    description: 'Calculate inclusive and exclusive GST for Indian tax slabs (5%, 12%, 18%, 28%) with CGST, SGST, and IGST breakdowns.',
+    description: "Calculate the exact tax amount and final price for any bill or product price in India with standard rates, whether tax is already included or added on.",
     category: 'business',
     icon: 'IndianRupee' as IconName,
     href: '/tools/gst-calculator',
@@ -918,7 +902,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'profit-margin-calculator',
     name: 'Profit Margin Calculator',
-    description: 'Calculate gross profit margin, net profit margin, markup percentage, and breakeven sales metrics effortlessly.',
+    description: "Figure out your exact profits, markup prices, and break-even sales so you can price your products and services with total financial confidence.",
     category: 'business',
     icon: 'TrendingUp' as IconName,
     href: '/tools/profit-margin-calculator',
@@ -930,7 +914,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'emi-calculator',
     name: 'EMI Calculator',
-    description: 'Calculate monthly loan EMIs for Home, Car, and Personal loans with an interactive interest vs principal amortization schedule.',
+    description: "Plan your monthly loan payments for cars, homes, or personal expenses with a clear month-by-month view of what goes toward principal versus interest.",
     category: 'business',
     icon: 'Calculator' as IconName,
     href: '/tools/emi-calculator',
@@ -943,7 +927,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'salary-calculator',
     name: 'Salary & Take-Home Calculator',
-    description: 'Calculate in-hand salary from CTC with Indian New vs Old Tax Regime comparisons, EPF, HRA, and TDS breakdowns.',
+    description: "See your actual monthly take-home pay after taxes and deductions, so you know exactly how much cash lands in your bank account from your salary package.",
     category: 'business',
     icon: 'Wallet' as IconName,
     href: '/tools/salary-calculator',
@@ -957,7 +941,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'meta-title-generator',
     name: 'Meta Title Generator',
-    description: 'Generate high-CTR, keyword-rich SEO title tags under 60 characters with live Google SERP preview gauges.',
+    description: "Craft catchy, high-click page titles that fit search result previews perfectly and entice visitors to click through to your website instead of rivals.",
     category: 'seo',
     icon: 'FileSearch' as IconName,
     href: '/tools/meta-title-generator',
@@ -970,7 +954,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'meta-description-generator',
     name: 'Meta Description Generator',
-    description: 'Draft compelling meta descriptions under 160 characters with strong calls to action and keyword density.',
+    description: "Write short, punchy summary snippets for your web pages that clearly explain what you offer and encourage more clicks from search engines.",
     category: 'seo',
     icon: 'AlignLeft' as IconName,
     href: '/tools/meta-description-generator',
@@ -983,7 +967,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'robots-txt-generator',
     name: 'Robots.txt Generator',
-    description: 'Build valid robots.txt files visually with User-Agent permissions, Crawl-delay, Disallow paths, and Sitemap directives.',
+    description: "Set up simple instructions for search engines to tell them which parts of your site to display publicly and which private folders to skip.",
     category: 'seo',
     icon: 'Lock' as IconName,
     href: '/tools/robots-txt-generator',
@@ -995,7 +979,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'sitemap-generator',
     name: 'XML Sitemap Generator',
-    description: 'Generate clean, valid XML sitemaps for search engines from URL lists with customizable changefreq and priority attributes.',
+    description: "Create a clean map of all your website pages so search engines like Google can easily discover, crawl, and index your latest content.",
     category: 'seo',
     icon: 'Network' as IconName,
     href: '/tools/sitemap-generator',
@@ -1007,7 +991,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'keyword-density-checker',
     name: 'Keyword Density Checker',
-    description: 'Analyze word frequency, 1-word/2-word/3-word phrase density, TF-IDF metrics, and SEO keyword stuffing warnings.',
+    description: "Make sure your articles sound natural to human readers while mentioning your key topics often enough to help search engines understand your content.",
     category: 'seo',
     icon: 'PieChart' as IconName,
     href: '/tools/keyword-density-checker',
@@ -1020,7 +1004,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'schema-markup-generator',
     name: 'Schema Markup Generator',
-    description: 'Generate valid JSON-LD structured data for Article, Product, LocalBusiness, FAQ, HowTo, and Person schema types.',
+    description: "Help search engines understand your articles, products, and FAQs so they can display eye-catching star ratings and question snippets directly in results.",
     category: 'seo',
     icon: 'Code2' as IconName,
     href: '/tools/schema-markup-generator',
@@ -1034,7 +1018,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'base64-encoder',
     name: 'Base64 Encoder / Decoder',
-    description: 'Encode plain text or binary files to Base64 format and decode Base64 strings back to clean text with instant preview.',
+    description: "Convert text, logos, or files into shareable code strings and decode them back to their original form with instant side-by-side previews.",
     category: 'developer',
     icon: 'Binary' as IconName,
     href: '/tools/base64-encoder',
@@ -1047,7 +1031,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'uuid-generator',
     name: 'UUID / GUID Generator',
-    description: 'Generate cryptographically random RFC 4122 v4 UUIDs in bulk with hyphen, uppercase, and array formatting controls.',
+    description: "Create batches of unique random identification tags with one click, perfect for testing apps, organizing database records, and software projects.",
     category: 'developer',
     icon: 'Key' as IconName,
     href: '/tools/uuid-generator',
@@ -1059,7 +1043,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'hash-generator',
     name: 'Hash Generator (MD5 / SHA-256)',
-    description: 'Generate secure MD5, SHA-1, SHA-256, and SHA-512 cryptographic hashes from any input string in real-time.',
+    description: "Create one-way digital fingerprints for your text and files to verify integrity, compare checksums, or secure passwords with instant outputs.",
     category: 'developer',
     icon: 'Fingerprint' as IconName,
     href: '/tools/hash-generator',
@@ -1072,7 +1056,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'regex-tester',
     name: 'Regex Tester & Debugger',
-    description: 'Test, evaluate, and debug JavaScript Regular Expressions in real-time with match highlighting and regex cheat sheets.',
+    description: "Easily test and fine-tune your text-matching rules with colorful live highlights, sample test cases, and a handy quick-reference guide.",
     category: 'developer',
     icon: 'SearchCode' as IconName,
     popular: true,
@@ -1085,7 +1069,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'lorem-ipsum-generator',
     name: 'Lorem Ipsum Generator',
-    description: 'Generate customizable placeholder text in paragraphs, sentences, or words with HTML tag wrapping controls.',
+    description: "Generate neat placeholder paragraphs, sentences, or bullet points to mock up your web designs and layouts before the real copy is ready.",
     category: 'developer',
     icon: 'Pilcrow' as IconName,
     href: '/tools/lorem-ipsum-generator',
@@ -1098,7 +1082,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'pdf-to-notes',
     name: 'PDF to AI Study Notes',
-    description: 'Transform dense textbook chapters, PDFs, or lecture notes into concise summaries, key takeaways, and study Q&As.',
+    description: "Turn dense textbook chapters and lecture slides into easy-to-read study summaries, core concept bullet points, and practice questions for your exams.",
     category: 'student',
     icon: 'BookOpen' as IconName,
     href: '/tools/pdf-to-notes',
@@ -1111,7 +1095,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'flashcard-generator',
     name: 'AI Flashcard Generator',
-    description: 'Turn study notes, articles, or topics into interactive digital flip flashcards with quiz mode practice.',
+    description: "Transform your class notes and reading assignments into digital flip cards with a fun study quiz mode to help you ace your next test.",
     category: 'student',
     icon: 'Layers' as IconName,
     href: '/tools/flashcard-generator',
@@ -1124,7 +1108,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'citation-generator',
     name: 'Academic Citation Generator',
-    description: 'Generate perfectly formatted APA 7, MLA 9, Chicago, and Harvard references for books, websites, and journal articles.',
+    description: "Create perfectly formatted bibliographies and source references for books, articles, and websites in all major academic styles in one click.",
     category: 'student',
     icon: 'Quote' as IconName,
     href: '/tools/citation-generator',
@@ -1136,7 +1120,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'math-solver',
     name: 'AI Step-by-Step Math Solver',
-    description: 'Solve complex algebra, calculus, geometry, and word math problems with detailed step-by-step LaTeX explanations.',
+    description: "Get clear, step-by-step explanations for tough algebra, calculus, and geometry problems so you understand how to solve them on your own.",
     category: 'student',
     icon: 'BrainCircuit' as IconName,
     href: '/tools/math-solver',
@@ -1150,7 +1134,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'hook-script-generator',
     name: 'AI Video Hook & Script Generator',
-    description: 'Generate viral 15-60s hooks, video script outlines, and Call-to-Actions for TikTok, YouTube Shorts, and Instagram Reels.',
+    description: "Generate viral opening hooks, fast-paced script outlines, and clear calls-to-action that keep viewers watching your TikToks, Reels, and Shorts.",
     category: 'creator',
     icon: 'Clapperboard' as IconName,
     href: '/tools/creator/hook-script-generator',
@@ -1163,7 +1147,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'linkedin-formatter',
     name: 'LinkedIn Post Formatter & Hook Creator',
-    description: 'Format long-form text into viral LinkedIn posts with optimal line spacing, bolding, unicode styling, and instant hook score analysis.',
+    description: "Format long thoughts into easy-to-read LinkedIn posts with clean line breaks, bold headers, bullet lists, and a test score for your opening hook.",
     category: 'creator',
     icon: 'FileText' as IconName,
     href: '/tools/creator/linkedin-formatter',
@@ -1176,7 +1160,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'thumbnail-analyzer',
     name: 'YouTube Thumbnail CTR & Contrast Analyzer',
-    description: 'Upload your video thumbnail to evaluate visual contrast, focal points, face presence, text readability, and predicted CTR score.',
+    description: "Upload your video thumbnail to check color contrast, face visibility, and text readability so your videos get clicked more often in browse feeds.",
     category: 'creator',
     icon: 'ScanEye' as IconName,
     href: '/tools/creator/thumbnail-analyzer',
@@ -1190,7 +1174,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'carousel-generator',
     name: 'AI Social Carousel Generator',
-    description: 'Convert outlines, notes, or blog posts into multi-slide visual carousels for Instagram and LinkedIn with customizable dark/neon themes.',
+    description: "Turn rough notes and articles into stylish multi-slide swipe carousels for Instagram and LinkedIn with customizable colors and sleek dark themes.",
     category: 'creator',
     icon: 'Presentation' as IconName,
     href: '/tools/creator/carousel-generator',
@@ -1204,7 +1188,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'serp-simulator',
     name: 'Google SERP Snippet Simulator',
-    description: 'Real-time visual preview of how your title tags and meta descriptions appear on Google Search (Desktop & Mobile viewports).',
+    description: "Preview how your headline and summary will look on mobile and desktop Google searches before you publish, ensuring nothing gets cut off.",
     category: 'seo',
     icon: 'Eye' as IconName,
     href: '/tools/seo/serp-simulator',
@@ -1216,7 +1200,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'og-previewer',
     name: 'Open Graph (OG) Social Link Previewer',
-    description: 'Preview how your web page link and social card will render when shared across Twitter/X, LinkedIn, Facebook, and Discord.',
+    description: "See exactly how your link title, banner image, and summary card will look when shared on Twitter, LinkedIn, Facebook, and Discord chats.",
     category: 'seo',
     icon: 'Share2' as IconName,
     href: '/tools/seo/og-previewer',
@@ -1228,7 +1212,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'canonical-generator',
     name: 'Canonical & Hreflang Tag Generator',
-    description: 'Generate valid self-referential canonical tags, trailing slash handlers, and multi-language hreflang HTML meta code.',
+    description: "Tell search engines which version of your page is the main one to prevent duplicate content issues and help international readers find the right language.",
     category: 'seo',
     icon: 'Link' as IconName,
     href: '/tools/seo/canonical-generator',
@@ -1242,7 +1226,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'json-to-types',
     name: 'JSON to TypeScript & Zod Converter',
-    description: 'Instantly convert raw JSON payloads into clean TypeScript interfaces, type aliases, or Zod validation schemas.',
+    description: "Paste any sample data snippet and automatically generate clean, structured code definitions ready to drop directly into your modern web apps.",
     category: 'developer',
     icon: 'FileCode2' as IconName,
     href: '/tools/developer/json-to-types',
@@ -1255,7 +1239,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'svg-optimizer',
     name: 'SVG Optimizer & File Cleaner (SVGO)',
-    description: 'Strip unnecessary XML metadata, editor junk, and inline styles from SVG files to compress file size by 40-70%.',
+    description: "Clean up messy graphic files by stripping hidden bloat and extra tags, cutting file size in half while keeping the visual quality 100% sharp.",
     category: 'developer',
     icon: 'FileCheck' as IconName,
     href: '/tools/developer/svg-optimizer',
@@ -1267,7 +1251,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'cron-generator',
     name: 'Cron Expression Generator & Explainer',
-    description: 'Visual interactive cron schedule builder that translates complex expressions like `*/15 8-18 * * 1-5` into plain English.',
+    description: "Set up recurring schedules for background jobs and reminders using a simple visual picker, with plain-English explanations of when it runs.",
     category: 'developer',
     icon: 'Clock' as IconName,
     href: '/tools/developer/cron-generator',
@@ -1279,7 +1263,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'sql-builder',
     name: 'Visual SQL Query Builder & AI Assistant',
-    description: 'Build SQL SELECT, JOIN, WHERE, and GROUP BY queries visually or convert natural language prompts into optimized SQL.',
+    description: "Write database lookups just by explaining what records you want to find in plain English, or build queries visually without memorizing commands.",
     category: 'developer',
     icon: 'Database' as IconName,
     href: '/tools/sql-builder',
@@ -1293,7 +1277,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'essay-outline-builder',
     name: 'AI Essay & Thesis Outline Builder',
-    description: 'Generate structured 5-paragraph or research paper outlines, strong thesis statements, and topic sentences from any prompt.',
+    description: "Organize your paper from introduction to conclusion with strong arguments, thesis statements, and topic sentences that flow logically.",
     category: 'student',
     icon: 'ListTree' as IconName,
     href: '/tools/student/essay-outline-builder',
@@ -1305,7 +1289,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'plagiarism-checker',
     name: 'Text Similarity & Plagiarism Diff Checker',
-    description: 'Compare two text documents side-by-side to highlight exact word matches, overlap percentages, and paraphrased sections.',
+    description: "Compare two drafts side-by-side to highlight identical sentences, matching phrases, and paraphrased sections with an exact overlap score.",
     category: 'student',
     icon: 'CopyCheck' as IconName,
     href: '/tools/student/plagiarism-checker',
@@ -1317,7 +1301,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'readability-assessor',
     name: 'Text Readability & Grade Level Assessor',
-    description: 'Calculate Flesch-Kincaid Grade Level, Flesch Reading Ease score, Gunning Fog Index, and sentence complexity metrics.',
+    description: "Check how clear and accessible your writing is, see the recommended reading grade level, and get tips to simplify overly complex sentences.",
     category: 'student',
     icon: 'Gauge' as IconName,
     href: '/tools/student/readability-assessor',
@@ -1327,3 +1311,5 @@ export const TOOLS: Tool[] = [
     seoKeywords: ["readability checker","flesch kincaid score calculator","grade level text assessor","Exismic"]
   }
 ];
+
+export const TOOLS: Tool[] = ALL_TOOLS.filter((t) => !t.hidden);

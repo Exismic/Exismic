@@ -134,7 +134,7 @@ export async function resetCreditsIfNewDay(userId: string) {
         });
 
         return updatedUser;
-      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 15000, maxWait: 10000 }),
     );
   } catch (err) {
     console.error(`[CREDITS] Error resetting credits for ${userId}:`, err);
@@ -486,7 +486,20 @@ export async function claimDailyShopCredits(userId: string) {
         }
       }
 
-      let reward = rollDailyShopReward();
+      const rawClaimed = user?.streakMilestonesClaimed;
+      const claimedMilestones: string[] = Array.isArray(rawClaimed)
+        ? (rawClaimed as unknown as string[])
+        : [];
+      const hasDoubleLuck = claimedMilestones.includes("14") || newStreak >= 14;
+      const hasIgnitionBoost = claimedMilestones.includes("3") || newStreak >= 3;
+
+      let reward = rollDailyShopReward(hasDoubleLuck);
+
+      // Ignition Boost (Day 3+ perk): Guarantees minimum drop floor of 15 credits
+      if (hasIgnitionBoost && reward.amount < 15) {
+        reward = { ...reward, amount: 15 };
+      }
+
       // Milestone bonus at 7 days: guarantee at least rare drop if roll was common/uncommon
       if (newStreak % 7 === 0 && (reward.rarity === "common" || reward.rarity === "uncommon")) {
         reward = { rarity: "rare", amount: 50, type: "temporary" };
@@ -541,7 +554,7 @@ export async function claimDailyShopCredits(userId: string) {
           amount: finalAmount,
           balanceType: reward.type === "permanent" ? "permanent" : "bonus",
           transactionType: "shop_bonus",
-          description: `Daily shop reward (${newStreak}-day streak): ${reward.rarity} (${reward.type})${shieldConsumed ? " [Shield Preserved]" : ""}`,
+          description: `Daily shop reward (${newStreak}-day streak): ${reward.rarity} (${reward.type})${shieldConsumed ? " [Shield Preserved]" : ""}${hasDoubleLuck ? " [2x Luck Active]" : ""}`,
           metadata: {
             rarity: reward.rarity,
             type: reward.type,
@@ -549,6 +562,8 @@ export async function claimDailyShopCredits(userId: string) {
             claimId: claim.id,
             shieldConsumed,
             bonusShieldEarned,
+            hasDoubleLuck,
+            hasIgnitionBoost,
           },
         },
       });
@@ -561,6 +576,8 @@ export async function claimDailyShopCredits(userId: string) {
         reward,
         shieldConsumed,
         bonusShieldEarned,
+        hasDoubleLuck,
+        hasIgnitionBoost,
       };
     });
 
@@ -573,6 +590,8 @@ export async function claimDailyShopCredits(userId: string) {
       credits: result.credits,
       shieldConsumed: result.shieldConsumed,
       bonusShieldEarned: result.bonusShieldEarned,
+      hasDoubleLuck: result.hasDoubleLuck,
+      hasIgnitionBoost: result.hasIgnitionBoost,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -759,8 +778,24 @@ export async function claimStreakMilestone(userId: string, milestoneDay: number)
   }
 }
 
-function rollDailyShopReward(): { rarity: string; amount: number; type: "temporary" | "permanent" } {
+function rollDailyShopReward(doubleLuck = false): { rarity: string; amount: number; type: "temporary" | "permanent" } {
   const roll = Math.random();
+  
+  // 2x Vault Luck (Unlocked at Day 14 milestone or 14+ day streak)
+  if (doubleLuck) {
+    // Permanent: 8% total chance (doubled from 4%)
+    if (roll < 0.005) return { rarity: "legendary", amount: 200, type: "permanent" }; // 0.5% (was 0.2%)
+    if (roll < 0.025) return { rarity: "epic", amount: 50, type: "permanent" };      // 2.0% (was 0.8%)
+    if (roll < 0.080) return { rarity: "rare", amount: 25, type: "permanent" };      // 5.5% (was 3.0%)
+    
+    // Temporary: 92% total chance (higher tiers doubled)
+    if (roll < 0.200) return { rarity: "epic", amount: 100, type: "temporary" };     // 12.0% (was 6.0%)
+    if (roll < 0.500) return { rarity: "rare", amount: 50, type: "temporary" };      // 30.0% (was 15.0%)
+    if (roll < 0.750) return { rarity: "uncommon", amount: 25, type: "temporary" };  // 25.0% (was 30.0%)
+    return { rarity: "common", amount: 15, type: "temporary" };                      // 25.0% (was 45.0%, floor 15)
+  }
+
+  // Standard Drop Rates
   // Permanent: 4% total chance
   if (roll < 0.002) return { rarity: "legendary", amount: 200, type: "permanent" }; // 0.2%
   if (roll < 0.010) return { rarity: "epic", amount: 50, type: "permanent" };      // 0.8%

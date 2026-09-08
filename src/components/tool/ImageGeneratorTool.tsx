@@ -24,6 +24,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { downloadWithBrandPolicy } from "@/utils/watermark";
 import { Loader2 } from "lucide-react";
 import { MediaPipelineBar } from "./MediaPipelineBar";
+import { saveFileHistory } from "@/lib/history";
 
 interface GeneratorOptions {
   prompt: string;
@@ -173,6 +174,29 @@ export function ImageGeneratorTool() {
           setFunctionalStorageItem("exismic_image_history", JSON.stringify(updated));
           return updated;
         });
+
+        // Automatically record to unified history vault with full input parameters
+        const currentRatio = ASPECT_RATIOS.find(r => r.width === data.width && r.height === data.height)?.name || `${data.width}x${data.height}`;
+        const currentStyleName = STYLE_PRESETS.find(p => p.id === selectedStyle)?.name || "Default";
+        
+        saveFileHistory({
+          toolType: "image-generator",
+          originalName: data.prompt,
+          resultUrl: newUrl,
+          fileType: "image",
+          status: "completed",
+          metadata: {
+            prompt: data.prompt,
+            aspectRatio: currentRatio,
+            width: data.width,
+            height: data.height,
+            style: selectedStyle,
+            styleName: currentStyleName,
+            model: "flux",
+            targetHref: "/tools/ai/img-gen",
+            toolName: "AI Image Generator",
+          },
+        });
       }
     } catch (err: unknown) {
       const errorMsg = axios.isAxiosError(err)
@@ -197,6 +221,41 @@ export function ImageGeneratorTool() {
       setIsGenerating(false);
     }
   };
+
+  // Replay & Edit listener from History Vault
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlPrompt = params.get("prompt");
+    const urlStyle = params.get("style");
+    const urlRatio = params.get("aspectRatio");
+    const autorun = params.get("autorun") === "1";
+
+    if (urlPrompt) {
+      setValue("prompt", urlPrompt);
+    }
+    if (urlStyle && STYLE_PRESETS.some(p => p.id === urlStyle)) {
+      setSelectedStyle(urlStyle);
+    }
+    if (urlRatio) {
+      const matchedRatio = ASPECT_RATIOS.find(r => 
+        r.name.toLowerCase().includes(urlRatio.toLowerCase()) ||
+        `${r.width}x${r.height}` === urlRatio ||
+        `${r.width}:${r.height}` === urlRatio
+      );
+      if (matchedRatio) {
+        setValue("width", matchedRatio.width);
+        setValue("height", matchedRatio.height);
+      }
+    }
+
+    if (autorun && urlPrompt) {
+      const timer = setTimeout(() => {
+        handleSubmit(onSubmit)();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleSurprise = () => {
     const random = EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)];

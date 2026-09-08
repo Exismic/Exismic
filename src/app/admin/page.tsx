@@ -48,11 +48,17 @@ import {
   ExternalLink,
   Layers,
   Activity,
-  Award
+  Award,
+  WalletCards,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AnnouncementCard } from "@/components/layout/AnnouncementBanner";
+import { QuestsVaultTab } from "@/components/admin/QuestsVaultTab";
+import { SparksEconomyTab } from "@/components/admin/SparksEconomyTab";
+import { OrdersRevenueTab } from "@/components/admin/OrdersRevenueTab";
+import { UserDossierModal } from "@/components/admin/UserDossierModal";
 
 
 
@@ -69,14 +75,31 @@ interface AdminStats {
 interface AdminUser {
   id: string;
   name: string | null;
+  username?: string | null;
   email: string | null;
   role: string;
   plan: string;
   dailyCredits: number;
   bonusCredits: number;
+  lifetimeCredits?: number;
+  dailyStreak?: number;
+  streakShields?: number;
+  sparks?: number;
+  lifetimeSparks?: number;
   createdAt: string;
   image: string | null;
+  customAvatarUrl?: string | null;
+  avatarFrame?: string | null;
+  nameGradient?: string | null;
+  insignia?: string | null;
   status: string;
+  planExpiresAt?: string | null;
+  subscriptionStatus?: string;
+  _count?: {
+    creditShopClaims?: number;
+    sparksTransactions?: number;
+    creditTransactions?: number;
+  };
 }
 
 interface SupportTicket {
@@ -248,7 +271,8 @@ interface ReferralLog {
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [activeTab, setActiveTab] = useState("users"); // "users" | "tickets" | "activity" | "promos" | "announcements" | "referrals" | "logs" | "config"
+  const [activeTab, setActiveTab] = useState("users"); // "users" | "quests_vault" | "sparks_economy" | "orders_revenue" | "tickets" | "activity" | "promos" | "announcements" | "referrals" | "logs" | "config"
+  const [inspectDossierUserId, setInspectDossierUserId] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   // Users Directory Tab State
@@ -1073,6 +1097,9 @@ export default function AdminPage() {
             <div className="flex overflow-x-auto gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md max-w-fit scrollbar-none">
               {[
                 { id: "users", label: "Users Directory", icon: Users },
+                { id: "quests_vault", label: "Quests & Vault", icon: Flame },
+                { id: "sparks_economy", label: "Sparks & Shop", icon: Zap },
+                { id: "orders_revenue", label: "Orders & Pro", icon: WalletCards },
                 { id: "activity", label: "Live Moderation Stream", icon: ShieldAlert },
                 { id: "giveaways", label: "Giveaway Manager", icon: Gift },
                 { id: "giftcards", label: "Gift Cards Queue", icon: Ticket },
@@ -1163,12 +1190,13 @@ export default function AdminPage() {
                           <thead>
                             <tr className="border-b border-white/5 bg-white/[0.01]">
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Creator</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Plan</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Role</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Plan & Role</th>
                               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Status</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Daily Credits</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Bonus Credits</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Edit</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Streak & Shields</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Sparks</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Vault Drops</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Credits (D / B)</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5">
@@ -1188,16 +1216,16 @@ export default function AdminPage() {
                                   </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                  <span className={cn(
-                                    "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                                    u.plan === "pro" ? "bg-accent-purple/10 border border-accent-purple/20 text-accent-purple" : "bg-white/5 border border-white/5 text-zinc-400"
-                                  )}>{u.plan}</span>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className={cn(
-                                    "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                                    u.role === "admin" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "bg-white/5 border border-white/5 text-zinc-400"
-                                  )}>{u.role}</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={cn(
+                                      "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                                      u.plan === "pro" ? "bg-accent-purple/10 border border-accent-purple/20 text-accent-purple" : "bg-white/5 border border-white/5 text-zinc-400"
+                                    )}>{u.plan}</span>
+                                    <span className={cn(
+                                      "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                                      u.role === "admin" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "bg-white/5 border border-white/5 text-zinc-400"
+                                    )}>{u.role}</span>
+                                  </div>
                                 </td>
                                 <td className="px-6 py-4">
                                   <span className={cn(
@@ -1207,15 +1235,51 @@ export default function AdminPage() {
                                     (u.status === "active" || !u.status) && "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                                   )}>{u.status || "active"}</span>
                                 </td>
-                                <td className="px-6 py-4 text-xs font-black text-zinc-300">{u.dailyCredits}</td>
-                                <td className="px-6 py-4 text-xs font-black text-zinc-300">{u.bonusCredits}</td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 text-[10px] font-black">
+                                      <Flame size={10} className="text-orange-400 fill-orange-400" />
+                                      {u.dailyStreak || 0}d
+                                    </span>
+                                    {(u.streakShields || 0) > 0 && (
+                                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 text-[9px] font-black">
+                                        <ShieldCheck size={9} />
+                                        {u.streakShields}/3
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="text-xs font-black text-cyan-300">
+                                    ⚡ {u.sparks || 0}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="text-xs font-semibold text-purple-300">
+                                    🎁 {u._count?.creditShopClaims || 0} drops
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-xs font-black text-zinc-300">
+                                  {u.dailyCredits} / {u.bonusCredits}
+                                </td>
                                 <td className="px-6 py-4 text-right">
-                                  <button
-                                    onClick={() => handleEditUser(u)}
-                                    className="p-2 rounded-lg bg-white/5 border border-white/5 hover:border-accent-purple/30 hover:bg-accent-purple/10 text-zinc-400 hover:text-accent-purple transition-all"
-                                  >
-                                    <Edit2 size={13} />
-                                  </button>
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => setInspectDossierUserId(u.id)}
+                                      title="Inspect Creator Dossier"
+                                      className="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-accent-purple/40 hover:bg-accent-purple/10 text-zinc-300 hover:text-accent-purple text-[11px] font-bold transition-all flex items-center gap-1"
+                                    >
+                                      <Eye size={12} />
+                                      Dossier
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditUser(u)}
+                                      title="Edit User"
+                                      className="p-1.5 rounded-lg bg-white/5 border border-white/5 hover:border-accent-purple/30 hover:bg-accent-purple/10 text-zinc-400 hover:text-accent-purple transition-all"
+                                    >
+                                      <Edit2 size={13} />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -1247,6 +1311,21 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* TAB: QUESTS & VAULT TELEMETRY */}
+              {activeTab === "quests_vault" && (
+                <QuestsVaultTab onInspectUser={(uid) => setInspectDossierUserId(uid)} />
+              )}
+
+              {/* TAB: SPARKS ECONOMY & REDEMPTIONS */}
+              {activeTab === "sparks_economy" && (
+                <SparksEconomyTab onInspectUser={(uid) => setInspectDossierUserId(uid)} />
+              )}
+
+              {/* TAB: ORDERS & REVENUE */}
+              {activeTab === "orders_revenue" && (
+                <OrdersRevenueTab onInspectUser={(uid) => setInspectDossierUserId(uid)} />
               )}
 
               {/* TAB: GIFT CARDS QUEUE */}
@@ -1679,7 +1758,7 @@ export default function AdminPage() {
                         <option value="image/eraser">Magic Object Eraser</option>
                         <option value="audio/vocal-remover">AI Vocal Stem Splitter</option>
                         <option value="ai/img-gen">AI Image Generator</option>
-                        <option value="developer/code-gen">Code Studio & Generator</option>
+                        <option value="developer/json-to-types">JSON to Types Converter</option>
                         <option value="youtube/summarizer">YouTube AI Summarizer</option>
                         <option value="image/photo-restorer">Photo Colorizer & Restorer</option>
                         <option value="pdf/compressor">PDF Compressor / Merger</option>
@@ -3552,6 +3631,12 @@ export default function AdminPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Creator Intelligence Dossier Modal */}
+      <UserDossierModal
+        userId={inspectDossierUserId}
+        onClose={() => setInspectDossierUserId(null)}
+      />
     </div>
   );
 }

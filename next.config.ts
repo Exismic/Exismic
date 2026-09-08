@@ -26,6 +26,46 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: "/tools/minecraft-skin-maker",
+        destination: "/tools/image/minecraft-skin",
+        permanent: false,
+      },
+      {
+        source: "/tools/image-eraser",
+        destination: "/tools/image/eraser",
+        permanent: false,
+      },
+      {
+        source: "/tools/image-compressor",
+        destination: "/tools/image/compressor",
+        permanent: false,
+      },
+      {
+        source: "/tools/image-resizer",
+        destination: "/tools/image/resizer",
+        permanent: false,
+      },
+      {
+        source: "/tools/image-converter",
+        destination: "/tools/image/converter",
+        permanent: false,
+      },
+      {
+        source: "/tools/image-generator",
+        destination: "/tools/ai/img-gen",
+        permanent: false,
+      },
+      {
+        source: "/tools/ai-img-gen",
+        destination: "/tools/ai/img-gen",
+        permanent: false,
+      },
+      {
+        source: "/tools/hook-script-generator",
+        destination: "/tools/creator/hook-script-generator",
+        permanent: false,
+      },
+      {
         source: "/giveaways",
         destination: "/giveaway",
         permanent: false,

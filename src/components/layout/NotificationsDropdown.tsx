@@ -271,8 +271,9 @@ export function NotificationsDropdown() {
     if (!session?.user?.id) return;
     try {
       const response = await fetch(`/api/user/notifications?t=${Date.now()}`, { cache: "no-store" });
-      const json = await response.json();
-      if (response.ok && json.success && json.data) {
+      if (!response.ok) return;
+      const json = await response.json().catch(() => null);
+      if (json?.success && json?.data) {
         setNotifications(json.data);
       }
     } catch (err) {

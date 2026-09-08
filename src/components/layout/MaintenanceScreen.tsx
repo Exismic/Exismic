@@ -39,10 +39,8 @@ export function MaintenanceScreen() {
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative z-10 max-w-md w-full bg-[#070814]/90 border border-white/[0.08] p-8 sm:p-10 rounded-[2rem] backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_-10px_rgba(168,85,247,0.15)] ring-1 ring-white/[0.05] space-y-6 text-center overflow-hidden"
+        className="relative z-10 max-w-md w-full bg-[#070814]/90 border-2 border-purple-500/50 p-8 sm:p-10 rounded-[2rem] backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(168,85,247,0.25)] space-y-6 text-center overflow-hidden"
       >
-        {/* Radiant Top Glow Laser */}
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/90 to-transparent shadow-[0_0_20px_rgba(168,85,247,0.7)]" />
 
         {/* Ambient Top Glow Bloom */}
         <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-48 h-48 bg-purple-500/[0.08] rounded-full blur-3xl" />

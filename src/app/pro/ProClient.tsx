@@ -31,6 +31,9 @@ import {
   Ticket,
   WandSparkles,
   Zap,
+  BadgePercent,
+  Diamond,
+  Tag,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -84,9 +87,9 @@ const CREATOR_BENEFITS = [
     glow: "bg-purple-500/30",
   },
   {
-    icon: Code2,
-    title: "Code and creative power together",
-    description: "Use the same membership across Exismic Ai, Code Studio, and Pro tools.",
+    icon: Sparkles,
+    title: "Unified creative power",
+    description: "Use the same membership across Exismic Ai, creative suites, and Pro tools.",
     tone: "border-blue-300/20 bg-blue-300/[0.06] text-blue-200",
     glow: "bg-blue-500/30",
   },
@@ -176,6 +179,38 @@ export function ProClient() {
   const [market, setMarket] = useState<"IN" | "GLOBAL">("GLOBAL");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const paymentsEnabled = PRICING_CONFIG.PAYMENTS_ENABLED;
+  const [launchDiscount, setLaunchDiscount] = useState<{
+    eligible: boolean;
+    code?: string;
+    prices?: {
+      USD: number;
+      INR: number;
+      regularUSD: number;
+      regularINR: number;
+      discountUSD: number;
+      discountINR: number;
+    };
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/billing/launch-discount-status", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data?.eligible) {
+          setLaunchDiscount(data);
+        } else if (active) {
+          setLaunchDiscount({ eligible: false });
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not check launch discount:", err);
+        if (active) setLaunchDiscount({ eligible: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, [user, authUser]);
 
   useEffect(() => {
     let active = true;
@@ -275,13 +310,17 @@ export function ProClient() {
     setIsTermsModalOpen(true);
   };
 
-  const handleUpgradeConfirm = async () => {
+  const handleUpgradeConfirm = async (couponCode?: string) => {
     setLoading(true);
     try {
       const response = await fetch("/api/billing/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: selectedPlanId, marketOverride: market }),
+        body: JSON.stringify({
+          planId: selectedPlanId,
+          marketOverride: market,
+          couponCode: couponCode || undefined,
+        }),
       });
       const data = await response.json().catch(() => null);
 
@@ -424,13 +463,6 @@ export function ProClient() {
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay" />
           </div>
 
-          <motion.div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(168,85,247,0.8),rgba(6,182,212,0.8),transparent)] shadow-[0_0_20px_rgba(168,85,247,0.6)]"
-            animate={{ opacity: [0.35, 1, 0.35] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-          />
-
           {/* Ambient Glows */}
           <div className="absolute right-[5%] top-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-purple-600/15 via-cyan-500/15 to-blue-600/10 blur-[130px] pointer-events-none" />
           <div className="mx-auto w-full max-w-7xl relative z-10 space-y-6">
@@ -511,14 +543,11 @@ export function ProClient() {
                       whileHover={{ y: -6 }}
                       transition={{ duration: 0.3 }}
                       onClick={() => handleUpgradeClick("pro")}
-                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2px] backdrop-blur-3xl transition-all duration-500 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-b from-cyan-500/40 via-white/10 to-transparent flex flex-col"
+                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-400/80 via-sky-500/50 to-indigo-500/60 flex flex-col"
                     >
                       {/* Ambient Glowing Blobs */}
                       <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
                       <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-sky-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-40" />
-                      
-                      {/* Top Neon Accent Beam */}
-                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
 
                       {/* Inner Obsidian Card */}
                       <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-8 sm:p-10 backdrop-blur-3xl">
@@ -526,31 +555,78 @@ export function ProClient() {
                           {/* Header: Plan Identity Badge Row */}
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
-                                <Crown size={22} className="text-cyan-300 fill-cyan-400/30" />
+                              <div className={cn(
+                                "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-300",
+                                launchDiscount?.eligible
+                                  ? "border-emerald-400/40 bg-emerald-500/15 shadow-[0_0_20px_rgba(52,211,153,0.3)] text-emerald-300"
+                                  : "border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.25)] text-cyan-300"
+                              )}>
+                                <Crown size={22} className={launchDiscount?.eligible ? "text-emerald-300 fill-emerald-400/30" : "text-cyan-300 fill-cyan-400/30"} />
                               </div>
                               <div>
                                 <h3 className="text-xl font-black text-white tracking-tight">Monthly Pro</h3>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Standard Tier</p>
+                                <p className={cn(
+                                  "text-[10px] font-bold uppercase tracking-[0.2em]",
+                                  launchDiscount?.eligible ? "text-emerald-300/90" : "text-cyan-300/80"
+                                )}>
+                                  Standard Tier
+                                </p>
                               </div>
                             </div>
-                            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-300">
-                              Flexible
-                            </span>
+
+                            {launchDiscount?.eligible ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                                <BadgePercent size={12} className="text-emerald-400" />
+                                v1.6 Launch Special
+                              </span>
+                            ) : (
+                              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-300">
+                                Flexible
+                              </span>
+                            )}
                           </div>
 
                           {/* Price Block */}
                           <div className="mt-6">
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#a5f3fc_50%,#38bdf8_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
-                                {isIndia ? "₹499" : "$6.99"}
-                              </span>
-                              <span className="text-xs font-black uppercase tracking-widest text-cyan-300/80">/ month</span>
-                            </div>
-                            <p className="mt-2 text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
-                              <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
-                              <span>Billed monthly • Cancel anytime in 1-click</span>
-                            </p>
+                            {launchDiscount?.eligible ? (
+                              <div>
+                                <div className="flex items-baseline gap-2.5">
+                                  <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#6ee7b7_50%,#34d399_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(52,211,153,0.35)]">
+                                    {isIndia ? "₹299" : "$3.99"}
+                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-black uppercase tracking-widest text-emerald-400">/ 1st month</span>
+                                    <span className="line-through text-xs font-bold text-zinc-500">
+                                      {isIndia ? "₹499" : "$6.99"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs font-bold">
+                                  <span className="rounded-full bg-emerald-400/15 border border-emerald-400/40 px-2.5 py-0.5 text-[9px] font-black text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.25)] flex items-center gap-1">
+                                    <BadgePercent size={11} className="text-emerald-400" />
+                                    Save {isIndia ? "₹200 (40% OFF)" : "$3.00 (43% OFF)"}
+                                  </span>
+                                  <span className="text-zinc-400 text-[11px] font-medium flex items-center gap-1">
+                                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                                    Renews at standard {isIndia ? "₹499" : "$6.99"}/mo • Cancel anytime
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#a5f3fc_50%,#38bdf8_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
+                                    {isIndia ? "₹499" : "$6.99"}
+                                  </span>
+                                  <span className="text-xs font-black uppercase tracking-widest text-cyan-300/80">/ month</span>
+                                </div>
+                                <p className="mt-2 text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
+                                  <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                                  <span>Billed monthly • Cancel anytime in 1-click</span>
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           {/* Refined Purpose-Built Benefit Rows */}
@@ -561,7 +637,7 @@ export function ProClient() {
                                 iconColor: "text-cyan-300",
                                 iconBg: "border-cyan-400/30 bg-cyan-500/10 shadow-[0_0_12px_rgba(34,211,238,0.2)]",
                                 title: "500 Daily Compute Credits",
-                                subtitle: "Restores automatically every 24h at 00:00 UTC",
+                                subtitle: "Restores automatically every 24 hours",
                                 badge: "15,000 / mo",
                                 badgeStyle: "text-cyan-300 bg-cyan-500/10 border-cyan-400/25",
                               },
@@ -625,35 +701,61 @@ export function ProClient() {
                             disabled={loading || !paymentsEnabled}
                             whileHover={paymentsEnabled ? { y: -2, scale: 1.02 } : undefined}
                             whileTap={paymentsEnabled ? { scale: 0.98 } : undefined}
-                            className="group/launch relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
+                            className={cn(
+                              "group/launch relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-[22px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)]",
+                              launchDiscount?.eligible
+                                ? "hover:shadow-[0_0_40px_rgba(52,211,153,0.5)]"
+                                : "hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
+                            )}
                           >
                             {/* Rotating Neon Border */}
                             <motion.span
                               aria-hidden="true"
-                              className="absolute -inset-[150%] opacity-100 mix-blend-screen bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8_25%,#3b82f6_50%,#67e8f9_75%,#06b6d4_100%)]"
+                              className={cn(
+                                "absolute -inset-[150%] opacity-100 mix-blend-screen",
+                                launchDiscount?.eligible
+                                  ? "bg-[conic-gradient(from_0deg,#10b981,#34d399_25%,#06b6d4_50%,#a7f3d0_75%,#10b981_100%)]"
+                                  : "bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8_25%,#3b82f6_50%,#67e8f9_75%,#06b6d4_100%)]"
+                              )}
                               animate={{ rotate: 360 }}
                               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                             />
                             {/* Halo Diffusion */}
                             <motion.span
                               aria-hidden="true"
-                              className="absolute -inset-[100%] blur-md opacity-60 mix-blend-screen bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8,#3b82f6,#06b6d4)]"
+                              className={cn(
+                                "absolute -inset-[100%] blur-md opacity-60 mix-blend-screen",
+                                launchDiscount?.eligible
+                                  ? "bg-[conic-gradient(from_0deg,#10b981,#34d399,#06b6d4,#10b981)]"
+                                  : "bg-[conic-gradient(from_0deg,#06b6d4,#38bdf8,#3b82f6,#06b6d4)]"
+                              )}
                               animate={{ rotate: 360 }}
                               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                             />
-                            <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[19px] border border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 px-5 py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98">
+                            <span className={cn(
+                              "relative flex h-full w-full items-center justify-between gap-3 rounded-[19px] border px-5 py-3 backdrop-blur-2xl transition-colors duration-500",
+                              launchDiscount?.eligible
+                                ? "border-emerald-400/35 bg-gradient-to-br from-[#061814]/98 via-[#06141c]/98 to-[#03070f]/98 group-hover/launch:from-[#09221c]/98 group-hover/launch:to-[#061018]/98"
+                                : "border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98"
+                            )}>
                               <div className="flex items-center gap-3.5">
-                                <ExismicMark size={40} letter="P" theme="blue" animated={true} />
+                                <ExismicMark size={40} letter="P" theme={launchDiscount?.eligible ? "purple" : "blue"} animated={true} />
                                 <div className="text-left">
                                   <span className="block text-xs sm:text-sm font-black uppercase tracking-[0.18em] text-white">
-                                    GET MONTHLY • {isIndia ? "₹499" : "$6.99"}
+                                    GET MONTHLY • {launchDiscount?.eligible ? (isIndia ? "₹299" : "$3.99") : (isIndia ? "₹499" : "$6.99")}
                                   </span>
-                                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300/90">
-                                    Standard Pro Access
+                                  <span className={cn(
+                                    "block text-[10px] font-bold uppercase tracking-[0.14em]",
+                                    launchDiscount?.eligible ? "text-emerald-300/90" : "text-cyan-300/90"
+                                  )}>
+                                    {launchDiscount?.eligible ? "v1.6 Launch Special • 1st Month" : "Standard Pro Access"}
                                   </span>
                                 </div>
                               </div>
-                              <ArrowRight size={18} className="text-cyan-300 transition-transform group-hover/launch:translate-x-1" />
+                              <ArrowRight size={18} className={cn(
+                                "transition-transform group-hover/launch:translate-x-1",
+                                launchDiscount?.eligible ? "text-emerald-300" : "text-cyan-300"
+                              )} />
                             </span>
                           </motion.button>
                         </div>
@@ -665,14 +767,11 @@ export function ProClient() {
                       whileHover={{ y: -8 }}
                       transition={{ duration: 0.3 }}
                       onClick={() => handleUpgradeClick("pro_yearly")}
-                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-b from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col"
+                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-br from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col"
                     >
                       {/* Ambient Radiant Glows */}
                       <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-80" />
                       <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-fuchsia-500/25 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
-
-                      {/* Top Neon Accent Beam */}
-                      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-400 shadow-[0_0_25px_rgba(168,85,247,1)]" />
 
                       {/* Inner Obsidian Card */}
                       <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-8 sm:p-10 backdrop-blur-3xl">
@@ -681,7 +780,7 @@ export function ProClient() {
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
                               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
-                                <Sparkles size={22} className="text-purple-300 fill-purple-400/20" />
+                                <Diamond size={22} className="text-purple-300 fill-purple-400/20" />
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
@@ -901,11 +1000,8 @@ export function ProClient() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.18 }}
               transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              className="relative mt-12 grid overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-[#040406] shadow-[0_30px_100px_rgba(0,0,0,0.5),0_0_80px_rgba(168,85,247,0.06)] lg:grid-cols-[0.9fr_1.1fr]"
+              className="relative mt-12 grid overflow-hidden rounded-[2.5rem] border-2 border-purple-500/40 bg-[#040406] shadow-[0_30px_100px_rgba(0,0,0,0.5),0_0_60px_rgba(168,85,247,0.15)] lg:grid-cols-[0.9fr_1.1fr]"
             >
-              {/* Top Neon Border */}
-              <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(168,85,247,0.8),rgba(6,182,212,0.8),transparent)] shadow-[0_0_15px_rgba(168,85,247,0.8)] z-20" />
-
               {/* Left Side */}
               <div className="relative border-b border-white/[0.08] bg-[linear-gradient(140deg,rgba(168,85,247,0.08),transparent_48%)] p-8 sm:p-12 lg:border-b-0 lg:border-r z-10 flex flex-col justify-center">
                 <div className="flex items-center gap-5">
@@ -1135,9 +1231,8 @@ export function ProClient() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
               whileHover={prefersReducedMotion ? undefined : { y: -5 }}
-              className="relative overflow-hidden rounded-lg border border-purple-300/20 bg-[#08080d] p-6 shadow-[0_32px_90px_rgba(0,0,0,0.46),0_0_70px_rgba(124,58,237,0.10)] sm:p-8"
+              className="relative overflow-hidden rounded-2xl border-2 border-purple-400/40 bg-[#08080d] p-6 shadow-[0_32px_90px_rgba(0,0,0,0.46),0_0_50px_rgba(124,58,237,0.2)] sm:p-8"
             >
-              <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-purple-400 via-fuchsia-300 to-cyan-300" />
               <motion.div
                 aria-hidden="true"
                 className="pointer-events-none absolute -inset-x-1/2 top-0 h-44 bg-[linear-gradient(110deg,transparent,rgba(124,58,237,0.12),rgba(217,70,239,0.10),rgba(34,211,238,0.12),transparent)] blur-3xl"

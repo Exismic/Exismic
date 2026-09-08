@@ -7,6 +7,15 @@ export const PRICING_CONFIG = {
     DAILY_CREDITS: 500,
     IS_PRO_LIVE: true,
   },
+  V16_LAUNCH_PROMO: {
+    CODE: "V16LAUNCH",
+    ACTIVE: true,
+    EXPIRES_AT: "2026-09-15T23:59:59Z", // 7-day launch special
+    DISCOUNTED_PRICE_USD: 3.99,
+    DISCOUNTED_PRICE_INR: 299,
+    DISCOUNT_AMOUNT_USD: 3.00,
+    DISCOUNT_AMOUNT_INR: 200,
+  },
   PRO_YEARLY_PLAN: {
     USD: 59.99,
     INR: 4499,
@@ -72,3 +81,10 @@ export function formatPrice(amount: number, currency: 'USD' | 'INR') {
   }
   return `$${amount}`;
 }
+
+export function isLaunchPromoActive() {
+  const promo = PRICING_CONFIG.V16_LAUNCH_PROMO;
+  if (!promo || !promo.ACTIVE) return false;
+  return new Date() <= new Date(promo.EXPIRES_AT);
+}
+

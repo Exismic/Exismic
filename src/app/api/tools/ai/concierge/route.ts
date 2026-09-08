@@ -44,9 +44,7 @@ const aliases: Record<string, string[]> = {
   "productivity-qr": ["qr code", "qr"],
   "typing-test": ["typing speed", "wpm", "typing test"],
   "social-caption-generator": ["caption", "social post", "instagram post", "linkedin post", "tweet", "hashtags", "viral caption"],
-  "screenshot-to-code": ["screenshot to code", "image to html", "recreate ui", "frontend from screenshot", "figma to code", "ui to code"],
   "support-agent": ["support bot", "customer support", "website chatbot", "chat widget", "faq bot", "business chatbot"],
-  "ai-code": ["write code", "debug code", "code editor", "build app", "programming", "fix bug", "react component", "api route"],
   "ai-writer": ["write article", "write copy", "blog", "rewrite", "content writing", "email copy", "description"],
   "ai-chat": ["ask ai", "research", "explain", "brainstorm", "chat", "learn", "solve", "homework"],
 };

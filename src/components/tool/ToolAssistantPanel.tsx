@@ -121,10 +121,6 @@ const TOOL_TARGET_SELECTORS: Partial<Record<Tool["id"], string[]>> = {
   "ai-writer": ["textarea[placeholder*='What should I write']"],
   "ai-img-gen": ["textarea[placeholder*='futuristic mechanical butterfly']"],
   "ai-logo": ["textarea[placeholder*='Describe your logo concept']"],
-  "ai-code": [
-    "textarea[placeholder*='Describe what you want to build']",
-    "textarea[placeholder*='chat with the AI Agent']",
-  ],
   "audio-tts": ["textarea[placeholder*='Type what you want the voice']"],
   "audio-music-gen": ["textarea[placeholder*='Describe what kind of music']"],
   "hashtag-generator": ["textarea[placeholder*='fitness motivation gym workout']"],
@@ -523,15 +519,9 @@ export function ToolAssistantPanel({ tool, category }: ToolAssistantPanelProps) 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 14, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="fixed inset-x-2 bottom-2 z-[70] mx-auto flex max-h-[min(82dvh,720px)] max-w-[460px] flex-col overflow-hidden rounded-[26px] border border-white/[0.1] bg-[linear-gradient(145deg,rgba(12,10,24,0.98),rgba(4,7,12,0.99)_55%,rgba(4,13,17,0.98))] shadow-[0_35px_120px_rgba(0,0,0,0.82),0_0_70px_rgba(91,33,182,0.13)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:w-[460px]"
+            className="fixed inset-x-2 bottom-2 z-[70] mx-auto flex max-h-[min(82dvh,720px)] max-w-[460px] flex-col overflow-hidden rounded-[26px] border-2 border-purple-500/50 bg-[linear-gradient(145deg,rgba(12,10,24,0.98),rgba(4,7,12,0.99)_55%,rgba(4,13,17,0.98))] shadow-[0_35px_120px_rgba(0,0,0,0.82),0_0_50px_rgba(91,33,182,0.25)] backdrop-blur-2xl sm:inset-x-auto sm:bottom-7 sm:right-7 sm:w-[460px]"
             aria-label={`Exismic Ai assistant for ${tool.name}`}
           >
-            <motion.div
-              aria-hidden="true"
-              className="absolute inset-x-0 top-0 z-30 h-px bg-[linear-gradient(90deg,transparent,#8b5cf6,#ec4899,#22d3ee,transparent)] bg-[length:220%_100%]"
-              animate={{ backgroundPosition: ["100% 0%", "-120% 0%"] }}
-              transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
-            />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:28px_28px] opacity-30" />
 
             <div className="relative z-10 flex items-center justify-between gap-4 border-b border-white/[0.07] bg-black/15 p-4">

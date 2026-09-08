@@ -147,7 +147,7 @@ async function generateOgImage() {
       <g transform="translate(885, 0)">
         <rect x="0" y="0" width="155" height="48" rx="14" fill="rgba(255, 255, 255, 0.04)" stroke="rgba(59, 130, 246, 0.35)" stroke-width="1" />
         <text x="20" y="30" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#e2e8f0">
-          ⚡ Code Studio
+          ⚡ Creative Suite
         </text>
       </g>
     </g>

@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
-import VideoCompressorPage from "./VideoCompressorClient";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
+import VideoCompressor from "@/components/tool/VideoCompressor";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free Online Video Compressor - Reduce Video File Size | Exismic",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "video-compressor" || t.href === "/tools/video/compressor") || {
-    id: "video-compressor",
-    name: "Free Online Video Compressor",
-    description: "Compress MP4, MOV, and WebM videos without losing quality. Reduce file sizes for fast web streaming and social sharing.",
-    href: "/tools/video/compressor"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <VideoCompressorPage />
-    </>
+    <ToolPageShell
+      toolId="video-compressor"
+      categoryId="video"
+      customTitle="Video Compressor"
+      customDescription="Shrink your video files by up to 90% without losing quality. Optimized for Discord, WhatsApp, and web sharing."
+    >
+      <VideoCompressor />
+    </ToolPageShell>
   );
 }

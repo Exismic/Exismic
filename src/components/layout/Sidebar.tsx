@@ -39,10 +39,12 @@ import { UserProfile } from "../ui/UserProfile";
 import { ExismicLogo } from "../ui/ExismicLogo";
 import { CreditTokenIcon } from "../ui/CreditTokenIcon";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
+import { SparkIcon } from "../ui/SparkIcon";
+import { isAdminEmail } from "@/lib/admin";
 
 interface SidebarItemProps {
   name: string;
-  icon: LucideIcon;
+  icon: LucideIcon | React.ComponentType<{ size?: number; className?: string; variant?: any; animated?: boolean }>;
   href: string;
   isActive: boolean;
   accentColor?: string;
@@ -68,13 +70,13 @@ const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
   "/help": "bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-500 shadow-[0_0_14px_rgba(14,165,233,0.9)]",
 
   "/category/image": "bg-gradient-to-b from-cyan-300 via-sky-400 to-blue-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
-  "/category/video": "bg-gradient-to-b from-violet-400 via-fuchsia-400 to-purple-500 shadow-[0_0_14px_rgba(168,85,247,0.9)]",
+  "/category/video": "bg-gradient-to-b from-violet-400 via-purple-400 to-indigo-500 shadow-[0_0_14px_rgba(139,92,246,0.9)]",
   "/category/audio": "bg-gradient-to-b from-pink-400 via-rose-400 to-purple-500 shadow-[0_0_14px_rgba(236,72,153,0.9)]",
-  "/category/pdf": "bg-gradient-to-b from-orange-400 via-amber-500 to-red-500 shadow-[0_0_14px_rgba(249,115,22,0.9)]",
+  "/category/pdf": "bg-gradient-to-b from-red-400 via-rose-500 to-amber-500 shadow-[0_0_14px_rgba(239,68,68,0.9)]",
   "/category/ai": "bg-gradient-to-b from-amber-300 via-yellow-400 to-purple-400 shadow-[0_0_14px_rgba(250,204,21,0.9)]",
   "/category/productivity": "bg-gradient-to-b from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
   "/category/developer": "bg-gradient-to-b from-lime-400 via-emerald-400 to-green-500 shadow-[0_0_14px_rgba(132,204,22,0.9)]",
-  "/category/student": "bg-gradient-to-b from-sky-400 via-blue-400 to-indigo-500 shadow-[0_0_14px_rgba(14,165,233,0.9)]",
+  "/category/student": "bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-500 shadow-[0_0_14px_rgba(251,191,36,0.9)]",
   "/category/creator": "bg-gradient-to-b from-rose-400 via-orange-400 to-pink-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
   "/category/business": "bg-gradient-to-b from-orange-400 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(255,153,51,0.9)]",
   "/category/seo": "bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
@@ -88,6 +90,12 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     text: "group-hover:text-purple-200"
   },
   "/shop": {
+    bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
+    border: "group-hover:border-amber-400/35",
+    glow: "rgba(245,158,11,0.5)",
+    text: "group-hover:text-amber-200"
+  },
+  "/rewards": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
     border: "group-hover:border-amber-400/35",
     glow: "rgba(245,158,11,0.5)",
@@ -156,7 +164,7 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
   "/category/video": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-violet-500/15 group-hover:via-violet-950/20 group-hover:to-transparent",
     border: "group-hover:border-violet-400/35",
-    glow: "rgba(168,85,247,0.5)",
+    glow: "rgba(139,92,246,0.5)",
     text: "group-hover:text-violet-200"
   },
   "/category/audio": {
@@ -166,10 +174,10 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     text: "group-hover:text-pink-200"
   },
   "/category/pdf": {
-    bg: "group-hover:bg-gradient-to-r group-hover:from-orange-500/15 group-hover:via-orange-950/20 group-hover:to-transparent",
-    border: "group-hover:border-orange-400/35",
-    glow: "rgba(249,115,22,0.5)",
-    text: "group-hover:text-orange-200"
+    bg: "group-hover:bg-gradient-to-r group-hover:from-red-500/15 group-hover:via-rose-950/20 group-hover:to-transparent",
+    border: "group-hover:border-red-400/35",
+    glow: "rgba(239,68,68,0.5)",
+    text: "group-hover:text-red-200"
   },
   "/category/ai": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
@@ -190,10 +198,10 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     text: "group-hover:text-lime-200"
   },
   "/category/student": {
-    bg: "group-hover:bg-gradient-to-r group-hover:from-sky-500/15 group-hover:via-blue-950/20 group-hover:to-transparent",
-    border: "group-hover:border-sky-400/40",
-    glow: "rgba(14,165,233,0.5)",
-    text: "group-hover:text-sky-200"
+    bg: "group-hover:bg-gradient-to-r group-hover:from-amber-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
+    border: "group-hover:border-amber-400/40",
+    glow: "rgba(251,191,36,0.5)",
+    text: "group-hover:text-amber-200"
   },
   "/category/creator": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-rose-500/15 group-hover:via-pink-950/20 group-hover:to-transparent",
@@ -218,6 +226,7 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
 const CATEGORY_ACTIVE_BG_STYLES: Record<string, string> = {
   "/": "bg-gradient-to-r from-purple-600/20 via-purple-900/15 to-transparent border border-purple-400/30 shadow-[0_4px_20px_rgba(168,85,247,0.2)]",
   "/shop": "bg-gradient-to-r from-amber-500/20 via-orange-950/25 to-transparent border border-amber-400/35 shadow-[0_4px_25px_rgba(245,158,11,0.2)]",
+  "/rewards": "bg-gradient-to-r from-amber-500/20 via-orange-950/25 to-transparent border border-amber-400/35 shadow-[0_4px_25px_rgba(245,158,11,0.2)]",
   "/community": "bg-gradient-to-r from-cyan-500/20 via-purple-950/25 to-transparent border border-cyan-400/35 shadow-[0_4px_25px_rgba(34,211,238,0.2)]",
   "/giveaway": "bg-gradient-to-r from-amber-500/25 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_25px_rgba(245,158,11,0.25)]",
   "/favorites": "bg-gradient-to-r from-yellow-500/20 via-amber-950/25 to-transparent border border-yellow-400/35 shadow-[0_4px_25px_rgba(251,191,36,0.2)]",
@@ -230,13 +239,13 @@ const CATEGORY_ACTIVE_BG_STYLES: Record<string, string> = {
   "/help": "bg-gradient-to-r from-sky-500/20 via-blue-950/25 to-transparent border border-sky-400/35 shadow-[0_4px_25px_rgba(14,165,233,0.2)]",
 
   "/category/image": "bg-gradient-to-r from-cyan-500/20 via-sky-950/25 to-transparent border border-cyan-400/40 shadow-[0_4px_20px_rgba(34,211,238,0.25)]",
-  "/category/video": "bg-gradient-to-r from-fuchsia-600/20 via-purple-950/25 to-transparent border border-fuchsia-400/40 shadow-[0_4px_20px_rgba(217,70,239,0.25)]",
+  "/category/video": "bg-gradient-to-r from-violet-600/20 via-purple-950/25 to-transparent border border-violet-400/40 shadow-[0_4px_20px_rgba(139,92,246,0.25)]",
   "/category/audio": "bg-gradient-to-r from-pink-500/20 via-rose-950/25 to-transparent border border-pink-400/40 shadow-[0_4px_20px_rgba(236,72,153,0.25)]",
-  "/category/pdf": "bg-gradient-to-r from-orange-500/20 via-red-950/25 to-transparent border border-orange-400/40 shadow-[0_4px_20px_rgba(249,115,22,0.25)]",
+  "/category/pdf": "bg-gradient-to-r from-red-500/20 via-rose-950/25 to-transparent border border-red-400/40 shadow-[0_4px_20px_rgba(239,68,68,0.25)]",
   "/category/ai": "bg-gradient-to-r from-amber-500/20 via-yellow-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_20px_rgba(245,158,11,0.25)]",
   "/category/productivity": "bg-gradient-to-r from-emerald-500/20 via-teal-950/25 to-transparent border border-emerald-400/40 shadow-[0_4px_20px_rgba(16,185,129,0.25)]",
   "/category/developer": "bg-gradient-to-r from-lime-500/20 via-emerald-950/25 to-transparent border border-lime-400/40 shadow-[0_4px_20px_rgba(132,204,22,0.25)]",
-  "/category/student": "bg-gradient-to-r from-sky-500/20 via-blue-950/25 to-transparent border border-sky-400/40 shadow-[0_4px_20px_rgba(14,165,233,0.25)]",
+  "/category/student": "bg-gradient-to-r from-amber-500/20 via-amber-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_20px_rgba(251,191,36,0.25)]",
   "/category/creator": "bg-gradient-to-r from-rose-500/20 via-pink-950/25 to-transparent border border-rose-400/40 shadow-[0_4px_20px_rgba(244,63,94,0.25)]",
   "/category/business": "bg-gradient-to-r from-orange-500/20 via-amber-950/25 to-transparent border border-orange-400/40 shadow-[0_4px_20px_rgba(255,153,51,0.25)]",
   "/category/seo": "bg-gradient-to-r from-cyan-500/20 via-blue-950/25 to-transparent border border-cyan-400/40 shadow-[0_4px_20px_rgba(34,211,238,0.25)]",
@@ -268,6 +277,15 @@ const ITEM_ICON_STYLES: Record<string, {
     activeGlowPool: "from-orange-500/70 via-amber-600/45 to-red-900/60",
     activeIcon: "text-orange-200 fill-orange-400/40 drop-shadow-[0_0_14px_rgba(251,146,60,1)]",
     ambientGlow: "rgba(249,115,22,0.7)"
+  },
+  "/rewards": {
+    borderGrad: "from-amber-400/60 via-yellow-500/25 to-transparent group-hover:from-amber-300 group-hover:via-yellow-500/50",
+    glowPool: "from-amber-500/50 via-yellow-600/30 to-orange-900/20",
+    icon: "text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,1)]",
+    activeBorderGrad: "from-amber-300 via-yellow-400 to-orange-500",
+    activeGlowPool: "from-amber-500/80 via-yellow-600/60 to-orange-900/70",
+    activeIcon: "text-amber-200 drop-shadow-[0_0_14px_rgba(251,191,36,1)]",
+    ambientGlow: "rgba(245,158,11,0.85)"
   },
   "/community": {
     borderGrad: "from-cyan-400/50 via-purple-500/15 to-transparent group-hover:from-cyan-400 group-hover:via-purple-500/40",
@@ -360,13 +378,13 @@ const ITEM_ICON_STYLES: Record<string, {
     ambientGlow: "rgba(6,182,212,0.75)"
   },
   "/category/video": {
-    borderGrad: "from-fuchsia-500/50 via-purple-500/15 to-transparent group-hover:from-fuchsia-400 group-hover:via-purple-500/40",
-    glowPool: "from-fuchsia-500/35 via-purple-600/20 to-transparent",
-    icon: "text-fuchsia-400 fill-fuchsia-500/15 drop-shadow-[0_0_10px_rgba(217,70,239,0.95)]",
-    activeBorderGrad: "from-fuchsia-400 via-purple-400 to-violet-500",
-    activeGlowPool: "from-fuchsia-500/70 via-purple-600/45 to-violet-900/60",
-    activeIcon: "text-fuchsia-200 fill-fuchsia-400/35 drop-shadow-[0_0_14px_rgba(217,70,239,1)]",
-    ambientGlow: "rgba(217,70,239,0.75)"
+    borderGrad: "from-violet-500/50 via-purple-500/15 to-transparent group-hover:from-violet-400 group-hover:via-purple-500/40",
+    glowPool: "from-violet-500/35 via-purple-600/20 to-transparent",
+    icon: "text-violet-300 fill-violet-500/15 drop-shadow-[0_0_10px_rgba(139,92,246,0.95)]",
+    activeBorderGrad: "from-violet-400 via-purple-400 to-indigo-500",
+    activeGlowPool: "from-violet-500/70 via-purple-600/45 to-indigo-900/60",
+    activeIcon: "text-violet-200 fill-violet-400/35 drop-shadow-[0_0_14px_rgba(139,92,246,1)]",
+    ambientGlow: "rgba(139,92,246,0.75)"
   },
   "/category/audio": {
     borderGrad: "from-pink-500/50 via-rose-500/15 to-transparent group-hover:from-pink-400 group-hover:via-rose-500/40",
@@ -378,11 +396,11 @@ const ITEM_ICON_STYLES: Record<string, {
     ambientGlow: "rgba(236,72,153,0.75)"
   },
   "/category/pdf": {
-    borderGrad: "from-red-500/50 via-orange-500/15 to-transparent group-hover:from-red-400 group-hover:via-orange-500/40",
-    glowPool: "from-red-500/35 via-orange-600/20 to-transparent",
+    borderGrad: "from-red-500/50 via-rose-500/15 to-transparent group-hover:from-red-400 group-hover:via-rose-500/40",
+    glowPool: "from-red-500/35 via-rose-600/20 to-transparent",
     icon: "text-red-400 fill-red-500/15 drop-shadow-[0_0_10px_rgba(239,68,68,0.95)]",
-    activeBorderGrad: "from-red-400 via-orange-400 to-amber-500",
-    activeGlowPool: "from-red-500/70 via-orange-600/45 to-amber-900/60",
+    activeBorderGrad: "from-red-400 via-rose-500 to-amber-500",
+    activeGlowPool: "from-red-500/70 via-rose-600/45 to-amber-900/60",
     activeIcon: "text-red-200 fill-red-400/35 drop-shadow-[0_0_14px_rgba(239,68,68,1)]",
     ambientGlow: "rgba(239,68,68,0.75)"
   },
@@ -396,13 +414,13 @@ const ITEM_ICON_STYLES: Record<string, {
     ambientGlow: "rgba(245,158,11,0.85)"
   },
   "/category/productivity": {
-    borderGrad: "from-teal-400/50 via-emerald-500/15 to-transparent group-hover:from-teal-300 group-hover:via-emerald-500/40",
-    glowPool: "from-teal-400/35 via-emerald-500/20 to-transparent",
-    icon: "text-teal-300 fill-teal-400/15 drop-shadow-[0_0_10px_rgba(20,184,166,0.95)]",
-    activeBorderGrad: "from-teal-400 via-emerald-400 to-green-500",
-    activeGlowPool: "from-teal-400/70 via-emerald-500/45 to-green-900/60",
-    activeIcon: "text-teal-200 fill-teal-400/35 drop-shadow-[0_0_14px_rgba(20,184,166,1)]",
-    ambientGlow: "rgba(20,184,166,0.7)"
+    borderGrad: "from-emerald-400/50 via-teal-500/15 to-transparent group-hover:from-emerald-300 group-hover:via-teal-500/40",
+    glowPool: "from-emerald-400/35 via-teal-500/20 to-transparent",
+    icon: "text-emerald-300 fill-emerald-400/15 drop-shadow-[0_0_10px_rgba(16,185,129,0.95)]",
+    activeBorderGrad: "from-emerald-400 via-teal-400 to-green-500",
+    activeGlowPool: "from-emerald-400/70 via-teal-500/45 to-green-900/60",
+    activeIcon: "text-emerald-200 fill-emerald-400/35 drop-shadow-[0_0_14px_rgba(16,185,129,1)]",
+    ambientGlow: "rgba(16,185,129,0.7)"
   },
   "/category/developer": {
     borderGrad: "from-lime-400/50 via-green-500/15 to-transparent group-hover:from-lime-300 group-hover:via-green-500/40",
@@ -414,13 +432,13 @@ const ITEM_ICON_STYLES: Record<string, {
     ambientGlow: "rgba(132,204,22,0.7)"
   },
   "/category/student": {
-    borderGrad: "from-sky-400/50 via-blue-500/15 to-transparent group-hover:from-sky-300 group-hover:via-blue-500/40",
-    glowPool: "from-sky-400/35 via-blue-500/20 to-transparent",
-    icon: "text-sky-300 fill-sky-400/15 drop-shadow-[0_0_10px_rgba(14,165,233,0.95)]",
-    activeBorderGrad: "from-sky-400 via-blue-400 to-indigo-500",
-    activeGlowPool: "from-sky-400/70 via-blue-500/45 to-indigo-900/60",
-    activeIcon: "text-sky-200 fill-sky-400/35 drop-shadow-[0_0_14px_rgba(14,165,233,1)]",
-    ambientGlow: "rgba(14,165,233,0.7)"
+    borderGrad: "from-amber-400/50 via-yellow-500/15 to-transparent group-hover:from-amber-300 group-hover:via-yellow-500/40",
+    glowPool: "from-amber-400/35 via-yellow-500/20 to-transparent",
+    icon: "text-amber-300 fill-amber-400/15 drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]",
+    activeBorderGrad: "from-amber-300 via-yellow-400 to-amber-500",
+    activeGlowPool: "from-amber-400/70 via-yellow-500/45 to-amber-900/60",
+    activeIcon: "text-amber-200 fill-amber-300/35 drop-shadow-[0_0_14px_rgba(251,191,36,1)]",
+    ambientGlow: "rgba(251,191,36,0.75)"
   },
   "/category/creator": {
     borderGrad: "from-rose-400/50 via-orange-400/15 to-transparent group-hover:from-rose-300 group-hover:via-orange-400/40",
@@ -716,7 +734,25 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
         rightElement={
           <div className="flex items-center gap-1.5">
             {totalToolCount > 0 && (
-              <span className="text-[9.5px] font-bold text-zinc-400 group-hover/cat:text-zinc-300 bg-white/[0.04] border border-white/[0.06] rounded-md px-1.5 py-0.5 leading-none transition-colors">
+              <span className={cn(
+                "text-[9.5px] font-bold rounded-md px-1.5 py-0.5 leading-none transition-all duration-200",
+                isCategoryActive
+                  ? (
+                      category.id === "developer" ? "text-lime-300 bg-lime-500/15 border border-lime-400/30" :
+                      category.id === "image" ? "text-cyan-300 bg-cyan-500/15 border border-cyan-400/30" :
+                      category.id === "video" ? "text-violet-300 bg-violet-500/15 border border-violet-400/30" :
+                      category.id === "audio" ? "text-pink-300 bg-pink-500/15 border border-pink-400/30" :
+                      category.id === "pdf" ? "text-red-300 bg-red-500/15 border border-red-400/30" :
+                      category.id === "ai" ? "text-amber-300 bg-amber-500/15 border border-amber-400/30" :
+                      category.id === "productivity" ? "text-emerald-300 bg-emerald-500/15 border border-emerald-400/30" :
+                      category.id === "student" ? "text-amber-300 bg-amber-500/15 border border-amber-400/30" :
+                      category.id === "creator" ? "text-rose-300 bg-rose-500/15 border border-rose-400/30" :
+                      category.id === "business" ? "text-orange-300 bg-orange-500/15 border border-orange-400/30" :
+                      category.id === "seo" ? "text-cyan-300 bg-cyan-500/15 border border-cyan-400/30" :
+                      "text-purple-300 bg-purple-500/15 border border-purple-400/30"
+                    )
+                  : "text-zinc-400 group-hover/cat:text-zinc-300 bg-white/[0.04] border border-white/[0.06]"
+              )}>
                 {totalToolCount}
               </span>
             )}
@@ -738,12 +774,12 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
                   isOpen && (
                     category.id === "developer" ? "text-lime-300" :
                     category.id === "image" ? "text-cyan-300" :
-                    category.id === "video" ? "text-fuchsia-300" :
+                    category.id === "video" ? "text-violet-300" :
                     category.id === "audio" ? "text-pink-300" :
-                    category.id === "pdf" ? "text-orange-300" :
+                    category.id === "pdf" ? "text-red-400" :
                     category.id === "ai" ? "text-amber-300" :
                     category.id === "productivity" ? "text-emerald-300" :
-                    category.id === "student" ? "text-sky-300" :
+                    category.id === "student" ? "text-amber-300" :
                     category.id === "creator" ? "text-rose-300" :
                     category.id === "business" ? "text-orange-300" :
                     category.id === "seo" ? "text-cyan-300" : "text-purple-300"
@@ -766,12 +802,12 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
               "overflow-hidden pl-3.5 pr-1 space-y-1 border-l ml-5 my-1",
               category.id === "developer" ? "border-lime-500/25" :
               category.id === "image" ? "border-cyan-500/25" :
-              category.id === "video" ? "border-fuchsia-500/25" :
+              category.id === "video" ? "border-violet-500/25" :
               category.id === "audio" ? "border-pink-500/25" :
-              category.id === "pdf" ? "border-orange-500/25" :
+              category.id === "pdf" ? "border-red-500/25" :
               category.id === "ai" ? "border-amber-500/25" :
               category.id === "productivity" ? "border-emerald-500/25" :
-              category.id === "student" ? "border-sky-500/25" :
+              category.id === "student" ? "border-amber-500/25" :
               category.id === "creator" ? "border-rose-500/25" :
               category.id === "business" ? "border-orange-500/25" :
               category.id === "seo" ? "border-cyan-500/25" : "border-purple-500/25"
@@ -846,7 +882,6 @@ export function Sidebar() {
       pathname.includes("invoice-generator") ||
       pathname.includes("image-eraser") ||
       pathname.includes("meme-generator") ||
-      pathname.includes("screenshot-to-code") ||
       pathname.includes("minecraft-skin")
     );
   }, [pathname]);
@@ -873,6 +908,7 @@ export function Sidebar() {
 
   const topItems = [
     { name: t('common.dashboard'), icon: LayoutDashboard, href: '/', accent: 'text-accent-purple', glow: 'rgba(124, 58, 237, 0.5)' },
+    { name: 'Sparks Shop', icon: SparkIcon, href: '/rewards', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
     { name: 'Daily Vault', icon: Flame, href: '/shop', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
     { name: 'Cloud Drive', icon: Cloud, href: '/library', accent: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
@@ -884,13 +920,13 @@ export function Sidebar() {
 
   const catGlows: Record<string, string> = {
     image: 'rgba(34, 211, 238, 0.5)',
-    video: 'rgba(168, 85, 247, 0.5)',
+    video: 'rgba(139, 92, 246, 0.5)',
     audio: 'rgba(236, 72, 153, 0.5)',
-    pdf: 'rgba(249, 115, 22, 0.5)',
+    pdf: 'rgba(239, 68, 68, 0.5)',
     ai: 'rgba(250, 204, 21, 0.5)',
     productivity: 'rgba(16, 185, 129, 0.5)',
     developer: 'rgba(132, 204, 22, 0.5)',
-    student: 'rgba(14, 165, 233, 0.5)',
+    student: 'rgba(251, 191, 36, 0.5)',
     creator: 'rgba(244, 63, 94, 0.5)',
     business: 'rgba(255, 153, 51, 0.5)',
     seo: 'rgba(34, 211, 238, 0.5)',
@@ -1029,7 +1065,7 @@ export function Sidebar() {
                            />
                          );
                        })}
-                        {!isProLoading && dbUser?.role === 'admin' && (
+                        {!isProLoading && (dbUser?.role === 'admin' || isAdminEmail(dbUser?.email)) && (
                           <SidebarItem 
                               key="/admin"
                               name="Admin Center"
@@ -1080,14 +1116,6 @@ export function Sidebar() {
                             <div className="w-14 h-px bg-gradient-to-r from-cyan-500/40 to-transparent" />
                          </div>
                        )}
-                       <SidebarItem 
-                         name={t('common.community', 'Community')} 
-                         icon={Users} 
-                         href="/community" 
-                         isActive={pathname === "/community"} 
-                         glowColor="rgba(34, 211, 238, 0.5)" 
-                         isCompact={isCompact} 
-                       />
                        <SidebarItem 
                          name="Changelog" 
                          icon={ScrollText} 

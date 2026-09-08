@@ -36,12 +36,11 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
             role="alertdialog"
             aria-modal="true"
             aria-label="Payment failed"
-            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border border-red-500/20 bg-[#08070c]/98 p-6 text-center shadow-[0_32px_100px_rgba(0,0,0,0.9),0_0_60px_rgba(239,68,68,0.12)] backdrop-blur-2xl sm:p-8 sm:max-w-md"
+            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border-2 border-red-500/50 bg-[#08070c]/98 p-6 text-center shadow-[0_32px_100px_rgba(0,0,0,0.9),0_0_50px_rgba(239,68,68,0.25)] backdrop-blur-2xl sm:p-8 sm:max-w-md"
           >
             {/* Background Grid & Ambient Red Glow */}
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(239,68,68,0.16),rgba(15,23,42,0))]" />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-red-500 via-orange-400 to-amber-400" />
 
             <div className="relative z-10 space-y-6">
               {/* Icon Badge */}

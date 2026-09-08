@@ -229,20 +229,7 @@ export default function ThumbnailAnalyzer() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
-      {/* Banner Header */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-rose-950/50 via-purple-950/30 to-neutral-950 border border-rose-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
-          <Eye className="w-3.5 h-3.5" /> Computer Vision Thumbnail Analyzer
-        </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          YouTube Thumbnail CTR & Pixel Contrast Analyzer
-        </h1>
-        <p className="text-neutral-300 text-sm sm:text-base max-w-2xl leading-relaxed">
-          Upload any thumbnail to run real-time HTML5 Canvas pixel analysis measuring visual contrast, color vibrancy, resolution, focal point density, and YouTube duration badge overlap.
-        </p>
-      </div>
-
+    <div className="w-full space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Upload & Settings Column */}
         <div className="lg:col-span-6 space-y-4 p-6 rounded-3xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-xl shadow-xl">

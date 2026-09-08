@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
-export function useAuth(redirectOnLogin: string | null = '/dashboard') {
+export function useAuth(redirectOnLogin: string | null = null) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);

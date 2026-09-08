@@ -11,7 +11,7 @@ const PRO_FEATURES = [
   { icon: Image, name: 'AI Image Studio', desc: 'No limits, highest resolution' },
   { icon: Video, name: 'Pro Video Tools', desc: '4K processing & long duration' },
   { icon: Music, name: 'AI Audio Engine', desc: 'Premium stem separation' },
-  { icon: Code, name: 'AI Code Studio', desc: 'Unlimited workspace generations' }
+  { icon: Sparkles, name: 'AI Creative Suite', desc: 'Unlimited creative generations' }
 ];
 
 export default function PaymentSuccessPage() {

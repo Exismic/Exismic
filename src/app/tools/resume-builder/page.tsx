@@ -1,6 +1,7 @@
 import { ResumeBuilder } from "@/components/tool/ResumeBuilder";
 import { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "AI Resume Builder | Create Professional CVs Online",
@@ -10,10 +11,13 @@ export const metadata: Metadata = constructMetadata({
 
 export default function ResumeBuilderPage() {
   return (
-    <main className="min-h-screen bg-black">
-      <div className="pt-16 sm:pt-20 px-2 sm:px-4 lg:px-6">
-        <ResumeBuilder />
-      </div>
-    </main>
+    <ToolPageShell
+      toolId="resume-builder"
+      categoryId="productivity"
+      customTitle="AI Resume Builder"
+      customDescription="Create polished, ATS-optimized resumes with modern templates, automated formatting, and live PDF export."
+    >
+      <ResumeBuilder />
+    </ToolPageShell>
   );
 }

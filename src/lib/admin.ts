@@ -1,8 +1,18 @@
 export function getAdminEmails() {
-  return (process.env.ADMIN_EMAILS || "")
+  const envEmails = (process.env.ADMIN_EMAILS || "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
+
+  const defaultAdmins = [
+    "syedrayan.dev@gmail.com",
+    "syedyaseeralirayan@gmail.com",
+    "syedrayan.developer@gmail.com",
+    "gamessyedrayan@gmail.com",
+    "syedrayangames@gmail.com",
+  ];
+
+  return Array.from(new Set([...envEmails, ...defaultAdmins]));
 }
 
 export function isAdminEmail(email?: string | null) {

@@ -1,4 +1,5 @@
 import SchemaMarkupGenerator from "@/components/tool/SchemaMarkupGenerator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free Schema Markup Generator - JSON-LD Structured Data Builder | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <SchemaMarkupGenerator />;
+  return (
+    <ToolPageShell
+      toolId="schema-markup-generator"
+      categoryId="seo"
+      customTitle="Schema Markup Generator"
+      customDescription="Generate Google-compliant JSON-LD structured data for FAQ, Article, Product, and Business schemas."
+    >
+      <SchemaMarkupGenerator />
+    </ToolPageShell>
+  );
 }

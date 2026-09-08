@@ -14,6 +14,7 @@ export interface QuestItem {
   target: number;
   current: number;
   rewardCredits: number;
+  rewardSparks?: number;
   actionUrl: string;
   actionLabel: string;
   completed: boolean;
@@ -253,6 +254,7 @@ export function useQuests() {
         if (typeof window !== "undefined") {
           window.dispatchEvent(new Event("credits-updated"));
           window.dispatchEvent(new Event("quests-updated"));
+          window.dispatchEvent(new Event("sparks-updated"));
         }
         return true;
       }

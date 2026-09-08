@@ -73,26 +73,7 @@ export default function ResumeBulletGenerator() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-6 lg:p-8">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/40 via-zinc-950 to-black p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-black uppercase tracking-wider">
-              <FileSignature size={14} className="text-indigo-400" />
-              <span>Career & ATS Optimization</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
-              Resume Bullet Generator
-            </h1>
-            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Create high-impact STAR framework bullet points with action verbs and quantifiable metrics.
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form Inputs */}

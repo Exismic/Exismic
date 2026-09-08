@@ -17,10 +17,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { code } = body;
+    const { code, verifyOnly } = body;
 
     if (!code?.trim()) {
-      return NextResponse.json({ error: "Promo code is required" }, { status: 400 });
+      return NextResponse.json({ error: "Promo or voucher code is required" }, { status: 400 });
     }
 
     const cleanCode = code.trim().toUpperCase();
@@ -31,17 +31,17 @@ export async function POST(request: Request) {
     });
 
     if (!promo) {
-      return NextResponse.json({ error: "Invalid or non-existent promo code" }, { status: 404 });
+      return NextResponse.json({ error: "Invalid or non-existent voucher code" }, { status: 404 });
     }
 
     // 2. Validate expiration date
     if (promo.expiresAt && new Date() > new Date(promo.expiresAt)) {
-      return NextResponse.json({ error: "This promo code has expired" }, { status: 400 });
+      return NextResponse.json({ error: "This voucher code has expired" }, { status: 400 });
     }
 
     // 3. Validate overall usage limits
     if (promo.redemptionCount >= promo.maxRedemptions) {
-      return NextResponse.json({ error: "This promo code has already been fully claimed" }, { status: 400 });
+      return NextResponse.json({ error: "This voucher code has already been claimed" }, { status: 400 });
     }
 
     // 4. Check if user already claimed this specific voucher
@@ -55,7 +55,26 @@ export async function POST(request: Request) {
     });
 
     if (alreadyRedeemed) {
-      return NextResponse.json({ error: "You have already redeemed this promo code" }, { status: 400 });
+      return NextResponse.json({ error: "You have already redeemed this code" }, { status: 400 });
+    }
+
+    // Guard: Prevent burning real-money checkout discount vouchers in the free promo code box
+    if (cleanCode.startsWith("OFF") || cleanCode.startsWith("SAVE")) {
+      return NextResponse.json(
+        {
+          error: "This is a Shop checkout voucher! Apply this code during checkout in the Shop on purchases of $3.00 (₹249) or more to get ₹100 / $1.50 off.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (cleanCode.startsWith("PRO20")) {
+      return NextResponse.json(
+        {
+          error: "This is a 20% discount coupon for Monthly Pro! Apply this code during checkout in the Shop when upgrading to Monthly Exismic Pro.",
+        },
+        { status: 400 }
+      );
     }
 
     // Detect Reward Voucher Type
@@ -67,7 +86,48 @@ export async function POST(request: Request) {
 
     let rewardMessage = "";
     let rewardType: "credits" | "pro" | "badge" = "credits";
+    let rewardTitle = `+${promo.bonusCredits} Generation Credits`;
+    let rewardDescription = "Bonus credits added directly to your Vault with zero expiration cooldown.";
     let rewardValue = promo.bonusCredits;
+
+    if (isPro365d || isPro30d || isPro7d || isPro24h) {
+      rewardType = "pro";
+      if (isPro365d) {
+        rewardTitle = "1-Year Exismic Pro Pass";
+        rewardDescription = "365 days of full Pro access, 500 daily credits, and all VIP creator tools.";
+        rewardValue = 8760;
+      } else if (isPro30d) {
+        rewardTitle = "30-Day Exismic Pro Pass";
+        rewardDescription = "30 days of full Pro access, 500 daily credits, and all VIP creator tools.";
+        rewardValue = 720;
+      } else if (isPro7d) {
+        rewardTitle = "7-Day Exismic Pro Pass";
+        rewardDescription = "7 days of full Pro access, 500 daily credits, and all VIP creator tools.";
+        rewardValue = 168;
+      } else {
+        rewardTitle = "24-Hour Exismic Pro Pass";
+        rewardDescription = "24 hours of full Pro access, 500 daily credits, and all VIP creator tools.";
+        rewardValue = 24;
+      }
+    } else if (isBadge) {
+      rewardType = "badge";
+      rewardTitle = "Cosmic Star Profile Badge";
+      rewardDescription = "Exclusive animated profile badge and name style in your closet.";
+    }
+
+    // If only verifying, return reward preview without mutating state
+    if (verifyOnly) {
+      return NextResponse.json({
+        success: true,
+        valid: true,
+        code: cleanCode,
+        rewardType,
+        rewardTitle,
+        rewardDescription,
+        rewardValue,
+        expiresAt: promo.expiresAt,
+      });
+    }
 
     // 5. Execute transaction: Increment redemptions, write redemption mapping, award reward
     await prisma.$transaction(async (tx) => {

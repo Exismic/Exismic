@@ -336,27 +336,21 @@
 }
 
 /* --- Immersive AI Chat Overrides --- */
-html.ai-chat-active,
-html.code-studio-active {
+html.ai-chat-active {
   overflow: hidden !important;
 }
 
-html.ai-chat-active body,
-html.code-studio-active body {
+html.ai-chat-active body {
   overflow: hidden !important;
 }
 
 html.ai-chat-active aside:not(.chat-tool-sidebar),
 html.ai-chat-active .global-sidebar,
-html.ai-chat-active [class*="Sidebar_"],
-html.code-studio-active aside:not(.chat-tool-sidebar),
-html.code-studio-active .global-sidebar,
-html.code-studio-active [class*="Sidebar_"] {
+html.ai-chat-active [class*="Sidebar_"] {
   display: none !important;
 }
 
-html.ai-chat-active main,
-html.code-studio-active main {
+html.ai-chat-active main {
   padding-left: 0 !important;
   margin-left: 0 !important;
   max-width: 100vw !important;
@@ -367,18 +361,12 @@ html.code-studio-active main {
 html.ai-chat-active main > nav,
 html.ai-chat-active [class*="Navbar_"],
 html.ai-chat-active main > header,
-html.ai-chat-active header,
-html.code-studio-active main > nav,
-html.code-studio-active [class*="Navbar_"],
-html.code-studio-active main > header,
-html.code-studio-active header {
+html.ai-chat-active header {
   display: none !important;
 }
 
 html.ai-chat-active footer,
-html.ai-chat-active [class*="Footer_"],
-html.code-studio-active footer,
-html.code-studio-active [class*="Footer_"] {
+html.ai-chat-active [class*="Footer_"] {
   display: none !important;
 }
 
@@ -949,6 +937,27 @@ html.theme-cosmic-nebula body::before {
   }
 }
 
+@keyframes border-orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border-orbit {
+  animation: border-orbit-spin 3.6s linear infinite;
+}
+
+.animate-border-orbit-fast {
+  animation: border-orbit-spin 2.6s linear infinite;
+}
+
+.animate-border-orbit-slow {
+  animation: border-orbit-spin 4.8s linear infinite;
+}
+
 @keyframes exismic-gradient-drift {
   0%,
   100% {
@@ -1169,6 +1178,19 @@ iframe.skiptranslate {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(34, 211, 238, 0.4);
+}
+
+/* Scrollbar Hiding Utilities */
+.scrollbar-none,
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* GPU Acceleration & Rendering Performance */

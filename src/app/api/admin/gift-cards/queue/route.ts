@@ -1,25 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdmin } from "@/lib/auth/admin";
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-    }
-
-    // Verify admin role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { role: true },
-    });
-
-    const isDev = process.env.NODE_ENV !== "production";
-    if (dbUser?.role !== "admin" && dbUser?.role !== "superadmin" && !isDev) {
-      return NextResponse.json({ error: "Forbidden. Admin access required." }, { status: 403 });
+    const auth = await verifyAdmin();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     // Query pending gift card orders

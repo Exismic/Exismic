@@ -257,13 +257,7 @@ print(response.status_code, response.json())`;
         />
 
         {/* Hero Section Banner */}
-        <div className="relative rounded-[2.5rem] border border-white/[0.12] bg-[linear-gradient(135deg,#0d0e20_0%,#090a16_50%,#060812_100%)] p-8 sm:p-12 overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)]">
-          <motion.div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,transparent,#8b5cf6,#ec4899,#06b6d4,transparent)] bg-[length:200%_100%]"
-            animate={{ backgroundPosition: ["100% 0%", "-100% 0%"] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-          />
+        <div className="relative rounded-[2.5rem] border-2 border-cyan-400/40 bg-[linear-gradient(135deg,#0d0e20_0%,#090a16_50%,#060812_100%)] p-8 sm:p-12 overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8),0_0_40px_rgba(34,211,238,0.2)]">
 
           <div className="relative z-10 max-w-3xl space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 text-xs font-black uppercase tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.2)]">

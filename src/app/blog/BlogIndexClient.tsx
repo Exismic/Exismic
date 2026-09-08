@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, Clock, Sparkles } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, Clock, Rocket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { AvatarWithFrame } from '@/components/ui/AvatarWithFrame';
 import { PremiumName } from '@/components/ui/PremiumName';
@@ -23,7 +23,7 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-24 relative z-10 w-full flex flex-col items-center">
-        
+
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -33,7 +33,7 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
           <ArrowRight size={14} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
           Dashboard
         </motion.button>
-        
+
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -42,7 +42,7 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
           <BookOpen size={14} className="text-indigo-400" />
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">The Exismic Journal</span>
         </motion.div>
-        
+
         <div className="text-center space-y-6 mb-24">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -52,8 +52,8 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
             Insights & <br />
             <span className="gradient-text">Inspiration.</span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -75,11 +75,11 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
             >
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(34,211,238,0.15),transparent_60%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.1),transparent_50%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-              
+
               <div className="relative z-10 flex flex-col gap-6">
                 <div className="flex items-center gap-4">
                   <span className="px-4 py-1.5 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                    <Sparkles size={12} className="fill-cyan-400/20" />
+                    <Rocket size={12} className="fill-cyan-400/20" />
                     {post.category}
                   </span>
                   <div className="flex items-center gap-1.5 text-zinc-500 text-[10px] font-bold uppercase tracking-wider">
@@ -89,7 +89,7 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
                     <Clock size={12} /> {post.readTime}
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-cyan-200 transition-all duration-300">
                     {post.title}
@@ -101,7 +101,7 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
 
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/[0.05]">
                   <div className="flex items-center gap-4 group/author">
-                    <AvatarWithFrame 
+                    <AvatarWithFrame
                       avatarUrl={post.author.avatar}
                       displayName={post.author.name}
                       isPro={post.author.plan === 'pro'}
@@ -109,10 +109,10 @@ export function BlogIndexClient({ posts }: BlogIndexClientProps) {
                       size="sm"
                     />
                     <div className="flex flex-col">
-                      <PremiumName 
-                        name={post.author.name} 
-                        isPro={post.author.plan === 'pro'} 
-                        gradientId={post.author.nameGradient} 
+                      <PremiumName
+                        name={post.author.name}
+                        isPro={post.author.plan === 'pro'}
+                        gradientId={post.author.nameGradient}
                         className="text-sm"
                       />
                       <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mt-0.5">Author</span>

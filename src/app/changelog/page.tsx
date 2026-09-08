@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ArrowLeft, 
-  Zap, 
-  Sparkles, 
-  RefreshCw, 
-  Bug, 
-  Palette, 
-  Gauge, 
+import {
+  ArrowLeft,
+  Zap,
+  Rocket,
+  RefreshCw,
+  Bug,
+  Palette,
+  Gauge,
   Filter,
   CheckCircle2,
   ShieldCheck
@@ -36,7 +36,7 @@ interface Release {
 const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: string; dotClass: string }> = {
   feature: {
     label: "Update",
-    icon: Sparkles,
+    icon: Rocket,
     badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]",
     dotClass: "bg-emerald-400"
   },
@@ -68,11 +68,48 @@ const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: st
 
 const RELEASES: Release[] = [
   {
+    version: "v1.6",
+    date: "September 2026",
+    title: "The Sparks Economy & Studio Cockpit",
+    tagline: "Exismic Sparks rewards currency, Executive Studio Cockpit dashboard, Streak Freeze shields, streamlined tool headers, and comprehensive bug fixes.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        text: "Exismic Sparks Meta-Currency: Reworked the quests system to award Exismic Sparks instead of generation credits. Earn Sparks through daily and weekly quests to unlock exclusive avatar frames, glowing names, insignia badges, and streak shields in the Sparks Shop."
+      },
+      {
+        type: "ui",
+        text: "Executive Studio Cockpit: Redesigned the main dashboard with a quick-action launchpad, personalized activity vitals, favorites workstations, and smart tool recommendations."
+      },
+      {
+        type: "feature",
+        text: "Streak Freeze & Milestone Rewards: Equip streak shields to safeguard daily streaks against missed days, and unlock milestone rewards with credit bonuses and permanent reserves."
+      },
+      {
+        type: "ui",
+        text: "Streamlined Tool Headers: Modernized headers and controls across all 117+ tools with obsidian glass aesthetics, improved typography, and custom tool iconography."
+      },
+      {
+        type: "feature",
+        text: "Exismic Cloud Drive & Tool Pipelines: Centralized asset storage with 1-click pipelines to pass generated art directly into background removers, meme studios, and compressors."
+      },
+      {
+        type: "fix",
+        text: "Harmonious Sound & State Sync: Replaced harsh audio buzzers with melodic risers, resolved credit balance delay discrepancies, and perfected streak counter updates."
+      },
+      {
+        type: "perf",
+        text: "100% Watermark-Free & Speed Boost: Clean, unbranded image exports across all accounts, accelerated workspace loading, and responsive layout polish."
+      }
+    ]
+  },
+  {
     version: "v1.5",
     date: "September 2026",
     title: "September Platform & Feature Release",
     tagline: "Daily & weekly quests to earn credits, developer API access, yearly Pro memberships, creative gifting, extensive UI overhaul, and bug fixes.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
@@ -171,11 +208,11 @@ const RELEASES: Release[] = [
     changes: [
       {
         type: "feature",
-        text: "Interactive AI Playground added with live code editing and instant preview."
+        text: "Interactive AI Playground added with instant live sandbox execution."
       },
       {
         type: "feature",
-        text: "Screenshot-to-Code converter with automatic element identification."
+        text: "JSON-to-Types converter with automatic interface synthesis."
       },
       {
         type: "ui",
@@ -230,7 +267,7 @@ export default function ChangelogPage() {
 
   const filterOptions = [
     { id: "all", label: "All Changes", icon: Filter },
-    { id: "feature", label: "Updates", icon: Sparkles },
+    { id: "feature", label: "Updates", icon: Rocket },
     { id: "ui", label: "UI Updates", icon: Palette },
     { id: "fix", label: "Bug Fixes", icon: Bug },
     { id: "sec", label: "Security", icon: ShieldCheck },
@@ -240,7 +277,7 @@ export default function ChangelogPage() {
   return (
     <div className="min-h-screen bg-[#030303] text-white selection:bg-accent-purple/30 pb-32">
       <div className="absolute top-0 left-0 w-full h-[500px] bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.06)_0%,transparent_70%)] pointer-events-none" />
-      
+
       <main className="max-w-4xl mx-auto px-6 pt-24 space-y-10 relative z-10">
         <PageBreadcrumb items={[{ label: "Product Changelog" }]} />
 
@@ -266,11 +303,10 @@ export default function ChangelogPage() {
               <button
                 key={opt.id}
                 onClick={() => setActiveFilter(opt.id)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 border ${
-                  isActive
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 border ${isActive
                     ? "bg-accent-purple/20 text-white border-accent-purple/40 shadow-[0_0_20px_rgba(168,85,247,0.25)]"
                     : "bg-white/[0.03] text-zinc-400 border-white/5 hover:bg-white/[0.07] hover:text-zinc-200"
-                }`}
+                  }`}
               >
                 <Icon size={14} className={isActive ? "text-accent-purple" : "text-zinc-500"} />
                 <span>{opt.label}</span>
@@ -299,12 +335,12 @@ export default function ChangelogPage() {
                 >
                   {/* Glowing backdrop */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-accent-purple via-accent-cyan to-accent-purple rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-700" />
-                  
+
                   {/* Card */}
                   <div className="relative p-8 md:p-12 rounded-[2.5rem] bg-[#0b0c12]/80 backdrop-blur-2xl border border-white/5 group-hover:border-white/10 transition-all duration-500 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row gap-10">
                     {/* Subtle background glow */}
                     <div className="absolute top-0 right-0 w-96 h-96 bg-accent-purple/10 blur-[100px] pointer-events-none rounded-full translate-x-1/2 -translate-y-1/2" />
-                    
+
                     {/* Left Column: Version & Date */}
                     <div className="md:w-1/3 flex flex-col items-start space-y-4">
                       <div className="flex items-center gap-2">
@@ -334,14 +370,14 @@ export default function ChangelogPage() {
                     {/* Right Column: Changes list */}
                     <div className="md:w-2/3 border-t md:border-t-0 md:border-l border-white/5 pt-8 md:pt-0 md:pl-10 space-y-4 relative">
                       <div className="absolute -left-px top-0 md:top-10 w-full md:w-px h-px md:h-20 bg-gradient-to-b md:bg-gradient-to-r from-transparent via-accent-purple to-transparent" />
-                      
+
                       <AnimatePresence mode="popLayout">
                         {filteredChanges.map((change, j) => {
                           const config = TYPE_CONFIG[change.type] || TYPE_CONFIG.feature;
                           const IconComponent = config.icon;
-                          
+
                           return (
-                            <motion.div 
+                            <motion.div
                               key={j}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}

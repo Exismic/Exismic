@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { Crown } from "lucide-react";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
 interface CategoryHeadingProps {
@@ -15,18 +15,62 @@ interface CategoryHeadingProps {
   className?: string;
 }
 
-const CATEGORY_LABEL_STYLES: Record<string, { text: string; sparkle: string }> = {
-  pdf: { text: "text-red-300", sparkle: "text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" },
-  image: { text: "text-cyan-300", sparkle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" },
-  audio: { text: "text-pink-300", sparkle: "text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" },
-  video: { text: "text-violet-300", sparkle: "text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)]" },
-  ai: { text: "text-indigo-300", sparkle: "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" },
-  productivity: { text: "text-emerald-300", sparkle: "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" },
-  business: { text: "text-orange-300", sparkle: "text-orange-400 drop-shadow-[0_0_8px_rgba(255,153,51,0.8)]" },
-  seo: { text: "text-cyan-300", sparkle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" },
-  developer: { text: "text-lime-300", sparkle: "text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.8)]" },
-  student: { text: "text-amber-300", sparkle: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" },
-  creator: { text: "text-rose-300", sparkle: "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]" },
+const CATEGORY_LABEL_STYLES: Record<string, { label: string; text: string; iconStyle: string }> = {
+  pdf: { 
+    label: "Document & PDF Utility Suite", 
+    text: "text-red-300", 
+    iconStyle: "text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" 
+  },
+  image: { 
+    label: "Creative Image Studio", 
+    text: "text-cyan-300", 
+    iconStyle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" 
+  },
+  audio: { 
+    label: "Audio & Acoustics Lab", 
+    text: "text-pink-300", 
+    iconStyle: "text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" 
+  },
+  video: { 
+    label: "Video & Motion Studio", 
+    text: "text-violet-300", 
+    iconStyle: "text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)]" 
+  },
+  ai: { 
+    label: "Artificial Intelligence Core", 
+    text: "text-indigo-300", 
+    iconStyle: "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" 
+  },
+  productivity: { 
+    label: "Productivity & Workflow Suite", 
+    text: "text-emerald-300", 
+    iconStyle: "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" 
+  },
+  business: { 
+    label: "Business & Financial Toolkit", 
+    text: "text-orange-300", 
+    iconStyle: "text-orange-400 drop-shadow-[0_0_8px_rgba(255,153,51,0.8)]" 
+  },
+  seo: { 
+    label: "SEO & Growth Engine", 
+    text: "text-cyan-300", 
+    iconStyle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" 
+  },
+  developer: { 
+    label: "Developer Engineering Suite", 
+    text: "text-lime-300", 
+    iconStyle: "text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.8)]" 
+  },
+  student: { 
+    label: "Student & Academic Suite", 
+    text: "text-amber-300", 
+    iconStyle: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" 
+  },
+  creator: { 
+    label: "Creator & Media Toolkit", 
+    text: "text-rose-300", 
+    iconStyle: "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]" 
+  },
 };
 
 const CategoryHeading: React.FC<CategoryHeadingProps> = ({
@@ -38,7 +82,11 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
   className
 }) => {
   const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
-  const labelStyle = CATEGORY_LABEL_STYLES[categoryId] || { text: "text-zinc-300", sparkle: "text-white/70" };
+  const labelStyle = CATEGORY_LABEL_STYLES[categoryId] || { 
+    label: "Curated Tool Suite", 
+    text: "text-zinc-300", 
+    iconStyle: "text-zinc-400" 
+  };
 
   return (
     <div className={cn("relative space-y-12", className)}>
@@ -59,12 +107,16 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
           
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <Sparkles size={12} className={isPro ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" : labelStyle.sparkle} />
+              {isPro ? (
+                <Crown size={12} className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] shrink-0" />
+              ) : (
+                <Icon size={12} className={cn("shrink-0", labelStyle.iconStyle)} />
+              )}
               <p className={cn(
                 "text-[10px] font-black uppercase tracking-[0.35em]",
                 isPro ? "text-amber-300" : labelStyle.text
               )}>
-                {isPro ? "Premium Pro Series" : "Essential Creative Suite"}
+                {isPro ? "Premium Pro Series" : labelStyle.label}
               </p>
             </div>
             {isPro && (

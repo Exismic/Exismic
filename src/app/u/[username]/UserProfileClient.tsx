@@ -73,9 +73,11 @@ export function UserProfileClient({ user }: UserProfileClientProps) {
         >
           {/* Left Column: Identity Block */}
           <motion.div variants={itemVariants} className="w-full xl:w-[400px] shrink-0 space-y-6">
-            <div className="rounded-[2.5rem] bg-[#050508]/60 border border-white/[0.05] shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-xl p-8 relative overflow-hidden group/identity">
-              {/* Banner/Header Graphic inside the card */}
-              <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-purple-500/10 to-transparent pointer-events-none" />
+            <div 
+              className="rounded-[2.5rem] bg-[#050508]/80 border border-white/[0.08] shadow-[0_20px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl p-8 relative overflow-hidden group/identity"
+            >
+              {/* Subtle Ambient Header Graphic */}
+              <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-purple-500/10 via-cyan-500/5 to-transparent pointer-events-none" />
               
               <div className="relative z-10 flex flex-col items-center text-center">
                 <div className="relative mb-6">
@@ -94,6 +96,7 @@ export function UserProfileClient({ user }: UserProfileClientProps) {
                     name={user.name || user.username || "Anonymous Creator"} 
                     isPro={isPro} 
                     gradientId={user.nameGradient} 
+                    insigniaId={user.insignia || undefined}
                   />
                 </h1>
                 

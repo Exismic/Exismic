@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import MemeGenerator from "./MemeGeneratorClient";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "Online Meme Generator - Create Funny Memes with AI Instantly",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "meme-generator" || t.href === "/tools/meme-generator") || {
-    id: "meme-generator",
-    name: "Online Meme Generator",
-    description: "Generate viral and funny memes in seconds using classic templates or your own images. Fast, free, and watermark-free online meme maker.",
-    href: "/tools/meme-generator"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <ToolPageShell
+      toolId="meme-generator"
+      categoryId="creator"
+      customTitle="Meme Studio"
+      customDescription="Create funny, high-impact memes in seconds using classic templates or your own uploaded images."
+    >
       <MemeGenerator />
-    </>
+    </ToolPageShell>
   );
 }

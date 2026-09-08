@@ -1,32 +1,24 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import HashtagGenerator from "./HashtagGeneratorClient";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
 
 export const metadata: Metadata = constructMetadata({
   title: "AI Hashtag Generator for Instagram, TikTok & YouTube | Exismic",
-  description: "Generate viral, high-reach hashtags for Instagram, TikTok, YouTube, and X. AI-powered hashtag recommendation engine free online.",
-  canonicalUrl: "/tools/hashtag-generator",
+  description: "Generate viral, high-reach hashtags for Instagram, TikTok, YouTube, and X. Free online hashtag builder.",
+  canonicalUrl: `${SITE_URL}/tools/hashtag-generator`,
   keywords: ["hashtag generator","instagram hashtags","tiktok hashtags","viral hashtags","free hashtag tool","Exismic"],
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "hashtag-generator" || t.href === "/tools/hashtag-generator") || {
-    id: "hashtag-generator",
-    name: "AI Hashtag Generator for Instagram, TikTok & YouTube | Exismic",
-    description: "Generate viral, high-reach hashtags for Instagram, TikTok, YouTube, and X. AI-powered hashtag recommendation engine free online.",
-    href: "/tools/hashtag-generator"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <ToolPageShell
+      toolId="hashtag-generator"
+      categoryId="creator"
+      customTitle="AI Hashtag Generator"
+      customDescription="Build focused, platform-aware hashtag sets for Instagram, TikTok, YouTube, and X with balanced reach."
+    >
       <HashtagGenerator />
-    </>
+    </ToolPageShell>
   );
 }

@@ -9,6 +9,7 @@ import {
   trackAuthWallHit, 
   trackCreditWallHit 
 } from "@/lib/analytics";
+import { saveFileHistory } from "@/lib/history";
 
 function getProcessingErrorMessage(error: unknown) {
   if (axios.isAxiosError<{ error?: string }>(error)) {
@@ -54,6 +55,23 @@ export function useToolProcessor(toolEndpoint: string) {
       setResult(response.data.result);
       setIsProcessing(false);
       trackToolSuccess(toolName);
+
+      // Automatically record completed action to unified history
+      if (response.data?.result) {
+        saveFileHistory({
+          toolType: toolName,
+          originalName: file.name,
+          resultUrl: typeof response.data.result === "string" ? response.data.result : undefined,
+          status: "completed",
+          metadata: {
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            endpoint: toolEndpoint,
+            toolName: toolName.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+          }
+        }).catch(() => {});
+      }
       
       return response.data;
     } catch (err: unknown) {

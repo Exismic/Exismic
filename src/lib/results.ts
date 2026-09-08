@@ -2,17 +2,44 @@ export type ResultFileType = "image" | "audio" | "video" | "pdf" | "text";
 export type ResultStatus = "completed" | "failed" | "processing";
 
 const TOOL_TYPE_ALIASES: Record<string, string> = {
+  // Image & Eraser
   "bg-remove": "image-eraser",
   "remove-bg": "image-eraser",
   "image-bg-remover": "image-eraser",
+  "eraser": "image-eraser",
+
+  // Image Tools
   "img-compressor": "image-compressor",
+  "compressor": "image-compressor",
+  "bulk-image-compressor": "image-compressor",
+
   "img-resizer": "image-resizer",
+  "resizer": "image-resizer",
+
   "img-converter": "image-converter",
+  "converter": "image-converter",
   "img-processing": "image-converter",
-  "pdf-processing": "pdf-compressor",
-  "code-generate": "ai-code",
-  "screenshot-code": "screenshot-to-code",
+
+  // Minecraft Skin Maker
+  "minecraft-skin-maker": "image-minecraft-skin",
+  "minecraft-skin": "image-minecraft-skin",
+
+  // AI Tools
+  "image-generator": "ai-img-gen",
+  "img-gen": "ai-img-gen",
+  "ai-image-generator": "ai-img-gen",
+  "prompt-optimizer": "ai-writer",
+  "writer": "ai-writer",
+
+  // Creator Tools
   "social-caption": "social-caption-generator",
+  "hook-script": "hook-script-generator",
+
+  // PDF
+  "pdf-processing": "pdf-compressor",
+
+  // Audio
+  "vocal-remover": "audio-vocal-remover",
 };
 
 export function normalizeHistoryToolType(toolType: string) {

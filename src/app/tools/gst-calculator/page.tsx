@@ -1,4 +1,5 @@
 import GstCalculator from "@/components/tool/GstCalculator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free Indian GST Calculator Online - Inclusive & Exclusive Tax Calculator | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <GstCalculator />;
+  return (
+    <ToolPageShell
+      toolId="gst-calculator"
+      categoryId="business"
+      customTitle="GST Calculator (India)"
+      customDescription="Calculate inclusive and exclusive GST amounts with CGST, SGST, and IGST tax breakdowns."
+    >
+      <GstCalculator />
+    </ToolPageShell>
+  );
 }

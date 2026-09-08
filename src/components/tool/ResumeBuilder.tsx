@@ -493,23 +493,14 @@ export function ResumeBuilder() {
     <div className="w-full max-w-[1720px] mx-auto px-2 sm:px-4 lg:px-6 pb-24">
       <div className="mb-5 rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 sm:p-5 backdrop-blur-2xl shadow-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_18px_60px_rgba(124,58,237,0.25)] shrink-0">
-              <FileText size={21} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-200/70">Resume Studio</p>
-                <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
-                  Full Workspace
-                </span>
-              </div>
-              <h1 className="text-2xl font-black text-white">AI Resume Builder</h1>
-            </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+              Live Editor
+            </span>
+            <ScorePill label="Ready" value={`${completionScore}%`} />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <ScorePill label="Ready" value={`${completionScore}%`} />
             <button onClick={fillSample} className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 transition hover:text-white cursor-pointer">
               Sample
             </button>

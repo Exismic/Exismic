@@ -25,8 +25,6 @@ const eslintConfig = defineConfig([
     "scripts/**",
     "*.js",
     "*.cjs",
-    "src/app/tools/ai/code/**",
-    "src/components/tool/studio/**",
   ]),
 ]);
 

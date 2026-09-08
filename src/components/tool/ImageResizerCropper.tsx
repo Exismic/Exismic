@@ -209,7 +209,17 @@ export function ImageResizerCropper() {
           resultUrl: data.result,
           fileType: "image",
           status: "completed",
-          metadata: { width: data.width, height: data.height, format: data.format }
+          metadata: {
+            prompt: `Resized (${data.width}×${data.height}): ${asset.name}`,
+            width: data.width,
+            height: data.height,
+            format: data.format,
+            targetHref: "/tools/image/resizer",
+            settings: {
+              dimensions: `${data.width}×${data.height}`,
+              format: (data.format || "PNG").toUpperCase(),
+            },
+          }
         }).catch((e) => console.warn("Failed to save resize to history:", e));
       } else {
         throw new Error(data.error || "Resize failed");

@@ -385,43 +385,14 @@ export default function HookScriptGenerator() {
   };
 
   const loadingMessages = [
-    "Analyzing viral hook psychology & retention loops...",
-    "Engineering pattern interrupts for " + platform.toUpperCase() + "...",
-    "Constructing timestamped shot list & sound design...",
-    "Finalizing B-roll asset checklist & viral hashtag stack...",
+    "Drafting attention-grabbing video hooks...",
+    "Structuring scene flow and visuals for " + platform.toUpperCase() + "...",
+    "Polishing script timing and pacing...",
+    "Finalizing captions and action steps...",
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
-      {/* Dynamic Header Banner */}
-      <div className="relative p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-rose-950/60 via-purple-950/40 to-neutral-950 border border-rose-500/30 shadow-[0_0_50px_rgba(244,63,94,0.15)] backdrop-blur-2xl overflow-hidden group">
-        {/* Glowing Background Auras */}
-        <div className="absolute top-[-50%] right-[-10%] w-[500px] h-[500px] bg-rose-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-        <div className="absolute bottom-[-40%] left-[-10%] w-[400px] h-[400px] bg-purple-600/15 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-500/10">
-              <Flame className="w-4 h-4 text-rose-400 animate-bounce" /> Exismic AI Viral Studio v2.0
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-              AI Video Hook & Script Generator
-            </h2>
-            <p className="text-neutral-300 text-sm sm:text-base font-medium leading-relaxed">
-              Generate 100x high-retention video hooks, timestamped voiceover transcripts, visual shot directives, sound cues, and production checklists for TikTok, Shorts, & Reels.
-            </p>
-          </div>
-
-          <div className="shrink-0 hidden lg:flex flex-col items-end gap-2 bg-neutral-900/60 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
-            <div className="flex items-center gap-2 text-rose-400 font-extrabold text-xs uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4" /> Algorithmic Precision
-            </div>
-            <span className="text-2xl font-black text-white">99.4%</span>
-            <span className="text-[11px] text-neutral-400 font-medium">Viewer Retention Engine</span>
-          </div>
-        </div>
-      </div>
-
+    <div className="w-full space-y-8">
       {/* Main Studio Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Controls Column */}
@@ -631,14 +602,14 @@ export default function HookScriptGenerator() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-black text-white uppercase tracking-wider">
-                        Viral Potential Index
+                        Estimated Reach Score
                       </span>
                       <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">
-                        HIGH RETENTION
+                        HIGH ENGAGEMENT
                       </span>
                     </div>
                     <p className="text-[11px] text-neutral-400 font-medium line-clamp-1 max-w-xs">
-                      {output.viralAnalysis || "Optimized for maximum pattern interrupt and viewer retention."}
+                      {output.viralAnalysis || "Optimized for strong opening engagement and viewer retention."}
                     </p>
                   </div>
                 </div>
@@ -932,7 +903,7 @@ export default function HookScriptGenerator() {
                     <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black text-neutral-300 uppercase tracking-wider">
-                          🏷️ Algorithmic Hashtag Stack
+                          🏷️ Targeted Hashtags
                         </span>
                         <button
                           type="button"

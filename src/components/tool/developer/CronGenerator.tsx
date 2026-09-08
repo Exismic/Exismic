@@ -37,20 +37,7 @@ export default function CronGenerator() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8">
-      {/* Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-lime-950/40 via-emerald-900/20 to-neutral-900 border border-lime-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/30 text-lime-300 text-xs font-semibold uppercase tracking-wider">
-          <Clock className="w-3.5 h-3.5" /> DevOps & Automation
-        </div>
-        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Cron Expression Generator & Explainer
-        </h2>
-        <p className="text-neutral-400 text-sm sm:text-base max-w-2xl">
-          Build, parse, and translate 5-part cron expressions visually into plain English human descriptions.
-        </p>
-      </div>
-
+    <div className="w-full space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Preset & Interactive Controls */}
         <div className="lg:col-span-6 space-y-5 p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 backdrop-blur-xl shadow-xl">

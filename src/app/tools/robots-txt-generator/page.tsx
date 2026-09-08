@@ -1,4 +1,5 @@
 import RobotsTxtGenerator from "@/components/tool/RobotsTxtGenerator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free Robots.txt Generator - Create Search Engine Robot Instructions | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <RobotsTxtGenerator />;
+  return (
+    <ToolPageShell
+      toolId="robots-txt-generator"
+      categoryId="seo"
+      customTitle="Robots.txt Generator"
+      customDescription="Visual robots.txt builder with User-Agent rules, Disallow paths, and Sitemap integration."
+    >
+      <RobotsTxtGenerator />
+    </ToolPageShell>
+  );
 }

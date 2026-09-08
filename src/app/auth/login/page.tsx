@@ -683,9 +683,8 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border border-white/[0.08] hover:border-purple-400/40 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(168,85,247,0.2)] ring-1 ring-white/[0.04] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border-2 border-white/[0.08] hover:border-purple-400/50 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(168,85,247,0.3)] hover:-translate-y-0.5"
             >
-              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-400/0 group-hover:via-purple-400/60 to-transparent transition-all duration-500" />
               <div className="w-11 h-11 rounded-xl border border-purple-400/25 bg-purple-500/10 text-purple-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-sm">
                 <ImageIcon size={19} />
               </div>
@@ -701,9 +700,8 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border border-white/[0.08] hover:border-cyan-400/40 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(6,182,212,0.2)] ring-1 ring-white/[0.04] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border-2 border-white/[0.08] hover:border-cyan-400/50 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(6,182,212,0.3)] hover:-translate-y-0.5"
             >
-              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/0 group-hover:via-cyan-400/60 to-transparent transition-all duration-500" />
               <div className="w-11 h-11 rounded-xl border border-cyan-400/25 bg-cyan-500/10 text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(6,182,212,0.3)] transition-all duration-300 shadow-sm">
                 <Music size={19} />
               </div>
@@ -719,16 +717,15 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border border-white/[0.08] hover:border-emerald-400/40 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(16,185,129,0.2)] ring-1 ring-white/[0.04] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border-2 border-white/[0.08] hover:border-emerald-400/50 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(16,185,129,0.3)] hover:-translate-y-0.5"
             >
-              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/0 group-hover:via-emerald-400/60 to-transparent transition-all duration-500" />
-              <div className="w-11 h-11 rounded-xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-sm">
+              <div className="w-11 h-11 rounded-xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-sm">
                 <Code2 size={19} />
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Developer & Productivity Tools</h3>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Convert design screenshots to code, extract text with smart OCR, and automate export workflows.
+                  Format and transform code schemas, extract text with smart OCR, and automate export workflows.
                 </p>
               </div>
             </motion.div>

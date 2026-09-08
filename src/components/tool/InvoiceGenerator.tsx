@@ -101,8 +101,8 @@ interface AIInvoiceResult {
 }
 
 interface InvoiceGeneratorProps {
-  tool: { name?: string } | null;
-  category: { name?: string } | null;
+  tool?: { name?: string } | null;
+  category?: { name?: string } | null;
 }
 
 const STORAGE_KEY = "exismic_invoice_draft_v2";
@@ -726,40 +726,11 @@ export function InvoiceGenerator({ category, tool }: InvoiceGeneratorProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-indigo-500/30">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.08),transparent_30%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] [background-size:52px_52px] opacity-40" />
-      </div>
-
-      <div className="relative z-10 max-w-[1720px] mx-auto px-3 sm:px-6 pt-20 pb-28 space-y-8">
-        <header className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
-          <div className="space-y-4">
-            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-indigo-300/20 bg-indigo-400/10 shadow-[0_0_40px_rgba(99,102,241,0.1)] shrink-0">
-                <ReceiptText className="h-8 w-8 text-indigo-300" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-500">
-                    {category?.name || "Productivity"} / Professional billing
-                  </p>
-                  <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
-                    Full Workspace
-                  </span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
-                  {tool?.name || "Invoice Generator"}
-                </h1>
-              </div>
-            </motion.div>
-            <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-zinc-400 font-medium">
-              Build polished invoices with tax, discounts, payment terms, client details, local drafts, live preview, and reliable multi-page PDF export.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button onClick={fillSample} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer">
+    <div className="w-full space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Invoice Draft Console</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={fillSample} className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer">
               <Wand2 size={15} />
               Sample
             </button>
@@ -801,7 +772,7 @@ export function InvoiceGenerator({ category, tool }: InvoiceGeneratorProps) {
               </button>
             </div>
           </div>
-        </header>
+        </div>
 
         {(draftNotice || saveStatus === "saved") && (
           <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-5 py-4 text-sm font-bold text-emerald-200 flex items-center gap-3">
@@ -1128,7 +1099,6 @@ export function InvoiceGenerator({ category, tool }: InvoiceGeneratorProps) {
           </div>
         </section>
       </div>
-    </div>
   );
 }
 

@@ -1,4 +1,5 @@
 import SitemapGenerator from "@/components/tool/SitemapGenerator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free XML Sitemap Generator - Build Search Engine Sitemaps Online | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <SitemapGenerator />;
+  return (
+    <ToolPageShell
+      toolId="sitemap-generator"
+      categoryId="seo"
+      customTitle="XML Sitemap Generator"
+      customDescription="Generate valid XML sitemaps for Google Search Console with changefreq and priority metadata."
+    >
+      <SitemapGenerator />
+    </ToolPageShell>
+  );
 }

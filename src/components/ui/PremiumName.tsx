@@ -158,60 +158,195 @@ export const NAME_GRADIENTS = [
     class: "bg-gradient-to-r from-purple-400 via-violet-300 via-indigo-500 to-purple-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(167,139,250,0.85)]",
     previewGlow: "from-purple-400/40 to-indigo-500/40",
     glowStyles: "rgba(167, 139, 250, 0.85)"
+  },
+  {
+    id: "astral-void",
+    name: "Astral Void Singularity",
+    isNew: true,
+    class: "bg-gradient-to-r from-violet-400 via-cyan-300 via-indigo-300 to-violet-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(6,182,212,0.85)]",
+    previewGlow: "from-violet-500/40 to-cyan-400/40",
+    glowStyles: "rgba(6, 182, 212, 0.85)"
+  },
+  {
+    id: "molten-dragon",
+    name: "Molten Dragon Flame",
+    isNew: true,
+    class: "bg-gradient-to-r from-red-500 via-amber-300 via-yellow-300 to-red-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_20px_rgba(239,68,68,0.85)]",
+    previewGlow: "from-red-500/40 to-amber-400/40",
+    glowStyles: "rgba(239, 68, 68, 0.85)"
+  },
+  {
+    id: "cyber-glitch",
+    name: "Cyber Matrix Glitch",
+    isNew: true,
+    class: "bg-gradient-to-r from-emerald-400 via-pink-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_20px_rgba(16,185,129,0.85)]",
+    previewGlow: "from-emerald-400/40 to-pink-400/40",
+    glowStyles: "rgba(16, 185, 129, 0.85)"
+  },
+  {
+    id: "frostfire-eclipse",
+    name: "Frostfire Celestial",
+    isNew: true,
+    class: "bg-gradient-to-r from-sky-300 via-indigo-300 via-orange-400 to-sky-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(56,189,248,0.85)]",
+    previewGlow: "from-sky-300/40 to-orange-400/40",
+    glowStyles: "rgba(56, 189, 248, 0.85)"
+  },
+  {
+    id: "chrono-warp",
+    name: "Chrono Temporal Flux",
+    isNew: true,
+    class: "bg-gradient-to-r from-amber-400 via-sky-300 via-yellow-300 to-amber-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(217,119,6,0.85)]",
+    previewGlow: "from-amber-400/40 to-sky-300/40",
+    glowStyles: "rgba(217, 119, 6, 0.85)"
+  },
+  {
+    id: "void-walker",
+    name: "Voidwalker Eclipse",
+    isNew: true,
+    class: "bg-gradient-to-r from-purple-500 via-fuchsia-300 via-violet-400 to-purple-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_22px_rgba(147,51,234,0.9)]",
+    previewGlow: "from-purple-500/40 to-violet-400/40",
+    glowStyles: "rgba(147, 51, 234, 0.9)"
+  },
+  {
+    id: "synthwave-80s",
+    name: "Retro Synthwave Sunset",
+    isNew: true,
+    class: "bg-gradient-to-r from-pink-500 via-rose-300 via-amber-400 to-pink-500 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_20px_rgba(244,63,94,0.85)]",
+    previewGlow: "from-pink-500/40 to-amber-400/40",
+    glowStyles: "rgba(244, 63, 94, 0.85)"
+  },
+  {
+    id: "jade-dynasty",
+    name: "Imperial Jade Sovereign",
+    isNew: true,
+    class: "bg-gradient-to-r from-emerald-400 via-yellow-200 via-teal-300 to-emerald-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(16,185,129,0.85)]",
+    previewGlow: "from-emerald-400/40 to-yellow-300/40",
+    glowStyles: "rgba(16, 185, 129, 0.85)"
+  },
+  {
+    id: "blood-moon",
+    name: "Blood Moon Eclipse",
+    isNew: true,
+    class: "bg-gradient-to-r from-red-600 via-rose-400 via-red-700 to-red-600 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_22px_rgba(220,38,38,0.9)]",
+    previewGlow: "from-red-600/40 to-rose-400/40",
+    glowStyles: "rgba(220, 38, 38, 0.9)"
+  },
+  {
+    id: "quantum-maglev",
+    name: "Quantum Superconductor",
+    isNew: true,
+    class: "bg-gradient-to-r from-blue-400 via-cyan-200 via-indigo-300 to-blue-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_22px_rgba(37,99,235,0.85)]",
+    previewGlow: "from-blue-400/40 to-cyan-300/40",
+    glowStyles: "rgba(37, 99, 235, 0.85)"
+  },
+  {
+    id: "starlight-valkyrie",
+    name: "Starlight Valkyrie",
+    isNew: true,
+    class: "bg-gradient-to-r from-slate-100 via-pink-200 via-amber-100 to-slate-100 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_20px_rgba(244,114,182,0.85)]",
+    previewGlow: "from-pink-300/40 to-amber-200/40",
+    glowStyles: "rgba(244, 114, 182, 0.85)"
+  },
+  {
+    id: "toxic-biohazard",
+    name: "Biohazard Radioactive",
+    isNew: true,
+    class: "bg-gradient-to-r from-lime-400 via-yellow-200 via-emerald-300 to-lime-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_20px_rgba(163,230,53,0.85)]",
+    previewGlow: "from-lime-400/40 to-yellow-300/40",
+    glowStyles: "rgba(163, 230, 53, 0.85)"
+  },
+  {
+    id: "phantom-wraith",
+    name: "Ethereal Phantom Mist",
+    isNew: true,
+    class: "bg-gradient-to-r from-violet-300 via-teal-200 via-indigo-200 to-violet-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite] drop-shadow-[0_0_20px_rgba(167,139,250,0.85)]",
+    previewGlow: "from-violet-400/40 to-teal-300/40",
+    glowStyles: "rgba(167, 139, 250, 0.85)"
+  },
+  {
+    id: "solaris-apex",
+    name: "Solaris Apex Corona",
+    isNew: true,
+    class: "bg-gradient-to-r from-yellow-300 via-amber-200 via-orange-300 to-yellow-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3s_linear_infinite] drop-shadow-[0_0_25px_rgba(251,191,36,0.9)]",
+    previewGlow: "from-yellow-300/45 to-orange-400/45",
+    glowStyles: "rgba(251, 191, 36, 0.9)"
+  },
+  {
+    id: "abyssal-kraken",
+    name: "Abyssal Trench Biolume",
+    isNew: true,
+    class: "bg-gradient-to-r from-cyan-300 via-teal-200 via-blue-400 to-cyan-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_3.5s_linear_infinite] drop-shadow-[0_0_22px_rgba(6,182,212,0.85)]",
+    previewGlow: "from-cyan-400/40 to-teal-300/40",
+    glowStyles: "rgba(6, 182, 212, 0.85)"
   }
 ];
+
+import { CreatorInsignia } from "@/components/ui/CreatorInsignia";
 
 interface PremiumNameProps {
   name: string;
   isPro: boolean;
   gradientId?: string | null;
+  insigniaId?: string | null;
   className?: string;
 }
 
-export function PremiumName({ name, isPro, gradientId, className }: PremiumNameProps) {
-  if (!isPro) {
+export function PremiumName({ name, isPro, gradientId, insigniaId, className }: PremiumNameProps) {
+  const renderText = () => {
+    if (!isPro && !gradientId) {
+      return (
+        <span
+          className={cn("inline-block", className)}
+          style={{
+            WebkitBoxDecorationBreak: "clone",
+            boxDecorationBreak: "clone",
+            paddingBottom: "0.25em",
+            marginBottom: "-0.25em",
+          }}
+        >
+          {name}
+        </span>
+      );
+    }
+
+    const activeGradient = NAME_GRADIENTS.find(g => g.id === gradientId) || NAME_GRADIENTS[0];
+
+    const cleanedClassName = className
+      ? className
+          .replace(/\btext-(white|zinc-\d+|zinc-\w+|white\/\d+|neutral-\d+|gray-\d+|slate-\d+|purple-\d+|cyan-\d+)\b/g, '')
+          .replace(/\bleading-(none|tight|3|4|5)\b/g, '')
+      : '';
+
     return (
-      <span
-        className={cn("inline-block", className)}
+      <span 
+        className={cn(
+          "inline-block font-black tracking-tight leading-[1.25] overflow-visible",
+          activeGradient.class,
+          cleanedClassName
+        )}
         style={{
           WebkitBoxDecorationBreak: "clone",
           boxDecorationBreak: "clone",
           paddingBottom: "0.25em",
           marginBottom: "-0.25em",
+          paddingTop: "0.08em",
+          paddingRight: "0.1em",
+          display: "inline-block",
         }}
       >
         {name}
       </span>
     );
+  };
+
+  if (!insigniaId) {
+    return renderText();
   }
 
-  const activeGradient = NAME_GRADIENTS.find(g => g.id === gradientId) || NAME_GRADIENTS[0];
-
-  // Strip conflicting color utility classes (e.g., text-white, text-zinc-100) and line-height squishing classes
-  const cleanedClassName = className
-    ? className
-        .replace(/\btext-(white|zinc-\d+|zinc-\w+|white\/\d+|neutral-\d+|gray-\d+|slate-\d+|purple-\d+|cyan-\d+)\b/g, '')
-        .replace(/\bleading-(none|tight|3|4|5)\b/g, '')
-    : '';
-
   return (
-    <span 
-      className={cn(
-        "inline-block font-black tracking-tight leading-[1.25] overflow-visible",
-        activeGradient.class,
-        cleanedClassName
-      )}
-      style={{
-        WebkitBoxDecorationBreak: "clone",
-        boxDecorationBreak: "clone",
-        paddingBottom: "0.25em",
-        marginBottom: "-0.25em",
-        paddingTop: "0.08em",
-        paddingRight: "0.1em",
-        display: "inline-block",
-      }}
-    >
-      {name}
+    <span className="inline-flex items-center gap-2 align-middle">
+      {renderText()}
+      <CreatorInsignia insigniaId={insigniaId} size="md" />
     </span>
   );
 }

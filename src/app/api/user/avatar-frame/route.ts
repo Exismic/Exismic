@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
-import { ALLOWED_AVATAR_FRAMES, getOrCreateUser, hasActiveProAccess } from '@/lib/user-access';
+import { ALLOWED_AVATAR_FRAMES, getOrCreateUser, canUserUseAvatarFrame } from '@/lib/user-access';
 
 export async function POST(req: Request) {
   try {
@@ -18,8 +18,8 @@ export async function POST(req: Request) {
     }
 
     const dbUser = await getOrCreateUser(user);
-    if (frameId && !hasActiveProAccess(dbUser)) {
-      return NextResponse.json({ error: 'Elite Avatar Frames are exclusive to Pro members.' }, { status: 403 });
+    if (frameId && !canUserUseAvatarFrame(dbUser, frameId)) {
+      return NextResponse.json({ error: 'This Avatar Frame is locked. Unlock it permanently with Sparks in Rewards, or access included Pro frames.' }, { status: 403 });
     }
 
     await prisma.user.update({

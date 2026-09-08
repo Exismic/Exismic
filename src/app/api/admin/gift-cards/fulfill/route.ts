@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { fulfillBillingOrder } from "@/lib/billing/fulfillment";
 import { sendGiftCardApprovedEmail, sendGiftCardRejectedEmail } from "@/lib/emails";
+import { verifyAdmin } from "@/lib/auth/admin";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user: adminUser } } = await supabase.auth.getUser();
-
-    if (!adminUser) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    const auth = await verifyAdmin();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
-
-    const dbAdmin = await prisma.user.findUnique({
-      where: { id: adminUser.id },
-      select: { role: true },
-    });
-
-    const isDev = process.env.NODE_ENV !== "production";
-    if (dbAdmin?.role !== "admin" && dbAdmin?.role !== "superadmin" && !isDev) {
-      return NextResponse.json({ error: "Forbidden. Admin access required." }, { status: 403 });
-    }
+    const adminUser = auth.user;
 
     const body = await req.json().catch(() => ({}));
     const { orderId, action, rejectionReason } = body;
@@ -88,7 +77,7 @@ export async function POST(req: NextRequest) {
         providerPaymentId: `gift_approval_${order.id}_${Date.now()}`,
         rawMetadata: {
           approvedAt: new Date().toISOString(),
-          approvedBy: adminUser.email,
+          approvedBy: adminUser?.email || "admin",
         },
       });
 

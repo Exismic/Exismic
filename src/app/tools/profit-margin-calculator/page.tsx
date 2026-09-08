@@ -1,4 +1,5 @@
 import ProfitMarginCalculator from "@/components/tool/ProfitMarginCalculator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata = {
   title: "Free Profit Margin & Markup Calculator - Business Financial Tool | Exismic",
@@ -6,5 +7,14 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ProfitMarginCalculator />;
+  return (
+    <ToolPageShell
+      toolId="profit-margin-calculator"
+      categoryId="business"
+      customTitle="Profit Margin Calculator"
+      customDescription="Calculate gross profit, margin percentage, markup rate, and net profit margins instantly."
+    >
+      <ProfitMarginCalculator />
+    </ToolPageShell>
+  );
 }

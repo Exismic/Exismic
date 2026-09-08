@@ -412,43 +412,25 @@ export default function YouTubeThumbnailMaker() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] px-4 pb-4 pt-24 font-sans text-white selection:bg-cyan-500/30 md:px-8 md:pb-8 md:pt-28 xl:px-12 xl:pb-12" suppressHydrationWarning>
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 mb-3"
-            >
-              <div className="p-2.5 bg-red-600/15 border border-red-400/20 rounded-2xl shadow-[0_0_32px_rgba(239,68,68,0.16)]">
-                <Play className="w-8 h-8 text-red-500 fill-red-500" />
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-cyan-300">
-                YouTube Thumbnail Maker
-              </h1>
-            </motion.div>
-            <p className="text-gray-400 text-base md:text-lg max-w-2xl font-medium">
-              Create highly engaging, conversion-optimized thumbnails. Drag elements around freely!
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={resetDesign}
-              className="flex items-center gap-2 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
-            >
-              <RotateCcw className="w-4 h-4" /> Reset
-            </button>
-            <button
-              onClick={handleDownload}
-              disabled={isExporting}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 rounded-2xl text-xs font-black uppercase tracking-[0.18em] shadow-lg shadow-cyan-600/20 transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
-            >
-              <Download className="w-4 h-4" /> {isExporting ? "Exporting..." : "Download PNG"}
-            </button>
-          </div>
-        </header>
+    <div className="w-full space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Thumbnail Canvas</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={resetDesign}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer"
+          >
+            <RotateCcw className="w-4 h-4" /> Reset
+          </button>
+          <button
+            onClick={handleDownload}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 via-pink-500 to-violet-500 rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 cursor-pointer text-white"
+          >
+            <Download className="w-4 h-4" /> {isExporting ? "Exporting..." : "Download PNG"}
+          </button>
+        </div>
+      </div>
 
         {error && (
           <div className="mb-6 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-100">
@@ -781,10 +763,6 @@ export default function YouTubeThumbnailMaker() {
             </div>
           </section>
         </main>
-      </div>
-
-      <div className="fixed top-0 right-0 -z-10 w-[760px] h-[760px] bg-cyan-600/[0.05] blur-[150px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 -z-10 w-[680px] h-[680px] bg-purple-600/[0.05] blur-[150px] rounded-full pointer-events-none" />
     </div>
   );
 }

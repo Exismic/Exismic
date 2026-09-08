@@ -65,6 +65,13 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     description:
       "This tool is undergoing routine optimization and performance updates. It will be back online shortly.",
   },
+  "support-agent": {
+    level: "unavailable",
+    label: "Maintenance",
+    headline: "Exismic Support Agent is temporarily under maintenance",
+    description:
+      "The support agent engine, document embeddings, and chat widget systems are currently undergoing scheduled upgrades and optimizations. It will be back online shortly.",
+  },
   "image-minecraft-skin": {
     ...SERVICE_BACKED,
     label: "AI Powered",
@@ -109,23 +116,11 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     requirements: ["Language model API credentials"],
     dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
-  "ai-code": {
-    ...SERVICE_BACKED,
-    label: "AI Powered",
-    requirements: ["Language model API credentials"],
-    dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
-  },
   "ai-chat": {
     ...SERVICE_BACKED,
     label: "AI Powered",
     requirements: ["Language model API credentials"],
     dependencyGroups: [{ label: "Language model provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
-  },
-  "screenshot-to-code": {
-    ...SERVICE_BACKED,
-    label: "AI Powered",
-    requirements: ["Vision language model credentials"],
-    dependencyGroups: [{ label: "Vision provider", env: ["GROQ_API_KEYS", "GROQ_API_KEY"] }],
   },
   "social-caption-generator": {
     ...SERVICE_BACKED,

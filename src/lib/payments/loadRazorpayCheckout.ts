@@ -26,7 +26,8 @@ export function loadRazorpayCheckout(timeoutMs = 15000): Promise<RazorpayConstru
     return Promise.reject(new Error("Razorpay checkout can only run in the browser."));
   }
 
-  if (window.Razorpay) return Promise.resolve(window.Razorpay);
+  const currentRzp = window.Razorpay;
+  if (currentRzp) return Promise.resolve(currentRzp);
   if (window.__exismicRazorpayPromise) return window.__exismicRazorpayPromise;
 
   const checkoutPromise = new Promise<RazorpayConstructor>((resolve, reject) => {
@@ -38,7 +39,8 @@ export function loadRazorpayCheckout(timeoutMs = 15000): Promise<RazorpayConstru
 
     const finish = () => {
       window.clearTimeout(timer);
-      if (window.Razorpay) resolve(window.Razorpay);
+      const loaded = window.Razorpay;
+      if (loaded) resolve(loaded);
       else reject(new Error("Razorpay checkout could not load. Please try again."));
     };
 

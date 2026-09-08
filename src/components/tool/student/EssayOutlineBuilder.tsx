@@ -275,26 +275,7 @@ export default function EssayOutlineBuilder() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12 selection:bg-amber-500/30 selection:text-amber-200">
-      {/* Banner Header */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-950/40 via-zinc-950 to-indigo-950/30 border border-amber-500/20 shadow-2xl backdrop-blur-2xl space-y-3">
-        <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold uppercase tracking-widest shadow-inner">
-            <GraduationCap className="w-4 h-4 text-amber-400" />
-            <span>Academic Writing Engine</span>
-          </div>
-        </div>
-
-        <h1 className="relative z-10 text-2xl sm:text-4xl font-black text-white tracking-tight uppercase bg-gradient-to-r from-white via-amber-100 to-zinc-400 bg-clip-text text-transparent">
-          AI Essay & Thesis Outline Builder
-        </h1>
-        <p className="relative z-10 text-zinc-400 text-sm sm:text-base max-w-2xl leading-relaxed font-medium">
-          Generate structured paragraph-by-paragraph essay outlines, customized thesis statement options, topic sentences, and Google Scholar search queries.
-        </p>
-      </div>
+    <div className="w-full space-y-8 selection:bg-amber-500/30 selection:text-amber-200">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Form Controls Column */}

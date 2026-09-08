@@ -16,6 +16,7 @@ import { CreditModal } from "../ui/CreditModal";
 import { UserProfile } from "../ui/UserProfile";
 import { VerifiedTick } from "../ui/VerifiedTick";
 import { CreditTokenIcon } from "../ui/CreditTokenIcon";
+import { isAdminEmail } from "@/lib/admin";
 
 export function UserMenu() {
   const { isPro, user: dbUser, isLoading: isProLoading, refresh } = usePro();
@@ -261,6 +262,19 @@ export function UserMenu() {
                     Settings & Security
                     <ChevronRight size={12} className="ml-auto opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-zinc-400" />
                  </Link>
+
+                 {(dbUser?.role === 'admin' || isAdminEmail(session?.user?.email) || isAdminEmail(dbUser?.email)) && (
+                   <Link 
+                      href="/admin"
+                      onClick={() => setIsOpen(false)}
+                      className="w-full group flex items-center gap-3.5 px-5 py-4 text-[9.5px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-white hover:bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/40 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden shadow-[0_0_15px_rgba(244,63,94,0.08)]"
+                   >
+                      <div className="absolute left-0 w-[3px] h-4 rounded-r-full bg-rose-500 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
+                      <ShieldCheck size={15} className="text-rose-400 group-hover:scale-110 transition-all duration-300" />
+                      Admin Panel
+                      <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono">ADMIN</span>
+                   </Link>
+                 )}
 
                  <div className="h-px bg-white/[0.04] my-2 mx-4" />
 

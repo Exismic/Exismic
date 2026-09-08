@@ -98,10 +98,7 @@ export function useDashboardStats() {
   const isPro = Boolean(
     verifiedIsPro ||
     plan === "pro" ||
-    proUser?.role === "admin" ||
-    proUser?.is_pro ||
-    authUser?.email === "syedyaseeralirayan@gmail.com" ||
-    proUser?.email === "syedyaseeralirayan@gmail.com"
+    proUser?.is_pro
   );
 
   return {

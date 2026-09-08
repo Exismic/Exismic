@@ -135,6 +135,14 @@ export function ImageFormatConverter() {
           toolType: "image-converter",
           fileType: "image",
           resultUrl: data.result,
+          metadata: {
+            prompt: `Converted to ${(data.format || targetFormat).toUpperCase()}: ${item.file.name}`,
+            targetFormat: (data.format || targetFormat).toUpperCase(),
+            targetHref: "/tools/image/converter",
+            settings: {
+              format: (data.format || targetFormat).toUpperCase(),
+            },
+          },
         }).catch((err) => console.warn("Failed to auto-save converted file to history:", err));
 
         setFiles(prev => prev.map(f => f.id === item.id ? { 

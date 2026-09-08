@@ -1,7 +1,7 @@
-import { constructMetadata, getToolJsonLd, SITE_URL } from "@/lib/seo";
-import SubtitleGeneratorPage from "./VideoSubtitlesClient";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
+import SubtitleGenerator from "@/components/tool/SubtitleGenerator";
 import { Metadata } from "next";
-import { TOOLS, CATEGORIES } from "@/data/tools";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "AI Subtitle Generator & Auto Captions Maker | Exismic",
@@ -11,22 +11,14 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Page() {
-  const tool = TOOLS.find(t => t.id === "video-subtitles" || t.href === "/tools/video/subtitles") || {
-    id: "video-subtitles",
-    name: "AI Subtitle Generator & Auto Captions Maker | Exismic",
-    description: "Automatically generate subtitles and captions for your videos using AI speech recognition. Export SRT files or burn captions in video.",
-    href: "/tools/video/subtitles"
-  };
-
-  const jsonLd = getToolJsonLd(tool);
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <SubtitleGeneratorPage />
-    </>
+    <ToolPageShell
+      toolId="video-subtitles"
+      categoryId="video"
+      customTitle="AI Subtitle Generator"
+      customDescription="Generate accurate subtitles and captions for your videos automatically. Export SRT or VTT files with precise timestamps."
+    >
+      <SubtitleGenerator />
+    </ToolPageShell>
   );
 }

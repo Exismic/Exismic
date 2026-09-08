@@ -27,11 +27,12 @@ export async function POST(request: NextRequest) {
     console.log('[CRON] ⏰ Starting daily credit reset...')
     const now = new Date()
 
-    // 1. Expire cancelled Pro memberships after their paid-through date
+    // 1. Expire Pro memberships whose paid period has elapsed (lte now)
     const expiredProResult = await prisma.user.updateMany({
       where: {
         plan: 'pro',
-        subscriptionStatus: { in: ['cancelled', 'expired'] },
+        role: { not: 'admin' },
+        email: { not: 'syedyaseeralirayan@gmail.com' },
         planExpiresAt: { lte: now },
       },
       data: {
@@ -58,17 +59,14 @@ export async function POST(request: NextRequest) {
       }
     })
 
-
-
-    // 4. Reset PRO users to standard daily allowance (500 credits)
+    // 4. Reset verified active PRO users to standard daily allowance (500 credits)
     const proDaily = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS
     const proResult = await prisma.user.updateMany({
       where: {
         plan: 'pro',
         OR: [
-          { planExpiresAt: null },
           { planExpiresAt: { gt: now } },
-          { subscriptionStatus: 'active' },
+          { planExpiresAt: null }, // Admin or lifetime reserve
         ],
       },
       data: {

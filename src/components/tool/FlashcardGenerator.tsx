@@ -163,42 +163,20 @@ export default function FlashcardGenerator() {
   const currentCard = cards[currentIndex];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-6 lg:p-8 selection:bg-amber-500/30 selection:text-amber-200">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-gradient-to-r from-amber-950/40 via-zinc-950 to-indigo-950/30 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
-        <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold uppercase tracking-widest shadow-inner">
-              <Sparkles size={14} className="text-amber-400 animate-pulse" />
-              <span>AI Powered Active Recall</span>
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase bg-gradient-to-r from-white via-amber-100 to-zinc-400 bg-clip-text text-transparent">
-              AI Flashcard Deck
-            </h1>
-            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Transform any study material into interactive flip decks tailored for long-term retention.
-            </p>
+    <div className="w-full space-y-6 selection:bg-amber-500/30 selection:text-amber-200">
+      {/* Quick Stats Bar */}
+      {cards.length > 0 && (
+        <div className="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Sparkles size={14} className="text-amber-400" /> Active Recall Progress
+          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-zinc-300 font-semibold">{cards.length} Cards in Deck</span>
+            <div className="h-4 w-[1px] bg-white/10" />
+            <span className="text-xs font-black text-amber-400">{masteredCount}/{cards.length} Mastered</span>
           </div>
-
-          {/* Quick Stats Pill */}
-          {cards.length > 0 && (
-            <div className="flex items-center gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-4 backdrop-blur-md">
-              <div className="text-center px-2">
-                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Cards</p>
-                <p className="text-xl font-black text-white">{cards.length}</p>
-              </div>
-              <div className="h-8 w-[1px] bg-white/10" />
-              <div className="text-center px-2">
-                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Mastered</p>
-                <p className="text-xl font-black text-amber-400">{masteredCount}/{cards.length}</p>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

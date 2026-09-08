@@ -1,7 +1,8 @@
-import { TOOLS, CATEGORIES } from "@/data/tools";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { Metadata } from "next";
 import { InvoiceGeneratorClient } from "@/components/tool/InvoiceGenerator";
+import { ToolPageShell } from "@/components/tool/ToolPageShell";
+import { TOOLS, CATEGORIES } from "@/data/tools";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free Invoice Generator - Create Professional Invoices Online",
@@ -13,11 +14,14 @@ export default function InvoiceGeneratorPage() {
   const tool = TOOLS.find(t => t.id === 'invoice-generator');
   const category = CATEGORIES.find(c => c.id === 'productivity');
 
-  if (!tool || !category) return null;
-
   return (
-    <div className="min-h-screen bg-[#030303]">
-      <InvoiceGeneratorClient tool={tool} category={category} />
-    </div>
+    <ToolPageShell
+      toolId="invoice-generator"
+      categoryId="productivity"
+      customTitle="Invoice Generator"
+      customDescription="Build polished invoices with tax calculations, discounts, payment terms, live preview, and multi-page PDF export."
+    >
+      <InvoiceGeneratorClient tool={tool || null} category={category || null} />
+    </ToolPageShell>
   );
 }

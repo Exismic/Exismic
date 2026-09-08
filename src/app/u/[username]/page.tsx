@@ -44,6 +44,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       createdAt: true,
       avatarFrame: true,
       nameGradient: true,
+      insignia: true,
+      canopy: true,
       email: true,
     }
   });

@@ -7,7 +7,6 @@ import {
   Pause,
   Sun,
   Flame,
-  Sparkles,
   Layers,
   Camera,
   ZoomIn,
@@ -32,10 +31,10 @@ interface Minecraft3DStudioViewerProps {
 }
 
 const ANIMATION_OPTIONS: Array<{ id: SkinAnimationType; label: string; icon: string }> = [
-  { id: "idle", label: "Idle Breathing", icon: "🧘" },
+  { id: "idle", label: "Idle Pose", icon: "🧍" },
   { id: "walk", label: "Walk", icon: "🚶" },
   { id: "run", label: "Sprint", icon: "🏃" },
-  { id: "fly", label: "Fly / Elytra", icon: "🦅" },
+  { id: "fly", label: "Elytra Flight", icon: "🦅" },
   { id: "wave", label: "Wave", icon: "👋" },
   { id: "crouch", label: "Sneak", icon: "🧎" },
   { id: "swim", label: "Swim", icon: "🏊" },
@@ -44,15 +43,16 @@ const ANIMATION_OPTIONS: Array<{ id: SkinAnimationType; label: string; icon: str
 const ENVIRONMENT_OPTIONS: Array<{
   id: SkinEnvironmentType;
   label: string;
+  icon: string;
   bgHex: number;
   badgeColor: string;
   glow: string;
 }> = [
-  { id: "studio", label: "Studio Dark", bgHex: 0x070810, badgeColor: "border-purple-500/30 text-purple-300", glow: "rgba(168,85,247,0.15)" },
-  { id: "cyber", label: "Cyber Neon", bgHex: 0x060514, badgeColor: "border-cyan-400/30 text-cyan-300", glow: "rgba(6,182,212,0.2)" },
-  { id: "nether", label: "Nether Fire", bgHex: 0x140404, badgeColor: "border-orange-500/30 text-orange-300", glow: "rgba(249,115,22,0.2)" },
-  { id: "end", label: "End Void", bgHex: 0x05030e, badgeColor: "border-indigo-400/30 text-indigo-300", glow: "rgba(99,102,241,0.2)" },
-  { id: "meadow", label: "Sunlight", bgHex: 0x0a120a, badgeColor: "border-emerald-500/30 text-emerald-300", glow: "rgba(16,185,129,0.2)" },
+  { id: "studio", label: "Studio Dark", icon: "🌑", bgHex: 0x070810, badgeColor: "border-purple-500/30 text-purple-300", glow: "rgba(168,85,247,0.15)" },
+  { id: "cyber", label: "Cyber Neon", icon: "⚡", bgHex: 0x060514, badgeColor: "border-cyan-400/30 text-cyan-300", glow: "rgba(6,182,212,0.2)" },
+  { id: "nether", label: "Nether Fire", icon: "🔥", bgHex: 0x140404, badgeColor: "border-orange-500/30 text-orange-300", glow: "rgba(249,115,22,0.2)" },
+  { id: "end", label: "End Void", icon: "🔮", bgHex: 0x05030e, badgeColor: "border-indigo-400/30 text-indigo-300", glow: "rgba(99,102,241,0.2)" },
+  { id: "meadow", label: "Sunlight", icon: "☀️", bgHex: 0x0a120a, badgeColor: "border-emerald-500/30 text-emerald-300", glow: "rgba(16,185,129,0.2)" },
 ];
 
 export function Minecraft3DStudioViewer({
@@ -337,13 +337,13 @@ export function Minecraft3DStudioViewer({
               }}
               className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg transition-all"
             >
-              <Sparkles size={13} className="text-amber-400" />
+              <span>{currentEnv.icon}</span>
               <span className="hidden sm:inline">{currentEnv.label}</span>
               <ChevronDown size={12} className={cn("text-zinc-400 transition-transform", isEnvDropdownOpen && "rotate-180")} />
             </button>
 
             {isEnvDropdownOpen && (
-              <div className="absolute top-full right-0 mt-1.5 w-40 rounded-xl bg-[#090a12]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute top-full right-0 mt-1.5 w-44 rounded-xl bg-[#090a12]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
                 <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2 py-1 block">
                   Studio Lighting
                 </span>
@@ -361,7 +361,10 @@ export function Minecraft3DStudioViewer({
                         : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
                     )}
                   >
-                    <span>{env.label}</span>
+                    <span className="flex items-center gap-2">
+                      <span>{env.icon}</span>
+                      <span>{env.label}</span>
+                    </span>
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: `#${env.bgHex.toString(16).padStart(6, '0')}` }} />
                   </button>
                 ))}

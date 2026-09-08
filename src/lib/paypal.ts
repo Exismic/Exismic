@@ -11,6 +11,7 @@ export type PayPalOrderContext = {
   tierId?: string | null;
   currency: CheckoutCurrency;
   amount: number;
+  regularAmount?: number;
 };
 
 type PayPalLink = {
@@ -294,25 +295,50 @@ async function createPayPalProduct(accessToken: string) {
 
 const dynamicPlanCache = new Map<string, string>();
 
-async function createPayPalPlan(accessToken: string, amount: number, currency: CheckoutCurrency, intervalUnit: "MONTH" | "YEAR" = "MONTH") {
-  const cacheKey = `${getPayPalMode()}:${currency}:${intervalUnit}:${amount.toFixed(2)}`;
+async function createPayPalPlan(
+  accessToken: string,
+  amount: number,
+  currency: CheckoutCurrency,
+  intervalUnit: "MONTH" | "YEAR" = "MONTH",
+  regularAmount?: number
+) {
+  const isIntroductoryDiscount = Boolean(regularAmount && regularAmount > amount);
+  const cacheKey = isIntroductoryDiscount
+    ? `${getPayPalMode()}:${currency}:${intervalUnit}:${amount.toFixed(2)}_then_${regularAmount!.toFixed(2)}`
+    : `${getPayPalMode()}:${currency}:${intervalUnit}:${amount.toFixed(2)}`;
   const cached = dynamicPlanCache.get(cacheKey);
   if (cached) return cached;
 
   const productId = await createPayPalProduct(accessToken);
-  const response = await fetch(`${getPayPalApiBase()}/v1/billing/plans`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-    },
-    body: JSON.stringify({
-      product_id: productId,
-      name: `Exismic Pro ${currency} ${intervalUnit === "YEAR" ? "Yearly" : "Monthly"}`,
-      description: `${intervalUnit === "YEAR" ? "Yearly" : "Monthly"} Exismic Pro membership`,
-      status: "ACTIVE",
-      billing_cycles: [
+
+  const billing_cycles = isIntroductoryDiscount
+    ? [
+        {
+          frequency: { interval_unit: intervalUnit, interval_count: 1 },
+          tenure_type: "TRIAL",
+          sequence: 1,
+          total_cycles: 1,
+          pricing_scheme: {
+            fixed_price: {
+              value: amount.toFixed(2),
+              currency_code: currency,
+            },
+          },
+        },
+        {
+          frequency: { interval_unit: intervalUnit, interval_count: 1 },
+          tenure_type: "REGULAR",
+          sequence: 2,
+          total_cycles: 0,
+          pricing_scheme: {
+            fixed_price: {
+              value: regularAmount!.toFixed(2),
+              currency_code: currency,
+            },
+          },
+        },
+      ]
+    : [
         {
           frequency: { interval_unit: intervalUnit, interval_count: 1 },
           tenure_type: "REGULAR",
@@ -325,7 +351,21 @@ async function createPayPalPlan(accessToken: string, amount: number, currency: C
             },
           },
         },
-      ],
+      ];
+
+  const response = await fetch(`${getPayPalApiBase()}/v1/billing/plans`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      name: `Exismic Pro ${currency} ${intervalUnit === "YEAR" ? "Yearly" : "Monthly"}${isIntroductoryDiscount ? " (Promo)" : ""}`,
+      description: `${intervalUnit === "YEAR" ? "Yearly" : "Monthly"} Exismic Pro membership${isIntroductoryDiscount ? " (with 1st month launch discount)" : ""}`,
+      status: "ACTIVE",
+      billing_cycles,
       payment_preferences: {
         auto_bill_outstanding: true,
         setup_fee_failure_action: "CONTINUE",
@@ -348,7 +388,18 @@ async function createPayPalPlan(accessToken: string, amount: number, currency: C
   return plan.id;
 }
 
-export async function resolvePayPalProPlanId(amount: number, currency: CheckoutCurrency, intervalUnit: "MONTH" | "YEAR" = "MONTH") {
+export async function resolvePayPalProPlanId(
+  amount: number,
+  currency: CheckoutCurrency,
+  intervalUnit: "MONTH" | "YEAR" = "MONTH",
+  regularAmount?: number
+) {
+  // If there is an introductory discount (e.g. $3.99 first month, then $6.99), generate a trial-sequenced dynamic plan
+  if (regularAmount && regularAmount > amount) {
+    const accessToken = await getPayPalAccessToken();
+    return createPayPalPlan(accessToken, amount, currency, intervalUnit, regularAmount);
+  }
+
   const configured = intervalUnit === "YEAR"
     ? (currency === "USD"
         ? process.env.PAYPAL_PRO_YEARLY_PLAN_ID_USD || process.env.PAYPAL_PRO_YEARLY_PLAN_ID || process.env.PAYPAL_YEARLY_PLAN_ID
@@ -374,7 +425,7 @@ export async function createPayPalSubscription({
 }) {
   const accessToken = await getPayPalAccessToken();
   const intervalUnit = context.tierId === "pro_yearly" ? "YEAR" : "MONTH";
-  const planId = await resolvePayPalProPlanId(context.amount, context.currency, intervalUnit);
+  const planId = await resolvePayPalProPlanId(context.amount, context.currency, intervalUnit, context.regularAmount);
 
   const response = await fetch(`${getPayPalApiBase()}/v1/billing/subscriptions`, {
     method: "POST",

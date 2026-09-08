@@ -26,20 +26,7 @@ export default function SerpSimulator() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8">
-      {/* Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-teal-900/20 to-neutral-900 border border-cyan-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider">
-          <SearchCode className="w-3.5 h-3.5" /> Google Search Optimizer
-        </div>
-        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Google SERP Snippet Simulator
-        </h2>
-        <p className="text-neutral-400 text-sm sm:text-base max-w-2xl">
-          Preview how your title tags and meta descriptions will render in real Google Search results across Desktop and Mobile viewports with pixel-width meters.
-        </p>
-      </div>
-
+    <div className="w-full space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Input Controls */}
         <div className="lg:col-span-6 space-y-4 p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800 backdrop-blur-xl shadow-xl">

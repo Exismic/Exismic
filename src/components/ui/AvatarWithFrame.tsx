@@ -188,6 +188,141 @@ export const PRO_FRAMES = [
     glowStyles: "from-purple-950/90 via-cyan-900/80 to-slate-900/90",
     badgeColor: "bg-cyan-950/40 text-cyan-300 border-cyan-500/30",
     titleColor: "bg-gradient-to-r from-purple-300 via-cyan-200 to-slate-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "astral-void",
+    name: "Astral Void Singularity",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#4c1d95,#06b6d4,#1e1b4b,#06b6d4,#4c1d95)] bg-[length:300%_300%] animate-[gradient-x_3s_ease_infinite] shadow-[0_0_30px_rgba(6,182,212,0.85)]",
+    glowStyles: "from-indigo-600/85 via-cyan-400/75 to-purple-800/85",
+    badgeColor: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
+    titleColor: "bg-gradient-to-r from-violet-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "molten-dragon",
+    name: "Molten Dragon Core",
+    isNew: true,
+    borderStyles: "bg-gradient-to-tr from-amber-600 via-red-600 via-yellow-400 to-amber-700 animate-[spin_6s_linear_infinite] shadow-[0_0_30px_rgba(239,68,68,0.85)]",
+    glowStyles: "from-red-600/85 via-amber-500/75 to-yellow-500/85",
+    badgeColor: "bg-red-500/10 text-red-300 border-red-500/20",
+    titleColor: "bg-gradient-to-r from-red-400 via-amber-300 to-yellow-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "cyber-glitch",
+    name: "Cyber Matrix Glitch",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#10b981,#ec4899,#047857,#f43f5e,#10b981)] bg-[length:300%_300%] animate-[gradient-x_2.5s_ease_infinite] shadow-[0_0_30px_rgba(16,185,129,0.85)]",
+    glowStyles: "from-emerald-500/85 via-pink-500/75 to-teal-400/85",
+    badgeColor: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+    titleColor: "bg-gradient-to-r from-emerald-400 via-pink-400 to-cyan-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "frostfire-eclipse",
+    name: "Frostfire Celestial",
+    isNew: true,
+    borderStyles: "bg-gradient-to-r from-sky-400 via-indigo-500 via-orange-500 to-amber-400 animate-[spin_5s_linear_infinite] shadow-[0_0_30px_rgba(56,189,248,0.85)]",
+    glowStyles: "from-sky-400/85 via-orange-500/75 to-blue-600/85",
+    badgeColor: "bg-sky-500/10 text-sky-300 border-sky-500/20",
+    titleColor: "bg-gradient-to-r from-sky-300 via-orange-300 to-amber-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "chrono-warp",
+    name: "Chrono Temporal Flux",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#d97706,#0284c7,#b45309,#38bdf8,#d97706)] bg-[length:250%_250%] animate-[gradient-x_3.5s_ease_infinite] shadow-[0_0_30px_rgba(217,119,6,0.85)]",
+    glowStyles: "from-amber-500/85 via-sky-400/75 to-yellow-600/85",
+    badgeColor: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+    titleColor: "bg-gradient-to-r from-amber-300 via-sky-300 to-yellow-200 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "void-walker",
+    name: "Voidwalker Eclipse",
+    isNew: true,
+    borderStyles: "bg-gradient-to-br from-violet-950 via-purple-700 via-black to-violet-900 animate-[pulse_3s_ease-in-out_infinite] shadow-[0_0_30px_rgba(147,51,234,0.85)]",
+    glowStyles: "from-violet-900/90 via-purple-600/80 to-black/90",
+    badgeColor: "bg-purple-900/30 text-purple-300 border-purple-500/30",
+    titleColor: "bg-gradient-to-r from-purple-400 via-fuchsia-300 to-violet-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "synthwave-80s",
+    name: "Retro Synthwave Grid",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#f43f5e,#fb923c,#8b5cf6,#f43f5e)] bg-[length:300%_300%] animate-[gradient-x_3s_ease_infinite] shadow-[0_0_30px_rgba(244,63,94,0.85)]",
+    glowStyles: "from-rose-500/85 via-orange-400/75 to-purple-600/85",
+    badgeColor: "bg-rose-500/10 text-rose-300 border-rose-500/20",
+    titleColor: "bg-gradient-to-r from-rose-400 via-orange-300 to-fuchsia-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "jade-dynasty",
+    name: "Imperial Jade Sovereign",
+    isNew: true,
+    borderStyles: "bg-gradient-to-tr from-emerald-600 via-yellow-300 via-teal-500 to-emerald-700 animate-[spin_7s_linear_infinite] shadow-[0_0_30px_rgba(16,185,129,0.85)]",
+    glowStyles: "from-emerald-500/85 via-yellow-300/75 to-teal-600/85",
+    badgeColor: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+    titleColor: "bg-gradient-to-r from-emerald-300 via-yellow-200 to-teal-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "blood-moon",
+    name: "Blood Moon Eclipse",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#991b1b,#ef4444,#450a0a,#b91c1c,#991b1b)] bg-[length:250%_250%] animate-[gradient-x_2.8s_ease_infinite] shadow-[0_0_30px_rgba(239,68,68,0.85)]",
+    glowStyles: "from-red-700/90 via-rose-600/80 to-red-950/90",
+    badgeColor: "bg-red-900/30 text-red-300 border-red-500/30",
+    titleColor: "bg-gradient-to-r from-red-500 via-rose-400 to-red-700 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "quantum-maglev",
+    name: "Quantum Superconductor",
+    isNew: true,
+    borderStyles: "bg-gradient-to-br from-blue-600 via-cyan-300 to-indigo-700 animate-[spin_4.5s_linear_infinite] shadow-[0_0_30px_rgba(37,99,235,0.85)]",
+    glowStyles: "from-blue-500/85 via-cyan-300/75 to-indigo-600/85",
+    badgeColor: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+    titleColor: "bg-gradient-to-r from-blue-400 via-cyan-200 to-indigo-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "starlight-valkyrie",
+    name: "Starlight Valkyrie",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#f8fafc,#f472b6,#fde047,#cbd5e1,#f8fafc)] bg-[length:250%_250%] animate-[gradient-x_3.2s_ease_infinite] shadow-[0_0_30px_rgba(244,114,182,0.85)]",
+    glowStyles: "from-slate-100/90 via-pink-400/75 to-amber-200/85",
+    badgeColor: "bg-pink-500/10 text-pink-200 border-pink-500/20",
+    titleColor: "bg-gradient-to-r from-white via-pink-200 to-yellow-100 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "toxic-biohazard",
+    name: "Biohazard Radioactive",
+    isNew: true,
+    borderStyles: "bg-gradient-to-tr from-lime-400 via-amber-400 via-emerald-600 to-lime-500 animate-[spin_5s_linear_infinite] shadow-[0_0_30px_rgba(163,230,53,0.85)]",
+    glowStyles: "from-lime-400/85 via-amber-400/75 to-emerald-500/85",
+    badgeColor: "bg-lime-500/10 text-lime-300 border-lime-500/20",
+    titleColor: "bg-gradient-to-r from-lime-300 via-yellow-300 to-emerald-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "phantom-wraith",
+    name: "Ethereal Phantom Mist",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#a78bfa,#2dd4bf,#6366f1,#c4b5fd,#a78bfa)] bg-[length:300%_300%] animate-[gradient-x_4s_ease_infinite] shadow-[0_0_30px_rgba(167,139,250,0.85)]",
+    glowStyles: "from-violet-400/85 via-teal-300/75 to-indigo-400/85",
+    badgeColor: "bg-violet-500/10 text-violet-300 border-violet-500/20",
+    titleColor: "bg-gradient-to-r from-violet-300 via-teal-200 to-indigo-200 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "solaris-apex",
+    name: "Solaris Apex Corona",
+    isNew: true,
+    borderStyles: "bg-gradient-to-tr from-yellow-300 via-amber-500 via-red-500 to-yellow-200 animate-[spin_4s_linear_infinite] shadow-[0_0_35px_rgba(251,191,36,0.9)]",
+    glowStyles: "from-yellow-300/90 via-amber-500/80 to-red-500/85",
+    badgeColor: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+    titleColor: "bg-gradient-to-r from-yellow-200 via-amber-300 to-orange-400 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
+  },
+  {
+    id: "abyssal-kraken",
+    name: "Abyssal Trench Biolume",
+    isNew: true,
+    borderStyles: "bg-[linear-gradient(110deg,#0f172a,#06b6d4,#1e293b,#14b8a6,#0f172a)] bg-[length:300%_300%] animate-[gradient-x_3.5s_ease_infinite] shadow-[0_0_30px_rgba(6,182,212,0.85)]",
+    glowStyles: "from-slate-900/90 via-cyan-400/75 to-teal-400/85",
+    badgeColor: "bg-cyan-900/30 text-cyan-300 border-cyan-500/30",
+    titleColor: "bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent bg-[length:300%_auto] animate-[text-gradient_4s_linear_infinite]"
   }
 ];
 
@@ -210,7 +345,7 @@ export function AvatarWithFrame({
   size = "md",
   className
 }: AvatarWithFrameProps) {
-  const activeFrame = isPro ? PRO_FRAMES.find(f => f.id === frameId) : null;
+  const activeFrame = frameId ? PRO_FRAMES.find(f => f.id === frameId) || null : null;
   const nameStr = (displayName || fallbackName || "User").trim();
   const initial = nameStr.charAt(0).toUpperCase() || "E";
 
@@ -258,23 +393,23 @@ export function AvatarWithFrame({
     <div className={cn("relative shrink-0 select-none group/avatar-frame", className)}>
       
       {/* 1. Double Layer High-Fidelity Volumetric Backdrop Glow Rings */}
-      {isPro && activeFrame && (
+      {activeFrame && (
         <>
           {/* Soft atmospheric glow */}
           <div className={cn(
-            "absolute -inset-4 blur-2xl opacity-40 scale-105 pointer-events-none transition-all duration-500 z-0 bg-gradient-to-tr group-hover/avatar-frame:opacity-55",
+            "absolute -inset-3 blur-xl opacity-40 pointer-events-none transition-all duration-500 z-0 bg-gradient-to-tr group-hover/avatar-frame:opacity-60",
             sizeStyles.outerRounded,
             activeFrame.glowStyles
           )} />
           {/* Refined outer halo */}
           <div className={cn(
-            "absolute -inset-2.5 blur-xl opacity-35 pointer-events-none transition-all duration-500 z-0 bg-gradient-to-tr group-hover/avatar-frame:opacity-50",
+            "absolute -inset-2 blur-lg opacity-45 pointer-events-none transition-all duration-500 z-0 bg-gradient-to-tr group-hover/avatar-frame:opacity-65",
             sizeStyles.outerRounded,
             activeFrame.glowStyles
           )} />
           {/* Crisp edge light */}
           <div className={cn(
-            "absolute -inset-1 blur-sm opacity-60 pointer-events-none transition-all duration-500 z-0 bg-gradient-to-tr group-hover/avatar-frame:opacity-75",
+            "absolute -inset-1 blur-sm opacity-70 pointer-events-none transition-all duration-500 z-0 bg-gradient-to-tr group-hover/avatar-frame:opacity-85",
             sizeStyles.outerRounded,
             activeFrame.glowStyles
           )} />
@@ -308,21 +443,15 @@ export function AvatarWithFrame({
           {avatarUrl ? (
             <img src={avatarUrl} alt={displayName || "Avatar"} className="w-full h-full object-cover relative z-10" />
           ) : (
-            <div
-              className={cn(
-                "w-full h-full flex items-center justify-center font-sans font-extrabold tracking-tighter uppercase relative z-10",
-                sizeStyles.initialText,
-                isPro
-                  ? "bg-gradient-to-br from-purple-500 via-cyan-400 to-pink-500 text-white shadow-lg"
-                  : "bg-zinc-900 text-zinc-400"
-              )}
-            >
-              {initial}
-            </div>
+            <img
+              src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(displayName || "User")}&backgroundColor=0b0b14`}
+              alt={displayName || "Avatar"}
+              className="w-full h-full object-cover relative z-10"
+            />
           )}
           
           {/* 4. Luxury Inner Glow Ring Overlay - Bleeds frame color onto image edges */}
-          {isPro && activeFrame && (
+          {activeFrame && (
             <div className={cn(
               "absolute inset-0 z-20 pointer-events-none opacity-25 mix-blend-screen rounded-inherit border-[1.5px] border-transparent bg-gradient-to-tr [mask-image:linear-gradient(#fff_0_0)_border-box,_linear-gradient(#fff_0_0)] [mask-clip:padding-box,_border-box] [mask-composite:intersect]",
               activeFrame.glowStyles

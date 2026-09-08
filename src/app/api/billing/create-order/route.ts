@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveMarket } from "@/lib/geo/getUserCountry";
 import { createClient } from "@/utils/supabase/server";
 import { hasActiveProAccess } from "@/lib/user-access";
+import { checkUserLaunchDiscountEligibility } from "@/lib/billing/launch-discount";
 
 type CreateOrderBody = {
   planId?: string;
@@ -15,6 +16,7 @@ type CreateOrderBody = {
   isGift?: boolean;
   recipientName?: string;
   recipientMessage?: string;
+  couponCode?: string;
 };
 
 function getRazorpayClient() {
@@ -102,23 +104,26 @@ async function createRazorpayProSubscription(
   userId: string,
   price: ReturnType<typeof getPlanPrice>,
   isYearly = false,
+  regularPriceMinor?: number,
 ) {
   let planId = getRazorpayProPlanId(isYearly);
   const subscriptionApi = razorpay as RazorpaySubscriptionApi;
+  const isIntroductoryDiscount = Boolean(regularPriceMinor && regularPriceMinor > price.amountMinor);
 
   if (!planId) {
+    const planAmountMinor = isIntroductoryDiscount ? regularPriceMinor! : price.amountMinor;
     try {
       const plan = await subscriptionApi.plans.create({
         period: isYearly ? "yearly" : "monthly",
         interval: 1,
         item: {
-          name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}`,
-          description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership`,
-          amount: price.amountMinor,
+          name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"}${isIntroductoryDiscount ? " (Promo)" : ""}`,
+          description: `${isYearly ? "Yearly" : "Monthly"} Exismic Pro membership${isIntroductoryDiscount ? " (with 1st month launch discount)" : ""}`,
+          amount: planAmountMinor,
           currency: price.currency,
         },
         notes: {
-          source: "exismic_dynamic_plan",
+          source: isIntroductoryDiscount ? "exismic_v16_launch_plan" : "exismic_dynamic_plan",
         },
       });
       planId = String(plan.id);
@@ -128,7 +133,7 @@ async function createRazorpayProSubscription(
     }
   }
 
-  return subscriptionApi.subscriptions.create({
+  const subscriptionPayload: any = {
     plan_id: planId,
     total_count: isYearly ? 30 : 360,
     quantity: 1,
@@ -138,8 +143,24 @@ async function createRazorpayProSubscription(
       userId,
       planId: isYearly ? "pro_yearly" : "pro",
       market: "IN",
+      isLaunchDiscount: isIntroductoryDiscount ? "true" : "false",
     },
-  });
+  };
+
+  if (isIntroductoryDiscount) {
+    const discountAmount = regularPriceMinor! - price.amountMinor;
+    subscriptionPayload.addons = [
+      {
+        item: {
+          name: "v1.6 Launch Special Discount",
+          amount: -discountAmount,
+          currency: price.currency,
+        },
+      },
+    ];
+  }
+
+  return subscriptionApi.subscriptions.create(subscriptionPayload);
 }
 export async function POST(req: NextRequest) {
   try {
@@ -183,8 +204,38 @@ export async function POST(req: NextRequest) {
     // Check for active retention discount to apply 30% price reduction on Pro subscription (only for personal, not gift)
     let finalAmountMinor = basePrice.amountMinor;
     let appliedRetentionDiscount = false;
+    let appliedCouponCode: string | null = null;
+    let appliedCouponDiscountMinor = 0;
+    let isLaunchDiscount = false;
 
-    if (isProSubscriptionPlan && !isGift) {
+    // Check for v1.6 Launch Special (Pro Monthly only)
+    if (plan.id === "pro") {
+      const launchEligibility = await checkUserLaunchDiscountEligibility(user.id);
+      const cleanCode = body.couponCode?.trim().toUpperCase();
+      const isExplicitLaunchCode = cleanCode === PRICING_CONFIG.V16_LAUNCH_PROMO.CODE;
+
+      if (launchEligibility.eligible) {
+        if (!cleanCode || isExplicitLaunchCode) {
+          appliedCouponCode = PRICING_CONFIG.V16_LAUNCH_PROMO.CODE;
+          isLaunchDiscount = true;
+          const targetAmountMinor = market === "IN" 
+            ? PRICING_CONFIG.V16_LAUNCH_PROMO.DISCOUNTED_PRICE_INR * 100 
+            : Math.round(PRICING_CONFIG.V16_LAUNCH_PROMO.DISCOUNTED_PRICE_USD * 100);
+          appliedCouponDiscountMinor = Math.max(0, basePrice.amountMinor - targetAmountMinor);
+          finalAmountMinor = targetAmountMinor;
+        } else {
+          return NextResponse.json({
+            error: "The v1.6 Launch Special is already active on Pro Monthly. Additional coupon codes cannot be stacked.",
+          }, { status: 400 });
+        }
+      } else if (isExplicitLaunchCode) {
+        return NextResponse.json({
+          error: launchEligibility.reason || "You have already redeemed your one-time v1.6 Launch Special discount.",
+        }, { status: 400 });
+      }
+    }
+
+    if (isProSubscriptionPlan && !isGift && !isLaunchDiscount) {
       const activeRetentionOrder = await prisma.paymentOrder.findFirst({
         where: {
           userId: user.id,
@@ -196,6 +247,104 @@ export async function POST(req: NextRequest) {
       if (activeRetentionOrder) {
         finalAmountMinor = Math.round(basePrice.amountMinor * 0.7);
         appliedRetentionDiscount = true;
+      }
+    }
+
+    // Strict Backend Voucher Validation & Application (for non-launch discounts)
+    if (!isLaunchDiscount && body.couponCode?.trim()) {
+      const cleanCode = body.couponCode.trim().toUpperCase();
+
+      const promo = await prisma.promoCode.findUnique({
+        where: { code: cleanCode },
+      });
+
+      if (!promo) {
+        return NextResponse.json({ error: "Invalid or unrecognized coupon code." }, { status: 404 });
+      }
+
+      if (promo.expiresAt && new Date() > new Date(promo.expiresAt)) {
+        return NextResponse.json({ error: "This coupon code has expired." }, { status: 400 });
+      }
+
+      if (promo.redemptionCount >= promo.maxRedemptions) {
+        return NextResponse.json({ error: "This coupon code has already been claimed and cannot be used again." }, { status: 400 });
+      }
+
+      const alreadyClaimed = await prisma.promoRedemption.findUnique({
+        where: {
+          promoId_userId: {
+            promoId: promo.id,
+            userId: user.id,
+          },
+        },
+      });
+
+      if (alreadyClaimed) {
+        return NextResponse.json({ error: "You have already redeemed this coupon code." }, { status: 400 });
+      }
+
+      // Anti-exploitation: 5-Day Cooldown on Discount Codes
+      const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+      const recentRedemption = await prisma.promoRedemption.findFirst({
+        where: {
+          userId: user.id,
+          redeemedAt: { gte: new Date(Date.now() - FIVE_DAYS_MS) },
+          promo: {
+            OR: [
+              { code: { startsWith: "OFF" } },
+              { code: { startsWith: "SAVE" } },
+              { code: { startsWith: "PRO20" } },
+            ],
+          },
+        },
+      });
+
+      if (recentRedemption) {
+        return NextResponse.json({
+          error: "Anti-exploit cooldown: Discount vouchers can only be used once every 5 days.",
+        }, { status: 400 });
+      }
+
+      const isFixedDiscount = cleanCode.startsWith("OFF") || cleanCode.startsWith("SAVE");
+      const isPro20 = cleanCode.startsWith("PRO20");
+
+      if (!isFixedDiscount && !isPro20) {
+        return NextResponse.json({
+          error: "This code is a free gift code. Please redeem it in Account -> Redeem Codes.",
+        }, { status: 400 });
+      }
+
+      if (isFixedDiscount) {
+        if (market === "IN" && basePrice.amountMinor < 24900) {
+          return NextResponse.json({
+            error: "This voucher requires a minimum purchase of ₹249.",
+          }, { status: 400 });
+        }
+        if (market !== "IN" && basePrice.amount < 3.0) {
+          return NextResponse.json({
+            error: "This voucher requires a minimum purchase of $3.00.",
+          }, { status: 400 });
+        }
+
+        const discountMinor = market === "IN" ? 10000 : 150;
+        appliedCouponDiscountMinor = Math.min(finalAmountMinor, discountMinor);
+        finalAmountMinor = Math.max(0, finalAmountMinor - appliedCouponDiscountMinor);
+        appliedCouponCode = cleanCode;
+      } else if (isPro20) {
+        if (plan.id === "pro_yearly") {
+          return NextResponse.json({
+            error: "This 20% voucher is valid on Monthly Pro only. Yearly Pro already includes a built-in annual discount.",
+          }, { status: 400 });
+        }
+        if (plan.id !== "pro") {
+          return NextResponse.json({
+            error: "This voucher is exclusively valid for Monthly Exismic Pro memberships and cannot be applied to Credit Packs.",
+          }, { status: 400 });
+        }
+
+        appliedCouponDiscountMinor = Math.round(basePrice.amountMinor * 0.2);
+        finalAmountMinor = Math.max(0, finalAmountMinor - appliedCouponDiscountMinor);
+        appliedCouponCode = cleanCode;
       }
     }
 
@@ -239,6 +388,9 @@ export async function POST(req: NextRequest) {
           countryCode: marketInfo.countryCode,
           displayAmount: price.display,
           appliedRetentionDiscount,
+          appliedCouponCode,
+          appliedCouponDiscountMinor,
+          isLaunchDiscount,
           isGift,
           giftType,
           giftCredits: plan.credits,
@@ -280,7 +432,14 @@ export async function POST(req: NextRequest) {
       const razorpay = getRazorpayClient();
 
       if (isProSubscriptionPlan && !isGift) {
-        const razorpaySubscription = await createRazorpayProSubscription(razorpay, paymentOrder.id, user.id, price, plan.id === "pro_yearly");
+        const razorpaySubscription = await createRazorpayProSubscription(
+          razorpay,
+          paymentOrder.id,
+          user.id,
+          price,
+          plan.id === "pro_yearly",
+          isLaunchDiscount ? basePrice.amountMinor : undefined,
+        );
 
         await prisma.paymentOrder.update({
           where: { id: paymentOrder.id },
@@ -355,6 +514,7 @@ export async function POST(req: NextRequest) {
           tierId: plan.id,
           currency: price.currency,
           amount: price.amount,
+          regularAmount: isLaunchDiscount ? basePrice.amount : undefined,
         },
         returnUrl: `${origin}/billing/success?${successParams.toString()}`,
         cancelUrl: `${origin}/billing/cancel?${cancelParams.toString()}`,

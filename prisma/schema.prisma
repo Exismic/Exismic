@@ -35,12 +35,21 @@ model User {
   streakFreezeUsedAt     DateTime?               @map("streak_freeze_used_at")
   lastStreakReminderSentAt DateTime?             @map("last_streak_reminder_sent_at")
   streakMilestonesClaimed Json?                  @map("streak_milestones_claimed")
+  sparks                 Int                     @default(0) @map("sparks_balance")
+  lifetimeSparks         Int                     @default(0) @map("lifetime_sparks")
+  unlockedAvatarFrames   Json?                   @map("unlocked_avatar_frames")
+  unlockedNameGradients  Json?                   @map("unlocked_name_gradients")
+  unlockedProfileThemes  Json?                   @map("unlocked_profile_themes")
+  unlockedInsignias      Json?                   @map("unlocked_insignias")
+  unlockedCanopies       Json?                   @map("unlocked_canopies")
   planExpiresAt          DateTime?               @map("plan_expires_at")
   subscriptionStatus     String                  @default("none") @map("subscription_status")
   customAvatarUrl        String?                 @map("custom_avatar_url")
   themePreference        String?                 @map("theme_preference")
   avatarFrame            String?                 @map("avatar_frame")
   nameGradient           String?                 @map("name_gradient")
+  insignia               String?                 @map("insignia")
+  canopy                 String?                 @map("canopy")
   discordUserId          String?                 @map("discord_user_id")
   discordUsername        String?                 @map("discord_username")
   discordDmEnabled       Boolean                 @default(false) @map("discord_dm_enabled")
@@ -50,7 +59,6 @@ model User {
   accounts               Account[]
   promoRedemptions       PromoRedemption[]
   chatSessions           ChatSession[]
-  codeProjects           CodeProject[]
   favorites              Favorite[]
   jobs                   Job[]
   notifications          Notification[]
@@ -61,10 +69,26 @@ model User {
   trustedLoginChallenges TrustedLoginChallenge[]
   creditTransactions     CreditTransaction[]
   creditShopClaims       CreditShopClaim[]
+  sparksTransactions     SparksTransaction[]
   communityPosts         CommunityPost[]
   communityLikes         CommunityLike[]
   hasSeenWelcome         Boolean                 @default(true) @map("has_seen_welcome")
   status                 String                  @default("active")
+}
+
+model SparksTransaction {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  amount          Int
+  balanceAfter    Int      @map("balance_after")
+  source          String
+  description     String?
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("sparks_transactions")
 }
 
 model CreditTransaction {
@@ -271,15 +295,6 @@ model ChatSession {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model CodeProject {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  files     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model support_agents {

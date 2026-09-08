@@ -230,8 +230,8 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
     <div className={cn(
       "relative w-full overflow-hidden transition-all duration-300",
       embedded
-        ? "rounded-2xl border border-white/10 bg-black/40 p-4 sm:p-5 shadow-2xl backdrop-blur-xl"
-        : "rounded-[2.5rem] border border-white/15 bg-[#05060d] p-6 shadow-[0_32px_100px_rgba(0,0,0,0.95),0_0_80px_rgba(34,211,238,0.15)] backdrop-blur-3xl sm:p-8"
+        ? "rounded-2xl border-2 border-white/20 bg-black/40 p-4 sm:p-5 shadow-2xl backdrop-blur-xl"
+        : "rounded-[2.5rem] border-2 border-cyan-400/40 bg-[#05060d] p-6 shadow-[0_32px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(34,211,238,0.2)] backdrop-blur-3xl sm:p-8"
     )}>
       {/* 1. Fullscreen / Container Blinding Flash */}
       <AnimatePresence>
@@ -293,13 +293,6 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
         ))}
       </AnimatePresence>
 
-      {/* Top Accent Line */}
-      <div
-        className="absolute inset-x-0 top-0 h-1 transition-all duration-700"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${rarityConfig.primaryColor}, ${rarityConfig.accentColor}, transparent)`,
-        }}
-      />
 
       {/* Content Layout with Parallax Shift */}
       <div

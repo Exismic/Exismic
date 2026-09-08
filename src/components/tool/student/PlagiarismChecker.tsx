@@ -226,24 +226,7 @@ export default function PlagiarismChecker() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12 selection:bg-amber-500/30 selection:text-amber-200">
-      {/* Banner Header */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-950/40 via-zinc-950 to-indigo-950/30 border border-amber-500/20 shadow-2xl backdrop-blur-2xl space-y-3">
-        <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold uppercase tracking-widest shadow-inner">
-          <FileQuestion className="w-4 h-4 text-amber-400" />
-          <span>Similarity & Diff Engine</span>
-        </div>
-        <h1 className="relative z-10 text-2xl sm:text-4xl font-black text-white tracking-tight uppercase bg-gradient-to-r from-white via-amber-100 to-zinc-400 bg-clip-text text-transparent">
-          Text Similarity & Plagiarism Diff Checker
-        </h1>
-        <p className="relative z-10 text-zinc-400 text-sm sm:text-base max-w-2xl leading-relaxed font-medium">
-          Compare two text documents side-by-side to highlight exact word matches, semantic paraphrase risk, sentence-level diffs, and citation suggestions.
-        </p>
-      </div>
-
+    <div className="w-full space-y-8 selection:bg-amber-500/30 selection:text-amber-200">
       {/* Test Presets Quick Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
         <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">

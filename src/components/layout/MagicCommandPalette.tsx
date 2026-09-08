@@ -33,8 +33,7 @@ const TOOL_ALIASES: Record<string, string[]> = {
   "resume-builder": ["cv", "resume builder", "job application", "portfolio", "curriculum vitae", "career"],
   "ai-writer": ["writer", "copywriter", "scripts", "blog post", "social caption", "ai writing", "content"],
   "video-trimmer": ["video", "cut video", "trimmer", "clip", "video editor", "slice video"],
-  "pdf-ocr": ["ocr", "pdf", "scan text", "document", "extract text", "scanner", "invoice"],
-  "ai-code": ["code", "ide", "editor", "coding assistant", "terminal", "programmer", "software"]
+  "pdf-ocr": ["ocr", "pdf", "scan text", "document", "extract text", "scanner", "invoice"]
 };
 
 // Category filter tabs

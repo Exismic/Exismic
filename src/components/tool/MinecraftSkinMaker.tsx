@@ -26,6 +26,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCredits } from "@/hooks/useCredits";
+import { MinecraftIcon } from "@/components/ui/MinecraftIcon";
 import { MinecraftSkinEditor } from "@/components/tool/MinecraftSkinEditor";
 import { Minecraft3DStudioViewer } from "@/components/tool/Minecraft3DStudioViewer";
 import { CreditModal } from "@/components/ui/CreditModal";
@@ -487,6 +488,33 @@ export function MinecraftSkinMaker() {
     refreshCredits();
   };
 
+  // Replay & Edit query params listener from History Vault
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlPrompt = params.get("prompt");
+    const urlStyle = params.get("style") as StyleMode | null;
+    const urlArm = params.get("armModel") as MinecraftArmModel | null;
+    const autorun = params.get("autorun") === "1";
+
+    if (urlPrompt) {
+      setPrompt(urlPrompt);
+    }
+    if (urlStyle && ["balanced", "high-contrast", "pixel-detailed", "clean"].includes(urlStyle)) {
+      setStyle(urlStyle);
+    }
+    if (urlArm && (urlArm === "classic" || urlArm === "slim")) {
+      setArmModel(urlArm);
+    }
+
+    if (autorun && urlPrompt && urlPrompt.trim().length >= 3) {
+      const timer = setTimeout(() => {
+        generate();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [userId]);
+
   const currentCost = referenceImage && referenceMode === "rebuild"
     ? (isPro ? 6 : 10)
     : targetPart === "all"
@@ -502,7 +530,7 @@ export function MinecraftSkinMaker() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <div className="grid size-12 shrink-0 place-items-center rounded-lg border border-cyan-300/25 bg-[linear-gradient(145deg,rgba(126,34,206,0.28),rgba(6,182,212,0.18))] shadow-[0_0_28px_rgba(34,211,238,0.12)]">
-              <Box className="size-6 text-cyan-200" />
+              <MinecraftIcon className="size-6 text-cyan-200" />
             </div>
             <div className="min-w-0">
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
@@ -596,7 +624,7 @@ export function MinecraftSkinMaker() {
             <div className="rounded-xl border border-white/10 bg-black/25 p-3.5 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Gamepad2 className="size-4 text-emerald-400" />
+                  <MinecraftIcon className="size-4 text-emerald-400" />
                   <span className="text-xs font-bold text-white">Import Minecraft Gamertag</span>
                 </div>
                 <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-black text-emerald-300 border border-emerald-400/20">
@@ -1103,7 +1131,7 @@ export function MinecraftSkinMaker() {
                 {!result && (
                   <div className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 z-10">
                     <span className="rounded-full border border-cyan-400/30 bg-black/75 px-3 py-1 text-[10px] font-bold text-cyan-200 backdrop-blur-md shadow-lg flex items-center gap-1.5">
-                      <Sparkles size={11} className="text-cyan-300 animate-pulse" />
+                      <Box size={11} className="text-cyan-300" />
                       <span>Interactive 3D Studio · Starter Mode</span>
                     </span>
                   </div>

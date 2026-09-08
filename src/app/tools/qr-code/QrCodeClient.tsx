@@ -85,53 +85,8 @@ export default function QRCodeGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] px-4 pb-6 pt-24 font-sans text-white selection:bg-purple-500/30 sm:px-6 md:px-12 md:pb-12 md:pt-28" suppressHydrationWarning>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-center md:justify-start gap-3 mb-4"
-            >
-              <div className="p-2 bg-purple-600/20 rounded-xl">
-                <QrCode className="w-8 h-8 text-purple-400" />
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-purple-400">
-                QR Code Studio
-              </h1>
-            </motion.div>
-            <motion.p
-              initial={false}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-gray-400 text-lg md:text-xl max-w-2xl font-medium"
-            >
-              Generate premium, brand-aligned QR codes with custom logos in seconds.
-            </motion.p>
-          </div>
-
-          <div className="flex gap-3 justify-center">
-             <button 
-               onClick={() => setIsFavorite(!isFavorite)}
-               className={cn(
-                 "p-4 rounded-2xl border transition-all duration-300",
-                 isFavorite ? "bg-purple-600 border-purple-500 text-white" : "bg-white/5 border-white/10 text-gray-500 hover:text-white"
-               )}
-             >
-                <Star className={cn("w-5 h-5", isFavorite && "fill-current")} />
-             </button>
-             <button 
-               onClick={downloadPNG}
-               className="flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-500 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-purple-600/20 transition-all active:scale-95"
-             >
-                <Download className="w-4 h-4" /> Download PNG
-             </button>
-          </div>
-        </header>
-
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <div className="w-full space-y-8">
+      <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Column: Controls */}
           <div className="lg:col-span-5 space-y-6 order-2 lg:order-1">
             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-3xl shadow-2xl">
@@ -307,9 +262,25 @@ export default function QRCodeGenerator() {
                   />
                 </motion.div>
 
-                <div className="mt-12 text-center">
-                   <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">Scan with Smartphone</p>
-                   <h4 className="text-xl font-black italic tracking-tighter text-white opacity-40">EXISMIC MATRIX CORE</h4>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <button 
+                    onClick={downloadPNG}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download PNG
+                  </button>
+                  <button 
+                    onClick={handleCopy}
+                    className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/15 text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-white/10 transition-all active:scale-95 cursor-pointer"
+                  >
+                    {isCopied ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {isCopied ? "Copied" : "Copy Image"}
+                  </button>
+                </div>
+
+                <div className="mt-8 text-center">
+                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-1">Live Scan Ready</p>
+                   <p className="text-xs text-zinc-400">Point your smartphone camera to test scan immediately</p>
                 </div>
 
                 {/* Floating Glow */}
@@ -319,23 +290,23 @@ export default function QRCodeGenerator() {
                 />
               </motion.div>
               
-              {/* Pro Feature Hint */}
-              <div className="absolute -bottom-4 right-8 px-6 py-2 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-full shadow-2xl flex items-center gap-2">
+              {/* Feature Hint */}
+              <div className="absolute -bottom-4 right-8 px-5 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-full shadow-2xl flex items-center gap-2">
                  <Sparkles className="w-3 h-3 text-white" />
-                 <span className="text-[9px] font-black uppercase tracking-widest text-white">Advanced Error Correction Active</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest text-white">Error Correction Level {level}</span>
               </div>
             </div>
 
             {/* Insight Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex gap-4 items-start">
-                  <div className="p-3 bg-purple-500/10 rounded-2xl text-purple-400">
+                  <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
                      <Info className="w-5 h-5" />
                   </div>
                   <div>
-                     <h5 className="text-[10px] font-black uppercase tracking-widest mb-2 italic">Color Strategy</h5>
-                     <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-medium">
-                        Always ensure high contrast between the matrix and background. Dark backgrounds with bright purple/cyan are optimized for modern scanners.
+                     <h5 className="text-[10px] font-black uppercase tracking-widest mb-2">Contrast Tips</h5>
+                     <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                        Always maintain strong contrast between QR pixels and the background. Dark codes on light surfaces provide the fastest camera detection.
                      </p>
                   </div>
                </div>
@@ -344,20 +315,15 @@ export default function QRCodeGenerator() {
                      <Maximize className="w-5 h-5" />
                   </div>
                   <div>
-                     <h5 className="text-[10px] font-black uppercase tracking-widest mb-2 italic">Vector Fidelity</h5>
-                     <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-medium">
-                        Our engine uses sub-pixel rendering to ensure QR dots are mathematically perfect, preventing scan failures on high-density displays.
+                     <h5 className="text-[10px] font-black uppercase tracking-widest mb-2">High Resolution</h5>
+                     <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                        Rendered with clean vector edges to ensure high-fidelity scanning on digital displays, brochures, business cards, and packaging.
                      </p>
                   </div>
                </div>
             </div>
           </div>
         </main>
-      </div>
-
-      {/* Backdrop Decor */}
-      <div className="fixed top-0 right-0 -z-10 w-[800px] h-[800px] bg-purple-600/[0.03] blur-[160px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 -z-10 w-[700px] h-[700px] bg-cyan-600/[0.03] blur-[160px] rounded-full pointer-events-none animate-pulse" />
     </div>
   );
 }

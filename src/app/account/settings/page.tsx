@@ -6,7 +6,9 @@ import {
   Mail, 
   ShieldCheck, 
   Zap, 
-  Sparkles, 
+  Palette,
+  Frame,
+  Coins,
   LogOut, 
   Camera, 
   Save, 
@@ -38,7 +40,9 @@ import {
   Image as ImageIcon,
   Code2,
   Key,
-  Type
+  Type,
+  RotateCcw,
+  Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
@@ -55,7 +59,14 @@ import { InvoiceModal } from "@/components/ui/InvoiceModal";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { AvatarWithFrame, PRO_FRAMES } from "@/components/ui/AvatarWithFrame";
 import { PremiumName, NAME_GRADIENTS } from "@/components/ui/PremiumName";
-import { ThemeSelectorModal, CUSTOM_THEMES } from "@/components/modals/ThemeSelectorModal";
+import { CreatorInsignia, CREATOR_INSIGNIAS } from "@/components/ui/CreatorInsignia";
+import { CosmeticsSelectorModal, CosmeticCategory } from "@/components/modals/CosmeticsSelectorModal";
+import { Portal } from "@/components/ui/Portal";
+import {
+  PRO_INCLUDED_AVATAR_FRAMES,
+  PRO_INCLUDED_NAME_STYLES,
+  PRO_INCLUDED_INSIGNIAS,
+} from "@/config/cosmetics-access";
 import { forgotPasswordAction } from "@/app/actions/auth";
 import { Skeleton, SkeletonLine } from "@/components/ui/Skeleton";
 import { TrustedLoginSetup } from "@/components/auth/TrustedLoginSetup";
@@ -182,78 +193,64 @@ export default function AccountSettings() {
   const [isUpdatingGradient, setIsUpdatingGradient] = useState(false);
   const [isGradientModalOpen, setIsGradientModalOpen] = useState(false);
 
-  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
-  const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
-  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [selectedInsignia, setSelectedInsignia] = useState<string | null>(null);
+  const [isUpdatingInsignia, setIsUpdatingInsignia] = useState(false);
+
+  const [activeCosmeticModal, setActiveCosmeticModal] = useState<CosmeticCategory | null>(null);
+
+  // Lock background scroll and handle Escape key for all modal dialogs
+  useEffect(() => {
+    const isAnyModalOpen =
+      isFrameModalOpen ||
+      isGradientModalOpen ||
+      activeCosmeticModal !== null ||
+      Boolean(imageToCrop);
+
+    if (isAnyModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setIsFrameModalOpen(false);
+          setIsGradientModalOpen(false);
+          setActiveCosmeticModal(null);
+          setImageToCrop(null);
+        }
+      };
+
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [isFrameModalOpen, isGradientModalOpen, activeCosmeticModal, imageToCrop]);
+
   const [preferences, setPreferences] = useState<Record<PreferenceKey, boolean>>(DEFAULT_USER_PREFERENCES);
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
   const [savingPreference, setSavingPreference] = useState<PreferenceKey | null>(null);
 
   const displayAvatarUrl = dbUser?.custom_avatar_url || user?.user_metadata?.custom_avatar_url || user?.user_metadata?.avatar_url;
 
+  const userUnlockedFrames: string[] = Array.isArray(dbUser?.unlocked_avatar_frames || dbUser?.unlockedAvatarFrames)
+    ? ((dbUser?.unlocked_avatar_frames || dbUser?.unlockedAvatarFrames) as string[])
+    : [];
+  const userUnlockedGradients: string[] = Array.isArray(dbUser?.unlocked_name_gradients || dbUser?.unlockedNameGradients)
+    ? ((dbUser?.unlocked_name_gradients || dbUser?.unlockedNameGradients) as string[])
+    : [];
+  const userUnlockedInsignias: string[] = Array.isArray(dbUser?.unlocked_insignias || dbUser?.unlockedInsignias)
+    ? ((dbUser?.unlocked_insignias || dbUser?.unlockedInsignias) as string[])
+    : [];
+
   useEffect(() => {
-    const frame = user?.user_metadata?.avatar_frame ?? dbUser?.avatar_frame ?? null;
-    const gradient = user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
-    const theme =
-      user?.user_metadata?.theme_preference ??
-      user?.user_metadata?.profile_theme ??
-      dbUser?.theme_preference ??
-      dbUser?.profile_theme ??
-      null;
+    const frame = dbUser?.avatar_frame ?? dbUser?.avatarFrame ?? user?.user_metadata?.avatar_frame ?? null;
+    const gradient = dbUser?.name_gradient ?? dbUser?.nameGradient ?? user?.user_metadata?.name_gradient ?? null;
+    const insignia = dbUser?.insignia ?? user?.user_metadata?.insignia ?? null;
     setSelectedFrame(frame);
     setSelectedGradient(gradient);
-    setSelectedTheme(theme);
+    setSelectedInsignia(insignia);
   }, [dbUser, user]);
-
-  const handleApplyTheme = async (themeId: string | null) => {
-    const previousTheme = selectedTheme;
-    setSelectedTheme(themeId);
-    
-    try {
-      setIsUpdatingTheme(true);
-      setStatus(null);
-      
-      const response = await fetch('/api/user/profile-theme', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ themeId })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to update theme');
-      
-      const { error: syncError } = await supabase.auth.updateUser({
-        data: { theme_preference: themeId }
-      });
-      if (syncError) throw syncError;
-      
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('profile-theme-updated', { detail: themeId }));
-      }
-
-      if (dbUser) {
-        setDbUser({ ...dbUser, theme_preference: themeId });
-      }
-      
-      if (user) {
-        setUser({
-          ...user,
-          user_metadata: {
-            ...user.user_metadata,
-            theme_preference: themeId
-          }
-        });
-      }
-      
-      setStatus({ type: 'success', message: themeId ? 'Profile theme applied!' : 'Theme reset to default!' });
-      setIsThemeModalOpen(false);
-      router.refresh();
-    } catch (error: any) {
-      setSelectedTheme(previousTheme);
-      setStatus({ type: 'error', message: error.message || 'Failed to update theme' });
-    } finally {
-      setIsUpdatingTheme(false);
-    }
-  };
 
   const handleApplyGradient = async (gradientId: string | null) => {
     const previousGradient = selectedGradient;
@@ -356,6 +353,47 @@ export default function AccountSettings() {
       setStatus({ type: 'error', message: error.message || 'Failed to update avatar frame' });
     } finally {
       setIsUpdatingFrame(false);
+    }
+  };
+
+  const handleApplyInsignia = async (insigniaId: string | null) => {
+    const previous = selectedInsignia;
+    setSelectedInsignia(insigniaId);
+    try {
+      setIsUpdatingInsignia(true);
+      setStatus(null);
+      const res = await fetch('/api/user/insignia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ insigniaId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update insignia');
+
+      await supabase.auth.updateUser({
+        data: { insignia: insigniaId },
+      });
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('insignia-updated', { detail: insigniaId }));
+      }
+      if (dbUser) setDbUser({ ...dbUser, insignia: insigniaId });
+      if (user) {
+        setUser({
+          ...user,
+          user_metadata: {
+            ...user.user_metadata,
+            insignia: insigniaId,
+          },
+        });
+      }
+      setStatus({ type: 'success', message: insigniaId ? 'Creator Insignia applied!' : 'Insignia removed!' });
+      router.refresh();
+    } catch (err: any) {
+      setSelectedInsignia(previous);
+      setStatus({ type: 'error', message: err.message || 'Failed to update insignia' });
+    } finally {
+      setIsUpdatingInsignia(false);
     }
   };
 
@@ -633,284 +671,394 @@ export default function AccountSettings() {
              </AnimatePresence>
              <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }} className="space-y-8">
                 {activeTab === 'profile' && (
-                   <div className="space-y-8">
-                      <section className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3rem] border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-purple-500/[0.03] p-6 sm:p-8 md:p-12 backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.6)]">
-                         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
-                         <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
-                         
-                         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 relative z-10">
-                             <div className="relative group/avatar flex flex-col items-center">
-                                <div className="absolute -inset-3 bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 rounded-full opacity-30 blur-lg group-hover/avatar:opacity-60 transition-opacity duration-700 animate-pulse" />
-                                <div onClick={() => !isUploading && fileInputRef.current?.click()} className="relative cursor-pointer group/inner shadow-2xl rounded-[30px] overflow-hidden border border-white/20">
-                                   <AvatarWithFrame 
-                                     avatarUrl={displayAvatarUrl}
-                                     displayName={name || 'User'}
-                                     isPro={isPro}
-                                     frameId={selectedFrame || undefined}
-                                     size="xl"
-                                   />
-                                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/inner:opacity-100 flex flex-col items-center justify-center transition-all duration-300 z-30 backdrop-blur-xs">
-                                     <Camera size={22} className="text-purple-300 mb-1 animate-bounce" />
-                                     <span className="text-[8px] font-black uppercase tracking-widest text-white">Change Avatar</span>
-                                   </div>
-                                </div>
-                                <input type="file" ref={fileInputRef} onChange={onFileChange} className="hidden" accept="image/*" />
-                             </div>
+                   <div className="space-y-6">
+                      {/* Clean Luxury Profile Settings Card */}
+                      <div className="relative w-full rounded-[2.5rem] overflow-hidden border border-white/10 bg-[#070814]/90 p-6 sm:p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-3xl">
+                         {/* Subtle Ambient Top Glow */}
+                         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-purple-500/10 via-cyan-500/5 to-transparent pointer-events-none" />
 
-                             <div className="flex-1 w-full space-y-7">
-                               <div className="space-y-2">
-                                  <div className="flex flex-wrap items-center gap-3">
-                                     <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white min-w-0 break-words drop-shadow-md">
-                                        <PremiumName name={name || 'Anonymous User'} isPro={isPro} gradientId={selectedGradient} />
-                                     </h2>
-                                     <div suppressHydrationWarning className={cn("px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg", isPro ? "bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-purple-300 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.2)]" : "bg-white/10 text-zinc-400 border border-white/10")}>
-                                       {isPro ? "★ Pro VIP Member" : "Free Tier Explorer"}
-                                     </div>
-                                  </div>
-                                  <p className="text-xs font-semibold text-zinc-400">{user.email}</p>
+                         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10">
+                            {/* Avatar */}
+                            <div className="relative group/avatar flex flex-col items-center shrink-0">
+                               <div className="absolute -inset-3 bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 rounded-full opacity-40 blur-lg group-hover/avatar:opacity-70 transition-opacity duration-700 animate-pulse" />
+                               <div 
+                                 onClick={() => !isUploading && fileInputRef.current?.click()} 
+                                 className="relative cursor-pointer group/inner shadow-[0_15px_40px_rgba(0,0,0,0.8)] rounded-[32px] overflow-hidden border-2 border-white/30 ring-4 ring-[#070814]"
+                               >
+                                 <AvatarWithFrame 
+                                   avatarUrl={displayAvatarUrl}
+                                   displayName={name || 'User'}
+                                   isPro={isPro}
+                                   frameId={selectedFrame || undefined}
+                                   size="xl"
+                                 />
+                                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/inner:opacity-100 flex flex-col items-center justify-center transition-all duration-300 z-30 backdrop-blur-xs">
+                                   <Camera size={22} className="text-purple-300 mb-1 animate-bounce" />
+                                   <span className="text-[8px] font-black uppercase tracking-widest text-white">Change Avatar</span>
+                                 </div>
+                               </div>
+                               <input type="file" ref={fileInputRef} onChange={onFileChange} className="hidden" accept="image/*" />
+                            </div>
+
+                            {/* Identity Summary & Form */}
+                            <div className="flex-1 w-full space-y-6 pt-1">
+                               <div className="space-y-1 text-center md:text-left">
+                                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                                   <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tight text-white min-w-0 break-words drop-shadow-md">
+                                     <PremiumName 
+                                       name={name || 'Anonymous User'} 
+                                       isPro={isPro} 
+                                       gradientId={selectedGradient} 
+                                       insigniaId={selectedInsignia || undefined} 
+                                     />
+                                   </h2>
+                                   <div className={cn(
+                                     "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md border",
+                                     isPro
+                                       ? "bg-purple-500/25 text-purple-200 border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                       : "bg-white/[0.05] text-zinc-400 border-white/10"
+                                   )}>
+                                     {isPro ? "★ Pro VIP Member" : "Creator Explorer"}
+                                   </div>
+                                 </div>
+                                 <p className="text-xs font-semibold text-zinc-400">{user.email}</p>
                                </div>
 
-                               <div className="space-y-2.5">
-                                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/80 ml-1">Full Name</label>
-                                  <div className="relative group">
+                               <div className="space-y-4 pt-2">
+                                 <div className="space-y-2">
+                                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/80 ml-1">Full Name</label>
+                                   <div className="relative group">
                                      <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-purple-400 transition-colors" size={20} />
                                      <input 
                                        type="text" 
                                        value={name} 
                                        onChange={(e) => setName(e.target.value)} 
-                                       className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-white focus:bg-black/60 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all shadow-inner" 
+                                       className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pl-12 pr-6 text-sm font-bold text-white focus:bg-black/60 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all shadow-inner" 
                                        placeholder="Enter your full name"
                                      />
-                                  </div>
-                               </div>
+                                   </div>
+                                 </div>
 
-                               <div className="space-y-2.5">
-                                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Email Address</label>
-                                  <div className="relative">
+                                 <div className="space-y-2">
+                                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Email Address</label>
+                                   <div className="relative">
                                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={20} />
                                      <input 
                                        type="text" 
                                        value={user.email} 
                                        readOnly 
-                                       className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-zinc-500 cursor-not-allowed select-none" 
+                                       className="w-full bg-black/20 border border-white/5 rounded-2xl py-3.5 pl-12 pr-6 text-sm font-bold text-zinc-500 cursor-not-allowed select-none" 
+                                     />
+                                   </div>
+                                 </div>
+
+                                 <div className="pt-2">
+                                   <button 
+                                     onClick={handleUpdateProfile} 
+                                     disabled={isUpdating || name === (user.user_metadata?.full_name || "")} 
+                                     className="group relative isolate flex min-h-12 w-full sm:w-auto items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
+                                   >
+                                     {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} className="group-hover:scale-110 transition-transform" />}
+                                     <span>Save Changes</span>
+                                   </button>
+                                 </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+
+                      {/* Profile Customization Section - Accessible to All Creators */}
+                      <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#06070f]/80 p-6 sm:p-8 shadow-[0_24px_90px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
+                         {/* Ambient Background Glows */}
+                         <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-purple-600/10 blur-[100px]" />
+                         <div className="pointer-events-none absolute -bottom-28 right-10 h-64 w-64 rounded-full bg-cyan-500/10 blur-[100px]" />
+
+                         {/* Header Row */}
+                         <div className="relative z-10 mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.06] pb-6">
+                            <div className="space-y-1.5">
+                               <div className="flex items-center gap-2">
+                                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-500/15 border border-cyan-400/30 text-cyan-300">
+                                     <Palette size={13} />
+                                  </div>
+                                  <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">Creator Identity</span>
+                               </div>
+                               <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Profile Customization</h3>
+                               <p className="text-xs text-zinc-400 max-w-xl">Equip your unlocked avatar frames, name styles, and insignias. Unlock new looks using Sparks in the Rewards Shop.</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                               <Link 
+                                 href="/rewards" 
+                                 className="group flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-400/30 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 hover:text-amber-200 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.15)] hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] active:scale-95"
+                               >
+                                  <Zap size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                                  <span>Sparks Rewards Shop</span>
+                                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                               </Link>
+                            </div>
+                         </div>
+                         {/* Main Layout: Live Profile Identity Card (Left) + Customization Studio Slots (Right) */}
+                         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                            
+                            {/* Left: Centerpiece Live Profile Identity Card */}
+                            <div className="lg:col-span-5 relative rounded-[2rem] border border-white/10 bg-gradient-to-b from-[#0f1120]/95 via-[#090b16]/95 to-[#05060d]/98 p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl flex flex-col justify-between overflow-hidden">
+                               {/* Ambient glow inside identity card */}
+                               <div className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-purple-500/15 blur-[70px]" />
+                               
+                               {/* Card Header: Live indicator & Tier status */}
+                               <div className="flex items-center justify-between gap-2 relative z-10">
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+                                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                     Live Identity Preview
+                                  </span>
+                                  {isPro ? (
+                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                                        <Crown size={11} className="text-purple-400" />
+                                        PRO VIP
+                                     </span>
+                                  ) : (
+                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-zinc-400">
+                                        Creator
+                                     </span>
+                                  )}
+                                </div>
+
+                               {/* Center Stage: Unified Avatar + Frame + Name + Insignia */}
+                               <div className="my-7 flex flex-col items-center justify-center text-center relative z-10">
+                                  <div className="relative mb-4">
+                                     <AvatarWithFrame
+                                        avatarUrl={displayAvatarUrl}
+                                        displayName={name || 'Creator'}
+                                        isPro={isPro}
+                                        frameId={selectedFrame || undefined}
+                                        size="xl"
                                      />
                                   </div>
+
+                                  {/* Name + Insignia Badge */}
+                                  <div className="flex items-center justify-center gap-2 flex-wrap max-w-full px-2">
+                                     <PremiumName
+                                        name={name || 'Exismic Creator'}
+                                        isPro={isPro}
+                                        gradientId={selectedGradient}
+                                        insigniaId={selectedInsignia || undefined}
+                                        className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-center"
+                                     />
+                                  </div>
+
+                                  {/* Handle */}
+                                  <p className="mt-1 text-xs font-semibold text-zinc-400">
+                                     @{username || (user?.email ? user.email.split('@')[0] : 'creator')}
+                                  </p>
+
+                                  {/* Equipped items summary indicators */}
+                                  <div className="mt-4 flex items-center gap-1.5 flex-wrap justify-center">
+                                     <span className={cn(
+                                        "px-2.5 py-0.5 rounded-full text-[10px] font-semibold border transition-colors",
+                                        selectedFrame ? "bg-purple-500/15 border-purple-500/30 text-purple-300" : "bg-white/5 border-white/10 text-zinc-500"
+                                     )}>
+                                        Frame: {PRO_FRAMES.find(f => f.id === selectedFrame)?.name || "Default"}
+                                     </span>
+                                     <span className={cn(
+                                        "px-2.5 py-0.5 rounded-full text-[10px] font-semibold border transition-colors",
+                                        selectedGradient ? "bg-cyan-500/15 border-cyan-500/30 text-cyan-300" : "bg-white/5 border-white/10 text-zinc-500"
+                                     )}>
+                                        Style: {NAME_GRADIENTS.find(g => g.id === selectedGradient)?.name || "White"}
+                                     </span>
+                                     <span className={cn(
+                                        "px-2.5 py-0.5 rounded-full text-[10px] font-semibold border transition-colors",
+                                        selectedInsignia ? "bg-amber-500/15 border-amber-500/30 text-amber-300" : "bg-white/5 border-white/10 text-zinc-500"
+                                     )}>
+                                        Insignia: {CREATOR_INSIGNIAS.find(i => i.id === selectedInsignia)?.name || "None"}
+                                     </span>
+                                  </div>
                                </div>
 
-                               <button 
-                                 onClick={handleUpdateProfile} 
-                                 disabled={isUpdating || name === (user.user_metadata?.full_name || "")} 
-                                 className="group relative isolate flex min-h-12 w-full sm:w-auto items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
-                               >
-                                  {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} className="group-hover:scale-110 transition-transform" />}
-                                  <span>Save Changes</span>
-                               </button>
-                             </div>
-                         </div>
-                       </section>
-
-                      {/* Pro Customization Section */}
-                      {isPro && (
-                      <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.025] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:p-6">
-                         <div className="absolute -top-24 left-10 h-56 w-56 rounded-full bg-purple-500/10 blur-[90px] pointer-events-none" />
-                         <div className="absolute -bottom-28 right-10 h-60 w-60 rounded-full bg-cyan-400/8 blur-[95px] pointer-events-none" />
-
-                         <div className="relative z-10 mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                            <div className="space-y-1">
-                               <div className="flex items-center gap-2 text-amber-300">
-                                  <Crown size={17} />
-                                  <span className="text-xs font-bold text-amber-200/90">Exclusive Pro Features</span>
+                               {/* Card Footer Note */}
+                               <div className="relative z-10 flex items-center justify-center gap-2 text-[11px] text-zinc-400 border-t border-white/[0.06] pt-4">
+                                  <Eye size={13} className="text-zinc-400 shrink-0" />
+                                  <span>Live preview across all AI studios & public creations</span>
                                </div>
-                               <h3 className="text-2xl font-black italic uppercase tracking-tight text-white md:text-3xl">Profile Customization</h3>
                             </div>
-                            <span className="w-fit rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.12)]">Pro VIP</span>
-                         </div>
 
-                         <div className="relative z-10 grid grid-cols-1 gap-5 xl:grid-cols-2">
-                            <motion.div
-                               whileHover={{ y: -4 }}
-                               transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                               className="group/pro-card relative min-h-[265px] overflow-hidden rounded-[2rem] border border-purple-300/10 bg-[#090910]/70 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(76,29,149,0.16)] backdrop-blur-xl"
-                            >
-                               <div className="absolute inset-0 bg-linear-to-br from-purple-400/10 via-white/[0.02] to-pink-400/8 opacity-80 transition-opacity duration-500 group-hover/pro-card:opacity-100" />
-                               <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-purple-500/12 blur-[60px] transition-all duration-500 group-hover/pro-card:bg-purple-400/18" />
-                               <div className="relative z-10 flex h-full flex-col justify-between gap-6">
-                                  <div className="flex items-start justify-between gap-4">
-                                     <div className="space-y-2">
-                                        <div className="flex items-center gap-2 text-purple-200">
-                                           <Sparkles size={16} className="fill-purple-200/20" />
-                                           <h4 className="text-lg font-black uppercase tracking-tight text-white">Avatar Frames</h4>
+                            {/* Right: Customization Slots Rack */}
+                            <div className="lg:col-span-7 flex flex-col justify-between gap-3.5">
+                               
+                               {/* Slot 1: Avatar Frame */}
+                               <div className="group/slot relative rounded-2xl border border-white/10 bg-gradient-to-r from-[#0c0e1a]/90 via-[#070812]/95 to-[#06070e]/95 p-4 sm:p-5 shadow-lg backdrop-blur-xl hover:border-purple-500/40 transition-all">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                     <div className="flex items-center gap-3.5 min-w-0">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)] group-hover/slot:scale-105 transition-transform">
+                                           <UserCircle size={24} />
                                         </div>
-                                        <p className="max-w-sm text-[10px] font-bold uppercase leading-relaxed tracking-widest text-zinc-500">Animated metallic edges with a softer signature glow.</p>
-                                     </div>
-                                     <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-zinc-400">Selected</span>
-                                  </div>
-
-                                  <div className="flex items-center gap-5">
-                                     <div className="relative rounded-[2rem] border border-white/10 bg-black/25 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                                        <AvatarWithFrame
-                                          avatarUrl={displayAvatarUrl}
-                                           displayName={name || 'User'}
-                                           isPro={isPro}
-                                           frameId={selectedFrame || undefined}
-                                           size="lg"
-                                        />
-                                     </div>
-                                     <div className="min-w-0 space-y-2">
-                                        <p className="text-[9px] font-black uppercase tracking-[0.28em] text-zinc-600">Current Frame</p>
-                                        <p className="truncate text-xl font-black italic uppercase tracking-tighter text-white">
-                                           {PRO_FRAMES.find((frame) => frame.id === selectedFrame)?.name || "Signature Gradient"}
-                                        </p>
-                                        <p className="text-xs font-medium leading-relaxed text-zinc-500">A refined profile frame for the full Exismic identity system.</p>
-                                     </div>
-                                  </div>
-
-                                  <div className="flex flex-wrap gap-3">
-                                     <button
-                                        onClick={() => setIsFrameModalOpen(true)}
-                                        className="group/button flex items-center gap-2 rounded-2xl bg-linear-to-r from-purple-500 via-fuchsia-500 to-amber-300 px-5 py-3 text-[9px] font-black uppercase tracking-widest text-white shadow-[0_14px_35px_rgba(168,85,247,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(168,85,247,0.34)] active:scale-98"
-                                     >
-                                        <LayoutGrid size={14} />
-                                        Browse Frames
-                                        <ArrowRight size={13} className="transition-transform group-hover/button:translate-x-0.5" />
-                                     </button>
-                                     {selectedFrame && (
-                                        <button
-                                           onClick={() => handleApplyFrame(null)}
-                                           disabled={isUpdatingFrame}
-                                           className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-50"
-                                        >
-                                           Remove
-                                        </button>
-                                     )}
-                                  </div>
-                               </div>
-                            </motion.div>
-
-                            <motion.div
-                               whileHover={{ y: -4 }}
-                               transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                               className="group/pro-card relative min-h-[265px] overflow-hidden rounded-[2rem] border border-cyan-300/10 bg-[#090910]/70 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(8,145,178,0.14)] backdrop-blur-xl"
-                            >
-                               <div className="absolute inset-0 bg-linear-to-br from-cyan-300/10 via-white/[0.02] to-blue-500/8 opacity-80 transition-opacity duration-500 group-hover/pro-card:opacity-100" />
-                               <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-cyan-400/12 blur-[60px] transition-all duration-500 group-hover/pro-card:bg-cyan-300/18" />
-                               <div className="relative z-10 flex h-full flex-col justify-between gap-6">
-                                  <div className="flex items-start justify-between gap-4">
-                                     <div className="space-y-2">
-                                        <div className="flex items-center gap-2 text-cyan-200">
-                                           <Type size={16} />
-                                           <h4 className="text-lg font-black uppercase tracking-tight text-white">Name Style</h4>
-                                        </div>
-                                        <p className="max-w-sm text-[10px] font-bold uppercase leading-relaxed tracking-widest text-zinc-500">Premium gradients that travel with your profile.</p>
-                                     </div>
-                                     <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-zinc-400">Selected</span>
-                                  </div>
-
-                                  <div className="space-y-4">
-                                     <div className="relative overflow-hidden rounded-[1.65rem] border border-white/10 bg-black/30 px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                                        <div className="absolute inset-x-8 bottom-0 h-px bg-linear-to-r from-transparent via-cyan-200/35 to-transparent" />
-                                        <PremiumName name={name || 'BMR.EZ'} isPro={isPro} gradientId={selectedGradient} className="text-3xl font-black uppercase tracking-tighter" />
-                                     </div>
-                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black uppercase tracking-[0.28em] text-zinc-600">Current Style</p>
-                                        <p className="text-xl font-black italic uppercase tracking-tighter text-white">
-                                           {NAME_GRADIENTS.find((gradient) => gradient.id === selectedGradient)?.name || "Cyber Purple"}
-                                        </p>
-                                     </div>
-                                  </div>
-
-                                  <div className="flex flex-wrap gap-3">
-                                     <button
-                                        onClick={() => setIsGradientModalOpen(true)}
-                                        className="group/button flex items-center gap-2 rounded-2xl bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 px-5 py-3 text-[9px] font-black uppercase tracking-widest text-white shadow-[0_14px_35px_rgba(6,182,212,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(6,182,212,0.32)] active:scale-98"
-                                     >
-                                        <LayoutGrid size={14} />
-                                        Browse Name Styles
-                                        <ArrowRight size={13} className="transition-transform group-hover/button:translate-x-0.5" />
-                                     </button>
-                                     {selectedGradient && (
-                                        <button
-                                           onClick={() => handleApplyGradient(null)}
-                                           disabled={isUpdatingGradient}
-                                           className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-50"
-                                        >
-                                           Remove
-                                        </button>
-                                     )}
-                                  </div>
-                               </div>
-                            </motion.div>
-
-                            <motion.div
-                               whileHover={{ y: -4 }}
-                               transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                               className="group/pro-card relative min-h-[240px] overflow-hidden rounded-[2rem] border border-amber-300/10 bg-[#08080d]/75 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(245,158,11,0.10)] backdrop-blur-xl xl:col-span-2"
-                            >
-                               <div className="absolute inset-0 bg-linear-to-br from-amber-300/8 via-purple-400/[0.04] to-cyan-300/8 opacity-80 transition-opacity duration-500 group-hover/pro-card:opacity-100" />
-                               <div className="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-amber-300/10 blur-[70px]" />
-                               <div className="absolute -bottom-20 right-0 h-56 w-56 rounded-full bg-cyan-300/10 blur-[80px]" />
-                               <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-center">
-                                  <div className="space-y-6">
-                                     <div className="flex items-start justify-between gap-4">
-                                        <div className="space-y-2">
-                                           <div className="flex items-center gap-2 text-amber-200">
-                                              <Crown size={16} className="fill-amber-200/20" />
-                                              <h4 className="text-lg font-black uppercase tracking-tight text-white">Custom Profile Themes</h4>
+                                        <div className="min-w-0 space-y-0.5">
+                                           <div className="flex items-center gap-2">
+                                              <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400">Avatar Frame</span>
+                                              {selectedFrame ? (
+                                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                                                    Equipped
+                                                 </span>
+                                              ) : (
+                                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-zinc-400">
+                                                    Default
+                                                 </span>
+                                              )}
                                            </div>
-                                           <p className="max-w-2xl text-[10px] font-bold uppercase leading-relaxed tracking-widest text-zinc-500">
-                                              Give your dashboard, sidebar, navbar, AI chat, and settings a signature Pro atmosphere.
+                                           <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                                              {PRO_FRAMES.find((f) => f.id === selectedFrame)?.name || "Standard Profile"}
+                                           </h4>
+                                           <p className="text-xs text-zinc-400">
+                                              {selectedFrame ? "Custom animated ring surrounding your profile picture" : "No custom frame equipped"}
                                            </p>
                                         </div>
-                                        <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-amber-200">Pro Only</span>
                                      </div>
 
-                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black uppercase tracking-[0.28em] text-zinc-600">Current Theme</p>
-                                        <p className="text-2xl font-black italic uppercase tracking-tighter text-white">
-                                           {CUSTOM_THEMES.find((theme) => theme.id === selectedTheme)?.name || "Default Midnight"}
-                                        </p>
-                                        <p className="text-xs font-medium leading-relaxed text-zinc-500">
-                                           Hover theme cards for live preview, then apply the one that feels like your creative identity.
-                                        </p>
-                                     </div>
-
-                                     <div className="flex flex-wrap gap-3">
+                                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                                         <button
-                                           onClick={() => setIsThemeModalOpen(true)}
-                                           className="group/button flex items-center gap-2 rounded-2xl bg-linear-to-r from-amber-300 via-purple-500 to-cyan-400 px-5 py-3 text-[9px] font-black uppercase tracking-widest text-white shadow-[0_14px_35px_rgba(245,158,11,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(6,182,212,0.26)] active:scale-98"
+                                           onClick={() => setIsFrameModalOpen(true)}
+                                           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 hover:border-purple-500/60 text-purple-200 font-bold text-xs transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] active:scale-95 cursor-pointer"
                                         >
                                            <LayoutGrid size={14} />
-                                           Browse Themes
-                                           <ArrowRight size={13} className="transition-transform group-hover/button:translate-x-0.5" />
+                                           <span>{selectedFrame ? "Change Frame" : "Browse Frames"}</span>
                                         </button>
-                                        {selectedTheme && (
+                                        {selectedFrame && (
                                            <button
-                                              onClick={() => handleApplyTheme(null)}
-                                              disabled={isUpdatingTheme}
-                                              className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-50"
+                                              onClick={() => handleApplyFrame(null)}
+                                              disabled={isUpdatingFrame}
+                                              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/30 text-zinc-400 hover:text-red-300 transition-all disabled:opacity-50 cursor-pointer"
+                                              title="Reset to default frame"
                                            >
-                                              Reset Theme
+                                              <RotateCcw size={14} />
                                            </button>
                                         )}
                                      </div>
                                   </div>
+                               </div>
 
-                                  <div className="grid grid-cols-3 gap-3">
-                                     {CUSTOM_THEMES.map((theme) => (
-                                        <div key={theme.id} className={cn("h-20 rounded-2xl border p-2 shadow-inner", theme.previewStyle, selectedTheme === theme.id && "ring-2 ring-white/70")}>
-                                           <div className="flex h-full items-end gap-1.5">
-                                              {theme.colorDots.map((dot, index) => (
-                                                 <span key={index} className={cn("h-2.5 w-2.5 rounded-full border border-white/20", dot)} />
-                                              ))}
-                                           </div>
+                               {/* Slot 2: Name Style */}
+                               <div className="group/slot relative rounded-2xl border border-white/10 bg-gradient-to-r from-[#0a1120]/90 via-[#060a14]/95 to-[#04060c]/95 p-4 sm:p-5 shadow-lg backdrop-blur-xl hover:border-cyan-500/40 transition-all">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                     <div className="flex items-center gap-3.5 min-w-0">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover/slot:scale-105 transition-transform">
+                                           <Type size={22} />
                                         </div>
-                                     ))}
+                                        <div className="min-w-0 space-y-0.5">
+                                           <div className="flex items-center gap-2">
+                                              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">Name Style</span>
+                                              {selectedGradient ? (
+                                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                                                    Equipped
+                                                 </span>
+                                              ) : (
+                                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-zinc-400">
+                                                    Default
+                                                 </span>
+                                              )}
+                                           </div>
+                                           <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                                              {NAME_GRADIENTS.find((g) => g.id === selectedGradient)?.name || "Classic White"}
+                                           </h4>
+                                           <p className="text-xs text-zinc-400">
+                                              {selectedGradient ? "Animated glowing gradient applied to your name" : "Standard white typography"}
+                                           </p>
+                                        </div>
+                                     </div>
+
+                                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                        <button
+                                           onClick={() => setIsGradientModalOpen(true)}
+                                           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 hover:border-cyan-400/60 text-cyan-200 font-bold text-xs transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-95 cursor-pointer"
+                                        >
+                                           <LayoutGrid size={14} />
+                                           <span>{selectedGradient ? "Change Style" : "Browse Styles"}</span>
+                                        </button>
+                                        {selectedGradient && (
+                                           <button
+                                              onClick={() => handleApplyGradient(null)}
+                                              disabled={isUpdatingGradient}
+                                              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/30 text-zinc-400 hover:text-red-300 transition-all disabled:opacity-50 cursor-pointer"
+                                              title="Reset to default style"
+                                           >
+                                              <RotateCcw size={14} />
+                                           </button>
+                                        )}
+                                     </div>
                                   </div>
                                </div>
-                            </motion.div>
+
+                               {/* Slot 3: Creator Insignia */}
+                               <div className="group/slot relative rounded-2xl border border-white/10 bg-gradient-to-r from-[#171308]/90 via-[#0d0a04]/95 to-[#080602]/95 p-4 sm:p-5 shadow-lg backdrop-blur-xl hover:border-amber-500/40 transition-all">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                     <div className="flex items-center gap-3.5 min-w-0">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover/slot:scale-105 transition-transform">
+                                           <ShieldCheck size={22} />
+                                        </div>
+                                        <div className="min-w-0 space-y-0.5">
+                                           <div className="flex items-center gap-2">
+                                              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Creator Insignia</span>
+                                              {selectedInsignia ? (
+                                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                                                    Equipped
+                                                 </span>
+                                              ) : (
+                                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-zinc-400">
+                                                    Default
+                                                 </span>
+                                              )}
+                                           </div>
+                                           <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                                              {CREATOR_INSIGNIAS.find((i) => i.id === selectedInsignia)?.name || "No Insignia Active"}
+                                           </h4>
+                                           <p className="text-xs text-zinc-400">
+                                              {CREATOR_INSIGNIAS.find((i) => i.id === selectedInsignia)?.description || "Signature title emblem displayed next to your username"}
+                                           </p>
+                                        </div>
+                                     </div>
+
+                                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                        <button
+                                           onClick={() => setActiveCosmeticModal("insignia")}
+                                           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 hover:border-amber-400/60 text-amber-200 font-bold text-xs transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] active:scale-95 cursor-pointer"
+                                        >
+                                           <LayoutGrid size={14} />
+                                           <span>{selectedInsignia ? "Change Insignia" : "Browse Insignias"}</span>
+                                        </button>
+                                        {selectedInsignia && (
+                                           <button
+                                              onClick={() => handleApplyInsignia(null)}
+                                              disabled={isUpdatingInsignia}
+                                              className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/30 text-zinc-400 hover:text-red-300 transition-all disabled:opacity-50 cursor-pointer"
+                                              title="Reset to default insignia"
+                                           >
+                                              <RotateCcw size={14} />
+                                           </button>
+                                        )}
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* Bottom Rewards Shop Promotion Bar */}
+                               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl border border-white/[0.08] bg-gradient-to-r from-amber-500/[0.08] via-purple-500/[0.04] to-transparent">
+                                  <div className="flex items-center gap-3">
+                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-300 shrink-0">
+                                        <Zap size={16} />
+                                     </div>
+                                     <div>
+                                        <p className="text-xs font-bold text-white">Looking for new cosmetic drops?</p>
+                                        <p className="text-[11px] text-zinc-400">Unlock limited-edition frames, name styles, and insignias using Sparks in the shop.</p>
+                                     </div>
+                                  </div>
+                                  <Link
+                                     href="/rewards"
+                                     className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-xs transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] shrink-0 active:scale-95"
+                                  >
+                                     <span>Explore Shop</span>
+                                     <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                  </Link>
+                               </div>
+
+                            </div>
                          </div>
                       </section>
-                      )}
                    </div>
                 )}
                 {activeTab === 'credits' && (
@@ -947,7 +1095,7 @@ export default function AccountSettings() {
                             
                             <div className="relative z-10 space-y-7">
                                <div className="flex items-center gap-4">
-                                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-500/20 bg-[linear-gradient(115deg,rgba(168,85,247,0.1),rgba(168,85,247,0.02))] text-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:border-purple-500/40 group-hover:bg-purple-500/10"><Sparkles size={20} className="animate-pulse" /></div>
+                                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-500/20 bg-[linear-gradient(115deg,rgba(168,85,247,0.1),rgba(168,85,247,0.02))] text-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:border-purple-500/40 group-hover:bg-purple-500/10"><Coins size={20} className="text-purple-400" /></div>
                                   <span className="text-[10px] font-black uppercase tracking-[0.35em] text-purple-500/70 group-hover:text-purple-400 transition-colors">Permanent Reserve</span>
                                </div>
                                <div suppressHydrationWarning className="space-y-1">
@@ -1184,8 +1332,12 @@ export default function AccountSettings() {
                                   <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mt-2">
                                     {isPro 
                                       ? dbUser?.subscription_status === 'cancelled' 
-                                        ? <span className="text-amber-400/80">Pro access ends on: {new Date(dbUser.plan_expires_at).toLocaleDateString()}</span>
-                                        : `Next billing date: June 1, 2026` 
+                                        ? <span className="text-amber-400/80">Pro access ends on: {dbUser?.plan_expires_at ? new Date(dbUser.plan_expires_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'End of period'}</span>
+                                        : dbUser?.subscription_status === 'past_due' || dbUser?.subscription_status === 'halted'
+                                        ? <span className="text-rose-400">Payment past due — Please renew</span>
+                                        : dbUser?.plan_expires_at
+                                        ? `Next billing date: ${new Date(dbUser.plan_expires_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`
+                                        : "Active Membership"
                                       : "Upgrade for premium AI tools"}
                                   </p>
                                 </div>
@@ -1339,19 +1491,23 @@ export default function AccountSettings() {
              </motion.div>
           </div>
         </div>
-      </div>      {/* Dynamic Pro Avatar Frames Browser Modal */}
-      <AnimatePresence>
-        {isPro && isFrameModalOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-2xl p-3 sm:p-6 md:p-10"
-          >
-            <div className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9)]">
-               {/* Neon Laser Top Accent */}
-               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 shadow-[0_0_20px_rgba(168,85,247,0.8)] z-30" />
-               
+      </div>
+
+      {/* Dynamic Pro Avatar Frames Browser Modal */}
+      <Portal>
+        <AnimatePresence>
+          {isFrameModalOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setIsFrameModalOpen(false)}
+              className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-3 sm:p-6 md:p-10"
+            >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border-2 border-purple-500/40 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_40px_rgba(168,85,247,0.2)]"
+            >
                {/* Ambient Glows */}
                <div className="pointer-events-none absolute -top-24 right-0 w-96 h-96 bg-purple-600/15 blur-[120px]" />
                <div className="pointer-events-none absolute -bottom-24 left-0 w-96 h-96 bg-cyan-500/10 blur-[120px]" />
@@ -1364,7 +1520,7 @@ export default function AccountSettings() {
                      </div>
                      <div>
                         <div className="flex items-center gap-2.5">
-                          <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Pro Avatar Frames</h2>
+                          <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Avatar Frames</h2>
                           <span className="rounded-full border border-purple-400/30 bg-purple-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-purple-300">
                             {PRO_FRAMES.length} Styles
                           </span>
@@ -1386,17 +1542,32 @@ export default function AccountSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                      {PRO_FRAMES.map((frame) => {
                         const isSelected = selectedFrame === frame.id;
+                        const isIncludedWithPro = PRO_INCLUDED_AVATAR_FRAMES.has(frame.id);
+                        const isUnlocked = userUnlockedFrames.includes(frame.id) || (isPro && isIncludedWithPro);
                         return (
                            <motion.div 
                               key={frame.id} 
                               whileHover={{ y: -4 }}
                               whileTap={{ scale: 0.98 }}
-                              onClick={() => !isUpdatingFrame && handleApplyFrame(frame.id)}
+                              onClick={() => {
+                                if (isUnlocked) {
+                                  if (!isUpdatingFrame) handleApplyFrame(frame.id);
+                                } else {
+                                  setStatus({
+                                    type: "error",
+                                    message: isIncludedWithPro
+                                      ? "Upgrade to Pro to equip this frame, or unlock it in the Sparks Rewards shop!"
+                                      : "Unlock this frame with Exismic Sparks in the Rewards shop!",
+                                  });
+                                }
+                              }}
                               className={cn(
                                  "p-5 rounded-3xl backdrop-blur-xl border flex flex-col items-center justify-between gap-5 cursor-pointer transition-all duration-300 group/frame relative overflow-hidden",
                                  isSelected 
                                    ? "bg-gradient-to-b from-[#16122c]/95 via-[#100d22]/95 to-[#090814]/95 border-purple-400/80 shadow-[0_0_35px_rgba(168,85,247,0.35)]" 
-                                   : "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-purple-400/40 hover:bg-[#101224]/80 shadow-lg"
+                                   : isUnlocked
+                                     ? "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-purple-400/40 hover:bg-[#101224]/80 shadow-lg"
+                                     : "bg-gradient-to-b from-[#08080f]/60 to-[#04040a]/60 border-white/5 opacity-70 hover:opacity-100 shadow-md"
                               )}
                            >
                               {/* Ambient Orb Glow behind the card */}
@@ -1437,20 +1608,32 @@ export default function AccountSettings() {
                                     "inline-block px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border transition-all duration-300",
                                     isSelected 
                                       ? "bg-purple-500/25 text-purple-300 border-purple-500/40" 
-                                      : "bg-white/[0.04] border-white/10 text-zinc-500 group-hover/frame:text-zinc-300"
+                                      : isUnlocked
+                                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                                        : isIncludedWithPro
+                                          ? "bg-purple-500/15 border-purple-500/30 text-purple-300"
+                                          : "bg-amber-500/10 border-amber-500/30 text-amber-300"
                                  )}>
-                                    Pro Elite
+                                    {isSelected ? "Equipped" : isUnlocked ? "Unlocked" : isIncludedWithPro ? "Pro Perk" : "Sparks Shop"}
                                  </span>
                               </div>
                               
                               {/* Selection Button */}
                               <button 
                                  type="button"
+                                 onClick={(e) => {
+                                    if (!isUnlocked) {
+                                      e.stopPropagation();
+                                      router.push("/rewards");
+                                    }
+                                 }}
                                  className={cn(
                                     "w-full py-2.5 px-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-md flex items-center justify-center gap-1.5",
                                     isSelected 
                                       ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] font-black" 
-                                      : "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/frame:bg-purple-600 group-hover/frame:text-white group-hover/frame:border-purple-500/50 group-hover/frame:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                      : isUnlocked
+                                        ? "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/frame:bg-purple-600 group-hover/frame:text-white group-hover/frame:border-purple-500/50 group-hover/frame:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                        : "bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20"
                                  )}
                               >
                                  {isSelected ? (
@@ -1458,8 +1641,13 @@ export default function AccountSettings() {
                                      <CheckCircle2 size={13} className="text-white" />
                                      <span>Equipped</span>
                                    </>
-                                 ) : (
+                                 ) : isUnlocked ? (
                                    <span>Select Frame</span>
+                                 ) : (
+                                   <div className="flex items-center gap-1.5">
+                                     <Lock size={12} />
+                                     <span>Unlock in Shop</span>
+                                   </div>
                                  )}
                               </button>
                            </motion.div>
@@ -1493,23 +1681,26 @@ export default function AccountSettings() {
                   </div>
                </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Portal>
 
       {/* Premium Name Styles Browser Modal */}
-      <AnimatePresence>
-        {isPro && isGradientModalOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-2xl p-3 sm:p-6 md:p-10"
-          >
-            <div className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9)]">
-               {/* Neon Laser Top Accent */}
-               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 shadow-[0_0_20px_rgba(34,211,238,0.8)] z-30" />
-               
+      <Portal>
+        <AnimatePresence>
+          {isGradientModalOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setIsGradientModalOpen(false)}
+              className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-3 sm:p-6 md:p-10"
+            >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-5xl max-h-[92dvh] h-[88dvh] flex flex-col bg-[#070812] border-2 border-cyan-400/40 rounded-[2.5rem] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_40px_rgba(34,211,238,0.2)]"
+            >
                {/* Ambient Glows */}
                <div className="pointer-events-none absolute -top-24 right-0 w-96 h-96 bg-cyan-600/15 blur-[120px]" />
                <div className="pointer-events-none absolute -bottom-24 left-0 w-96 h-96 bg-purple-500/10 blur-[120px]" />
@@ -1522,7 +1713,7 @@ export default function AccountSettings() {
                      </div>
                      <div>
                         <div className="flex items-center gap-2.5">
-                          <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Pro Name Styles</h2>
+                          <h2 className="text-xl sm:text-2xl font-black text-white uppercase italic tracking-tight">Name Styles</h2>
                           <span className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-cyan-300">
                             {NAME_GRADIENTS.length} Styles
                           </span>
@@ -1544,17 +1735,32 @@ export default function AccountSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                      {NAME_GRADIENTS.map((gradient) => {
                         const isSelected = selectedGradient === gradient.id;
+                        const isIncludedWithPro = PRO_INCLUDED_NAME_STYLES.has(gradient.id);
+                        const isUnlocked = userUnlockedGradients.includes(gradient.id) || (isPro && isIncludedWithPro);
                         return (
                            <motion.div 
                               key={gradient.id} 
                               whileHover={{ y: -4 }}
                               whileTap={{ scale: 0.98 }}
-                              onClick={() => !isUpdatingGradient && handleApplyGradient(gradient.id)}
+                              onClick={() => {
+                                if (isUnlocked) {
+                                  if (!isUpdatingGradient) handleApplyGradient(gradient.id);
+                                } else {
+                                  setStatus({
+                                    type: "error",
+                                    message: isIncludedWithPro
+                                      ? "Upgrade to Pro to equip this style, or unlock it in the Sparks Rewards shop!"
+                                      : "Unlock this name style with Exismic Sparks in the Rewards shop!",
+                                  });
+                                }
+                              }}
                               className={cn(
                                  "p-5 rounded-3xl backdrop-blur-xl border flex flex-col items-center justify-between gap-5 cursor-pointer transition-all duration-300 group/gradient relative overflow-hidden",
                                  isSelected 
                                    ? "bg-gradient-to-b from-[#0e172a]/95 via-[#0a101f]/95 to-[#060a14]/95 border-cyan-400/80 shadow-[0_0_35px_rgba(6,182,212,0.35)]" 
-                                   : "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-cyan-400/40 hover:bg-[#0e1224]/80 shadow-lg"
+                                   : isUnlocked
+                                     ? "bg-gradient-to-b from-[#0c0d18]/80 to-[#06070e]/80 border-white/10 hover:border-cyan-400/40 hover:bg-[#0e1224]/80 shadow-lg"
+                                     : "bg-gradient-to-b from-[#08080f]/60 to-[#04040a]/60 border-white/5 opacity-70 hover:opacity-100 shadow-md"
                               )}
                            >
                               {/* Ambient Orb Glow behind the card */}
@@ -1581,19 +1787,31 @@ export default function AccountSettings() {
                                     "inline-block px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border transition-all duration-300",
                                     isSelected 
                                       ? "bg-cyan-500/25 text-cyan-300 border-cyan-500/40" 
-                                      : "bg-white/[0.04] border-white/10 text-zinc-500 group-hover/gradient:text-zinc-300"
+                                      : isUnlocked
+                                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                                        : isIncludedWithPro
+                                          ? "bg-purple-500/15 border-purple-500/30 text-purple-300"
+                                          : "bg-amber-500/10 border-amber-500/30 text-amber-300"
                                  )}>
-                                    Pro Elite
+                                    {isSelected ? "Equipped" : isUnlocked ? "Unlocked" : isIncludedWithPro ? "Pro Perk" : "Sparks Shop"}
                                  </span>
                               </div>
                               
                               <button 
                                  type="button"
+                                 onClick={(e) => {
+                                    if (!isUnlocked) {
+                                      e.stopPropagation();
+                                      router.push("/rewards");
+                                    }
+                                 }}
                                  className={cn(
                                     "w-full py-2.5 px-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-md flex items-center justify-center gap-1.5",
                                     isSelected 
                                       ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] font-black" 
-                                      : "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/gradient:bg-cyan-500 group-hover/gradient:text-black group-hover/gradient:border-cyan-400 group-hover/gradient:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                                      : isUnlocked
+                                        ? "bg-white/[0.05] border border-white/10 text-zinc-300 group-hover/gradient:bg-cyan-500 group-hover/gradient:text-black group-hover/gradient:border-cyan-400 group-hover/gradient:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                                        : "bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20"
                                  )}
                               >
                                  {isSelected ? (
@@ -1601,8 +1819,13 @@ export default function AccountSettings() {
                                      <CheckCircle2 size={13} className="text-white" />
                                      <span>Equipped</span>
                                    </>
-                                 ) : (
+                                 ) : isUnlocked ? (
                                    <span>Select Style</span>
+                                 ) : (
+                                   <div className="flex items-center gap-1.5">
+                                     <Lock size={12} />
+                                     <span>Unlock in Shop</span>
+                                   </div>
                                  )}
                               </button>
                            </motion.div>
@@ -1637,13 +1860,24 @@ export default function AccountSettings() {
                </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </Portal>
 
-      <AnimatePresence>
-        {imageToCrop && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10">
-            <div className="relative w-full max-w-2xl max-h-[calc(100dvh-2rem)] h-[80dvh] flex flex-col items-center justify-center bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl">
+      <Portal>
+        <AnimatePresence>
+          {imageToCrop && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setImageToCrop(null)}
+              className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 md:p-10"
+            >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-2xl max-h-[calc(100dvh-2rem)] h-[80dvh] flex flex-col items-center justify-center bg-[#030303] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl"
+            >
                <div className="absolute top-0 inset-x-0 p-8 flex items-center justify-between z-10 bg-linear-to-b from-black to-transparent"><div className="flex items-center gap-4"><div className="p-3 rounded-2xl bg-accent-purple/20 text-accent-purple"><CropIcon size={24} /></div><div><h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Perfect Your Look</h2><p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Crop and align your digital identity</p></div></div><button onClick={() => setImageToCrop(null)} className="p-4 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors"><X size={24} /></button></div>
                <div className="relative w-full flex-1 mt-10"><Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} cropShape="round" showGrid={false} style={{ containerStyle: { background: 'transparent' }, cropAreaStyle: { border: '2px solid rgba(168, 85, 247, 0.5)' } }} /></div>
                <div className="w-full p-8 md:p-12 space-y-8 bg-zinc-950/80 backdrop-blur-md relative z-10"><div className="space-y-4"><div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-500 px-2"><span>Optical Zoom</span><span>{Math.round(zoom * 100)}%</span></div><input type="range" value={zoom} min={1} max={3} step={0.1} aria-labelledby="Zoom" onChange={(e) => setZoom(parseFloat(e.target.value))} className="w-full h-1.5 bg-white/5 rounded-full appearance-none cursor-pointer accent-accent-purple" /></div>
@@ -1652,7 +1886,22 @@ export default function AccountSettings() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </Portal>
+      {activeCosmeticModal && (
+        <CosmeticsSelectorModal
+          isOpen={activeCosmeticModal !== null}
+          onClose={() => setActiveCosmeticModal(null)}
+          category="insignia"
+          currentSelectedId={selectedInsignia}
+          unlockedIds={userUnlockedInsignias}
+          isPro={isPro}
+          proIncludedIds={PRO_INCLUDED_INSIGNIAS}
+          onApply={handleApplyInsignia}
+          avatarUrl={displayAvatarUrl}
+          displayName={name || "User"}
+        />
+      )}
       <BuyCreditsModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
       <ManageSubscriptionModal 
         isOpen={isManageModalOpen} 
@@ -1660,13 +1909,6 @@ export default function AccountSettings() {
         user={dbUser}
         onCancel={handleCancelSubscription}
         isCancelling={isCancelling}
-      />
-      <ThemeSelectorModal
-        isOpen={isPro && isThemeModalOpen}
-        onClose={() => setIsThemeModalOpen(false)}
-        currentTheme={selectedTheme}
-        onSelectTheme={handleApplyTheme}
-        isUpdating={isUpdatingTheme}
       />
       <InvoiceModal isOpen={isInvoiceModalOpen} onClose={() => setIsInvoiceModalOpen(false)} />
     </div>

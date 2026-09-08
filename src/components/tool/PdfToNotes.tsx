@@ -194,7 +194,7 @@ export default function PdfToNotes() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       
       {/* ERROR TOAST */}
       <AnimatePresence>
@@ -210,36 +210,6 @@ export default function PdfToNotes() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* HEADER STUDIO BANNER */}
-      <div className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-950/40 via-[#0a0b14] to-black p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl animate-pulse" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl animate-pulse" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-widest shadow-sm">
-              <GraduationCap size={14} className="text-amber-400" />
-              <span>Exismic Academic Suite</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
-              PDF to AI Study Notes
-            </h1>
-            <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">
-              Synthesize textbook chapters, lecture slides, and transcripts into structured study notes, core definition cards, and revision Q&As.
-            </p>
-          </div>
-
-          {result && (
-            <button 
-              onClick={resetAll}
-              className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all active:scale-95 shrink-0"
-            >
-               <RefreshCw size={14} /> New Document
-            </button>
-          )}
-        </div>
-      </div>
 
       {/* MAIN WORKSPACE STUDIO GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[580px]">

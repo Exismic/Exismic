@@ -170,20 +170,7 @@ export default function ReadabilityAssessor() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12">
-      {/* Banner Header */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-amber-950/60 via-purple-950/40 to-neutral-950 border border-amber-500/20 shadow-2xl backdrop-blur-xl space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
-          <BrainCircuit className="w-3.5 h-3.5" /> Exismic Readability Engine
-        </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Text Readability & Grade Level Assessor
-        </h1>
-        <p className="text-neutral-300 text-sm sm:text-base max-w-2xl leading-relaxed">
-          Evaluate Flesch-Kincaid Grade Level, Flesch Reading Ease score, sentence complexity, jargon density, and generate 1-click AI simplified rewrites.
-        </p>
-      </div>
-
+    <div className="w-full space-y-8">
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Text Input Column */}

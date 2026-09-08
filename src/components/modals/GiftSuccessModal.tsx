@@ -116,10 +116,9 @@ export function GiftSuccessModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 20 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="relative w-full max-w-xl rounded-[2.5rem] border border-amber-400/40 bg-[#090912] p-6 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_70px_rgba(245,158,11,0.25)] overflow-hidden z-10 backdrop-blur-3xl text-center"
+            className="relative w-full max-w-xl rounded-[2.5rem] border-2 border-amber-400/60 bg-[#090912] p-6 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(245,158,11,0.25)] overflow-hidden z-10 backdrop-blur-3xl text-center"
           >
             {/* Ambient Lighting */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/80 via-purple-500/80 to-transparent" />
             <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
 

@@ -14,7 +14,8 @@ import {
   RefreshCcw,
   Sparkles,
   Users,
-  FileText
+  FileText,
+  Coins
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -58,16 +59,34 @@ const SECTIONS = [
   },
   {
     id: "refunds",
-    title: "5. Statutory Withdrawal & Refund Policy",
+    title: "5. Statutory Withdrawal & Subscription Refunds",
     icon: <RefreshCcw size={24} />,
     color: "text-teal-400",
     bg: "bg-teal-400/10",
     glow: "shadow-[0_0_30px_rgba(45,212,191,0.3)]",
-    content: "Where legally mandated (such as EU/UK consumer protection laws), you retain a 14-day statutory right of withdrawal from initial subscription purchases, provided no subscription credits have been substantially consumed. Credit pack purchases and consumed processing fees are non-refundable."
+    content: "Where legally mandated (such as EU/UK consumer protection laws), you retain a 14-day statutory right of withdrawal from initial subscription purchases, provided no subscription credits have been substantially consumed."
+  },
+  {
+    id: "currencies",
+    title: "6. Platform Currencies (Generation Credits & Exismic Sparks)",
+    icon: <Coins size={24} />,
+    color: "text-amber-400",
+    bg: "bg-amber-400/10",
+    glow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]",
+    content: "Exismic provides two digital currencies designed to support creation and reward active creators: (1) Generation Credits are digital compute tokens used to run AI tools and process media. Free accounts receive a daily credit allowance that refills every 24 hours. Top-up credit packs and milestone rewards are stored permanently in your account reserve and carry over indefinitely until used. (2) Exismic Sparks are promotional reward points earned by completing daily tasks, weekly challenges, and participating in special occasion bonus drops or community giveaways. Sparks can be redeemed for creator cosmetics (such as avatar frames, glowing name styles, and creator insignias), streak shields, emergency boosts, and real-money store discount vouchers (e.g., $1.50 OFF or 20% OFF). Sparks are purely promotional, have no cash value, cannot be redeemed for fiat currency, cannot be transferred between accounts, and cannot be purchased directly with money."
+  },
+  {
+    id: "strict-refund-policy",
+    title: "7. Strict All-Sales-Final & Non-Refund Policy",
+    icon: <XCircle size={24} />,
+    color: "text-rose-400",
+    bg: "bg-rose-400/10",
+    glow: "shadow-[0_0_30px_rgba(251,113,133,0.3)]",
+    content: "All currency expenditures on Exismic are strictly final. Once you spend Generation Credits to process media or run an AI tool, or spend Exismic Sparks to unlock any avatar frame, name style, insignia, streak shield, voucher, or boost, the action is irreversible. Spent credits and redeemed Sparks will not be refunded, reversed, or replaced under any circumstance. Please review all selections carefully before confirming your action. Additionally, attempting to artificially farm Sparks or credits through automated scripts, bots, or multiple accounts is strictly prohibited and will result in immediate account termination with permanent loss of all accumulated balances."
   },
   {
     id: "privacy",
-    title: "6. Data Privacy & Compliance",
+    title: "8. Data Privacy & Compliance",
     icon: <ShieldCheck size={24} />,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
@@ -77,7 +96,7 @@ const SECTIONS = [
   },
   {
     id: "dmca",
-    title: "7. DMCA & Copyright Takedowns",
+    title: "9. DMCA & Copyright Takedowns",
     icon: <FileText size={24} />,
     color: "text-fuchsia-400",
     bg: "bg-fuchsia-400/10",
@@ -86,16 +105,16 @@ const SECTIONS = [
   },
   {
     id: "termination",
-    title: "8. Account Termination",
+    title: "10. Account Termination",
     icon: <XCircle size={24} />,
     color: "text-rose-400",
     bg: "bg-rose-400/10",
     glow: "shadow-[0_0_30px_rgba(251,113,133,0.3)]",
-    content: "We reserve the right to suspend or terminate accounts that breach these Terms of Service, engage in fraudulent activity, or misuse platform resources, without prior notice or liability."
+    content: "We reserve the right to suspend or terminate accounts that breach these Terms of Service, engage in fraudulent activity, deploy automated bots, or misuse platform resources, without prior notice or liability."
   },
   {
     id: "liability",
-    title: "9. Limitation of Liability",
+    title: "11. Limitation of Liability",
     icon: <Scale size={24} />,
     color: "text-indigo-400",
     bg: "bg-indigo-400/10",
@@ -104,7 +123,7 @@ const SECTIONS = [
   },
   {
     id: "changes",
-    title: "10. Modifications to Terms",
+    title: "12. Modifications to Terms",
     icon: <RefreshCcw size={24} />,
     color: "text-zinc-400",
     bg: "bg-zinc-400/10",
@@ -182,7 +201,7 @@ export default function TermsPage() {
                   Fair and transparent legal agreement.
                 </p>
                 <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-white/20" />
-                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: August 2026</p>
+                <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: September 2026</p>
               </div>
             </div>
           </header>
