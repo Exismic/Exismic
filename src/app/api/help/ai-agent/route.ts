@@ -24,8 +24,10 @@ export async function POST(req: NextRequest) {
 - Email: ${userContext.email || "N/A"}
 - Membership Plan: ${userContext.isPro ? "Pro (VIP Member)" : "Free Tier"}
 - Available Credit Balance: ${userContext.credits !== undefined ? userContext.credits : "N/A"} credits
+- Sparks Treasury Balance: ${userContext.sparks !== undefined ? userContext.sparks : 0} ⚡
 - Daily Login Streak: ${userContext.dailyStreak || 0} days
-You have direct awareness of this user's account. If the user asks about their own name, email, subscription status, plan, or credit balance, answer them accurately and directly with their information above!`;
+- Active Streak Shields: ${userContext.streakShields !== undefined ? userContext.streakShields : 0} / 3
+You have direct awareness of this user's account. If the user asks about their own name, email, subscription status, plan, credit balance, Sparks balance, or streak shields, answer them accurately and directly with their information above!`;
     }
 
     // Build chat context with system knowledge prompt

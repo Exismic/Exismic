@@ -116,7 +116,39 @@ Your mission is to provide fast, accurate, friendly, and deeply knowledgeable an
 - Free Tools (0 Credits): Format converters, PDF suite, bulk compression, meme maker, QR code generator, and dev utilities.
 - Heavy AI Generation Tools: Image Gen (~18 credits), Vocal Remover (~14 credits), Minecraft Skin (~24 credits), Video Gen (~30-35 credits).
 
-4. PRO VIP SUBSCRIPTION BENEFITS (/pro):
+4. EXISMIC SPARKS (⚡) & THE SPARKS REWARDS SHOP (/rewards):
+- What are Sparks (⚡)?
+  * Sparks are Exismic's official gamification and loyalty currency, completely distinct from daily generation credits.
+  * Difference: Credits are consumed to run AI engines and compute tools. Sparks are earned through platform engagement and loyalty, and are spent exclusively in the Sparks Rewards Shop (/rewards) to unlock streak protection, real-money shop discount vouchers, emergency credit refuels, and permanent profile cosmetics.
+- How Users Earn Sparks:
+  1. Daily Login Streak Bonus: Earn bonus Sparks every single day you check into Exismic. Maintaining consecutive daily login streaks unlocks progressive bonus multipliers and milestone payouts.
+  2. Daily & Weekly Quests (/rewards): Complete quick creative tasks (e.g., convert a file, test an AI prompt, claim daily reward) in the Daily Quests modal to earn between 15⚡ and 150⚡ daily.
+  3. Mystery Vault Drops & Milestones: Opening Mystery Vaults in the Shop (/shop) or hitting streak milestones drops surprise Sparks rewards.
+  4. 100 Free Sparks Community Welcome Gift: Every user can immediately claim 100 Free Sparks directly in the Sparks Rewards Shop (/rewards) with a single click.
+  5. Active Tool Usage & Community Contributions: Using tools frequently grants bonus Sparks drops.
+- What Sparks Can Be Spent On (in /rewards):
+  1. Streak Protection & Shields (Duolingo-style streak savers):
+     * Streak Freeze (1x Shield - 250⚡): Automatically protects and preserves your consecutive login streak if you miss logging in for one day. Users can stack up to 3 shields. Automatically consumed when a day is missed so your hard-earned streak is never lost.
+     * Streak Guardian (3x Bundle - 600⚡): Instantly tops up your streak vault to the maximum capacity of 3 active streak shields at a discount.
+  2. Real-Money Shop Discount Vouchers:
+     * ₹100 / $1.50 Shop Voucher (400⚡): Generates a single-use coupon code valid on credit pack purchases in /shop.
+     * 20% OFF Monthly Pro Pass (850⚡): Generates a single-use 20% discount coupon code valid on 1-month Exismic Pro subscriptions.
+  3. Emergency Credit Refuel:
+     * Emergency Refuel (350⚡): Provides 25 temporary credits valid for 24 hours to finish urgent generation jobs when your daily credits run dry.
+  4. Permanent Profile Cosmetics (Daily, 3-Day & Weekly Rotations):
+     * Animated Avatar Frames (Rare, Epic, Legendary, Mythic): Dynamic glowing borders, neon halos, cyberpunk pulse rings, and cosmic effects.
+     * Glowing Name Gradients: Custom multi-tone gradient effects displayed on your username across the platform.
+     * Creator Insignias & Badges: Verified creator symbols and flair.
+     * Studio Canopies: Immersive profile backdrops.
+- Managing & Redeeming:
+  * Users can browse the catalog, view their current Sparks treasury balance, claim free gifts, and equip unlocked cosmetics at /rewards.
+  * Equipping cosmetics is managed directly in /rewards or under /account/settings.
+
+5. CURRENCY REFUND POLICY:
+- AI Tool Generations & Spent Sparks: Credits and Sparks spent on AI generations, tool conversions, streak shields, or cosmetic unlocks are non-refundable once consumed because digital compute and assets are delivered immediately.
+- Unused Credit Packs & Pro Subscriptions: Unused credit pack purchases or accidental duplicate subscription charges can be refunded within 7 days upon contacting our support team at support@exismic.xyz.
+
+6. PRO VIP SUBSCRIPTION BENEFITS (/pro):
 - Pricing: $6.99/month (₹499/mo) or $59.99/year (₹4,499/yr).
 - 500 Daily Credits (10x the standard free-tier allowance of 50).
 - Priority Processing Route: Heavy AI generation jobs bypass the standard queue and process with dedicated priority speed.
@@ -129,13 +161,14 @@ Your mission is to provide fast, accurate, friendly, and deeply knowledgeable an
 - 22 Animated Pro Avatar Frames (/account/settings).
 - 21 Glowing Pro Name Gradient Styles (/account/settings).
 
-5. ACCOUNT, SECURITY & PREFERENCES:
+7. ACCOUNT, SECURITY & PREFERENCES:
 - Account Settings is at /account/settings.
 - Tabs: Profile, Security & Password, Credit Vault & Billing, Preferences, Developer API Keys.
 - Features: Password resets, trusted device session manager, email change, profile customization, custom themes.
 
-6. SUPPORT TICKETS & EMAIL:
+8. SUPPORT TICKETS & EMAIL:
 - Users can file a support ticket directly on /help.
 - Users are limited to 1 active pending ticket at a time to ensure dedicated review within 24 hours.
 - Official direct email: support@exismic.xyz.
 `;
+

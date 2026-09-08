@@ -28,14 +28,15 @@ import {
   RotateCcw,
   Key,
   Flame,
-  Sparkles,
   Settings,
   ShoppingBag,
   CornerDownLeft,
-  Coins
+  Coins,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { submitContactRequest, getActiveSupportTicket } from "@/app/actions/contact";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,8 @@ import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
+import { useSparks } from "@/hooks/useSparks";
+import { SparkIcon } from "@/components/ui/SparkIcon";
 import { AvatarWithFrame } from "@/components/ui/AvatarWithFrame";
 import { PremiumName } from "@/components/ui/PremiumName";
 
@@ -53,13 +56,20 @@ interface ChatMessage {
   timestamp: string;
 }
 
-const QUICK_PROMPTS = [
-  { label: "How do credits work and refill?", icon: CreditCard },
-  { label: "What are Sparks and how to earn them?", icon: Sparkles },
-  { label: "Are currency spends refundable?", icon: ShieldCheck },
-  { label: "What benefits come with Pro?", icon: Crown },
-  { label: "Where can I report a bug with a tool?", icon: Bug },
-  { label: "What file types are supported?", icon: Layers },
+interface QuickPrompt {
+  label: string;
+  query: string;
+  icon?: any;
+  isSparks?: boolean;
+}
+
+const QUICK_PROMPTS: QuickPrompt[] = [
+  { label: "How do credits work and refill?", query: "How do credits work and refill?", icon: CreditCard },
+  { label: "What are Sparks & how to earn them?", query: "What are Sparks and how to earn them?", isSparks: true },
+  { label: "Are currency spends refundable?", query: "Are currency spends refundable?", icon: ShieldCheck },
+  { label: "What benefits come with Pro?", query: "What benefits come with Pro?", icon: Crown },
+  { label: "Where can I report a bug?", query: "Where can I report a bug with a tool?", icon: Bug },
+  { label: "Supported file formats", query: "What file types are supported?", icon: Layers },
 ];
 
 /**
@@ -432,6 +442,7 @@ export default function HelpPage() {
   // Real-time User & Pro store
   const { user: dbUser, authUser, isPro, isLoading: isProLoading } = usePro();
   const creditState = useCredits();
+  const { sparks: userSparks } = useSparks();
 
   // Local fetched profile state
   const [profileData, setProfileData] = useState<any>(null);
@@ -445,7 +456,7 @@ export default function HelpPage() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I am the Exismic AI Support Assistant, powered by the platform knowledge engine. I know all 40+ Exismic tools, credit rules, Pro membership benefits, and developer APIs.\n\nHow can I help you today? You can ask a question or tap one of the quick suggestions below.",
+      content: "Hello! I am the Exismic AI Support Assistant, powered by the platform knowledge engine. I know all 40+ Exismic tools, credit rules, Sparks & Rewards (/rewards), Pro membership benefits, and developer APIs.\n\nHow can I help you today? You can ask a question or tap one of the quick suggestions below.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -455,6 +466,32 @@ export default function HelpPage() {
   
   // Dedicated internal scroll ref for the message container ONLY (no window scrolling)
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Quick prompt strip horizontal scroll tracking
+  const promptsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollState = useCallback(() => {
+    const el = promptsScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 6);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    checkScrollState();
+    const handleResize = () => checkScrollState();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [checkScrollState]);
+
+  const scrollPrompts = (direction: "left" | "right") => {
+    if (!promptsScrollRef.current) return;
+    const offset = direction === "left" ? -240 : 240;
+    promptsScrollRef.current.scrollBy({ left: offset, behavior: "smooth" });
+    setTimeout(checkScrollState, 250);
+  };
 
   // Ticket Form State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -597,7 +634,9 @@ export default function HelpPage() {
       email: activeDisplayEmail,
       isPro: activeIsPro,
       credits: totalAvailableCredits,
+      sparks: userSparks ?? 0,
       dailyStreak: creditState?.dailyStreak || 0,
+      streakShields: creditState?.streakShields || 0,
     };
 
     try {
@@ -921,7 +960,7 @@ export default function HelpPage() {
                           Live Support Intelligence
                         </span>
                       </div>
-                      <p className="text-[11px] sm:text-xs text-zinc-400 font-normal mt-0.5">Trained across all 11 tool suites, credit rules, Pro perks, and developer APIs</p>
+                      <p className="text-[11px] sm:text-xs text-zinc-400 font-normal mt-0.5">Trained across all 11 tool suites, credit rules, Sparks rewards, Pro perks, and developer APIs</p>
                     </div>
                   </div>
                   <button
@@ -1023,19 +1062,76 @@ export default function HelpPage() {
                 </div>
 
                 {/* Floating Prompt Suggestions Strip */}
-                <div className="relative px-5 sm:px-8 py-3 border-t border-white/[0.06] bg-[#060712]/80 backdrop-blur-xl">
-                  <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#060712] to-transparent z-10" />
-                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#060712] to-transparent z-10" />
-                  <div className="flex gap-2.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
+                <div className="relative group/prompts border-t border-white/[0.06] bg-[#060712]/90 backdrop-blur-xl py-2.5 overflow-hidden">
+                  {/* Left soft gradient fade */}
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#060712] via-[#060712]/90 to-transparent z-10 transition-opacity duration-200",
+                      canScrollLeft ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+
+                  {/* Right soft gradient fade */}
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#060712] via-[#060712]/90 to-transparent z-10 transition-opacity duration-200",
+                      canScrollRight ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+
+                  {/* Left Scroll Navigation Button */}
+                  {canScrollLeft && (
+                    <button
+                      type="button"
+                      onClick={() => scrollPrompts("left")}
+                      aria-label="Scroll suggestions left"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
+                    >
+                      <ChevronLeft size={13} className="shrink-0" />
+                    </button>
+                  )}
+
+                  {/* Right Scroll Navigation Button */}
+                  {canScrollRight && (
+                    <button
+                      type="button"
+                      onClick={() => scrollPrompts("right")}
+                      aria-label="Scroll suggestions right"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
+                    >
+                      <ChevronRight size={13} className="shrink-0" />
+                    </button>
+                  )}
+
+                  {/* Horizontal Scroll Track */}
+                  <div
+                    ref={promptsScrollRef}
+                    onScroll={checkScrollState}
+                    className="flex items-center gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden px-5 sm:px-8 py-0.5"
+                  >
                     {QUICK_PROMPTS.map((prompt, i) => (
                       <button
                         key={i}
                         type="button"
-                        onClick={() => handleSendAiMessage(prompt.label)}
+                        onClick={() => handleSendAiMessage(prompt.query || prompt.label)}
                         disabled={isAiLoading}
-                        className="group relative flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] hover:bg-cyan-500/10 border border-white/[0.08] hover:border-cyan-400/40 text-[11px] sm:text-xs font-medium text-zinc-300 hover:text-cyan-200 whitespace-nowrap transition-all duration-200 cursor-pointer disabled:opacity-40 shadow-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:-translate-y-0.5 active:translate-y-0 shrink-0"
+                        className={cn(
+                          "group relative flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer disabled:opacity-40 shadow-sm shrink-0 hover:-translate-y-0.5 active:translate-y-0",
+                          prompt.isSparks
+                            ? "bg-amber-500/[0.05] hover:bg-amber-500/15 border-amber-500/25 hover:border-amber-400/60 text-amber-200/90 hover:text-amber-100 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                            : "bg-white/[0.03] hover:bg-cyan-500/10 border-white/[0.08] hover:border-cyan-400/40 text-zinc-300 hover:text-cyan-200 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                        )}
                       >
-                        <prompt.icon size={13} className="text-cyan-400/80 group-hover:text-cyan-300 transition-colors shrink-0" />
+                        {prompt.isSparks ? (
+                          <SparkIcon
+                            size={13}
+                            variant="amber"
+                            animated
+                            className="shrink-0 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]"
+                          />
+                        ) : prompt.icon ? (
+                          <prompt.icon size={13} className="text-cyan-400/80 group-hover:text-cyan-300 transition-colors shrink-0" />
+                        ) : null}
                         <span>{prompt.label}</span>
                       </button>
                     ))}
