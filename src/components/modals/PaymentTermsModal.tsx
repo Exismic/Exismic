@@ -433,7 +433,7 @@ export function PaymentTermsModal({
     <Portal>
       <AnimatePresence>
         {isOpen && (
-          <div key="payment-terms-modal" className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 pt-16 sm:pt-20 overflow-y-auto">
+          <div key="payment-terms-modal" className="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-6 pt-12 sm:pt-16 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -451,7 +451,7 @@ export function PaymentTermsModal({
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
             role="dialog"
             aria-modal="true"
-            className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border border-white/10 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_35px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
+            className="relative flex max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl sm:rounded-[26px] border border-white/10 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_35px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
           >
             {/* Background Mesh & Radial Ambient Glow */}
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
@@ -463,21 +463,21 @@ export function PaymentTermsModal({
               onClick={onClose}
               disabled={isProcessing || isSubmittingGift}
               aria-label="Close modal"
-              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-zinc-400 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-95 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+              className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-zinc-400 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-95 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
 
             {/* Header Section */}
-            <div className="relative z-10 shrink-0 border-b border-white/[0.08] px-6 pt-7 pb-6 text-center sm:px-8 bg-gradient-to-b from-white/[0.02] to-transparent">
-              <div className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-b from-cyan-400/25 via-blue-900/30 to-black/80 text-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-md">
+            <div className="relative z-10 shrink-0 border-b border-white/[0.08] px-4 pt-5 pb-4 sm:px-8 sm:pt-7 sm:pb-6 text-center bg-gradient-to-b from-white/[0.02] to-transparent">
+              <div className="relative mx-auto mb-2.5 sm:mb-3 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-b from-cyan-400/25 via-blue-900/30 to-black/80 text-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-md">
                 <div className="absolute -inset-1 rounded-2xl bg-cyan-400/20 blur-md -z-10 animate-pulse" />
-                <ShieldCheck size={28} className="drop-shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
+                <ShieldCheck size={24} className="sm:w-7 sm:h-7 drop-shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent sm:text-3xl">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
                 Secure Checkout
               </h2>
-              <div className="mt-2.5 inline-flex items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-400/[0.08] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.15)] backdrop-blur-md">
+              <div className="mt-2 sm:mt-2.5 inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-full border border-cyan-400/35 bg-cyan-400/[0.08] px-3 sm:px-4 py-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.15)] backdrop-blur-md max-w-full text-center leading-normal">
                 <span className="text-white font-black">{type === "pro" ? (planId === "pro_yearly" ? "Exismic Pro Yearly" : "Exismic Pro Monthly") : packName || "Credit Pack"}</span>
                 {price && (
                   <>
@@ -496,53 +496,53 @@ export function PaymentTermsModal({
               </div>
 
               {/* Payment Method Selector Tabs */}
-              <div className="mt-5 grid grid-cols-3 gap-1.5 p-1.5 bg-[#05060d]/90 border border-white/[0.08] rounded-2xl text-xs font-black uppercase tracking-wider shadow-inner backdrop-blur-xl">
+              <div className="mt-3.5 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-1.5 p-1 sm:p-1.5 bg-[#05060d]/90 border border-white/[0.08] rounded-xl sm:rounded-2xl shadow-inner backdrop-blur-xl">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("gateway")}
                   className={cn(
-                    "py-2.5 px-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 truncate cursor-pointer",
+                    "py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none",
                     paymentMethod === "gateway"
                       ? "bg-gradient-to-r from-cyan-500/25 via-blue-500/20 to-cyan-500/25 border border-cyan-400/50 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-black"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}
                 >
-                  <CreditCard size={14} className={paymentMethod === "gateway" ? "text-cyan-300" : "text-zinc-500"} />
-                  <span className="truncate">{gatewayName}</span>
+                  <CreditCard size={13} className={cn("shrink-0", paymentMethod === "gateway" ? "text-cyan-300" : "text-zinc-500")} />
+                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight sm:tracking-wider whitespace-nowrap">{gatewayName}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("giftcard")}
                   className={cn(
-                    "py-2.5 px-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 truncate cursor-pointer",
+                    "py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none",
                     paymentMethod === "giftcard"
                       ? "bg-gradient-to-r from-amber-500/25 via-orange-500/20 to-amber-500/25 border border-amber-400/50 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-black"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}
                 >
-                  <Ticket size={14} className={paymentMethod === "giftcard" ? "text-amber-300" : "text-zinc-500"} />
-                  <span className="truncate">Gift Card</span>
+                  <Ticket size={13} className={cn("shrink-0", paymentMethod === "giftcard" ? "text-amber-300" : "text-zinc-500")} />
+                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight sm:tracking-wider whitespace-nowrap">Gift Card</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("history")}
                   className={cn(
-                    "py-2.5 px-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 truncate cursor-pointer",
+                    "py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none",
                     paymentMethod === "history"
                       ? "bg-gradient-to-r from-purple-500/25 via-fuchsia-500/20 to-purple-500/25 border border-purple-400/50 text-purple-200 shadow-[0_0_20px_rgba(168,85,247,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-black"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}
                 >
-                  <History size={14} className={paymentMethod === "history" ? "text-purple-300" : "text-zinc-500"} />
-                  <span className="truncate">History</span>
+                  <History size={13} className={cn("shrink-0", paymentMethod === "history" ? "text-purple-300" : "text-zinc-500")} />
+                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight sm:tracking-wider whitespace-nowrap">History</span>
                 </button>
               </div>
             </div>
 
             {/* Scrollable Content Body */}
-            <div className="relative z-10 flex-1 overflow-y-auto px-6 py-5 space-y-5 sm:px-8 custom-scrollbar">
+            <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-4 sm:px-8 sm:py-5 sm:space-y-5 custom-scrollbar">
               {paymentMethod === "gateway" && (
                 <>
                   {/* Secure Payment Info Box */}
@@ -1082,13 +1082,13 @@ export function PaymentTermsModal({
 
             {/* Actions Footer */}
             {paymentMethod === "gateway" && (
-              <div className="relative z-10 shrink-0 border-t border-white/[0.08] bg-gradient-to-b from-[#06070e]/90 to-[#030408]/98 p-5 sm:p-6 backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
+              <div className="relative z-10 shrink-0 border-t border-white/[0.08] bg-gradient-to-b from-[#06070e]/95 to-[#030408]/98 p-3.5 sm:p-5 sm:px-6 backdrop-blur-2xl">
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
                   <button
                     type="button"
                     onClick={onClose}
                     disabled={isProcessing}
-                    className="w-28 shrink-0 min-h-12 py-3.5 px-5 flex items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.04] text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer"
+                    className="w-full sm:w-28 shrink-0 min-h-[42px] sm:min-h-12 py-2.5 sm:py-3.5 px-4 flex items-center justify-center rounded-xl sm:rounded-full border border-white/10 sm:border-white/[0.12] bg-white/[0.02] sm:bg-white/[0.04] text-xs font-bold uppercase tracking-wider text-zinc-400 sm:text-zinc-300 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200 active:scale-[0.98] sm:active:scale-95 disabled:opacity-40 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1102,7 +1102,7 @@ export function PaymentTermsModal({
                     }}
                     disabled={!agreed || isProcessing}
                     className={cn(
-                      "group relative flex-1 min-h-12 py-3.5 px-6 rounded-full flex items-center justify-center gap-3 font-black uppercase tracking-[0.16em] text-xs sm:text-sm transition-all duration-300 isolate overflow-hidden cursor-pointer select-none",
+                      "group relative w-full sm:flex-1 min-h-[48px] sm:min-h-12 py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-wider sm:tracking-[0.14em] text-xs sm:text-sm transition-all duration-300 isolate overflow-hidden cursor-pointer select-none shadow-lg",
                       agreed
                         ? "bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-600 text-white shadow-[0_0_28px_rgba(6,182,212,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.65)] hover:scale-[1.01] active:scale-[0.99]"
                         : "cursor-not-allowed border border-white/[0.08] bg-white/[0.03] text-zinc-600 opacity-40 shadow-none"
@@ -1110,25 +1110,25 @@ export function PaymentTermsModal({
                   >
                     {/* Shimmer sweep on active */}
                     {agreed && (
-                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full rounded-full" />
+                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full rounded-xl sm:rounded-full" />
                     )}
                     {isProcessing ? (
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        <Loader2 size={16} className="animate-spin text-white" />
-                        <span>Processing Checkout...</span>
+                      <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
+                        <Loader2 size={16} className="animate-spin text-white shrink-0" />
+                        <span className="whitespace-nowrap">Processing Checkout...</span>
                       </span>
                     ) : (
-                      <span className="relative z-10 flex items-center justify-center gap-2.5 sm:gap-3">
-                        <Zap size={16} className="text-white fill-white/20 shrink-0 animate-pulse" />
-                        <span className="font-black uppercase tracking-[0.16em] text-white">
+                      <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-2.5 w-full whitespace-nowrap">
+                        <Zap size={15} className="text-white fill-white/20 shrink-0 animate-pulse" />
+                        <span className="font-black uppercase tracking-wider sm:tracking-[0.14em] text-white whitespace-nowrap text-xs sm:text-sm">
                           Proceed to {gatewayName}
                         </span>
                         {displayFinalAmount && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-black/40 border border-white/25 text-white font-mono text-xs font-black tracking-tight shadow-inner shrink-0">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-black/40 border border-white/25 text-white font-mono text-xs font-black tracking-tight shadow-inner shrink-0 whitespace-nowrap">
                             {displayFinalAmount}
                           </span>
                         )}
-                        <ArrowRight size={16} strokeWidth={2.5} className="text-white transition-transform duration-300 group-hover:translate-x-1 shrink-0" />
+                        <ArrowRight size={15} strokeWidth={2.5} className="text-white transition-transform duration-300 group-hover:translate-x-1 shrink-0" />
                       </span>
                     )}
                   </button>
