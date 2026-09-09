@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { useCredits } from "@/hooks/useCredits";
 import { useQuests } from "@/hooks/useQuests";
+import { useSidebarStore } from "@/hooks/useSidebarStore";
 import { isAdminEmail } from "@/lib/admin";
 import dynamic from "next/dynamic";
 
@@ -95,6 +96,7 @@ export function Navbar() {
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
   const { isPro, isLoading: isProLoading, user: dbUser, authUser, refresh: refreshPro } = usePro();
+  const { toggleMobile } = useSidebarStore();
   const { credits, showUpsell, setShowUpsell, dailyStreak, todayClaim, countdown } = useCredits();
   const { unclaimedCount, completedCount, totalAvailable } = useQuests();
   const isAdmin = dbUser?.role === 'admin' || isAdminEmail(authUser?.email) || isAdminEmail(dbUser?.email);
@@ -294,11 +296,11 @@ export function Navbar() {
           
           {/* Desktop Left: Exismic Brand Logo for visitors VS Search Bar & Notification for logged-in users */}
           {!authUser ? (
-            <div className="relative z-50 hidden md:flex items-center gap-3 shrink-0">
+            <div className="relative z-50 hidden lg:flex items-center gap-3 shrink-0">
               <ExismicLogo size={34} showText={true} logoLink={true} />
             </div>
           ) : (
-            <div className="relative z-50 hidden md:flex items-center gap-3 shrink-0">
+            <div className="relative z-50 hidden lg:flex items-center gap-3 shrink-0">
               {/* Tool Search Bar on Left */}
               <button
                 type="button"
@@ -354,7 +356,7 @@ export function Navbar() {
 
           {/* Desktop Center: Floating Obsidian Glass Capsule for landing page visitors */}
           {!authUser ? (
-            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center z-50">
+            <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center z-50">
               <div className="relative group/navisland">
                 {/* Subtle Ambient Backlight Glow */}
                 <div 
@@ -623,7 +625,7 @@ export function Navbar() {
           </div>
 
           {/* Right Side: Search, Credits, Pro Badge, Profile */}
-          <div className="hidden md:flex items-center gap-4 relative z-50">
+          <div className="hidden lg:flex items-center gap-4 relative z-50">
             {authUser ? (
               <div className="flex items-center gap-3">
                 {/* 1. Ultra Luxury Cyber Credit Vault Pill */}
@@ -1181,61 +1183,75 @@ export function Navbar() {
           </div>
 
           {/* Mobile Header: Consistent, clean layout across all pages */}
-          <div className="relative z-50 flex w-full min-w-0 items-center justify-between gap-2 md:hidden">
-            <ExismicLogo size={28} showText={true} logoLink={true} />
-
+          <div className="relative z-50 flex w-full min-w-0 items-center justify-between gap-2 lg:hidden">
             {authUser ? (
-              <div className="flex items-center gap-2">
+              <>
+                {/* Left: Mobile Sidebar Hamburger Button for logged-in users */}
                 <button
                   type="button"
-                  onClick={handleSearchClick}
-                  aria-label="Search tools"
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[#08080d]/88 text-zinc-300 hover:text-white shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95 cursor-pointer"
+                  onClick={toggleMobile}
+                  aria-label="Open sidebar menu"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[#08080d]/88 text-zinc-300 hover:text-white shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95 cursor-pointer shrink-0"
                 >
-                  <Search size={16} className="text-cyan-300" />
+                  <Menu size={18} className="text-zinc-200" />
                 </button>
-                <NotificationsDropdown />
-                <div className="relative shrink-0" ref={mobileUserDropdownRef}>
+
+                {/* Right: Search, Notifications, Profile Avatar */}
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    aria-label="Open profile menu"
-                    aria-expanded={userDropdownOpen}
-                    className={cn(
-                      "group/mobile-profile relative flex h-10 w-10 items-center justify-center rounded-xl border bg-[#08080d]/88 shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95",
-                      userDropdownOpen && "border-purple-500/40 bg-purple-500/10"
-                    )}
+                    onClick={handleSearchClick}
+                    aria-label="Search tools"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[#08080d]/88 text-zinc-300 hover:text-white shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95 cursor-pointer"
                   >
-                    <AvatarWithFrame
-                      avatarUrl={avatarUrl}
-                      displayName={fullName}
-                      isPro={isPro}
-                      frameId={localFrameId || undefined}
-                      size="sm"
-                      className="relative z-10 scale-[0.85]"
-                    />
-                    <span className="absolute bottom-1 right-1 z-20 h-2 w-2 rounded-full border-2 border-[#08080d] bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.8)]" />
+                    <Search size={16} className="text-cyan-300" />
+                  </button>
+                  <NotificationsDropdown />
+                  <div className="relative shrink-0" ref={mobileUserDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                      aria-label="Open profile menu"
+                      aria-expanded={userDropdownOpen}
+                      className={cn(
+                        "group/mobile-profile relative flex h-10 w-10 items-center justify-center rounded-xl border bg-[#08080d]/88 shadow-[0_14px_34px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all active:scale-95",
+                        userDropdownOpen && "border-purple-500/40 bg-purple-500/10"
+                      )}
+                    >
+                      <AvatarWithFrame
+                        avatarUrl={avatarUrl}
+                        displayName={fullName}
+                        isPro={isPro}
+                        frameId={localFrameId || undefined}
+                        size="sm"
+                        className="relative z-10 scale-[0.85]"
+                      />
+                      <span className="absolute bottom-1 right-1 z-20 h-2 w-2 rounded-full border-2 border-[#08080d] bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.8)]" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <ExismicLogo size={28} showText={true} logoLink={true} />
+                <div className="flex items-center gap-2">
+                  <Link href="/tools">
+                    <button className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.4)] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5">
+                      <Rocket size={12} className="text-cyan-200" />
+                      <span>Try Free</span>
+                    </button>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#080914] border border-white/[0.12] text-zinc-200 hover:text-white transition-colors active:scale-95"
+                    aria-label="Toggle navigation menu"
+                  >
+                    {mobileNavOpen ? <X size={17} /> : <Menu size={17} />}
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/tools">
-                  <button className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.4)] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5">
-                    <Rocket size={12} className="text-cyan-200" />
-                    <span>Try Free</span>
-                  </button>
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#080914] border border-white/[0.12] text-zinc-200 hover:text-white transition-colors active:scale-95"
-                  aria-label="Toggle navigation menu"
-                >
-                  {mobileNavOpen ? <X size={17} /> : <Menu size={17} />}
-                </button>
-              </div>
+              </>
             )}
           </div>
 
@@ -1249,7 +1265,7 @@ export function Navbar() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setMobileNavOpen(false)}
-                  className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-xs md:hidden"
+                  className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-xs lg:hidden"
                 />
 
                 <motion.div
@@ -1257,7 +1273,7 @@ export function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  className="fixed inset-x-3 top-[4.5rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[2rem] border border-white/[0.12] bg-[#070814]/95 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-3xl md:hidden space-y-3"
+                  className="fixed inset-x-3 top-[4.5rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[2rem] border border-white/[0.12] bg-[#070814]/95 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-3xl lg:hidden space-y-3"
                 >
                   <div className="grid grid-cols-2 gap-2">
                     <Link
@@ -1358,7 +1374,7 @@ export function Navbar() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setUserDropdownOpen(false)}
-                    className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-xs md:hidden"
+                    className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-xs lg:hidden"
                   />
 
                   <motion.div
@@ -1366,7 +1382,7 @@ export function Navbar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    className="fixed inset-x-3 top-[4.75rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[1.75rem] border border-white/[0.12] bg-[#07070c] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)] md:hidden"
+                    className="fixed inset-x-3 top-[4.75rem] isolate z-[160] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-[1.75rem] border border-white/[0.12] bg-[#07070c] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)] lg:hidden"
                   >
                     <span className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(circle_at_12%_0%,rgba(168,85,247,0.16),transparent_40%),radial-gradient(circle_at_90%_22%,rgba(34,211,238,0.1),transparent_38%)]" />
 

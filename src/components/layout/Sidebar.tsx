@@ -858,23 +858,42 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
 export function Sidebar() {
   const { t } = useTranslation();
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(true);
-  const { isCompact, toggleCompact, isFocusMode, setCompact } = useSidebarStore();
+  const { isCompact, toggleCompact, isFocusMode, setCompact, isMobileOpen, setMobileOpen } = useSidebarStore();
   const { isPro, user: dbUser, isLoading: isProLoading } = usePro();
   const { credits, loading: isCreditsLoading, dailyStreak, countdown } = useCredits();
   const [session, setSession] = useState<Session | null>(null);
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const supabase = useMemo(() => createClient(), []);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024) setIsOpen(false);
-      else setIsOpen(true);
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      if (desktop) {
+        setMobileOpen(false);
+      }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [setMobileOpen]);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, setMobileOpen]);
+
+  // Close mobile drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setMobileOpen]);
+
+  const isOpen = isDesktop || isMobileOpen;
 
   const isStudioRoute = useMemo(() => {
     return (
@@ -967,38 +986,26 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Trigger */}
-      <button 
-        type="button"
-        aria-label={isOpen ? "Close navigation" : "Open navigation"}
-        aria-expanded={isOpen}
-        className={cn(
-          "fixed top-4 z-[150] min-h-11 min-w-11 lg:hidden glass-dark rounded-[1.1rem] shadow-2xl border-white/10 text-white transition-all duration-500 flex items-center justify-center",
-          "left-4"
-        )}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       <AnimatePresence mode="wait">
         {isOpen && (
           <>
             {/* Backdrop for mobile */}
-            <motion.div 
-               suppressHydrationWarning
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setIsOpen(false)}
-               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
-            />
+            {isMobileOpen && (
+              <motion.div 
+                 suppressHydrationWarning
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 exit={{ opacity: 0 }}
+                 onClick={() => setMobileOpen(false)}
+                 className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[135] lg:hidden"
+              />
+            )}
             
             <motion.aside 
               suppressHydrationWarning
-              initial={{ x: -300, opacity: 0 }}
+              initial={{ x: isDesktop ? 0 : -300, opacity: isDesktop ? 1 : 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -300, opacity: 0 }}
+              exit={{ x: isDesktop ? 0 : -300, opacity: isDesktop ? 1 : 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className={cn(
                 "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full transition-[width,transform] duration-300 ease-in-out shrink-0 overflow-hidden",
@@ -1024,16 +1031,27 @@ export function Sidebar() {
                 <div suppressHydrationWarning className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-purple/10 blur-[120px] rounded-full pointer-events-none" />
 
                 {/* Logo / Branding Section - High-Octane Branding */}
-                <div className={cn("pt-6 pb-4 shrink-0 relative z-50 flex items-center w-full", isCompact ? "justify-center px-0 text-center" : "justify-between px-5")}>
-                  <ExismicLogo size={isCompact ? 34 : 40} showText={!isCompact} className={isCompact ? "justify-center mx-auto" : ""} />
-                  
-                  {!isCompact && !isProLoading && isPro && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
-                       <Crown size={8} className="text-accent-purple" fill="currentColor" />
-                       <span className="text-[6.5px] font-black tracking-widest uppercase text-accent-purple">PRO ACTIVE</span>
-                    </div>
-                  )}
+                <div className={cn("pt-5 pb-3.5 shrink-0 relative z-50 flex items-center justify-between w-full", isCompact ? "justify-center px-0 text-center" : "px-5")}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ExismicLogo size={isCompact ? 34 : 38} showText={!isCompact} className={isCompact ? "justify-center mx-auto" : ""} />
+                    
+                    {!isCompact && !isProLoading && isPro && (
+                      <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
+                         <Crown size={8} className="text-accent-purple" fill="currentColor" />
+                         <span className="text-[6.5px] font-black tracking-widest uppercase text-accent-purple">PRO ACTIVE</span>
+                      </div>
+                    )}
+                  </div>
 
+                  {/* Mobile Close Button - Positioned cleanly on the right of header, never overlapping the logo */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpen(false)}
+                    aria-label="Close navigation"
+                    className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0 ml-2"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
 
                 {/* Nav Groups */}
