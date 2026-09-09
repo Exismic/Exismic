@@ -699,6 +699,20 @@ export const ALL_TOOLS: Tool[] = [
   },
 
   // Productivity Tools
+  {
+    id: 'discord-card',
+    name: 'Discord Profile Card Studio',
+    description: "Generate an obsidian-styled, live-updating Discord profile website and dynamic GitHub README badge with real-time presence, Spotify player, and custom frames.",
+    category: 'productivity',
+    icon: 'IdCard' as IconName,
+    href: '/tools/discord-card',
+    popular: true,
+    suggestions: ["How do I find my Discord User ID?", "How do I embed this card into my GitHub README?", "Can I export as a high-res PNG image?"],
+    requiresFileUpload: false,
+    seoTitle: "Discord Profile Card Generator - Live Presence, Spotify & Badges",
+    seoDescription: "Create a live Discord profile website and dynamic GitHub README SVG badge with real-time status, Spotify sync, custom cosmetics, and 1-click PNG/HTML exports.",
+    seoKeywords: ["discord profile card", "discord card generator", "discord github badge", "discord presence generator", "Exismic"]
+  },
   { id: 'productivity-qr', name: 'QR Code Generator', description: "Build clean, scannable QR codes for your portfolio links, social profiles, WiFi networks, and shop menus with custom colors and logo inserts.", category: 'productivity', icon: 'QrCode' as IconName, href: '/tools/qr-code',
     suggestions: ["Can I change the color of the QR code?","How do I add my logo to the center?","Will this QR code expire?"], requiresFileUpload: false, seoTitle: "Free QR Code Generator - Create Custom QR Codes for Links & Text",
     seoDescription: "Create customized high-resolution QR codes with custom colors, logos, and styling. Download PNG or SVG instantly for free.",

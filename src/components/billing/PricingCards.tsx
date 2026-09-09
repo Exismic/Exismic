@@ -8,13 +8,15 @@ import { RazorpayCheckoutButton } from "@/components/billing/RazorpayCheckoutBut
 import { cn } from "@/lib/utils";
 import { getIsIndia } from "@/config/pricing";
 
+import { publicBillingPlans } from "@/lib/billing/plans";
+
 type Market = "IN" | "GLOBAL";
 type Plan = {
   id: string;
   name: string;
   description: string;
   credits: number;
-  interval: "free" | "one_time" | "month";
+  interval: "free" | "one_time" | "month" | "year";
   features: string[];
   price: {
     amount: number;
@@ -34,13 +36,13 @@ type MarketPayload = {
 
 export function PricingCards() {
   const [market, setMarket] = useState<Market>("GLOBAL");
-  const [detectedCountry, setDetectedCountry] = useState("UNKNOWN");
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [detectedCountry, setDetectedCountry] = useState("GLOBAL");
+  const [plans, setPlans] = useState<Plan[]>(() => publicBillingPlans("GLOBAL") as Plan[]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadMarket(nextMarket?: Market) {
-    setLoading(true);
+    if (plans.length === 0) setLoading(true);
     setError(null);
     try {
       const url = nextMarket ? `/api/billing/market?market=${nextMarket}` : "/api/billing/market";

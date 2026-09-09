@@ -1,5 +1,6 @@
 import { CATEGORIES } from "@/data/tools";
 import { CategoryClient } from "./CategoryClient";
+import { CategorySeoSection } from "@/components/seo/CategorySeoSection";
 import { Metadata } from "next";
 import { constructMetadata, getCategoryJsonLd, SITE_URL } from "@/lib/seo";
 import { notFound } from "next/navigation";
@@ -91,6 +92,11 @@ export default async function CategoryPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <CategoryClient categoryId={id} />
+      <CategorySeoSection
+        categoryId={id}
+        categoryName={category.name}
+        categoryDescription={category.description}
+      />
     </>
   );
 }

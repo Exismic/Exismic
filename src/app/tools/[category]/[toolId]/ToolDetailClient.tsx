@@ -226,29 +226,6 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     ],
   };
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": `Is ${tool.name} free to use?`,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": `${tool.name} is available on Exismic with instant browser access. Free users receive daily credits, and Pro members unlock high-speed processing.`
-        }
-      },
-      {
-        "@type": "Question",
-        "name": `How does ${tool.name} work?`,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": `${tool.name} processes your input directly using specialized AI algorithms to deliver studio-quality results in seconds.`
-        }
-      }
-    ]
-  };
-
   const PageContent = (
     <div className={cn(
       "mx-auto space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
@@ -258,7 +235,6 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
         <>
           <script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
           <script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-          <script id={`tool-faq-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         </>
       )}
       {categoryId === 'pdf' && (
