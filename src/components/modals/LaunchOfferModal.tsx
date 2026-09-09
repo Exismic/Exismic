@@ -24,7 +24,7 @@ const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
 export function LaunchOfferModal() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isPro, isLoading: isProLoading } = usePro();
+  const { isPro, isLoading: isProLoading, authUser, user } = usePro();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isIndia, setIsIndia] = useState(false);
@@ -41,8 +41,10 @@ export function LaunchOfferModal() {
   });
 
   useEffect(() => {
-    // 1. Never show to existing Pro users or on checkout/auth routes
-    if (isProLoading || isPro) return;
+    // 1. Never show to non-logged-in users, existing Pro users, or on checkout/auth routes
+    if (isProLoading) return;
+    if (!authUser && !user) return;
+    if (isPro) return;
     if (pathname.startsWith("/pro") || pathname.startsWith("/auth") || pathname.startsWith("/maintenance")) {
       return;
     }
@@ -107,7 +109,7 @@ export function LaunchOfferModal() {
     return () => {
       active = false;
     };
-  }, [isPro, isProLoading, pathname]);
+  }, [isPro, isProLoading, authUser, user, pathname]);
 
   // Handle 2-day snooze dismissal
   const handleDismiss = () => {
@@ -124,6 +126,10 @@ export function LaunchOfferModal() {
     setIsOpen(false);
     router.push("/pro");
   };
+
+  if (!authUser && !user) {
+    return null;
+  }
 
   const displayPrice = isIndia ? `₹${promoPrices.inr}` : `$${promoPrices.usd}`;
   const regularPrice = isIndia ? `₹${promoPrices.regularInr}` : `$${promoPrices.regularUsd}`;

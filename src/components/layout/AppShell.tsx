@@ -146,7 +146,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
       {!isStandaloneRoute && pathname !== "/" ? <GlobalToolAssistant /> : null}
       {!isStandaloneRoute && clientHasSession ? <WelcomeModal /> : null}
       {!isStandaloneRoute && clientHasSession ? <QuestCompletionToast /> : null}
-      {!isStandaloneRoute ? <LaunchOfferModal /> : null}
+      {!isStandaloneRoute && clientHasSession ? <LaunchOfferModal /> : null}
     </>
   );
 }
