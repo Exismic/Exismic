@@ -76,3 +76,13 @@ venv/
 # backups
 *.bak
 
+# test and smoke generation outputs
+/canary-smoke-test-output/
+/comparison-generalization/
+/comparison-stress-test/
+/production-live-output/
+/renderer-expansion-output/
+/test-flux-concepts/
+/test-output-comparison/
+/test-output-skins/
+

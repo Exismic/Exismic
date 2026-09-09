@@ -459,6 +459,145 @@
   - In [`src/components/ui/AvatarWithFrame.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/AvatarWithFrame.tsx), refined volumetric glow rings from ballooning `-inset-4 blur-2xl scale-105` to richer, concentrated `-inset-3 blur-xl` and `-inset-2 blur-lg`.
   - In [`src/components/layout/Navbar.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Navbar.tsx), cleaned desktop user dropdown layout to eliminate double padding around `UserProfile`.
 
+### 22. 🎮 Minecraft Skin Maker: Visual Quality Refinement Pass (Artist Pixel Design) [COMPLETED]
+* **Shader & Canvas Engine (`SkinCanvas.fill`)**:
+  - Stripped pseudorandom sine noise and aggressive Bayer mathematical dithering that were washing out pixel clusters.
+  - Implemented smooth directional plane lighting with soft ambient occlusion so hand-crafted wrinkles, seams, and folds stand out crisp and readable.
+* **Hair Silhouette Sculpting (`paintHairSilhouette`)**:
+  - Complete overhaul of all 10 hairstyles (`curtain-bangs`, `messy-fringe`, `middle-part-flow`, `wolf-cut`, `side-swept`, `spiky-anime`, `long-layered`, `high-ponytail`, `braided-buns`, `layered-short`).
+  - Added beveled crown corners (leaving (40,0), (47,0), (40,7), (47,7) transparent to eliminate boxy skull caps).
+  - Authentic negative space ear reveals and temple side locks.
+  - Redesigned curtain bangs: center parting ($x: 43..44$ is 100% transparent from row 8 down) with outward-arching side wings and $\pm 1$px asymmetric strand lengths.
+* **Face Construction Architectures (`paintFaceConstruction`)**:
+  - Implemented 8 distinct face geometries: `clean-aesthetic`, `soft-kpop`, `anime-expressive` / `feminine-soft`, `soft-cute`, `masculine-angular`, `sharp-cool`, `mature-minimal`, `masked-visor`.
+  - True variations in eye aperture ($2\times 2$, $2\times 1$, $1\times 2$), iris catchlights, dual specular sparkles, brows, and cheek blush. Eliminated dark brown 2012 chin stubble.
+* **Authentic Garment Clustering (`paintGarmentTorso`)**:
+  - Base torso: inner tee reveal with collar depth, clavicle highlights, underarm creases, asymmetric diagonal tension folds, and vertical ribbed hems.
+  - Overlays: oversized hoodie (3D resting hood on back overlay, asymmetric drawstrings with metallic aglets, kangaroo pocket with angled entry slits), bomber jacket (center zipper with slider tab, welt pockets, MA-1 left arm utility zip pocket with red flight tag ribbon), varsity jacket (leather contrast sleeves, snap button placket, chenille chest letter patch), oversized sweater (4-column braided cable-knit texture).
+* **Footwear & Leg Anatomy (`paintFootwearLeg`)**:
+  - Fly seams, diagonal hip creases, articulated knee fold clusters ($y: 25..26$), and Jordan/Dunk high-tops with crisp 1px pure white midsoles ($y: 31$).
+
+### 23. 🎨 Experimental Artist Blueprint Pipeline vs. Procedural Benchmark [COMPLETED]
+* **Dedicated Module (`src/lib/minecraft-skin-blueprint.ts`)**:
+  - Implemented the `ArtistCompositionBlueprint` intermediate representation: explicit spatial hierarchy with light direction, silhouette shapes, shadow masses, highlight masses, crease clusters, and material profiles.
+  - Replaced imperative canvas coordinates with declarative 2D Token Blueprints (`TokenMatrix`).
+  - Added hierarchical cluster-based shading: $\text{Base Mass} \to \text{Shadow Clusters} \to \text{Form Mid-Clusters} \to \text{Highlight Clusters} \to \text{Micro-Accents}$.
+  - Material-driven cluster behavior & 5–7 tier dynamic hue ramps (Cotton matte, Leather directional creases, Metal specular apex faulds, Hair 6-tier flow).
+  - Parametric blueprint generators: `partOffset`, `asymmetry`, `foldBias`, and `seed` dynamically alter strand lengths, fold bunching, and pocket/aglet placements.
+  - Contextual lighting shader: hair-on-forehead soft contact shadow, neck contact shadow, groin creases.
+* **Side-by-Side Comparison Harness (`scripts/compare-skin-pipelines.ts`)**:
+  - Ran the exact same 10 test prompts through both pipelines (Current Procedural vs. Artist Blueprint).
+  - Saved raw 64×64 PNGs and 8× nearest-neighbor 1040×512 side-by-side comparison plates in `comparison/`.
+  - Scored on the 10-point rubric: Blueprint won 8.9/10 vs 8.1/10, demonstrating visibly superior artisanal quality on face construction, hair strand flow, and plate armor faulds.
+
+### 24. 🔬 Artist Blueprint Pipeline: 20-Prompt Generalization Benchmark [COMPLETED]
+* **Strict Governance & Constraints**:
+  - `src/lib/minecraft-skin.ts` maintained 100% read-only throughout testing.
+  - Zero prompt-specific hacks. Pure $0 pipeline (Groq + local TypeScript/Sharp).
+  - 20 completely unseen prompts evaluating unfamiliar combinations (haori + cargo, cropped leather + denim, pastel cardigan + skirt, dark academia trench, futuristic utility harness, varsity two-tone, desert traveler sandals, cyberpunk detective, fantasy ranger jerkin, gothic school blazer, spaceship mechanic jumpsuit with tool belt, arctic down parka, celestial velvet robe with runes, layered skater tees, leather over cable-knit, denim + steel pauldrons, wool peacoat + techwear, padded gambeson + greaves, oversized tuxedo, gamer hoodie + knee-highs).
+* **Parametric Composition Grammar (`src/lib/minecraft-skin-blueprint.ts`)**:
+  - Replaced rigid template matching with composable architectural primitives: necklines (`crew`, `v_neck`, `turtleneck`, `hood_cowl`, `open_lapel`, `haori_wrap`, `pointed_collar`, `fur_collar`, `scarf_wrap`), plackets (`pullover`, `center_zip`, `buttons_single`, `buttons_double`, `open_front`, `armor_fauld`, `quilted_gambeson`), utility attachments (`safety_straps`, `tool_belt`, `cable_knit`, `cargo_pockets`, `flight_tag`, `runic_trim`), sleeve dynamics (`slouch_gather`, `wide_haori`, `short_sleeve`, `gauntlet_bracer`), and lower body fits/footwear models (`sandals_wrap`, `loafer_oxford`, `combat_boot`, `snow_boot`, `armored_sabaton`, `low_top_skate`, `high_top_sneaker`).
+  - 9 Material Profiles with dynamic hue-shifting ramps (`skin`, `cotton`, `knit`/`wool`, `denim`, `leather`, `metal`, `hair`, `plastic`/`techwear`, `rubber`).
+  - Dedicated hair and face blueprint module (`src/lib/minecraft-skin-blueprint-hair.ts`) enforcing 2-pixel nose bridge eye separation to eliminate visor/cyclops eye fusing.
+* **Generalization Benchmark Harness (`scripts/compare-generalization-20.ts`)**:
+  - Outputted 20 raw 64×64 PNGs, 20 8× nearest-neighbor zooms (512×512), and 20 $1040\times 512$ side-by-side comparison plates in `comparison-generalization/`.
+* **Decision Gate Results**:
+  - Blueprint wins: **20 / 20 (100%)**
+  - Current procedural wins: **0 / 20 (0%)**
+  - Generalization confirmed: **YES**
+  - Full failure taxonomy report generated at `walkthrough-generalization.md`.
+### 25. 🧪 Artist Blueprint Pipeline: 40-Character Composition Stress Test & Integration Plan [COMPLETED]
+* **5 Architectural Upgrades Implemented in Experimental Pipeline**:
+  - **Dual-Layer Garment Architecture**: Explicit 6-layer stacking order (`skin` $\to$ `inner` $\to$ `mid` $\to$ `outer` $\to$ `accessories` $\to$ `contact shadows`).
+  - **Per-Component Material Ownership**: Discrete `ComponentMaterials` (`top`, `inner`, `pauldron`, `strap`, `belt`, `socks`, `footwear`). Steel pauldrons maintain specular apex (`#ffffff`) regardless of parent denim/leather.
+  - **Semantic Palette Safety**: Contextual keyword disambiguation (`safeExtractBlueprintDesign`) preventing words like "dark academia" from corrupting skin to demonic pitch-black.
+  - **Accessory Coverage**: Native primitives for knee-high socks & contrast stripes, layered short-over-long sleeves, 3D cat ears with inner fluff, harness straps, and utility belts.
+  - **Layer-Aware Shading**: Subtle directional occlusion shadows (`applyContactShadow`) at hair $\to$ forehead, outer lapel $\to$ inner shirt, collar $\to$ clavicle, belt $\to$ hips, pauldrons $\to$ sleeves, socks $\to$ bare thigh.
+* **Randomized 40-Character Stress Test (`scripts/stress-test-randomized.ts`)**:
+  - Combinatorial matrix across 10 hair styles, 9 faces, 12 tops, 7 inners, 6 bottoms, 7 footwear, 8 accessories, 9 materials, 8 palettes, and Classic (4px) vs. Slim (3px) arms using Mulberry32 PRNG ($S=42$).
+  - **Final Results**: 40/40 Generated, 40 (100%) Success, 0 Partial, 0 Failed, 0 UV errors, 0 layer conflicts, 0 material clashing, 0 semantic failures.
+  - Resolved legacy Alex 3px arm width discrepancy via `getBlueprintArmFaces` without touching `minecraft-skin.ts`.
+  - Comprehensive walk-through report published at [`walkthrough-stress-test.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/walkthrough-stress-test.md).
+* **Production Integration Plan Formulated (`production-integration-plan.md`)**:
+  - Feature-flag architecture (`FEATURE_FLAG_BLUEPRINT_RENDERER="false"` default).
+  - Resilient automatic fallback to legacy `compileMinecraftSkin` on error.
+  - Credit & billing isolation: verification that charges occur strictly downstream of successful PNG generation and upload, guaranteeing zero double-charging or charging for errors.
+  - Control file [`src/lib/minecraft-skin.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/minecraft-skin.ts) strictly untouched.
+
+### 26. 🛡️ Artist Blueprint Production Integration (Feature Flag: OFF) [COMPLETED]
+* **Environment Configuration**:
+  - Added `FEATURE_FLAG_BLUEPRINT_RENDERER="false"` to `.env.example` and `.env.local` (safe dormant default).
+* **API Route (`src/app/api/tools/image/minecraft-skin/route.ts`)**:
+  - Wired feature flag condition with automatic `try/catch` fallback to legacy `compileMinecraftSkin`.
+  - Added server-provided `renderer: "blueprint" | "procedural"` to response payloads and `UserFile.metadata`.
+  - Preserved downstream credit billing (line 763) strictly after successful generation and storage upload.
+  - Preserved reference rebuild behavior (`rebuildReferenceTexture`).
+* **Frontend Studio (`src/components/tool/MinecraftSkinMaker.tsx`)**:
+  - Instant eye/mouth style recompiles use `result.renderer` directly without leaking server env vars to client.
+  - Automatic `try/catch` fallback to procedural recompile on error.
+* **Test Verification**:
+  - `scripts/verify-production-integration.ts`: **26/26 Passed (100%)** across flag OFF, flag ON, error fallback, Classic/Slim UV, client instant style dispatch, and API response shape.
+  - `scripts/test-skin-renderer.ts`: **10/10 Passed** visual QA baseline tests.
+  - `npx tsc --noEmit`: Code 0 (clean build).
+* **Status**: Completed and verified.
+
+### 27. 🚀 Artist Blueprint Canary Activation Smoke Test [COMPLETED]
+* **Environment Configuration**: Set `FEATURE_FLAG_BLUEPRINT_RENDERER="true"` in canary/staging `.env.local`.
+* **Harness**: [`scripts/canary-production-smoke-test.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/canary-production-smoke-test.ts)
+* **Results**: **9 / 9 (100%) Passed**
+  - Varied archetypes tested (Aesthetic hoodie, Cyberpunk ninja, Dark academia, Cottagecore frog girl, Paladin commander, Streetwear skater, Desert wanderer, Gothic vampire lord).
+  - Classic (4px) and Slim (3px) arms: 100% UV compliant (dead zones completely transparent).
+  - Reference-guided generation: custom palette merged cleanly into Blueprint.
+  - 3D Preview: standard 64×64 RGBA valid PNG buffers generated with sharp compression.
+  - Frontend instant eye/mouth edits: recompile verified consistent via `result.renderer === "blueprint"`.
+  - Intentional fault injection: caught cleanly, logged warning, fell back to `compileMinecraftSkin`, returned valid procedural PNG and metadata.
+  - Credit deduction isolation verified downstream of generation.
+* **Next Step**: Completed.
+
+### 28. 🟢 Artist Blueprint Production Activation [COMPLETED]
+* **Environment Configuration**: Set `FEATURE_FLAG_BLUEPRINT_RENDERER="true"` in `.env.example` and `.env.local` for live production.
+* **Control File**: [`src/lib/minecraft-skin.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/minecraft-skin.ts) strictly untouched.
+* **Live Smoke Test Harness**: [`scripts/production-live-smoke-test.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/production-live-smoke-test.ts)
+* **Results**: **5 / 5 (100%) Passed**
+  - Confirmed production environment returns `renderer: "blueprint"` on all generations.
+  - Classic (4px) and Slim (3px) arms tested with 100% UV boundary compliance.
+  - Sharp PNG 64×64 RGBA valid magic headers and texture buffers verified for 3D studio viewer and direct download.
+  - Credit billing isolation verified downstream at line 763 strictly after upload.
+  - `UserFile.metadata` JSON schema validated.
+  - Frontend instant eye/mouth edits recompile using Blueprint via `result.renderer`.
+  - Intentional fallback gate confirmed 100% operational with immediate recovery to procedural baseline.
+  - Type checking (`npx tsc --noEmit`): Code 0.
+* **Production Status**: 🟢 **ARTIST BLUEPRINT — PRODUCTION ACTIVE**
+
+### 2. 🎨 Artist Blueprint Renderer Expansion [COMPLETED & VALIDATED]
+* **Scope Completed**:
+  1. **Three-tier garment composition**: Outer bomber overlay (`FF....FF`) hangs open, revealing midlayer hoodie with kangaroo pocket (`Mvv..vvM`), and inner cream undershirt core (`KKVIIVKK`, `MMMIIMMM`) at upper chest.
+  2. **Material-specific pixel clustering**: Technical bomber fabric (sharp $-0.36$ seam creases, cool $+0.14$ highlights), cotton hoodie (soft folds, ribbed welt/cuffs), minimal-contrast undershirt, and high-contrast specular metal zipper (`#b3c4d5`).
+  3. **3D Cargo pocket geometry**: Pocket flap lid, contact shadow slit, bellow volume box, and drop shadow stamped on lateral leg overlays ($x: 0..3, y: 40..43$ and $x: 8..11, y: 52..63$) with 1px front-face wrap.
+  4. **Layered slouch sleeves**: Outer jacket gathers at row 7 with elastic band, revealing 2 rows of ribbed hoodie cuffs at rows 8–9 on base arm, and bare skin hands at rows 10–11.
+  5. **Hierarchical asymmetric curtain bangs**: Forehead apex opening at rows 10–11, form-following strand masses, 1px tapered tips at rows 12–14, and upper-left crown specular catchlights.
+  6. **Chunky sneaker construction**: Multi-part sole with sculpted white midsole (`#f8fafc`, row 10), air cushion slit, eyestays, laces, and lugged rubber tread (`#09090b`, row 11).
+  7. **Directional global lighting**: Form-following lighting driven by `lightingDirection = upper-left` (+0.06 West highlight, -0.07 East shadow) with protected sclera, iris, and pupils.
+  8. **Architectural integrity**: Fully parametric, zero prompt-specific hacks, `src/lib/minecraft-skin.ts` untouched, Groq schema untouched.
+* **Verification Benchmark Harness**: [`scripts/verify-renderer-expansion.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/verify-renderer-expansion.ts)
+* **Results**: **7 / 7 (100%) Archetypes Passed**:
+  - Exact 1,994-character Streetwear character (9/9 visual features passed).
+  - Gothic Knight (cuirass, sabatons, gauntlets).
+  - Cottagecore Girl (overalls, cable knit sweater, flower pins, braids, blush, Slim UV).
+  - Cyberpunk Ninja (glowing cyan visor, techwear haori, ninja boots, Slim UV).
+  - Layered Streetwear Skater (open flannel, graphic hoodie, necklace).
+  - Purple Hoodie / Silver Curtain Bangs (rich purple hoodie, silver bangs).
+  - Reference-Guided Desert Nomad (exact reference palette).
+* **Walkthrough Report**: [`walkthrough-renderer-expansion.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/walkthrough-renderer-expansion.md)
+* **Production Live Verification**: [`scripts/verify-real-production-api.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/verify-real-production-api.ts)
+  - Real API endpoint `POST /api/tools/image/minecraft-skin` verified under production flag `FEATURE_FLAG_BLUEPRINT_RENDERER="true"`.
+  - Classic and Slim arm models verified with full UV boundary and transparency compliance.
+  - Groq structured semantic extraction verified with 100% `aiDirected = true`.
+  - Credit deduction verified strictly once downstream with idempotency protection.
+  - Legacy procedural fallback gate confirmed 100% operational.
+* **Production Status**: 🟢 **EXPANDED ARTIST BLUEPRINT — PRODUCTION ACTIVE**
+* **Hold Note**: User is personally testing the generated skins in the Minecraft Bedrock skin editor. No further code or visual changes to be made until user provides feedback.
+
 ---
 
 ## 🎯 Next Features Roadmap (Retention & Growth)

@@ -37,6 +37,7 @@ import {
   type MinecraftSkinDesign,
   type MinecraftSkinPart,
 } from "@/lib/minecraft-skin";
+import { compileMinecraftSkinBlueprint } from "@/lib/minecraft-skin-blueprint";
 
 type PreviewMode = "character" | "texture" | "editor";
 type StyleMode = "balanced" | "pixel-detailed" | "minimal" | "high-contrast";
@@ -50,13 +51,14 @@ interface GeneratedSkin {
   seed: number;
   referenceRebuilt?: boolean;
   referenceGuided?: boolean;
+  renderer?: "blueprint" | "procedural";
 }
 
 const PROMPT_STARTERS = [
-  "Neon samurai with a cyan visor and katana strap",
-  "Forest ranger with enchanted armor and leaf cloak",
-  "Royal ice mage with a glowing crown and cape",
-  "Cyberpunk hacker with purple glowing cables and headphones",
+  "Aesthetic oversized purple hoodie boy with silver curtain bangs and high-top sneakers",
+  "Cozy cottagecore frog girl with pastel green overalls and blonde braided bangs",
+  "Cyberpunk ninja assassin with glowing cyan visor and matte black techwear",
+  "Gothic knight in blackened steel plate armor with crimson glowing runic crest",
 ];
 
 const PARTS: Array<{
@@ -78,10 +80,10 @@ const STYLE_OPTIONS: Array<{
   desc: string;
   icon: string;
 }> = [
-  { id: "balanced", label: "Balanced", desc: "Smooth modern gradients & 3D layers", icon: "⚖️" },
-  { id: "pixel-detailed", label: "Detailed", desc: "Micro-shaded pixel texturing", icon: "✨" },
-  { id: "minimal", label: "Minimal", desc: "Clean, flat anime block colors", icon: "🌿" },
-  { id: "high-contrast", label: "High contrast", desc: "Vivid neon & intense outlines", icon: "⚡" },
+  { id: "balanced", label: "Balanced (Modern)", desc: "Smooth anime gradients with 3D drop shadows", icon: "⚖️" },
+  { id: "pixel-detailed", label: "Artist Detailed", desc: "Bayer textile dithering & ambient occlusion", icon: "✨" },
+  { id: "minimal", label: "Minimalist Pastel", desc: "Clean aesthetic anime block colors", icon: "🌿" },
+  { id: "high-contrast", label: "Cyber Contrast", desc: "High specular glow & vivid neon rims", icon: "⚡" },
 ];
 
 export type EyeStyleMode = "anime" | "classic" | "glowing" | "minimal" | "visor";
@@ -279,7 +281,17 @@ export function MinecraftSkinMaker() {
         ...result.design,
         eyeStyle: newEyeStyle,
       };
-      const newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+      let newPixels: Uint8Array;
+      if (result.renderer === "blueprint") {
+        try {
+          newPixels = compileMinecraftSkinBlueprint(updatedDesign, result.seed, armModel, style, prompt);
+        } catch (err) {
+          console.warn("[Minecraft Skin] Blueprint eye style recompile failed, falling back to legacy:", err);
+          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+        }
+      } else {
+        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+      }
       const canvas = document.createElement("canvas");
       canvas.width = 64;
       canvas.height = 64;
@@ -304,7 +316,17 @@ export function MinecraftSkinMaker() {
         ...result.design,
         mouthStyle: newMouthStyle,
       };
-      const newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+      let newPixels: Uint8Array;
+      if (result.renderer === "blueprint") {
+        try {
+          newPixels = compileMinecraftSkinBlueprint(updatedDesign, result.seed, armModel, style, prompt);
+        } catch (err) {
+          console.warn("[Minecraft Skin] Blueprint mouth style recompile failed, falling back to legacy:", err);
+          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+        }
+      } else {
+        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+      }
       const canvas = document.createElement("canvas");
       canvas.width = 64;
       canvas.height = 64;
