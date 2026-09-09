@@ -368,8 +368,7 @@ export function BuyCreditsModal({
               <div className="relative z-10 flex items-center justify-between pb-4 sm:pb-5 border-b border-white/[0.08] shrink-0 gap-2">
                 <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                   <div className="relative flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-400/25 via-yellow-500/15 to-purple-600/20 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
-                    <Coins size={22} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse sm:w-[26px] sm:h-[26px]" />
-                    <Sparkles size={13} className="absolute -top-1 -right-1 text-yellow-300 animate-spin" />
+                    <Coins size={22} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] sm:w-[26px] sm:h-[26px]" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -752,14 +751,9 @@ export function BuyCreditsModal({
               </div>
 
               {/* Secure Checkout Guarantee Footer */}
-              <div className="pt-3.5 sm:pt-4 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-2 text-[10.5px] sm:text-[11px] text-zinc-400 font-medium shrink-0 text-center sm:text-left">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
-                  <span>100% Secure Checkout • Instant Delivery • Cancel Anytime</span>
-                </div>
-                <span className="text-[9.5px] sm:text-[10px] text-zinc-400 font-black uppercase tracking-wider shrink-0">
-                  256-BIT ENCRYPTED
-                </span>
+              <div className="pt-3.5 sm:pt-4 border-t border-white/[0.08] flex items-center justify-center gap-2 text-[10.5px] sm:text-[11px] text-zinc-400 font-medium shrink-0 text-center">
+                <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+                <span>100% Secure Checkout • Instant Delivery • Cancel Anytime</span>
               </div>
 
             </motion.div>
