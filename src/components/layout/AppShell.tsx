@@ -2,15 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Footer } from "@/components/layout/Footer";
-import { MagicCommandPalette } from "@/components/layout/MagicCommandPalette";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { GlobalToolAssistant } from "@/components/tool/GlobalToolAssistant";
-import { WelcomeModal } from "@/components/modals/WelcomeModal";
-import { LaunchOfferModal } from "@/components/modals/LaunchOfferModal";
-import { QuestCompletionToast } from "@/components/reward/QuestCompletionToast";
 import { createClient } from "@/utils/supabase/client";
+
+const MagicCommandPalette = dynamic(
+  () => import("@/components/layout/MagicCommandPalette").then((mod) => mod.MagicCommandPalette),
+  { ssr: false }
+);
+const GlobalToolAssistant = dynamic(
+  () => import("@/components/tool/GlobalToolAssistant").then((mod) => mod.GlobalToolAssistant),
+  { ssr: false }
+);
+const WelcomeModal = dynamic(
+  () => import("@/components/modals/WelcomeModal").then((mod) => mod.WelcomeModal),
+  { ssr: false }
+);
+const LaunchOfferModal = dynamic(
+  () => import("@/components/modals/LaunchOfferModal").then((mod) => mod.LaunchOfferModal),
+  { ssr: false }
+);
+const QuestCompletionToast = dynamic(
+  () => import("@/components/reward/QuestCompletionToast").then((mod) => mod.QuestCompletionToast),
+  { ssr: false }
+);
 
 type AppShellProps = {
   children: React.ReactNode;

@@ -285,7 +285,7 @@ export function PersonalizedHomeSection({
                 />
                 <div
                   className={cn(
-                    "absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500",
+                    "absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500",
                     continueStyle.spinIdle,
                     continueStyle.spinHover
                   )}
@@ -350,6 +350,7 @@ export function PersonalizedHomeSection({
             <div className="flex items-center gap-3 self-end lg:self-auto shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
               <Link
                 href={continueUsing.replayUrl}
+                prefetch={true}
                 className={cn(
                   "w-full sm:w-auto min-h-12 py-3.5 sm:py-4 px-8 sm:px-10 rounded-full flex items-center justify-center gap-3 font-black uppercase tracking-[0.18em] text-xs sm:text-sm transition-all duration-500 relative overflow-hidden isolate transform-gpu group-hover:scale-[1.02] cursor-pointer",
                   continueStyle.buttonGrad
@@ -400,6 +401,7 @@ export function PersonalizedHomeSection({
               <Link
                 key={tool.id}
                 href={tool.href}
+                prefetch={true}
                 className="block h-full rounded-[2.5rem] focus-visible:outline-none"
               >
                 <div
@@ -446,7 +448,7 @@ export function PersonalizedHomeSection({
                       />
                       <div
                         className={cn(
-                          "absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500",
+                          "absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500",
                           style.spinIdle,
                           style.spinHover
                         )}
@@ -521,6 +523,7 @@ export function PersonalizedHomeSection({
 
             <Link
               href="/history"
+              prefetch={true}
               className="group text-[11px] font-black text-purple-300 hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1.5"
             >
               <span>View All History</span>
@@ -541,6 +544,7 @@ export function PersonalizedHomeSection({
                 <Link
                   key={item.tool.id}
                   href={item.replayUrl}
+                  prefetch={true}
                   className="block h-full rounded-[2.5rem] focus-visible:outline-none"
                 >
                   <div
@@ -587,7 +591,7 @@ export function PersonalizedHomeSection({
                         />
                         <div
                           className={cn(
-                            "absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500",
+                            "absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500",
                             style.spinIdle,
                             style.spinHover
                           )}
@@ -686,6 +690,7 @@ export function PersonalizedHomeSection({
               <Link
                 key={rec.tool.id}
                 href={rec.tool.href}
+                prefetch={true}
                 className="block h-full rounded-[2.5rem] focus-visible:outline-none"
               >
                 <div
@@ -732,7 +737,7 @@ export function PersonalizedHomeSection({
                       />
                       <div
                         className={cn(
-                          "absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500",
+                          "absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500",
                           style.spinIdle,
                           style.spinHover
                         )}

@@ -92,7 +92,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
       transition={{ duration: 0.5, delay: index * 0.05 }}
       className={cn("group relative h-full min-w-0", className)}
     >
-      <Link href={href} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
+      <Link href={href} prefetch={true} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
         <div className={cn(
           "relative h-full min-h-[280px] flex flex-col p-5 sm:p-6 md:p-7 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
           unavailable && "opacity-85",
@@ -139,13 +139,14 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
               "bg-[#0b0c12] border border-white/5",
             )}>
               <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura)} />
-              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] transition-colors duration-500", isPro ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.4)_25%,transparent_50%)] group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.9)_25%,transparent_50%)]" : cn(style.spinIdle, style.spinHover))} />
+              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500", isPro ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.4)_25%,transparent_50%)] group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.9)_25%,transparent_50%)]" : cn(style.spinIdle, style.spinHover))} />
               <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
                 <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", isPro && "from-amber-500/10")} />
-                <motion.div
-                  className={cn("absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg]", isPro ? "bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" : "bg-gradient-to-r from-transparent via-white/10 to-transparent")}
-                  animate={{ left: ["-100%", "200%"] }}
-                  transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 1 }}
+                <div
+                  className={cn(
+                    "absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg] animate-[cardShine_3.5s_ease-in-out_infinite] pointer-events-none",
+                    isPro ? "bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" : "bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                  )}
                 />
               </div>
               <Icon className={cn(
@@ -237,7 +238,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
                   ? "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:scale-[1.02] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]" 
                   : cn("group-hover:scale-[1.02]", style.buttonGrad)
               )}>
-                <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
+                <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] opacity-0 group-hover:opacity-100 group-hover:animate-[shine_2.5s_linear_infinite] transition-opacity duration-300" />
                 <span className="relative z-10 flex items-center gap-2 sm:gap-3">
                   {unavailable ? "View status" : "Launch Tool"}
                   <ArrowRight size={15} className="transition-transform group-hover:translate-x-1.5" />

@@ -1210,6 +1210,50 @@ html {
   text-rendering: optimizeSpeed;
 }
 
+/* GPU Keyframe Animations */
+@keyframes cardShine {
+  0% { transform: translateX(0%); }
+  50%, 100% { transform: translateX(350%); }
+}
+
+@keyframes navProgress {
+  0% { transform: translateX(-100%) scaleX(0.2); }
+  50% { transform: translateX(25%) scaleX(0.8); }
+  100% { transform: translateX(120%) scaleX(0.4); }
+}
+
+/* Mobile Performance & GPU Compositor Optimization */
+@media (max-width: 1024px) {
+  /* 1. Cap expensive backdrop-blur on mobile GPUs (prevents 64px Gaussian blur fillrate stalls) */
+  .backdrop-blur-3xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  /* 2. Cap giant ambient blur blobs to prevent huge off-screen render buffers */
+  .blur-\[150px\],
+  .blur-\[120px\],
+  .blur-\[100px\],
+  .blur-\[90px\],
+  .blur-\[80px\],
+  .blur-\[70px\] {
+    filter: blur(24px) !important;
+  }
+
+  /* 3. Pause unhovered continuous conic spin on mobile */
+  .mobile-pause-idle-spin {
+    animation: none !important;
+  }
+
+  /* 4. Touch responsiveness & elimination of tap delays */
+  a, button, input, select, textarea, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1220,6 +1264,7 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
 
 
 

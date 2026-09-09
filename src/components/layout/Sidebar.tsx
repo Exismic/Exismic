@@ -489,7 +489,7 @@ function SidebarItem({ name, icon: Icon, href, isActive, glowColor = "rgba(124, 
   };
 
   return (
-    <Link href={href} onClick={onClick}>
+    <Link href={href} prefetch={true} onClick={onClick}>
       <motion.div
         whileTap={{ scale: 0.98 }}
         className={cn(
@@ -617,6 +617,7 @@ interface CategoryDropdownProps {
   pathname: string;
   catGlow: string;
   isCompact?: boolean;
+  onItemClick?: () => void;
 }
 
 const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; text: string; hoverShadow: string }> = {
@@ -688,7 +689,7 @@ const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; tex
   }
 };
 
-function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: CategoryDropdownProps) {
+function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onItemClick }: CategoryDropdownProps) {
   const Icon = ICON_MAP[category.icon] || Sparkles;
   
   const allCategoryTools = useMemo(() => {
@@ -718,6 +719,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
         isActive={isCategoryActive}
         glowColor={catGlow}
         isCompact={true}
+        onClick={onItemClick}
       />
     );
   }
@@ -731,6 +733,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
         isActive={isCategoryActive}
         glowColor={catGlow}
         isCompact={false}
+        onClick={onItemClick}
         rightElement={
           <div className="flex items-center gap-1.5">
             {totalToolCount > 0 && (
@@ -818,7 +821,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
               const isToolActive = pathname === tool.href;
 
               return (
-                <Link key={tool.id} href={tool.href}>
+                <Link key={tool.id} href={tool.href} prefetch={true} onClick={onItemClick}>
                   <div className={cn(
                     "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all duration-150 group/tool select-none",
                     isToolActive
@@ -832,7 +835,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact }: C
               );
             })}
 
-            <Link href={`/category/${category.id}`}>
+            <Link href={`/category/${category.id}`} prefetch={true} onClick={onItemClick}>
               <div className={cn(
                 "relative overflow-hidden flex items-center justify-between px-3 py-1.5 mt-1.5 rounded-lg border text-[9.5px] font-black uppercase tracking-[0.15em] transition-all duration-200 group/viewall",
                 viewStyle.bg,
@@ -1080,6 +1083,7 @@ export function Sidebar() {
                                isActive={pathname === item.href} 
                                glowColor={item.glow}
                                isCompact={isCompact}
+                               onClick={() => setMobileOpen(false)}
                            />
                          );
                        })}
@@ -1093,6 +1097,7 @@ export function Sidebar() {
                               accentColor="text-red-400"
                               glowColor="rgba(239, 68, 68, 0.5)"
                               isCompact={isCompact}
+                              onClick={() => setMobileOpen(false)}
                           />
                         )}
                     </motion.div>
@@ -1118,6 +1123,7 @@ export function Sidebar() {
                               pathname={pathname}
                               catGlow={catGlows[cat.id]}
                               isCompact={isCompact}
+                              onItemClick={() => setMobileOpen(false)}
                             />
                           );
                        })}
@@ -1141,6 +1147,7 @@ export function Sidebar() {
                          isActive={pathname === "/changelog"} 
                          glowColor="rgba(168, 85, 247, 0.5)" 
                          isCompact={isCompact} 
+                         onClick={() => setMobileOpen(false)}
                          rightElement={
                            <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 shadow-[0_0_8px_rgba(168,85,247,0.3)]">
                              NEW
@@ -1154,6 +1161,7 @@ export function Sidebar() {
                          isActive={pathname === "/help"} 
                          glowColor="rgba(14, 165, 233, 0.5)" 
                          isCompact={isCompact} 
+                         onClick={() => setMobileOpen(false)}
                        />
                      </motion.div>
                   </LayoutGroup>
@@ -1221,7 +1229,11 @@ export function Sidebar() {
 
                           <Link
                             href="/shop"
-                            onClick={(e) => e.stopPropagation()}
+                            prefetch={true}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMobileOpen(false);
+                            }}
                             className="text-[9.5px] text-zinc-500 hover:text-cyan-300 transition-colors flex items-center gap-0.5 font-bold cursor-pointer"
                           >
                             <span>{isPro ? "Vault" : "Refill"}</span>
@@ -1250,7 +1262,7 @@ export function Sidebar() {
 
                   {/* Ultra Premium Animated Upgrade Button */}
                   {!isCompact && !isProLoading && !isPro && (
-                    <Link href="/pro" className="block w-full relative group">
+                    <Link href="/pro" prefetch={true} onClick={() => setMobileOpen(false)} className="block w-full relative group">
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-500 rounded-full blur-[8px] opacity-60 group-hover:opacity-100 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
                       
                       <motion.button

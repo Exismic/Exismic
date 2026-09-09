@@ -28,7 +28,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
 import { MaintenanceScreen } from "@/components/layout/MaintenanceScreen";
 
-import { getCachedMaintenanceConfig, getCachedActiveAnnouncements } from "@/lib/server/cached-config";
+import { getCachedMaintenanceConfig, getCachedActiveAnnouncements, getCachedUserRoleStatus } from "@/lib/server/cached-config";
 
 export const metadata: Metadata = constructMetadata();
 
@@ -83,10 +83,7 @@ export default async function RootLayout({
 
     if (user.id) {
       try {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { role: true, status: true, email: true },
-        });
+        const dbUser = await getCachedUserRoleStatus(user.id);
         if (dbUser?.role === "admin" || (dbUser?.email && isAdminEmail(dbUser.email))) {
           isAdmin = true;
         }

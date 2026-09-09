@@ -35,3 +35,21 @@ export const getCachedActiveAnnouncements = unstable_cache(
     tags: ["announcements"],
   }
 );
+
+export const getCachedUserRoleStatus = unstable_cache(
+  async (userId: string) => {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true, status: true, email: true },
+      });
+    } catch {
+      return null;
+    }
+  },
+  ["user-role-status"],
+  {
+    revalidate: 60,
+    tags: ["user-role"],
+  }
+);
