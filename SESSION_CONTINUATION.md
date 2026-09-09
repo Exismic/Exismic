@@ -171,7 +171,13 @@ Read SESSION_CONTINUATION.md. Start dev server with npm run dev and let's contin
   - **Middleware**: Normalized paths (stripped trailing slashes) in [`src/utils/supabase/middleware.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/utils/supabase/middleware.ts).
   - **Google Verification**: Dual-token verification in [`src/lib/seo.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/seo.ts) supporting both DNS TXT and HTML tags.
   - **Helpful Content Quality Engine**: Dynamically tailored features, How-To steps, and FAQ schema per category in [`src/components/seo/ToolSeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/ToolSeoSection.tsx).
-  - **Verified Live**: Tested `/pricing` in GSC URL Inspection &rarr; **Page can be indexed** with all green checks.
+  - **Eliminated 5x Validation Failure Root Causes**:
+    * **Pre-Populated SSR Pricing**: In [`PricingCards.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/billing/PricingCards.tsx), initialized `plans` with `publicBillingPlans("GLOBAL")` and `loading: false`. Eliminated the empty loading spinner that rendered to Googlebot as a soft-404 thin page.
+    * **Enriched Pricing Hub**: In [`src/app/pricing/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/pricing/page.tsx), added plan comparison matrix, comprehensive billing FAQs, and Schema.org `FAQPage` + `Product`/`OfferCatalog` structured data.
+    * **Removed Duplicate Boilerplate Schema**: In [`ToolDetailClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/%5Bcategory%5D/%5BtoolId%5D/ToolDetailClient.tsx), removed the legacy 2-question generic FAQ JSON-LD script that caused duplicate programmatic boilerplate warnings.
+    * **Category Hubs Quality Engine**: Built [`CategorySeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/CategorySeoSection.tsx) and mounted it in [`src/app/category/[id]/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/category/%5Bid%5D/page.tsx), turning thin card grids into content-rich hubs with deep-dive overviews, tailored FAQs, and `FAQPage` schema.
+    * **Discord Card Studio SEO**: Added rich metadata and mounted `ToolSeoSection` in [`src/app/tools/discord-card/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/discord-card/page.tsx).
+  - **Verified Live**: Tested `/pricing` and all tools &rarr; `npx tsc --noEmit` clean (0 errors), live SSR HTML verified.
 
 ### 9. 🧠 Executive Studio Cockpit Dashboard (Structure 1) [COMPLETED]
 * **Structure 1 Implementation**:
