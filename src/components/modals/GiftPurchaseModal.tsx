@@ -350,28 +350,28 @@ export function GiftPurchaseModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 15 }}
             transition={{ type: "spring", stiffness: 360, damping: 28 }}
-            className="relative w-full max-w-5xl rounded-[2.5rem] border-2 border-amber-400/40 bg-[#05050a]/95 p-5 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(245,158,11,0.2)] overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92vh]"
+            className="relative w-full max-w-5xl rounded-[2rem] sm:rounded-[2.5rem] border-2 border-amber-400/40 bg-[#05050a]/95 p-4 sm:p-8 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(245,158,11,0.2)] overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92vh]"
           >
             <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-500/15 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-600/15 blur-3xl" />
 
             {/* Header */}
-            <div className="relative z-10 flex items-center justify-between pb-5 border-b border-white/[0.08] shrink-0">
-              <div className="flex items-center gap-3.5">
-                <div className="relative flex h-13 w-13 items-center justify-center rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-400/25 via-yellow-500/15 to-purple-600/20 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
-                  <Gift size={26} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse" />
-                  <Sparkles size={14} className="absolute -top-1 -right-1 text-yellow-300 animate-spin" />
+            <div className="relative z-10 flex items-center justify-between pb-4 sm:pb-5 border-b border-white/[0.08] shrink-0 gap-2">
+              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <div className="relative flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-400/25 via-yellow-500/15 to-purple-600/20 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
+                  <Gift size={22} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse sm:w-[26px] sm:h-[26px]" />
+                  <Sparkles size={13} className="absolute -top-1 -right-1 text-yellow-300 animate-spin" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-white">
                       Send a Gift Pass
                     </h2>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider text-amber-300 shrink-0">
                       1-TIME CODE
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 font-medium mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-zinc-400 font-medium mt-0.5 leading-snug">
                     Generate an instant single-use voucher code with shareable redeem link
                   </p>
                 </div>
@@ -384,14 +384,14 @@ export function GiftPurchaseModal({
                   onClose();
                 }}
                 aria-label="Close modal"
-                className="relative z-50 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer shadow-md"
+                className="relative z-50 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer shadow-md ml-1"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto pt-5 pb-2 space-y-6 custom-scrollbar pr-1">
+            <div className="flex-1 overflow-y-auto pt-4 sm:pt-5 pb-2 space-y-5 sm:space-y-6 custom-scrollbar pr-1">
               
               {/* Category Tab Switcher */}
               <div className="flex rounded-2xl border border-white/10 bg-black/50 p-1.5 gap-1.5 shadow-inner">
@@ -399,13 +399,13 @@ export function GiftPurchaseModal({
                   type="button"
                   onClick={() => setActiveCategory("pro")}
                   className={cn(
-                    "flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer",
+                    "flex-1 py-2.5 sm:py-3 px-2 rounded-xl font-black text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer text-center",
                     activeCategory === "pro"
                       ? "bg-gradient-to-r from-cyan-500/25 via-blue-500/25 to-cyan-500/25 border border-cyan-400/70 text-cyan-200 shadow-[0_0_25px_rgba(6,182,212,0.3)]"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
                   )}
                 >
-                  <Crown size={15} className={activeCategory === "pro" ? "text-cyan-300" : "text-zinc-500"} />
+                  <Crown size={14} className={cn("shrink-0", activeCategory === "pro" ? "text-cyan-300" : "text-zinc-500")} />
                   <span>Pro Passes</span>
                 </button>
 
@@ -413,13 +413,13 @@ export function GiftPurchaseModal({
                   type="button"
                   onClick={() => setActiveCategory("credits")}
                   className={cn(
-                    "flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer",
+                    "flex-1 py-2.5 sm:py-3 px-2 rounded-xl font-black text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer text-center",
                     activeCategory === "credits"
                       ? "bg-gradient-to-r from-purple-500/25 via-fuchsia-500/25 to-pink-500/25 border border-purple-400/70 text-purple-200 shadow-[0_0_25px_rgba(168,85,247,0.3)]"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
                   )}
                 >
-                  <Coins size={15} className={activeCategory === "credits" ? "text-purple-300" : "text-zinc-500"} />
+                  <Coins size={14} className={cn("shrink-0", activeCategory === "credits" ? "text-purple-300" : "text-zinc-500")} />
                   <span>Credit Packs</span>
                 </button>
               </div>
@@ -530,7 +530,7 @@ export function GiftPurchaseModal({
                           </p>
                         </div>
 
-                        <div className="mt-5 space-y-2.5">
+                        <div className="mt-5 space-y-2 sm:space-y-2.5">
                           {[
                             { icon: Coins, text: "500 Daily Compute Credits", sub: "Restores automatically every 24h", chip: "15,000 / mo", color: "text-cyan-300" },
                             { icon: Zap, text: "Priority GPU Render Queue", sub: "Instant AI compute on all tools", chip: "Fast Queue", color: "text-sky-300" },
@@ -539,15 +539,15 @@ export function GiftPurchaseModal({
                           ].map((item, idx) => {
                             const ItemIcon = item.icon;
                             return (
-                              <div key={idx} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-2.5">
-                                <div className="flex items-center gap-3 min-w-0">
+                              <div key={idx} className="flex items-center justify-between gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-2.5 sm:px-3.5 sm:py-2.5">
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                   <ItemIcon size={16} className={cn("shrink-0", item.color)} />
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-bold text-white truncate">{item.text}</p>
-                                    <p className="text-[10px] text-zinc-400 truncate">{item.sub}</p>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold text-white leading-tight break-words">{item.text}</p>
+                                    <p className="text-[10px] text-zinc-400 leading-snug break-words mt-0.5">{item.sub}</p>
                                   </div>
                                 </div>
-                                <span className="text-[8.5px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-500/10 border border-cyan-400/25 px-2 py-0.5 rounded-full shrink-0">
+                                <span className="text-[8px] sm:text-[8.5px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-500/10 border border-cyan-400/25 px-2 py-0.5 rounded-full shrink-0 ml-1">
                                   {item.chip}
                                 </span>
                               </div>
@@ -563,7 +563,7 @@ export function GiftPurchaseModal({
                           disabled={loadingId !== null}
                           whileHover={{ y: -2, scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="group/launch relative flex min-h-[58px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
+                          className="group/launch relative flex min-h-[56px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
                         >
                           <motion.span
                             aria-hidden="true"
@@ -571,19 +571,19 @@ export function GiftPurchaseModal({
                             animate={{ rotate: 360 }}
                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                           />
-                          <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[17px] border border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98">
-                            <div className="flex items-center gap-3">
-                              <ExismicMark size={36} letter="P" theme="blue" animated={true} />
-                              <div className="text-left">
-                                <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
+                          <span className="relative flex h-full w-full items-center justify-between gap-2.5 rounded-[17px] border border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 px-3.5 sm:px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                              <ExismicMark size={32} letter="P" theme="blue" animated={true} />
+                              <div className="text-left min-w-0">
+                                <span className="block text-[11px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.16em] text-white truncate">
                                   GIFT 1-MONTH • {isIndia ? "₹499" : "$6.99"}
                                 </span>
-                                <span className="block text-[9px] font-bold uppercase tracking-[0.14em] text-cyan-300/90">
+                                <span className="block text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-cyan-300/90 truncate">
                                   Card, UPI & Gift Cards
                                 </span>
                               </div>
                             </div>
-                            <ArrowRight size={16} className="text-cyan-300 transition-transform group-hover/launch:translate-x-1" />
+                            <ArrowRight size={16} className="text-cyan-300 transition-transform group-hover/launch:translate-x-1 shrink-0" />
                           </span>
                         </motion.button>
                       </div>
@@ -629,7 +629,7 @@ export function GiftPurchaseModal({
                           </p>
                         </div>
 
-                        <div className="mt-5 space-y-2.5">
+                        <div className="mt-5 space-y-2 sm:space-y-2.5">
                           {[
                             { icon: Coins, text: "182,500 Total Creative Credits", sub: "500 daily allowance for 365 days", chip: "365 Days", color: "text-purple-300" },
                             { icon: Flame, text: "VIP Immediate Compute Queue", sub: "Top-priority rendering capacity", chip: "VIP Queue", color: "text-fuchsia-300" },
@@ -638,15 +638,15 @@ export function GiftPurchaseModal({
                           ].map((item, idx) => {
                             const ItemIcon = item.icon;
                             return (
-                              <div key={idx} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-2.5">
-                                <div className="flex items-center gap-3 min-w-0">
+                              <div key={idx} className="flex items-center justify-between gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-2.5 sm:px-3.5 sm:py-2.5">
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                   <ItemIcon size={16} className={cn("shrink-0", item.color)} />
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-bold text-white truncate">{item.text}</p>
-                                    <p className="text-[10px] text-zinc-400 truncate">{item.sub}</p>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold text-white leading-tight break-words">{item.text}</p>
+                                    <p className="text-[10px] text-zinc-400 leading-snug break-words mt-0.5">{item.sub}</p>
                                   </div>
                                 </div>
-                                <span className="text-[8.5px] font-black uppercase tracking-wider text-purple-200 bg-purple-500/15 border border-purple-400/30 px-2 py-0.5 rounded-full shrink-0">
+                                <span className="text-[8.5px] font-black uppercase tracking-wider text-purple-200 bg-purple-500/15 border border-purple-400/30 px-2 py-0.5 rounded-full shrink-0 ml-1">
                                   {item.chip}
                                 </span>
                               </div>
@@ -662,7 +662,7 @@ export function GiftPurchaseModal({
                           disabled={loadingId !== null}
                           whileHover={{ y: -2, scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="group/launch relative flex min-h-[58px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(168,85,247,0.6)]"
+                          className="group/launch relative flex min-h-[56px] w-full items-center justify-center overflow-hidden rounded-[20px] p-[2.5px] isolate transition-all duration-500 cursor-pointer select-none shadow-[0_0_30px_rgba(0,0,0,0.85)] hover:shadow-[0_0_45px_rgba(168,85,247,0.6)]"
                         >
                           <motion.span
                             aria-hidden="true"
@@ -670,19 +670,19 @@ export function GiftPurchaseModal({
                             animate={{ rotate: 360 }}
                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                           />
-                          <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[17px] border border-purple-400/40 bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1b0d33]/98 group-hover/launch:to-[#0a0514]/98">
-                            <div className="flex items-center gap-3">
-                              <ExismicMark size={36} letter="P" theme="purple" animated={true} />
-                              <div className="text-left">
-                                <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
+                          <span className="relative flex h-full w-full items-center justify-between gap-2.5 rounded-[17px] border border-purple-400/40 bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 px-3.5 sm:px-4.5 py-2.5 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1b0d33]/98 group-hover/launch:to-[#0a0514]/98">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                              <ExismicMark size={32} letter="P" theme="purple" animated={true} />
+                              <div className="text-left min-w-0">
+                                <span className="block text-[11px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.16em] text-white truncate">
                                   GIFT 1-YEAR • {isIndia ? "₹4,499" : "$59.99"}
                                 </span>
-                                <span className="block text-[9px] font-bold uppercase tracking-[0.14em] text-purple-300">
+                                <span className="block text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-300 truncate">
                                   Card, UPI & Gift Cards
                                 </span>
                               </div>
                             </div>
-                            <ArrowRight size={16} className="text-purple-300 transition-transform group-hover/launch:translate-x-1" />
+                            <ArrowRight size={16} className="text-purple-300 transition-transform group-hover/launch:translate-x-1 shrink-0" />
                           </span>
                         </motion.button>
                       </div>
@@ -818,7 +818,7 @@ export function GiftPurchaseModal({
               )}
 
               {/* Bottom Guarantee Banner */}
-              <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs text-zinc-400">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3.5 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs text-zinc-400 text-center sm:text-left">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
                   <span>Instant 1-time gift code generated immediately after payment.</span>

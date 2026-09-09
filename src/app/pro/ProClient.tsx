@@ -550,23 +550,23 @@ export function ProClient() {
                       <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-sky-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-40" />
 
                       {/* Inner Obsidian Card */}
-                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-8 sm:p-10 backdrop-blur-3xl">
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-5 sm:p-8 md:p-10 backdrop-blur-3xl">
                         <div>
                           {/* Header: Plan Identity Badge Row */}
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
                               <div className={cn(
-                                "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-300",
+                                "flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-300",
                                 launchDiscount?.eligible
                                   ? "border-emerald-400/40 bg-emerald-500/15 shadow-[0_0_20px_rgba(52,211,153,0.3)] text-emerald-300"
                                   : "border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.25)] text-cyan-300"
                               )}>
                                 <Crown size={22} className={launchDiscount?.eligible ? "text-emerald-300 fill-emerald-400/30" : "text-cyan-300 fill-cyan-400/30"} />
                               </div>
-                              <div>
-                                <h3 className="text-xl font-black text-white tracking-tight">Monthly Pro</h3>
+                              <div className="min-w-0">
+                                <h3 className="text-xl font-black text-white tracking-tight whitespace-nowrap">Monthly Pro</h3>
                                 <p className={cn(
-                                  "text-[10px] font-bold uppercase tracking-[0.2em]",
+                                  "text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap",
                                   launchDiscount?.eligible ? "text-emerald-300/90" : "text-cyan-300/80"
                                 )}>
                                   Standard Tier
@@ -575,12 +575,12 @@ export function ProClient() {
                             </div>
 
                             {launchDiscount?.eligible ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)] self-start sm:self-auto shrink-0">
                                 <BadgePercent size={12} className="text-emerald-400" />
                                 v1.6 Launch Special
                               </span>
                             ) : (
-                              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-300">
+                              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-300 self-start sm:self-auto shrink-0">
                                 Flexible
                               </span>
                             )}
@@ -630,7 +630,7 @@ export function ProClient() {
                           </div>
 
                           {/* Refined Purpose-Built Benefit Rows */}
-                          <div className="mt-7 space-y-3">
+                          <div className="mt-7 space-y-2.5 sm:space-y-3">
                             {[
                               {
                                 icon: Coins,
@@ -673,18 +673,18 @@ export function ProClient() {
                               return (
                                 <div
                                   key={item.title}
-                                  className="group/item flex items-center justify-between gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4.5 py-3.5 transition-all duration-300 hover:border-cyan-500/30 hover:bg-white/[0.04]"
+                                  className="group/item flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-3 sm:px-4.5 sm:py-3.5 transition-all duration-300 hover:border-cyan-500/30 hover:bg-white/[0.04]"
                                 >
-                                  <div className="flex items-center gap-4 min-w-0">
-                                    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
-                                      <ItemIcon size={19} className={item.iconColor} />
+                                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className={cn("flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
+                                      <ItemIcon size={18} className={item.iconColor} />
                                     </div>
-                                    <div className="min-w-0">
-                                      <p className="text-xs sm:text-sm font-black text-white tracking-wide">{item.title}</p>
-                                      <p className="text-[11px] sm:text-xs font-medium text-zinc-400 leading-snug">{item.subtitle}</p>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs sm:text-sm font-black text-white tracking-wide break-words">{item.title}</p>
+                                      <p className="text-[10.5px] sm:text-xs font-medium text-zinc-400 leading-snug break-words mt-0.5">{item.subtitle}</p>
                                     </div>
                                   </div>
-                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-wider", item.badgeStyle)}>
+                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider self-center ml-1", item.badgeStyle)}>
                                     {item.badge}
                                   </span>
                                 </div>
@@ -733,19 +733,19 @@ export function ProClient() {
                               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                             />
                             <span className={cn(
-                              "relative flex h-full w-full items-center justify-between gap-3 rounded-[19px] border px-5 py-3 backdrop-blur-2xl transition-colors duration-500",
+                              "relative flex h-full w-full items-center justify-between gap-2.5 sm:gap-3 rounded-[19px] border px-3.5 sm:px-5 py-2.5 sm:py-3 backdrop-blur-2xl transition-colors duration-500",
                               launchDiscount?.eligible
                                 ? "border-emerald-400/35 bg-gradient-to-br from-[#061814]/98 via-[#06141c]/98 to-[#03070f]/98 group-hover/launch:from-[#09221c]/98 group-hover/launch:to-[#061018]/98"
                                 : "border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98"
                             )}>
-                              <div className="flex items-center gap-3.5">
-                                <ExismicMark size={40} letter="P" theme={launchDiscount?.eligible ? "purple" : "blue"} animated={true} />
-                                <div className="text-left">
-                                  <span className="block text-xs sm:text-sm font-black uppercase tracking-[0.18em] text-white">
+                              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                                <ExismicMark size={34} letter="P" theme={launchDiscount?.eligible ? "purple" : "blue"} animated={true} />
+                                <div className="text-left min-w-0">
+                                  <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white truncate">
                                     GET MONTHLY • {launchDiscount?.eligible ? (isIndia ? "₹299" : "$3.99") : (isIndia ? "₹499" : "$6.99")}
                                   </span>
                                   <span className={cn(
-                                    "block text-[10px] font-bold uppercase tracking-[0.14em]",
+                                    "block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] truncate",
                                     launchDiscount?.eligible ? "text-emerald-300/90" : "text-cyan-300/90"
                                   )}>
                                     {launchDiscount?.eligible ? "v1.6 Launch Special • 1st Month" : "Standard Pro Access"}
@@ -753,7 +753,7 @@ export function ProClient() {
                                 </div>
                               </div>
                               <ArrowRight size={18} className={cn(
-                                "transition-transform group-hover/launch:translate-x-1",
+                                "transition-transform group-hover/launch:translate-x-1 shrink-0",
                                 launchDiscount?.eligible ? "text-emerald-300" : "text-cyan-300"
                               )} />
                             </span>
@@ -774,26 +774,26 @@ export function ProClient() {
                       <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-fuchsia-500/25 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
 
                       {/* Inner Obsidian Card */}
-                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-8 sm:p-10 backdrop-blur-3xl">
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-5 sm:p-8 md:p-10 backdrop-blur-3xl">
                         <div>
                           {/* Header: Plan Identity Badge Row */}
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
                                 <Diamond size={22} className="text-purple-300 fill-purple-400/20" />
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-xl font-black text-white tracking-tight">Annual VIP</h3>
-                                  <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="text-xl font-black text-white tracking-tight whitespace-nowrap">Annual VIP</h3>
+                                  <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm shrink-0">
                                     Best Value
                                   </span>
                                 </div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-300">12 Months Unlocked</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-300 whitespace-nowrap">12 Months Unlocked</p>
                               </div>
                             </div>
 
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)]">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)] self-start sm:self-auto shrink-0">
                               <Flame size={12} className="text-amber-300 fill-amber-400/40" />
                               Save 28%
                             </span>
@@ -822,7 +822,7 @@ export function ProClient() {
                           </div>
 
                           {/* Refined Purpose-Built Benefit Rows */}
-                          <div className="mt-7 space-y-3">
+                          <div className="mt-7 space-y-2.5 sm:space-y-3">
                             {[
                               {
                                 icon: Coins,
@@ -865,18 +865,18 @@ export function ProClient() {
                               return (
                                 <div
                                   key={item.title}
-                                  className="group/item flex items-center justify-between gap-4 rounded-2xl border border-purple-400/20 bg-purple-400/[0.03] px-4.5 py-3.5 transition-all duration-300 hover:border-purple-400/40 hover:bg-purple-400/[0.06]"
+                                  className="group/item flex items-center justify-between gap-3 rounded-2xl border border-purple-400/20 bg-purple-400/[0.03] p-3 sm:px-4.5 sm:py-3.5 transition-all duration-300 hover:border-purple-400/40 hover:bg-purple-400/[0.06]"
                                 >
-                                  <div className="flex items-center gap-4 min-w-0">
-                                    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
-                                      <ItemIcon size={19} className={item.iconColor} />
+                                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className={cn("flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
+                                      <ItemIcon size={18} className={item.iconColor} />
                                     </div>
-                                    <div className="min-w-0">
-                                      <p className="text-xs sm:text-sm font-black text-white tracking-wide">{item.title}</p>
-                                      <p className="text-[11px] sm:text-xs font-semibold text-zinc-300 leading-snug">{item.subtitle}</p>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs sm:text-sm font-black text-white tracking-wide break-words">{item.title}</p>
+                                      <p className="text-[10.5px] sm:text-xs font-semibold text-zinc-300 leading-snug break-words mt-0.5">{item.subtitle}</p>
                                     </div>
                                   </div>
-                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-wider", item.badgeStyle)}>
+                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider self-center ml-1", item.badgeStyle)}>
                                     {item.badge}
                                   </span>
                                 </div>
@@ -909,19 +909,19 @@ export function ProClient() {
                               animate={{ rotate: 360 }}
                               transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
                             />
-                            <span className="relative flex h-full w-full items-center justify-between gap-3 rounded-[19px] border border-purple-400/30 bg-gradient-to-br from-[#120822]/98 via-[#0e071a]/98 to-[#07030e]/98 px-5 py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1a0c33]/98 group-hover/launch:to-[#0f041c]/98">
-                              <div className="flex items-center gap-3.5">
-                                <ExismicMark size={40} letter="P" theme="purple" animated={true} />
-                                <div className="text-left">
-                                  <span className="block text-xs sm:text-sm font-black uppercase tracking-[0.18em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]">
+                            <span className="relative flex h-full w-full items-center justify-between gap-2.5 sm:gap-3 rounded-[19px] border border-purple-400/30 bg-gradient-to-br from-[#120822]/98 via-[#0e071a]/98 to-[#07030e]/98 px-3.5 sm:px-5 py-2.5 sm:py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1a0c33]/98 group-hover/launch:to-[#0f041c]/98">
+                              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                                <ExismicMark size={34} letter="P" theme="purple" animated={true} />
+                                <div className="text-left min-w-0">
+                                  <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] truncate">
                                     GET YEARLY VIP • {isIndia ? "₹4,499" : "$59.99"}
                                   </span>
-                                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-purple-200">
+                                  <span className="block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-200 truncate">
                                     🔥 SAVE 28% • 3.5 MO FREE
                                   </span>
                                 </div>
                               </div>
-                              <ArrowRight size={18} className="text-purple-300 transition-transform group-hover/launch:translate-x-1" />
+                              <ArrowRight size={18} className="text-purple-300 transition-transform group-hover/launch:translate-x-1 shrink-0" />
                             </span>
                           </motion.button>
                         </div>
