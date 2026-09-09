@@ -264,11 +264,11 @@ export const TOOL_RELIABILITY: Record<string, ToolReliability> = {
     dependencyGroups: [{ label: "Language model assistant", env: ["GROQ_API_KEYS", "GROQ_API_KEY"], optional: true }],
   },
   "discord-card": {
-    level: "service-backed",
-    label: "Live",
-    headline: "Live Discord profile",
+    level: "unavailable",
+    label: "In Development",
+    headline: "In active development",
     description:
-      "Profile cosmetics use public Discord profile data. Live status can come directly from Exismic's Discord bot when the user shares its server, with Lanyard kept as a compatibility fallback.",
+      "Discord Profile Card Studio is currently being refined and will launch soon.",
     requirements: ["Public Discord profile access", "Shared Discord server for official live presence"],
   },
   "pdf-merger": SERVER_PROCESSED,

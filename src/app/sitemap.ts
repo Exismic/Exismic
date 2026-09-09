@@ -99,12 +99,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.6,
     },
-    {
-      url: `${SITE_URL}/tools/discord-card`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
   ];
 
   const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({

@@ -16,6 +16,7 @@ export const metadata: Metadata = constructMetadata({
     "discord profile maker",
     "Exismic",
   ],
+  noIndex: true,
 });
 
 export default function DiscordCardPage() {

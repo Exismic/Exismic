@@ -711,7 +711,9 @@ export const ALL_TOOLS: Tool[] = [
     requiresFileUpload: false,
     seoTitle: "Discord Profile Card Generator - Live Presence, Spotify & Badges",
     seoDescription: "Create a live Discord profile website and dynamic GitHub README SVG badge with real-time status, Spotify sync, custom cosmetics, and 1-click PNG/HTML exports.",
-    seoKeywords: ["discord profile card", "discord card generator", "discord github badge", "discord presence generator", "Exismic"]
+    seoKeywords: ["discord profile card", "discord card generator", "discord github badge", "discord presence generator", "Exismic"],
+    hidden: true,
+    indexable: false,
   },
   { id: 'productivity-qr', name: 'QR Code Generator', description: "Build clean, scannable QR codes for your portfolio links, social profiles, WiFi networks, and shop menus with custom colors and logo inserts.", category: 'productivity', icon: 'QrCode' as IconName, href: '/tools/qr-code',
     suggestions: ["Can I change the color of the QR code?","How do I add my logo to the center?","Will this QR code expire?"], requiresFileUpload: false, seoTitle: "Free QR Code Generator - Create Custom QR Codes for Links & Text",
