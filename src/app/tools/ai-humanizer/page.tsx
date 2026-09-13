@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import AiHumanizer from "@/components/tool/AiHumanizer";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free AI Text Humanizer - Rewrite AI Text to Natural Human Flow | Exismic",
   description: "Transform ChatGPT, Claude, and Gemini drafts into natural, engaging, human-sounding writing with custom tones and instant readability.",
-};
+  canonicalUrl: `${SITE_URL}/tools/ai-humanizer`,
+});
 
 export default function Page() {
   return (

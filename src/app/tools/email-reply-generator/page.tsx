@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import EmailReplyGenerator from "@/components/tool/EmailReplyGenerator";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free AI Email Reply Generator - Smart Quick Responses | Exismic",
   description: "Generate professional email replies instantly. Choose tone, response intent, and key details for clean email communication.",
-};
+  canonicalUrl: `${SITE_URL}/tools/email-reply-generator`,
+});
 
 export default function Page() {
   return (

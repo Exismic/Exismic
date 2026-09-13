@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import RobotsTxtGenerator from "@/components/tool/RobotsTxtGenerator";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free Robots.txt Generator - Create Search Engine Robot Instructions | Exismic",
   description: "Generate valid robots.txt files for Googlebot, Bingbot, and web crawlers with Disallow rules and Sitemap integration.",
-};
+  canonicalUrl: `${SITE_URL}/tools/robots-txt-generator`,
+});
 
 export default function Page() {
   return (

@@ -9,8 +9,8 @@ export const PRICING_CONFIG = {
   },
   V16_LAUNCH_PROMO: {
     CODE: "V16LAUNCH",
-    ACTIVE: true,
-    EXPIRES_AT: "2026-09-15T23:59:59Z", // 7-day launch special
+    ACTIVE: false,
+    EXPIRES_AT: "2026-09-13T00:00:00Z", // Concluded - preserved in codebase for future reference
     DISCOUNTED_PRICE_USD: 3.99,
     DISCOUNTED_PRICE_INR: 299,
     DISCOUNT_AMOUNT_USD: 3.00,

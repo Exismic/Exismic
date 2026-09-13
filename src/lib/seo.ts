@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { TOOLS, CATEGORIES } from '@/data/tools';
+import { TOOLS, ALL_TOOLS, CATEGORIES } from '@/data/tools';
 
 interface MetadataProps {
   title?: string;
@@ -35,6 +35,32 @@ function resolveSiteUrl() {
 export const SITE_URL = resolveSiteUrl();
 export const SEO_INDEXING_ENABLED = process.env.SEO_INDEXING_ENABLED !== "false";
 
+export function normalizeCanonical(rawUrl?: string): string {
+  if (!rawUrl) return `${SITE_URL}/`;
+  try {
+    const base = SITE_URL.startsWith("http") ? SITE_URL : `https://${SITE_URL}`;
+    const url = new URL(
+      rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+        ? rawUrl
+        : `${base}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`
+    );
+    url.protocol = "https:";
+    if (url.hostname === "exismic.xyz") {
+      url.hostname = "www.exismic.xyz";
+    }
+    url.search = "";
+    url.hash = "";
+    let pathname = url.pathname;
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+      pathname = pathname.slice(0, -1);
+    }
+    url.pathname = pathname;
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 export function constructMetadata({
   title = "Exismic - All-in-One AI Tools | Image, Video, Audio & More",
   description = "Create, edit, convert, and enhance images, video, audio, PDFs, and documents with Exismic's focused AI tools.",
@@ -45,9 +71,7 @@ export function constructMetadata({
   type = 'website',
   keywords,
 }: MetadataProps = {}): Metadata {
-  const resolvedCanonicalUrl = canonicalUrl
-    ? (canonicalUrl.startsWith("http") ? canonicalUrl : `${SITE_URL}${canonicalUrl.startsWith("/") ? "" : "/"}${canonicalUrl}`)
-    : undefined;
+  const resolvedCanonicalUrl = canonicalUrl ? normalizeCanonical(canonicalUrl) : undefined;
   const shouldIndex = SEO_INDEXING_ENABLED && !noIndex;
   
   return {
@@ -77,7 +101,7 @@ export function constructMetadata({
     openGraph: {
       title,
       description,
-      url: resolvedCanonicalUrl || SITE_URL,
+      url: resolvedCanonicalUrl || `${SITE_URL}/`,
       siteName: "Exismic AI",
       locale: 'en_US',
       images: [
@@ -103,9 +127,13 @@ export function constructMetadata({
       apple: icons,
     },
     metadataBase: new URL(SITE_URL),
-    alternates: {
-      canonical: resolvedCanonicalUrl || SITE_URL,
-    },
+    ...(resolvedCanonicalUrl
+      ? {
+          alternates: {
+            canonical: resolvedCanonicalUrl,
+          },
+        }
+      : {}),
     robots: {
       index: shouldIndex,
       follow: shouldIndex,
@@ -122,7 +150,7 @@ export function constructMetadata({
 
 export function getToolMetadata(toolId: string, categoryId?: string) {
   const routeHref = categoryId ? `/tools/${categoryId}/${toolId}` : null;
-  const tool = TOOLS.find(
+  const tool = ALL_TOOLS.find(
     (candidate) =>
       candidate.id === toolId ||
       candidate.id === `${categoryId}-${toolId}` ||
@@ -137,7 +165,7 @@ export function getToolMetadata(toolId: string, categoryId?: string) {
     description: tool.seoDescription || tool.description,
     image: ogImageUrl,
     canonicalUrl: `${SITE_URL}${tool.href}`,
-    noIndex: tool.indexable === false,
+    noIndex: tool.hidden === true || tool.indexable === false,
     keywords: tool.seoKeywords || [
       tool.name.toLowerCase(),
       `${tool.name.toLowerCase()} online`,

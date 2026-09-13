@@ -436,10 +436,6 @@ export function ProClient() {
     }
   };
 
-  if (isProLoading) {
-    return <ProPageSkeleton />;
-  }
-
   return (
     <div className="min-h-screen scroll-smooth overflow-x-hidden bg-[#030306] text-zinc-100 selection:bg-purple-500/35">
       {paymentsEnabled && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />}

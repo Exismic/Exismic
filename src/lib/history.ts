@@ -273,6 +273,7 @@ export function getReplayUrl(
     if (metadata.bottomText) params.set("bottomText", String(metadata.bottomText));
     if (metadata.templateId) params.set("templateId", String(metadata.templateId));
     if (metadata.tier) params.set("tier", String(metadata.tier));
+    if (metadata.parentGenerationId) params.set("parentGenerationId", String(metadata.parentGenerationId));
   }
 
   if (mode === "run") {

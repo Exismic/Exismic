@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, 
@@ -274,6 +274,102 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("users"); // "users" | "quests_vault" | "sparks_economy" | "orders_revenue" | "tickets" | "activity" | "promos" | "announcements" | "referrals" | "logs" | "config"
   const [inspectDossierUserId, setInspectDossierUserId] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
+
+  // Tab Navigation Horizontal Scroll State & Controls
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const isDraggingTabsRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const scrollLeftStartRef = useRef(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkTabsScroll = () => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 6);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 6);
+  };
+
+  useEffect(() => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+
+    checkTabsScroll();
+
+    const handleResize = () => checkTabsScroll();
+    window.addEventListener("resize", handleResize);
+
+    // Natural vertical mouse wheel to horizontal scroll for Windows mouse wheel
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY === 0) return;
+      const canScrollDown = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+      const canScrollUp = el.scrollLeft > 1;
+      if ((e.deltaY > 0 && canScrollDown) || (e.deltaY < 0 && canScrollUp)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        checkTabsScroll();
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      el.removeEventListener("wheel", handleWheel);
+    };
+  }, [loading]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const amount = Math.max(el.clientWidth * 0.6, 260);
+    el.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+    setTimeout(checkTabsScroll, 350);
+  };
+
+  const handleTabMouseDown = (e: React.MouseEvent) => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    isDraggingTabsRef.current = false;
+    dragStartXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftStartRef.current = el.scrollLeft;
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!el) return;
+      const x = ev.pageX - el.offsetLeft;
+      const walk = (x - dragStartXRef.current) * 1.3;
+      if (Math.abs(walk) > 6) {
+        isDraggingTabsRef.current = true;
+      }
+      el.scrollLeft = scrollLeftStartRef.current - walk;
+      checkTabsScroll();
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setTimeout(() => {
+        isDraggingTabsRef.current = false;
+      }, 50);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const handleSelectTab = (tabId: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isDraggingTabsRef.current) return;
+    setActiveTab(tabId);
+    e.currentTarget.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+    setTimeout(checkTabsScroll, 350);
+  };
 
   // Users Directory Tab State
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -1170,47 +1266,99 @@ export default function AdminPage() {
             </div>
 
             {/* Custom Admin Navigation Tab Bar */}
-            <div className="flex overflow-x-auto gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md max-w-fit scrollbar-none">
-              {[
-                { id: "users", label: "Users Directory", icon: Users },
-                { 
-                  id: "config", 
-                  label: configs.maintenance_mode === "true" ? "System Config (Locked)" : "System Config & Maintenance", 
-                  icon: Settings,
-                  highlight: configs.maintenance_mode === "true"
-                },
-                { id: "quests_vault", label: "Quests & Vault", icon: Flame },
-                { id: "sparks_economy", label: "Sparks & Shop", icon: Zap },
-                { id: "orders_revenue", label: "Orders & Pro", icon: WalletCards },
-                { id: "activity", label: "Live Moderation Stream", icon: ShieldAlert },
-                { id: "giveaways", label: "Giveaway Manager", icon: Gift },
-                { id: "giftcards", label: "Gift Cards Queue", icon: Ticket },
-                { id: "tool_errors", label: "Tool Error Logs", icon: AlertTriangle },
-                { id: "announcements", label: "Announcements", icon: Megaphone },
-                { id: "tickets", label: "Support Tickets", icon: Ticket },
-                { id: "promos", label: "Promo Codes", icon: Coins },
-                { id: "referrals", label: "Referrals", icon: Clock },
-                { id: "logs", label: "System Logs", icon: FileText },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 cursor-pointer",
-                    activeTab === tab.id
-                      ? "bg-accent-purple text-black shadow-[0_0_15px_rgba(139,92,246,0.3)]"
-                      : tab.highlight
-                        ? "text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20"
-                        : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
-                  )}
-                >
-                  <tab.icon size={14} />
-                  <span>{tab.label}</span>
-                  {tab.highlight && (
-                    <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
-                  )}
-                </button>
-              ))}
+            <div className="relative w-full max-w-full group">
+              {/* Left Arrow Button */}
+              <button
+                type="button"
+                onClick={() => scrollTabs("left")}
+                aria-label="Scroll tabs left"
+                className={cn(
+                  "absolute left-1.5 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.9)] border backdrop-blur-xl cursor-pointer",
+                  "bg-[#080914]/95 border-white/15 text-zinc-300 hover:text-white hover:bg-accent-purple hover:text-black hover:border-accent-purple/50 active:scale-90",
+                  canScrollLeft ? "opacity-100 pointer-events-auto scale-100" : "opacity-0 pointer-events-none scale-75"
+                )}
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              {/* Left Edge Gradient Fade */}
+              <div
+                className={cn(
+                  "pointer-events-none absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#030303] via-[#030303]/80 to-transparent z-10 transition-opacity duration-300 rounded-l-2xl",
+                  canScrollLeft ? "opacity-100" : "opacity-0"
+                )}
+              />
+
+              {/* Scrollable Tab Track */}
+              <div
+                ref={tabsScrollRef}
+                onScroll={checkTabsScroll}
+                onMouseDown={handleTabMouseDown}
+                className="w-full max-w-full overflow-x-auto p-1.5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md flex items-center gap-2 select-none scroll-smooth cursor-grab active:cursor-grabbing scrollbar-none"
+              >
+                {[
+                  { id: "users", label: "Users Directory", icon: Users },
+                  { 
+                    id: "config", 
+                    label: configs.maintenance_mode === "true" ? "System Config (Locked)" : "System Config & Maintenance", 
+                    icon: Settings,
+                    highlight: configs.maintenance_mode === "true"
+                  },
+                  { id: "quests_vault", label: "Quests & Vault", icon: Flame },
+                  { id: "sparks_economy", label: "Sparks & Shop", icon: Zap },
+                  { id: "orders_revenue", label: "Orders & Pro", icon: WalletCards },
+                  { id: "activity", label: "Live Moderation Stream", icon: ShieldAlert },
+                  { id: "giveaways", label: "Giveaway Manager", icon: Gift },
+                  { id: "giftcards", label: "Gift Cards Queue", icon: Ticket },
+                  { id: "tool_errors", label: "Tool Error Logs", icon: AlertTriangle },
+                  { id: "announcements", label: "Announcements", icon: Megaphone },
+                  { id: "tickets", label: "Support Tickets", icon: Ticket },
+                  { id: "promos", label: "Promo Codes", icon: Coins },
+                  { id: "referrals", label: "Referrals", icon: Clock },
+                  { id: "logs", label: "System Logs", icon: FileText },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={(e) => handleSelectTab(tab.id, e)}
+                    className={cn(
+                      "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 cursor-pointer shrink-0",
+                      activeTab === tab.id
+                        ? "bg-accent-purple text-black shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                        : tab.highlight
+                          ? "text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20"
+                          : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                    )}
+                  >
+                    <tab.icon size={14} />
+                    <span>{tab.label}</span>
+                    {tab.highlight && (
+                      <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Right Edge Gradient Fade */}
+              <div
+                className={cn(
+                  "pointer-events-none absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#030303] via-[#030303]/80 to-transparent z-10 transition-opacity duration-300 rounded-r-2xl",
+                  canScrollRight ? "opacity-100" : "opacity-0"
+                )}
+              />
+
+              {/* Right Arrow Button */}
+              <button
+                type="button"
+                onClick={() => scrollTabs("right")}
+                aria-label="Scroll tabs right"
+                className={cn(
+                  "absolute right-1.5 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.9)] border backdrop-blur-xl cursor-pointer",
+                  "bg-[#080914]/95 border-white/15 text-zinc-300 hover:text-white hover:bg-accent-purple hover:text-black hover:border-accent-purple/50 active:scale-90",
+                  canScrollRight ? "opacity-100 pointer-events-auto scale-100" : "opacity-0 pointer-events-none scale-75"
+                )}
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
 
             {/* TAB CONTENT GRID */}

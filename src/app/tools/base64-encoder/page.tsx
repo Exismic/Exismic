@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import Base64Encoder from "@/components/tool/Base64Encoder";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free Base64 Encoder & Decoder Online - Convert Text & Files | Exismic",
   description: "Quickly encode and decode text, strings, and files to Base64 format online with instant live preview.",
-};
+  canonicalUrl: `${SITE_URL}/tools/base64-encoder`,
+});
 
 export default function Page() {
   return (

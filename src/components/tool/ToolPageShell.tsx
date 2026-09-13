@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { TOOLS, CATEGORIES, ICON_MAP, type Tool, type Category } from "@/data/tools";
+import { TOOLS, ALL_TOOLS, CATEGORIES, ICON_MAP, type Tool, type Category } from "@/data/tools";
 import { ToolWorkspaceHeader } from "@/components/tool/ToolWorkspaceFrame";
 import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
@@ -28,7 +28,7 @@ export function ToolPageShell({
   customTitle,
   customDescription,
 }: ToolPageShellProps) {
-  const tool: Tool | undefined = TOOLS.find(
+  const tool: Tool | undefined = (ALL_TOOLS || TOOLS).find(
     (t) => t.id === toolId || t.id === `${explicitCategoryId}-${toolId}` || t.href.endsWith(`/${toolId}`)
   );
 

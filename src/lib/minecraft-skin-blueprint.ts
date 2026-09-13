@@ -236,7 +236,7 @@ export function buildMaterialRamp(
         base: baseHex,
         light: shadeWithHueShift(baseHex, 0.07, "skin"),
         highlight: shadeWithHueShift(baseHex, 0.14, "skin"),
-        accent: accentHex || "#fb7185", // Peach/rose blush
+        accent: accentHex || shadeWithHueShift(baseHex, -0.07, "skin"), // Subtle natural cheek flush harmonized with skin base
       };
 
     case "hoodie":
@@ -272,6 +272,21 @@ export function safeExtractBlueprintDesign(
   seed = 12345
 ): MinecraftSkinDesign {
   const lower = prompt.toLowerCase();
+  const wantsNoFacialHair = /\b(no|not|without|never|zero|free of|remove|clean[- ])\s*(beard|stubble|moustache|mustache|goatee|facial[- ]hair|shaven)\b/i.test(lower);
+  const wantsNoGlasses = /\b(no|without|not)\s*(glasses|sunglasses)\b/i.test(lower);
+
+  let resolvedFacialHair = designInput.facialHair || "none";
+  if (wantsNoFacialHair) {
+    resolvedFacialHair = "none";
+  } else if (/\bgoatee\b/i.test(lower)) {
+    resolvedFacialHair = "goatee";
+  } else if (/\bstubble\b/i.test(lower)) {
+    resolvedFacialHair = "stubble";
+  } else if (/\b(short[- ]beard|beard)\b/i.test(lower)) {
+    resolvedFacialHair = "short-beard";
+  }
+
+  const resolvedGlasses = wantsNoGlasses ? false : (typeof designInput.glasses === "boolean" ? designInput.glasses : false);
 
   // If structured semantic palette was already supplied (e.g. by Groq), prioritize it directly
   if (designInput.palette && designInput.palette.top && designInput.palette.skin) {
@@ -287,7 +302,9 @@ export function safeExtractBlueprintDesign(
       expression: designInput.expression || "friendly",
       eyeShape: designInput.eyeShape || "normal",
       eyeStyle: designInput.eyeStyle || "anime",
-      facialHair: designInput.facialHair || "none",
+      mouthStyle: designInput.mouthStyle || "smile",
+      facialHair: resolvedFacialHair,
+      glasses: resolvedGlasses,
       faceStyle: designInput.faceStyle || "open",
       sleeves: designInput.sleeves || "long",
       gloves: designInput.gloves || false,
@@ -449,7 +466,9 @@ export function safeExtractBlueprintDesign(
     expression: designInput.expression || "friendly",
     eyeShape: designInput.eyeShape || "normal",
     eyeStyle: designInput.eyeStyle || "anime",
-    facialHair: designInput.facialHair || "none",
+    mouthStyle: designInput.mouthStyle || "smile",
+    facialHair: resolvedFacialHair,
+    glasses: resolvedGlasses,
     faceStyle: designInput.faceStyle || "open",
     sleeves: designInput.sleeves || "long",
     gloves: designInput.gloves || false,
@@ -518,6 +537,7 @@ export interface GarmentGrammar {
     runicTrim?: boolean;
     nomadScarf?: boolean;
     headband?: boolean;
+    headphones?: boolean;
   };
 }
 
@@ -638,6 +658,7 @@ export function analyzeGarmentGrammar(prompt: string, design: MinecraftSkinDesig
     runicTrim: utility === "runic_trim" || /\b(runes?|mystic trim)\b/i.test(lower),
     nomadScarf: neckline === "scarf_wrap",
     headband: /\b(headband|bandana)\b/i.test(lower),
+    headphones: Boolean(design.headphones),
   };
 
   return {
@@ -700,7 +721,8 @@ export function generateParametricTorsoBlueprint(
   grammar: GarmentGrammar,
   foldBias: "left" | "right" | "center",
   asymmetry: number,
-  materials: ComponentMaterials
+  materials: ComponentMaterials,
+  seed = 12345
 ): {
   base: TokenMatrix;
   overlay: TokenMatrix;
@@ -708,7 +730,7 @@ export function generateParametricTorsoBlueprint(
   const biasLeft = foldBias === "left";
   const rowsBase: string[] = [];
   const rowsOverlay: string[] = [];
-  const isThreeTier = grammar.placket === "open_front" && grammar.midLayer !== "none";
+  const isThreeTier = grammar.midLayer !== "none";
 
   // ROW 0: Neckline & Collar
   if (isThreeTier) {
@@ -778,24 +800,47 @@ export function generateParametricTorsoBlueprint(
     rowsBase.push("KFFFFFFK");
     rowsBase.push("Gff..ffG"); // Clavicle highlights
     rowsOverlay.push("FF....FF");
-    rowsOverlay.push("FF..*ZFF"); // Metallic zipper or snap at row 2
+    const zipCol = ((seed >> 4) % 2 === 0) ? "FF..*ZFF" : "FF*Z..FF";
+    rowsOverlay.push(zipCol); // Metallic zipper or snap at row 2
   }
 
   // ROW 3..7: Mid Torso / Placket / Folds / Inner Graphics / Utility
   for (let r = 3; r <= 7; r++) {
-    // Form-following tension folds on base
-    const foldLeft = biasLeft && r === 4 ? "FFgGgFFF" : biasLeft && r === 5 ? "FFfgGgFF" : "FFFFFFFF";
-    const foldRight = !biasLeft && r === 4 ? "FFFgGgFF" : !biasLeft && r === 5 ? "FFgGgfFF" : "FFFFFFFF";
-    const foldBase = biasLeft ? foldLeft : foldRight;
+    // Form-following tension folds on base with seed variation
+    const foldVariant = Math.abs(seed) % 4;
+    let foldBase = "FFFFFFFF";
+    if (r === 3) {
+      if (foldVariant === 0) foldBase = biasLeft ? "FFfgGFFF" : "FFFgGfFF";
+      else if (foldVariant === 3) foldBase = biasLeft ? "FfgGFFFF" : "FFFFgGfF";
+    } else if (r === 4) {
+      if (foldVariant === 0) foldBase = biasLeft ? "FFgGgFFF" : "FFFgGgFF";
+      else if (foldVariant === 1) foldBase = "FfgGgfgF"; // Symmetrical ripple fold
+      else if (foldVariant === 2) foldBase = biasLeft ? "FFFgGgFF" : "FFgGgFFF";
+      else foldBase = "FffGGffF"; // Center chest drape
+    } else if (r === 5) {
+      if (foldVariant === 0) foldBase = biasLeft ? "FFfgGgFF" : "FFgGgfFF";
+      else if (foldVariant === 1) foldBase = biasLeft ? "FggFFggF" : "FFggFFgg";
+      else if (foldVariant === 2) foldBase = biasLeft ? "FFfgGFFF" : "FFFgGfFF";
+      else foldBase = biasLeft ? "FFgGgFFF" : "FFFgGgFF";
+    } else if (r === 6) {
+      if (foldVariant === 2) foldBase = biasLeft ? "FFFgGFFF" : "FFgGfFFF";
+      else if (foldVariant === 3) foldBase = biasLeft ? "FFgGgFFF" : "FFFgGgFF";
+    }
 
     if (isThreeTier) {
       // Three-tier Base: Lavender hoodie body with drawstrings, soft folds, and kangaroo pocket
       if (r === 3) {
-        // Drawstrings descending from hood cowl
-        rowsBase.push(asymmetry > 0.3 ? "MMzMM*MM" : "MMzMMzMM");
+        // Drawstrings descending from hood cowl with seed-dependent aglet / asymmetric catchlight
+        const cordSeed = (seed >> 2) % 3;
+        if (cordSeed === 1) rowsBase.push("MMzMM*MM"); // Right cord aglet catchlight
+        else if (cordSeed === 2) rowsBase.push("MM*MMzMM"); // Left cord aglet catchlight
+        else rowsBase.push("MMzMMzMM");
       } else if (r === 4) {
-        // Soft cotton fabric tension folds
-        rowsBase.push(biasLeft ? "MMmnMMMM" : "MMMMnmMM");
+        // Soft cotton fabric tension folds + drawstring tail extension
+        const cordSeed = (seed >> 2) % 3;
+        if (cordSeed === 1) rowsBase.push(biasLeft ? "MMmnMMzM" : "MMMMnmzM"); // Right cord hangs 1px lower
+        else if (cordSeed === 2) rowsBase.push(biasLeft ? "MzmnMMMM" : "MzMMnmMM"); // Left cord hangs 1px lower
+        else rowsBase.push(biasLeft ? "MMmnMMMM" : "MMMMnmMM");
       } else if (r === 5) {
         // Kangaroo pocket top ribbed welt
         rowsBase.push("Mvv..vvM");
@@ -834,8 +879,11 @@ export function generateParametricTorsoBlueprint(
 
     // Overlay detailing for rows 3..7 (non-three-tier)
     if (grammar.placket === "open_front") {
-      // When placket is open front, keep overlay open!
-      rowsOverlay.push("FF....FF");
+      // When placket is open front, keep overlay open with seed-dependent flap flutter
+      const flapShift = (seed >> 3) % 3;
+      if (r === 4 && flapShift === 1) rowsOverlay.push("FFF...FF");
+      else if (r === 4 && flapShift === 2) rowsOverlay.push("FF...FFF");
+      else rowsOverlay.push("FF....FF");
     } else if (grammar.accessories.safetyStraps) {
       if (r === 4) rowsOverlay.push("UUFFFFUU");
       else if (r === 5) rowsOverlay.push("UUUbbUUU");
@@ -934,7 +982,8 @@ export function generateParametricTorsoBlueprint(
 export function generateParametricLegBlueprint(
   grammar: LowerBodyGrammar,
   isRight: boolean,
-  materials: ComponentMaterials
+  materials: ComponentMaterials,
+  seed = 12345
 ): {
   base: TokenMatrix;
   overlay: TokenMatrix;
@@ -974,10 +1023,21 @@ export function generateParametricLegBlueprint(
     rowsBase.push(isRight ? "GFFG" : "GFFG");
     rowsBase.push("FFFF");
   } else {
-    // Relaxed denim/trouser knee tension crease
-    rowsBase.push("FffF"); // Knee fold highlight
-    rowsBase.push("FggF"); // Knee fold shadow
-    rowsBase.push("FFFF");
+    // Relaxed denim/trouser knee tension crease with seed variation
+    const kneeVariant = (Math.floor(seed / 17) + (isRight ? 1 : 0)) % 3;
+    if (kneeVariant === 1) {
+      rowsBase.push("FFFF"); // Lower knee break fold
+      rowsBase.push("FffF");
+      rowsBase.push("FggF");
+    } else if (kneeVariant === 2) {
+      rowsBase.push("fFFf"); // Lateral outer tension creases
+      rowsBase.push("gFFg");
+      rowsBase.push("FFFF");
+    } else {
+      rowsBase.push("FffF"); // Upper knee fold highlight
+      rowsBase.push("FggF"); // Knee fold shadow
+      rowsBase.push("FFFF");
+    }
   }
 
   // Row 7: Ankle Break / Sock Bottom / Cuff
@@ -988,7 +1048,10 @@ export function generateParametricLegBlueprint(
   } else if (grammar.fit === "pleated_skirt") {
     rowsBase.push("KKKK");
   } else {
-    rowsBase.push("GGGG");
+    const cuffVariant = (Math.floor(seed / 31) + (isRight ? 1 : 0)) % 3;
+    if (cuffVariant === 1) rowsBase.push("gGGg");
+    else if (cuffVariant === 2) rowsBase.push("GggG");
+    else rowsBase.push("GGGG");
   }
 
   // Rows 8..11: Footwear Primitives
@@ -1252,11 +1315,17 @@ export interface BlueprintCompileOptions {
   mode?: "baseline" | "expanded";
 }
 
+export type BlueprintSkinStyle =
+  | MinecraftSkinStyle
+  | "detailed"
+  | "anime"
+  | "pixel-artist";
+
 export function compileMinecraftSkinBlueprint(
   designInput: Partial<MinecraftSkinDesign>,
   seed = 12345,
   model: MinecraftArmModel = "classic",
-  style: MinecraftSkinStyle = "balanced",
+  style: BlueprintSkinStyle = "balanced",
   prompt = "",
   options?: BlueprintCompileOptions
 ): Uint8Array {
@@ -1284,7 +1353,7 @@ export function compileMinecraftSkinBlueprint(
   const lowerPrompt = prompt.toLowerCase();
   const hasMidLayer = garmentGrammar.midLayer !== "none";
   const hasInner = garmentGrammar.innerGarment !== "none";
-  const isThreeTier = garmentGrammar.placket === "open_front" && hasMidLayer;
+  const isThreeTier = hasMidLayer;
 
   const topMaterial: MaterialType =
     /\b(metal|plate|armor|steel|iron)\b/i.test(lowerPrompt) ? "metal"
@@ -1356,28 +1425,42 @@ export function compileMinecraftSkinBlueprint(
   const shoesRamp = buildMaterialRamp(palette.shoes, footwearMaterial);
 
   // 5. Composition Parameters
-  const partOffset = ((seed % 100) / 100) * 0.4 - 0.2;
+  const isMinimal = style === "minimal";
+  const isDetailed = style === "detailed" || style === "pixel-detailed";
+  const isAnime = style === "anime";
+
+  const partOffset = isMinimal
+    ? 0
+    : ((seed % 100) / 100) * 0.4 - 0.2;
   const foldBias = seed % 3 === 0 ? "left" : seed % 3 === 1 ? "right" : "center";
-  const asymmetry = (seed % 100) / 100;
+  const asymmetry = isMinimal
+    ? 0
+    : isDetailed
+      ? Math.min(1, ((seed % 100) / 100) * 1.3)
+      : isAnime
+        ? ((seed % 100) / 100) * 0.6
+        : (seed % 100) / 100;
 
   // 6. Generate Component Blueprints
   const hairBp = generateHairBlueprint({
     silhouette: design.hairSilhouette || "curtain-bangs",
     partOffset,
     asymmetry,
-    length: 0.8,
+    length: design.hairLength === "long" || design.hairStyle === "long" ? 0.8 : 0.4,
     seed,
     accessories: {
       catEars: garmentGrammar.accessories.catEars,
       headband: garmentGrammar.accessories.headband,
+      horns: Boolean(design.horns),
+      headphones: Boolean(design.headphones),
     },
   });
 
-  const faceBp = generateFaceBlueprint(design.faceConstruction || "clean-aesthetic");
+  const faceBp = generateFaceBlueprint(design.faceConstruction || "clean-aesthetic", design.eyeStyle, design.mouthStyle);
 
-  const torsoBp = generateParametricTorsoBlueprint(garmentGrammar, foldBias, asymmetry, componentMaterials);
-  const rightLegBp = generateParametricLegBlueprint(lowerGrammar, true, componentMaterials);
-  const leftLegBp = generateParametricLegBlueprint(lowerGrammar, false, componentMaterials);
+  const torsoBp = generateParametricTorsoBlueprint(garmentGrammar, foldBias, asymmetry, componentMaterials, seed);
+  const rightLegBp = generateParametricLegBlueprint(lowerGrammar, true, componentMaterials, seed);
+  const leftLegBp = generateParametricLegBlueprint(lowerGrammar, false, componentMaterials, seed);
 
   // -------------------------------------------------------------
   // RENDER HEAD BASE & FACE
@@ -1389,15 +1472,16 @@ export function compileMinecraftSkinBlueprint(
     }
   }
 
-  // 2. Base hair on top of head with crown sheen
+  // 2. Base hair on top of head with crown sheen (seed-dependent highlight cluster)
   for (let dy = 0; dy < 8; dy++) {
     for (let dx = 0; dx < 8; dx++) {
       canvas.setPixel(8 + dx, 0 + dy, hairRamp.base);
     }
   }
-  canvas.setPixel(10, 2, hairRamp.light);
-  canvas.setPixel(11, 2, hairRamp.highlight);
-  canvas.setPixel(11, 3, hairRamp.light);
+  const crownSheenOffset = ((seed % 3) - 1);
+  canvas.setPixel(10 + crownSheenOffset, 2, hairRamp.light);
+  canvas.setPixel(11 + crownSheenOffset, 2, hairRamp.highlight);
+  canvas.setPixel(11 + crownSheenOffset, 3, hairRamp.light);
 
   // 3. Base hair on back of head
   for (let dy = 0; dy < 8; dy++) {
@@ -1450,12 +1534,69 @@ export function compileMinecraftSkinBlueprint(
       case "e": return { hex: shadeWithHueShift(palette.eyes || "#38bdf8", 0.15, "neon"), alpha: 255 };
       case "*": return { hex: "#ffffff", alpha: 255 };
       case "p": return { hex: hairRamp.deepShadow, alpha: 255 };
-      case "r": return { hex: skinRamp.accent || "#fb7185", alpha: 255 };
+      case "r": return { hex: skinRamp.accent || shadeWithHueShift(skinRamp.base, -0.07, "skin"), alpha: 255 };
       case "l": return { hex: shadeWithHueShift(skinRamp.base, -0.09, "skin"), alpha: 255 };
       case "A": return { hex: palette.topAccent || "#06b6d4", alpha: 255 };
       default: return null;
     }
   });
+
+  // 5b. Render Facial Hair (deliberate Artist Blueprint pixel clusters)
+  const facialHairType = design.facialHair || "none";
+  if (facialHairType !== "none") {
+    if (facialHairType === "stubble") {
+      // Subtle deliberate 5 o'clock shadow cluster (harmonized skin shadow tone, non-procedural)
+      const stubbleColor = shadeWithHueShift(skinRamp.base, -0.16, "skin");
+      // Chin row (dy = 7): center jaw shadow anchor
+      canvas.setPixel(8 + 2, 8 + 7, stubbleColor);
+      canvas.setPixel(8 + 3, 8 + 7, stubbleColor);
+      canvas.setPixel(8 + 4, 8 + 7, stubbleColor);
+      canvas.setPixel(8 + 5, 8 + 7, stubbleColor);
+      // Mouth row (dy = 6): outer jaw corners (mouth at 3,4 is untouched)
+      canvas.setPixel(8 + 1, 8 + 6, stubbleColor);
+      canvas.setPixel(8 + 6, 8 + 6, stubbleColor);
+      // Mustache row (dy = 5): subtle upper-lip anchor
+      canvas.setPixel(8 + 3, 8 + 5, stubbleColor);
+      canvas.setPixel(8 + 4, 8 + 5, stubbleColor);
+    } else if (facialHairType === "short-beard") {
+      // Recognizable short trimmed beard with mustache and jaw wrap
+      // Mustache row (dy = 5)
+      canvas.setPixel(8 + 0, 8 + 5, hairRamp.shadow); // Left sideburn connection
+      canvas.setPixel(8 + 2, 8 + 5, hairRamp.shadow); // Mustache outer left
+      canvas.setPixel(8 + 3, 8 + 5, hairRamp.base);   // Mustache center left
+      canvas.setPixel(8 + 4, 8 + 5, hairRamp.base);   // Mustache center right
+      canvas.setPixel(8 + 5, 8 + 5, hairRamp.shadow); // Mustache outer right
+      canvas.setPixel(8 + 7, 8 + 5, hairRamp.shadow); // Right sideburn connection
+      // Mouth row (dy = 6): cheeks & jaw beard, mouth at 3,4 remains distinct
+      canvas.setPixel(8 + 0, 8 + 6, hairRamp.base);
+      canvas.setPixel(8 + 1, 8 + 6, hairRamp.base);
+      canvas.setPixel(8 + 2, 8 + 6, hairRamp.shadow);
+      canvas.setPixel(8 + 5, 8 + 6, hairRamp.shadow);
+      canvas.setPixel(8 + 6, 8 + 6, hairRamp.base);
+      canvas.setPixel(8 + 7, 8 + 6, hairRamp.base);
+      // Chin row (dy = 7): solid trimmed beard mass across the jaw
+      canvas.setPixel(8 + 0, 8 + 7, hairRamp.shadow);
+      for (let dx = 1; dx <= 6; dx++) {
+        canvas.setPixel(8 + dx, 8 + 7, hairRamp.base);
+      }
+      canvas.setPixel(8 + 7, 8 + 7, hairRamp.shadow);
+    } else if (facialHairType === "goatee") {
+      // Recognizable goatee: mustache, soul patch, and chin anchor. Cheeks and outer jaw remain clean skin!
+      // Mustache row (dy = 5): centered goatee mustache (cheeks 0, 1, 6, 7 are untouched clean skin)
+      canvas.setPixel(8 + 2, 8 + 5, hairRamp.shadow);
+      canvas.setPixel(8 + 3, 8 + 5, hairRamp.base);
+      canvas.setPixel(8 + 4, 8 + 5, hairRamp.base);
+      canvas.setPixel(8 + 5, 8 + 5, hairRamp.shadow);
+      // Mouth row (dy = 6): goatee side connectors, lips visible in center
+      canvas.setPixel(8 + 2, 8 + 6, hairRamp.shadow);
+      canvas.setPixel(8 + 5, 8 + 6, hairRamp.shadow);
+      // Chin row (dy = 7): center goatee block (cheeks/jaw at 0, 1 and 6, 7 are clean skin!)
+      canvas.setPixel(8 + 2, 8 + 7, hairRamp.base);
+      canvas.setPixel(8 + 3, 8 + 7, hairRamp.base);
+      canvas.setPixel(8 + 4, 8 + 7, hairRamp.base);
+      canvas.setPixel(8 + 5, 8 + 7, hairRamp.base);
+    }
+  }
 
   // -------------------------------------------------------------
   // RENDER HAIR OVERLAY (Front, Top, Left, Right, Back)
@@ -1469,7 +1610,9 @@ export function compileMinecraftSkinBlueprint(
       case "S": return { hex: hairRamp.shadow, alpha: 255 };
       case "D": return { hex: hairRamp.deepShadow, alpha: 255 };
       case "r": return { hex: skinRamp.accent || "#fb7185", alpha: 255 }; // Cat ear inner fluff
-      case "A": return { hex: palette.topAccent || "#06b6d4", alpha: 255 }; // Headband
+      case "A": return { hex: palette.topAccent || "#18181b", alpha: 255 }; // Headband / headphone chassis
+      case "C": return { hex: palette.detail || "#06b6d4", alpha: 255 }; // Headphone primary accent (cyan / detail)
+      case "c": return { hex: shadeWithHueShift(palette.detail || "#06b6d4", 0.18, "neon"), alpha: 255 }; // Headphone inner driver highlight
       default: return null;
     }
   };
@@ -1491,7 +1634,7 @@ export function compileMinecraftSkinBlueprint(
     { x: 28, y: 20, w: 4, h: 12 },
     { x: 32, y: 20, w: 8, h: 12 },
   ];
-  const torsoBaseColor = (hasMidLayer && garmentGrammar.placket === "open_front")
+  const torsoBaseColor = hasMidLayer
     ? midRamp.base
     : topRamp.base;
   torsoBaseFaces.forEach((f) => {
@@ -1737,19 +1880,19 @@ export function compileMinecraftSkinBlueprint(
   const isShortSleeve = garmentGrammar.sleeve === "short_sleeve";
   const isSlouchGather = garmentGrammar.sleeve === "slouch_gather";
 
-  // When slouch_gather with a midLayer hoodie, outer jacket sleeve gathers at row 7
+  // When slouch_gather or hasMidLayer, outer jacket sleeve gathers at row 7
   const outerSleeveRows = isLayeredUndershirt ? 4
     : isShortSleeve ? 4
-      : (isSlouchGather && hasMidLayer) ? 7
+      : hasMidLayer ? 7
         : 10;
 
   // Render Right Arm Base
   Object.values(rightArmFaces).forEach((f: Face) => {
     for (let dy = 0; dy < f.height; dy++) {
       for (let dx = 0; dx < f.width; dx++) {
-        if (isSlouchGather && hasMidLayer) {
+        if (hasMidLayer) {
           if (dy < 8) {
-            // Under-sleeve: Lavender hoodie sleeve with soft tension folds
+            // Under-sleeve: Hoodie sleeve with soft tension folds
             const fold = (dy === 4 || dy === 6) ? midRamp.shadow : (dy === 2) ? midRamp.light : midRamp.base;
             canvas.setPixel(f.x + dx, f.y + dy, fold);
           } else if (dy < 10) {
@@ -1780,7 +1923,7 @@ export function compileMinecraftSkinBlueprint(
   Object.values(leftArmFaces).forEach((f: Face) => {
     for (let dy = 0; dy < f.height; dy++) {
       for (let dx = 0; dx < f.width; dx++) {
-        if (isSlouchGather && hasMidLayer) {
+        if (hasMidLayer) {
           if (dy < 8) {
             const fold = (dy === 4 || dy === 6) ? midRamp.shadow : (dy === 2) ? midRamp.light : midRamp.base;
             canvas.setPixel(f.x + dx, f.y + dy, fold);
@@ -1811,7 +1954,7 @@ export function compileMinecraftSkinBlueprint(
       // 1. Sleeve overlay
       for (let dy = 0; dy < outerSleeveRows; dy++) {
         for (let dx = 0; dx < f.width; dx++) {
-          if (isSlouchGather && hasMidLayer && dy === outerSleeveRows - 1) {
+          if (hasMidLayer && dy === outerSleeveRows - 1) {
             // Gathered elastic jacket cuff band
             canvas.setPixel(f.x + dx, f.y + dy, dx % 2 === 0 ? topRamp.deepShadow : topRamp.highlight);
           } else {
@@ -1823,9 +1966,10 @@ export function compileMinecraftSkinBlueprint(
         for (let dx = 0; dx < f.width; dx++) {
           canvas.setPixel(f.x + dx, f.y + outerSleeveRows - 1, topRamp.light);
         }
-        canvas.setPixel(f.x + 1, f.y + 5, topRamp.shadow);
-      } else if (isSlouchGather && hasMidLayer) {
-        // Slouch gather tension folds on outer jacket overlay
+        const sleeveFoldY = ((seed + armIdx) % 2 === 0) ? 5 : 6;
+        canvas.setPixel(f.x + 1, f.y + sleeveFoldY, topRamp.shadow);
+      } else if (hasMidLayer) {
+        // Tension folds on outer jacket overlay
         canvas.setPixel(f.x + 1, f.y + 3, topRamp.shadow);
         canvas.setPixel(f.x + 2, f.y + 4, topRamp.light);
       }
@@ -1918,7 +2062,7 @@ export function compileMinecraftSkinBlueprint(
   }
 
   // 7. Bomber Sleeve Cuff -> Underlying Hoodie Cuff Contact Shadow
-  if (isSlouchGather && hasMidLayer) {
+  if (hasMidLayer) {
     [rightArmFaces.front, rightArmFaces.right, leftArmFaces.front, leftArmFaces.left].forEach((f) => {
       for (let dx = 0; dx < f.width; dx++) {
         applyContactShadow(canvas, f.x + dx, f.y + 7, 0.20, "fabric");
@@ -1946,7 +2090,8 @@ export function compileMinecraftSkinBlueprint(
   // DIRECTIONAL LIGHTING PASS (design.lightingDirection)
   // -------------------------------------------------------------
   if (!isBaseline) {
-    applyDirectionalLighting(canvas, garmentGrammar.lightingDirection, model);
+    const activeLighting = isMinimal ? "front" : (garmentGrammar.lightingDirection || "upper-left");
+    applyDirectionalLighting(canvas, activeLighting, model);
   }
 
   return canvas.pixels;

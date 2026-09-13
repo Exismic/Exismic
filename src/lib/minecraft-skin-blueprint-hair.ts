@@ -10,6 +10,7 @@ export interface HairBlueprintParams {
     catEars?: boolean;
     horns?: boolean;
     headband?: boolean;
+    headphones?: boolean;
   };
 }
 
@@ -94,6 +95,66 @@ export function applyHairAccessories(
     res.top = setToken(res.top, 1, 6, "*");
   }
 
+  // 4. Over-Ear Headphones Primitive (Streetwear & Gaming Headset)
+  if (accessories.headphones) {
+    // Top face: Headband arching across the crown (row 3) connecting directly to side ear cups
+    for (let c = 1; c <= 6; c++) {
+      res.top = setToken(res.top, 3, c, "C");
+    }
+    res.top = setToken(res.top, 3, 0, "A");
+    res.top = setToken(res.top, 3, 7, "A");
+    res.top = setToken(res.top, 2, 2, "c");
+    res.top = setToken(res.top, 2, 3, "C");
+    res.top = setToken(res.top, 2, 4, "C");
+    res.top = setToken(res.top, 2, 5, "c");
+
+    // Right face (Overlay x: 32..39, y: 8..15): Headband slider + 3D ear cup
+    res.right = setToken(res.right, 0, 3, "C");
+    res.right = setToken(res.right, 0, 4, "A");
+    res.right = setToken(res.right, 1, 3, "C");
+    res.right = setToken(res.right, 1, 4, "A");
+    // Right Ear Cup (rows 2..5, centered at cols 3..4 over the base ear)
+    res.right = setToken(res.right, 2, 3, "C");
+    res.right = setToken(res.right, 2, 4, "C");
+    res.right = setToken(res.right, 2, 2, "A");
+    res.right = setToken(res.right, 2, 5, "A");
+    res.right = setToken(res.right, 3, 2, "C");
+    res.right = setToken(res.right, 3, 3, "c");
+    res.right = setToken(res.right, 3, 4, "c");
+    res.right = setToken(res.right, 3, 5, "C");
+    res.right = setToken(res.right, 4, 2, "C");
+    res.right = setToken(res.right, 4, 3, "c");
+    res.right = setToken(res.right, 4, 4, "c");
+    res.right = setToken(res.right, 4, 5, "C");
+    res.right = setToken(res.right, 5, 3, "C");
+    res.right = setToken(res.right, 5, 4, "C");
+    res.right = setToken(res.right, 5, 2, "A");
+    res.right = setToken(res.right, 5, 5, "A");
+
+    // Left face (Overlay x: 48..55, y: 8..15): Headband slider + 3D ear cup
+    res.left = setToken(res.left, 0, 3, "A");
+    res.left = setToken(res.left, 0, 4, "C");
+    res.left = setToken(res.left, 1, 3, "A");
+    res.left = setToken(res.left, 1, 4, "C");
+    // Left Ear Cup (rows 2..5, centered at cols 3..4 over the base ear)
+    res.left = setToken(res.left, 2, 3, "C");
+    res.left = setToken(res.left, 2, 4, "C");
+    res.left = setToken(res.left, 2, 2, "A");
+    res.left = setToken(res.left, 2, 5, "A");
+    res.left = setToken(res.left, 3, 2, "C");
+    res.left = setToken(res.left, 3, 3, "c");
+    res.left = setToken(res.left, 3, 4, "c");
+    res.left = setToken(res.left, 3, 5, "C");
+    res.left = setToken(res.left, 4, 2, "C");
+    res.left = setToken(res.left, 4, 3, "c");
+    res.left = setToken(res.left, 4, 4, "c");
+    res.left = setToken(res.left, 4, 5, "C");
+    res.left = setToken(res.left, 5, 3, "C");
+    res.left = setToken(res.left, 5, 4, "C");
+    res.left = setToken(res.left, 5, 2, "A");
+    res.left = setToken(res.left, 5, 5, "A");
+  }
+
   return res;
 }
 
@@ -113,7 +174,97 @@ export function applyHairAccessories(
  */
 export function generateHairBlueprint(params: HairBlueprintParams): HairBlueprint {
   const base = generateBaseHairBlueprint(params);
-  return applyHairAccessories(base, params.accessories);
+  const varied = applySeedHairVariation(base, params);
+  return applyHairAccessories(varied, params.accessories);
+}
+
+function applySeedHairVariation(base: HairBlueprint, params: HairBlueprintParams): HairBlueprint {
+  const seed = params.seed || 12345;
+  const top = [...base.top];
+  const front = [...base.front];
+  const right = [...base.right];
+  const left = [...base.left];
+  const back = [...base.back];
+
+  const setChar = (matrix: string[], r: number, c: number, ch: string) => {
+    if (r < 0 || r >= matrix.length || c < 0 || c >= 8) return;
+    const row = matrix[r];
+    matrix[r] = row.slice(0, c) + ch + row.slice(c + 1);
+  };
+
+  const getChar = (matrix: string[], r: number, c: number) => {
+    if (r < 0 || r >= matrix.length || c < 0 || c >= 8) return ".";
+    return matrix[r][c];
+  };
+
+  // 1. Crown Sheen Shift on top face (Rows 1..4)
+  const sheenShift = ((seed % 3) - 1); // -1, 0, +1
+  if (sheenShift !== 0) {
+    for (let r = 1; r <= 4; r++) {
+      const row = top[r];
+      if (sheenShift === 1 && row[6] !== "L" && row[6] !== "h" && row[7] !== "L") {
+        let newRow = row[0];
+        for (let c = 1; c <= 6; c++) {
+          newRow += (row[c - 1] === "L" || row[c - 1] === "h") ? row[c - 1] : (row[c] === "L" || row[c] === "h" ? "H" : row[c]);
+        }
+        newRow += row[7];
+        top[r] = newRow;
+      } else if (sheenShift === -1 && row[1] !== "L" && row[1] !== "h" && row[0] !== "L") {
+        let newRow = row[0];
+        for (let c = 1; c <= 6; c++) {
+          newRow += (row[c + 1] === "L" || row[c + 1] === "h") ? row[c + 1] : (row[c] === "L" || row[c] === "h" ? "H" : row[c]);
+        }
+        newRow += row[7];
+        top[r] = newRow;
+      }
+    }
+  }
+
+  // 2. Front Fringe & Bang Strand Variation (Rows 1..3 only - Rows 4..7 are untouched for face/eyes!)
+  const frontVariant = Math.abs(seed) % 5;
+  if (frontVariant === 1) {
+    // Left-leaning fringe flow
+    if (getChar(front, 2, 2) === "H") setChar(front, 2, 2, "h");
+    if (getChar(front, 1, 3) === "H") setChar(front, 1, 3, "L");
+    if (getChar(front, 3, 0) === ".") setChar(front, 3, 0, "H");
+  } else if (frontVariant === 2) {
+    // Right-leaning fringe flow
+    if (getChar(front, 2, 5) === "H") setChar(front, 2, 5, "h");
+    if (getChar(front, 1, 4) === "H") setChar(front, 1, 4, "L");
+    if (getChar(front, 3, 7) === ".") setChar(front, 3, 7, "H");
+  } else if (frontVariant === 3) {
+    // Micro-parted textured bangs
+    if (getChar(front, 1, 2) === "H") setChar(front, 1, 2, "h");
+    if (getChar(front, 1, 5) === "H") setChar(front, 1, 5, "h");
+    if (getChar(front, 2, 3) === ".") setChar(front, 2, 3, "H");
+  } else if (frontVariant === 4) {
+    // Soft sweeping fringe
+    if (getChar(front, 1, 3) === "L") setChar(front, 1, 3, "h");
+    if (getChar(front, 2, 4) === ".") setChar(front, 2, 4, "H");
+    if (getChar(front, 3, 1) === ".") setChar(front, 3, 1, "H");
+  }
+
+  // 3. Sideburn & Temple Flow on Left & Right Faces (Rows 2..4)
+  const sideVariant = Math.floor(seed / 7) % 3;
+  if (sideVariant === 1) {
+    if (getChar(right, 4, 1) === ".") setChar(right, 4, 1, "H");
+    if (getChar(left, 3, 6) === "H") setChar(left, 3, 6, "h");
+  } else if (sideVariant === 2) {
+    if (getChar(left, 4, 6) === ".") setChar(left, 4, 6, "H");
+    if (getChar(right, 3, 1) === "H") setChar(right, 3, 1, "h");
+  }
+
+  // 4. Back Nape Taper (Rows 5..7)
+  const backVariant = Math.floor(seed / 13) % 3;
+  if (backVariant === 1) {
+    if (getChar(back, 5, 3) === "H") setChar(back, 5, 3, "D");
+    if (getChar(back, 5, 4) === "H") setChar(back, 5, 4, "D");
+  } else if (backVariant === 2) {
+    if (getChar(back, 5, 2) === "H") setChar(back, 5, 2, "h");
+    if (getChar(back, 5, 5) === "H") setChar(back, 5, 5, "h");
+  }
+
+  return { top, front, right, left, back };
 }
 
 function generateBaseHairBlueprint(params: HairBlueprintParams): HairBlueprint {
@@ -610,11 +761,12 @@ function generateBaseHairBlueprint(params: HairBlueprintParams): HairBlueprint {
  *   l = Lip line / coral gloss
  *   A = Accent / Visor glow
  */
-export function generateFaceBlueprint(style: string): TokenMatrix {
+export function generateFaceBlueprint(style: string, eyeStyle?: string, mouthStyle?: string): TokenMatrix {
+  let matrix: TokenMatrix;
   switch (style) {
     case "soft-kpop":
       // 🍑 Soft K-Pop Boy: Warm peach shadow, straight brows, almond eyes with bridge separation, coral gradient lips
-      return [
+      matrix = [
         "KKKKKKKK",
         ".BB..BB.",
         "sbb..bbs",
@@ -624,12 +776,13 @@ export function generateFaceBlueprint(style: string): TokenMatrix {
         "KKKllKKK",
         "dKKKKKKd",
       ];
+      break;
 
     case "anime-expressive":
     case "feminine-soft":
     case "soft-cute":
       // 👁️ Anime Expressive: Winged eyeliner, dual catchlights, arched brows, rose blush
-      return [
+      matrix = [
         "KKKKKKKK",
         ".BB..BB.",
         "bbb..bbb",
@@ -639,10 +792,11 @@ export function generateFaceBlueprint(style: string): TokenMatrix {
         "KKKllKKK",
         "dKKKKKKd",
       ];
+      break;
 
     case "masculine-angular":
       // ⚔️ Masculine Angular: Low thick brows, focused 2x1 eyes, defined bridge, firm jaw
-      return [
+      matrix = [
         "KKKKKKKK",
         "BBBBBBBB",
         "sbb..bbs",
@@ -650,12 +804,13 @@ export function generateFaceBlueprint(style: string): TokenMatrix {
         "s..kk..s",
         "s..kk..s",
         "KKKllKKK",
-        "dddddddd",
+        "dKKKKKKd",
       ];
+      break;
 
     case "sharp-cool":
       // 🗡️ Sharp Cool / Assassin: Menacing slanting brows, piercing eyes, cheek contour
-      return [
+      matrix = [
         "KKKKKKKK",
         "sBB..BBs",
         "bbb..bbb",
@@ -665,10 +820,11 @@ export function generateFaceBlueprint(style: string): TokenMatrix {
         "KKKllKKK",
         "ddKKKKdd",
       ];
+      break;
 
     case "mature-minimal":
       // ▪️ Mature Minimal: 1x2 vertical aperture eyes, clean brow, defined jaw
-      return [
+      matrix = [
         "KKKKKKKK",
         "KKKKKKKK",
         ".BB..BB.",
@@ -676,26 +832,28 @@ export function generateFaceBlueprint(style: string): TokenMatrix {
         "KEE..EEK",
         "s..kk..s",
         "KKKKKKKK",
-        "dddddddd",
+        "dKKKKKKd",
       ];
+      break;
 
     case "masked-visor":
-      // 🥽 Tactical Mask / Visor
-      return [
+      // 🥽 Tactical Visor with preserved mouth and chin
+      matrix = [
         "KKKKKKKK",
-        "BBBBBBBB",
-        "bbbbbbbb",
+        ".BB..BB.",
+        "sbb..bbs",
         "A*AAAA*A",
         "AAAAAAAA",
-        "dddddddd",
-        "dddddddd",
-        "dddddddd",
+        "srrkkrrs",
+        "KKKllKKK",
+        "dKKKKKKd",
       ];
+      break;
 
     case "clean-aesthetic":
     default:
       // ✨ NameMC Clean Aesthetic: 2x2 catchlight eyes, natural peach blush, clean chin
-      return [
+      matrix = [
         "KKKKKKKK",
         ".BB..BB.",
         "sbb..bbs",
@@ -705,5 +863,91 @@ export function generateFaceBlueprint(style: string): TokenMatrix {
         "KKKllKKK",
         "dKKKKKKd",
       ];
+      break;
   }
+
+  if (eyeStyle) {
+    matrix = applyEyeStyleToFaceBlueprint(matrix, eyeStyle);
+  }
+  if (mouthStyle) {
+    matrix = applyMouthStyleToFaceBlueprint(matrix, mouthStyle);
+  }
+  return matrix;
+}
+
+/**
+ * Applies intentional eye-style variations to Rows 3 & 4 of the face blueprint.
+ * Brows (Rows 1..2), blush (Row 5), mouth (Row 6), and chin (Row 7) are strictly preserved.
+ */
+export function applyEyeStyleToFaceBlueprint(bp: TokenMatrix, eyeStyle: string): TokenMatrix {
+  const result = [...bp];
+  switch (eyeStyle) {
+    case "classic":
+      // Classic Steve 2x1: Row 3 clean skin, Row 4 Steve 2x1 (white sclera outer, iris inner)
+      result[3] = "KKKkkKKK";
+      result[4] = "KwEkkEwK";
+      break;
+
+    case "glowing":
+      // Glowing Solid: Solid luminous emissive core on 2x2 zones without dark pupils
+      result[3] = "K**kk**K";
+      result[4] = "Kee..eeK";
+      break;
+
+    case "minimal":
+      // Minimal Dot / 1x2 Vertical Aperture: 1px aperture on cols 2 & 5, clean skin on cols 1 & 6
+      result[3] = "K.EkkE.K";
+      result[4] = "K.pkkp.K";
+      break;
+
+    case "visor":
+      // Cyber Visor: High-tech glowing visor band on Rows 3 & 4 only
+      result[3] = "A*AAAA*A";
+      result[4] = "AAAAAAAA";
+      break;
+
+    case "anime":
+    default:
+      // Anime / Aesthetic 2x2 Catchlight
+      result[3] = "w*E..*Ew";
+      result[4] = "wEe..eEw";
+      break;
+  }
+  return result;
+}
+
+/**
+ * Applies intentional mouth-style variations strictly to Row 6 of the face blueprint.
+ * Brows (Rows 1..2), eyes (Rows 3..4), blush/cheeks (Row 5), and chin (Row 7) are strictly preserved.
+ */
+export function applyMouthStyleToFaceBlueprint(bp: TokenMatrix, mouthStyle: string): TokenMatrix {
+  const result = [...bp];
+  switch (mouthStyle) {
+    case "neutral":
+      // Neutral: Understated, clean 2px horizontal lip line
+      result[6] = "KKKllKKK";
+      break;
+
+    case "smirk":
+      // Smirk: Asymmetric smile with right corner lifted into a confident smirk
+      result[6] = "KKKlllKK";
+      break;
+
+    case "open":
+      // Open: Energetic open mouth with dark mouth cavity framed by lip corners
+      result[6] = "KKlpplKK";
+      break;
+
+    case "none":
+      // None / Masked: Removes the lip line entirely, producing clean base skin
+      result[6] = "KKKKKKKK";
+      break;
+
+    case "smile":
+    default:
+      // Smile: Soft warm smile with subtle upturned crease corners
+      result[6] = "KKsllsKK";
+      break;
+  }
+  return result;
 }

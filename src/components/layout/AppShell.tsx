@@ -163,7 +163,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
       {!isStandaloneRoute && pathname !== "/" ? <GlobalToolAssistant /> : null}
       {!isStandaloneRoute && clientHasSession ? <WelcomeModal /> : null}
       {!isStandaloneRoute && clientHasSession ? <QuestCompletionToast /> : null}
-      {!isStandaloneRoute && clientHasSession ? <LaunchOfferModal /> : null}
+      {/* Launch offer concluded: LaunchOfferModal preserved in codebase for future campaigns */}
     </>
   );
 }

@@ -226,56 +226,8 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     ],
   };
 
-  const PageContent = (
-    <div className={cn(
-      "mx-auto space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
-      isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]"
-    )}>
-      {tool.indexable !== false && (
-        <>
-          <script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-          <script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-        </>
-      )}
-      {categoryId === 'pdf' && (
-        <Script 
-          src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
-          strategy="afterInteractive"
-          onLoad={() => {
-            if (typeof window !== 'undefined') {
-              const pdfWindow = window as Window & {
-                pdfjsLib?: { GlobalWorkerOptions: { workerSrc: string } };
-              };
-              if (pdfWindow.pdfjsLib) {
-                pdfWindow.pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-              }
-            }
-          }}
-        />
-      )}
-      {tool.id !== "ai-chat" && (
-        <ToolWorkspaceHeader
-          name={tool.name}
-          description={tool.description}
-          categoryName={category.name}
-          categoryId={categoryId}
-          toolId={tool.id}
-          icon={Icon}
-          isPro={Boolean(tool.pro)}
-          isFavorited={isFavorited}
-          showShareToast={showShareToast}
-          onShare={handleShare}
-          onFavorite={handleFavorite}
-        />
-      )}
-
-      {!unavailable && <ToolReliabilityNotice toolId={tool.id} />}
-
-      {!tool.isProTool && isQualityUpgradeableTool(tool.id) && (
-        <ToolQualitySelector toolId={tool.id} />
-      )}
-
-       <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-8">
+  const WorkspaceArea = (
+  <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-8">
           <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "min-w-0 space-y-5 md:space-y-7")}>
              {unavailable ? (() => {
                 const isGold = tool.pro || tool.isProTool;
@@ -535,6 +487,62 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
             </div>
           )}
        </div>
+  );
+
+  const PageContent = (
+    <div className={cn(
+      "mx-auto space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
+      isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]"
+    )}>
+      {tool.indexable !== false && (
+        <>
+          <script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          <script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        </>
+      )}
+      {categoryId === 'pdf' && (
+        <Script 
+          src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+          strategy="afterInteractive"
+          onLoad={() => {
+            if (typeof window !== 'undefined') {
+              const pdfWindow = window as Window & {
+                pdfjsLib?: { GlobalWorkerOptions: { workerSrc: string } };
+              };
+              if (pdfWindow.pdfjsLib) {
+                pdfWindow.pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+              }
+            }
+          }}
+        />
+      )}
+      {tool.id !== "ai-chat" && (
+        <ToolWorkspaceHeader
+          name={tool.name}
+          description={tool.description}
+          categoryName={category.name}
+          categoryId={categoryId}
+          toolId={tool.id}
+          icon={Icon}
+          isPro={Boolean(tool.pro)}
+          isFavorited={isFavorited}
+          showShareToast={showShareToast}
+          onShare={handleShare}
+          onFavorite={handleFavorite}
+        />
+      )}
+
+      {!unavailable && <ToolReliabilityNotice toolId={tool.id} />}
+
+      {!tool.isProTool && isQualityUpgradeableTool(tool.id) && (
+        <ToolQualitySelector toolId={tool.id} />
+      )}
+
+      {tool.isProTool ? (
+        <ProtectedTool>{WorkspaceArea}</ProtectedTool>
+      ) : (
+        WorkspaceArea
+      )}
 
        {/* Comprehensive About & Guide Section */}
        <ToolSeoSection
@@ -555,9 +563,5 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     </div>
   );
 
-  return tool.isProTool ? (
-    <ProtectedTool>
-      {PageContent}
-    </ProtectedTool>
-  ) : PageContent;
+  return PageContent;
 }

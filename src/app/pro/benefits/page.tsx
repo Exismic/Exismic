@@ -29,21 +29,9 @@ import Link from "next/link";
 import GradientText from "@/components/ui/GradientText";
 
 export default function ProBenefitsPage() {
-  const { isPro, isLoading } = usePro();
+  const { isPro } = usePro();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "creative" | "speed" | "style">("all");
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#030308] flex flex-col items-center justify-center space-y-4">
-        <div className="relative w-16 h-16 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 border-t-purple-500 animate-spin" />
-          <Crown className="w-6 h-6 text-purple-400 animate-pulse" />
-        </div>
-        <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400">Loading VIP Perks...</p>
-      </div>
-    );
-  }
 
   const benefits = [
     { 

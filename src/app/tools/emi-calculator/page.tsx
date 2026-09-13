@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import EmiCalculator from "@/components/tool/EmiCalculator";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free Loan EMI Calculator - Home, Car & Personal Loan Calculator | Exismic",
   description: "Calculate monthly EMI, total interest payable, and detailed loan amortization schedule online.",
-};
+  canonicalUrl: `${SITE_URL}/tools/emi-calculator`,
+});
 
 export default function Page() {
   return (

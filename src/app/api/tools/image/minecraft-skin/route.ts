@@ -25,8 +25,15 @@ import {
   type MinecraftSkinDesign,
   type MinecraftSkinPalette,
   type MinecraftSkinPart,
+  type MinecraftSkinStyle,
 } from "@/lib/minecraft-skin";
 import { compileMinecraftSkinBlueprint } from "@/lib/minecraft-skin-blueprint";
+import {
+  MINECRAFT_SKIN_JSON_SCHEMA,
+  LEGACY_STYLE_MAP,
+  buildDesignInstruction,
+  mergeRemixDesign,
+} from "@/lib/minecraft-skin-control";
 import { DEFAULT_GROQ_TEXT_MODEL, DEFAULT_GROQ_VISION_MODEL } from "@/lib/ai-models";
 
 export const runtime = "nodejs";
@@ -39,7 +46,17 @@ const VISION_MODEL = DEFAULT_GROQ_VISION_MODEL;
 const requestSchema = z.object({
   prompt: z.string().trim().min(2).max(2000),
   armModel: z.enum(["classic", "slim"]).default("classic"),
-  style: z.enum(["balanced", "pixel-detailed", "minimal", "high-contrast"]).default("balanced"),
+  style: z
+    .enum([
+      "balanced",
+      "detailed",
+      "anime",
+      "pixel-artist",
+      "minimal",
+      "pixel-detailed",
+      "high-contrast",
+    ])
+    .default("balanced"),
   eyeStyle: z.enum(["anime", "classic", "glowing", "minimal", "visor"]).optional(),
   mouthStyle: z.enum(["smile", "neutral", "smirk", "open", "none"]).optional(),
   targetPart: z.enum(["all", "head", "torso", "arms", "legs"]).default("all"),
@@ -47,6 +64,10 @@ const requestSchema = z.object({
   baseSkinUrl: z.string().max(6_000_000).optional(),
   referenceImage: z.string().max(6_000_000).optional(),
   referenceMode: z.enum(["inspire", "guided", "rebuild"]).default("guided"),
+  action: z.enum(["generate", "variation", "remix"]).default("generate"),
+  parentDesign: z.record(z.string(), z.unknown()).optional(),
+  parentGenerationId: z.string().max(120).optional(),
+  remixInstruction: z.string().trim().min(2).max(1000).optional(),
 });
 
 const editRequestSchema = z.object({
@@ -213,8 +234,8 @@ async function rebuildReferenceTexture(referenceImage: string, model: MinecraftA
   const normalized = metadata.width === 64 && metadata.height === 64
     ? await resized.png().toBuffer()
     : await resized
-        .png({ palette: true, colours: 24, dither: 0 })
-        .toBuffer();
+      .png({ palette: true, colours: 24, dither: 0 })
+      .toBuffer();
   const { data } = await sharp(normalized)
     .ensureAlpha()
     .raw()
@@ -243,14 +264,7 @@ async function rebuildReferenceTexture(referenceImage: string, model: MinecraftA
   return output;
 }
 
-function getGroqKeys() {
-  return (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "")
-    .split(",")
-    .map((key) => key.trim())
-    .filter(Boolean);
-}
-
-function extractJson(content: string) {
+function extractJson(content: string): Partial<MinecraftSkinDesign> {
   try {
     return JSON.parse(content) as Partial<MinecraftSkinDesign>;
   } catch {
@@ -261,327 +275,11 @@ function extractJson(content: string) {
   }
 }
 
-const MINECRAFT_SKIN_JSON_SCHEMA = {
-  type: "object",
-  properties: {
-    name: { type: "string" },
-    description: { type: "string" },
-    hairStyle: {
-      type: "string",
-      enum: ["short", "long", "spiky", "hood", "helmet", "bald"],
-    },
-    hairSilhouette: {
-      type: "string",
-      enum: [
-        "curtain-bangs",
-        "messy-fringe",
-        "side-swept",
-        "wolf-cut",
-        "layered-short",
-        "middle-part-flow",
-        "long-layered",
-        "spiky-anime",
-        "high-ponytail",
-        "braided-buns",
-      ],
-    },
-    bangsStyle: {
-      type: "string",
-      enum: ["curtain", "fringe", "side-swept", "straight", "parted", "none"],
-    },
-    faceConstruction: {
-      type: "string",
-      enum: [
-        "clean-aesthetic",
-        "anime-expressive",
-        "masculine-angular",
-        "feminine-soft",
-        "soft-cute",
-        "masked-visor",
-        "mature-minimal",
-        "soft-kpop",
-        "sharp-cool",
-      ],
-    },
-    expression: {
-      type: "string",
-      enum: ["neutral", "friendly", "serious", "calm-confident"],
-    },
-    eyeShape: {
-      type: "string",
-      enum: ["normal", "angry", "soft"],
-    },
-    eyeStyle: {
-      type: "string",
-      enum: ["anime", "classic", "glowing", "minimal", "visor"],
-    },
-    mouthStyle: {
-      type: "string",
-      enum: ["smile", "neutral", "smirk", "open", "none"],
-    },
-    facialHair: {
-      type: "string",
-      enum: ["none", "stubble", "short-beard", "goatee"],
-    },
-    faceStyle: {
-      type: "string",
-      enum: ["open", "mask", "visor"],
-    },
-    garmentType: {
-      type: "string",
-      enum: [
-        "bomber-jacket",
-        "oversized-hoodie",
-        "fitted-hoodie",
-        "varsity-jacket",
-        "oversized-sweater",
-        "streetwear-shirt",
-        "layered-shirt-jacket",
-        "techwear",
-        "denim-jacket",
-        "fantasy-robe",
-        "plate-armor",
-        "jacket",
-        "sweater",
-        "shirt",
-        "coat",
-        "armor",
-        "tunic",
-        "robe",
-      ],
-    },
-    placket: {
-      type: "string",
-      enum: [
-        "open_front",
-        "center_zip",
-        "pullover",
-        "buttons_single",
-        "buttons_double",
-        "haori_wrap",
-        "armor_fauld",
-      ],
-    },
-    fit: {
-      type: "string",
-      enum: ["oversized", "fitted", "loose"],
-    },
-    hoodState: {
-      type: "string",
-      enum: ["none", "down", "up"],
-    },
-    midLayer: {
-      type: "string",
-      enum: ["hoodie", "sweater", "vest", "none"],
-    },
-    innerGarment: {
-      type: "string",
-      enum: [
-        "undershirt",
-        "crew_tee",
-        "graphic_tee",
-        "turtleneck",
-        "striped_undershirt",
-        "v_neck_tee",
-        "tunic",
-        "none",
-      ],
-    },
-    zipper: {
-      type: "string",
-      enum: ["silver", "gold", "black", "none"],
-    },
-    drawstrings: {
-      type: "string",
-      enum: ["none", "thin", "tied"],
-    },
-    emblem: {
-      type: "string",
-    },
-    sleeves: {
-      type: "string",
-      enum: ["short", "long", "armored"],
-    },
-    sleeveStyle: {
-      type: "string",
-      enum: [
-        "layered_undershirt",
-        "slouch_gather",
-        "short_sleeve",
-        "rolled_cuff",
-        "wide_haori",
-        "gauntlet_bracer",
-      ],
-    },
-    gloves: {
-      type: "boolean",
-    },
-    outfit: {
-      type: "string",
-      enum: ["casual", "streetwear", "armor", "royal", "cyber", "fantasy", "formal", "sport"],
-    },
-    pattern: {
-      type: "string",
-      enum: ["clean", "striped", "paneled", "armored", "mystic", "lightning", "circuit"],
-    },
-    materialProfile: {
-      type: "string",
-      enum: ["cotton", "denim", "leather", "metal", "wool", "technical-fabric", "skin", "hair"],
-    },
-    pantsType: {
-      type: "string",
-      enum: [
-        "wide_cargo",
-        "relaxed_jeans",
-        "tailored_trousers",
-        "pleated_skirt",
-        "jumpsuit_cuffed",
-        "shorts_knee_highs",
-      ],
-    },
-    cargoPockets: {
-      type: "boolean",
-    },
-    footwear: {
-      type: "string",
-      enum: ["shoes", "boots", "armored"],
-    },
-    footwearStyle: {
-      type: "string",
-      enum: [
-        "high-top-sneaker",
-        "chunky-sneaker",
-        "low-sneaker",
-        "combat-boots",
-        "chelsea-boots",
-        "fantasy-armored",
-        "sneakers",
-        "high-tops",
-        "boots",
-        "armored",
-        "shoes",
-      ],
-    },
-    socks: {
-      type: "string",
-      enum: ["none", "ankle", "knee_high_plain", "knee_high_striped"],
-    },
-    lightingDirection: {
-      type: "string",
-      enum: ["upper-left", "upper-right", "front", "top-down"],
-    },
-    asymmetry: {
-      type: "boolean",
-    },
-    negativeConstraints: {
-      type: "array",
-      items: { type: "string" },
-    },
-    traits: {
-      type: "array",
-      items: { type: "string" },
-    },
-    headphones: { type: "boolean" },
-    glasses: { type: "boolean" },
-    cables: { type: "boolean" },
-    horns: { type: "boolean" },
-    crown: { type: "boolean" },
-    halo: { type: "boolean" },
-    palette: {
-      type: "object",
-      properties: {
-        skin: { type: "string" },
-        skinShade: { type: "string" },
-        hair: { type: "string" },
-        hairHighlight: { type: "string" },
-        eyes: { type: "string" },
-        top: { type: "string" },
-        topAccent: { type: "string" },
-        pants: { type: "string" },
-        shoes: { type: "string" },
-        detail: { type: "string" },
-      },
-      required: [
-        "skin",
-        "skinShade",
-        "hair",
-        "hairHighlight",
-        "eyes",
-        "top",
-        "topAccent",
-        "pants",
-        "shoes",
-        "detail",
-      ],
-      additionalProperties: false,
-    },
-  },
-  required: [
-    "name",
-    "description",
-    "hairStyle",
-    "hairSilhouette",
-    "bangsStyle",
-    "faceConstruction",
-    "expression",
-    "eyeShape",
-    "eyeStyle",
-    "mouthStyle",
-    "facialHair",
-    "faceStyle",
-    "garmentType",
-    "placket",
-    "fit",
-    "hoodState",
-    "midLayer",
-    "innerGarment",
-    "zipper",
-    "drawstrings",
-    "emblem",
-    "sleeves",
-    "sleeveStyle",
-    "gloves",
-    "outfit",
-    "pattern",
-    "materialProfile",
-    "pantsType",
-    "cargoPockets",
-    "footwear",
-    "footwearStyle",
-    "socks",
-    "lightingDirection",
-    "asymmetry",
-    "negativeConstraints",
-    "traits",
-    "headphones",
-    "glasses",
-    "cables",
-    "horns",
-    "crown",
-    "halo",
-    "palette",
-  ],
-  additionalProperties: false,
-};
-
-function buildDesignInstruction(
-  prompt: string,
-  style: string,
-  targetPart: MinecraftSkinPart,
-  referenceMode: "inspire" | "guided" | "rebuild"
-) {
-  const wantsExactRef = /\b(exact|same|this|inspiration|reference|image|picture|like this|copy)\b/i.test(prompt);
-  const referencePriority = (referenceMode === "guided" || wantsExactRef)
-    ? "CRITICAL: Treat the reference image as the primary character identity! Faithfully replicate its character traits, outfit type, and color palette."
-    : "Treat the written prompt as primary. Use the reference for useful color, silhouette, and material cues.";
-  return [
-    `Create a coherent Minecraft skin design specification for: "${prompt}".`,
-    `Visual treatment: ${style}.`,
-    referencePriority,
-    targetPart === "all"
-      ? "Design the complete character."
-      : `Refresh the ${targetPart} while keeping it compatible with the original character.`,
-  ].join("\n");
+function getGroqKeys(): string[] {
+  return (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "")
+    .split(",")
+    .map((key) => key.trim())
+    .filter(Boolean);
 }
 
 async function createAiDesign(
@@ -603,12 +301,12 @@ async function createAiDesign(
   const instruction = buildDesignInstruction(prompt, style, targetPart, referenceMode);
   const userContent = hasValidReference
     ? [
-        {
-          type: "text",
-          text: `${instruction}\nAnalyze the attached image carefully before writing JSON specifications.`,
-        },
-        { type: "image_url", image_url: { url: referenceImage } },
-      ]
+      {
+        type: "text",
+        text: `${instruction}\nAnalyze the attached image carefully before writing JSON specifications.`,
+      },
+      { type: "image_url", image_url: { url: referenceImage } },
+    ]
     : instruction;
 
   let lastError: unknown = null;
@@ -638,12 +336,23 @@ async function createAiDesign(
               content: [
                 "You are Exismic's professional Minecraft skin director. Deconstruct the user's character prompt into strict structured design tokens for a 64x64 Minecraft skin.",
                 "RULES FOR EXTRACTION:",
-                "- Garment layering: If open at front, set placket='open_front'. If a hoodie is worn under an open bomber/jacket, set garmentType='bomber-jacket', midLayer='hoodie', hoodState='down'. If undershirt is visible, set innerGarment='undershirt'.",
-                "- Details: Extract zippers ('silver'/'gold'/'none'), cargo pockets (cargoPockets=true), emblems ('crescent', etc.), and footwear style ('chunky-sneaker' or 'high-top-sneaker').",
-                "- Asymmetry: If asymmetry between arms, legs, or bangs is mentioned, set asymmetry=true.",
-                "- Hair: Curtain bangs -> bangsStyle='curtain', hairSilhouette='curtain-bangs'.",
-                "- Negative constraints: Strictly honor negative instructions ('NO beard, stubble' -> facialHair='none'; 'NOT look like a helmet' -> hairStyle='short' or 'long', never helmet; 'NOT procedural' is quality guidance, not an emblem; 'multiple shades' refers to color tones, NOT glasses so glasses=false; 'crown of head' refers to skull anatomy, NOT a royal crown so crown=false). Add explicitly forbidden traits to negativeConstraints.",
-                "- Palette: Extract hex codes faithfully for all 10 palette fields.",
+                "- PRIMARY CONCEPT vs SECONDARY DETAILS: Extract the central character identity (outfit, traits, expression) while preserving every secondary detail (zippers, emblems, socks, earrings, belts).",
+                "- CLOTHING LAYERS HIERARCHY: Do NOT collapse multiple clothing layers into one generic garment. If multiple layers are worn (e.g. 'bomber jacket over hoodie with undershirt', 'denim jacket over flannel', 'coat over vest'):",
+                "  * outer garment: set garmentType ('bomber-jacket', 'jacket', 'coat', etc.). If open at front, set placket='open_front'.",
+                "  * middle layer: set midLayer ('hoodie', 'sweater', 'vest', 'none'). If hoodie worn down, set hoodState='down'.",
+                "  * inner garment: set innerGarment ('undershirt', 'crew_tee', 'graphic_tee', 'turtleneck', 'none').",
+                "  * sleeves: set sleeveStyle ('layered_undershirt', 'slouch_gather', 'short_sleeve', etc.).",
+                "- DETAILS & ACCESSORIES: Extract zippers ('silver'/'gold'/'none'), cargo pockets (cargoPockets=true), emblems ('crescent', etc.), socks ('knee_high_plain', 'knee_high_striped', 'ankle', 'none'), and footwearStyle ('chunky-sneaker', 'high-top-sneaker', 'combat-boots', etc.).",
+                "- ASYMMETRY: If asymmetry between arms, legs, or bangs is mentioned, set asymmetry=true.",
+                "- HAIR & BANGS: Curtain bangs -> bangsStyle='curtain', hairSilhouette='curtain-bangs'. Wolf cut -> hairSilhouette='wolf-cut'. Messy fringe -> hairSilhouette='messy-fringe'.",
+                "- NEGATIVE CONSTRAINTS (CRITICAL): Strictly honor negative instructions ('no beard', 'clean shaven' -> facialHair='none'; 'not a helmet', 'no helmet' -> hairStyle='short' or 'long', NEVER 'helmet'; 'no glasses' -> glasses=false; 'no horns' -> horns=false; 'no headphones' -> headphones=false; 'no hat' -> crown=false, hoodState='none'). NEVER allow words mentioned in negative context to become positive feature flags! Always add forbidden traits to negativeConstraints array.",
+                "- PALETTE: Extract faithful 6-digit hex codes (#rrggbb) for all 10 palette fields (skin, skinShade, hair, hairHighlight, eyes, top, topAccent, pants, shoes, detail). If user explicitly requests colors (e.g. 'white jacket', 'purple hair'), ensure palette matches.",
+                "- STYLE PRESET: Align traits and palette to the requested visual style preset:",
+                "  * balanced: harmonious modern anime shading",
+                "  * detailed: high detail density, rich accessories, cargo pockets",
+                "  * anime: vibrant anime blocks, expressive face, curtain bangs",
+                "  * pixel-artist: clean planar contrast, distinct contours",
+                "  * minimal: clean flat aesthetic, simplified face, understated palette",
               ].join("\n"),
             },
             { role: "user", content: userContent },
@@ -675,6 +384,86 @@ async function createAiDesign(
   }
 
   console.error("[Minecraft Skin] AI design creation failed on all API keys. Root cause:", lastError);
+  return null;
+}
+
+async function remixAiDesign(
+  parentDesign: Partial<MinecraftSkinDesign>,
+  remixInstruction: string,
+  style: string
+): Promise<Partial<MinecraftSkinDesign> | null> {
+  const keys = getGroqKeys();
+  if (!keys.length) return null;
+
+  const remixPrompt = [
+    `You are Exismic's Minecraft skin modification director. You are given an EXISTING complete MinecraftSkinDesign specification and a user remix modification request.`,
+    `EXISTING DESIGN:`,
+    JSON.stringify(parentDesign, null, 2),
+    `USER REMIX INSTRUCTION: "${remixInstruction}"`,
+    `STYLE: ${style}`,
+    ``,
+    `CRITICAL FIELD-LEVEL PRESERVATION RULES:`,
+    `1. Apply ONLY the specific modifications directly requested by the user.`,
+    `2. You MUST strictly PRESERVE all other fields from the existing design exactly as they are without drift:`,
+    `   - If user asks to change top/jacket color (e.g. 'change hoodie to red'), change ONLY palette.top (or topAccent/garmentType) and keep skin, hair, eyes, pants, shoes, and accessories identical.`,
+    `   - If user asks to change hair (e.g. 'make hair shorter' or 'silver hair'), change ONLY hairStyle/hairSilhouette/hairLength or palette.hair/hairHighlight, preserving outfit, skin, and face.`,
+    `   - If user asks to add an accessory (e.g. 'add headphones'), set headphones=true, preserving everything else.`,
+    `   - If user asks to remove an accessory (e.g. 'remove glasses'), set glasses=false, preserving everything else.`,
+    `   - If user asks to modify or remove facial hair (e.g. 'remove facial hair', 'clean shaven', 'no beard', 'goatee'), set facialHair accordingly ('none', 'stubble', 'short-beard', 'goatee') and NEVER alter head hair, eyes, skin, or clothing.`,
+    `   - If user asks for a broad style change (e.g. 'make the outfit cyberpunk'), change outfit, garmentType, pattern, and accent colors, but PRESERVE the character's skin tone, face construction, and general identity.`,
+    `3. NEVER reset unspecified fields to generic defaults.`,
+  ].join("\n");
+
+  let lastError: unknown = null;
+  for (const key of keys) {
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: TEXT_MODEL,
+          temperature: 0.12,
+          max_tokens: 3000,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "minecraft_skin_design",
+              strict: true,
+              schema: MINECRAFT_SKIN_JSON_SCHEMA,
+            },
+          },
+          messages: [
+            {
+              role: "system",
+              content: "You are Exismic's Minecraft skin modification director. Perform surgical, field-level modifications to the provided skin design according to the user instruction, while strictly preserving all unmentioned attributes.",
+            },
+            { role: "user", content: remixPrompt },
+          ],
+        }),
+        signal: AbortSignal.timeout(28_000),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        lastError = new Error(`Groq HTTP ${response.status}: ${errorText}`);
+        continue;
+      }
+
+      const payload = await response.json() as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
+      const content = payload.choices?.[0]?.message?.content;
+      if (!content) continue;
+      return extractJson(content);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  console.error("[Minecraft Skin] AI remix failed on all API keys. Root cause:", lastError);
   return null;
 }
 
@@ -950,8 +739,13 @@ export async function POST(request: NextRequest) {
       baseSkinUrl,
       referenceImage,
       referenceMode,
+      action,
+      parentDesign,
+      parentGenerationId,
+      remixInstruction,
     } = body.data;
-    const seed = getMinecraftSkinSeed(prompt, body.data.seed);
+
+    let seed = getMinecraftSkinSeed(prompt, body.data.seed);
     const user = apiUser ? await ensureDatabaseUser(apiUser) : null;
     const isPro = Boolean(user && (user.plan === "pro" || user.subscriptionStatus === "active"));
     const referenceRebuilt = referenceMode === "rebuild" && Boolean(referenceImage);
@@ -975,31 +769,64 @@ export async function POST(request: NextRequest) {
 
     const imagePalette = referenceImage ? await extractImagePalette(referenceImage) : {};
 
-    const aiDesign = referenceRebuilt
-      ? null
-      : await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
+    let aiDesign: Partial<MinecraftSkinDesign> | null = null;
+    let effectivePrompt = prompt;
+
+    if (referenceRebuilt) {
+      aiDesign = null;
+    } else if (action === "variation") {
+      // 🎲 REGENERATE VARIATION: Preserve parent MinecraftSkinDesign as primary anchor
+      // Generate a genuinely distinct composition seed to vary hair flow, asymmetry, and clusters
+      seed = ((body.data.seed || seed) + Math.floor(Math.random() * 999999) + 1) % 4294967296;
+      if (parentDesign && typeof parentDesign === "object") {
+        aiDesign = parentDesign as Partial<MinecraftSkinDesign>;
+      } else {
+        aiDesign = await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
+      }
+    } else if (action === "remix") {
+      // 🪄 REMIX: Apply requested modifications while strictly preserving unmentioned attributes
+      const instruction = remixInstruction || prompt;
+      effectivePrompt = instruction;
+      if (parentDesign && typeof parentDesign === "object") {
+        const rawRemix = await remixAiDesign(parentDesign as Partial<MinecraftSkinDesign>, instruction, style);
+        aiDesign = mergeRemixDesign(parentDesign as Partial<MinecraftSkinDesign>, rawRemix || {}, instruction);
+      } else {
+        aiDesign = await createAiDesign(instruction, style, targetPart, referenceMode, referenceImage);
+      }
+    } else {
+      // Standard Generation
+      aiDesign = await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
+    }
 
     if (!referenceRebuilt && !aiDesign) {
       console.warn("[Minecraft Skin] AI-directed design extraction was unsuccessful; fallback design was used. aiDirected = false");
     }
 
+    // Palette Precedence: Groq extraction (honoring prompt overrides) takes precedence over image color counts
     const design = sanitizeSkinDesign(
       {
         ...(aiDesign || {}),
         ...(eyeStyle ? { eyeStyle } : {}),
         ...(mouthStyle ? { mouthStyle } : {}),
         palette: {
-          ...(aiDesign?.palette || {}),
           ...imagePalette,
+          ...(aiDesign?.palette || {}),
         },
       },
-      prompt,
+      effectivePrompt,
       seed
     );
 
     let referenceGuided = Boolean(referenceImage && !referenceRebuilt);
     let generated: Uint8Array;
     let renderer: "blueprint" | "procedural" = "procedural";
+
+    const legacyStyle: MinecraftSkinStyle =
+      style === "detailed" || style === "pixel-artist"
+        ? "pixel-detailed"
+        : style === "anime"
+          ? "balanced"
+          : (style as MinecraftSkinStyle);
 
     if (referenceRebuilt) {
       generated = await rebuildReferenceTexture(referenceImage!, armModel as MinecraftArmModel);
@@ -1009,17 +836,17 @@ export async function POST(request: NextRequest) {
           design,
           seed,
           armModel as MinecraftArmModel,
-          style,
-          prompt
+          style as any,
+          effectivePrompt
         );
         renderer = "blueprint";
       } catch (blueprintError) {
         console.error("[Minecraft Skin] Blueprint compilation failed, falling back to legacy:", blueprintError);
-        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, style, prompt);
+        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, legacyStyle, effectivePrompt);
         renderer = "procedural";
       }
     } else {
-      generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, style, prompt);
+      generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, legacyStyle, effectivePrompt);
     }
     const pixels = targetPart === "all"
       ? generated
@@ -1046,6 +873,10 @@ export async function POST(request: NextRequest) {
         referenceRebuilt,
         referenceGuided,
         renderer,
+        action,
+        parentGenerationId: parentGenerationId || null,
+        remixInstruction: remixInstruction || null,
+        isVariation: action === "variation",
         outputTier: "standard",
         creditsRemaining: null,
       });
@@ -1073,8 +904,8 @@ export async function POST(request: NextRequest) {
         data: {
           userId: apiUser.id,
           toolType: "minecraft-skin-maker",
-          originalName: design.name,
-          originalUrl: prompt,
+          originalName: action === "remix" ? `${design.name} (Remix)` : design.name,
+          originalUrl: effectivePrompt,
           resultUrl,
           fileType: "image/png",
           status: "completed",
@@ -1088,6 +919,11 @@ export async function POST(request: NextRequest) {
             referenceGuided,
             seed,
             renderer,
+            originalPrompt: prompt,
+            action,
+            parentGenerationId: parentGenerationId || null,
+            remixInstruction: remixInstruction || null,
+            isVariation: action === "variation",
             design: JSON.parse(JSON.stringify(design)) as Prisma.InputJsonObject,
             aiDirected: Boolean(aiDesign),
           } satisfies Prisma.InputJsonObject,
@@ -1107,6 +943,10 @@ export async function POST(request: NextRequest) {
       referenceRebuilt,
       referenceGuided,
       renderer,
+      action,
+      parentGenerationId: parentGenerationId || null,
+      remixInstruction: remixInstruction || null,
+      isVariation: action === "variation",
       creditsRemaining: getCreditTotal(debit.data),
     });
   } catch (error) {

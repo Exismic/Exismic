@@ -16,12 +16,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { Portal } from "@/components/ui/Portal";
 import { usePro } from "@/hooks/usePro";
 import { cn } from "@/lib/utils";
-import { getIsIndia } from "@/config/pricing";
+import { getIsIndia, isLaunchPromoActive } from "@/config/pricing";
 
 const DISMISS_KEY = "exismic_launch_promo_dismissed_until";
 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
 
 export function LaunchOfferModal() {
+  // Offer concluded: keep component intact in codebase for future promos, but return null so it is never shown
+  if (!isLaunchPromoActive()) {
+    return null;
+  }
   const router = useRouter();
   const pathname = usePathname();
   const { isPro, isLoading: isProLoading, authUser, user } = usePro();

@@ -135,7 +135,8 @@ import {
   CopyCheck,
   Gauge,
   Clapperboard,
-  ScanEye
+  ScanEye,
+  GitCompare
 } from 'lucide-react';
 import { MinecraftIcon } from '@/components/ui/MinecraftIcon';
 
@@ -280,7 +281,8 @@ export const ICON_MAP = {
   CopyCheck,
   Gauge,
   Clapperboard,
-  ScanEye
+  ScanEye,
+  GitCompare
 };
 
 export type IconName = keyof typeof ICON_MAP;
@@ -1199,6 +1201,34 @@ export const ALL_TOOLS: Tool[] = [
     seoDescription: "Build multi-slide image carousels and PDF decks for Instagram and LinkedIn with customizable visual themes.",
     seoKeywords: ["social carousel generator","instagram carousel maker","linkedin carousel pdf generator","Exismic"]
   },
+  {
+    id: 'device-mockup',
+    hidden: true,
+    name: '3D Device & App Mockup Studio',
+    description: "Wrap your screenshots, app designs, and website previews into photorealistic 3D iPhones, MacBooks, and glass browser frames with custom angles and studio lighting.",
+    category: 'creator',
+    icon: 'Laptop' as IconName,
+    href: '/tools/creator/device-mockup',
+    popular: true,
+    suggestions: [
+      "Wrap mobile app screenshot in iPhone 16 Pro",
+      "Create 3D isometric MacBook mockup for SaaS website",
+      "Export transparent PNG mockup for Figma design"
+    ],
+    requiresFileUpload: true,
+    acceptedFileTypes: ['image/*'],
+    seoTitle: "Free 3D Device Mockup Generator - iPhone, MacBook & Browser Frames",
+    seoDescription: "Create stunning 3D device mockups online for free. Wrap your app and website screenshots in photorealistic iPhone 16 Pro, MacBook, iPad, and browser frames with 4K export.",
+    seoKeywords: [
+      "device mockup generator",
+      "3d mockup generator",
+      "iphone mockup online",
+      "macbook mockup free",
+      "app screenshot mockup",
+      "website mockup creator",
+      "Exismic"
+    ]
+  },
 
   // Option 2: SEO & Webmaster Suite
   {
@@ -1288,8 +1318,186 @@ export const ALL_TOOLS: Tool[] = [
     seoDescription: "Build complex SQL queries visually or convert plain text prompts into clean PostgreSQL, MySQL, and SQLite queries.",
     seoKeywords: ["sql query builder","ai sql generator","visual sql query builder","Exismic"]
   },
-
-  // Option 4: Academic & Study Helpers
+  {
+    id: 'code-snippet',
+    hidden: true,
+    name: 'Aesthetic Code Snippet Studio',
+    description: "Turn your code into beautiful, glowing images for social media, blogs, presentations, and docs. Pick themes, window frames, and gradient backdrops, then copy or download in one click.",
+    category: 'developer',
+    icon: 'Code2' as IconName,
+    href: '/tools/developer/code-snippet',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Create a glowing code screenshot for Twitter and LinkedIn", "Make code images with macOS window style and Dracula theme", "Save code snippet with clean transparent background"],
+    seoTitle: "Free Aesthetic Code Snippet Studio - Create Beautiful Code Images Online",
+    seoDescription: "Turn code into beautiful, glowing images with custom themes, macOS window frames, and vibrant gradients. Download PNG, SVG, or copy instantly.",
+    seoKeywords: ["code snippet image generator", "code to image", "carbon alternative", "ray so alternative", "beautify code screenshot", "code image maker", "Exismic"]
+  },
+  {
+    id: 'favicon-studio',
+    hidden: true,
+    name: 'Favicon & App Icon Studio',
+    description: "Generate complete favicon and app icon kits for websites, iPhone, Android, and web apps. Create from images, emojis, or letters, and download a ready-to-use icon pack.",
+    category: 'developer',
+    icon: 'Globe' as IconName,
+    href: '/tools/developer/favicon-studio',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Create a favicon from an emoji", "Generate iPhone and Android app icons from image", "Make a clean letter monogram favicon"],
+    seoTitle: "Free Favicon & App Icon Studio - Generate Web & Mobile Icons Online",
+    seoDescription: "Create favicons, Apple touch icons, and Android app icons from images, emojis, or letters. Preview on browser tabs and phones, then download the complete icon pack.",
+    seoKeywords: ["favicon generator", "app icon maker", "generate favicon pack", "apple touch icon generator", "android app icon creator", "pwa icon builder", "Exismic"]
+  },
+  {
+    id: 'mesh-gradient',
+    hidden: true,
+    name: 'CSS Mesh Gradient & Glass Studio',
+    description: "Create flowing, organic multi-color background gradients and frosted glass cards in real time. Drag color points, adjust blur and shine, and copy website code or download 4K wallpapers.",
+    category: 'developer',
+    icon: 'Palette' as IconName,
+    href: '/tools/developer/mesh-gradient',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Make a dark obsidian flowing gradient for a website hero", "Style a frosted glass card with blur and glowing border", "Download 4K gradient wallpaper for phone and desktop"],
+    seoTitle: "Free CSS Mesh Gradient & Glassmorphism Studio - Flowing Gradients & Glass Cards",
+    seoDescription: "Design beautiful flowing mesh gradients and frosted glass cards online for free. Drag color points, customize glass blur and border shine, then copy CSS, Tailwind, or download 4K images.",
+    seoKeywords: ["css mesh gradient generator", "mesh gradient maker", "glassmorphism generator", "frosted glass css", "gradient wallpaper 4k", "tailwind glass card", "Exismic"]
+  },
+  {
+    id: 'post-mockup',
+    hidden: true,
+    name: 'Fake Social Post & Tweet Studio',
+    description: "Design photorealistic Twitter / X posts, Threads, and Instagram comment cards in seconds. Customize names, handles, verified badges, numbers, and themes for viral videos and presentations.",
+    category: 'creator',
+    icon: 'Share2' as IconName,
+    href: '/tools/creator/post-mockup',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Create a viral Twitter hook for a YouTube Short", "Mockup a Threads post with custom engagement metrics", "Design a verified Instagram comment screenshot"],
+    seoTitle: "Free Fake Tweet & Social Post Mockup Generator - Twitter, Threads & Instagram",
+    seoDescription: "Create realistic fake tweets, Threads posts, and Instagram comment mockups online for free. Customize verified badges, avatars, likes, and themes with 1-click image copy and download.",
+    seoKeywords: ["fake tweet generator", "tweet mockup maker", "fake twitter post generator", "threads post generator", "fake instagram comment generator", "social post mockup", "Exismic"]
+  },
+  {
+    id: 'og-banner',
+    hidden: true,
+    name: 'Social Share Banner Studio (OG Maker)',
+    description: "Design custom 1200x630 social preview banners, Open Graph cards, and blog hero graphics in real time. Choose from 5 layouts, customize glowing themes, preview on Twitter and Discord, and download in 1 click.",
+    category: 'seo',
+    icon: 'ImageIcon' as IconName,
+    href: '/tools/seo/og-banner',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Design a 1200x630 Open Graph banner for a blog article", "Create a GitHub repository social preview card", "Make a high-converting product launch social banner"],
+    seoTitle: "Free Open Graph (OG) Banner Studio - Create 1200x630 Social Share Images",
+    seoDescription: "Design custom Open Graph (OG) social share banner images (1200x630) for Twitter, Discord, LinkedIn, and Facebook. Customize titles, branding, and gradients with 1-click download.",
+    seoKeywords: ["og image generator", "social share banner maker", "open graph image creator", "twitter card banner maker", "1200x630 banner generator", "social preview generator", "Exismic"]
+  },
+  {
+    id: 'slowed-reverb',
+    hidden: true,
+    name: 'Slowed + Reverb & Sped-Up Music Studio',
+    description: "Transform songs into aesthetic Slowed + Reverb or Sped-Up Nightcore tracks in seconds. Customize speed, cathedral reverb, and bass rumble with live visualizer and instant audio download.",
+    category: 'audio',
+    icon: 'Headphones' as IconName,
+    href: '/tools/audio/slowed-reverb',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Create a 0.85x slowed + reverb track for a TikTok video", "Make an energetic sped-up nightcore version of a song", "Add giant cathedral echo and deep bass to audio"],
+    seoTitle: "Free Slowed + Reverb & Sped-Up Music Generator - TikTok & Reels Audio",
+    seoDescription: "Transform any song into Slowed + Reverb, Sped-Up Nightcore, or Lo-Fi audio online for free. Adjust tempo, room echo, and bass boost with live visualizer and 1-click audio download.",
+    seoKeywords: ["slowed and reverb generator", "slowed reverb maker", "sped up audio maker", "nightcore generator", "reverb audio online", "tiktok audio editor", "Exismic"]
+  },
+  {
+    id: 'redact-blur',
+    hidden: true,
+    name: 'Private Photo & Screen Blur Studio',
+    description: "Blur, pixelate, or black out passwords, faces, credit cards, and private text from screenshots and photos. 100% on-device client privacy with instant clipboard copy and clean image download.",
+    category: 'image',
+    icon: 'ShieldCheck' as IconName,
+    href: '/tools/image/redact-blur',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Blur out passwords and sensitive keys on a screenshot", "Pixelate faces or phone numbers on a photo", "Black out credit card numbers before sharing online"],
+    seoTitle: "Free Private Photo & Screen Blur Studio - Redact Sensitive Data Online",
+    seoDescription: "Blur, pixelate, or black out sensitive text, passwords, faces, and documents online. 100% private in-browser processing with 1-click copy and download.",
+    seoKeywords: ["blur image online", "redact screenshot", "pixelate photo free", "hide sensitive info online", "blur face in photo", "black out text in image", "Exismic"]
+  },
+  {
+    id: 'teleprompter',
+    hidden: true,
+    name: 'Live Studio Teleprompter',
+    description: "Distraction-free auto-scrolling script reader for video creators, presentations, and speeches. Features mirror mode for teleprompter glass, speed controls, and camera selfie preview.",
+    category: 'creator',
+    icon: 'Tv2' as IconName,
+    href: '/tools/creator/teleprompter',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Record a smooth YouTube video with auto-scrolling script", "Use mirror mode on physical teleprompter glass", "Practice a presentation speech with camera preview"],
+    seoTitle: "Free Online Teleprompter Studio - Mirror Mode & Camera Preview",
+    seoDescription: "Free full-screen teleprompter for YouTubers, video creators, and presentations. Smooth auto-scroll, mirror mode for teleprompter glass, speed controls, and camera preview.",
+    seoKeywords: ["online teleprompter", "free teleprompter software", "teleprompter mirror mode", "video script prompter", "youtube teleprompter online", "Exismic"]
+  },
+  {
+    id: 'mind-map',
+    hidden: true,
+    name: 'Notes to Mind Map Studio',
+    description: "Turn outlines, bullet points, and notes into interactive visual mind maps and concept trees. 100% private in-browser processing with 1-click high-res PNG and vector SVG downloads.",
+    category: 'student',
+    icon: 'Network' as IconName,
+    href: '/tools/student/mind-map',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Turn lecture notes into an interactive concept tree", "Create a visual roadmap for studying exams", "Design a project launch plan with expandable branches"],
+    seoTitle: "Free Notes to Mind Map Studio - Create Visual Concept Trees Online",
+    seoDescription: "Turn notes, bullet points, and markdown outlines into interactive mind maps online. 100% free client-side processing, customizable themes, and 1-click PNG/SVG export.",
+    seoKeywords: ["notes to mind map", "outline to mind map", "free online mind map maker", "concept tree generator", "markdown to mindmap", "student study map", "Exismic"]
+  },
+  {
+    id: 'diff-checker',
+    hidden: true,
+    name: 'Text & Code Comparison Studio (Diff Checker)',
+    description: "Compare two versions of code, contracts, or text side by side. Highlights added, removed, and modified lines with word-level precision. 100% private, zero server cost.",
+    category: 'developer',
+    icon: 'GitCompare' as IconName,
+    href: '/tools/developer/diff-checker',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Compare two versions of a code file side by side", "Check changes between two drafts of a contract", "Generate a unified git patch for review"],
+    seoTitle: "Free Text & Code Comparison Studio - Online Diff Checker",
+    seoDescription: "Compare text and code side-by-side online. Highlights added, removed, and modified lines with word-level precision. Free client-side diff tool with unified and split view.",
+    seoKeywords: ["diff checker online", "compare text online", "code diff tool", "side by side text comparison", "git diff online", "find differences between two texts", "Exismic"]
+  },
+  {
+    id: 'audiogram',
+    hidden: true,
+    name: 'Audio Waveform Video Maker (Podcast Reels)',
+    description: "Turn voice clips, podcast soundbites, and music into animated waveform videos for Instagram Reels, TikTok, and YouTube Shorts. 100% free client-side HD video export.",
+    category: 'audio',
+    icon: 'AudioWaveform' as IconName,
+    href: '/tools/audio/audiogram',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Create an Instagram Reel with animated audio waveform bars", "Turn a podcast audio clip into a vertical TikTok video", "Generate a YouTube Shorts audiogram from voice recording"],
+    seoTitle: "Free Audio Waveform Video Maker - Create Podcast Audiograms Online",
+    seoDescription: "Free online audiogram maker. Convert audio and podcast clips into animated waveform videos for Instagram Reels, TikTok, and YouTube Shorts with $0 server cost.",
+    seoKeywords: ["audiogram generator", "audio waveform video maker", "podcast video generator", "turn audio into video", "instagram reel waveform", "tiktok audio visualizer", "Exismic"]
+  },
+  {
+    id: 'prompt-builder',
+    hidden: true,
+    name: 'AI Mega-Prompt Builder',
+    description: "Transform simple 1-line ideas into master-grade prompt engineering protocols for ChatGPT, Claude, Gemini, and DeepSeek. Free client-side tool with XML tags and Chain-of-Thought reasoning.",
+    category: 'ai',
+    icon: 'BrainCircuit' as IconName,
+    href: '/tools/ai/prompt-builder',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Turn a basic coding task into an elite architecture prompt", "Generate a few-shot Claude prompt with XML tags", "Build a high-converting marketing copywriting prompt"],
+    seoTitle: "Free AI Mega-Prompt Builder - Master Prompt Engineering Online",
+    seoDescription: "Engineer master prompts for ChatGPT, Claude, Gemini, and DeepSeek. Features CREATE and Chain-of-Thought frameworks, role personas, XML tags, and 1-click clipboard copy.",
+    seoKeywords: ["ai prompt generator", "mega prompt builder", "prompt engineering tool", "claude prompt generator", "chatgpt prompt builder", "chain of thought prompt", "Exismic"]
+  },
   {
     id: 'essay-outline-builder',
     name: 'AI Essay & Thesis Outline Builder',

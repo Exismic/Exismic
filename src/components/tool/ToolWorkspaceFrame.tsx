@@ -48,12 +48,14 @@ export function ToolWorkspaceHeader({
           {/* Logo Box Container */}
           <div className="relative group flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center">
              {/* Idle ambient breathing aura strictly matching category color */}
-             <div className={cn("absolute -inset-4 rounded-full blur-2xl animate-pulse", CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20")} />
+             <div className={cn("absolute -inset-4 rounded-full blur-2xl animate-pulse pointer-events-none", CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20")} />
              
-             {/* Spinning gradient border matching category color */}
-             <div className={cn("absolute inset-0 rounded-2xl animate-[spin_4s_linear_infinite]",
-               CATEGORY_ANIM_STYLES[categoryId]?.spinIdle || CATEGORY_ANIM_STYLES.image.spinIdle
-             )} />
+             {/* Spinning gradient border clipped strictly to the rounded-2xl bounds */}
+             <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+               <div className={cn("absolute -inset-[100%] animate-[spin_4s_linear_infinite]",
+                 CATEGORY_ANIM_STYLES[categoryId]?.spinIdle || CATEGORY_ANIM_STYLES.image.spinIdle
+               )} />
+             </div>
              
              {/* Inner glass box to cover the middle of the spinning gradient, leaving only the border */}
              <div className="absolute inset-[2px] rounded-[14px] bg-[#0b0c12] flex items-center justify-center overflow-hidden z-10 transition-transform duration-300 group-hover:scale-[0.98]">

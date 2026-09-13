@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import MetaDescriptionGenerator from "@/components/tool/MetaDescriptionGenerator";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free AI Meta Description Generator - SERP Description Tool | Exismic",
   description: "Create high-converting, keyword-optimized meta descriptions under 160 characters for maximum search clicks.",
-};
+  canonicalUrl: `${SITE_URL}/tools/meta-description-generator`,
+});
 
 export default function Page() {
   return (

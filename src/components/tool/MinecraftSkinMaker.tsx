@@ -6,6 +6,7 @@ import {
   Box,
   Check,
   ChevronDown,
+  Dices,
   Download,
   Eye,
   Footprints,
@@ -36,11 +37,37 @@ import {
   type MinecraftArmModel,
   type MinecraftSkinDesign,
   type MinecraftSkinPart,
+  type MinecraftSkinStyle,
 } from "@/lib/minecraft-skin";
 import { compileMinecraftSkinBlueprint } from "@/lib/minecraft-skin-blueprint";
 
 type PreviewMode = "character" | "texture" | "editor";
-type StyleMode = "balanced" | "pixel-detailed" | "minimal" | "high-contrast";
+type StyleMode =
+  | "balanced"
+  | "detailed"
+  | "anime"
+  | "pixel-artist"
+  | "minimal"
+  | "pixel-detailed"
+  | "high-contrast";
+
+function toLegacySkinStyle(styleMode: StyleMode): MinecraftSkinStyle {
+  switch (styleMode) {
+    case "detailed":
+    case "pixel-detailed":
+    case "pixel-artist":
+      return "pixel-detailed";
+    case "minimal":
+      return "minimal";
+    case "anime":
+      return "balanced";
+    case "high-contrast":
+      return "high-contrast";
+    case "balanced":
+    default:
+      return "balanced";
+  }
+}
 type ReferenceMode = "rebuild" | "guided" | "inspire";
 
 interface GeneratedSkin {
@@ -52,6 +79,10 @@ interface GeneratedSkin {
   referenceRebuilt?: boolean;
   referenceGuided?: boolean;
   renderer?: "blueprint" | "procedural";
+  action?: "generate" | "variation" | "remix";
+  parentGenerationId?: string | null;
+  remixInstruction?: string | null;
+  isVariation?: boolean;
 }
 
 const PROMPT_STARTERS = [
@@ -80,10 +111,11 @@ const STYLE_OPTIONS: Array<{
   desc: string;
   icon: string;
 }> = [
-  { id: "balanced", label: "Balanced (Modern)", desc: "Smooth anime gradients with 3D drop shadows", icon: "⚖️" },
-  { id: "pixel-detailed", label: "Artist Detailed", desc: "Bayer textile dithering & ambient occlusion", icon: "✨" },
-  { id: "minimal", label: "Minimalist Pastel", desc: "Clean aesthetic anime block colors", icon: "🌿" },
-  { id: "high-contrast", label: "Cyber Contrast", desc: "High specular glow & vivid neon rims", icon: "⚡" },
+  { id: "balanced", label: "Balanced", desc: "Harmonious anime shading & 3D contours", icon: "⚖️" },
+  { id: "detailed", label: "Detailed", desc: "High texture density & rich accessories", icon: "✨" },
+  { id: "anime", label: "Anime", desc: "Vibrant blocks & specular hair highlights", icon: "🌸" },
+  { id: "pixel-artist", label: "Pixel Artist", desc: "Artisanal readability & crisp contours", icon: "🎨" },
+  { id: "minimal", label: "Minimal", desc: "Clean flat aesthetic & subtle ambient lighting", icon: "🌿" },
 ];
 
 export type EyeStyleMode = "anime" | "classic" | "glowing" | "minimal" | "visor";
@@ -180,6 +212,10 @@ export function MinecraftSkinMaker() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [remixModalOpen, setRemixModalOpen] = useState(false);
+  const [remixPrompt, setRemixPrompt] = useState("");
+  const [isRemixing, setIsRemixing] = useState(false);
+  const [isVarying, setIsVarying] = useState(false);
 
   const handleImportGamertag = async (targetUsername?: string) => {
     const cleanUsername = (targetUsername || gamertag).trim();
@@ -226,6 +262,21 @@ export function MinecraftSkinMaker() {
       setIsFetchingGamertag(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const p = sp.get("prompt");
+    if (p) setPrompt(p);
+    const s = sp.get("style") as StyleMode;
+    if (s && ["balanced", "detailed", "anime", "pixel-artist", "minimal"].includes(s)) {
+      setStyle(s);
+    }
+    const m = sp.get("armModel") as MinecraftArmModel;
+    if (m === "classic" || m === "slim") {
+      setArmModel(m);
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -287,10 +338,10 @@ export function MinecraftSkinMaker() {
           newPixels = compileMinecraftSkinBlueprint(updatedDesign, result.seed, armModel, style, prompt);
         } catch (err) {
           console.warn("[Minecraft Skin] Blueprint eye style recompile failed, falling back to legacy:", err);
-          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
         }
       } else {
-        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
       }
       const canvas = document.createElement("canvas");
       canvas.width = 64;
@@ -322,10 +373,10 @@ export function MinecraftSkinMaker() {
           newPixels = compileMinecraftSkinBlueprint(updatedDesign, result.seed, armModel, style, prompt);
         } catch (err) {
           console.warn("[Minecraft Skin] Blueprint mouth style recompile failed, falling back to legacy:", err);
-          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
         }
       } else {
-        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, style, prompt);
+        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
       }
       const canvas = document.createElement("canvas");
       canvas.width = 64;
@@ -460,6 +511,136 @@ export function MinecraftSkinMaker() {
       setError(generationError instanceof Error ? generationError.message : "Skin generation failed.");
     } finally {
       window.setTimeout(() => setIsGenerating(false), 300);
+    }
+  };
+
+  const regenerateVariation = async () => {
+    if (!userId) {
+      setError("Sign in to generate and save Minecraft skins.");
+      return;
+    }
+    if (!result) {
+      setError("Generate a character first before regenerating variations.");
+      return;
+    }
+    const cost = isPro ? 16 : 24;
+    if (credits < cost) {
+      setShowUpsell(true);
+      setError(`Regenerating a variation needs ${cost} credits. Your balance is ${credits}.`);
+      return;
+    }
+
+    setIsVarying(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const response = await fetch("/api/tools/image/minecraft-skin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim() || result.design.name,
+          armModel,
+          style,
+          targetPart: "all",
+          action: "variation",
+          parentDesign: result.design,
+          seed: result.seed,
+        }),
+      });
+      const payload = (await response.json()) as GeneratedSkin & {
+        success?: boolean;
+        error?: string;
+        needsUpgrade?: boolean;
+      };
+      if (!response.ok || !payload.success) {
+        if (
+          response.status === 403 ||
+          payload.needsUpgrade ||
+          payload.error?.toLowerCase().includes("credit")
+        ) {
+          setShowUpsell(true);
+        }
+        throw new Error(payload.error || "Could not generate variation.");
+      }
+
+      setResult(payload);
+      setArmModel(payload.armModel);
+      setNotice(
+        "🎲 Generated a fresh visual variation! Character identity, palette, and outfit preserved with new composition details."
+      );
+      refreshCredits();
+    } catch (err: any) {
+      setError(err?.message || "Failed to generate variation.");
+    } finally {
+      setIsVarying(false);
+    }
+  };
+
+  const handleRemix = async () => {
+    if (!userId) {
+      setError("Sign in to remix Minecraft skins.");
+      return;
+    }
+    if (!result) {
+      setError("Generate a character first before remixing.");
+      return;
+    }
+    if (!remixPrompt.trim()) {
+      setError("Describe the specific change you want to make.");
+      return;
+    }
+    const cost = isPro ? 16 : 24;
+    if (credits < cost) {
+      setShowUpsell(true);
+      setError(`Remixing needs ${cost} credits. Your balance is ${credits}.`);
+      return;
+    }
+
+    setIsRemixing(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const response = await fetch("/api/tools/image/minecraft-skin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim() || result.design.name,
+          armModel,
+          style,
+          targetPart: "all",
+          action: "remix",
+          parentDesign: result.design,
+          remixInstruction: remixPrompt.trim(),
+        }),
+      });
+      const payload = (await response.json()) as GeneratedSkin & {
+        success?: boolean;
+        error?: string;
+        needsUpgrade?: boolean;
+      };
+      if (!response.ok || !payload.success) {
+        if (
+          response.status === 403 ||
+          payload.needsUpgrade ||
+          payload.error?.toLowerCase().includes("credit")
+        ) {
+          setShowUpsell(true);
+        }
+        throw new Error(payload.error || "Could not remix skin.");
+      }
+
+      setResult(payload);
+      setArmModel(payload.armModel);
+      setRemixModalOpen(false);
+      setRemixPrompt("");
+      setNotice(
+        `🪄 Remix applied: "${payload.remixInstruction || remixPrompt.trim()}"! Unspecified features and character identity preserved.`
+      );
+      refreshCredits();
+    } catch (err: any) {
+      setError(err?.message || "Failed to remix skin.");
+    } finally {
+      setIsRemixing(false);
     }
   };
 
@@ -1219,8 +1400,23 @@ export function MinecraftSkinMaker() {
                       <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-zinc-400">
                         {result.armModel}
                       </span>
+                      {result.isVariation && (
+                        <span className="rounded-full border border-violet-400/30 bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-200">
+                          🎲 Variation
+                        </span>
+                      )}
+                      {result.action === "remix" && (
+                        <span className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-bold text-cyan-200">
+                          🪄 Remixed
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1.5 text-sm leading-6 text-zinc-400">{result.design.description}</p>
+                    {result.remixInstruction && (
+                      <p className="mt-1 text-xs text-cyan-300 font-medium">
+                        Remix delta: &ldquo;{result.remixInstruction}&rdquo;
+                      </p>
+                    )}
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {[
                         ...(result.design.traits || []),
@@ -1252,14 +1448,55 @@ export function MinecraftSkinMaker() {
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => void downloadSkin()}
-                className="flex min-h-14 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white px-6 text-sm font-black text-black transition hover:bg-cyan-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 lg:min-h-full"
-              >
-                <Download className="size-5" />
-                Download skin
-              </button>
+              <div className="flex flex-col gap-2 sm:flex-row lg:flex-col justify-center">
+                {/* 🎲 Regenerate Variation */}
+                <button
+                  type="button"
+                  onClick={() => void regenerateVariation()}
+                  disabled={isVarying || isGenerating}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-violet-400/30 bg-violet-600/15 hover:bg-violet-600/25 px-4 text-xs font-bold text-violet-200 shadow-sm transition hover:border-violet-400/50 active:scale-95 disabled:opacity-50 cursor-pointer"
+                  title="Generate a new visual variation with fresh hair flow and details while locking the character identity"
+                >
+                  {isVarying ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin text-violet-300" />
+                      <span>Varying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Dices className="size-4 text-violet-300" />
+                      <span>Regenerate Variation</span>
+                      <span className="rounded-full bg-violet-400/20 px-1.5 py-0.5 text-[9px] font-black">{isPro ? 16 : 24} cr</span>
+                    </>
+                  )}
+                </button>
+
+                {/* 🪄 Remix */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRemixPrompt("");
+                    setRemixModalOpen(true);
+                  }}
+                  disabled={isGenerating || isVarying}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/15 hover:bg-cyan-500/25 px-4 text-xs font-bold text-cyan-200 shadow-sm transition hover:border-cyan-400/50 active:scale-95 disabled:opacity-50 cursor-pointer"
+                  title="Modify specific character features while preserving the rest of the skin"
+                >
+                  <Wand2 className="size-4 text-cyan-300" />
+                  <span>Remix Character</span>
+                  <span className="rounded-full bg-cyan-400/20 px-1.5 py-0.5 text-[9px] font-black">{isPro ? 16 : 24} cr</span>
+                </button>
+
+                {/* 💾 Download Skin */}
+                <button
+                  type="button"
+                  onClick={() => void downloadSkin()}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-5 text-xs font-black text-black transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 active:scale-95 cursor-pointer shadow-md"
+                >
+                  <Download className="size-4" />
+                  <span>Download skin</span>
+                </button>
+              </div>
             </motion.div>
           )}
         </section>
@@ -1269,6 +1506,128 @@ export function MinecraftSkinMaker() {
         <p>Exports standard 64×64 PNG skins for classic and slim player models.</p>
         <p>Not an official Minecraft product. Not associated with Mojang or Microsoft.</p>
       </footer>
+
+      {/* Character Remix Modal */}
+      <AnimatePresence>
+        {remixModalOpen && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setRemixModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#090b14] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_35px_rgba(6,182,212,0.15)]"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="grid size-9 place-items-center rounded-lg border border-cyan-400/30 bg-cyan-500/10 text-cyan-300">
+                    <Wand2 className="size-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">Remix Character</h3>
+                    <p className="text-xs text-zinc-400">Modify specific features while locking the character identity.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRemixModalOpen(false)}
+                  className="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {result && (
+                <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/5 bg-black/30 p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={result.skinUrl}
+                    alt=""
+                    className="size-12 rounded-lg border border-white/10 bg-black object-cover [image-rendering:pixelated]"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-white truncate">{result.design.name}</p>
+                    <p className="text-[11px] text-zinc-400 truncate">{result.design.description}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 space-y-3">
+                <label htmlFor="remix-input" className="text-xs font-bold text-white">
+                  What do you want to change?
+                </label>
+                <textarea
+                  id="remix-input"
+                  value={remixPrompt}
+                  onChange={(e) => setRemixPrompt(e.target.value.slice(0, 500))}
+                  placeholder="Examples: 'Change the hoodie to a red bomber jacket', 'Make hair silver and shorter', 'Add cyberpunk headphones', 'Remove glasses'..."
+                  className="min-h-24 w-full resize-none rounded-xl border border-white/10 bg-black/40 p-3 text-xs leading-5 text-white outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20"
+                />
+
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-[10px] text-zinc-500 font-medium self-center">Try:</span>
+                  {[
+                    "Change hoodie to red bomber jacket",
+                    "Make hair silver and shorter",
+                    "Add cyberpunk headphones",
+                    "Remove glasses",
+                    "Change pants to wide cargos",
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setRemixPrompt(preset)}
+                      className="rounded-md border border-white/5 bg-white/[0.03] px-2 py-1 text-[10px] text-zinc-400 hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-cyan-200 transition-colors cursor-pointer"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                  <span>Cost:</span>
+                  <span className="font-bold text-cyan-300">{isPro ? 16 : 24} credits</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRemixModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemix}
+                    disabled={isRemixing || !remixPrompt.trim()}
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-5 py-2 text-xs font-black text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
+                  >
+                    {isRemixing ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        <span>Remixing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="size-3.5" />
+                        <span>Apply Remix</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Out of Credits / Pro Upsell Modal */}
       <CreditModal

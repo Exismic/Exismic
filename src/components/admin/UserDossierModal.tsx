@@ -178,11 +178,11 @@ export function UserDossierModal({ userId, onClose }: UserDossierModalProps) {
             </div>
 
             {/* Sub-Tabs Switcher */}
-            <div className="flex items-center gap-2 p-1 rounded-2xl bg-white/[0.02] border border-white/5">
+            <div className="flex items-center gap-2 p-1 rounded-2xl bg-white/[0.02] border border-white/5 overflow-x-auto scrollbar-none w-full max-w-full">
               <button
                 onClick={() => setActiveTab("quests")}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0",
                   activeTab === "quests"
                     ? "bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.3)]"
                     : "text-zinc-400 hover:text-white"
@@ -195,7 +195,7 @@ export function UserDossierModal({ userId, onClose }: UserDossierModalProps) {
               <button
                 onClick={() => setActiveTab("vault")}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0",
                   activeTab === "vault"
                     ? "bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     : "text-zinc-400 hover:text-white"
@@ -208,9 +208,9 @@ export function UserDossierModal({ userId, onClose }: UserDossierModalProps) {
               <button
                 onClick={() => setActiveTab("sparks")}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0",
                   activeTab === "sparks"
-                    ? "bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                    ? "bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,222,0.3)]"
                     : "text-zinc-400 hover:text-white"
                 )}
               >
@@ -221,7 +221,7 @@ export function UserDossierModal({ userId, onClose }: UserDossierModalProps) {
               <button
                 onClick={() => setActiveTab("orders")}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0",
                   activeTab === "orders"
                     ? "bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                     : "text-zinc-400 hover:text-white"

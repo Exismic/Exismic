@@ -1,10 +1,13 @@
+import { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 import SalaryCalculator from "@/components/tool/SalaryCalculator";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
-export const metadata = {
+export const metadata: Metadata = constructMetadata({
   title: "Free CTC to In-Hand Salary Calculator India - New vs Old Tax Regime | Exismic",
   description: "Calculate your net monthly take-home salary from total CTC package with tax regime comparison and deduction breakdown.",
-};
+  canonicalUrl: `${SITE_URL}/tools/salary-calculator`,
+});
 
 export default function Page() {
   return (

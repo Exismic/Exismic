@@ -1,6 +1,6 @@
 # Exismic Studio — Master Project Continuation & Architecture Memory
 
-> **Last Updated**: September 9, 2026  
+> **Last Updated**: September 10, 2026  
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
 > **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors). Mobile navigation and GPU performance fully optimized.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
@@ -597,6 +597,129 @@
   - Legacy procedural fallback gate confirmed 100% operational.
 * **Production Status**: 🟢 **EXPANDED ARTIST BLUEPRINT — PRODUCTION ACTIVE**
 * **Hold Note**: User is personally testing the generated skins in the Minecraft Bedrock skin editor. No further code or visual changes to be made until user provides feedback.
+
+### 29. 🎮 Minecraft Skin Studio v1.7 — Generation Control & Interactive UI Update [ACTIVE WORK / ON HOLD FOR TOMORROW]
+* **Status**: **ON HOLD FOR TODAY** per user instruction: *"it aint working, i wanna stop here for today we will continue the fix tommorow and will deploy tommorow, so add this in ur memory"*.
+* **Commitment**: **DO NOT DEPLOY TODAY**. Complete remaining visual / UI fixes tomorrow, verify end-to-end with the user, and deploy tomorrow upon user sign-off.
+* **Architecture & Features Implemented in Active Branch**:
+  1. **Core Generation Control**:
+     - 4 Style Presets: `anime`, `detailed`, `minimal`, `pixel-artist`.
+     - Archetype composition grammars: Streetwear 3-tier layering, Techwear harness, Knight armor faulds/cuirass, Cottagecore aprons/braids.
+     - Prompt override precedence over reference images.
+     - Classic (4px) vs. Slim (3px) model UV compliance.
+     - Automated verification: [`scripts/verify-v17-generation-control.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/verify-v17-generation-control.ts) (16/16 tests pass).
+  2. **Facial Hair Remix Hotfix**:
+     - Fixed intent detection in `mergeRemixDesign()` for clean-shaven / remove beard prompts ("facial hair", "beard", "stubble", "goatee").
+     - Connected `design.facialHair` directly to `compileMinecraftSkinBlueprint()` face stamping.
+     - Automated verification: [`scripts/verify-v17-facial-hair-hotfix.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/verify-v17-facial-hair-hotfix.ts) (10/10 tests pass).
+  3. **Variation & Eye Styles 0-Credit Fixes**:
+     - **Regenerate Variation (Problem A)**: Wired Mulberry32 `seed` modulation into `generateHairBlueprint()`, `generateParametricTorsoBlueprint()`, and `generateParametricLegBlueprint()`, producing 49–58 px deliberate composition diffs while strictly locking character identity.
+     - **Eye Styles (Problem B)**: Client-side 0-credit instant switching for all 5 styles: `anime`, `classic` (Steve 2×1), `glowing`, `minimal` (1px slit), and `visor`. Cyber Visor scoped strictly to eye rows 3 & 4 (`y = 11..12`); cheeks, mouth, chin, and facial hair 100% preserved.
+     - Automated verification: [`scripts/verify-v17-variation-eyes-fix.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/verify-v17-variation-eyes-fix.ts) (passed).
+  4. **Mouth & Expression Controls**:
+     - Added `mouthStyle` extraction to `safeExtractBlueprintDesign()`.
+     - Implemented `applyMouthStyleToFaceBlueprint()` for `smile`, `neutral`, `smirk`, `open`, and `none`.
+     - Wired 0-credit client-side instant switching in [`src/components/tool/MinecraftSkinMaker.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/MinecraftSkinMaker.tsx) (`handleSelectMouthStyle`).
+     - Automated verification: [`scripts/verify-v17-mouth-expression-fix.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/scripts/verify-v17-mouth-expression-fix.ts) (passed).
+* **Live UI Diagnostic & Hypotheses for "It Ain't Working"**:
+  - During manual browser testing, the user reported "it aint working". Key diagnostic vectors to investigate first thing tomorrow:
+    1. **Hat / Hair Outer Layer Occlusion**: In Minecraft skin UV mapping, the base head is at `(8, 8)` to `(15, 15)`, but the outer overlay/hat layer is at `(40, 8)` to `(47, 15)`. If the character's hairstyle, bangs, or mask places non-transparent pixels on the outer layer over the lower face (row 14/15), the 3D viewer renders the outer layer on top, completely obscuring the base skin mouth changes.
+    2. **Visual Contrast & Scale in 3D Studio Viewer**: In a 64×64 texture, mouth tokens are 2 to 4 pixels. In the 3D perspective viewer rendered at normal zoom, 2 pixels of slightly different pink/brown hue can be virtually imperceptible to the human eye. Need bolder mouth shapes, higher contrast coloration, or 2-row expressions so changes pop immediately.
+    3. **WebGL Texture Update / Re-binding in `skinview3d`**: Verify whether `viewer.loadSkin(skinUrl)` properly invalidates and re-binds canvas Data URLs in real time or if `result.renderer` causes client fallback.
+    4. **Perception of Variation**: Verify whether the seed-based variation differences (folds, aglets, fringe tips) are noticeable enough in the 3D preview or if the user expected broader visual shifts.
+* **Execution Plan When Resuming Tomorrow**:
+  1. Inspect the live UI in the browser directly with the user to isolate the exact behavior they observed as failing.
+  2. Implement the targeted fix (e.g. outer-layer mouth cutout, enhanced mouth contrast, instant 3D viewport update).
+  3. Validate end-to-end across both 2D Texture and 3D Studio viewer.
+  4. Obtain user sign-off and deploy to production tomorrow.
+
+---
+
+### 30. 📱 3D Device & App Mockup Studio (`/tools/creator/device-mockup`) [COMPLETED]
+* **Overview & Architecture**:
+  - High-performance, $0-server-cost 3D mockup generator built with 100% client-side HTML5 Canvas and CSS 3D transforms.
+  - Zero API compute overhead, 0ms latency, unlimited free generations.
+* **Device Models**:
+  - **iPhone 16 Pro**: Titanium bezel (Dark, Natural, Silver), Dynamic Island cutout, camera sensor dot, rounded corners (`rounded-[48px]`).
+  - **MacBook Pro M3/M4**: Space Black aluminum lid, camera notch, keyboard deck base with thumb notch indent, rubber feet.
+  - **Obsidian Glass Browser**: Frosted macOS window, traffic light dots (close red, minimize yellow, expand green), centered address bar with lock icon.
+  - **iPad Pro**: Slim symmetrical bezel, TrueDepth camera pinhole, rounded corners.
+  - **Dual Showcase (Combo)**: MacBook Pro desktop in background with floating angled iPhone 16 Pro in foreground.
+* **Customization Controls**:
+  - **Aspect Ratios**: 16:9 (X/Twitter, Slides), 1:1 (Instagram, Square), 4:3 (Dribbble, Product Hunt), 9:16 (Stories, TikTok).
+  - **Studio Backdrops**: Obsidian Cosmic, Cyber Neon, Studio Spotlight, Dark Grid, Transparent, and Custom Color picker.
+  - **3D Angle & Perspective**: Flat 2D, 3D Isometric, and Floating presets, with fine-tuning sliders for Tilt X, Rotation Y, Scale, and Shadow Depth.
+  - **Instant Demos**: 3 zero-load procedural SVGs (SaaS Analytics, Mobile Wallet, Modern Landing) for 0-second testing.
+* **High-Res Export & Clipboard**:
+  - 2K/4K Canvas rendering with uncompressed PNG download.
+  - 1-Click "Copy Image to Clipboard" (`navigator.clipboard.write`) for instant pasting into Twitter, Figma, Slack, or Discord.
+  - `MediaPipelineBar` integrated below output for 1-click chaining to Compressor, Converter, and Resizer.
+* **Verification**:
+  - `npx tsc --noEmit` clean (0 errors).
+  - Live route HTTP 200 verified on `http://localhost:3000/tools/creator/device-mockup`.
+
+---
+
+### 10. 💻 Aesthetic Code Snippet Studio (Ray.so / Carbon Alternative) [COMPLETED]
+* **Architecture & Zero-Cost Engine**:
+  - 100% client-side high-DPI HTML5 Canvas and SVG code rendering engine ($0 compute cost, offline-ready, 0ms latency).
+  - Fast, zero-dependency tokenization engine for 20+ programming languages (JS, TS, Python, Rust, Go, SQL, HTML, CSS, C++, etc.).
+  - Plain, clear English UI labels and friendly controls with zero confusing jargon.
+* **Themes & Presets**:
+  - **10 Color Themes**: Obsidian Glow (signature), Tokyo Night, Dracula Purple, One Dark, Synthwave 80s, Monokai Warm, Cyberpunk Neon, Nord Frost, Emerald Mint, Sunset Velvet.
+  - **8 Background Backdrops**: Cosmic Nebula, Cyber Neon, Sunset Horizon, Mint Aurora, Midnight Carbon, Studio Spotlight, Clean Grid, Transparent Cutout.
+  - **Window Controls**: Mac Traffic Lights (red, yellow, green circles), Windows 11 style, and Clean Minimalist.
+  - **Typography & Sizing**: JetBrains Mono, Fira Code, Source Code Pro, and System Monospace; Small, Medium, Large, and Extra Large font sizes.
+  - **5 Quick Starters**: 1-click template loaders for React Hook, Python API, Database Query, Glow Card Styling, and Rust Worker.
+* **Export Hub**:
+  - 1-Click "Copy Image to Clipboard" (`navigator.clipboard.write`) for instant pasting into Twitter/X, Discord, Slack, and LinkedIn.
+  - High-Res 2x Retina PNG download.
+  - Scalable Vector SVG download.
+  - `MediaPipelineBar` integrated below output for 1-click chaining to Bulk Compressor, Converter, and Cloud Library.
+* **Route & Catalog**:
+  - Route: [`src/app/tools/developer/code-snippet/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/developer/code-snippet/page.tsx)
+  - Component: [`src/components/tool/developer/CodeSnippetStudio.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/developer/CodeSnippetStudio.tsx)
+  - Catalog: Registered in [`src/data/tools.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/data/tools.ts) with `popular: true` and `proPowerPack: true`.
+  - Type-checked (`npx tsc --noEmit` = 0 errors) and HTTP 200 live SSR verified.
+  - Tracked in master upcoming deployment manifest: [UPCOMING_TOOLS_RELEASE_LOG.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/UPCOMING_TOOLS_RELEASE_LOG.md).
+
+---
+
+### 11. 🌐 Favicon & App Icon Studio (Web, PWA, iOS & Android) [COMPLETED]
+* **Architecture & Zero-Cost Engine**:
+  - 100% client-side HTML5 Canvas and `jszip` generation engine ($0 server bandwidth, 0ms latency, zero API costs).
+  - 3 input modes: Image Upload (auto-centered), Emoji Picker (curated popular app emojis), and Letter Monogram (customizable font & text color).
+  - Simple, plain English labels and controls without jargon.
+* **Customization & Realistic Previews**:
+  - **4 Icon Shapes**: Squircle (iOS), Rounded, Circle, and Square.
+  - **8 Backgrounds**: Obsidian Glow, Cyber Neon, Sunset Blaze, Mint Aurora, Dark Carbon, Solid Black, Solid White, and Transparent.
+  - **3 Inner Spacings**: Tight, Balanced, Relaxed.
+  - **Realistic Live Mockups**: Desktop Browser Tab, iPhone Home Screen, and Google Search snippet.
+* **Complete 1-Click Export Kit (ZIP)**:
+  - Bundles `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png` (180x180), `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest`, and `head-tags.html`.
+  - 1-Click "Copy HTML Tags" button.
+* **Route & Catalog**:
+  - Route: [`src/app/tools/developer/favicon-studio/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/developer/favicon-studio/page.tsx)
+  - Component: [`src/components/tool/developer/FaviconStudio.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/developer/FaviconStudio.tsx)
+  - Catalog: Registered in [`src/data/tools.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/data/tools.ts) with `popular: true` and `proPowerPack: true`.
+  - Type-checked (`npx tsc --noEmit` = 0 errors) and HTTP 200 live SSR verified.
+  - Tracked in master upcoming deployment manifest: [UPCOMING_TOOLS_RELEASE_LOG.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/UPCOMING_TOOLS_RELEASE_LOG.md).
+
+### 3. 🎨 CSS Mesh Gradient & Glass Studio [COMPLETED & MOBILE-OVERHAULED]
+* **Overview**: High-demand design studio for creating flowing, organic multi-color background gradients and luxury frosted glass cards in real time with 1-click code export and 4K wallpaper downloads ($0 server cost).
+* **UI & Mobile Overhaul**:
+  - Eliminated all edge clipping bugs by clamping bubble coordinates [4%, 96%] so handles never get sliced.
+  - Eliminated bottom blue scrollbar / edge bleed by isolating canvas compositing (`transform-gpu isolate overflow-hidden scrollbar-none`).
+  - Added Screen Shape selector: Desktop (16:9), Phone Wallpaper (9:16 portrait), Square (1:1), and Banner (3:1).
+  - Luxury Frosted Glass card with specular top rim highlight, inner ambient drop shadow, and high-contrast text.
+  - Added "Clean View" handle toggle and responsive mobile tabs (`Preview` | `Colors` | `Glass Card` | `Get Code`).
+* **Route & Catalog**:
+  - Route: [`src/app/tools/developer/mesh-gradient/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/developer/mesh-gradient/page.tsx)
+  - Component: [`src/components/tool/developer/MeshGradientStudio.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/developer/MeshGradientStudio.tsx)
+  - Catalog: Registered in [`src/data/tools.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/data/tools.ts) with `popular: true` and `proPowerPack: true`.
+  - Type-checked (`npx tsc --noEmit` = 0 errors) and HTTP 200 live SSR verified.
+  - Tracked in [UPCOMING_TOOLS_RELEASE_LOG.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/UPCOMING_TOOLS_RELEASE_LOG.md).
+  - Next tools backlog tracked in [NEXT_TO_ADD.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/NEXT_TO_ADD.md).
 
 ---
 

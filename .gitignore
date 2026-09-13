@@ -85,4 +85,6 @@ venv/
 /test-flux-concepts/
 /test-output-comparison/
 /test-output-skins/
+/v17-*-output/
+/v17-diagnosis-artifact/
 

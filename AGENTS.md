@@ -6,5 +6,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Project Memory & Session Continuation
 - Whenever resuming or starting a new conversation in this workspace, ALWAYS read [SESSION_CONTINUATION.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/SESSION_CONTINUATION.md) to understand current architecture state, completed features, and the active retention roadmap.
-- The next roadmap priority is **Feature #3: Streak Freeze & Milestone Rewards (Duolingo-Style)**.
+- Maintain and track all new tools added during this sprint in [UPCOMING_TOOLS_RELEASE_LOG.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/UPCOMING_TOOLS_RELEASE_LOG.md) for the upcoming production release.
 
