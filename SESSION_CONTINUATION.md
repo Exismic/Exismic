@@ -9,6 +9,23 @@
 
 ## 📌 Summary of Completed Architecture & Features
 
+### 0. 🌐 Discovery-Layer Internal Link Graph & Architecture Overhaul [DEPLOYED]
+* **Eliminated All 5 Public Orphans (100% Reachable)**:
+  * **`/pricing`**: Wired to global logged-out navbar navigation in `Navbar.tsx` and the `Product` column in `Footer.tsx`, providing 114+ inbound links across the site.
+  * **`/giveaway`**: Added to the `Resources` column in `Footer.tsx`.
+  * **`/pro/benefits`**: Connected via contextual CTA link in `ProClient.tsx` below the pro workspace grid and in the feature comparison matrix header in `src/app/pricing/page.tsx`.
+  * **`/blog/exismic-1-6-release` & `/blog/exismic-1-5-release`**: Replaced client-only `onClick router.push` with real `<Link href={`/blog/${post.slug}`}>` wrappers in `BlogIndexClient.tsx` so articles render genuine crawlable `<a>` tags in initial SSR HTML.
+* **42 Obsolete Ghost Routes Permanently Redirected (HTTP 301)**:
+  * Added 42 verified duplicate category-prefixed tool route redirects in `next.config.ts` (`permanent: true`) routing `/tools/<category>/<slug>` to their canonical short URLs `/tools/<slug>`.
+  * Filtered `generateStaticParams()` in `src/app/tools/[category]/[toolId]/page.tsx` so static files are not created for short routes.
+  * Upgraded fallback redirect in `src/lib/tool-page-render.tsx` to `permanentRedirect`.
+* **Pure Semantic Peer Tool Linking**:
+  * Created `src/lib/related-tools.ts` based on 12 task-based workflow clusters, category affinity, and token overlap scoring (2–4 genuine peers; no circulant distribution; no self-links; no duplicates).
+  * Connected `ToolSeoSection.tsx` and `ToolDetailClient.tsx` to render semantic related tools with descriptive anchor text.
+  * AI Humanizer inbound links increased from 2 to 7 (linked directly from AI Content Detector, Grammar Checker, AI Writer, Social Caption Generator, and Email Reply Generator).
+* **SSR Category Link Crawlability on `/tools`**:
+  * Updated category filter tabs in `ToolsLibraryClient.tsx` to emit `<Link href={`/category/${tab.id}`}>` with client `e.preventDefault()` so all 11 category hub pages have crawlable HTML links in initial SSR.
+
 ### 0. ⚡ Mobile Performance & Navigation Latency Overhaul [COMPLETED]
 * **Root Layout Remote DB Latency Eliminated**:
   * Added `getCachedUserRoleStatus(userId)` in [`src/lib/server/cached-config.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/server/cached-config.ts) utilizing Next.js `unstable_cache` with a 60-second revalidation tag.
