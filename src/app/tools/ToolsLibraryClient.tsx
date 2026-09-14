@@ -244,11 +244,16 @@ export default function ToolsLibraryPage() {
                   : tab.id === "popular" 
                     ? trendingTools.length 
                     : TOOLS.filter(t => t.category.toLowerCase() === tab.id.toLowerCase()).length;
+                const tabHref = tab.id === "all" || tab.id === "popular" ? "/tools" : `/category/${tab.id}`;
 
                 return isSelected ? (
-                  <button
+                  <Link
                     key={tab.id}
-                    onClick={() => setActiveCategory(tab.id)}
+                    href={tabHref}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveCategory(tab.id);
+                    }}
                     className="relative shrink-0 p-[1.5px] rounded-xl bg-gradient-to-r from-purple-500/80 via-cyan-400/80 to-indigo-500/80 shadow-[0_0_20px_rgba(168,85,247,0.35),0_0_10px_rgba(34,211,238,0.25)] select-none cursor-pointer active:scale-95 transition-all"
                   >
                     <div className="flex items-center gap-2 px-4 py-2 rounded-[10.5px] bg-[#0b0e24]/95 border border-purple-500/30">
@@ -261,11 +266,15 @@ export default function ToolsLibraryPage() {
                         {count}
                       </span>
                     </div>
-                  </button>
+                  </Link>
                 ) : (
-                  <button
+                  <Link
                     key={tab.id}
-                    onClick={() => setActiveCategory(tab.id)}
+                    href={tabHref}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveCategory(tab.id);
+                    }}
                     className="group/tab relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#070918]/80 border border-white/[0.08] text-zinc-400 hover:text-white hover:border-purple-400/40 hover:bg-white/[0.04] transition-all duration-200 shrink-0 select-none cursor-pointer active:scale-95"
                   >
                     <TabIcon 
@@ -276,7 +285,7 @@ export default function ToolsLibraryPage() {
                     <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-white/[0.05] text-zinc-500 group-hover/tab:text-zinc-300 border border-white/5">
                       {count}
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>

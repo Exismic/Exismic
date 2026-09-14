@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import Script from "next/script";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -1185,6 +1186,16 @@ export function ProClient() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <Link
+                href="/pro/benefits"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-6 py-3 text-xs font-black uppercase tracking-[0.18em] text-zinc-300 backdrop-blur-md transition-all hover:border-cyan-400/40 hover:bg-cyan-500/10 hover:text-white"
+              >
+                <span>Explore Full Pro Benefits Breakdown</span>
+                <ArrowRight size={14} className="text-cyan-400" />
+              </Link>
             </div>
           </div>
         </section>

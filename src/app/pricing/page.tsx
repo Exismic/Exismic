@@ -190,13 +190,22 @@ export default function PricingPage() {
                 Compare Plan Capabilities
               </h2>
             </div>
-            <Link
-              href="/rewards/guide"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 self-start sm:self-auto"
-            >
-              <span>Read Full Currencies & Credit Guide</span>
-              <ArrowRight size={13} />
-            </Link>
+            <div className="flex flex-wrap items-center gap-4 self-start sm:self-auto">
+              <Link
+                href="/pro/benefits"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-400 hover:text-purple-300"
+              >
+                <span>Explore Full Pro Benefits</span>
+                <ArrowRight size={13} />
+              </Link>
+              <Link
+                href="/rewards/guide"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300"
+              >
+                <span>Currencies & Credit Guide</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

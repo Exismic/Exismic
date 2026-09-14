@@ -552,6 +552,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
          categoryId={category.id}
          toolSlug={tool.href}
          keywords={tool.seoKeywords}
+         showRelatedTools={true}
        />
 
        {/* Smart Workflow Tool Recommendations */}

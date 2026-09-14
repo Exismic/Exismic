@@ -15,6 +15,7 @@ const FOOTER_LINKS = [
       { name: "All tools", href: "/tools" },
       { name: "Exismic Ai", href: "/chat" },
       { name: "Exismic Pro", href: "/pro" },
+      { name: "Pricing", href: "/pricing" },
     ],
   },
   {
@@ -23,6 +24,7 @@ const FOOTER_LINKS = [
       { name: "Help center", href: "/help" },
       { name: "Product updates", href: "/changelog" },
       { name: "Blog", href: "/blog" },
+      { name: "Giveaway", href: "/giveaway" },
     ],
   },
   {

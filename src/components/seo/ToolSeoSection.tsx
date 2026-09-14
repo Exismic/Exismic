@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { Sparkles, HelpCircle, CheckCircle2, Zap, ArrowRight, Cpu, ShieldCheck } from "lucide-react";
 import { TOOLS } from "@/data/tools";
+import { getRelatedTools } from "@/lib/related-tools";
 
 interface ToolSeoSectionProps {
   toolName: string;
@@ -233,10 +234,18 @@ export function ToolSeoSection({
   const defaultHowToSteps = howToSteps || catDefaults.howToSteps;
   const defaultFaqs = faqs || catDefaults.faqs;
 
-  // Related tools from same category
-  const relatedTools = TOOLS.filter(
-    (t) => t.category === categoryId && t.name !== toolName && t.indexable !== false
-  ).slice(0, 4);
+  // Contextually relevant peer tools based on genuine semantic workflows & category affinity
+  const currentTool = TOOLS.find(
+    (t) =>
+      (toolSlug && (t.id === toolSlug || t.href === toolSlug || t.href.endsWith(`/${toolSlug}`))) ||
+      t.name.toLowerCase() === toolName.toLowerCase()
+  );
+
+  const relatedTools = currentTool
+    ? getRelatedTools(currentTool, 2, 4)
+    : TOOLS.filter(
+        (t) => t.category === categoryId && t.name !== toolName && t.indexable !== false && !t.hidden
+      ).slice(0, 4);
 
   // FAQ Schema JSON-LD for Googlebot
   const faqSchema = {

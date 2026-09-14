@@ -7,12 +7,12 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  return TOOLS.map((tool) => {
+  return TOOLS.filter((tool) => {
     const parts = tool.href.split("/").filter(Boolean);
-    if (parts.length === 3 && parts[0] === "tools") {
-      return { category: parts[1], toolId: parts[2] };
-    }
-    return { category: tool.category, toolId: tool.id };
+    return parts.length === 3 && parts[0] === "tools";
+  }).map((tool) => {
+    const parts = tool.href.split("/").filter(Boolean);
+    return { category: parts[1], toolId: parts[2] };
   });
 }
 
