@@ -41,22 +41,36 @@ function buildActivityData(
   recentTx: Array<{ toolId: string | null; transactionType: string; description: string | null; amount: number; createdAt: Date }>,
   shopClaims: Array<{ createdAt: Date }>,
   userFiles: Array<{ createdAt: Date; toolType: string }>,
-  chatSessions: Array<{ updatedAt: Date }>,
+  chatSessions: Array<{ createdAt: Date }>,
   communityInteractionsCount: number,
   sinceDate: Date
 ): UserActivityData {
   const txInWindow = recentTx.filter((t) => t.createdAt >= sinceDate);
   const claimsInWindow = shopClaims.filter((c) => c.createdAt >= sinceDate);
   const filesInWindow = userFiles.filter((f) => f.createdAt >= sinceDate);
-  const chatsInWindow = chatSessions.filter((c) => c.updatedAt >= sinceDate);
+  const chatsInWindow = chatSessions.filter((c) => c.createdAt >= sinceDate);
 
   const distinctTools = new Set(
-    txInWindow.filter((t) => t.toolId && t.toolId !== "chat" && t.toolId !== "vault").map((t) => t.toolId as string)
+    txInWindow
+      .filter((t) => 
+        t.transactionType === "tool_usage" &&
+        t.toolId && 
+        t.toolId !== "chat" && 
+        t.toolId !== "ai-chat" && 
+        t.toolId !== "vault" &&
+        t.toolId !== "streak-shield" &&
+        t.toolId !== "streak_shield_purchase"
+      )
+      .map((t) => t.toolId as string)
   );
 
-  const visualTxCount = txInWindow.filter((t) => t.toolId && VISUAL_TOOL_IDS.includes(t.toolId)).length;
-  const visualFilesCount = filesInWindow.filter((f) => VISUAL_TOOL_IDS.includes(f.toolType) || f.toolType === "image" || f.toolType === "skin").length;
-  const visualCraftCount = visualTxCount + visualFilesCount;
+  const visualTxCount = txInWindow.filter((t) => 
+    t.transactionType === "tool_usage" && t.toolId && VISUAL_TOOL_IDS.includes(t.toolId)
+  ).length;
+  const visualFilesCount = filesInWindow.filter((f) => 
+    VISUAL_TOOL_IDS.includes(f.toolType) || f.toolType === "image" || f.toolType === "skin"
+  ).length;
+  const visualCraftCount = Math.max(visualTxCount, visualFilesCount);
 
   const chatTxCount = txInWindow.filter((t) => 
     t.toolId === "chat" || 
@@ -66,19 +80,29 @@ function buildActivityData(
   ).length;
   const chatCount = chatsInWindow.length + chatTxCount;
 
-  const vaultClaimedCount = claimsInWindow.length + txInWindow.filter((t) => 
-    t.transactionType === "daily_vault" || 
-    (t.description && (t.description.toLowerCase().includes("vault") || t.description.toLowerCase().includes("daily bonus")))
+  const vaultClaimedCount = claimsInWindow.length;
+
+  const docTxCount = txInWindow.filter((t) => 
+    t.transactionType === "tool_usage" && t.toolId && DOC_TOOL_IDS.includes(t.toolId)
   ).length;
+  const docFilesCount = filesInWindow.filter((f) => 
+    DOC_TOOL_IDS.includes(f.toolType) || f.toolType === "pdf"
+  ).length;
+  const docProcessCount = Math.max(docTxCount, docFilesCount);
 
-  const docProcessCount = txInWindow.filter((t) => t.toolId && DOC_TOOL_IDS.includes(t.toolId)).length +
-    filesInWindow.filter((f) => DOC_TOOL_IDS.includes(f.toolType) || f.toolType === "pdf").length;
-
-  const totalCreationsCount = filesInWindow.length + txInWindow.filter((t) => t.toolId).length;
+  const toolTxCount = txInWindow.filter((t) => 
+    t.transactionType === "tool_usage" && 
+    t.toolId && 
+    t.toolId !== "streak-shield" && 
+    t.toolId !== "streak_shield_purchase"
+  ).length;
+  const totalCreationsCount = Math.max(filesInWindow.length, toolTxCount);
 
   const totalCreditsSpent = txInWindow.reduce((acc, t) => {
-    if (t.amount < 0) return acc + Math.abs(t.amount);
-    if (t.transactionType === "tool_usage" || t.transactionType === "generation") return acc + Math.abs(t.amount);
+    // Strictly count credits spent using AI tools, never count daily_reset, manual adjustments or shop bonuses
+    if (t.transactionType === "tool_usage" && t.amount < 0) {
+      return acc + Math.abs(t.amount);
+    }
     return acc;
   }, 0);
 
@@ -120,7 +144,11 @@ export async function GET() {
       shopClaims,
       userFiles,
       chatSessions,
-      userContext
+      userContext,
+      dailyLikesResult,
+      weeklyLikesResult,
+      dailyPostsResult,
+      weeklyPostsResult,
     ] = await Promise.all([
       prisma.creditTransaction.findMany({
         where: {
@@ -146,17 +174,36 @@ export async function GET() {
       prisma.chatSession.findMany({
         where: {
           userId,
-          updatedAt: { gte: windowStart },
+          createdAt: { gte: windowStart },
         },
-        select: { updatedAt: true },
+        select: { createdAt: true },
       }),
       prisma.userContext.findUnique({
         where: { userId },
         select: { preferences: true },
       }),
+      prisma.$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int as count FROM community_likes 
+        WHERE user_id = ${userId} AND created_at >= ${dailyCycle.cycleStartUTC}
+      `.catch(() => [{ count: 0 }]),
+      prisma.$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int as count FROM community_likes 
+        WHERE user_id = ${userId} AND created_at >= ${weeklyCycle.cycleStartUTC}
+      `.catch(() => [{ count: 0 }]),
+      prisma.$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int as count FROM community_posts 
+        WHERE user_id = ${userId} AND created_at >= ${dailyCycle.cycleStartUTC}
+      `.catch(() => [{ count: 0 }]),
+      prisma.$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int as count FROM community_posts 
+        WHERE user_id = ${userId} AND created_at >= ${weeklyCycle.cycleStartUTC}
+      `.catch(() => [{ count: 0 }]),
     ]);
 
-    const communityInteractions = 0;
+    const dailyCommunityInteractions = 
+      Number(dailyLikesResult?.[0]?.count || 0) + Number(dailyPostsResult?.[0]?.count || 0);
+    const weeklyCommunityInteractions = 
+      Number(weeklyLikesResult?.[0]?.count || 0) + Number(weeklyPostsResult?.[0]?.count || 0);
 
     // Build Activity Data for Daily and Weekly
     const dailyActivity = buildActivityData(
@@ -164,7 +211,7 @@ export async function GET() {
       shopClaims,
       userFiles,
       chatSessions,
-      communityInteractions,
+      dailyCommunityInteractions,
       dailyCycle.cycleStartUTC
     );
 
@@ -173,7 +220,7 @@ export async function GET() {
       shopClaims,
       userFiles,
       chatSessions,
-      communityInteractions,
+      weeklyCommunityInteractions,
       weeklyCycle.cycleStartUTC
     );
 
@@ -319,9 +366,9 @@ export async function POST(request: NextRequest) {
       prisma.chatSession.findMany({
         where: {
           userId,
-          updatedAt: { gte: windowStart },
+          createdAt: { gte: windowStart },
         },
-        select: { updatedAt: true },
+        select: { createdAt: true },
       }),
       prisma.$queryRaw<{ count: number }[]>`
         SELECT COUNT(*)::int as count FROM community_likes 
@@ -393,6 +440,10 @@ export async function POST(request: NextRequest) {
 
     if (quest.claimed || claimedList.includes(quest.templateId) || claimedList.includes(quest.id)) {
       return NextResponse.json({ error: "Quest reward already claimed for this cycle" }, { status: 400 });
+    }
+
+    if (!quest.completed) {
+      return NextResponse.json({ error: "Quest objectives have not been completed yet." }, { status: 400 });
     }
 
     // Award Exismic Sparks

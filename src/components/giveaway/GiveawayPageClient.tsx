@@ -319,7 +319,7 @@ export function GiveawayPageClient() {
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-300 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                   <Flame size={18} />
                 </div>
-                <h4 className="text-xs font-black uppercase text-white">Daily Vault</h4>
+                <h4 className="text-xs font-black uppercase text-white">Credit Shop</h4>
                 <p className="mt-1 text-[11px] text-zinc-500">Claim your daily free bonus</p>
               </Link>
 
@@ -385,7 +385,7 @@ export function GiveawayPageClient() {
                     animate={{ scale: 1 }}
                     className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-orange-500/20 px-4 py-1.5 text-xs font-black text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)]"
                   >
-                    <Sparkles className="size-3.5 text-amber-300 animate-spin" />
+                    <Sparkles className="size-3.5 text-amber-300 animate-pulse" />
                     <span className="tracking-wider uppercase">Special Community Event · Coming Soon</span>
                   </motion.div>
                 </div>
@@ -710,7 +710,7 @@ export function GiveawayPageClient() {
                             {/* Selecting State */}
                             <div className="mb-4 flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Sparkles className="size-4 text-amber-400 animate-spin" />
+                                <Sparkles className="size-4 text-amber-400 animate-pulse" />
                                 <span className="text-xs font-extrabold uppercase tracking-wider text-amber-300">
                                   Giveaway Ended
                                 </span>

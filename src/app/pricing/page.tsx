@@ -7,7 +7,7 @@ const PRICING_FAQS = [
   {
     question: "How do Exismic Generation Credits work?",
     answer:
-      "Generation credits are the fuel used to run AI processing jobs such as background removal, image generation, audio isolation, and resume analysis. Free users receive a daily credit refresh of 50 credits at midnight, while purchased credit packs (Starter, Creator, Studio) are permanent and never expire.",
+      "Generation credits are the fuel used to run AI processing jobs such as background removal, image generation, audio isolation, and resume analysis. Free users receive a daily credit reset of 50 credits at 12:00 PM IST, while purchased credit packs (Starter, Creator, Studio) are permanent and never expire.",
   },
   {
     question: "What is included with an Exismic Pro membership?",
@@ -17,7 +17,7 @@ const PRICING_FAQS = [
   {
     question: "Do purchased credit packs expire?",
     answer:
-      "No! Any credit package purchased through our shop (500, 1,500, or 5,000 credits) is added to your permanent lifetime reserve. These credits never expire, never reset at midnight, and remain safely in your account until you decide to spend them.",
+      "No! Any credit package purchased through our shop (500, 1,500, or 5,000 credits) is added to your permanent lifetime reserve. These credits never expire, never reset at 12:00 PM IST, and remain safely in your account until you decide to spend them.",
   },
   {
     question: "Can I cancel my subscription at any time?",

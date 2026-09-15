@@ -9,6 +9,53 @@
 
 ## 📌 Summary of Completed Architecture & Features
 
+### 0. 💬 Exismic AI Chat Markdown Tables, HTML Parsing & Layout Overhaul [COMPLETED]
+* **Full Multi-Line Markdown Table Engine**:
+  * Created [`src/components/tool/ChatMarkdownRenderer.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/ChatMarkdownRenderer.tsx) featuring a robust multi-line table parser (`TableBlock`). Parses markdown tables with header divider lines (`|---|---|`), cleans empty edge cells, generates semantic `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>` markup with glowing cyan-to-purple header accents, responsive horizontal overflow scrolling, zebra striping, and border highlights.
+* **Rich HTML & Inline Formatting Support**:
+  * Added real element parsing for raw HTML tags emitted by LLMs inside tables or text: `<ul>`, `<ol>`, `<li>`, `<br>`, `<strong>`, `<b>`, `<em>`, `<i>`, and `<code>`. Raw strings like `<ul><li>...</li></ul>` now render as styled lists with glowing cyan dots and numeric badges.
+  * Headings (`#`, `##`, `###`, etc.) and list items now fully evaluate nested inline formatting (bold `**`, italic `*`, code backticks, links). Raw markdown asterisks like `1. **AURORA VOLT**` no longer show literal `**` characters.
+* **Layout, Container Widths & Viewport Fixes**:
+  * In [`src/components/tool/ChatWorkspace.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/ChatWorkspace.tsx), updated assistant message bubbles from restrictive `md:max-w-[78%]` to `w-full max-w-full items-start`, eliminating the narrow column choking that compressed tables and multi-column content into cramped vertical strips.
+  * Expanded the message container from `max-w-[850px]` to responsive widescreen `w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto`.
+  * Removed dead 120px cut-off margin: updated workspace outer container from `h-[calc(100dvh-120px)]` to `h-full min-h-0` for seamless edge-to-edge layout inside the `/chat` viewport.
+  * Replaced `whitespace-pre-wrap` on assistant container with `break-words` and normal flow to avoid accidental double spacing and table alignment distortions.
+
+### 0. 💎 Credits, Quests & Moderation Synchrony Overhaul [COMPLETED]
+* **Unified 12:00 PM IST (06:30 UTC) Daily Reset**:
+  * Rewrote `getMostRecentResetTimestamp()` and `getTodayInIndia()` in [`src/lib/credits.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/credits.ts) with pure UTC millisecond math (`+ 5.5 * 3600 * 1000`). Fixed bug where timezone string parsing caused the reset to calculate as 12:00 UTC (5:30 PM IST) in production Vercel runtime, causing endless reset loops between 12:00 PM and 5:30 PM IST.
+  * Synchronized Vercel cron in [`vercel.json`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/vercel.json) to `"30 6 * * *"` (12:00 PM IST / 06:30 UTC).
+  * Updated [`src/app/api/cron/reset-credits/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/cron/reset-credits/route.ts) logs and timing metadata.
+* **Eliminated False Credit Deductions & Ghost Moderation Logs**:
+  * In `resetCreditsIfNewDay()`, eliminated negative transactions (`amount: -20` or `-50`) previously created to zero out bonus credits. Reset top-ups now write strictly non-negative amounts (`amount >= 0`, `balanceType: "daily"`).
+  * Updated `deductCredits()` to accept custom `transactionType` (defaults to `"tool_usage"`).
+  * `buyStreakShield()` now logs with `transactionType: "shield_purchase"` and `toolId: "streak-shield"`.
+  * In [`src/app/api/admin/moderation/activity/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/admin/moderation/activity/route.ts), enforced `transactionType: "tool_usage"` and `amount: { lt: 0 }` so daily resets and shield purchases never appear as tool executions (`exismic-tool`) in admin logs or 24h usage metrics.
+* **Quests System Strict Time Filtering & Deduplication**:
+  * In [`src/app/api/user/quests/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/user/quests/route.ts), `buildActivityData()` now strictly sums `t.transactionType === "tool_usage" && t.amount < 0`. Claiming daily vault, daily resets, or buying shields no longer complete the `credit_power` quest.
+  * `distinctTools` filters out non-tool IDs (`chat`, `ai-chat`, `vault`, `streak-shield`).
+  * `visualCraftCount`, `docProcessCount`, and `totalCreationsCount` deduplicate file generation vs. credit transactions.
+  * `chatSessions` query switched from `updatedAt` to `createdAt: { gte: windowStart }` in both `GET` and `POST` so browsing old chats no longer counts towards new quest objectives.
+  * In `POST /api/user/quests`, added verification check `if (!quest.completed)` before awarding Sparks, closing a critical security loophole.
+  * Real community interaction counts (`community_likes`, `community_posts`) wired into `GET` and `POST`.
+* **Client-Side Quest Toast Spam Fix & Auto-Rollover**:
+  * In [`src/hooks/useQuests.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/hooks/useQuests.ts), added `sessionStorage` tracking (`exismic:notified_quests:${cycleKey}`). Already completed or previously claimed quests no longer spam victory sounds/toasts when refreshing the page.
+  * When the real-time countdown timer reaches 00:00:00 (12:00 PM IST), the client detects the cycle change and triggers `fetchGlobalQuests(true)` in the background to automatically load the next cycle's quests.
+* **Sparks Shop Permanent Credits Rebalance**:
+  * Rebalanced the credits reward in [`src/config/sparks-shop.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/config/sparks-shop.ts) to **50 Permanent Lifetime Credits for 400 Sparks** (previously 25 expiring credits for 350 Sparks).
+  * Awards permanent lifetime credits (`type: "credits_permanent"`, `lifetimeCredits`) that never expire or reset at 12:00 PM IST.
+  * Updated dynamic labels and cards across [`src/app/rewards/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/rewards/page.tsx) and [`src/lib/support/exismic-knowledge.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/support/exismic-knowledge.ts).
+* **Ambient Falling Icons VFX Across Credit Shop & Main Dashboard**:
+  * Created [`src/components/ui/FallingIconsBackground.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/FallingIconsBackground.tsx) supporting two tailored variants:
+    * `variant="credits"` (Credit Shop): 24 floating, swaying, and rotating economy icons (`Coins`, `Zap`, `Crown`, `Gem`, `Diamond`, `ShieldCheck`, `Gift`, `Sparkles`, `Flame`, `Trophy`, `CreditCard`, `Award`) with neon glows and optional stardust particles.
+    * `variant="dashboard"` (Main Logged-in Dashboard): 24 creative suite icons (`Wand2`, `ImageIcon`, `Video`, `Music`, `Code2`, `Cpu`, `FileText`, `Layers`, `Sparkles`, `Bot`, `Palette`, `Mic2`, `Terminal`, `Zap`, `Coins`, `Crown`, `Flame`, `Trophy`, `Star`) representing all 11 studio suites.
+  * Added to [`src/app/shop/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/shop/page.tsx) and [`src/components/tool/Dashboard.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/Dashboard.tsx).
+* **Credit Shop Page & Navigation Nomenclature & Goofy Star Icon Fix**:
+  * In [`src/app/shop/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/shop/page.tsx), changed the main hero headline from `"Build your credit vault"` to `"Exismic Credit Shop"` and breadcrumbs/balance pill to `"Credit Shop"` and `"Credit Balance"`.
+  * In [`src/components/layout/Sidebar.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Sidebar.tsx), updated navigation items and footer pill from `"Daily Vault"` / `"CREDIT VAULT"` to `"Credit Shop"` / `"CREDIT SHOP"`.
+  * In [`src/components/giveaway/GiveawayPageClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/giveaway/GiveawayPageClient.tsx), [`src/components/tool/Dashboard.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/Dashboard.tsx), and [`src/app/community/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/community/page.tsx), updated remaining `"Daily Vault"` references to `"Credit Shop"` / `"Daily Reward Ready"`.
+  * **Removed Goofy Star Rotation**: Fixed the lopsided spinning `Sparkles animate-spin` in [`src/components/modals/GiftPurchaseModal.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/modals/GiftPurchaseModal.tsx) ("Send a Gift Pass"), [`src/components/layout/NotificationsDropdown.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/NotificationsDropdown.tsx), and [`src/components/giveaway/GiveawayPageClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/giveaway/GiveawayPageClient.tsx). The Gift icon now uses a clean, centered pulse glow without awkward off-center wobbling.
+
 ### 0. 🌐 Discovery-Layer Internal Link Graph & Architecture Overhaul [DEPLOYED]
 * **Eliminated All 5 Public Orphans (100% Reachable)**:
   * **`/pricing`**: Wired to global logged-out navbar navigation in `Navbar.tsx` and the `Product` column in `Footer.tsx`, providing 114+ inbound links across the site.

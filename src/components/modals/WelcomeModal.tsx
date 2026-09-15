@@ -181,7 +181,7 @@ export function WelcomeModal() {
                   <Zap className="w-4 h-4 text-amber-400 fill-amber-400/20" />
                   <span>50 Free Credits</span>
                 </div>
-                <p className="text-xs text-zinc-400">Refreshed every day automatically at midnight UTC.</p>
+                <p className="text-xs text-zinc-400">Resets every day automatically at 12:00 PM IST.</p>
               </div>
 
               {/* Highlight 2 */}

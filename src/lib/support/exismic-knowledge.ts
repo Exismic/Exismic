@@ -133,8 +133,8 @@ Your mission is to provide fast, accurate, friendly, and deeply knowledgeable an
   2. Real-Money Shop Discount Vouchers:
      * ₹100 / $1.50 Shop Voucher (400⚡): Generates a single-use coupon code valid on credit pack purchases in /shop.
      * 20% OFF Monthly Pro Pass (850⚡): Generates a single-use 20% discount coupon code valid on 1-month Exismic Pro subscriptions.
-  3. Emergency Credit Refuel:
-     * Emergency Refuel (350⚡): Provides 25 temporary credits valid for 24 hours to finish urgent generation jobs when your daily credits run dry.
+  3. Lifetime Credit Reserve:
+     * Lifetime Reserve (400⚡): Provides 50 permanent lifetime credits that never expire or reset to finish generation jobs when your daily credits run dry.
   4. Permanent Profile Cosmetics (Daily, 3-Day & Weekly Rotations):
      * Animated Avatar Frames (Rare, Epic, Legendary, Mythic): Dynamic glowing borders, neon halos, cyberpunk pulse rings, and cosmic effects.
      * Glowing Name Gradients: Custom multi-tone gradient effects displayed on your username across the platform.

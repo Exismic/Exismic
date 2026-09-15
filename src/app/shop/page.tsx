@@ -38,6 +38,7 @@ import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
 import { GiftPurchaseModal } from "@/components/modals/GiftPurchaseModal";
 import { GiftSuccessModal } from "@/components/modals/GiftSuccessModal";
+import { FallingIconsBackground } from "@/components/ui/FallingIconsBackground";
 
 const rarityRows = [
   { name: "Common", amount: "10", chance: "Base", color: "text-zinc-300", dot: "bg-zinc-300", aura: "from-zinc-300/25 to-white/5" },
@@ -408,14 +409,11 @@ export default function ShopPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#030303] px-4 pb-20 pt-24 text-white selection:bg-purple-500/30 sm:px-6 lg:px-8">
 
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute left-1/2 top-0 h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.2),transparent_68%)] blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-[520px] w-[680px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12),transparent_66%)] blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.028)_1px,transparent_1px)] bg-[size:42px_42px] opacity-35" />
-      </div>
+      {/* Dynamic Falling Icons Background */}
+      <FallingIconsBackground variant="credits" />
 
       <main className="relative z-10 mx-auto max-w-7xl space-y-6">
-        <PageBreadcrumb items={[{ label: "Credit Shop Vault" }]} />
+        <PageBreadcrumb items={[{ label: "Credit Shop" }]} />
         <section className="mb-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <motion.div
@@ -427,9 +425,9 @@ export default function ShopPage() {
               Credit shop
             </motion.div>
             <h1 className="max-w-3xl text-5xl font-black uppercase leading-[0.86] tracking-tight sm:text-7xl lg:text-8xl">
-              Build your{" "}
+              Exismic{" "}
               <span className="block bg-[linear-gradient(110deg,#fff,#c4b5fd,#22d3ee,#f472b6,#fff)] bg-[length:240%_100%] bg-clip-text text-transparent animate-[gradient-shift_8s_ease-in-out_infinite]">
-                credit vault.
+                Credit Shop.
               </span>
             </h1>
             <p className="mt-6 max-w-2xl text-base font-medium leading-8 text-zinc-400 sm:text-lg">
@@ -455,7 +453,7 @@ export default function ShopPage() {
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-400/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-md">
                   <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,1)]" />
-                  <span>Vault Balance</span>
+                  <span>Credit Balance</span>
                 </div>
                 <p className="mt-2 bg-gradient-to-r from-white via-cyan-100 to-indigo-100 bg-clip-text text-5xl font-black tracking-tight text-transparent drop-shadow-[0_0_35px_rgba(34,211,238,0.35)] sm:text-6xl">
                   {credits.toLocaleString()}

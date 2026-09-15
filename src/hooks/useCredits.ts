@@ -162,28 +162,35 @@ function initGlobalCreditsListeners() {
     };
   }
 
-  // 3. Global single Countdown Timer
+  // 3. Global single Countdown Timer (12:00 PM IST / 06:30 UTC)
   const updateCountdown = () => {
     try {
       const now = new Date();
-      const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-      const nowIST = new Date(istString);
-      
-      const nextResetIST = new Date(nowIST);
-      nextResetIST.setHours(12, 0, 0, 0); 
-      
-      if (nowIST.getTime() >= nextResetIST.getTime()) {
-        nextResetIST.setDate(nextResetIST.getDate() + 1);
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const nowInIst = new Date(now.getTime() + istOffsetMs);
+
+      let targetYear = nowInIst.getUTCFullYear();
+      let targetMonth = nowInIst.getUTCMonth();
+      let targetDay = nowInIst.getUTCDate();
+
+      if (nowInIst.getUTCHours() >= 12) {
+        const tomorrow = new Date(Date.UTC(targetYear, targetMonth, targetDay + 1));
+        targetYear = tomorrow.getUTCFullYear();
+        targetMonth = tomorrow.getUTCMonth();
+        targetDay = tomorrow.getUTCDate();
       }
-      
-      const diff = nextResetIST.getTime() - nowIST.getTime();
-      
+
+      const nextNoonIstUtc = Date.UTC(targetYear, targetMonth, targetDay, 6, 30, 0, 0);
+      const diff = Math.max(0, nextNoonIstUtc - now.getTime());
+
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      useCreditStore.getState().setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-      
+
+      useCreditStore.getState().setCountdown(
+        `${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`
+      );
+
       if (hours === 0 && minutes === 0 && seconds === 0) {
         if (window.refreshExismicCredits) window.refreshExismicCredits();
       }

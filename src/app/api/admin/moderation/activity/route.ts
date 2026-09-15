@@ -32,12 +32,14 @@ export async function GET(request: Request) {
         where: {
           createdAt: { gte: oneDayAgo },
           amount: { lt: 0 },
+          transactionType: "tool_usage",
         },
       }),
       prisma.creditTransaction.aggregate({
         where: {
           createdAt: { gte: oneDayAgo },
           amount: { lt: 0 },
+          transactionType: "tool_usage",
         },
         _sum: {
           amount: true,
@@ -54,9 +56,10 @@ export async function GET(request: Request) {
 
     const totalCreditsSpentToday = Math.abs(spendsTodayAgg._sum.amount || 0);
 
-    // 2. Build where filter for CreditTransactions
+    // 2. Build where filter for CreditTransactions (strictly real tool executions)
     const whereClause: any = {
-      amount: { lt: 0 }, // tool spend events
+      transactionType: "tool_usage",
+      amount: { lt: 0 },
     };
 
     if (toolFilter) {

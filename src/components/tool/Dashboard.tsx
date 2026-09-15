@@ -49,6 +49,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { ProBackground } from "@/components/pro/ProBackground";
 import { CyberAliveBackground } from "@/components/ui/CyberAliveBackground";
+import { FallingIconsBackground } from "@/components/ui/FallingIconsBackground";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 
 const CreditModal = dynamic(
@@ -226,8 +227,9 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
 
   return (
     <div className="min-h-screen bg-[#030303] selection:bg-purple-500/30 overflow-x-hidden">
-      {/* CYBER ALIVE ANIMATED BACKGROUND ENGINE */}
+      {/* CYBER ALIVE ANIMATED BACKGROUND ENGINE WITH FALLING ICONS */}
       {isPro ? <ProBackground /> : <CyberAliveBackground />}
+      <FallingIconsBackground variant="dashboard" showOrbs={false} showGrid={false} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-8 md:pt-14 pb-36 md:pb-32 space-y-12 md:space-y-16">
         
@@ -316,7 +318,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                   <div className="flex items-center justify-between w-full text-[11px] font-medium text-amber-200/90">
                     <span className="flex items-center gap-1.5 font-semibold text-amber-200 whitespace-nowrap">
                       <Gift size={12} className={cn("shrink-0", !todayClaim ? "text-orange-400 animate-bounce" : "text-amber-400")} />
-                      <span>{!todayClaim ? "Daily Vault Ready" : `Resets in ${countdown || "12h"}`}</span>
+                      <span>{!todayClaim ? "Daily Reward Ready" : `Resets in ${countdown || "12h"}`}</span>
                     </span>
                     <button
                       type="button"

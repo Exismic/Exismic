@@ -195,20 +195,29 @@ export function BuyCreditsModal({
     };
   }, []);
 
-  // 24h Reset Timer
+  // 24h Reset Timer (Unified at 12:00 PM IST / 06:30 UTC)
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       const istOffsetMs = 5.5 * 60 * 60 * 1000;
       const nowInIst = new Date(now.getTime() + istOffsetMs);
-      const nextMidnightIstUtc =
-        Date.UTC(
-          nowInIst.getUTCFullYear(),
-          nowInIst.getUTCMonth(),
-          nowInIst.getUTCDate() + 1
-        ) - istOffsetMs;
 
-      const diff = Math.max(0, nextMidnightIstUtc - now.getTime());
+      let targetYear = nowInIst.getUTCFullYear();
+      let targetMonth = nowInIst.getUTCMonth();
+      let targetDay = nowInIst.getUTCDate();
+
+      // If it is 12:00 PM IST or later today, countdown to tomorrow 12:00 PM IST
+      if (nowInIst.getUTCHours() >= 12) {
+        const tomorrow = new Date(Date.UTC(targetYear, targetMonth, targetDay + 1));
+        targetYear = tomorrow.getUTCFullYear();
+        targetMonth = tomorrow.getUTCMonth();
+        targetDay = tomorrow.getUTCDate();
+      }
+
+      // 12:00 PM IST is 06:30:00.000 UTC
+      const nextNoonIstUtc = Date.UTC(targetYear, targetMonth, targetDay, 6, 30, 0, 0);
+
+      const diff = Math.max(0, nextNoonIstUtc - now.getTime());
       const h = Math.floor(diff / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);
@@ -413,7 +422,7 @@ export function BuyCreditsModal({
 
                   <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium">
                     <Clock size={14} className="text-cyan-400 shrink-0" />
-                    <span>Free 50 credits replenish in:</span>
+                    <span>Free 50 credits reset in:</span>
                     <span className="font-mono font-bold text-cyan-300 bg-cyan-400/10 px-2 py-0.5 rounded-md border border-cyan-400/20">
                       {timeUntilReset}
                     </span>

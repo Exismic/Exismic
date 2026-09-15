@@ -360,7 +360,6 @@ export function GiftPurchaseModal({
               <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                 <div className="relative flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-400/25 via-yellow-500/15 to-purple-600/20 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
                   <Gift size={22} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse sm:w-[26px] sm:h-[26px]" />
-                  <Sparkles size={13} className="absolute -top-1 -right-1 text-yellow-300 animate-spin" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

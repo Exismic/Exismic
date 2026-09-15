@@ -125,7 +125,33 @@ const useQuestStore = create<QuestStore>((set) => ({
 let questFetchPromise: Promise<void> | null = null;
 let lastQuestFetchTime = 0;
 let questListenersAttached = false;
+let lastAutoRefreshedReset = "";
 const prevKnownCompleted = new Set<string>();
+
+function isQuestNotified(cycleKey: string, questId: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = sessionStorage.getItem(`exismic:notified_quests:${cycleKey}`);
+    if (!raw) return false;
+    const parsed: string[] = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.includes(questId);
+  } catch {
+    return false;
+  }
+}
+
+function markQuestNotified(cycleKey: string, questId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const key = `exismic:notified_quests:${cycleKey}`;
+    const raw = sessionStorage.getItem(key);
+    const parsed: string[] = raw ? JSON.parse(raw) : [];
+    if (!parsed.includes(questId)) {
+      parsed.push(questId);
+      sessionStorage.setItem(key, JSON.stringify(parsed));
+    }
+  } catch {}
+}
 
 async function fetchGlobalQuests(force = false): Promise<void> {
   const now = Date.now();
@@ -146,11 +172,18 @@ async function fetchGlobalQuests(force = false): Promise<void> {
         const incomingDaily = data.daily?.quests || data.quests || [];
         const incomingWeekly = data.weekly?.quests || [];
         const allIncoming = [...incomingDaily, ...incomingWeekly];
+        const dailyCycleKey = data.daily?.cycleKey || data.cycleKey || "daily";
+        const weeklyCycleKey = data.weekly?.cycleKey || "weekly";
 
-        // Notify new quest completions
+        // Notify new quest completions strictly when state is already initialized
+        // and quest was not previously completed or notified in this session
         if (useQuestStore.getState().isInitialized && typeof window !== "undefined") {
           for (const q of allIncoming) {
-            if (q.completed && !q.claimed && !prevKnownCompleted.has(q.id)) {
+            const cycleKey = q.type === "weekly" ? weeklyCycleKey : dailyCycleKey;
+            const alreadyNotified = isQuestNotified(cycleKey, q.id);
+
+            if (q.completed && !q.claimed && !prevKnownCompleted.has(q.id) && !alreadyNotified) {
+              markQuestNotified(cycleKey, q.id);
               window.dispatchEvent(new CustomEvent("quest-completed", { detail: q }));
             }
           }
@@ -158,7 +191,11 @@ async function fetchGlobalQuests(force = false): Promise<void> {
 
         prevKnownCompleted.clear();
         for (const q of allIncoming) {
-          if (q.completed) prevKnownCompleted.add(q.id);
+          if (q.completed) {
+            prevKnownCompleted.add(q.id);
+            const cycleKey = q.type === "weekly" ? weeklyCycleKey : dailyCycleKey;
+            markQuestNotified(cycleKey, q.id);
+          }
         }
 
         useQuestStore.getState().setState({
@@ -189,6 +226,17 @@ function initSingletonQuestSubscriptions() {
 
   const updateTimers = () => {
     const { dailyNextResetUTC, weeklyNextResetUTC } = useQuestStore.getState();
+    const now = Date.now();
+
+    // Auto-trigger refresh when reset time is crossed in real-time
+    if (dailyNextResetUTC) {
+      const resetMs = new Date(dailyNextResetUTC).getTime();
+      if (resetMs > 0 && now >= resetMs && lastAutoRefreshedReset !== dailyNextResetUTC) {
+        lastAutoRefreshedReset = dailyNextResetUTC;
+        void fetchGlobalQuests(true);
+      }
+    }
+
     useQuestStore.getState().setState({
       dailyTimeRemaining: formatCountdown(dailyNextResetUTC, "daily"),
       weeklyTimeRemaining: formatCountdown(weeklyNextResetUTC, "weekly"),

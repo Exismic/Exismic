@@ -323,7 +323,7 @@ export default function CommunityPage() {
             className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 text-amber-300 font-black text-xs uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-lg"
           >
             <Flame size={16} className="text-amber-400" />
-            <span>Claim Daily Vault</span>
+            <span>Credit Shop</span>
           </Link>
 
           <Link

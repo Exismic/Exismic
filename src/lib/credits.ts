@@ -2,31 +2,55 @@ import { prisma } from "./prisma";
 import { FREE_DAILY_CREDITS, getDailyCreditLimit } from "@/lib/credit-policy";
 import { Prisma } from "@prisma/client";
 
-function getMostRecentResetTimestamp(): Date {
-  const now = new Date();
-  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-  const nowIst = new Date(istString);
-  if (nowIst.getHours() < 12) {
-    nowIst.setDate(nowIst.getDate() - 1);
+export function getMostRecentResetTimestamp(now: Date = new Date()): Date {
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + IST_OFFSET_MS);
+
+  const istYear = istDate.getUTCFullYear();
+  const istMonth = istDate.getUTCMonth();
+  const istDay = istDate.getUTCDate();
+  const istHour = istDate.getUTCHours();
+
+  let cycleStartYear = istYear;
+  let cycleStartMonth = istMonth;
+  let cycleStartDay = istDay;
+
+  if (istHour < 12) {
+    const yesterday = new Date(Date.UTC(istYear, istMonth, istDay - 1));
+    cycleStartYear = yesterday.getUTCFullYear();
+    cycleStartMonth = yesterday.getUTCMonth();
+    cycleStartDay = yesterday.getUTCDate();
   }
-  nowIst.setHours(12, 0, 0, 0);
-  return nowIst;
+
+  // 12:00 PM IST is precisely 06:30:00.000 UTC
+  return new Date(Date.UTC(cycleStartYear, cycleStartMonth, cycleStartDay, 6, 30, 0, 0));
 }
 
-export function getTodayInIndia() {
-  const now = new Date();
-  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-  const nowIst = new Date(istString);
+export function getTodayInIndia(now: Date = new Date()): Date {
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + IST_OFFSET_MS);
+
+  const istYear = istDate.getUTCFullYear();
+  const istMonth = istDate.getUTCMonth();
+  const istDay = istDate.getUTCDate();
+  const istHour = istDate.getUTCHours();
+
+  let cycleStartYear = istYear;
+  let cycleStartMonth = istMonth;
+  let cycleStartDay = istDay;
 
   // Daily giftbox reward resets at 12:00 PM IST (noon)
-  if (nowIst.getHours() < 12) {
-    nowIst.setDate(nowIst.getDate() - 1);
+  if (istHour < 12) {
+    const yesterday = new Date(Date.UTC(istYear, istMonth, istDay - 1));
+    cycleStartYear = yesterday.getUTCFullYear();
+    cycleStartMonth = yesterday.getUTCMonth();
+    cycleStartDay = yesterday.getUTCDate();
   }
 
   return new Date(Date.UTC(
-    nowIst.getFullYear(),
-    nowIst.getMonth(),
-    nowIst.getDate(),
+    cycleStartYear,
+    cycleStartMonth,
+    cycleStartDay,
   ));
 }
 
@@ -83,12 +107,15 @@ export async function resetCreditsIfNewDay(userId: string) {
           isPlanExpired = true;
         }
 
-        const mostRecentReset = getMostRecentResetTimestamp();
+        const mostRecentReset = getMostRecentResetTimestamp(now);
         const creditLimit = getDailyCreditLimit(currentPlan);
         const isNewDay =
           !user.creditsLastReset || user.creditsLastReset < mostRecentReset;
 
         if (!isNewDay && !isPlanExpired) return user;
+
+        const updatedDailyCredits = creditLimit;
+        const updatedBonusCredits = 0;
 
         const updatedUser = await transaction.user.update({
           where: { id: userId },
@@ -96,8 +123,8 @@ export async function resetCreditsIfNewDay(userId: string) {
             ? {
                 plan: currentPlan,
                 subscriptionStatus: isPlanExpired ? "none" : undefined,
-                dailyCredits: creditLimit,
-                bonusCredits: 0,
+                dailyCredits: updatedDailyCredits,
+                bonusCredits: updatedBonusCredits,
                 creditsLastReset: now,
                 aiMessagesToday: 0,
                 aiMessagesReset: now,
@@ -117,19 +144,20 @@ export async function resetCreditsIfNewDay(userId: string) {
           },
         });
 
+        // Top up amount for daily credits (never negative)
+        const dailyAllowanceAdded = Math.max(0, creditLimit - user.dailyCredits);
+
         await transaction.creditTransaction.create({
           data: {
             userId,
-            amount: isNewDay
-              ? creditLimit - user.dailyCredits - user.bonusCredits
-              : creditLimit - user.dailyCredits,
-            balanceType: isNewDay ? "mixed" : "daily",
+            amount: dailyAllowanceAdded,
+            balanceType: "daily",
             transactionType: isNewDay ? "daily_reset" : "manual_adjustment",
             description: isPlanExpired
               ? "Pro plan expired; membership degraded to free tier"
               : (isNewDay
-                  ? "Daily allowance restored and temporary credits expired"
-                  : "Daily allowance normalized to the current plan limit"),
+                  ? `Daily allowance restored to ${creditLimit} credits`
+                  : `Daily allowance normalized to ${creditLimit} credits`),
           },
         });
 
@@ -190,6 +218,8 @@ export async function deductCredits(
   amount: number,
   toolId?: string,
   operationId?: string,
+  transactionType: string = "tool_usage",
+  descriptionOverride?: string,
 ) {
   if (!Number.isInteger(amount) || amount <= 0 || amount > 10000) {
     return { success: false, error: "Invalid credit amount" };
@@ -243,9 +273,9 @@ export async function deductCredits(
             userId,
             amount: -amount,
             balanceType: "mixed",
-            transactionType: "tool_usage",
+            transactionType,
             toolId,
-            description: toolId ? `Used ${amount} credits for ${toolId}` : `Used ${amount} credits`,
+            description: descriptionOverride || (toolId ? `Used ${amount} credits for ${toolId}` : `Used ${amount} credits`),
             metadata: spent,
           },
         });
@@ -650,7 +680,14 @@ export async function buyStreakShield(userId: string) {
     }
 
     // Deduct 30 credits
-    const deductRes = await deductCredits(userId, SHIELD_COST, "streak_shield_purchase");
+    const deductRes = await deductCredits(
+      userId,
+      SHIELD_COST,
+      "streak-shield",
+      undefined,
+      "shield_purchase",
+      "Equipped Streak Shield (-30 credits)"
+    );
     if (!deductRes.success) {
       return { success: false, error: deductRes.error || "Failed to deduct credits" };
     }

@@ -569,14 +569,22 @@ export default function AccountSettings() {
       const istOffsetMs = 5.5 * 60 * 60 * 1000;
       const nowInIst = new Date(now.getTime() + istOffsetMs);
       
-      // Calculate next Midnight IST (00:00:00 IST)
-      const nextMidnightIstUtc = Date.UTC(
-        nowInIst.getUTCFullYear(),
-        nowInIst.getUTCMonth(),
-        nowInIst.getUTCDate() + 1
-      ) - istOffsetMs;
+      let targetYear = nowInIst.getUTCFullYear();
+      let targetMonth = nowInIst.getUTCMonth();
+      let targetDay = nowInIst.getUTCDate();
+
+      // If it is 12:00 PM IST or later today, countdown to tomorrow 12:00 PM IST
+      if (nowInIst.getUTCHours() >= 12) {
+        const tomorrow = new Date(Date.UTC(targetYear, targetMonth, targetDay + 1));
+        targetYear = tomorrow.getUTCFullYear();
+        targetMonth = tomorrow.getUTCMonth();
+        targetDay = tomorrow.getUTCDate();
+      }
+
+      // 12:00 PM IST is 06:30:00.000 UTC
+      const nextNoonIstUtc = Date.UTC(targetYear, targetMonth, targetDay, 6, 30, 0, 0);
       
-      const diff = Math.max(0, nextMidnightIstUtc - now.getTime());
+      const diff = Math.max(0, nextNoonIstUtc - now.getTime());
       
       const h = Math.floor(diff / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -1126,7 +1134,7 @@ export default function AccountSettings() {
                                </div>
                                <div suppressHydrationWarning className="space-y-1">
                                   <h3 className="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-400 drop-shadow-sm sm:text-6xl">{dailyCredits} <span className="text-2xl text-blue-900 tracking-normal">/</span> <span className="text-2xl text-blue-500/50">{isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50}</span></h3>
-                                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Replenishes Daily</p>
+                                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Resets Daily at 12:00 PM IST</p>
                                </div>
                                <div className="space-y-4 pt-3">
                                   <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">

@@ -56,7 +56,7 @@ export function ToolCreditGateCard({
         </h4>
 
         <p className="mx-auto max-w-md text-xs font-medium leading-relaxed text-zinc-400 mb-6">
-          Your free 50 credits replenish every day at midnight IST. You can also refill instantly or upgrade to Pro for 10x capacity.
+          Your free 50 credits reset every day at 12:00 PM IST. You can also get more credits or upgrade to Pro for 10x capacity.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

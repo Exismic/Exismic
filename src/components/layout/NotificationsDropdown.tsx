@@ -589,7 +589,6 @@ export function NotificationsDropdown() {
                     <div className="flex items-center gap-3">
                       <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/50 bg-amber-400/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
                         <Gift size={20} className="animate-bounce" />
-                        <Sparkles size={10} className="absolute -top-1 -right-1 text-amber-200 animate-spin" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">

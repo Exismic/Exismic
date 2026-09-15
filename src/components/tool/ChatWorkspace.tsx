@@ -54,8 +54,7 @@ import { cn } from "@/lib/utils";
 import { useChat, cleanTitle, type ChatMode, type Message } from "@/components/providers/ChatProvider";
 import { ExismicLogo } from "./ChatSidebar";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { ChatMarkdownRenderer } from "./ChatMarkdownRenderer";
 
 const SLASH_COMMANDS = [
   { id: 'new', icon: <Plus size={16} className="text-cyan-400" />, label: 'New Conversation', desc: 'Start a fresh creative session' },
@@ -576,172 +575,6 @@ export function ChatWorkspace() {
     }
   };
 
-  // --- Custom Markdown-Like Parser ---
-  const renderMessageContent = (content: string) => {
-    const parts = content.split(/(```[\s\S]*?```)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('```')) {
-        const match = part.match(/```([\w]*)\n([\s\S]*?)```/);
-        const lang = match ? match[1] : 'text';
-        const code = match ? match[2] : part.replace(/```/g, '');
-        return (
-          <div key={i} className="my-6 rounded-2xl overflow-x-auto border border-white/5 bg-[#0a0a0a] shadow-2xl custom-scrollbar">
-            <div className="px-5 py-3 bg-[#111] border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{lang || 'code'}</span>
-              </div>
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(code);
-                  setCopiedId(i);
-                  setTimeout(() => setCopiedId(null), 2000);
-                }} 
-                className="text-zinc-500 hover:text-white transition-colors p-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold bg-white/5 hover:bg-white/10"
-              >
-                {copiedId === i ? <Check size={12} /> : <Copy size={12} />}
-                {copiedId === i ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <SyntaxHighlighter language={lang} style={vscDarkPlus} customStyle={{ margin: 0, padding: '1.5rem', background: 'transparent', fontSize: '14px', lineHeight: '1.6', fontFamily: '"JetBrains Mono", monospace' }}>
-              {code.trim()}
-            </SyntaxHighlighter>
-          </div>
-        );
-      }
-      
-      return part.split('\n').map((line, li) => {
-        if (!line.trim()) return <div key={li} className="h-4" />;
-
-        if (/^\s*(={4,}|-{4,})\s*$/.test(line)) {
-          return (
-            <div key={li} className="my-5 h-px w-full bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent" />
-          );
-        }
-        
-        if (line.startsWith('###### ')) {
-          return <h6 key={li} className="text-sm font-black text-white mt-4 mb-2 uppercase tracking-widest">{line.slice(7)}</h6>;
-        }
-        if (line.startsWith('##### ')) {
-          return <h5 key={li} className="text-base font-black text-white mt-5 mb-2 tracking-tight">{line.slice(6)}</h5>;
-        }
-        if (line.startsWith('#### ')) {
-          return <h4 key={li} className="text-lg font-black text-white mt-6 mb-3 tracking-tight">{line.slice(5)}</h4>;
-        }
-        if (line.startsWith('### ')) {
-          return <h3 key={li} className="text-2xl font-black text-white mt-8 mb-4 tracking-tight">{line.slice(4)}</h3>;
-        }
-        if (line.startsWith('## ')) {
-          return <h2 key={li} className="text-3xl font-black text-white mt-10 mb-5 tracking-tighter">{line.slice(3)}</h2>;
-        }
-        if (line.startsWith('# ')) {
-          return <h1 key={li} className="text-4xl font-black text-white mt-12 mb-6 tracking-tighter">{line.slice(2)}</h1>;
-        }
-
-        if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
-          return (
-            <div key={li} className="flex gap-4 mb-4 ml-2 group/list">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent-cyan mt-2.5 shrink-0 shadow-[0_0_10px_#00ffff] group-hover/list:scale-125 transition-transform" />
-              <div className="flex-1">
-                {line.trim().slice(2).split(/(\[.*?\]\s*\(.*?\))|(\*\*.*?\*\*|\*.*?\*|`.*?`)/g).map((token, ti) => {
-                  if (!token) return null;
-                  if (token.startsWith('[') && token.includes('(')) {
-                    const match = token.match(/\[(.*?)\]\s*\((.*?)\)/);
-                    if (match) {
-                      const text = match[1];
-                      const url = match[2];
-                      return (
-                        <a 
-                          key={ti} 
-                          href={url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-accent-cyan hover:text-cyan-300 underline underline-offset-4 decoration-accent-cyan/30 hover:decoration-cyan-300/80 transition-colors font-bold inline-flex items-center gap-1 group/link"
-                        >
-                          {text}
-                          <ArrowUp className="rotate-45 transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" size={10} />
-                        </a>
-                      );
-                    }
-                  }
-                  if (token.startsWith('**') && token.endsWith('**')) return <strong key={ti} className="text-white font-black tracking-tight">{token.slice(2, -2)}</strong>;
-                  if (token.startsWith('*') && token.endsWith('*')) return <strong key={ti} className="text-white font-black tracking-tight">{token.slice(1, -1)}</strong>;
-                  if (token.startsWith('`') && token.endsWith('`')) return <code key={ti} className="bg-white/10 px-2 py-0.5 rounded-lg text-accent-cyan font-mono text-sm border border-white/5">{token.slice(1, -1)}</code>;
-                  return token;
-                })}
-              </div>
-            </div>
-          );
-        }
-        
-        return (
-          <p key={li} className="mb-4 last:mb-0 text-zinc-300 leading-relaxed">
-            {line.split(/(!\[.*?\]\(.*?\))|(\[.*?\]\s*\(.*?\))|(\*\*.*?\*\*|\*.*?\*|`.*?`)/g).map((token, ti) => {
-              if (!token) return null;
-              
-              if (token.startsWith('![') && token.includes('](')) {
-                const match = token.match(/!\[(.*?)\]\((.*?)\)/);
-                if (match) {
-                  const alt = match[1];
-                  const url = match[2];
-                  return (
-                    <div key={ti} className="my-6 relative group/img">
-                      <div className="absolute -inset-2 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity rounded-[2rem]" />
-                      <img 
-                        src={url} 
-                        alt={alt} 
-                        className="rounded-[2rem] border border-white/10 shadow-2xl max-w-full h-auto object-cover relative z-10 hover:scale-[1.02] transition-transform duration-500" 
-                        onLoad={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.classList.add('animate-in', 'fade-in', 'zoom-in', 'duration-700');
-                        }}
-                      />
-                      <div className="absolute top-4 right-4 z-20 opacity-0 group-hover/img:opacity-100 transition-opacity">
-                         <a 
-                           href={url} 
-                           target="_blank" 
-                           rel="noreferrer"
-                           className="p-3 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white hover:bg-black/80 transition-all block"
-                         >
-                            <ArrowUp className="rotate-45" size={18} />
-                         </a>
-                      </div>
-                    </div>
-                  );
-                }
-              }
-
-              if (token.startsWith('[') && token.includes('(')) {
-                const match = token.match(/\[(.*?)\]\s*\((.*?)\)/);
-                if (match) {
-                  const text = match[1];
-                  const url = match[2];
-                  return (
-                    <a 
-                      key={ti} 
-                      href={url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-accent-cyan hover:text-cyan-300 underline underline-offset-4 decoration-accent-cyan/30 hover:decoration-cyan-300/80 transition-colors font-bold inline-flex items-center gap-1 group/link"
-                    >
-                      {text}
-                      <ArrowUp className="rotate-45 transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" size={10} />
-                    </a>
-                  );
-                }
-              }
-
-              if (token.startsWith('**') && token.endsWith('**')) return <strong key={ti} className="text-white font-black tracking-tight">{token.slice(2, -2)}</strong>;
-              if (token.startsWith('*') && token.endsWith('*')) return <strong key={ti} className="text-white font-black tracking-tight">{token.slice(1, -1)}</strong>;
-              if (token.startsWith('`') && token.endsWith('`')) return <code key={ti} className="bg-white/10 px-2 py-0.5 rounded-lg text-accent-cyan font-mono text-[14px] border border-white/5">{token.slice(1, -1)}</code>;
-              return token;
-            })}
-          </p>
-        );
-      });
-    });
-  };
-
   const isAssistantTyping = messages.some(message => message.role === "assistant" && message.isTyping);
   const activeChatMode = CHAT_MODES.find(mode => mode.id === chatMode) || CHAT_MODES[0];
   const activeModeVisual = getChatModeVisual(activeChatMode.id);
@@ -762,7 +595,7 @@ export function ChatWorkspace() {
                 ? "left-0 md:left-16 w-full md:w-[calc(100vw-64px)]" 
                 : "left-0 md:left-[304px] w-full md:w-[calc(100vw-304px)]"
             )
-          : "w-full h-[calc(100dvh-120px)] min-h-[520px] md:min-h-[560px] bg-[#0c0c10]/90 backdrop-blur-3xl border border-white/[0.05] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative"
+          : "w-full h-full min-h-0 bg-[#0c0c10]/90 backdrop-blur-3xl border border-white/[0.05] relative"
       )}
     >
       
@@ -1022,7 +855,7 @@ export function ChatWorkspace() {
 
         {/* Message flow container */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-2.5 sm:px-4 md:px-6 custom-scrollbar relative">
-           <div className="max-w-[850px] mx-auto min-h-full flex flex-col pt-5 sm:pt-8">
+           <div className="w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto min-h-full flex flex-col pt-5 sm:pt-8">
               {isSessionLoading ? (
                 <ChatSkeleton />
               ) : messages.length === 0 ? (
@@ -1161,8 +994,10 @@ export function ChatWorkspace() {
                       
                       {/* Bubble */}
                       <div className={cn(
-                        "flex flex-col max-w-[calc(100%-3.25rem)] sm:max-w-[85%] md:max-w-[78%] relative min-w-0", 
-                        msg.role === 'user' ? "items-end" : "items-start"
+                        "flex flex-col relative min-w-0", 
+                        msg.role === 'user' 
+                          ? "max-w-[calc(100%-3.25rem)] sm:max-w-[85%] md:max-w-[80%] items-end" 
+                          : "w-full max-w-full items-start"
                       )}>
                         {msg.role === 'user' ? (
                           <div className="relative p-[1px] bg-white/[0.04] group-hover/message:bg-white/[0.08] transition-all duration-500 rounded-2xl sm:rounded-3xl rounded-tr-md shadow-xl max-w-full">
@@ -1202,8 +1037,8 @@ export function ChatWorkspace() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[15.5px] leading-[1.65] sm:leading-[1.7] font-medium tracking-tight whitespace-pre-wrap break-words">
-                                  {renderMessageContent(msg.content)}
+                                <div className="relative z-10 text-[14.5px] sm:text-[15px] md:text-[15.5px] leading-[1.65] sm:leading-[1.7] font-medium tracking-tight break-words">
+                                  <ChatMarkdownRenderer content={msg.content} />
                                 </div>
                               )}
 
@@ -1319,7 +1154,7 @@ export function ChatWorkspace() {
                             </div>
                             
                             <div className={cn(
-                              "relative z-10 text-[14.5px] sm:text-[15px] md:text-[16px] leading-[1.7] md:leading-[1.75] font-medium tracking-tight whitespace-pre-wrap break-words transition-all duration-300",
+                              "relative z-10 text-[14.5px] sm:text-[15px] md:text-[16px] leading-[1.7] md:leading-[1.75] font-medium tracking-tight break-words transition-all duration-300 w-full",
                               msg.isTyping ? "text-zinc-100" : "text-zinc-200"
                             )}>
                               {msg.isTyping && !msg.content.trim() ? (
@@ -1333,7 +1168,7 @@ export function ChatWorkspace() {
                                 </span>
                               ) : (
                                 <>
-                                  {renderMessageContent(msg.content)}
+                                  <ChatMarkdownRenderer content={msg.content} />
                                   {msg.isTyping && (
                                     <span className="ml-1 inline-block h-5 w-[2px] translate-y-1 rounded-full bg-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.75)] animate-pulse" />
                                   )}

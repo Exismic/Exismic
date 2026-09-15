@@ -1130,8 +1130,8 @@ export default function RewardsPage() {
                                 ? "Streak Protection"
                                 : item.type === "shop_voucher"
                                 ? (Number(item.value) === 20 ? "Monthly Pro Voucher" : "Shop Voucher")
-                                : item.type === "credits_emergency"
-                                ? "Emergency Refuel"
+                                : (item.type === "credits_emergency" || item.type === "credits_permanent")
+                                ? "Lifetime Reserve"
                                 : item.category === "pro"
                                 ? "Pro Pass"
                                 : "Credits"}
@@ -1231,7 +1231,7 @@ export default function RewardsPage() {
                                 </span>
                               </div>
                             </div>
-                          ) : item.type === "credits_emergency" ? (
+                          ) : (item.type === "credits_emergency" || item.type === "credits_permanent") ? (
                             <div className="relative z-10 my-2 flex flex-col items-center justify-center py-1 gap-2 text-center">
                               <div className="relative flex h-13 w-13 items-center justify-center rounded-2xl border border-emerald-400/60 bg-gradient-to-br from-emerald-500/30 to-teal-950/60 text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-transform duration-300 group-hover/stage:scale-110">
                                 <Zap size={26} className="fill-emerald-400/20 drop-shadow-md" />
@@ -1240,14 +1240,14 @@ export default function RewardsPage() {
                               <div className="flex flex-col items-center">
                                 <div className="flex items-baseline gap-1.5">
                                   <span className="text-xl sm:text-2xl font-black tracking-tight text-emerald-300 drop-shadow-[0_0_12px_rgba(16,185,129,0.7)] font-mono">
-                                    +25
+                                    +{item.value}
                                   </span>
                                   <span className="text-xs font-black uppercase tracking-wider text-white">
                                     Credits
                                   </span>
                                 </div>
                                 <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
-                                  Emergency Refuel · 24h Pass
+                                  Lifetime Reserve · Never Expires
                                 </span>
                               </div>
                             </div>
@@ -1322,8 +1322,8 @@ export default function RewardsPage() {
                                   ? `Shield Vault: ${(streakShields ?? 0)}/3`
                                   : item.type === "shop_voucher"
                                   ? (Number(item.value) === 20 ? "Monthly Pro Pass" : "Shop Coupon")
-                                  : item.type === "credits_emergency"
-                                  ? "Emergency Refuel"
+                                  : (item.type === "credits_emergency" || item.type === "credits_permanent")
+                                  ? "Permanent Credits"
                                   : item.category === "pro"
                                   ? "Digital Pass"
                                   : "Account Top-Up"}

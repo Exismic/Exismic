@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Flame,
   Gift,
+  Coins,
   HelpCircle,
   ScrollText,
   Cloud
@@ -931,7 +932,7 @@ export function Sidebar() {
   const topItems = [
     { name: t('common.dashboard'), icon: LayoutDashboard, href: '/', accent: 'text-accent-purple', glow: 'rgba(124, 58, 237, 0.5)' },
     { name: 'Sparks Shop', icon: SparkIcon, href: '/rewards', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
-    { name: 'Daily Vault', icon: Flame, href: '/shop', accent: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
+    { name: 'Credit Shop', icon: Coins, href: '/shop', accent: 'text-cyan-400', glow: 'rgba(6, 182, 212, 0.5)' },
     { name: 'Cloud Drive', icon: Cloud, href: '/library', accent: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
     { name: t('common.favorites'), icon: Star, href: '/favorites', accent: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
     { name: t('common.history'), icon: Clock, href: '/history', accent: 'text-blue-400', glow: 'rgba(96, 165, 250, 0.5)' },
@@ -1190,7 +1191,7 @@ export function Sidebar() {
                             <CreditTokenIcon size="sm" />
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-hover/credits:text-zinc-200 transition-colors">
-                                CREDIT VAULT
+                                CREDIT SHOP
                               </span>
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
                             </div>

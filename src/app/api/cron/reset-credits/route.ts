@@ -5,8 +5,8 @@ import { PRICING_CONFIG } from '@/config/pricing'
 /**
  * POST /api/cron/reset-credits
  * 
- * This endpoint should be called daily at 12:00 AM IST
- * Configure in vercel.json with cron schedule
+ * This endpoint is called daily at 12:00 PM IST (06:30 UTC)
+ * Configured in vercel.json with cron schedule: "30 6 * * *"
  */
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization')

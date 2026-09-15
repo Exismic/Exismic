@@ -483,7 +483,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
             ) : quests.length === 0 ? (
               <div className="py-16 text-center space-y-2 rounded-2xl border border-white/10 bg-white/[0.02]">
                 <p className="text-zinc-300 text-sm font-bold">No active quests found for this cycle.</p>
-                <p className="text-zinc-500 text-xs">New daily challenges rotate in at midnight UTC!</p>
+                <p className="text-zinc-500 text-xs">New daily quests arrive every day at 12:00 PM IST!</p>
               </div>
             ) : (
               quests.map((quest) => {
