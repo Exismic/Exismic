@@ -671,6 +671,23 @@ export async function signInAction(formData: FormData) {
     return { error: "We couldn't sign you in right now. Please try again shortly." };
   }
 
+  // Check if user account is scheduled for deletion
+  let targetUser = dbUser;
+  if (!targetUser && authData.user?.id) {
+    targetUser = await prisma.user.findUnique({
+      where: { id: authData.user.id }
+    });
+  }
+
+  if (targetUser?.status === "pending_deletion") {
+    return {
+      isPendingDeletion: true,
+      email: targetUser.email,
+      scheduledDeletionAt: targetUser.scheduledDeletionAt?.toISOString() || null,
+      deletionRecoveryRequested: Boolean(targetUser.deletionRecoveryRequested),
+    };
+  }
+
   // Device Security & Multi-Device OTP Check
   const reqHeaders = await headers();
   const reqCookies = await cookies();

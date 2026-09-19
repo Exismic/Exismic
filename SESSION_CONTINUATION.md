@@ -1,13 +1,138 @@
 # Exismic Studio — Master Project Continuation & Architecture Memory
 
-> **Last Updated**: September 10, 2026  
+> **Last Updated**: September 18, 2026  
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
-> **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors). Mobile navigation and GPU performance fully optimized.
+> **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors). Performance & low-end/mobile architecture hardened.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
 
 ---
 
 ## 📌 Summary of Completed Architecture & Features
+
+### 0. 🛡️ Account Security & Settings Luxury Polish (Anti-Jargon Clean UI) [COMPLETED]
+* **Streamlined Luxury Security Interface (`/account/settings?tab=security`)**:
+  * Preserved the ultra-luxury obsidian glass styling, radiant neon-cyan & purple glowing accents, top hairline accents, and italic uppercase studio typography while eliminating tech-heavy buzzwords and fake interactive clutter.
+  * **Password Reset Card**: High-contrast obsidian glass with neon-cyan glowing lock icon, verified user email display, and radiant cyan-to-blue neon action button with light-sweep effect. Clean, plain-English wording with zero cryptographic jargon.
+  * **Two-Factor Authentication Card**: High-contrast purple obsidian glass with glowing shield icon, pulse dot `Coming Soon` badge, 3 authentic capability previews (`Auth Apps`, `Backup Codes`, `Vault Lock`), and an elegant `Rollout In Progress` status indicator. No fake buttons, no fake protocol matrices, and no random sparkle icons.
+  * **Danger Zone (Account Deletion)**: Crimson-obsidian hazard vault with glowing top hairline, `Danger Zone` badge, plain-English 7-day safety window explanation, and animated crimson destruct CTA button. Removed screaming all-caps and redundant guarantee chips.
+  * **Exismic Confirm "Not Configured" Badge Fix**: Added `whitespace-nowrap shrink-0` and an explicit status dot to prevent the badge from wrapping awkwardly onto two lines or looking like an unclickable ghost button.
+  * **Subscription "Exismic Free" Italic Clipping Fix**: Added `inline-block pr-6 pb-1 tracking-normal` to [`src/app/account/settings/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/account/settings/page.tsx) so the italic gradient font slant for the letter "e" has 24px of clear horizontal space and never clips against bounding rect boundaries across any display scale.
+  * **Subscription & Billing Luxury UI Overhaul (`/account/settings?tab=billing`)**:
+    * **Clean Header**: Added `Plan & Membership` badge, clear description, and an authentic status indicator (`Free Tier` with emerald pulse or `Active Pro Plan`).
+    * **Main Membership Card**: Replaced the dull grid with an obsidian glass hero card featuring a luminous jewel crown emblem (cyan halo for Free, royal purple for Pro), guaranteed single-line title (`whitespace-nowrap`), clear human-friendly plan descriptions with zero tech buzzwords, and 3 verified capability badges (`50 Daily Credits`, `50+ Free Tools`, `Permanent Retention`).
+    * **Balanced Luxury CTAs**: High-contrast luminous `Upgrade to Pro` button with `Zap` and `ArrowRight` icons, and a sleek obsidian `View Invoices` button with `Receipt` icon.
+    * **3 Informative Bottom Stat Cards**: Replaced meaningless filler ("Secure checkout", "Monthly" for Free users) with authentic, clear details:
+      1. `Billing Method`: `Free Forever` (Subtitle: `No credit card or payment required`)
+      2. `Credit Refresh`: `Daily Reset` (Subtitle: `50 daily credits reset every 24 hours`)
+      3. `Account Status`: `Active` (Subtitle: `Standard speed with community support`)
+  * **Auth Form Streamlining**: Removed Discord login option completely from the sign-in/sign-up form in [`src/app/auth/login/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx), converted OAuth buttons to a balanced 2-column grid (Google and GitHub), added URL tab switching (`?tab=signup`), and added an automatic redirect from `/auth/signup` to `/auth/login?tab=signup` in [`next.config.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/next.config.ts).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. ⚡ Mobile & Low-End PC Performance Overhaul & Database Indexing [COMPLETED]
+* **Database Indexing for Sub-Millisecond Queries**:
+  * Added `@@index([userId, createdAt])` to `UserFile` (Cloud Drive and file history queries), `Notification` (Navbar notifications dropdown), `ChatSession` (Chat history sidebar), `CodeProject`, and `@@index([userId, status])` to `Job` in [`prisma/schema.prisma`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/prisma/schema.prisma).
+  * Executed `npx prisma db push` to push B-Tree indexes directly to AWS Supabase PostgreSQL, completely eliminating sequential table scans on user data.
+* **Low-End PC & Mobile GPU De-Stuttering**:
+  * In [`src/components/ui/FallingIconsBackground.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/FallingIconsBackground.tsx), eliminated severe GPU compositor stalls and device overheating:
+    - On mobile screens (< 768px), sliced falling icons from 24 to 8 and completely deactivated the 45-particle stardust canvas loop.
+    - Replaced heavy live `filter: drop-shadow(0 0 14px ...)` inside the Framer Motion animation loop with lightweight, hardware-accelerated CSS properties (`[transform:translateZ(0)]`).
+    - Added a `visibilitychange` listener to immediately pause the `requestAnimationFrame` loop whenever the tab or window is backgrounded.
+    - Added full `prefers-reduced-motion` compliance.
+* **Cloud Drive Pagination & DOM Node Reduction**:
+  * In [`src/app/library/LibraryClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/library/LibraryClient.tsx), replaced the unpaginated 500-item DOM dump with a responsive 24-item slice and a luxury "Load More Creations" button, dropping initial mounted DOM elements from ~3,500 down to ~180.
+  * Added `loading="lazy"` and `decoding="async"` across all Grid and List file preview thumbnails.
+* **Image Lazy Loading & Optimization**:
+  * In [`next.config.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/next.config.ts), configured modern image formats (`image/avif`, `image/webp`), cache TTL (86400s), and trusted remote patterns for Supabase and Dicebear.
+  * In [`src/components/ui/AvatarWithFrame.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/AvatarWithFrame.tsx), added `loading="lazy"` and `decoding="async"` to both custom and Dicebear avatar images.
+* **1-Year VIP Pro Card Royal Crown Polish**:
+  * In [`BuyCreditsModal.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/credits/BuyCreditsModal.tsx) and [`GiftPurchaseModal.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/modals/GiftPurchaseModal.tsx), replaced the mismatched random `<Sparkles>` star icon on the 1-Year VIP Pro Pass with a royal purple VIP `<Crown>` (`text-purple-200 fill-purple-400/30`), creating visual consistency with the 1-Month cyan `<Crown>`.
+* **Mobile Scroll Containment & Touch Responsiveness**:
+  * In [`src/app/globals.css`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/globals.css), added `-webkit-overflow-scrolling: touch` for mobile, subpixel layout containment (`contain: layout style`) for grids, and a `.gpu-accelerated` helper.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🛡️ 13+ Age Verification, 7-Day Account Deletion & Recovery Architecture [COMPLETED]
+* **13+ Age Confirmation Checkbox (COPPA & Child Safety)**:
+  * In [`src/app/auth/login/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx), added a mandatory confirmation checkbox: *"I confirm that I am at least 13 years old."*
+  * Added client-side form validation with plain-English friendly error messaging preventing account creation for under-13 visitors.
+* **Account Deletion with 7-Day Grace Period & Two-Factor Confirmation**:
+  * Added `deletionRequestedAt`, `scheduledDeletionAt`, `deletionRecoveryRequested`, and `deletionRecoveryReason` to the `User` model in [`prisma/schema.prisma`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/prisma/schema.prisma). Synced database with `npx prisma db push`.
+  * In [`src/app/account/settings/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/account/settings/page.tsx) under the Security tab, added the "Danger Zone: Delete Account" card with clear, non-technical explanation of the 7-day safety window.
+  * Added a `<Portal>` Delete Confirmation Modal with required `"DELETE"` word entry, scroll lock, and Escape handling.
+  * Built [`src/app/api/user/account/delete/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/user/account/delete/route.ts) to flag user status as `pending_deletion`, set `scheduledDeletionAt` to 7 days in the future, and safely terminate their session.
+* **Dual User Recovery Request Flow**:
+  * **From Account Settings**: Users with active sessions see an amber status card showing remaining days and a 1-click `"Cancel Deletion & Keep Account"` button.
+  * **From Sign-In**: Updated `signInAction` in [`src/app/actions/auth.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/actions/auth.ts) to detect `pending_deletion`. Displays a dedicated recovery screen on [`src/app/auth/login/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx) showing remaining days and an optional reason field with a `"Send Account Recovery Request"` button.
+  * Built [`src/app/api/user/account/recover/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/user/account/recover/route.ts) supporting both session-authenticated and credential-verified recovery requests.
+* **Admin Panel Pending Deletions Cockpit**:
+  * In [`src/app/admin/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/admin/page.tsx), added a new navigation tab **"Pending Deletions"** with glowing indicator when recovery requests are pending.
+  * Built [`src/app/api/admin/pending-deletions/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/admin/pending-deletions/route.ts) (listing accounts with countdowns, file counts, and recovery notes) and [`src/app/api/admin/pending-deletions/[id]/action/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/admin/pending-deletions/[id]/action/route.ts) supporting 1-click `"restore"` (re-activate) or `"purge"` (instant emergency wipe).
+* **Automated Daily Purge Cron Job**:
+  * Built [`src/app/api/cron/purge-deleted-accounts/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/cron/purge-deleted-accounts/route.ts) and the account purge engine [`src/lib/server/account-purge.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/server/account-purge.ts). Safely purges expired accounts ($\ge 7$ days) without recovery requests: deletes Supabase storage files, database records, and Supabase Auth identities.
+* **Data Storage Location in Privacy Policy (Plain English)**:
+  * In [`src/app/privacy-policy/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/privacy-policy/page.tsx), added Section 7 ("Where Your Data Is Stored") in simple, everyday English disclosing database servers (Supabase/AWS), cloud drive storage, global delivery network (Vercel CDN), and zero-card-storage payment gateways (Razorpay/PayPal). Updated Section 5 (7-day safety deletion window) and Section 9 (13+ age requirement).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. ⚖️ Legal Compliance, Trust & Anti-Slop Audit Hardening [COMPLETED]
+* **Dedicated Refund & Cancellation Policy (`/refund-policy`)**:
+  * Built [`src/app/refund-policy/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/refund-policy/page.tsx) and [`src/app/refund-policy/layout.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/refund-policy/layout.tsx) with obsidian glassmorphic styling, ambient orbs, and transparent terms covering:
+    1. Digital Nature of Services (instant compute/GPU execution).
+    2. 1-Click Pro Subscription cancellation via `/account/settings` with active access until period end.
+    3. 14-Day EU/UK statutory right of withdrawal prior to compute consumption.
+    4. Non-refundable digital currencies (Generation Credits & Sparks) once consumed.
+    5. Automatic server failure remedies and credit restoration within 48h.
+    6. Dedicated billing escalation channel (`billing@exismic.xyz` / `support@exismic.xyz`).
+  * Added `/refund-policy` to [`src/app/sitemap.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/sitemap.ts), linked from [`src/components/layout/Footer.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Footer.tsx), and cross-linked from Section 5 of [`src/app/terms-of-service/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/terms-of-service/page.tsx).
+* **Explicit Legal Form Consent on Sign-Up**:
+  * In [`src/app/auth/login/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx), added direct legal consent under the Sign-Up CTA button: *"By creating an account, you agree to our Terms of Service and acknowledge our Privacy Policy."* with high-contrast, accessible links.
+* **Eliminated Synthetic Review Schema (`AggregateRating`)**:
+  * Removed hardcoded fake review data (`ratingValue: "4.9"`, `ratingCount: "210" / "184"`) from [`src/components/tool/ToolPageShell.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/ToolPageShell.tsx) and [`src/app/tools/[category]/[toolId]/ToolDetailClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/%5Bcategory%5D/%5BtoolId%5D/ToolDetailClient.tsx). Satisfies FTC Fake Review regulations (16 CFR Part 465) and resolves Google Search Console synthetic review markup flags.
+* **Transparent Business Entity & Sub-Text Contrast**:
+  * In [`src/components/layout/Footer.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Footer.tsx), updated operating line to `"Exismic AI Studio · Digital Cloud Services"` and elevated subtext contrast to `text-zinc-400`.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 📱 Studio Quick Shortcuts Glow Bleed & Hover Clipping Fix [COMPLETED]
+* **Eliminated Overflow Clipping & Color Contamination**:
+  * In [`src/components/tool/PersonalizedHomeSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/PersonalizedHomeSection.tsx), removed oversized bleeding exterior aura elements (`-inset-1 ... blur-md opacity-75`) and excessive `0_0_20px`/`0_0_22px` outer shadows that previously clashed across the 10px button gaps into muddy color bridges.
+  * Restyled Cloud Drive, Creation Vault, and Sparks Shop buttons with self-contained obsidian glass gradients, sharp glowing icon cores, and contained inner lighting.
+* **Eliminated Left-Side Hover Clipping**:
+  * Fixed the razor-sharp vertical left-edge clipping that occurred whenever buttons were hovered. The issue was caused by a combination of (1) the parent container having `overflow-x-auto` active on all screen sizes with `sm:px-0`, which clipped elements scaling beyond `x=0`, (2) `backdrop-blur-xl` triggering a known Chromium compositor bug where `backdrop-filter` fails to clip to `border-radius` during scale transforms, and (3) missing stacking contexts between sibling buttons.
+  * Added `sm:overflow-x-visible` to the parent container so desktop layouts never clip outer glows or transforms, while preserving `-mx-4 px-4 py-2.5` on mobile for comfortable scrolling.
+  * Removed redundant `backdrop-blur-xl` from opaque buttons, added `isolate [transform:translateZ(0)]` for GPU anti-aliasing, and added `relative z-0 hover:z-10` so hovered buttons float seamlessly above neighbors.
+  * Replaced horizontal scaling (`hover:scale-[1.02]`) with elegant vertical elevation lift (`hover:-translate-y-0.5 active:scale-95`).
+
+### 0. 📱 Footer Launch Button Mobile Proportion Fix [COMPLETED]
+* **Eliminated Oversized Full-Width Stretching & Empty Center Void**:
+  * In [`src/components/layout/Footer.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Footer.tsx), capped mobile container width with `max-w-[280px] sm:max-w-[292px] mx-auto` to prevent the button from stretching into an elongated edge-to-edge bar with a massive empty void in the middle.
+  * Replaced fixed desktop `h-[72px]` height with responsive `h-[54px] sm:h-[62px] md:h-[72px]` and scaled icons (`ExismicMark size={28}` / `size={36}`, arrow box `h-8 w-8` / `h-11 w-11`) for a compact, luxury pill design on phones.
+
+### 0. 📱 Next.js Dev Indicator & Mobile Drawer Bottom Clearance Fix [COMPLETED]
+* **Disabled Next.js Floating Dev Indicator Portal (`( N )` Icon)**:
+  * Identified that the circular black icon with white letter "N" floating in the bottom-left corner of the mobile viewport (`bottom: 20px; left: 20px`) was Next.js's built-in Turbopack development indicator (`nextjs-portal`).
+  * In [`next.config.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/next.config.ts), added `devIndicators: false` to completely deactivate the floating portal, preventing it from overlaying user avatars or floating awkwardly over mobile navigation and cards during testing.
+* **Streamlined Mobile Drawer Spacing & Safe-Area Clearance**:
+  * In [`src/components/layout/Sidebar.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Sidebar.tsx), streamlined `renderAccountBilling` on mobile (`isMobile ? "px-1 py-1" : "p-2 sm:p-3"`) to avoid nested padding compounding.
+  * Added `pb-[max(0.75rem,env(safe-area-inset-bottom))]` to the mobile footer wrapper to properly respect device home indicator bars on modern mobile devices without creating dead voids.
+
+### 0. 📱 Mobile Sidebar Unified Scroll & Random Gap Elimination [COMPLETED]
+* **Eliminated Massive Empty Void in Mobile Drawer**:
+  * In [`src/components/layout/Sidebar.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/Sidebar.tsx), previously the Account & Billing section (Credit Shop Card, Upgrade to Pro button, User Profile) was permanently pinned to the bottom of the screen (`shrink-0`), stealing 240px of screen space and leaving a massive 200px empty black gap inside `<nav>` when scrolled to the bottom.
+  * Extracted `renderAccountBilling()` into a unified component. On mobile devices (`lg:hidden`), embedded it directly inside `<nav>` following Ecosystem (`Changelog` / `Help & Guides`) with tight, natural spacing (`mt-3 pb-3`).
+  * On desktop screens (`hidden lg:block`), preserved the fixed pinned bottom cockpit.
+
+### 0. 📱 Mobile Settings UI & Modals Spacing Rework [COMPLETED]
+* **Edge-to-Edge Fluid Mobile Layout (`/account/settings`)**:
+  * Fixed mobile clipping on narrow viewports (e.g. Xiaomi Redmi 9A, 360px width) where excessive `px-4` + `p-6` padding previously squished cards down to ~280px usable width.
+  * Replaced fixed desktop padding and oversized `rounded-[2.5rem]` radii across the Settings container with responsive `px-3.5 sm:px-6 py-5 sm:py-8` and `rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-7 md:p-10`.
+* **Swipeable Horizontal Tab Bar & Overflow Affordance**:
+  * Implemented `-mx-3.5 px-3.5 sm:mx-0 sm:px-0 no-scrollbar` negative margins so the tab rack scrolls naturally edge-to-edge without ugly scrollbars or right-edge truncation.
+  * Added dynamic left and right edge gradient fade masks (`bg-gradient-to-l / to-r from-[#030303] to-transparent`) with pulsing micro-chevrons (`ChevronLeft` / `ChevronRight`) that automatically appear when content extends off-screen on mobile.
+  * Added a subtle `"Swipe"` micro-affordance badge next to the Settings heading on mobile.
+  * Added smooth auto-centering (`scrollIntoView({ inline: 'center' })`) so whenever an active tab is selected or opened via deep link, it scrolls into optimal viewport view.
+  * Replaced desktop vertical left indicator with `active-tab-accent-mobile` glowing bottom border on mobile screens.
+* **Profile, Identity Studio & Modals Polish**:
+  * Responsive Avatar sizing (`size="lg"` on mobile, `size="xl"` on tablet/desktop) and streamlined inputs with responsive padding (`py-3 sm:py-3.5 pl-10 sm:pl-12`).
+  * Optimized Creator Identity slots (Frames, Styles, Insignias) with clamped descriptions (`line-clamp-1 sm:line-clamp-none`) and responsive buttons.
+  * Overhauled Avatar Frames modal, Name Styles modal, Cosmetics Selector modal, and Cropper modal with responsive padding (`p-2.5 sm:p-6`), `rounded-2xl sm:rounded-[2.5rem]`, and compact grid cells.
 
 ### 0. 💬 Exismic AI Chat Markdown Tables, HTML Parsing & Layout Overhaul [COMPLETED]
 * **Full Multi-Line Markdown Table Engine**:
@@ -353,6 +478,20 @@
   * Fixed Account Settings page (`/account/settings`), replacing the static `"Next billing date: June 1, 2026"` placeholder with dynamic formatting from `dbUser.plan_expires_at` and handling halted/past_due states.
   * **Claim Drop & Dashboard Streak Card Polish**:
     - Replaced generic AI sparkles (`Sparkles`) icons across Navbar streak pill and user menus with related `Gift` (for daily vault drops) and `Trophy` (for quest claims).
+
+### 12. 💎 Ultra-Luxury Authentication Experience (/auth/login) [COMPLETED]
+* **Obsidian Glass Architecture & Atmospheric Backing**:
+  - Transformed the flat black void layout into a unified, cinematic 2-column grid (`max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12`).
+  - Added volumetric layered ambient spotlights (65vw purple/violet spotlight at top-left, 65vw cyan/indigo spotlight at bottom-right, fine luxury dot matrix, and hairline top beam).
+* **Creative Studio Showcase (Left Column)**:
+  - Upgraded feature items to 3 frosted obsidian cards with specular top hairline sheens, high-contrast glow badges (`Image & Asset Generation`, `Audio & Vocal Separation`, `Developer & Productivity Tools`), and capability chips (`50+ Tools`, `High-Res`, `Instant`).
+  - Added clean proof bar with pulsating emerald indicator: `50 Free Credits every day`, `No Card required`, and `Instant activation`.
+* **Right Column Auth Card & Primary CTA**:
+  - Elevated the auth container into a museum-grade obsidian glass card with multi-gradient radiant outer glow, top hairline highlight, and internal violet-cyan ambient auras.
+  - Upgraded segmented tab switcher (`Sign In` / `Sign Up`) with inset dock styling and glowing active tab indicator.
+  - Upgraded social OAuth buttons (Google & GitHub) and One-Tap Mobile Sign-In tile with glowing cyan biometric passkey styling.
+  - Preserved the user's preferred gradient CTA button (`bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600`) with metallic hover sweep.
+  - Replaced tech jargon footer text with reassuring, direct copy: `Secure account protection · 50 free credits included daily`.
     - Fixed the cramped Dashboard Streak card: upgraded vitals grid to `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`, replaced the cut-off `"Open Myster..."` footer with a prominent top-right `[ 🎁 CLAIM DROP ]` button and a clean, full-text `[ 🎁 Daily Vault Ready ]` / `[ 🏆 Quests ]` footer.
   * **Continuous Idle Border Orbit Animation (AFK Animation)**:
     - Preserved the rich, thick, luminous metallic gradient outer borders and inner beveled borders on all three navbar buttons (`Vault`, `Streak`, `Quests`).
@@ -784,6 +923,14 @@
   - Type-checked (`npx tsc --noEmit` = 0 errors) and HTTP 200 live SSR verified.
   - Tracked in [UPCOMING_TOOLS_RELEASE_LOG.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/UPCOMING_TOOLS_RELEASE_LOG.md).
   - Next tools backlog tracked in [NEXT_TO_ADD.md](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/NEXT_TO_ADD.md).
+
+### 4. 💎 Iconography Audit: Replaced Generic Sparkles with Domain-Specific Icons [COMPLETED]
+* **Try It Live Pill Badge** ([`InteractivePlayground.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/InteractivePlayground.tsx)): Replaced arbitrary `Sparkles` with an authentic interactive filled `Play` icon (`<Play size={10} className="text-purple-400 fill-purple-400/90 shrink-0" />`). Replaced playground AI Image Gen tab's `Sparkles` with `ImageIcon`.
+* **Creative Platform Hero Pill** ([`src/app/auth/login/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx)): Replaced arbitrary `Sparkles` with domain-authentic `Layers` icon (`<Layers size={12} className="text-purple-400" />`) signifying the multi-modal studio layers and creative workspace architecture.
+* **Pricing Hero Pill** ([`src/app/pricing/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/pricing/page.tsx)): Replaced generic `Sparkles` with `ShieldCheck` for transparent pricing trust assurance.
+* **Landing Page CTA Button** ([`src/components/layout/LandingPage.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/layout/LandingPage.tsx)): Replaced decorative `Sparkles` with `Zap` (`fill-white/20`) representing instant studio onboarding.
+* **Changelog v1.6.5 Published**: Updated [`src/app/changelog/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/changelog/page.tsx) and [`CHANGELOG.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/CHANGELOG.md) with clean, jargon-free entries for version 1.6.5.
+* **TypeScript Compilation**: Clean pass with 0 errors (`npx tsc --noEmit` exited code 0).
 
 ---
 

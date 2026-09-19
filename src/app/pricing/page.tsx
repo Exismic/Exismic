@@ -164,7 +164,7 @@ export default function PricingPage() {
         {/* HERO HEADER */}
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-black uppercase tracking-[0.2em] text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
-            <Sparkles size={13} className="text-cyan-300" />
+            <ShieldCheck size={13} className="text-cyan-300" />
             <span>Transparent Pricing & Plans</span>
           </div>
           <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-100 to-zinc-400">

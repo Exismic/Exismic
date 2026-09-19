@@ -64,12 +64,12 @@ interface QuickPrompt {
 }
 
 const QUICK_PROMPTS: QuickPrompt[] = [
-  { label: "How do credits work and refill?", query: "How do credits work and refill?", icon: CreditCard },
-  { label: "What are Sparks & how to earn them?", query: "What are Sparks and how to earn them?", isSparks: true },
-  { label: "Are currency spends refundable?", query: "Are currency spends refundable?", icon: ShieldCheck },
-  { label: "What benefits come with Pro?", query: "What benefits come with Pro?", icon: Crown },
-  { label: "Where can I report a bug?", query: "Where can I report a bug with a tool?", icon: Bug },
-  { label: "Supported file formats", query: "What file types are supported?", icon: Layers },
+  { label: "Credit Refills", query: "How do credits work and refill?", icon: CreditCard },
+  { label: "Earn Sparks", query: "What are Sparks and how to earn them?", isSparks: true },
+  { label: "Refund Policy", query: "Are currency spends refundable?", icon: ShieldCheck },
+  { label: "Pro Perks", query: "What benefits come with Pro?", icon: Crown },
+  { label: "Report a Bug", query: "Where can I report a bug with a tool?", icon: Bug },
+  { label: "File Formats", query: "What file types are supported?", icon: Layers },
 ];
 
 /**
@@ -944,7 +944,7 @@ export default function HelpPage() {
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#ffffff04_1px,transparent_1px)] [background-size:24px_24px] opacity-60 -z-0" />
 
                 {/* Studio Header Bar */}
-                <div className="px-6 py-4.5 sm:px-8 sm:py-5 border-b border-white/[0.07] bg-[#070814]/85 backdrop-blur-xl flex items-center justify-between gap-4 z-20">
+                <div className="px-6 py-4.5 sm:px-8 sm:py-5 border-b border-white/[0.07] bg-[#070814]/85 backdrop-blur-xl flex items-center justify-between gap-4 z-20 shrink-0">
                   <div className="flex items-center gap-3.5 sm:gap-4">
                     <div className="relative p-1.5 rounded-2xl bg-gradient-to-b from-cyan-500/15 to-transparent border border-cyan-400/25 shadow-[0_0_20px_rgba(6,182,212,0.18)] shrink-0">
                       <ExismicMark size={36} letter="S" theme="blue" animated={true} />
@@ -977,7 +977,7 @@ export default function HelpPage() {
                 {/* Open Chat Message Stream (Internal-only smooth scrolling) */}
                 <div 
                   ref={chatContainerRef}
-                  className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 relative z-10 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.08)_transparent]"
+                  className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 space-y-6 relative z-10 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.08)_transparent]"
                 >
                   {chatMessages.map((msg) => {
                     const isUser = msg.role === "user";
@@ -1062,7 +1062,7 @@ export default function HelpPage() {
                 </div>
 
                 {/* Floating Prompt Suggestions Strip */}
-                <div className="relative group/prompts border-t border-white/[0.06] bg-[#060712]/90 backdrop-blur-xl py-2.5 overflow-hidden">
+                <div className="relative shrink-0 z-10 group/prompts border-t border-white/[0.06] bg-[#060712]/90 backdrop-blur-xl py-3 overflow-hidden">
                   {/* Left soft gradient fade */}
                   <div
                     className={cn(
@@ -1085,7 +1085,7 @@ export default function HelpPage() {
                       type="button"
                       onClick={() => scrollPrompts("left")}
                       aria-label="Scroll suggestions left"
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
                     >
                       <ChevronLeft size={13} className="shrink-0" />
                     </button>
@@ -1097,7 +1097,7 @@ export default function HelpPage() {
                       type="button"
                       onClick={() => scrollPrompts("right")}
                       aria-label="Scroll suggestions right"
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
                     >
                       <ChevronRight size={13} className="shrink-0" />
                     </button>
@@ -1107,7 +1107,7 @@ export default function HelpPage() {
                   <div
                     ref={promptsScrollRef}
                     onScroll={checkScrollState}
-                    className="flex items-center gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden px-5 sm:px-8 py-0.5"
+                    className="flex items-center gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden px-4 sm:px-6 py-1.5 pr-12 sm:pr-14 min-h-[44px]"
                   >
                     {QUICK_PROMPTS.map((prompt, i) => (
                       <button
@@ -1141,7 +1141,7 @@ export default function HelpPage() {
                 {/* Floating Futuristic Input Command Bar */}
                 <form
                   onSubmit={(e) => { e.preventDefault(); handleSendAiMessage(); }}
-                  className="p-3 sm:p-5 border-t border-white/[0.07] bg-[#070814]/95 backdrop-blur-2xl z-20"
+                  className="p-3 sm:p-5 border-t border-white/[0.07] bg-[#070814]/95 backdrop-blur-2xl z-20 shrink-0"
                 >
                   <div className="relative flex items-center w-full rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] focus-within:border-cyan-400/50 focus-within:bg-white/[0.05] focus-within:shadow-[0_0_30px_rgba(6,182,212,0.2)] focus-within:ring-1 focus-within:ring-cyan-400/30 transition-all duration-300 p-1.5 sm:p-2 gap-2">
                     <input

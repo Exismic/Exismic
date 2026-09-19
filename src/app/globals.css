@@ -1252,6 +1252,16 @@ html {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* 5. Smooth scrolling compositor promotion for mobile */
+  body, main {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 6. Avoid costly subpixel layout thrashing on mobile grids */
+  .grid {
+    contain: layout style;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1263,6 +1273,12 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Hardware acceleration & layout containment utility */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 

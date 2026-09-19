@@ -257,14 +257,19 @@ export function TrustedLoginSetup() {
             </div>
             <div
               className={cn(
-                "inline-flex min-h-10 items-center gap-2 self-start rounded-full border px-4 py-2 text-[9px] font-black uppercase tracking-widest",
+                "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider shrink-0 whitespace-nowrap self-start sm:self-auto",
                 enrollment.device?.pushReady
-                  ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-300"
-                  : "border-white/10 bg-white/[0.035] text-zinc-500",
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                  : "border-white/10 bg-white/[0.03] text-zinc-400",
               )}
             >
-              {enrollment.device?.pushReady ? <CheckCircle2 size={14} /> : <Smartphone size={14} />}
-              {enrollment.device?.pushReady ? "Background ready" : "Not configured"}
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  enrollment.device?.pushReady ? "bg-emerald-400 shadow-[0_0_8px_#34d399]" : "bg-zinc-500"
+                )}
+              />
+              <span>{enrollment.device?.pushReady ? "Active on Phone" : "Not Configured"}</span>
             </div>
           </div>
 

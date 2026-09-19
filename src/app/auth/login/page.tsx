@@ -28,7 +28,9 @@ import {
   UserPlus,
   Image as ImageIcon,
   Music,
-  Code2
+  Code2,
+  Clock,
+  RotateCcw
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -81,6 +83,7 @@ type AuthState =
   | 'verifyDeviceOtp'
   | 'link'
   | 'linkVerify'
+  | 'pendingDeletion'
   | 'success';
 
 type AuthFieldErrors = {
@@ -141,15 +144,27 @@ export default function AuthPage() {
   const [storedPassword, setStoredPassword] = useState("");
   const [deviceOtp, setDeviceOtp] = useState(["", "", "", "", "", ""]);
   
+  // Account Pending Deletion & Recovery State
+  const [pendingDeletionInfo, setPendingDeletionInfo] = useState<{
+    email: string;
+    scheduledDeletionAt: string | null;
+    deletionRecoveryRequested: boolean;
+  } | null>(null);
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [recoveryReason, setRecoveryReason] = useState("");
+
   // Interactive UI helpers
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signupPassword, setSignupPassword] = useState("");
+  const [ageConsent, setAgeConsent] = useState(false);
 
   const searchParams = useSearchParams();
   const authErrorCode = searchParams.get('authError');
   const errorParam = searchParams.get('error');
+  const deletedParam = searchParams.get('deleted');
   const linkToken = searchParams.get('link') || '';
+  const tabParam = searchParams.get('tab') || searchParams.get('mode');
   const requestedReturnUrl = searchParams.get('returnUrl');
   const returnUrl =
     requestedReturnUrl?.startsWith('/') && !requestedReturnUrl.startsWith('//')
@@ -158,6 +173,48 @@ export default function AuthPage() {
   
   const { isRedirecting: isHookRedirecting } = useAuth(returnUrl);
   const isRedirecting = isHookRedirecting || isRedirectingState;
+
+  useEffect(() => {
+    if (tabParam === 'signup') {
+      setState('signup');
+    }
+  }, [tabParam]);
+
+  const getRemainingDays = (dateStr: string | null) => {
+    if (!dateStr) return "7 days";
+    const diffMs = new Date(dateStr).getTime() - Date.now();
+    const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    return `${days} ${days === 1 ? 'day' : 'days'}`;
+  };
+
+  const handleRequestRecovery = async () => {
+    if (!pendingDeletionInfo) return;
+    setIsRecovering(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch('/api/user/account/recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: pendingDeletionInfo.email,
+          password: storedPassword,
+          reason: recoveryReason || "I want to cancel deletion and keep my account.",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not send recovery request.");
+      setPendingDeletionInfo({
+        ...pendingDeletionInfo,
+        deletionRecoveryRequested: true,
+      });
+      setSuccess("Your recovery request has been sent! Our team will review and reactivate your account shortly.");
+    } catch (err: any) {
+      setError(err.message || "Failed to submit recovery request.");
+    } finally {
+      setIsRecovering(false);
+    }
+  };
 
   // Auto-dismiss success/error messages
   useEffect(() => {
@@ -169,6 +226,12 @@ export default function AuthPage() {
       return () => clearTimeout(timer);
     }
   }, [success, error]);
+
+  useEffect(() => {
+    if (deletedParam === 'true') {
+      setSuccess("Your account deletion has been scheduled. You have 7 days to change your mind.");
+    }
+  }, [deletedParam]);
 
   useEffect(() => {
     if (errorParam === 'suspended') {
@@ -665,15 +728,20 @@ export default function AuthPage() {
             transition={{ duration: 0.7 }}
             className="space-y-4"
           >
-            <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-[1.12]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/25 bg-purple-500/10 text-purple-300 text-[11px] font-bold tracking-wider">
+              <Layers size={12} className="text-purple-400" />
+              <span>Next-Gen Creative Platform</span>
+            </div>
+
+            <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-white leading-[1.14]">
               Everything you need to <br />
-              <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(168,85,247,0.3)]">
+              <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(168,85,247,0.35)]">
                 create with AI.
               </span>
             </h1>
 
             <p className="text-zinc-400 text-sm sm:text-base leading-relaxed font-normal max-w-lg">
-              Remove backgrounds, generate images, isolate audio stems, and convert code — all in one powerful, unified workspace.
+              Fast image generation, vocal separation, and developer tools in a unified creative workspace.
             </p>
           </motion.div>
 
@@ -683,13 +751,17 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border-2 border-white/[0.08] hover:border-purple-400/50 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(168,85,247,0.3)] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-purple-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(147,51,234,0.25)] hover:-translate-y-0.5"
             >
-              <div className="w-11 h-11 rounded-xl border border-purple-400/25 bg-purple-500/10 text-purple-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-sm">
-                <ImageIcon size={19} />
+              <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-purple-400/20 to-transparent" />
+              <div className="w-12 h-12 rounded-xl border border-purple-500/30 bg-purple-500/15 text-purple-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-md">
+                <ImageIcon size={20} />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Image & Asset Generation</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-white tracking-tight">Image & Visual Studio</h3>
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-purple-500/20 bg-purple-500/10 text-purple-300">50+ Tools</span>
+                </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
                   Instant background removal, AI image creation, and photo enhancement in high resolution.
                 </p>
@@ -700,13 +772,17 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border-2 border-white/[0.08] hover:border-cyan-400/50 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(6,182,212,0.3)] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-cyan-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(6,182,212,0.25)] hover:-translate-y-0.5"
             >
-              <div className="w-11 h-11 rounded-xl border border-cyan-400/25 bg-cyan-500/10 text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(6,182,212,0.3)] transition-all duration-300 shadow-sm">
-                <Music size={19} />
+              <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+              <div className="w-12 h-12 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-300 shadow-md">
+                <Music size={20} />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Audio & Vocal Separation</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-white tracking-tight">Audio & Stem Separation</h3>
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">High-Res</span>
+                </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
                   Studio-grade vocal and instrumental stem separation for music producers and video creators.
                 </p>
@@ -717,18 +793,34 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl border-2 border-white/[0.08] hover:border-emerald-400/50 bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all duration-300 shadow-md hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(16,185,129,0.3)] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-emerald-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(16,185,129,0.25)] hover:-translate-y-0.5"
             >
-              <div className="w-11 h-11 rounded-xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-sm">
-                <Code2 size={19} />
+              <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
+              <div className="w-12 h-12 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-md">
+                <Code2 size={20} />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors tracking-tight">Developer & Productivity Tools</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-white tracking-tight">Code & Workflow Utilities</h3>
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">Instant</span>
+                </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
                   Format and transform code schemas, extract text with smart OCR, and automate export workflows.
                 </p>
               </div>
             </motion.div>
+          </div>
+
+          {/* Value / Trust Highlights */}
+          <div className="flex items-center gap-6 pt-5 border-t border-white/[0.08] text-xs text-zinc-400">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span><strong className="text-white font-semibold">50 Free Credits</strong> every day</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-400" />
+              <span><strong className="text-white font-semibold">No Card</strong> required</span>
+            </div>
           </div>
 
         </div>
@@ -806,14 +898,30 @@ export default function AuthPage() {
             </div>
           )}
 
+          {/* Account Scheduled for Deletion Notice */}
+          {deletedParam === "true" && (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs space-y-2 backdrop-blur-md">
+              <div className="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider text-[11px]">
+                <Clock size={15} /> Account Scheduled for Deletion
+              </div>
+              <p className="leading-relaxed text-zinc-300">
+                Your account is scheduled to be erased in 7 days. You have been logged out. If you change your mind within 7 days, sign in below to ask for recovery.
+              </p>
+            </div>
+          )}
+
           {/* Main Auth Glass Card */}
           <div className="relative">
-            {/* Subtle ambient border */}
-            <div className="absolute -inset-[1px] rounded-[2.1rem] bg-gradient-to-b from-white/[0.1] via-white/[0.03] to-purple-500/15 pointer-events-none" />
+            {/* Subtle glowing ambient border */}
+            <div className="absolute -inset-[1px] rounded-[2.3rem] bg-gradient-to-b from-purple-500/30 via-white/[0.08] to-cyan-500/25 pointer-events-none blur-[1px]" />
             
-            <div className="bg-[#080911]/95 backdrop-blur-3xl rounded-[2rem] border border-white/[0.08] p-6 sm:p-9 shadow-[0_24px_70px_rgba(0,0,0,0.85)] overflow-hidden relative">
+            <div className="bg-[#090a14]/95 backdrop-blur-3xl rounded-[2.2rem] border border-white/[0.1] p-7 sm:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_40px_rgba(147,51,234,0.12)] overflow-hidden relative">
               {/* Top Hairline Sheen */}
-              <div className="pointer-events-none absolute top-0 inset-x-12 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <div className="pointer-events-none absolute top-0 inset-x-12 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              
+              {/* Ambient radial glows */}
+              <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-purple-500/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
             
               {/* Floating Toast Notification */}
               <AnimatePresence>
@@ -866,9 +974,113 @@ export default function AuthPage() {
               <AnimatePresence mode="wait">
                 
                 {/* ------------------------------------------------------------- */}
-                {/* STATE: LINK OFFER                                             */}
+                {/* STATE: PENDING DELETION RECOVERY SCREEN                       */}
                 {/* ------------------------------------------------------------- */}
-                {state === 'link' ? (
+                {state === 'pendingDeletion' ? (
+                  <motion.div
+                    key="pending-deletion-screen"
+                    initial={{ opacity: 0, x: 15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    className="space-y-6"
+                  >
+                    <button 
+                      type="button" 
+                      onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
+                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      <ArrowLeft size={14} /> Back to Sign In
+                    </button>
+
+                    <div className="space-y-2">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-300 text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(251,191,36,0.15)]">
+                        <Clock size={13} className="text-amber-400" /> 7-Day Safety Period Active
+                      </div>
+                      <h2 className="text-2xl font-black tracking-tight text-white">Account Scheduled for Deletion</h2>
+                      <p className="text-zinc-300 text-xs leading-relaxed font-normal">
+                        This account is scheduled to be permanently erased on{" "}
+                        <span className="font-semibold text-white">
+                          {pendingDeletionInfo?.scheduledDeletionAt
+                            ? new Date(pendingDeletionInfo.scheduledDeletionAt).toLocaleDateString(undefined, {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : "in 7 days"}
+                        </span>{" "}
+                        <span className="text-amber-400 font-bold">
+                          ({getRemainingDays(pendingDeletionInfo?.scheduledDeletionAt ?? null)} left)
+                        </span>.
+                      </p>
+                    </div>
+
+                    {pendingDeletionInfo?.deletionRecoveryRequested ? (
+                      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-200 text-xs space-y-2">
+                        <div className="flex items-center gap-2 font-black text-emerald-300 text-[11px] uppercase tracking-wider">
+                          <CheckCircle2 size={16} /> Recovery Request Received
+                        </div>
+                        <p className="text-zinc-300 leading-relaxed font-normal">
+                          We received your request to restore your account. An administrator will review and reactivate your account shortly.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-xs space-y-1.5">
+                          <p className="text-white font-bold text-sm">Did you change your mind?</p>
+                          <p className="text-zinc-400 font-normal leading-relaxed text-[11px]">
+                            If you made a mistake or want to keep your creations, projects, and credits, you can ask our team to cancel the deletion now.
+                          </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                            Note for our team (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            value={recoveryReason}
+                            onChange={(e) => setRecoveryReason(e.target.value)}
+                            placeholder="e.g. I changed my mind and want my account back"
+                            className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-3.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20 transition-all"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleRequestRecovery}
+                          disabled={isRecovering}
+                          className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-black font-black text-xs uppercase tracking-wider hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(251,191,36,0.3)] cursor-pointer"
+                        >
+                          {isRecovering ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <Loader2 className="animate-spin text-black" size={16} />
+                              <span>Sending Request...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <RotateCcw size={15} />
+                              <span>Ask to Recover My Account</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="pt-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setState('signin');
+                          setError(null);
+                          setSuccess(null);
+                        }}
+                        className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        Sign in with a different account
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : state === 'link' ? (
                   <motion.div
                     key="link-offer"
                     initial={{ opacity: 0, x: 15 }}
@@ -985,7 +1197,7 @@ export default function AuthPage() {
                     className="space-y-6"
                   >
                     <button 
-                      type="button"
+                      type="button" 
                       onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
                       className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
                     >
@@ -1302,8 +1514,20 @@ export default function AuthPage() {
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="space-y-5"
                   >
+                    {/* Welcome Header */}
+                    <div className="text-center mb-5">
+                      <h2 className="text-2xl font-black tracking-tight text-white">
+                        {state === 'signup' ? 'Create Your Account' : 'Welcome to Exismic'}
+                      </h2>
+                      <p className="text-xs text-zinc-400 mt-1 font-normal">
+                        {state === 'signup' 
+                          ? 'Start creating with 50 free credits replenished daily.' 
+                          : 'Enter your credentials to access your workspace.'}
+                      </p>
+                    </div>
+
                     {/* Segmented Tab Switcher */}
-                    <div className="grid grid-cols-2 p-1 bg-black/40 border border-white/[0.08] rounded-xl relative shadow-inner">
+                    <div className="grid grid-cols-2 p-1.5 bg-black/60 border border-white/[0.09] rounded-2xl relative shadow-inner">
                       <button 
                         type="button"
                         onClick={() => { setState('signin'); setError(null); setFieldErrors({}); }}
@@ -1314,7 +1538,7 @@ export default function AuthPage() {
                         {state === 'signin' && (
                           <motion.div 
                             layoutId="activeAuthTab"
-                            className="absolute inset-0 bg-[#161826] rounded-lg border border-white/[0.12] shadow-sm -z-10"
+                            className="absolute inset-0 bg-[#161826] rounded-xl border border-white/[0.14] shadow-sm -z-10"
                             transition={{ type: "spring", stiffness: 380, damping: 30 }}
                           />
                         )}
@@ -1332,7 +1556,7 @@ export default function AuthPage() {
                         {state === 'signup' && (
                           <motion.div 
                             layoutId="activeAuthTab"
-                            className="absolute inset-0 bg-[#161826] rounded-lg border border-white/[0.12] shadow-sm -z-10"
+                            className="absolute inset-0 bg-[#161826] rounded-xl border border-white/[0.14] shadow-sm -z-10"
                             transition={{ type: "spring", stiffness: 380, damping: 30 }}
                           />
                         )}
@@ -1342,35 +1566,25 @@ export default function AuthPage() {
                     </div>
 
                     {/* Social OAuth Buttons */}
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-2 gap-3">
                       <button 
                         type="button"
                         onClick={() => handleSocialLogin('google')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.025] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06] text-xs font-semibold text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95 group"
+                        className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl sm:rounded-2xl bg-white/[0.035] border border-white/[0.09] hover:border-white/20 hover:bg-white/[0.07] text-xs font-semibold text-zinc-200 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-[0.98] group"
                       >
                         {socialLoading === 'google' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <GoogleIcon />}
-                        <span className="hidden sm:inline font-medium">{socialLoading === 'google' ? '...' : 'Google'}</span>
+                        <span className="font-medium">{socialLoading === 'google' ? 'Connecting...' : 'Google'}</span>
                       </button>
 
                       <button 
                         type="button"
                         onClick={() => handleSocialLogin('github')}
                         disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.025] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06] text-xs font-semibold text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95 group"
+                        className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl sm:rounded-2xl bg-white/[0.035] border border-white/[0.09] hover:border-white/20 hover:bg-white/[0.07] text-xs font-semibold text-zinc-200 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-[0.98] group"
                       >
                         {socialLoading === 'github' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <GitHubIcon />}
-                        <span className="hidden sm:inline font-medium">{socialLoading === 'github' ? '...' : 'GitHub'}</span>
-                      </button>
-
-                      <button 
-                        type="button"
-                        onClick={() => handleSocialLogin('discord')}
-                        disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.025] border border-white/[0.08] hover:border-[#5865F2]/40 hover:bg-[#5865F2]/10 text-xs font-semibold text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95 group"
-                      >
-                        {socialLoading === 'discord' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <DiscordIcon />}
-                        <span className="hidden sm:inline font-medium">{socialLoading === 'discord' ? '...' : 'Discord'}</span>
+                        <span className="font-medium">{socialLoading === 'github' ? 'Connecting...' : 'GitHub'}</span>
                       </button>
                     </div>
 
@@ -1388,20 +1602,22 @@ export default function AuthPage() {
                           <button
                             type="button"
                             onClick={() => { setState('magic'); setError(null); setSuccess(null); }}
-                            className="w-full group relative overflow-hidden rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-3 transition-all duration-200 hover:border-cyan-400/40 hover:bg-cyan-500/[0.08] cursor-pointer"
+                            className="w-full group relative overflow-hidden rounded-2xl border border-cyan-500/25 bg-gradient-to-r from-cyan-500/[0.08] via-cyan-500/[0.03] to-purple-500/[0.05] p-3 sm:p-3.5 transition-all duration-200 hover:border-cyan-400/50 hover:bg-cyan-500/[0.12] cursor-pointer shadow-[0_4px_20px_rgba(6,182,212,0.1),inset_0_1px_0_rgba(255,255,255,0.08)]"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-400/25 bg-black/40 text-cyan-300">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-black/50 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.25)]">
                                 <Smartphone size={16} />
                               </div>
                               <div className="min-w-0 flex-1 text-left">
-                                <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                                  <span>One-Tap Mobile Security</span>
-                                  <span className="text-[9px] bg-cyan-400/15 text-cyan-300 px-1.5 py-0.2 rounded font-mono uppercase tracking-wider font-semibold">Fast</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-white truncate">One-Tap Phone Sign-In</span>
+                                  <span className="shrink-0 whitespace-nowrap rounded-md border border-cyan-400/30 bg-cyan-400/15 px-1.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-cyan-300 shadow-sm">
+                                    FAST
+                                  </span>
                                 </div>
-                                <div className="text-[11px] text-zinc-400 truncate font-normal">Approve sign-in from your phone app</div>
+                                <div className="text-[11px] text-zinc-400 truncate font-normal mt-0.5">Approve instantly from your registered phone</div>
                               </div>
-                              <ChevronRight size={15} className="text-cyan-300 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                              <ChevronRight size={15} className="text-cyan-300 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
                             </div>
                           </button>
                         </motion.div>
@@ -1409,7 +1625,7 @@ export default function AuthPage() {
                     </AnimatePresence>
 
                     {/* Divider */}
-                    <div className="relative flex items-center gap-3 py-0.5">
+                    <div className="relative flex items-center gap-3 py-1">
                       <div className="h-[1px] flex-1 bg-white/[0.08]" />
                       <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">or continue with email</span>
                       <div className="h-[1px] flex-1 bg-white/[0.08]" />
@@ -1419,65 +1635,118 @@ export default function AuthPage() {
                     <motion.form layout onSubmit={handleSubmit} className="space-y-3.5">
                       
                       {/* Email Input */}
-                      <div className="space-y-1">
-                        <div className={`relative flex items-center rounded-xl border bg-black/40 transition-all duration-200 ${
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between px-1">
+                          <label className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-focus-within:text-purple-300 transition-colors flex items-center gap-1.5">
+                            <span className="h-1 w-1 rounded-full bg-purple-400/80 group-focus-within:bg-purple-300 transition-colors" />
+                            Email Address
+                          </label>
+                          <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
+                            Personal or Work
+                          </span>
+                        </div>
+
+                        <div className={`group relative rounded-2xl p-[1px] transition-all duration-300 ${
                           fieldErrors.email 
-                            ? "border-rose-500/60 bg-rose-500/[0.03]" 
-                            : "border-white/[0.08] hover:border-white/20 focus-within:border-purple-400/70 focus-within:bg-purple-950/[0.08] focus-within:ring-2 focus-within:ring-purple-500/15"
+                            ? "bg-gradient-to-b from-rose-500/70 via-rose-500/30 to-rose-500/10 shadow-[0_0_20px_rgba(244,63,94,0.18)]" 
+                            : "bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-white/[0.01] hover:from-white/25 hover:via-white/[0.08] hover:to-white/[0.02] focus-within:from-purple-500/80 focus-within:via-indigo-500/50 focus-within:to-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)]"
                         }`}>
-                          <div className="pl-3.5 pr-1 text-zinc-500">
-                            <Mail size={15} />
+                          <div className="relative flex items-center rounded-[15px] bg-[#090b12]/90 backdrop-blur-xl px-2.5 py-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] transition-all duration-200">
+                            {/* Top Hairline Sheen */}
+                            <div className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                            
+                            {/* Micro-Icon Pod */}
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.07] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] group-focus-within:border-purple-500/40 group-focus-within:bg-purple-500/10 group-focus-within:text-purple-300 group-hover:text-zinc-300 transition-all duration-200">
+                              <Mail size={14.5} />
+                            </div>
+
+                            <input 
+                              name="email"
+                              type="email" 
+                              required
+                              autoComplete="email"
+                              placeholder="Email address"
+                              defaultValue={email}
+                              onChange={() => {
+                                if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                              }}
+                              className="w-full bg-transparent py-2.5 px-3 text-xs sm:text-[13px] text-white placeholder:text-zinc-500 font-medium focus:outline-none tracking-normal selection:bg-purple-500/30"
+                            />
                           </div>
-                          <input 
-                            name="email"
-                            type="email" 
-                            required
-                            autoComplete="email"
-                            placeholder="Email address"
-                            defaultValue={email}
-                            onChange={() => {
-                              if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
-                            }}
-                            className="w-full bg-transparent py-3 px-2 text-xs text-white placeholder:text-zinc-600 font-medium focus:outline-none"
-                          />
                         </div>
                         {fieldErrors.email && (
-                          <p className="text-[11px] text-rose-400 pl-1 font-medium">{fieldErrors.email}</p>
+                          <p className="flex items-center gap-1.5 text-[11px] text-rose-400 pl-1 font-medium pt-0.5">
+                            <AlertCircle size={12} className="shrink-0" />
+                            <span>{fieldErrors.email}</span>
+                          </p>
                         )}
                       </div>
 
                       {/* Password Input */}
-                      <div className="space-y-1">
-                        <div className={`relative flex items-center rounded-xl border bg-black/40 transition-all duration-200 ${
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between px-1">
+                          <label className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-focus-within:text-purple-300 transition-colors flex items-center gap-1.5">
+                            <span className="h-1 w-1 rounded-full bg-indigo-400/80 group-focus-within:bg-indigo-300 transition-colors" />
+                            {state === 'signup' ? 'Create Password' : 'Password'}
+                          </label>
+                          {state === 'signin' ? (
+                            <button 
+                              type="button" 
+                              onClick={() => setState('forgot')}
+                              className="text-[11px] font-medium text-zinc-400 hover:text-purple-300 hover:underline transition-colors cursor-pointer"
+                            >
+                              Forgot password?
+                            </button>
+                          ) : (
+                            <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
+                              Min. 8 Chars
+                            </span>
+                          )}
+                        </div>
+
+                        <div className={`group relative rounded-2xl p-[1px] transition-all duration-300 ${
                           fieldErrors.password 
-                            ? "border-rose-500/60 bg-rose-500/[0.03]" 
-                            : "border-white/[0.08] hover:border-white/20 focus-within:border-purple-400/70 focus-within:bg-purple-950/[0.08] focus-within:ring-2 focus-within:ring-purple-500/15"
+                            ? "bg-gradient-to-b from-rose-500/70 via-rose-500/30 to-rose-500/10 shadow-[0_0_20px_rgba(244,63,94,0.18)]" 
+                            : "bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-white/[0.01] hover:from-white/25 hover:via-white/[0.08] hover:to-white/[0.02] focus-within:from-purple-500/80 focus-within:via-indigo-500/50 focus-within:to-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)]"
                         }`}>
-                          <div className="pl-3.5 pr-1 text-zinc-500">
-                            <Lock size={15} />
+                          <div className="relative flex items-center rounded-[15px] bg-[#090b12]/90 backdrop-blur-xl px-2.5 py-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] transition-all duration-200">
+                            {/* Top Hairline Sheen */}
+                            <div className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                            
+                            {/* Micro-Icon Pod */}
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.07] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] group-focus-within:border-purple-500/40 group-focus-within:bg-purple-500/10 group-focus-within:text-purple-300 group-hover:text-zinc-300 transition-all duration-200">
+                              <Lock size={14.5} />
+                            </div>
+
+                            <input 
+                              name="password"
+                              type={showPassword ? "text" : "password"}
+                              required
+                              autoComplete={state === 'signup' ? 'new-password' : 'current-password'}
+                              placeholder="Password"
+                              onChange={(e) => {
+                                if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+                                if (state === 'signup') setSignupPassword(e.target.value);
+                              }}
+                              className="w-full bg-transparent py-2.5 px-3 text-xs sm:text-[13px] text-white placeholder:text-zinc-500 font-medium focus:outline-none tracking-normal selection:bg-purple-500/30"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.07] active:scale-95 transition-all cursor-pointer"
+                              title={showPassword ? "Hide password" : "Show password"}
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
                           </div>
-                          <input 
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            required
-                            autoComplete={state === 'signup' ? 'new-password' : 'current-password'}
-                            placeholder="Password"
-                            onChange={(e) => {
-                              if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
-                              if (state === 'signup') setSignupPassword(e.target.value);
-                            }}
-                            className="w-full bg-transparent py-3 px-2 text-xs text-white placeholder:text-zinc-600 font-medium focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="pr-3.5 pl-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                          >
-                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                          </button>
                         </div>
                         {fieldErrors.password && (
-                          <p className="text-[11px] text-rose-400 pl-1 font-medium">{fieldErrors.password}</p>
+                          <p className="flex items-center gap-1.5 text-[11px] text-rose-400 pl-1 font-medium pt-0.5">
+                            <AlertCircle size={12} className="shrink-0" />
+                            <span>{fieldErrors.password}</span>
+                          </p>
                         )}
                       </div>
 
@@ -1489,7 +1758,7 @@ export default function AuthPage() {
                           className="space-y-1.5 pt-0.5 px-0.5"
                         >
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-zinc-400">Security Rating</span>
+                            <span className="text-zinc-400 font-medium">Security Rating</span>
                             <span className={`font-bold ${
                               passStrength.score >= 3 ? "text-emerald-400" : passStrength.score === 2 ? "text-amber-400" : "text-rose-400"
                             }`}>
@@ -1514,27 +1783,47 @@ export default function AuthPage() {
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                            className="overflow-hidden space-y-1"
+                            className="overflow-hidden space-y-1.5"
                           >
-                            <div className="relative flex items-center rounded-xl border border-white/[0.08] hover:border-white/20 focus-within:border-purple-400/70 focus-within:bg-purple-950/[0.08] focus-within:ring-2 focus-within:ring-purple-500/15 bg-black/40 transition-all duration-200">
-                              <div className="pl-3.5 pr-1 text-zinc-500">
-                                <ShieldCheck size={15} />
+                            <div className="flex items-center justify-between px-1">
+                              <label className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-focus-within:text-purple-300 transition-colors flex items-center gap-1.5">
+                                <span className="h-1 w-1 rounded-full bg-emerald-400/80 group-focus-within:bg-emerald-300 transition-colors" />
+                                Confirm Password
+                              </label>
+                              <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
+                                Verification
+                              </span>
+                            </div>
+
+                            <div className="group relative rounded-2xl p-[1px] transition-all duration-300 bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-white/[0.01] hover:from-white/25 hover:via-white/[0.08] hover:to-white/[0.02] focus-within:from-purple-500/80 focus-within:via-indigo-500/50 focus-within:to-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+                              <div className="relative flex items-center rounded-[15px] bg-[#090b12]/90 backdrop-blur-xl px-2.5 py-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] transition-all duration-200">
+                                {/* Top Hairline Sheen */}
+                                <div className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                                {/* Micro-Icon Pod */}
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.07] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] group-focus-within:border-purple-500/40 group-focus-within:bg-purple-500/10 group-focus-within:text-purple-300 group-hover:text-zinc-300 transition-all duration-200">
+                                  <ShieldCheck size={14.5} />
+                                </div>
+
+                                <input 
+                                  name="confirmPassword"
+                                  type={showConfirmPassword ? "text" : "password"}
+                                  required
+                                  autoComplete="new-password"
+                                  placeholder="Confirm Password"
+                                  className="w-full bg-transparent py-2.5 px-3 text-xs sm:text-[13px] text-white placeholder:text-zinc-500 font-medium focus:outline-none tracking-normal selection:bg-purple-500/30"
+                                />
+
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.07] active:scale-95 transition-all cursor-pointer"
+                                  title={showConfirmPassword ? "Hide password" : "Show password"}
+                                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                  {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                                </button>
                               </div>
-                              <input 
-                                name="confirmPassword"
-                                type={showConfirmPassword ? "text" : "password"}
-                                required
-                                autoComplete="new-password"
-                                placeholder="Confirm Password"
-                                className="w-full bg-transparent py-3 px-2 text-xs text-white placeholder:text-zinc-600 font-medium focus:outline-none"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="pr-3.5 pl-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                              >
-                                {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                              </button>
                             </div>
                           </motion.div>
                         )}
@@ -1561,6 +1850,50 @@ export default function AuthPage() {
                           </motion.div>
                         )}
                       </AnimatePresence>
+
+                      {/* 13+ Age Confirmation Checkbox (COPPA & Account Safety) */}
+                      {state === 'signup' && (
+                        <label 
+                          htmlFor="ageConsent"
+                          className={`group relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 cursor-pointer select-none ${
+                            ageConsent 
+                              ? "bg-purple-950/25 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.18)]" 
+                              : "bg-[#090b12]/80 border-white/[0.09] hover:border-white/20 hover:bg-white/[0.03]"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            id="ageConsent"
+                            name="ageConsent"
+                            required
+                            checked={ageConsent}
+                            onChange={(e) => setAgeConsent(e.target.checked)}
+                            className="sr-only"
+                          />
+                          
+                          {/* Custom Obsidian Checkbox Box */}
+                          <div className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
+                            ageConsent
+                              ? "bg-gradient-to-br from-purple-500 via-indigo-600 to-cyan-500 border-purple-400 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)] scale-105"
+                              : "bg-white/[0.04] border-white/20 group-hover:border-purple-400/50 group-hover:bg-purple-500/10 text-transparent"
+                          }`}>
+                            <Check size={12} strokeWidth={3.5} className={`transition-transform duration-150 ${ageConsent ? "scale-100 opacity-100" : "scale-50 opacity-0"}`} />
+                          </div>
+
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors">
+                              I confirm that I am <span className="text-white font-bold">13 years of age or older</span>
+                            </div>
+                            <div className="text-[10px] text-zinc-500 font-normal">
+                              Required for COPPA compliance & account protection
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                            <ShieldCheck size={16} className={ageConsent ? "text-purple-400" : ""} />
+                          </div>
+                        </label>
+                      )}
 
                       {/* Clean Balanced CTA Button */}
                       <div className="pt-2">
@@ -1596,6 +1929,20 @@ export default function AuthPage() {
                           </AnimatePresence>
                         </button>
                       </div>
+
+                      {/* Explicit Legal Form Consent (GDPR, FTC & Consumer Compliance) */}
+                      {state === 'signup' && (
+                        <p className="text-[11px] text-center text-zinc-400 font-normal leading-relaxed pt-1">
+                          By creating an account, you agree to our{" "}
+                          <Link href="/terms-of-service" className="text-zinc-200 underline hover:text-cyan-300 font-medium transition-colors">
+                            Terms of Service
+                          </Link>{" "}
+                          and acknowledge our{" "}
+                          <Link href="/privacy-policy" className="text-zinc-200 underline hover:text-cyan-300 font-medium transition-colors">
+                            Privacy Policy
+                          </Link>.
+                        </p>
+                      )}
                     </motion.form>
 
                   </motion.div>
@@ -1609,7 +1956,7 @@ export default function AuthPage() {
           {/* Footer Security Badge */}
           <div className="mt-8 text-center flex items-center justify-center gap-2 text-zinc-500 text-xs font-medium">
             <ShieldCheck size={14} className="text-emerald-400" />
-            <span>256-Bit SSL Encrypted Workspace Access</span>
+            <span>Secure account protection · 50 free credits included daily</span>
           </div>
 
         </motion.div>

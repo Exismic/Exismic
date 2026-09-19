@@ -68,11 +68,44 @@ const TYPE_CONFIG: Record<ChangeType, { label: string; icon: any; badgeClass: st
 
 const RELEASES: Release[] = [
   {
+    version: "v1.6.5",
+    date: "September 2026",
+    title: "Cleaner Design & Sign-In Refresh",
+    tagline: "A cleaner look for signing in and creating an account, clearer icons across the platform, interactive playground upgrades, and smoother mobile navigation.",
+    isLatest: true,
+    changes: [
+      {
+        type: "ui",
+        text: "Fresh Sign-In & Sign-Up Experience: Upgraded the login and account creation screen with a modern frosted look, glowing focus borders, and clean, clear field labels."
+      },
+      {
+        type: "ui",
+        text: "Interactive Age Confirmation: Replaced the basic browser checkbox with an easy-to-tap confirmation card featuring a smooth checkmark and shield badge."
+      },
+      {
+        type: "ui",
+        text: "Cleaner, Meaningful Icons: Replaced decorative sparkle symbols across the site with clear, purposeful icons — like a Play icon for testing tools live and Studio Layers for creative platforms."
+      },
+      {
+        type: "feature",
+        text: "Upgraded Live Playground: Improved tool icons and tab navigation so you can test image generation, background removal, and voice splitting directly from the homepage."
+      },
+      {
+        type: "fix",
+        text: "Mobile Button & Text Polish: Fixed button text wrapping on phones so quick sign-in tags and buttons stay neatly aligned and readable on smaller screens."
+      },
+      {
+        type: "sec",
+        text: "Simple & Secure Account Recovery: Streamlined password reset and account verification screens with clearer guidance and quick copy helpers."
+      }
+    ]
+  },
+  {
     version: "v1.6",
     date: "September 2026",
     title: "The Sparks Economy & Studio Cockpit",
     tagline: "Exismic Sparks rewards currency, Executive Studio Cockpit dashboard, Streak Freeze shields, streamlined tool headers, and comprehensive bug fixes.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",

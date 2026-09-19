@@ -134,13 +134,6 @@ export function ToolPageShell({
       "price": tool?.isProTool ? PRICING_CONFIG.PRO_PLAN.USD.toString() : "0",
       "priceCurrency": "USD",
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "ratingCount": "210",
-      "bestRating": "5",
-      "worstRating": "1",
-    },
   };
 
   const breadcrumbJsonLd = {

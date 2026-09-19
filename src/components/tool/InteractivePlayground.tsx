@@ -291,7 +291,7 @@ export function InteractivePlayground() {
           viewport={{ once: true }}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20 backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.15)]"
         >
-          <Sparkles size={13} className="text-purple-400" />
+          <Play size={10} className="text-purple-400 fill-purple-400/90 shrink-0" />
           <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.3em] text-purple-300">
             Try It Live
           </span>
@@ -319,7 +319,7 @@ export function InteractivePlayground() {
                   id: "image", 
                   label: "AI Image Gen", 
                   subtext: "Text to Artwork",
-                  icon: Sparkles,
+                  icon: ImageIcon,
                   activeGradient: "from-purple-600 via-indigo-600 to-fuchsia-600",
                   activeGlow: "shadow-[0_10px_35px_rgba(168,85,247,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)]",
                   activeBorder: "border-purple-400/40",

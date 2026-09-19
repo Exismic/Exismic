@@ -64,7 +64,8 @@ const SECTIONS = [
     color: "text-teal-400",
     bg: "bg-teal-400/10",
     glow: "shadow-[0_0_30px_rgba(45,212,191,0.3)]",
-    content: "Where legally mandated (such as EU/UK consumer protection laws), you retain a 14-day statutory right of withdrawal from initial subscription purchases, provided no subscription credits have been substantially consumed."
+    content: "Where legally mandated (such as EU/UK consumer protection laws), you retain a 14-day statutory right of withdrawal from initial subscription purchases, provided no subscription credits have been substantially consumed.",
+    link: { text: "Read Full Refund Policy", url: "/refund-policy" }
   },
   {
     id: "currencies",

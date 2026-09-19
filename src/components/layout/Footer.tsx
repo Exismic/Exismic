@@ -41,6 +41,7 @@ const FOOTER_LINKS = [
       { name: "Privacy", href: "/privacy-policy" },
       { name: "Terms", href: "/terms-of-service" },
       { name: "Cookies", href: "/cookies" },
+      { name: "Refunds", href: "/refund-policy" },
     ],
   },
 ];
@@ -83,8 +84,8 @@ export function Footer() {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(124,58,237,0.08),transparent_40%,rgba(34,211,238,0.055)_80%,transparent)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
-        <section className="grid items-center gap-8 border-b border-white/[0.07] py-14 md:grid-cols-[1fr_auto] md:py-20">
-          <div className="max-w-3xl">
+        <section className="grid items-center gap-8 border-b border-white/[0.07] py-12 md:py-20 md:grid-cols-[1fr_auto] text-center md:text-left">
+          <div className="max-w-3xl mx-auto md:mx-0 flex flex-col items-center md:items-start">
             <div className="relative overflow-hidden inline-flex min-h-8 items-center gap-2 rounded-full border border-purple-400/40 bg-gradient-to-r from-purple-500/20 via-purple-600/15 to-purple-500/20 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
               <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
               <Layers size={12} className="relative z-10 text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
@@ -92,10 +93,10 @@ export function Footer() {
                 Your Exismic workspace
               </span>
             </div>
-            <h2 className="mt-5 bg-[linear-gradient(100deg,#fff_0%,#f5f3ff_46%,#d8b4fe_72%,#a5f3fc_100%)] bg-clip-text text-[clamp(2.25rem,5vw,4.5rem)] font-black leading-[1.1] pb-2 tracking-[-0.045em] text-transparent">
+            <h2 className="mt-5 bg-[linear-gradient(100deg,#fff_0%,#f5f3ff_46%,#d8b4fe_72%,#a5f3fc_100%)] bg-clip-text text-[clamp(2rem,5vw,4.5rem)] font-black leading-[1.1] pb-2 tracking-[-0.045em] text-transparent">
               Make something worth shipping.
             </h2>
-            <p className="mt-5 max-w-2xl text-sm font-medium leading-7 text-zinc-500 sm:text-base">
+            <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-zinc-400 sm:text-base">
               Create, refine, and deliver from one focused workspace built for practical AI work.
             </p>
           </div>
@@ -104,14 +105,14 @@ export function Footer() {
             whileHover={{ y: -4, scale: 1.01 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="w-full md:w-[292px] md:justify-self-end relative group/launch isolate"
+            className="w-full max-w-[280px] sm:max-w-[292px] md:w-[292px] md:justify-self-end relative group/launch isolate mx-auto md:mx-0"
           >
             {/* Ambient Aura Glow (Idle & Hover) */}
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-cyan-500 rounded-[24px] blur-xl opacity-30 group-hover/launch:opacity-60 transition duration-1000 group-hover/launch:duration-300 animate-pulse" />
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-cyan-500 rounded-[20px] sm:rounded-[24px] blur-xl opacity-30 group-hover/launch:opacity-60 transition duration-1000 group-hover/launch:duration-300 animate-pulse" />
 
             <Link
               href={session ? "/" : "/auth/login"}
-              className="relative isolate flex h-[72px] w-full overflow-hidden rounded-[20px] p-[2px] shadow-[0_20px_55px_rgba(0,0,0,0.5),0_0_30px_rgba(124,58,237,0.15)] transition-shadow duration-500 hover:shadow-[0_20px_65px_rgba(0,0,0,0.6),0_0_40px_rgba(34,211,238,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45"
+              className="relative isolate flex h-[54px] sm:h-[62px] md:h-[72px] w-full overflow-hidden rounded-[16px] sm:rounded-[20px] p-[2px] shadow-[0_20px_55px_rgba(0,0,0,0.5),0_0_30px_rgba(124,58,237,0.15)] transition-shadow duration-500 hover:shadow-[0_20px_65px_rgba(0,0,0,0.6),0_0_40px_rgba(34,211,238,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45"
             >
               {/* Continuous Seamless Rotating Neon Border */}
               <motion.span
@@ -121,7 +122,7 @@ export function Footer() {
                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
               />
 
-              <span className="relative flex h-full w-full items-center gap-3.5 rounded-[18px] border border-white/5 bg-gradient-to-br from-[#08080d]/98 to-[#040406]/98 px-4 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#0d0d16]/98 group-hover/launch:to-[#06060a]/98">
+              <span className="relative flex h-full w-full items-center gap-2.5 sm:gap-3.5 rounded-[14px] sm:rounded-[18px] border border-white/5 bg-gradient-to-br from-[#08080d]/98 to-[#040406]/98 px-3 sm:px-4 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#0d0d16]/98 group-hover/launch:to-[#06060a]/98">
                 {/* Idle Shimmer Sweep */}
                 <motion.div
                   animate={{ x: ["-250%", "250%"] }}
@@ -129,24 +130,31 @@ export function Footer() {
                   className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
                 />
 
-                <ExismicMark size={38} className="drop-shadow-[0_0_15px_rgba(124,58,237,0.4)] transition-all duration-500 group-hover/launch:scale-110 group-hover/launch:rotate-3" />
+                <div className="shrink-0">
+                  <div className="hidden sm:block">
+                    <ExismicMark size={36} className="drop-shadow-[0_0_15px_rgba(124,58,237,0.4)] transition-all duration-500 group-hover/launch:scale-110 group-hover/launch:rotate-3" />
+                  </div>
+                  <div className="sm:hidden">
+                    <ExismicMark size={28} className="drop-shadow-[0_0_12px_rgba(124,58,237,0.4)] transition-all duration-500 group-hover/launch:scale-110" />
+                  </div>
+                </div>
                 
                 <span className="min-w-0 flex-1 text-left relative z-10">
-                  <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                  <span className="block text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] whitespace-nowrap">
                     {session ? "Open Exismic" : "Enter Exismic"}
                   </span>
-                  <span className="mt-1 block text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors duration-500 group-hover/launch:text-cyan-200/90">
+                  <span className="mt-0.5 sm:mt-1 block text-[7.5px] sm:text-[8px] font-bold uppercase tracking-[0.14em] sm:tracking-[0.16em] text-zinc-500 transition-colors duration-500 group-hover/launch:text-cyan-200/90 whitespace-nowrap">
                     Creative workspace
                   </span>
                 </span>
 
-                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.04] bg-white/[0.02] text-zinc-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 group-hover/launch:border-cyan-300/40 group-hover/launch:bg-cyan-300/[0.15] group-hover/launch:text-cyan-50 group-hover/launch:shadow-[0_0_30px_rgba(34,211,238,0.4),inset_0_1px_5px_rgba(255,255,255,0.2)]">
+                <span className="relative z-10 flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl border border-white/[0.04] bg-white/[0.02] text-zinc-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 group-hover/launch:border-cyan-300/40 group-hover/launch:bg-cyan-300/[0.15] group-hover/launch:text-cyan-50 group-hover/launch:shadow-[0_0_30px_rgba(34,211,238,0.4),inset_0_1px_5px_rgba(255,255,255,0.2)]">
                   <motion.div
-                    animate={{ x: [0, 4, 0] }}
+                    animate={{ x: [0, 3, 0] }}
                     transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                     className="text-zinc-300 group-hover/launch:text-cyan-100 transition-colors"
                   >
-                    <ArrowRight size={16} />
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </motion.div>
                 </span>
               </span>
@@ -154,11 +162,11 @@ export function Footer() {
           </motion.div>
         </section>
 
-        <div className="grid gap-12 py-14 md:grid-cols-[1.1fr_1.9fr] md:py-18 lg:gap-20">
-          <div>
+        <div className="grid gap-12 py-12 md:py-18 md:grid-cols-[1.1fr_1.9fr] lg:gap-20 text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <Link href="/" className="inline-flex items-center gap-3">
               <ExismicMark size={42} />
-              <div>
+              <div className="text-left">
                 <p className="text-lg font-black tracking-[-0.02em] text-white">
                   Exismic<span className="text-cyan-300">.</span>
                 </p>
@@ -167,25 +175,25 @@ export function Footer() {
                 </p>
               </div>
             </Link>
-            <p className="mt-5 max-w-sm text-sm font-medium leading-relaxed text-zinc-300">
+            <p className="mt-4 max-w-sm text-sm font-medium leading-relaxed text-zinc-400 mx-auto md:mx-0">
               A practical creative platform for AI, media, documents, code, and everyday work.
             </p>
-            <div className="mt-6 flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+            <div className="mt-5 inline-flex items-center justify-center md:justify-start gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
               <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
-              Built and operated by Exismic
+              Exismic AI Studio · Digital Cloud Services
             </div>
           </div>
 
-          <nav className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4" aria-label="Footer navigation">
+          <nav className="w-full max-w-[320px] sm:max-w-md md:max-w-none mx-auto md:mx-0 grid grid-cols-2 gap-x-8 sm:gap-x-12 gap-y-10 sm:grid-cols-4 text-left" aria-label="Footer navigation">
             {FOOTER_LINKS.map((section) => (
-              <div key={section.title}>
+              <div key={section.title} className="flex flex-col items-start text-left">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">{section.title}</h3>
-                <ul className="mt-5 space-y-3.5">
+                <ul className="mt-4 sm:mt-5 space-y-3.5 flex flex-col items-start text-left">
                   {section.links.map((link) => (
                     <li key={link.name}>
                       <Link
                         href={link.href}
-                        className="group inline-flex min-h-6 items-center gap-1.5 text-xs font-bold text-zinc-300 transition-colors hover:text-white"
+                        className="group inline-flex min-h-6 items-center gap-1.5 text-xs font-bold text-zinc-400 transition-colors hover:text-white"
                       >
                         {link.name}
                         <ArrowUpRight
@@ -221,13 +229,16 @@ export function Footer() {
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
-            <Link href="/privacy-policy" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-white">
+            <Link href="/privacy-policy" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Privacy
             </Link>
-            <Link href="/terms-of-service" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-white">
+            <Link href="/terms-of-service" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Terms
             </Link>
-            <Link href="/help" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-white">
+            <Link href="/refund-policy" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+              Refunds
+            </Link>
+            <Link href="/help" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Support
             </Link>
             <span className="hidden h-3.5 w-px bg-white/20 sm:block" />

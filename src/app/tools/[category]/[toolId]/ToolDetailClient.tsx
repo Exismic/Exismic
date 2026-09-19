@@ -202,13 +202,6 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     "operatingSystem": "Any operating system with a modern web browser",
     "browserRequirements": "Requires JavaScript and a modern web browser",
     "isAccessibleForFree": !tool.isProTool,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "ratingCount": "184",
-      "bestRating": "5",
-      "worstRating": "1"
-    },
     "offers": {
       "@type": "Offer",
       "price": tool.isProTool ? PRICING_CONFIG.PRO_PLAN.USD.toString() : "0",

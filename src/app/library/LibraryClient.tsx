@@ -410,6 +410,17 @@ export function LibraryClient() {
     });
   }, [files, selectedCategory, searchQuery]);
 
+  // Performance Pagination: Initial 24 items, expanding on demand
+  const [displayCount, setDisplayCount] = useState(24);
+
+  useEffect(() => {
+    setDisplayCount(24);
+  }, [selectedCategory, searchQuery]);
+
+  const visibleFiles = useMemo(() => {
+    return filteredFiles.slice(0, displayCount);
+  }, [filteredFiles, displayCount]);
+
   return (
     <div className="space-y-6">
       {/* 1. Header Banner & Obsidian Glass Deck */}
@@ -814,7 +825,7 @@ export function LibraryClient() {
       ) : viewMode === "grid" ? (
         /* GRID VIEW */
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {filteredFiles.map((file) => {
+          {visibleFiles.map((file) => {
             const badge = getToolBadge(file.toolType);
             const BadgeIcon = badge.icon;
             const isSelected = selectedFileIds.has(file.id);
@@ -851,6 +862,7 @@ export function LibraryClient() {
                         file.toolType.includes("skin") ? "object-contain p-2" : "object-cover"
                       )}
                       loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-zinc-500">
@@ -998,8 +1010,8 @@ export function LibraryClient() {
         </div>
       ) : (
         /* LIST VIEW */
-        <div className="space-y-2">
-          {filteredFiles.map((file) => {
+        <div className="flex flex-col gap-2">
+          {visibleFiles.map((file) => {
             const badge = getToolBadge(file.toolType);
             const isSelected = selectedFileIds.has(file.id);
             const mediaUrl = file.resultUrl || file.originalUrl;
@@ -1012,10 +1024,10 @@ export function LibraryClient() {
                   else setActiveLightboxFile(file);
                 }}
                 className={cn(
-                  "flex items-center justify-between rounded-xl border p-2.5 sm:p-3 transition-all cursor-pointer",
+                  "group flex items-center justify-between gap-4 rounded-xl border bg-[#0b0c17] p-3 transition-all duration-200 cursor-pointer",
                   isSelected
-                    ? "border-cyan-400 bg-cyan-500/10"
-                    : "border-white/10 bg-[#0b0c17] hover:border-white/20 hover:bg-white/[0.04]"
+                    ? "border-cyan-400 ring-1 ring-cyan-400/30 bg-cyan-950/10"
+                    : "border-white/10 hover:border-cyan-400/30 hover:bg-white/[0.02]"
                 )}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -1031,7 +1043,13 @@ export function LibraryClient() {
 
                   <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-black/40 border border-white/10">
                     {mediaUrl ? (
-                      <img src={mediaUrl} alt={file.originalName} className="h-full w-full object-cover" />
+                      <img
+                        src={mediaUrl}
+                        alt={file.originalName}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <FileText className="m-auto h-full text-zinc-500" size={18} />
                     )}
@@ -1072,6 +1090,22 @@ export function LibraryClient() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination: Load More */}
+      {filteredFiles.length > displayCount && (
+        <div className="flex flex-col items-center justify-center pt-6 pb-2">
+          <button
+            type="button"
+            onClick={() => setDisplayCount((prev) => prev + 24)}
+            className="group flex items-center gap-2.5 rounded-xl border border-white/10 bg-[#0d0e1b] px-6 py-2.5 text-xs font-semibold text-zinc-300 transition-all hover:border-cyan-400/40 hover:text-white hover:bg-white/[0.04] shadow-lg active:scale-95 [transform:translateZ(0)]"
+          >
+            <span>Load More Creations</span>
+            <span className="rounded-full bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 text-[10px] font-mono text-cyan-300">
+              +{Math.min(24, filteredFiles.length - displayCount)} of {filteredFiles.length - displayCount} left
+            </span>
+          </button>
         </div>
       )}
 

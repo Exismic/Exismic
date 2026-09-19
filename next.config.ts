@@ -1,9 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   allowedDevOrigins: ["127.0.0.1", "localhost", "0.0.0.0"],
   serverExternalPackages: ["pdf-parse"],
   compress: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
+    remotePatterns: [
+      { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "api.dicebear.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "cdn.discordapp.com" },
+    ],
+  },
   async headers() {
     return [
       {
@@ -68,6 +80,11 @@ const nextConfig: NextConfig = {
       {
         source: "/giveaways",
         destination: "/giveaway",
+        permanent: false,
+      },
+      {
+        source: "/auth/signup",
+        destination: "/auth/login?tab=signup",
         permanent: false,
       },
       // Verified Duplicate/Ghost Category Aliases (Canonical = Short /tools/[slug] Route)

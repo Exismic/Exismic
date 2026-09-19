@@ -87,6 +87,18 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
   className = "",
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [reducedMotion, setReducedMotion] = React.useState(false);
+
+  useEffect(() => {
+    const updateDeviceInfo = () => {
+      setIsMobile(window.innerWidth < 768);
+      setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    };
+    updateDeviceInfo();
+    window.addEventListener("resize", updateDeviceInfo);
+    return () => window.removeEventListener("resize", updateDeviceInfo);
+  }, []);
 
   // Deterministic particle set based on active variant
   const particleSet = variant === "credits" ? CREDIT_SHOP_PARTICLES : DASHBOARD_PARTICLES;
@@ -103,12 +115,12 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
       const step = 92 / totalIcons;
       const jitter = ((index * 7) % 5) - 2;
       const left = Math.min(94, Math.max(2, index * step + 2 + jitter));
-      const size = 26 + (index % 4) * 8; // 26px to 50px
-      const duration = 16 + (index % 6) * 3; // 16s to 31s
+      const size = 24 + (index % 4) * 6; // 24px to 42px
+      const duration = 18 + (index % 6) * 3; // 18s to 33s
       const delay = (index % 8) * -3.2; // negative delay so screen is already populated
       const rotateStart = (index * 40) % 360;
       const rotateEnd = rotateStart + (index % 2 === 0 ? 360 : -360);
-      const sway = (index % 2 === 0 ? 1 : -1) * (18 + (index % 3) * 10);
+      const sway = (index % 2 === 0 ? 1 : -1) * (14 + (index % 3) * 8);
       const opacity = 0.16 + (index % 3) * 0.06; // 0.16 to 0.28 (clean, unobtrusive depth)
 
       return {
@@ -128,9 +140,14 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
     });
   }, [particleSet]);
 
-  // Dynamic Stardust Canvas Effect
+  const activeIcons = useMemo(() => {
+    if (reducedMotion) return [];
+    return isMobile ? floatingIcons.slice(0, 8) : floatingIcons;
+  }, [floatingIcons, isMobile, reducedMotion]);
+
+  // Dynamic Stardust Canvas Effect (Desktop only, 60fps lightweight rendering)
   useEffect(() => {
-    if (!showStardust) return;
+    if (!showStardust || isMobile || reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -177,7 +194,8 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
       isSpark: boolean;
     }
 
-    const particleCount = 45;
+    // Lightweight particle count for zero lag on integrated GPUs
+    const particleCount = 28;
     const particles: CanvasParticle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
@@ -188,8 +206,8 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
         x: Math.random() * width,
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.35,
-        vy: Math.random() * 0.45 + 0.15, // gently drift downward
-        size: isSpark ? Math.random() * 2.5 + 1.5 : Math.random() * 2 + 0.8,
+        vy: Math.random() * 0.45 + 0.15,
+        size: isSpark ? Math.random() * 2 + 1.2 : Math.random() * 1.6 + 0.6,
         color: colors[Math.floor(Math.random() * colors.length)],
         alpha: Math.random() * maxAlpha,
         maxAlpha,
@@ -229,8 +247,6 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
         ctx.save();
         ctx.globalAlpha = currentAlpha;
         ctx.fillStyle = p.color;
-        ctx.shadowBlur = p.isSpark ? 8 : 4;
-        ctx.shadowColor = p.color;
 
         ctx.beginPath();
         if (p.isSpark) {
@@ -250,13 +266,24 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
       animationFrameId = requestAnimationFrame(render);
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationFrameId);
+      } else {
+        lastTime = performance.now();
+        animationFrameId = requestAnimationFrame(render);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     animationFrameId = requestAnimationFrame(render);
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [variant, showStardust]);
+  }, [variant, showStardust, isMobile, reducedMotion]);
 
   return (
     <div className={`pointer-events-none fixed inset-0 z-0 overflow-hidden select-none ${className}`}>
@@ -285,12 +312,12 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
       )}
 
       {/* 3. Floating Falling Icons */}
-      {floatingIcons.map((p) => {
+      {activeIcons.map((p) => {
         const Icon = p.IconComponent;
         return (
           <motion.div
             key={p.id}
-            className="absolute top-0 flex items-center justify-center pointer-events-none"
+            className="absolute top-0 flex items-center justify-center pointer-events-none [transform:translateZ(0)]"
             style={{
               left: `${p.left}%`,
               width: p.size,
@@ -320,18 +347,19 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
               size={p.size}
               style={{
                 color: p.color,
-                filter: `drop-shadow(0 0 14px ${p.glow})`,
+                filter: isMobile ? undefined : `drop-shadow(0 0 6px ${p.glow})`,
+                willChange: "transform, opacity",
               }}
             />
           </motion.div>
         );
       })}
 
-      {/* 4. Canvas Stardust (Optional) */}
-      {showStardust && (
+      {/* 4. Canvas Stardust (Optional, Hardware-efficient Desktop only) */}
+      {showStardust && !isMobile && !reducedMotion && (
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 h-full w-full opacity-80"
+          className="hidden sm:block absolute inset-0 h-full w-full opacity-80 pointer-events-none"
         />
       )}
     </div>

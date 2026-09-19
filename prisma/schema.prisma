@@ -59,6 +59,7 @@ model User {
   accounts               Account[]
   promoRedemptions       PromoRedemption[]
   chatSessions           ChatSession[]
+  codeProjects           CodeProject[]
   favorites              Favorite[]
   jobs                   Job[]
   notifications          Notification[]
@@ -73,7 +74,11 @@ model User {
   communityPosts         CommunityPost[]
   communityLikes         CommunityLike[]
   hasSeenWelcome         Boolean                 @default(true) @map("has_seen_welcome")
-  status                 String                  @default("active")
+  status                     String                  @default("active")
+  deletionRequestedAt        DateTime?               @map("deletion_requested_at")
+  scheduledDeletionAt        DateTime?               @map("scheduled_deletion_at")
+  deletionRecoveryRequested  Boolean                 @default(false) @map("deletion_recovery_requested")
+  deletionRecoveryReason     String?                 @map("deletion_recovery_reason")
 }
 
 model SparksTransaction {
@@ -197,6 +202,8 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model UserFile {
@@ -211,6 +218,8 @@ model UserFile {
   createdAt    DateTime @default(now())
   metadata     Json?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model Job {
@@ -226,6 +235,8 @@ model Job {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
 }
 
 model Account {
@@ -293,6 +304,20 @@ model ChatSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model CodeProject {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  files     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 

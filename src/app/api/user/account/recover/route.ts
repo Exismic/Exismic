@@ -1,0 +1,61 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    let userId = user?.id;
+
+    const body = await req.json().catch(() => ({}));
+    const { reason, email, password } = body;
+
+    // If no active session cookie, attempt verification with email + password if supplied
+    if (!userId && email && password) {
+      const { data: signData, error: signError } = await supabase.auth.signInWithPassword({
+        email: String(email).trim().toLowerCase(),
+        password: String(password),
+      });
+      if (!signError && signData.user) {
+        userId = signData.user.id;
+      }
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: "Please sign in to request account recovery." }, { status: 401 });
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, status: true, scheduledDeletionAt: true, username: true, email: true },
+    });
+
+    if (!dbUser || dbUser.status !== "pending_deletion") {
+      return NextResponse.json(
+        { error: "Account is not currently scheduled for deletion." },
+        { status: 400 }
+      );
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        deletionRecoveryRequested: true,
+        deletionRecoveryReason: String(reason || "User requested account recovery").slice(0, 500),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Your recovery request has been sent to our team. We will review and restore your account shortly.",
+    });
+  } catch (error) {
+    console.error("Account recovery request failed:", error);
+    return NextResponse.json(
+      { error: "Could not submit recovery request." },
+      { status: 500 }
+    );
+  }
+}

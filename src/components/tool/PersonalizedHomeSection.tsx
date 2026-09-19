@@ -13,7 +13,6 @@ import {
   History, 
   Compass, 
   Zap,
-  CheckCircle2,
   type LucideIcon 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -68,33 +67,33 @@ export function PersonalizedHomeSection({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6"
       >
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 max-w-2xl min-w-0">
           {/* Greeting Pill */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-cyan-500/15 border border-purple-400/30 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-xl shadow-[0_0_25px_rgba(168,85,247,0.2)]">
-            <span className="relative flex h-2 w-2">
+          <div className="inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-cyan-500/15 border border-purple-400/30 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-xl shadow-[0_0_25px_rgba(168,85,247,0.2)]">
+            <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
             </span>
-            <span suppressHydrationWarning className="inline-flex items-center gap-1.5">
+            <span suppressHydrationWarning className="inline-flex items-center gap-1.5 shrink-0">
               <GreetingIcon size={14} className="text-amber-400 animate-pulse" />
               <span>{greeting.text}</span>
             </span>
             {isPro && (
-              <span className="inline-flex items-center gap-1 ml-1 text-amber-300 font-black">
+              <span className="inline-flex items-center gap-1 ml-1 text-amber-300 font-black shrink-0">
                 · <Crown size={12} className="fill-amber-400 text-amber-400 inline" /> Pro Pass Active
               </span>
             )}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white flex flex-wrap items-center gap-x-3 gap-y-1">
-            Welcome back,{" "}
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight text-white flex flex-wrap items-center gap-x-3 gap-y-1 pb-1 pt-0.5 leading-normal">
+            <span>Welcome back,</span>
             <PremiumName
               name={userName}
               isPro={isPro}
               gradientId={gradientId}
-              className="text-4xl sm:text-5xl lg:text-6xl"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl"
             />
           </h1>
           <p className="text-zinc-400 text-sm sm:text-base font-medium max-w-xl leading-relaxed">
@@ -103,96 +102,84 @@ export function PersonalizedHomeSection({
         </div>
 
         {/* Studio Quick Shortcuts */}
-        <div className="flex flex-wrap items-center gap-3.5 self-start sm:self-auto shrink-0">
+        <div className="w-full xl:w-auto -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto sm:overflow-x-visible no-scrollbar py-2.5 flex items-center gap-2 sm:gap-3 sm:flex-wrap xl:flex-nowrap shrink-0">
           {/* 1. Cloud Drive Button */}
-          <div className="relative group inline-flex">
-            {/* Radiant Exterior Aura */}
-            <div className="pointer-events-none absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-500/60 via-sky-400/50 to-blue-500/40 blur-md opacity-75 group-hover:opacity-100 group-hover:blur-lg transition-all duration-300" />
+          <Link
+            href="/library"
+            className="group relative z-0 hover:z-10 isolate inline-flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-3.5 sm:pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#0e243a]/95 via-[#091829]/95 to-[#040e1a]/98 border border-cyan-500/40 hover:border-cyan-400 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_0_12px_rgba(6,182,212,0.15),0_2px_8px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.5),inset_0_0_16px_rgba(6,182,212,0.25),0_6px_20px_rgba(6,182,212,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 overflow-hidden cursor-pointer shrink-0 [transform:translateZ(0)]"
+          >
+            {/* Ambient Glass Shimmer Sweep */}
+            <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-cyan-200/20 to-transparent skew-x-12" />
 
-            <Link
-              href="/library"
-              className="relative inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2.5 rounded-2xl bg-gradient-to-b from-[#0e2742]/95 via-[#081a2e]/95 to-[#04101d]/98 border border-cyan-400/70 hover:border-cyan-300 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),inset_0_0_16px_rgba(6,182,212,0.3),0_4px_20px_rgba(0,0,0,0.6),0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.65),inset_0_0_24px_rgba(6,182,212,0.5),0_8px_28px_rgba(6,182,212,0.55)] hover:scale-[1.02] active:scale-95 overflow-hidden backdrop-blur-xl cursor-pointer"
-            >
-              {/* Ambient Glass Shimmer Sweep */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-cyan-200/25 to-transparent skew-x-12" />
+            {/* Glowing Icon Core */}
+            <div className="relative flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-cyan-400/30 via-cyan-500/20 to-blue-600/30 border border-cyan-400/50 text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.4)] group-hover:border-cyan-300 group-hover:scale-105 transition-all shrink-0">
+              <FolderLock size={15} className="text-cyan-200 drop-shadow-[0_0_4px_rgba(34,211,238,0.8)]" />
+            </div>
 
-              {/* Glowing Icon Core */}
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/40 via-cyan-500/30 to-blue-600/35 border border-cyan-300 text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.7),inset_0_1px_2px_rgba(255,255,255,0.5)] group-hover:scale-105 group-hover:border-white transition-all shrink-0">
-                <FolderLock size={16} className="text-cyan-100 drop-shadow-[0_0_8px_rgba(34,211,238,1)]" />
-              </div>
+            {/* Label */}
+            <span className="tracking-tight text-xs sm:text-[13px] font-bold text-white group-hover:text-cyan-200 transition-colors drop-shadow-sm whitespace-nowrap">
+              Cloud Drive
+            </span>
 
-              {/* Label */}
-              <span className="tracking-tight text-[13px] font-bold text-white group-hover:text-cyan-100 transition-colors drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                Cloud Drive
-              </span>
-
-              {/* Micro Arrow */}
-              <ArrowUpRight
-                size={14}
-                className="text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,1)] group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"
-              />
-            </Link>
-          </div>
+            {/* Micro Arrow */}
+            <ArrowUpRight
+              size={13}
+              className="text-cyan-400/80 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"
+            />
+          </Link>
 
           {/* 2. Creation Vault Button */}
-          <div className="relative group inline-flex">
-            {/* Radiant Exterior Aura */}
-            <div className="pointer-events-none absolute -inset-1 rounded-2xl bg-gradient-to-r from-purple-500/60 via-fuchsia-500/50 to-violet-500/40 blur-md opacity-75 group-hover:opacity-100 group-hover:blur-lg transition-all duration-300" />
+          <Link
+            href="/history"
+            className="group relative z-0 hover:z-10 isolate inline-flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-3.5 sm:pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#24113b]/95 via-[#170a27]/95 to-[#0c0316]/98 border border-purple-500/40 hover:border-purple-400 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_0_12px_rgba(168,85,247,0.15),0_2px_8px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.5),inset_0_0_16px_rgba(168,85,247,0.25),0_6px_20px_rgba(168,85,247,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 overflow-hidden cursor-pointer shrink-0 [transform:translateZ(0)]"
+          >
+            {/* Ambient Glass Shimmer Sweep */}
+            <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-purple-200/20 to-transparent skew-x-12" />
 
-            <Link
-              href="/history"
-              className="relative inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2.5 rounded-2xl bg-gradient-to-b from-[#2a1347]/95 via-[#1a0b30]/95 to-[#0f041d]/98 border border-purple-400/70 hover:border-purple-300 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),inset_0_0_16px_rgba(168,85,247,0.3),0_4px_20px_rgba(0,0,0,0.6),0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.65),inset_0_0_24px_rgba(168,85,247,0.5),0_8px_28px_rgba(168,85,247,0.55)] hover:scale-[1.02] active:scale-95 overflow-hidden backdrop-blur-xl cursor-pointer"
-            >
-              {/* Ambient Glass Shimmer Sweep */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-purple-200/25 to-transparent skew-x-12" />
+            {/* Glowing Icon Core */}
+            <div className="relative flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-400/30 via-fuchsia-500/20 to-violet-600/30 border border-purple-400/50 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.4)] group-hover:border-purple-300 group-hover:scale-105 transition-all shrink-0">
+              <History size={15} className="text-purple-200 drop-shadow-[0_0_4px_rgba(168,85,247,0.8)]" />
+            </div>
 
-              {/* Glowing Icon Core */}
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-purple-400/40 via-fuchsia-500/30 to-violet-600/35 border border-purple-300 text-purple-100 shadow-[0_0_16px_rgba(168,85,247,0.7),inset_0_1px_2px_rgba(255,255,255,0.5)] group-hover:scale-105 group-hover:border-white transition-all shrink-0">
-                <History size={16} className="text-purple-100 drop-shadow-[0_0_8px_rgba(168,85,247,1)]" />
-              </div>
+            {/* Label */}
+            <span className="tracking-tight text-xs sm:text-[13px] font-bold text-white group-hover:text-purple-200 transition-colors drop-shadow-sm whitespace-nowrap">
+              Creation Vault
+            </span>
 
-              {/* Label */}
-              <span className="tracking-tight text-[13px] font-bold text-white group-hover:text-purple-100 transition-colors drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                Creation Vault
-              </span>
-
-              {/* Micro Arrow */}
-              <ArrowUpRight
-                size={14}
-                className="text-purple-300 drop-shadow-[0_0_6px_rgba(168,85,247,1)] group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"
-              />
-            </Link>
-          </div>
+            {/* Micro Arrow */}
+            <ArrowUpRight
+              size={13}
+              className="text-purple-400/80 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"
+            />
+          </Link>
 
           {/* 3. Sparks Shop Button */}
-          <div className="relative group inline-flex">
-            {/* Radiant Exterior Aura */}
-            <div className="pointer-events-none absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-500/65 via-yellow-500/55 to-orange-500/45 blur-md opacity-75 group-hover:opacity-100 group-hover:blur-lg transition-all duration-300" />
+          <Link
+            href="/rewards"
+            className="group relative z-0 hover:z-10 isolate inline-flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-3.5 sm:pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#311b02]/95 via-[#201001]/95 to-[#100600]/98 border border-amber-500/40 hover:border-amber-400 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_0_12px_rgba(245,158,11,0.15),0_2px_8px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.5),inset_0_0_16px_rgba(245,158,11,0.25),0_6px_20px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 overflow-hidden cursor-pointer shrink-0 [transform:translateZ(0)]"
+          >
+            {/* Ambient Glass Shimmer Sweep */}
+            <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-amber-200/25 to-transparent skew-x-12" />
 
-            <Link
-              href="/rewards"
-              className="relative inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2.5 rounded-2xl bg-gradient-to-b from-[#3a2203]/95 via-[#261502]/95 to-[#140b01]/98 border border-amber-400/80 hover:border-amber-300 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),inset_0_0_16px_rgba(245,158,11,0.35),0_4px_20px_rgba(0,0,0,0.6),0_0_22px_rgba(245,158,11,0.45)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.65),inset_0_0_24px_rgba(245,158,11,0.55),0_8px_28px_rgba(245,158,11,0.6)] hover:scale-[1.02] active:scale-95 overflow-hidden backdrop-blur-xl cursor-pointer"
-            >
-              {/* Ambient Glass Shimmer Sweep */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-amber-200/30 to-transparent skew-x-12" />
+            {/* Glowing Icon Core */}
+            <div className="relative flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-400/35 via-yellow-500/25 to-orange-600/30 border border-amber-400/50 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.4)] group-hover:border-amber-300 group-hover:scale-105 transition-all shrink-0">
+              <SparkIcon size={15} variant="amber" animated />
+            </div>
 
-              {/* Glowing Icon Core */}
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/45 via-yellow-500/35 to-orange-600/40 border border-amber-300 text-amber-100 shadow-[0_0_18px_rgba(245,158,11,0.8),inset_0_1px_2px_rgba(255,255,255,0.5)] group-hover:scale-105 group-hover:border-white transition-all shrink-0">
-                <SparkIcon size={16} variant="amber" animated />
-              </div>
+            {/* Label */}
+            <span className="tracking-tight text-xs sm:text-[13px] font-bold text-amber-100 group-hover:text-amber-200 transition-colors drop-shadow-sm whitespace-nowrap">
+              Sparks Shop
+            </span>
 
-              {/* Label */}
-              <span className="tracking-tight text-[13px] font-extrabold text-amber-200 group-hover:text-amber-100 transition-colors drop-shadow-[0_1px_2px_rgba(0,0,0,0.9),0_0_10px_rgba(245,158,11,0.7)]">
-                Sparks Shop
-              </span>
+            {/* Micro Arrow */}
+            <ArrowUpRight
+              size={13}
+              className="text-amber-400/80 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"
+            />
+          </Link>
 
-              {/* Micro Arrow */}
-              <ArrowUpRight
-                size={14}
-                className="text-amber-300 drop-shadow-[0_0_6px_rgba(245,158,11,1)] group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"
-              />
-            </Link>
-          </div>
+          {/* Mobile Right Spacer for comfortable edge bleed scrolling */}
+          <div className="w-1 shrink-0 sm:hidden" aria-hidden="true" />
         </div>
       </motion.div>
 
@@ -235,13 +222,13 @@ export function PersonalizedHomeSection({
         {/* Flagship Continue Card */}
         <div
           className={cn(
-            "group relative rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 md:p-10 backdrop-blur-3xl transition-all duration-500 overflow-hidden touch-manipulation",
+            "group relative rounded-[1.75rem] sm:rounded-[2.5rem] p-4.5 sm:p-8 md:p-10 backdrop-blur-3xl transition-all duration-500 overflow-hidden touch-manipulation",
             "bg-gradient-to-b from-[#0e0f17]/95 via-[#0a0a10]/90 to-[#06060a]/95 border-2",
             continueStyle.cardBorder
           )}
         >
           {/* Continuous Hover Shine Sweep */}
-          <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden pointer-events-none z-10">
+          <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] overflow-hidden pointer-events-none z-10">
             <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/15 to-transparent" />
           </div>
 
@@ -272,11 +259,11 @@ export function PersonalizedHomeSection({
           </div>
 
           {/* Content Row */}
-          <div className="relative z-20 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
+          <div className="relative z-20 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-8">
             {/* Left: Icon Orb & Identity */}
-            <div className="flex items-start sm:items-center gap-5 sm:gap-6 min-w-0">
+            <div className="flex items-center gap-3.5 sm:gap-6 min-w-0 flex-1">
               {/* Conic Spinning Icon Box */}
-              <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl sm:rounded-[2rem] flex items-center justify-center relative overflow-hidden group-hover:rotate-6 group-hover:scale-105 transition-all duration-500 shadow-2xl shrink-0 bg-[#0b0c12] border border-white/10">
+              <div className="w-14 h-14 sm:w-22 sm:h-22 rounded-2xl sm:rounded-[2rem] flex items-center justify-center relative overflow-hidden group-hover:rotate-6 group-hover:scale-105 transition-all duration-500 shadow-2xl shrink-0 bg-[#0b0c12] border border-white/10">
                 <div
                   className={cn(
                     "absolute inset-0 blur-xl animate-pulse transition-colors duration-500",
@@ -295,32 +282,28 @@ export function PersonalizedHomeSection({
                 </div>
                 <ContinueToolIcon
                   className={cn(
-                    "w-9 h-9 sm:w-11 sm:h-11 transition-all duration-700 z-10 group-hover:scale-110",
+                    "w-7 h-7 sm:w-11 sm:h-11 transition-all duration-700 z-10 group-hover:scale-110",
                     continueStyle.iconGlow
                   )}
                 />
               </div>
 
               {/* Text & Activity Snippet */}
-              <div className="space-y-2.5 min-w-0">
-                <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span
                     className={cn(
-                      "text-[9.5px] font-black uppercase tracking-wider px-3 py-1 rounded-full border shadow-sm",
+                      "text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow-sm",
                       continueStyle.badge
                     )}
                   >
                     {continueUsing.tool?.category || "IMAGE"}
                   </span>
-                  <span className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
-                    <CheckCircle2 size={12} className="text-emerald-400" />
-                    <span>Engine Ready</span>
-                  </span>
                 </div>
 
                 <h3
                   className={cn(
-                    "text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-transparent bg-clip-text truncate pb-1.5 pt-0.5 leading-normal",
+                    "text-lg sm:text-2xl lg:text-3xl font-black tracking-tight text-transparent bg-clip-text break-words leading-tight sm:leading-snug",
                     continueStyle.textGrad
                   )}
                 >
@@ -329,9 +312,9 @@ export function PersonalizedHomeSection({
 
                 {/* Prompt Preview Terminal Box */}
                 {continueUsing.prompt ? (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black/60 border border-white/10 text-xs font-mono text-zinc-300 max-w-full backdrop-blur-xl shadow-inner">
-                    <Zap size={13} className="text-cyan-400 shrink-0 animate-pulse" />
-                    <span className="text-zinc-500 font-bold uppercase text-[9px] tracking-wider shrink-0">
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl bg-black/60 border border-white/10 text-[11px] sm:text-xs font-mono text-zinc-300 max-w-full backdrop-blur-xl shadow-inner">
+                    <Zap size={11} className="text-cyan-400 shrink-0 animate-pulse" />
+                    <span className="text-zinc-500 font-bold uppercase text-[8.5px] sm:text-[9px] tracking-wider shrink-0">
                       {continueUsing.isNewUser ? "Featured:" : "Recent:"}
                     </span>
                     <span className="truncate text-white font-medium">
@@ -346,21 +329,21 @@ export function PersonalizedHomeSection({
               </div>
             </div>
 
-            {/* Right: Big Full-Fidelity Launch Button */}
-            <div className="flex items-center gap-3 self-end lg:self-auto shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
+            {/* Right: Centered Full-Fidelity Launch Button */}
+            <div className="flex items-center self-stretch sm:self-end lg:self-auto shrink-0 w-full sm:w-auto pt-1 sm:pt-0">
               <Link
                 href={continueUsing.replayUrl}
                 prefetch={true}
                 className={cn(
-                  "w-full sm:w-auto min-h-12 py-3.5 sm:py-4 px-8 sm:px-10 rounded-full flex items-center justify-center gap-3 font-black uppercase tracking-[0.18em] text-xs sm:text-sm transition-all duration-500 relative overflow-hidden isolate transform-gpu group-hover:scale-[1.02] cursor-pointer",
+                  "w-full sm:w-auto min-h-11 sm:min-h-12 py-3 sm:py-3.5 px-6 sm:px-10 rounded-full flex items-center justify-center gap-2.5 font-black uppercase tracking-[0.14em] sm:tracking-[0.18em] text-xs sm:text-sm transition-all duration-500 relative overflow-hidden isolate transform-gpu group-hover:scale-[1.02] cursor-pointer shadow-lg active:scale-95 text-center",
                   continueStyle.buttonGrad
                 )}
               >
-                <Zap size={16} className="relative z-10 animate-pulse" />
-                <span className="relative z-10">
+                <Zap size={14} className="relative z-10 animate-pulse shrink-0" />
+                <span className="relative z-10 whitespace-nowrap text-center">
                   {continueUsing.isNewUser ? "Start Creating" : "Continue Session"}
                 </span>
-                <ArrowRight size={16} className="relative z-10 transition-transform duration-500 group-hover:translate-x-1" />
+                <ArrowRight size={14} className="relative z-10 transition-transform duration-500 group-hover:translate-x-1 shrink-0" />
               </Link>
             </div>
           </div>
@@ -659,7 +642,7 @@ export function PersonalizedHomeSection({
         transition={{ delay: 0.4, duration: 0.6 }}
         className="space-y-4"
       >
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center px-1">
           <div className="flex items-center gap-2.5">
             {/* Related Recommendations Compass Icon */}
             <div className="w-5 h-5 rounded-lg bg-cyan-400/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)]">
@@ -669,12 +652,6 @@ export function PersonalizedHomeSection({
               RECOMMENDED FOR YOU
             </span>
           </div>
-
-          <span className="text-[11px] font-bold text-zinc-400">
-            {recentlyUsed.length > 0
-              ? "Tailored dynamically to your studio activity"
-              : "Trending studio starter picks to jumpstart your workflow"}
-          </span>
         </div>
 
         {/* Activity-Tailored Cards Grid */}

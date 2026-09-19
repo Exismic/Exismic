@@ -598,7 +598,7 @@ export function GiftPurchaseModal({
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
                             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
-                              <Sparkles size={20} className="text-purple-300 fill-purple-400/20" />
+                              <Crown size={20} className="text-purple-200 fill-purple-400/30" />
                             </div>
                             <div>
                               <div className="flex items-center gap-2">

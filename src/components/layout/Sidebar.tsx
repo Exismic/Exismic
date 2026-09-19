@@ -988,31 +988,172 @@ export function Sidebar() {
     ? localGradientId
     : session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
 
+  const renderAccountBilling = (isMobile: boolean = false) => (
+    <div className={cn("space-y-2", isCompact && !isMobile ? "p-2" : isMobile ? "px-1 py-1" : "p-2 sm:p-3")}>
+      {/* Real-time Credits Display Vault Card */}
+      {(!isCompact || isMobile) && (
+        <div className="block group/credits relative">
+          <div 
+            onClick={() => setIsBuyCreditsOpen(true)}
+            className="cursor-pointer relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#0c0d16]/90 via-[#07080f]/95 to-[#05060a]/98 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 hover:border-cyan-400/35 hover:shadow-[0_16px_40px_rgba(34,211,238,0.15),0_0_20px_rgba(168,85,247,0.12)] hover:-translate-y-0.5 active:scale-[0.99]"
+          >
+            {/* Background Neon Plasma Bloom */}
+            <div className="pointer-events-none absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-purple-500/15 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-60" />
+            <div className="pointer-events-none absolute -bottom-10 -left-10 w-24 h-24 bg-gradient-to-tr from-purple-600/15 via-blue-600/10 to-transparent rounded-full blur-xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-40" />
+
+            {/* Shimmer Light Sweep on Hover */}
+            <div className="pointer-events-none absolute inset-y-0 -left-20 w-16 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/20 to-transparent blur-[2px] transition-transform duration-1000 ease-out group-hover/credits:translate-x-[500px]" />
+
+            {/* Top Header Row: Core & Status Badge */}
+            <div className="relative flex items-center justify-between z-10 mb-2">
+              <div className="flex items-center gap-2">
+                <CreditTokenIcon size="sm" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-hover/credits:text-zinc-200 transition-colors">
+                    CREDIT SHOP
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
+                </div>
+              </div>
+
+              {/* Right Badge / Action */}
+              {!isProLoading && isPro ? (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-200 text-[8.5px] font-black uppercase tracking-wider shadow-[0_0_10px_rgba(168,85,247,0.25)]">
+                  <Crown size={9} className="text-amber-300" fill="currentColor" />
+                  <span>PRO</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsBuyCreditsOpen(true);
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400/15 hover:bg-amber-400/30 active:scale-95 border border-amber-300/30 text-amber-200 text-[8.5px] font-black uppercase tracking-wider transition-all shadow-[0_0_10px_rgba(245,158,11,0.2)] cursor-pointer"
+                >
+                  <span>+ TOP UP</span>
+                </button>
+              )}
+            </div>
+
+            {/* Main Balance Display Row */}
+            <div className="relative z-10 flex items-baseline justify-between mb-1.5">
+              <div className="flex items-baseline gap-1.5">
+                <h4 className="text-xl font-black tracking-tight text-white leading-none drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]">
+                  {isCreditsLoading ? "..." : credits.toLocaleString()}
+                </h4>
+                <span className="text-[9.5px] font-extrabold tracking-wider uppercase text-cyan-300/80 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]">
+                  available
+                </span>
+              </div>
+
+              <Link
+                href="/shop"
+                prefetch={true}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMobileOpen(false);
+                }}
+                className="text-[9.5px] text-zinc-500 hover:text-cyan-300 transition-colors flex items-center gap-0.5 font-bold cursor-pointer"
+              >
+                <span>{isPro ? "Vault" : "Refill"}</span>
+                <ArrowRight size={10} className="transition-transform group-hover/credits:translate-x-0.5" />
+              </Link>
+            </div>
+
+            {/* Bottom Micro Meter / Status Pill */}
+            <div className="relative z-10 pt-1.5 border-t border-white/[0.05] flex items-center justify-between text-[9px] text-zinc-400 font-semibold">
+              <div className="flex items-center gap-1.5">
+                <Flame size={10} className={(dailyStreak ?? 0) > 0 ? "text-amber-400" : "text-zinc-500"} />
+                <span>{(dailyStreak ?? 0) > 0 ? `${dailyStreak} day streak` : "Daily active"}</span>
+              </div>
+              
+              {countdown && (
+                <div className="flex items-center gap-1 text-[8.5px] text-zinc-500 font-mono">
+                  <Clock size={8.5} />
+                  <span>{countdown}</span>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Ultra Premium Animated Upgrade Button */}
+      {(!isCompact || isMobile) && !isProLoading && !isPro && (
+        <Link href="/pro" prefetch={true} onClick={() => setMobileOpen(false)} className="block w-full relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-500 rounded-full blur-[8px] opacity-60 group-hover:opacity-100 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="relative w-full py-2.5 rounded-full bg-zinc-950/90 backdrop-blur-xl border border-white/20 text-xs font-black uppercase tracking-[0.2em] overflow-hidden"
+          >
+            <motion.div
+              animate={{ x: ["-200%", "200%"] }}
+              transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 0.5 }}
+              className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]"
+            />
+
+            <span className="relative z-10 flex items-center justify-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <Crown size={13} className="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+              <span className="bg-gradient-to-r from-amber-100 via-white to-amber-200 bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+                UPGRADE TO PRO
+              </span>
+            </span>
+          </motion.button>
+        </Link>
+      )}
+
+      {/* Elegant User Account Footer */}
+      <UserProfile 
+        fullName={fullName} 
+        email={session?.user?.email} 
+        avatarUrl={dbUser?.custom_avatar_url || session?.user?.user_metadata?.avatar_url}
+        isPro={isPro} 
+        frameId={frameId}
+        gradientId={gradientId}
+        variant="sidebar" 
+        isCompact={isMobile ? false : isCompact}
+      />
+    </div>
+  );
+
   return (
     <>
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {isOpen && (
           <>
             {/* Backdrop for mobile */}
             {isMobileOpen && (
               <motion.div 
+                 key="mobile-sidebar-backdrop"
                  suppressHydrationWarning
                  initial={{ opacity: 0 }}
                  animate={{ opacity: 1 }}
                  exit={{ opacity: 0 }}
+                 transition={{ duration: 0.2 }}
                  onClick={() => setMobileOpen(false)}
-                 className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[135] lg:hidden"
+                 onTouchEnd={(e) => {
+                   e.preventDefault();
+                   setMobileOpen(false);
+                 }}
+                 className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[135] lg:hidden"
               />
             )}
             
             <motion.aside 
+              key="mobile-sidebar-aside"
               suppressHydrationWarning
-              initial={{ x: isDesktop ? 0 : -300, opacity: isDesktop ? 1 : 0 }}
+              initial={{ x: isDesktop ? 0 : -320, opacity: isDesktop ? 1 : 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: isDesktop ? 0 : -300, opacity: isDesktop ? 1 : 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              exit={{ x: isDesktop ? 0 : -320, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.8 }}
+              style={{ willChange: isDesktop ? "auto" : "transform" }}
               className={cn(
-                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full transition-[width,transform] duration-300 ease-in-out shrink-0 overflow-hidden",
+                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/95 backdrop-blur-md lg:backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full lg:transition-[width] lg:duration-300 shrink-0 overflow-hidden",
                 isFocusMode ? "hidden" : isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
               )}
             >
@@ -1051,8 +1192,12 @@ export function Sidebar() {
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      setMobileOpen(false);
+                    }}
                     aria-label="Close navigation"
-                    className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0 ml-2"
+                    className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0 ml-2 touch-manipulation"
                   >
                     <X size={18} />
                   </button>
@@ -1165,140 +1310,17 @@ export function Sidebar() {
                          onClick={() => setMobileOpen(false)}
                        />
                      </motion.div>
+
+                    {/* On mobile: Account & Billing flows seamlessly right below Ecosystem with zero random gap */}
+                    <div className="lg:hidden pt-2 border-t border-white/[0.08] mt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-1">
+                      {renderAccountBilling(true)}
+                    </div>
                   </LayoutGroup>
                 </nav>
 
-                {/* Account & Billing Section - Fixed Pinned Bottom Footer */}
-                <div className={cn("border-t border-white/[0.06] bg-[#07070a]/95 backdrop-blur-2xl relative z-20 space-y-2 shrink-0", isCompact ? "p-2" : "p-3")}>
-                  {/* Real-time Credits Display Vault Card */}
-                  {!isCompact && (
-                    <div className="block group/credits relative">
-                      <div 
-                        onClick={() => setIsBuyCreditsOpen(true)}
-                        className="cursor-pointer relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#0c0d16]/90 via-[#07080f]/95 to-[#05060a]/98 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 hover:border-cyan-400/35 hover:shadow-[0_16px_40px_rgba(34,211,238,0.15),0_0_20px_rgba(168,85,247,0.12)] hover:-translate-y-0.5 active:scale-[0.99]"
-                      >
-                        
-                        {/* Background Neon Plasma Bloom */}
-                        <div className="pointer-events-none absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-purple-500/15 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-60" />
-                        <div className="pointer-events-none absolute -bottom-10 -left-10 w-24 h-24 bg-gradient-to-tr from-purple-600/15 via-blue-600/10 to-transparent rounded-full blur-xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-40" />
-
-                        {/* Shimmer Light Sweep on Hover */}
-                        <div className="pointer-events-none absolute inset-y-0 -left-20 w-16 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/20 to-transparent blur-[2px] transition-transform duration-1000 ease-out group-hover/credits:translate-x-[500px]" />
-
-                        {/* Top Header Row: Core & Status Badge */}
-                        <div className="relative flex items-center justify-between z-10 mb-2">
-                          <div className="flex items-center gap-2">
-                            <CreditTokenIcon size="sm" />
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-hover/credits:text-zinc-200 transition-colors">
-                                CREDIT SHOP
-                              </span>
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
-                            </div>
-                          </div>
-
-                          {/* Right Badge / Action */}
-                          {!isProLoading && isPro ? (
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-200 text-[8.5px] font-black uppercase tracking-wider shadow-[0_0_10px_rgba(168,85,247,0.25)]">
-                              <Crown size={9} className="text-amber-300" fill="currentColor" />
-                              <span>PRO</span>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setIsBuyCreditsOpen(true);
-                              }}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400/15 hover:bg-amber-400/30 active:scale-95 border border-amber-300/30 text-amber-200 text-[8.5px] font-black uppercase tracking-wider transition-all shadow-[0_0_10px_rgba(245,158,11,0.2)] cursor-pointer"
-                            >
-                              <span>+ TOP UP</span>
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Main Balance Display Row */}
-                        <div className="relative z-10 flex items-baseline justify-between mb-1.5">
-                          <div className="flex items-baseline gap-1.5">
-                            <h4 className="text-xl font-black tracking-tight text-white leading-none drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]">
-                              {isCreditsLoading ? "..." : credits.toLocaleString()}
-                            </h4>
-                            <span className="text-[9.5px] font-extrabold tracking-wider uppercase text-cyan-300/80 drop-shadow-[0_0_6px_rgba(34,211,238,0.4)]">
-                              available
-                            </span>
-                          </div>
-
-                          <Link
-                            href="/shop"
-                            prefetch={true}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMobileOpen(false);
-                            }}
-                            className="text-[9.5px] text-zinc-500 hover:text-cyan-300 transition-colors flex items-center gap-0.5 font-bold cursor-pointer"
-                          >
-                            <span>{isPro ? "Vault" : "Refill"}</span>
-                            <ArrowRight size={10} className="transition-transform group-hover/credits:translate-x-0.5" />
-                          </Link>
-                        </div>
-
-                        {/* Bottom Micro Meter / Status Pill */}
-                        <div className="relative z-10 pt-1.5 border-t border-white/[0.05] flex items-center justify-between text-[9px] text-zinc-400 font-semibold">
-                          <div className="flex items-center gap-1.5">
-                            <Flame size={10} className={(dailyStreak ?? 0) > 0 ? "text-amber-400" : "text-zinc-500"} />
-                            <span>{(dailyStreak ?? 0) > 0 ? `${dailyStreak} day streak` : "Daily active"}</span>
-                          </div>
-                          
-                          {countdown && (
-                            <div className="flex items-center gap-1 text-[8.5px] text-zinc-500 font-mono">
-                              <Clock size={8.5} />
-                              <span>{countdown}</span>
-                            </div>
-                          )}
-                        </div>
-
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Ultra Premium Animated Upgrade Button */}
-                  {!isCompact && !isProLoading && !isPro && (
-                    <Link href="/pro" prefetch={true} onClick={() => setMobileOpen(false)} className="block w-full relative group">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-500 rounded-full blur-[8px] opacity-60 group-hover:opacity-100 transition duration-1000 animate-gradient-x bg-[length:200%_auto]" />
-                      
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.96 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className="relative w-full py-2.5 rounded-full bg-zinc-950/90 backdrop-blur-xl border border-white/20 text-xs font-black uppercase tracking-[0.2em] overflow-hidden"
-                      >
-                        <motion.div
-                          animate={{ x: ["-200%", "200%"] }}
-                          transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 0.5 }}
-                          className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]"
-                        />
-
-                        <span className="relative z-10 flex items-center justify-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                          <Crown size={13} className="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-                          <span className="bg-gradient-to-r from-amber-100 via-white to-amber-200 bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
-                            UPGRADE TO PRO
-                          </span>
-                        </span>
-                      </motion.button>
-                    </Link>
-                  )}
-
-                  {/* Elegant User Account Footer */}
-                  <UserProfile 
-                    fullName={fullName} 
-                    email={session?.user?.email} 
-                    avatarUrl={dbUser?.custom_avatar_url || session?.user?.user_metadata?.avatar_url}
-                    isPro={isPro} 
-                    frameId={frameId}
-                    gradientId={gradientId}
-                    variant="sidebar" 
-                    isCompact={isCompact}
-                  />
+                {/* Desktop Pinned Bottom Footer */}
+                <div className="hidden lg:block border-t border-white/[0.06] bg-[#07070a]/95 backdrop-blur-2xl relative z-20 shrink-0">
+                  {renderAccountBilling(false)}
                 </div>
               </div>
             </motion.aside>

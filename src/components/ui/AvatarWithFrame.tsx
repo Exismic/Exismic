@@ -441,11 +441,19 @@ export function AvatarWithFrame({
           )}
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName || "Avatar"} className="w-full h-full object-cover relative z-10" />
+            <img
+              src={avatarUrl}
+              alt={displayName || "Avatar"}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover relative z-10"
+            />
           ) : (
             <img
               src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(displayName || "User")}&backgroundColor=0b0b14`}
               alt={displayName || "Avatar"}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover relative z-10"
             />
           )}

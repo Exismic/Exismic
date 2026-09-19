@@ -674,7 +674,7 @@ export function LandingPage() {
                   <div className="relative p-[1.5px] rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-400 shadow-[0_0_35px_rgba(168,85,247,0.45)] hover:shadow-[0_0_55px_rgba(168,85,247,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300">
                     <button className="w-full h-15 sm:h-16 px-8 rounded-[14.5px] bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 flex items-center justify-center gap-2.5 text-white font-black uppercase tracking-[0.2em] text-xs sm:text-[13px] relative overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.45)] whitespace-nowrap cursor-pointer">
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-out" />
-                      <Sparkles size={16} className="text-white shrink-0" />
+                      <Zap size={16} className="text-white shrink-0 fill-white/20" />
                       <span className="relative z-10">Start Creating Free</span>
                     </button>
                   </div>

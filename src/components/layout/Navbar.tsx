@@ -1034,19 +1034,19 @@ export function Navbar() {
                                   setUserDropdownOpen(false);
                                   setIsDailyRewardOpen(true);
                                 }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-orange-200 hover:text-white bg-gradient-to-r from-orange-500/[0.08] to-transparent hover:from-orange-500/20 hover:to-orange-500/5 border border-orange-400/20 hover:border-orange-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropvault shadow-[0_0_15px_rgba(249,115,22,0.06)] hover:shadow-[0_0_25px_rgba(249,115,22,0.2)]"
+                                className="w-full flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2.5 rounded-xl text-orange-200 hover:text-white bg-gradient-to-r from-orange-500/[0.08] to-transparent hover:from-orange-500/20 hover:to-orange-500/5 border border-orange-400/20 hover:border-orange-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/dropvault shadow-[0_0_15px_rgba(249,115,22,0.06)] hover:shadow-[0_0_25px_rgba(249,115,22,0.2)]"
                               >
                                 <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-300 group-hover/dropvault:scale-110 transition-transform shrink-0">
                                   <Flame size={13} className="text-orange-300 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]" />
                                 </div>
-                                <span className="font-sans font-black tracking-wider bg-gradient-to-r from-orange-100 to-amber-300 bg-clip-text text-transparent">Daily Mystery Vault</span>
+                                <span className="font-sans font-black tracking-wider bg-gradient-to-r from-orange-100 to-amber-300 bg-clip-text text-transparent whitespace-nowrap truncate min-w-0 flex-1">Daily Mystery Vault</span>
                                 {!todayClaim ? (
-                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1">
+                                  <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1.5">
                                     <Gift size={9} className="shrink-0 text-black fill-black/20" />
-                                    CLAIM DROP
+                                    <span>CLAIM DROP</span>
                                   </span>
                                 ) : (
-                                  <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
+                                  <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
                                     {dailyStreak}D STREAK
                                   </span>
                                 )}
@@ -1444,19 +1444,21 @@ export function Navbar() {
                           setUserDropdownOpen(false);
                           setIsDailyRewardOpen(true);
                         }}
-                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10.5px] font-black uppercase tracking-[0.13em] text-orange-200 bg-gradient-to-r from-orange-500/[0.12] to-amber-500/[0.04] active:bg-orange-400/20 border border-orange-400/30 transition-all text-left shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                        className="flex min-h-12 items-center gap-2.5 sm:gap-3 rounded-2xl px-3 sm:px-4 text-[10px] sm:text-[10.5px] font-black uppercase tracking-[0.08em] sm:tracking-[0.13em] text-orange-200 bg-gradient-to-r from-orange-500/[0.12] to-amber-500/[0.04] active:bg-orange-400/20 border border-orange-400/30 transition-all text-left shadow-[0_0_15px_rgba(249,115,22,0.1)]"
                       >
                         <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-400/40 text-orange-400 shrink-0">
                           <Flame size={15} className="text-orange-400 drop-shadow-[0_0_6px_rgba(249,115,22,0.8)]" />
                         </div>
-                        <span className="bg-gradient-to-r from-orange-100 to-amber-200 bg-clip-text text-transparent font-black">Daily Mystery Vault</span>
+                        <span className="bg-gradient-to-r from-orange-100 to-amber-200 bg-clip-text text-transparent font-black whitespace-nowrap truncate min-w-0 flex-1">
+                          Daily Mystery Vault
+                        </span>
                         {!todayClaim ? (
-                          <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 text-black animate-pulse font-mono shadow-[0_0_10px_rgba(249,115,22,0.8)] flex items-center gap-1">
+                          <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 text-black shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse font-mono flex items-center gap-1.5">
                             <Gift size={9} className="shrink-0 text-black fill-black/20" />
-                            CLAIM DROP
+                            <span>CLAIM DROP</span>
                           </span>
                         ) : (
-                          <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
+                          <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-orange-400/15 text-orange-300 border border-orange-400/25">
                             {dailyStreak}D STREAK
                           </span>
                         )}
@@ -1467,23 +1469,25 @@ export function Navbar() {
                           setUserDropdownOpen(false);
                           setIsQuestsModalOpen(true);
                         }}
-                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10.5px] font-black uppercase tracking-[0.13em] text-amber-200 bg-gradient-to-r from-amber-500/[0.08] to-transparent active:bg-amber-400/20 border border-amber-400/20 transition-all text-left shadow-[0_0_15px_rgba(245,158,11,0.06)]"
+                        className="flex min-h-12 items-center gap-2.5 sm:gap-3 rounded-2xl px-3 sm:px-4 text-[10px] sm:text-[10.5px] font-black uppercase tracking-[0.08em] sm:tracking-[0.13em] text-amber-200 bg-gradient-to-r from-amber-500/[0.08] to-transparent active:bg-amber-400/20 border border-amber-400/20 transition-all text-left shadow-[0_0_15px_rgba(245,158,11,0.06)]"
                       >
                         <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 shrink-0">
                           <Trophy size={15} className="text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
                         </div>
-                        <span className="bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent font-black">Quests & Rewards</span>
+                        <span className="bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent font-black whitespace-nowrap truncate min-w-0 flex-1">
+                          Quests & Rewards
+                        </span>
                         {unclaimedCount > 0 ? (
-                          <span className="ml-auto text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 animate-pulse font-mono shadow-[0_0_10px_rgba(245,158,11,0.8)] flex items-center gap-1">
+                          <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-pulse font-mono flex items-center gap-1.5">
                             <Gift size={9} className="shrink-0 text-amber-950" />
-                            +{unclaimedCount} READY
+                            <span>+{unclaimedCount} READY</span>
                           </span>
                         ) : completedCount === totalAvailable && totalAvailable > 0 ? (
-                          <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                             COMPLETED
                           </span>
                         ) : (
-                          <span className="ml-auto text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/25">
+                          <span className="ml-auto shrink-0 whitespace-nowrap text-[8.5px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/25">
                             {completedCount}/{totalAvailable}
                           </span>
                         )}

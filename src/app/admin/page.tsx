@@ -51,6 +51,7 @@ import {
   Award,
   WalletCards,
   ShieldCheck,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -265,6 +266,26 @@ interface ReferralLog {
   referred: {
     name: string | null;
     email: string | null;
+  };
+}
+
+interface PendingDeletionUser {
+  id: string;
+  name: string | null;
+  username: string | null;
+  email: string | null;
+  image: string | null;
+  status: string;
+  plan: string;
+  createdAt: string;
+  deletionRequestedAt: string | null;
+  scheduledDeletionAt: string | null;
+  deletionRecoveryRequested: boolean;
+  deletionRecoveryReason: string | null;
+  _count?: {
+    files: number;
+    chatSessions: number;
+    jobs: number;
   };
 }
 
@@ -508,6 +529,53 @@ export default function AdminPage() {
   const [configs, setConfigs] = useState<Record<string, string>>({});
   const [updatingConfigKey, setUpdatingConfigKey] = useState<string | null>(null);
 
+  // Pending Deletions Tab State
+  const [pendingDeletions, setPendingDeletions] = useState<PendingDeletionUser[]>([]);
+  const [loadingPendingDeletions, setLoadingPendingDeletions] = useState(false);
+  const [actioningDeletionId, setActioningDeletionId] = useState<string | null>(null);
+  const [deletionActionFeedback, setDeletionActionFeedback] = useState<string | null>(null);
+
+  async function loadPendingDeletions() {
+    setLoadingPendingDeletions(true);
+    try {
+      const res = await fetch("/api/admin/pending-deletions");
+      const data = await res.json();
+      if (res.ok && data.pendingUsers) {
+        setPendingDeletions(data.pendingUsers);
+      }
+    } catch (err) {
+      console.error("Failed to load pending deletions:", err);
+    } finally {
+      setLoadingPendingDeletions(false);
+    }
+  }
+
+  async function handlePendingDeletionAction(userId: string, action: "restore" | "purge") {
+    if (action === "purge") {
+      const confirmed = confirm("Are you completely sure? This will immediately and permanently erase this account, all storage files, and all project records forever. This CANNOT be undone.");
+      if (!confirmed) return;
+    }
+
+    setActioningDeletionId(userId);
+    setDeletionActionFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/pending-deletions/${userId}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Action failed.");
+      setDeletionActionFeedback(data.message);
+      await loadPendingDeletions();
+      await loadUsers(userPage, userSearch, userPlanFilter, userRoleFilter);
+    } catch (err: any) {
+      alert(err.message || "Failed to execute action.");
+    } finally {
+      setActioningDeletionId(null);
+    }
+  }
+
   // Gift Cards Queue Tab State
   const [giftCardQueue, setGiftCardQueue] = useState<any[]>([]);
   const [loadingGiftCards, setLoadingGiftCards] = useState(false);
@@ -634,6 +702,8 @@ export default function AdminPage() {
           await loadUsers(1, "", "all", "all");
           // Preload configs so maintenance status is instantly visible
           await loadConfigs();
+          // Preload pending deletions so badge count is visible
+          await loadPendingDeletions();
         }
       } catch (error) {
         console.error("Failed to load admin stats:", error);
@@ -670,6 +740,8 @@ export default function AdminPage() {
       loadConfigs();
     } else if (activeTab === "tool_errors") {
       loadToolErrors(toolErrorPage, toolErrorSearch, toolErrorToolFilter, toolErrorStatusFilter);
+    } else if (activeTab === "pending_deletions") {
+      loadPendingDeletions();
     }
   }, [
     activeTab, 
@@ -1298,6 +1370,12 @@ export default function AdminPage() {
               >
                 {[
                   { id: "users", label: "Users Directory", icon: Users },
+                  { 
+                    id: "pending_deletions", 
+                    label: pendingDeletions.length > 0 ? `Pending Deletions (${pendingDeletions.length})` : "Pending Deletions", 
+                    icon: Trash2,
+                    highlight: pendingDeletions.some((u) => u.deletionRecoveryRequested)
+                  },
                   { 
                     id: "config", 
                     label: configs.maintenance_mode === "true" ? "System Config (Locked)" : "System Config & Maintenance", 
@@ -3374,6 +3452,194 @@ export default function AdminPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* TAB: PENDING DELETIONS & ACCOUNT SAFETY */}
+              {activeTab === "pending_deletions" && (
+                <div className="space-y-6">
+                  {/* Top Stats Overview */}
+                  <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="p-6 rounded-3xl bg-[#0b0c12]/60 border border-white/5 relative overflow-hidden group hover:border-amber-500/30 transition-all">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500 block mb-3">Pending Deletions</span>
+                      <h3 className="text-3xl font-black text-amber-400 italic tracking-tight">{pendingDeletions.length}</h3>
+                      <p className="text-[10px] text-zinc-500 font-semibold mt-1">In 7-day safety period</p>
+                    </div>
+                    <div className="p-6 rounded-3xl bg-[#0b0c12]/60 border border-white/5 relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500 block mb-3">Recovery Requests</span>
+                      <h3 className="text-3xl font-black text-emerald-400 italic tracking-tight">
+                        {pendingDeletions.filter(u => u.deletionRecoveryRequested).length}
+                      </h3>
+                      <p className="text-[10px] text-zinc-500 font-semibold mt-1">Users asked to keep their account</p>
+                    </div>
+                    <div className="p-6 rounded-3xl bg-[#0b0c12]/60 border border-white/5 relative overflow-hidden group hover:border-purple-500/30 transition-all">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500 block mb-3">Auto-Purge Policy</span>
+                      <h3 className="text-3xl font-black text-white italic tracking-tight">7 Days</h3>
+                      <p className="text-[10px] text-zinc-500 font-semibold mt-1">Unclaimed accounts wiped forever</p>
+                    </div>
+                  </section>
+
+                  {/* Feedback toast if action was taken */}
+                  {deletionActionFeedback && (
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-bold">
+                        <CheckCircle2 size={16} /> {deletionActionFeedback}
+                      </div>
+                      <button onClick={() => setDeletionActionFeedback(null)} className="text-zinc-400 hover:text-white">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Header & Refresh */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Pending Account Deletions</h3>
+                      <p className="text-xs text-zinc-400">
+                        Review creators who requested deletion. You can restore accounts upon request or force an immediate purge.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={loadPendingDeletions}
+                      disabled={loadingPendingDeletions}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-xs font-black uppercase tracking-wider text-zinc-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      <RefreshCw size={13} className={cn(loadingPendingDeletions && "animate-spin")} />
+                      <span>Refresh Queue</span>
+                    </button>
+                  </div>
+
+                  {/* Table / List */}
+                  <div className="border border-white/5 bg-[#0b0c12]/40 rounded-[2rem] overflow-hidden backdrop-blur-md">
+                    {loadingPendingDeletions ? (
+                      <div className="p-12 text-center text-zinc-500 space-y-2">
+                        <Loader2 size={24} className="animate-spin mx-auto text-amber-400" />
+                        <p className="text-xs font-bold uppercase tracking-wider">Loading pending deletions...</p>
+                      </div>
+                    ) : pendingDeletions.length === 0 ? (
+                      <div className="p-16 text-center space-y-3">
+                        <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                          <CheckCircle2 size={28} />
+                        </div>
+                        <h4 className="text-base font-black uppercase italic tracking-tight text-white">No Accounts Pending Deletion</h4>
+                        <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                          There are currently no accounts queued for deletion. All creator profiles are in good standing.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-white/5 bg-white/[0.01]">
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Creator</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Requested On</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Scheduled Deletion</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Recovery Status</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500">Data Impact</th>
+                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-zinc-500 text-right">Moderation Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {pendingDeletions.map((u) => {
+                              const scheduledAt = u.scheduledDeletionAt ? new Date(u.scheduledDeletionAt) : null;
+                              const diffMs = scheduledAt ? scheduledAt.getTime() - Date.now() : 0;
+                              const daysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+                              const isActioning = actioningDeletionId === u.id;
+
+                              return (
+                                <tr key={u.id} className="hover:bg-white/[0.015] transition-colors">
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      {u.image ? (
+                                        <img src={u.image} alt={u.name || ""} className="w-9 h-9 rounded-full border border-white/10" />
+                                      ) : (
+                                        <div className="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-black">
+                                          {u.name ? u.name[0]?.toUpperCase() : "U"}
+                                        </div>
+                                      )}
+                                      <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-white leading-tight">{u.name || "Explorer"}</span>
+                                        <span className="text-[11px] text-zinc-400 font-semibold">{u.email}</span>
+                                        {u.username && (
+                                          <span className="text-[10px] text-zinc-500 font-mono">@{u.username}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-xs text-zinc-400 whitespace-nowrap">
+                                    {u.deletionRequestedAt ? new Date(u.deletionRequestedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="space-y-1">
+                                      <span className="text-xs font-semibold text-white block">
+                                        {scheduledAt ? scheduledAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                                      </span>
+                                      <span className={cn(
+                                        "inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                                        daysLeft <= 1 
+                                          ? "bg-rose-500/15 border border-rose-500/30 text-rose-300"
+                                          : "bg-amber-500/15 border border-amber-500/30 text-amber-300"
+                                      )}>
+                                        {daysLeft === 0 ? "Expires Today" : `${daysLeft} days left`}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    {u.deletionRecoveryRequested ? (
+                                      <div className="space-y-1.5 max-w-xs">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                                          <CheckCircle2 size={11} /> Recovery Requested
+                                        </span>
+                                        {u.deletionRecoveryReason && (
+                                          <p className="text-[11px] text-zinc-300 italic bg-white/[0.02] border border-white/5 p-2 rounded-xl">
+                                            &ldquo;{u.deletionRecoveryReason}&rdquo;
+                                          </p>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="inline-flex px-2.5 py-0.5 rounded-full bg-white/5 border border-white/5 text-zinc-500 text-[10px] font-semibold uppercase tracking-wider">
+                                        No Request Yet
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-4 text-xs text-zinc-400 whitespace-nowrap">
+                                    <div className="space-y-0.5 text-[11px]">
+                                      <div><span className="font-bold text-white">{u._count?.files || 0}</span> files</div>
+                                      <div><span className="font-bold text-white">{u._count?.chatSessions || 0}</span> chats</div>
+                                      <div><span className="font-bold text-white">{u._count?.jobs || 0}</span> jobs</div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button
+                                        onClick={() => handlePendingDeletionAction(u.id, "restore")}
+                                        disabled={isActioning}
+                                        className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black text-emerald-300 text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                        title="Revoke deletion and restore account"
+                                      >
+                                        <RotateCcw size={12} />
+                                        <span>Restore Account</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handlePendingDeletionAction(u.id, "purge")}
+                                        disabled={isActioning}
+                                        className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 hover:text-white text-rose-400 text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                        title="Permanently erase now"
+                                      >
+                                        <Trash2 size={12} />
+                                        <span>Purge Now</span>
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

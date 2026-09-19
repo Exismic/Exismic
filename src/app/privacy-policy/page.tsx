@@ -15,7 +15,8 @@ import {
   RefreshCcw,
   Sparkles,
   Users,
-  FileText
+  FileText,
+  Server
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -59,12 +60,12 @@ const SECTIONS = [
   },
   {
     id: "rights",
-    title: "5. User Rights (GDPR & CCPA)",
+    title: "5. User Rights & 7-Day Safety Deletion",
     icon: <UserCheck size={24} />,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
     glow: "shadow-[0_0_30px_rgba(96,165,250,0.3)]",
-    content: "Under GDPR, CCPA, and global privacy laws, you maintain full control over your personal information. You have the right to request a complete copy of your data, update your account information, or request permanent deletion of your account at any time."
+    content: "Under GDPR, CCPA, and global privacy standards, you have the right to access your data or delete your account at any time. When you choose to delete your account, we place it in a 7-day safety period so you have time to change your mind. If you do not ask to recover it within 7 days, your account and all associated creations are permanently erased forever."
   },
   {
     id: "cookies",
@@ -76,8 +77,17 @@ const SECTIONS = [
     content: "We use essential cookies strictly required for secure authentication and session management. We do not use invasive cross-site tracking cookies. You may manage or disable non-essential cookies via your browser settings."
   },
   {
+    id: "storage-location",
+    title: "7. Where Your Data Is Stored",
+    icon: <Server size={24} />,
+    color: "text-cyan-400",
+    bg: "bg-cyan-400/10",
+    glow: "shadow-[0_0_30px_rgba(34,211,238,0.3)]",
+    content: "We believe everyone deserves to understand where their data physically lives without complicated jargon. Your account details and profile are stored in secure cloud databases managed by Supabase and hosted within Amazon Web Services (AWS) data centers. Website pages and media are delivered worldwide through Vercel's global network. We NEVER store credit cards or banking passwords; all payments are processed directly by certified payment processors (Razorpay and PayPal) using bank-level security."
+  },
+  {
     id: "third-parties",
-    title: "7. Infrastructure Partners",
+    title: "8. Infrastructure Partners",
     icon: <Globe size={24} />,
     color: "text-indigo-400",
     bg: "bg-indigo-400/10",
@@ -86,16 +96,16 @@ const SECTIONS = [
   },
   {
     id: "age",
-    title: "8. Age Requirement & Eligibility",
+    title: "9. Age Requirement & 13+ Eligibility",
     icon: <Users size={24} />,
     color: "text-teal-400",
     bg: "bg-teal-400/10",
     glow: "shadow-[0_0_30px_rgba(45,212,191,0.3)]",
-    content: "Exismic is intended for users who are at least 13 years of age (or 18 in jurisdictions where required for binding contracts). We do not knowingly collect personal information from children under 13."
+    content: "Exismic is designed for creators who are at least 13 years of age. Under child safety laws (including COPPA), users must confirm they are at least 13 years old when creating an account. We do not knowingly collect or maintain personal information from children under 13."
   },
   {
     id: "dmca",
-    title: "9. Copyright & Intellectual Property",
+    title: "10. Copyright & Intellectual Property",
     icon: <FileText size={24} />,
     color: "text-fuchsia-400",
     bg: "bg-fuchsia-400/10",
@@ -104,7 +114,7 @@ const SECTIONS = [
   },
   {
     id: "changes",
-    title: "10. Policy Updates",
+    title: "11. Policy Updates",
     icon: <RefreshCcw size={24} />,
     color: "text-zinc-400",
     bg: "bg-zinc-400/10",
