@@ -234,6 +234,20 @@ export default function AuthPage() {
   }, [deletedParam]);
 
   useEffect(() => {
+    const isPending = searchParams.get('pendingDeletion') === 'true';
+    if (isPending) {
+      const pendingEmail = searchParams.get('email') || '';
+      const scheduledAt = searchParams.get('scheduledAt') || null;
+      setPendingDeletionInfo({
+        email: pendingEmail,
+        scheduledDeletionAt: scheduledAt,
+        deletionRecoveryRequested: false,
+      });
+      setState('pendingDeletion');
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (errorParam === 'suspended') {
       setError("This account has been suspended due to violations of Exismic terms of service.");
       const supabase = createClient();
@@ -408,7 +422,18 @@ export default function AuthPage() {
     try {
       if (state === 'signin') {
         const result = await signInAction(formData);
-        if (result?.requireDeviceOtp) {
+        if (result?.isPendingDeletion) {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+          setPendingDeletionInfo({
+            email: result.email || formEmail,
+            scheduledDeletionAt: result.scheduledDeletionAt || null,
+            deletionRecoveryRequested: Boolean(result.deletionRecoveryRequested),
+          });
+          setState('pendingDeletion');
+          setIsLoading(false);
+          return;
+        } else if (result?.requireDeviceOtp) {
           setEmail(result.email || formEmail);
           setDeviceChallengeId(result.challengeId || "");
           setDeviceUnrecognizedName(result.deviceName || "Unrecognized Device");

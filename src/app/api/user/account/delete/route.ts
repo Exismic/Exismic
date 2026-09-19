@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/lib/notifications";
+import { sendAccountDeletionScheduledEmail } from "@/lib/emails";
 
 export async function POST(req: Request) {
   try {
@@ -62,7 +64,24 @@ export async function POST(req: Request) {
       },
     });
 
-    // Safely sign out the user session
+    // 1. Create In-App Notification
+    await createNotification(
+      dbUser.id,
+      "Account Scheduled for Deletion",
+      `Your account is scheduled for permanent deletion on ${scheduledDeletionAt.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}. You have 7 days to cancel or request recovery.`,
+      "warning"
+    );
+
+    // 2. Dispatch Confirmation Email
+    const targetEmail = dbUser.email || user.email;
+    if (targetEmail) {
+      void sendAccountDeletionScheduledEmail(targetEmail, {
+        scheduledDeletionAt,
+        username: dbUser.username,
+      }).catch((err) => console.error("[Account Deletion] Email send error:", err));
+    }
+
+    // 3. Safely sign out the user session
     await supabase.auth.signOut();
 
     return NextResponse.json({

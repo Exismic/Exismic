@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/lib/notifications";
+import { sendAccountRecoveryRequestedEmail } from "@/lib/emails";
 
 export async function POST(req: Request) {
   try {
@@ -46,6 +48,22 @@ export async function POST(req: Request) {
         deletionRecoveryReason: String(reason || "User requested account recovery").slice(0, 500),
       },
     });
+
+    // 1. In-app Notification
+    await createNotification(
+      userId,
+      "Account Recovery Requested",
+      "We received your request to restore your account. Deletion is paused while our team processes it.",
+      "success"
+    );
+
+    // 2. Dispatch Confirmation Email
+    const targetEmail = dbUser.email || (email ? String(email).trim().toLowerCase() : null);
+    if (targetEmail) {
+      void sendAccountRecoveryRequestedEmail(targetEmail).catch((err) =>
+        console.error("[Account Recovery] Email send error:", err)
+      );
+    }
 
     return NextResponse.json({
       success: true,

@@ -97,6 +97,10 @@ const RELEASES: Release[] = [
       {
         type: "sec",
         text: "Simple & Secure Account Recovery: Streamlined password reset and account verification screens with clearer guidance and quick copy helpers."
+      },
+      {
+        type: "sec",
+        text: "Account Deletion Safety & Notifications: Added instant confirmation emails and in-app alerts when deletion is requested, along with an automatic pause and recovery screen whenever signing in during the 7-day safety period."
       }
     ]
   },

@@ -680,6 +680,8 @@ export async function signInAction(formData: FormData) {
   }
 
   if (targetUser?.status === "pending_deletion") {
+    // Immediately terminate the session so no authenticated cookies remain active
+    await supabase.auth.signOut();
     return {
       isPendingDeletion: true,
       email: targetUser.email,

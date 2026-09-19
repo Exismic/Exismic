@@ -1549,6 +1549,78 @@ export async function sendStreakExpiryWarningEmail(details: {
   }
 }
 
+export async function sendAccountDeletionScheduledEmail(
+  email: string,
+  details: { scheduledDeletionAt: Date; username?: string | null }
+) {
+  try {
+    const formattedDate = details.scheduledDeletionAt.toLocaleDateString(undefined, {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
 
+    const { error } = await sendTrackedEmail('account_deletion_scheduled', email, {
+      from: SENDER_NOREPLY,
+      to: email,
+      subject: 'Exismic: Your Account Has Been Scheduled for Deletion',
+      html: renderTransactionalEmail({
+        preheader: `Your account is scheduled to be permanently deleted on ${formattedDate}.`,
+        badge: 'Account Deletion Notice',
+        title: 'Account scheduled for <span style="background:linear-gradient(90deg,#f43f5e,#fb7185,#ffffff); -webkit-background-clip:text; background-clip:text; color:#fb7185;">deletion</span>',
+        body: `We received a request to delete your Exismic account${details.username ? ` (@${details.username})` : ''}. Your account is now in a 7-day safety grace period and will be permanently erased on ${formattedDate}.`,
+        content: `
+          <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(244,63,94,0.3); background:linear-gradient(135deg, rgba(244,63,94,0.10), rgba(0,0,0,0.4)); padding:20px; text-align:center;">
+            <p style="margin:0 0 10px; color:#ffffff; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Scheduled Deletion Date</p>
+            <p style="margin:0; color:#fda4af; font-size:20px; font-weight:900;">${formattedDate}</p>
+            <p style="margin:10px 0 0; color:#a1a1aa; font-size:12px; line-height:1.5;">After this date, all your projects, files, generation credits, and account history will be permanently destroyed.</p>
+          </div>
+          
+          <div style="max-width:440px; margin:0 auto 24px; border-radius:22px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); padding:18px; text-align:left;">
+            <p style="margin:0 0 6px; color:#ffffff; font-size:13px; font-weight:800;">Did you change your mind?</p>
+            <p style="margin:0; color:#a1a1aa; font-size:12px; line-height:1.6;">You have 7 days to restore your account. Simply sign in before ${formattedDate} and submit a recovery request.</p>
+          </div>
 
+          <a href="${SITE_URL}/auth/login" style="display:block; width:100%; max-width:420px; margin:0 auto; border-radius:20px; background:linear-gradient(90deg,#f43f5e,#e11d48,#be123c); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; box-shadow:0 18px 52px rgba(244,63,94,0.35);">Restore My Account</a>
+        `,
+        footerNote: 'If you did not request this deletion, sign in immediately to secure and restore your account.',
+      }),
+    });
 
+    if (error) {
+      console.error('[Email] Account deletion email send failed:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[Email] sendAccountDeletionScheduledEmail error:', err);
+    return false;
+  }
+}
+
+export async function sendAccountRecoveryRequestedEmail(email: string) {
+  try {
+    const { error } = await sendTrackedEmail('account_recovery_requested', email, {
+      from: SENDER_NOREPLY,
+      to: email,
+      subject: 'Exismic: Account Recovery Request Received',
+      html: renderTransactionalEmail({
+        preheader: 'We received your request to cancel account deletion and restore access.',
+        badge: 'Account Recovery',
+        title: 'Recovery request <span style="background:linear-gradient(90deg,#10b981,#34d399,#ffffff); -webkit-background-clip:text; background-clip:text; color:#34d399;">received</span>',
+        body: 'We have received your request to cancel account deletion. Your account is paused from deletion while our team reviews and restores full access.',
+        content: `
+          <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(16,185,129,0.3); background:linear-gradient(135deg, rgba(16,185,129,0.10), rgba(0,0,0,0.4)); padding:20px; text-align:left;">
+            <p style="margin:0 0 8px; color:#ffffff; font-size:13px; font-weight:800;">Deletion Paused</p>
+            <p style="margin:0; color:#a7f3d0; font-size:12px; line-height:1.65;">Your creations, files, and credit reserves are safe. We will restore your account access shortly.</p>
+          </div>
+        `,
+        footerNote: 'Exismic Account Security Team',
+      }),
+    });
+    return !error;
+  } catch (err) {
+    console.error('[Email] sendAccountRecoveryRequestedEmail error:', err);
+    return false;
+  }
+}

@@ -15,6 +15,7 @@ A cleaner look for signing in and creating an account, clearer icons across the 
 - **Upgraded Live Playground**: Improved tool icons and tab navigation so you can test image generation, background removal, and voice splitting directly from the homepage.
 - **Mobile Button & Text Polish**: Fixed button text wrapping on phones so quick sign-in tags and buttons stay neatly aligned and readable on smaller screens.
 - **Simple & Secure Account Recovery**: Streamlined password reset and account verification screens with clearer guidance and quick copy helpers.
+- **Account Deletion Safety & Notifications**: Instant confirmation emails and in-app alerts when deletion is requested, with an automatic pause and recovery screen whenever signing in during the 7-day safety period.
 
 ---
 

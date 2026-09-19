@@ -124,8 +124,21 @@ export async function GET(request: Request) {
       select: {
         id: true,
         customAvatarUrl: true,
+        status: true,
+        scheduledDeletionAt: true,
       },
     });
+
+    if (existingUser?.status === "pending_deletion") {
+      await supabase.auth.signOut();
+      const loginUrl = new URL("/auth/login", siteUrl);
+      loginUrl.searchParams.set("pendingDeletion", "true");
+      loginUrl.searchParams.set("email", email);
+      if (existingUser.scheduledDeletionAt) {
+        loginUrl.searchParams.set("scheduledAt", existingUser.scheduledDeletionAt.toISOString());
+      }
+      return NextResponse.redirect(loginUrl);
+    }
 
     const idConflict = Boolean(existingUser && existingUser.id !== userId);
     const hasAnotherIdentity = provider
