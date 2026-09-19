@@ -575,7 +575,7 @@ export default function AccountSettings() {
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText.trim() !== "DELETE") {
+    if (deleteConfirmText.trim().toUpperCase() !== "DELETE") {
       setStatus({ type: "error", message: 'Please type "DELETE" to confirm.' });
       return;
     }
@@ -586,7 +586,7 @@ export default function AccountSettings() {
       const res = await fetch("/api/user/account/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmation: "DELETE" }),
+        body: JSON.stringify({ confirmation: deleteConfirmText.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to schedule account deletion.");
@@ -2475,7 +2475,7 @@ export default function AccountSettings() {
                     <button
                       type="button"
                       onClick={handleDeleteAccount}
-                      disabled={deleteConfirmText.trim() !== "DELETE" || isDeletingAccount}
+                      disabled={deleteConfirmText.trim().toUpperCase() !== "DELETE" || isDeletingAccount}
                       className="flex-1 rounded-xl bg-rose-600 py-3 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:bg-rose-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                     >
                       {isDeletingAccount ? (

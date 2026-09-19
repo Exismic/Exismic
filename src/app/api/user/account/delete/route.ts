@@ -14,26 +14,36 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { confirmation } = body;
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { id: true, email: true, username: true, status: true },
-    });
+    const dbUser =
+      (await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { id: true, email: true, username: true, status: true },
+      })) ||
+      (user.email
+        ? await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { id: true, email: true, username: true, status: true },
+          })
+        : null);
 
     if (!dbUser) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
-    // Safety verification check: confirmation must match username, email, or "DELETE"
+    const userConfirmation = String(confirmation || "").trim().toLowerCase();
+
+    // Safety verification check: confirmation must match "delete", or user's email/username
     const validMatches = [
-      "DELETE",
+      "delete",
       dbUser.email?.toLowerCase(),
+      user.email?.toLowerCase(),
       dbUser.username?.toLowerCase(),
     ].filter(Boolean);
 
-    const isMatch = validMatches.includes(String(confirmation || "").trim().toLowerCase());
+    const isMatch = validMatches.includes(userConfirmation);
     if (!isMatch) {
       return NextResponse.json(
-        { error: "Confirmation text did not match your account handle or email." },
+        { error: 'Confirmation text did not match. Please type "DELETE" to confirm.' },
         { status: 400 }
       );
     }
@@ -42,7 +52,7 @@ export async function POST(req: Request) {
     const scheduledDeletionAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days later
 
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: dbUser.id },
       data: {
         status: "pending_deletion",
         deletionRequestedAt: now,
