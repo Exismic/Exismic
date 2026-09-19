@@ -240,6 +240,11 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
           initialFavorites={favorites}
           gradientId={localGradientId}
           greeting={greeting}
+          scheduledDeletionAt={dbUser?.scheduledDeletionAt || dbUser?.scheduled_deletion_at}
+          deletionRecoveryRequested={Boolean(dbUser?.deletionRecoveryRequested || dbUser?.deletion_recovery_requested)}
+          onDeletionCancelled={() => {
+            window.location.reload();
+          }}
           statsSlot={
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {/* Card 1: Live Energy Reactor Vault */}

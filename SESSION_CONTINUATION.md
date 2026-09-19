@@ -932,6 +932,26 @@
 * **Changelog v1.6.5 Published**: Updated [`src/app/changelog/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/changelog/page.tsx) and [`CHANGELOG.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/CHANGELOG.md) with clean, jargon-free entries for version 1.6.5.
 * **TypeScript Compilation**: Clean pass with 0 errors (`npx tsc --noEmit` exited code 0).
 
+### 33. ⚠️ Account Deletion Alert Live Reactor & Pro Privileges Overhaul (`/pro/benefits`) [COMPLETED]
+* **Dashboard Account Deletion Alert Banner (`DeletionAlertBanner.tsx`)**:
+  - Mounted directly above the cockpit greeting in [`PersonalizedHomeSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/PersonalizedHomeSection.tsx).
+  - Displays a live 1-second countdown reactor (`days`, `hours`, `minutes`, `seconds`) until scheduled permanent deletion.
+  - Obsidian glass danger styling with amber/rose aura, pulsating `<AlertTriangle>`, and instant **"Cancel Deletion & Keep Account"** 1-click action.
+  - Connects to `/api/user/account/recover` with `{ action: 'cancel' }`, immediately resetting `status: 'active'` and clearing `scheduledDeletionAt`.
+  - Serialized `status`, `scheduledDeletionAt`, and `deletionRecoveryRequested` in `/api/user/profile` and typed in `usePro.ts`.
+* **Complete Overhaul of `/pro/benefits`**:
+  - Completely removed tacky "VIP" branding and arbitrary sparkle icons.
+  - Grounded entirely in real, verifiable Exismic Pro features:
+    1. `500 Daily Studio Credits` (Icon: `Coins`)
+    2. `Priority GPU Worker Queues` (Icon: `Cpu`)
+    3. `5 GB High-Speed Cloud Vault` (Icon: `FolderLock`)
+    4. `Extended Media Processing Limits` (Icon: `Maximize2`)
+    5. `100% Commercial Rights & No Watermarks` (Icon: `ShieldCheck`)
+    6. `Exclusive Pro Avatar & Name Cosmetics` (Icon: `Crown`)
+    7. `Stackable Lifetime Credit Reserves` (Icon: `Flame`)
+    8. `First-Look Studio Tool Beta Access` (Icon: `Compass`)
+  - Redesigned category filters (`All Privileges`, `Creative Power`, `Speed & Compute`, `Studio Trust`) and Obsidian glass cards with micro-glows.
+
 ---
 
 ## 🎯 Next Features Roadmap (Retention & Growth)

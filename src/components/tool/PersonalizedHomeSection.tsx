@@ -22,6 +22,8 @@ import { PremiumName } from "@/components/ui/PremiumName";
 import { SparkIcon } from "@/components/ui/SparkIcon";
 import { CATEGORY_ANIM_STYLES, type CategoryAnimStyle } from "@/lib/category-styles";
 
+import { DeletionAlertBanner } from "@/components/account/DeletionAlertBanner";
+
 interface PersonalizedHomeSectionProps {
   userName: string;
   isPro?: boolean;
@@ -29,6 +31,9 @@ interface PersonalizedHomeSectionProps {
   gradientId?: string | null;
   greeting: { text: string; icon: LucideIcon };
   statsSlot?: React.ReactNode;
+  scheduledDeletionAt?: string | Date | null;
+  deletionRecoveryRequested?: boolean;
+  onDeletionCancelled?: () => void;
 }
 
 function getStyleForTool(tool?: Tool | null): CategoryAnimStyle {
@@ -43,6 +48,9 @@ export function PersonalizedHomeSection({
   gradientId = null,
   greeting,
   statsSlot,
+  scheduledDeletionAt,
+  deletionRecoveryRequested = false,
+  onDeletionCancelled,
 }: PersonalizedHomeSectionProps) {
   const {
     continueUsing,
@@ -62,6 +70,15 @@ export function PersonalizedHomeSection({
 
   return (
     <div className="space-y-12 sm:space-y-14">
+      {/* ⚠️ CRITICAL DELETION SAFETY BANNER WITH LIVE TICKING TIMER */}
+      {Boolean(scheduledDeletionAt || deletionRecoveryRequested) && (
+        <DeletionAlertBanner
+          scheduledDeletionAt={scheduledDeletionAt}
+          deletionRecoveryRequested={deletionRecoveryRequested}
+          onCancelled={onDeletionCancelled}
+        />
+      )}
+
       {/* 1. ADAPTIVE GREETING & STATUS COCKPIT */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}

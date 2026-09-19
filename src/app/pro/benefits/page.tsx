@@ -1,36 +1,31 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
 import { 
-  Sparkles, 
   Zap, 
   ShieldCheck, 
-  Star, 
   CheckCircle2, 
   ArrowLeft, 
-  Loader2, 
   Crown, 
-  Archive, 
-  ImageDown,
-  Diamond,
-  Flame,
-  Wand2,
-  Layers,
-  ArrowRight,
-  Gift,
-  Infinity as InfinityIcon
+  FolderLock, 
+  Flame, 
+  Layers, 
+  ArrowRight, 
+  LayoutGrid,
+  Cpu,
+  Coins,
+  Maximize2,
+  Compass,
+  HardDrive
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import GradientText from "@/components/ui/GradientText";
 
 export default function ProBenefitsPage() {
   const { isPro } = usePro();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "creative" | "speed" | "style">("all");
 
   const benefits = [
@@ -38,118 +33,105 @@ export default function ProBenefitsPage() {
       id: "credits",
       category: "creative",
       title: "500 Daily Studio Credits", 
-      desc: "Massive daily allowance of 500 high-speed credits replenished every 24 hours — 10x the free tier power.", 
-      icon: Zap, 
+      desc: "Massive daily allowance of 500 high-speed generation credits replenished every 24 hours at 12:00 PM IST — 10x more power than the 50-credit free tier.", 
+      icon: Coins, 
       color: "from-amber-400 to-orange-500",
       iconColor: "text-amber-400",
       iconBg: "bg-amber-400/10 border-amber-400/30",
       glowColor: "rgba(245, 158, 11, 0.25)",
-      badgeText: "10X CREDITS",
+      badgeText: "10X DAILY CREDITS",
       privilegeLevel: 5
     },
     { 
-      id: "quality",
-      category: "creative",
-      title: "Ultra-Sharp 4K Quality", 
-      desc: "Export crystal-clear visuals with breathtaking detail, rich colors, and razor-sharp resolution.", 
-      icon: Sparkles, 
-      color: "from-cyan-400 to-blue-500",
-      iconColor: "text-cyan-400",
-      iconBg: "bg-cyan-400/10 border-cyan-400/30",
-      glowColor: "rgba(6, 182, 212, 0.25)",
-      badgeText: "ULTRA HD",
-      privilegeLevel: 5
-    },
-    { 
-      id: "speed",
+      id: "gpu",
       category: "speed",
-      title: "VIP Express Speed",
-      desc: "Skip all waiting lines. Your requests run on dedicated high-performance lanes for instant results.",
-      icon: Zap, 
+      title: "Priority GPU Worker Queues", 
+      desc: "Skip public waiting queues. Your image generation, background removal, and audio stem splitting run on dedicated high-speed GPU worker slots.", 
+      icon: Cpu, 
       color: "from-purple-400 to-indigo-500",
       iconColor: "text-purple-400",
       iconBg: "bg-purple-400/10 border-purple-400/30",
       glowColor: "rgba(168, 85, 247, 0.25)",
-      badgeText: "INSTANT",
+      badgeText: "ZERO WAITING",
       privilegeLevel: 5
     },
     { 
-      id: "batch",
+      id: "vault",
+      category: "speed",
+      title: "5 GB High-Speed Cloud Vault", 
+      desc: "Permanent high-capacity cloud drive for your artwork, generated audio tracks, and studio assets — 100x larger than the free 50 MB allowance.", 
+      icon: FolderLock, 
+      color: "from-cyan-400 to-blue-500",
+      iconColor: "text-cyan-400",
+      iconBg: "bg-cyan-400/10 border-cyan-400/30",
+      glowColor: "rgba(6, 182, 212, 0.25)",
+      badgeText: "5 GB STORAGE",
+      privilegeLevel: 5
+    },
+    { 
+      id: "limits",
       category: "creative",
-      title: "One-Click Bulk Magic",
-      desc: "Transform multiple files simultaneously with effortless ease and save countless hours of manual work.",
-      icon: Archive,
+      title: "Extended Media Processing Limits", 
+      desc: "Upload and process heavy video files, lossless audio tracks, and high-resolution documents with multi-gigabyte memory limits.", 
+      icon: Maximize2, 
       color: "from-blue-400 to-cyan-400",
       iconColor: "text-blue-400",
       iconBg: "bg-blue-400/10 border-blue-400/30",
       glowColor: "rgba(96, 165, 250, 0.25)",
-      badgeText: "BULK POWER",
+      badgeText: "EXPANDED LIMITS",
       privilegeLevel: 4
     },
     { 
       id: "commercial",
-      category: "creative",
-      title: "100% Commercial Rights",
-      desc: "Clean exports without any watermarks, fully licensed for your personal, client, and commercial projects.",
-      icon: ShieldCheck,
+      category: "style",
+      title: "100% Commercial Rights & No Watermarks", 
+      desc: "Every export is 100% clean and unbranded with full commercial rights for client deliverables, commercial campaigns, and social channels.", 
+      icon: ShieldCheck, 
       color: "from-emerald-400 to-teal-500",
       iconColor: "text-emerald-400",
       iconBg: "bg-emerald-400/10 border-emerald-400/30",
       glowColor: "rgba(52, 211, 153, 0.25)",
-      badgeText: "LICENSED",
+      badgeText: "COMMERCIAL USE",
       privilegeLevel: 5
     },
     { 
-      id: "cloud",
-      category: "speed",
-      title: "Instant Everywhere Access", 
-      desc: "Your creations are automatically synced and accessible from any device, anywhere, anytime.", 
-      icon: Layers, 
-      color: "from-teal-400 to-emerald-400",
-      iconColor: "text-teal-400",
-      iconBg: "bg-teal-400/10 border-teal-400/30",
-      glowColor: "rgba(45, 212, 191, 0.25)",
-      badgeText: "SYNCED",
+      id: "cosmetics",
+      category: "style",
+      title: "Exclusive Pro Avatar & Name Cosmetics", 
+      desc: "Instantly unlock 5 exclusive Pro starter avatar frames and glowing signature name gradients to showcase your status across the community.", 
+      icon: Crown, 
+      color: "from-fuchsia-400 to-purple-500",
+      iconColor: "text-fuchsia-400",
+      iconBg: "bg-fuchsia-400/10 border-fuchsia-400/30",
+      glowColor: "rgba(232, 121, 249, 0.25)",
+      badgeText: "PRO COSMETICS",
+      privilegeLevel: 4
+    },
+    { 
+      id: "stackable",
+      category: "creative",
+      title: "Stackable Lifetime Credit Reserves", 
+      desc: "Purchased credit packages stack permanently on top of your daily 500 credits and never expire, protecting your creative momentum.", 
+      icon: Flame, 
+      color: "from-orange-400 to-amber-500",
+      iconColor: "text-orange-400",
+      iconBg: "bg-orange-400/10 border-orange-400/30",
+      glowColor: "rgba(249, 115, 22, 0.25)",
+      badgeText: "LIFETIME VAULT",
       privilegeLevel: 4
     },
     { 
       id: "early",
       category: "speed",
-      title: "First-Look VIP Features", 
-      desc: "Be the very first to experience groundbreaking new creative tools long before they launch to the public.", 
-      icon: Flame, 
+      title: "First-Look Studio Tool Beta Access", 
+      desc: "Be the first to test upcoming AI models, new creative tools, and developer APIs before they launch to the general public.", 
+      icon: Compass, 
       color: "from-pink-400 to-rose-500",
       iconColor: "text-pink-400",
       iconBg: "bg-pink-400/10 border-pink-400/30",
       glowColor: "rgba(244, 114, 182, 0.25)",
-      badgeText: "VIP ACCESS",
+      badgeText: "EARLY ACCESS",
       privilegeLevel: 5
-    },
-    {
-      id: "customization",
-      category: "style",
-      title: "Elite Profile Badging",
-      desc: "Stand out with exclusive glowing profile frames, custom title badges, and animated signature styling.",
-      icon: Crown,
-      color: "from-fuchsia-400 to-purple-500",
-      iconColor: "text-fuchsia-400",
-      iconBg: "bg-fuchsia-400/10 border-fuchsia-400/30",
-      glowColor: "rgba(232, 121, 249, 0.25)",
-      badgeText: "EXCLUSIVE",
-      privilegeLevel: 5
-    },
-    {
-      id: "themes",
-      category: "style",
-      title: "Luxury Workspace Themes",
-      desc: "Personalize your studio workspace with private handcrafted luxury accent themes and ambient glass glows.",
-      icon: Diamond,
-      color: "from-violet-400 to-indigo-500",
-      iconColor: "text-violet-400",
-      iconBg: "bg-violet-400/10 border-violet-400/30",
-      glowColor: "rgba(167, 139, 250, 0.25)",
-      badgeText: "LUXURY",
-      privilegeLevel: 4
     }
   ];
 
@@ -185,36 +167,41 @@ export default function ProBenefitsPage() {
             <div className="space-y-4 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
                 <Crown size={14} className="text-purple-400 animate-pulse" />
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-purple-300">Exclusive VIP Access</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-purple-300">
+                  Exismic Pro Membership
+                </span>
               </div>
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-[0.95] text-white">
-                VIP <GradientText className="from-purple-400 via-fuchsia-300 to-cyan-300">Privileges</GradientText>
+                Pro <GradientText className="from-purple-400 via-fuchsia-300 to-cyan-300">Privileges</GradientText>
               </h1>
               <p className="text-zinc-400 text-sm sm:text-base font-medium leading-relaxed">
-                Welcome to the top tier. Your membership unlocks priority access, unlimited creation power, and high-resolution perfection.
+                Everything included with Exismic Pro: 10x daily generation credits, dedicated GPU worker lanes, high-capacity cloud storage, and exclusive studio cosmetics.
               </p>
             </div>
 
             {/* Status Card */}
-            <div className="relative isolate group p-6 rounded-3xl bg-gradient-to-br from-white/[0.07] via-white/[0.02] to-transparent border border-purple-500/30 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.5)] overflow-hidden min-w-[280px]">
+            <div className="relative isolate group p-6 rounded-3xl bg-gradient-to-br from-white/[0.07] via-white/[0.02] to-transparent border border-purple-500/30 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.5)] overflow-hidden min-w-[300px]">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-fuchsia-500/5 to-cyan-500/10 opacity-60 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10 flex items-center justify-between gap-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400">Membership Tier</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400">Current Status</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xl font-black uppercase tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-200 to-white">
-                      {isPro ? "ELITE MEMBER" : "FREE TIER"}
+                      {isPro ? "PRO MEMBER" : "FREE TIER"}
                     </span>
+                  </div>
+                  <div className="text-[11px] text-zinc-400 font-mono">
+                    {isPro ? "500 Credits Refreshed Daily" : "50 Credits Refreshed Daily"}
                   </div>
                   {isPro ? (
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 pt-1">
                       <CheckCircle2 size={13} className="text-emerald-400" />
-                      <span>All Perks Unlocked</span>
+                      <span>All Pro Perks Active</span>
                     </div>
                   ) : (
-                    <Link href="/pro" className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-300 hover:text-cyan-200 pt-1 transition-colors">
-                      <span>Upgrade to Unlock</span>
-                      <ArrowRight size={12} />
+                    <Link href="/pro" className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-300 hover:text-cyan-200 pt-1.5 transition-colors group/link">
+                      <span>Upgrade for 500 Daily Credits</span>
+                      <ArrowRight size={12} className="group-link:translate-x-0.5 transition-transform" />
                     </Link>
                   )}
                 </div>
@@ -229,10 +216,10 @@ export default function ProBenefitsPage() {
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto py-3 px-1.5 mb-10 no-scrollbar">
           {[
-            { id: "all", label: "All Privileges", icon: Diamond },
-            { id: "creative", label: "Creative Power", icon: Wand2 },
-            { id: "speed", label: "Speed & Access", icon: Zap },
-            { id: "style", label: "Style & Prestige", icon: Crown }
+            { id: "all", label: "All Privileges", icon: LayoutGrid },
+            { id: "creative", label: "Creation Power", icon: Zap },
+            { id: "speed", label: "GPU & Storage", icon: Cpu },
+            { id: "style", label: "Studio Privileges", icon: ShieldCheck }
           ].map((tab) => {
             const TabIcon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -344,7 +331,7 @@ export default function ProBenefitsPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.15)_0%,transparent_70%)] pointer-events-none" />
           
           <div className="relative z-10 max-w-2xl mx-auto space-y-7">
-            {/* VIP Crown Badge (Replaces random sparkle) */}
+            {/* Pro Crown Badge */}
             <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500/20 via-purple-500/20 to-cyan-500/10 border border-amber-400/40 flex items-center justify-center text-amber-300 mx-auto shadow-[0_0_35px_rgba(245,158,11,0.25)]">
               <Crown size={32} className="text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
             </div>
@@ -354,14 +341,14 @@ export default function ProBenefitsPage() {
                 <>
                   Ready to Craft <br />
                   <span className="bg-gradient-to-r from-purple-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">
-                    Your Next Masterpiece?
+                    Your Next Creation?
                   </span>
                 </>
               ) : (
                 <>
-                  Unlock All <br />
+                  Unlock Full <br />
                   <span className="bg-gradient-to-r from-amber-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
-                    VIP Privileges
+                    Studio Capacity
                   </span>
                 </>
               )}
@@ -369,33 +356,33 @@ export default function ProBenefitsPage() {
 
             <p className="text-zinc-300 text-sm sm:text-base font-medium leading-relaxed max-w-xl mx-auto">
               {isPro 
-                ? "Your VIP status is active with unrestricted privileges. Jump right in and start creating without limits."
-                : "Get 500 credits every day, instant generation speed, crystal-clear 4K exports, and full commercial rights."
+                ? "Your Pro membership is active with unrestricted privileges. Jump into any tool and start creating without limits."
+                : "Get 500 generation credits every day, priority GPU rendering, 5 GB cloud storage, and full commercial rights."
               }
             </p>
 
-            {/* Quick Benefit Cards for non-Pro */}
+            {/* Quick Real Feature Badges for non-Pro */}
             {!isPro && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-left">
                 <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
-                  <Zap size={18} className="text-amber-400 mx-auto mb-1.5" />
+                  <Coins size={18} className="text-amber-400 mx-auto mb-1.5" />
                   <span className="text-[11px] font-bold text-white block">500 Credits/Day</span>
                   <span className="text-[10px] text-zinc-500">10x Free Tier</span>
                 </div>
                 <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
-                  <Crown size={18} className="text-purple-400 mx-auto mb-1.5" />
-                  <span className="text-[11px] font-bold text-white block">VIP Speed</span>
-                  <span className="text-[10px] text-zinc-500">Skip the line</span>
+                  <Cpu size={18} className="text-purple-400 mx-auto mb-1.5" />
+                  <span className="text-[11px] font-bold text-white block">Priority GPU</span>
+                  <span className="text-[10px] text-zinc-500">Dedicated lanes</span>
                 </div>
                 <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
-                  <Diamond size={18} className="text-cyan-400 mx-auto mb-1.5" />
-                  <span className="text-[11px] font-bold text-white block">Ultra HD 4K</span>
-                  <span className="text-[10px] text-zinc-500">Sharpest detail</span>
+                  <FolderLock size={18} className="text-cyan-400 mx-auto mb-1.5" />
+                  <span className="text-[11px] font-bold text-white block">5 GB Cloud Vault</span>
+                  <span className="text-[10px] text-zinc-500">Permanent storage</span>
                 </div>
                 <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-3.5 text-center">
                   <ShieldCheck size={18} className="text-emerald-400 mx-auto mb-1.5" />
-                  <span className="text-[11px] font-bold text-white block">Commercial Use</span>
-                  <span className="text-[10px] text-zinc-500">Client projects</span>
+                  <span className="text-[11px] font-bold text-white block">Commercial Rights</span>
+                  <span className="text-[10px] text-zinc-500">Clean, no watermark</span>
                 </div>
               </div>
             )}
@@ -433,6 +420,3 @@ export default function ProBenefitsPage() {
     </div>
   );
 }
-
-
-

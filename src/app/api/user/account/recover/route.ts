@@ -41,6 +41,34 @@ export async function POST(req: Request) {
       );
     }
 
+    const isDirectCancel = Boolean(body.action === 'cancel' || body.cancel === true);
+
+    if (isDirectCancel) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: "active",
+          scheduledDeletionAt: null,
+          deletionRequestedAt: null,
+          deletionRecoveryRequested: false,
+          deletionRecoveryReason: null,
+        },
+      });
+
+      await createNotification(
+        userId,
+        "Account Deletion Cancelled",
+        "Your account deletion has been cancelled. Your account and files are completely safe.",
+        "success"
+      );
+
+      return NextResponse.json({
+        success: true,
+        cancelled: true,
+        message: "Account deletion cancelled! Your account is safe and active.",
+      });
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: {

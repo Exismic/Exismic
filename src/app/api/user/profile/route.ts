@@ -130,6 +130,11 @@ export async function GET() {
       unlocked_name_gradients: Array.isArray(dbUser.unlockedNameGradients) ? dbUser.unlockedNameGradients : [],
       unlocked_insignias: Array.isArray(dbUser.unlockedInsignias) ? dbUser.unlockedInsignias : [],
       unlocked_canopies: Array.isArray(dbUser.unlockedCanopies) ? dbUser.unlockedCanopies : [],
+      status: dbUser.status,
+      scheduledDeletionAt: dbUser.scheduledDeletionAt ? dbUser.scheduledDeletionAt.toISOString() : null,
+      scheduled_deletion_at: dbUser.scheduledDeletionAt ? dbUser.scheduledDeletionAt.toISOString() : null,
+      deletionRecoveryRequested: Boolean(dbUser.deletionRecoveryRequested),
+      deletion_recovery_requested: Boolean(dbUser.deletionRecoveryRequested),
     };
 
     return NextResponse.json({
