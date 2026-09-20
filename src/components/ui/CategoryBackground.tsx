@@ -21,7 +21,7 @@ import {
   Mic2,
   AudioWaveform,
   Volume2,
-  Sparkles,
+  Compass,
   Cpu,
   Bot,
   Zap,
@@ -49,7 +49,7 @@ interface CategoryBackgroundProps {
 const ALL_CATEGORY_PARTICLES = [
   { icon: BookOpen, color: "rgba(251, 191, 36, 0.4)" },
   { icon: Code2, color: "rgba(163, 230, 53, 0.4)" },
-  { icon: Sparkles, color: "rgba(245, 158, 11, 0.4)" },
+  { icon: Compass, color: "rgba(245, 158, 11, 0.4)" },
   { icon: ImageIcon, color: "rgba(6, 182, 212, 0.4)" },
   { icon: Music, color: "rgba(236, 72, 153, 0.4)" },
   { icon: Video, color: "rgba(139, 92, 246, 0.4)" },
@@ -91,7 +91,7 @@ const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: st
     color: "rgba(239, 68, 68, 0.4)",
   },
   ai: {
-    icons: [Sparkles, BrainCircuit, Cpu, Bot],
+    icons: [Wand2, BrainCircuit, Cpu, Bot],
     color: "rgba(99, 102, 241, 0.4)",
   },
   productivity: {
@@ -111,7 +111,7 @@ const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: st
     color: "rgba(163, 230, 53, 0.4)",
   },
   creator: {
-    icons: [Share2, Video, Clapperboard, MessageSquare, Sparkles, Film, Layers],
+    icons: [Share2, Video, Clapperboard, MessageSquare, Compass, Film, Layers],
     color: "rgba(244, 63, 94, 0.4)",
   },
 };

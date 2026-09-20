@@ -90,7 +90,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.05 }}
-      className={cn("group relative h-full min-w-0", className)}
+      className={cn("group relative h-full min-w-0 z-0 hover:z-20 overflow-visible", className)}
     >
       <Link href={href} prefetch={true} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
         <div className={cn(

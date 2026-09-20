@@ -16,6 +16,7 @@ A cleaner look for signing in and creating an account, clearer icons across the 
 - **Mobile Button & Text Polish**: Fixed button text wrapping on phones so quick sign-in tags and buttons stay neatly aligned and readable on smaller screens.
 - **Simple & Secure Account Recovery**: Streamlined password reset and account verification screens with clearer guidance and quick copy helpers.
 - **Account Deletion Safety & Notifications**: Instant confirmation emails and in-app alerts when deletion is requested, with an automatic pause and recovery screen whenever signing in during the 7-day safety period.
+- **Category Studio Hubs & Living Guides**: Overhauled category hub pages with 360° laser borders, living value cards, liquid accordion FAQs, anamorphic neon horizon dividers, and zero hover clipping.
 
 ---
 

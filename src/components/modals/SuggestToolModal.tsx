@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Send, CheckCircle2, Loader2, Lightbulb, Clock, UserCheck, ShieldAlert, Check } from "lucide-react";
+import { X, Rocket, Send, CheckCircle2, Loader2, Lightbulb, Clock, UserCheck, ShieldAlert, Check } from "lucide-react";
 import { CATEGORIES } from "@/data/tools";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 import { cn } from "@/lib/utils";
@@ -238,7 +238,7 @@ export function SuggestToolModal({ isOpen, onClose, defaultCategory = "pdf" }: S
                 </div>
                 <div className="space-y-2">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">
-                    <Sparkles size={12} /> Request Dispatched
+                    <Rocket size={12} /> Request Dispatched
                   </span>
                   <h3 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tight">
                     Suggestion Submitted!
