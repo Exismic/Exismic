@@ -484,7 +484,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
 
   const PageContent = (
     <div className={cn(
-      "mx-auto space-y-6 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
+      "mx-auto space-y-6 px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
       isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]"
     )}>
       {tool.indexable !== false && (

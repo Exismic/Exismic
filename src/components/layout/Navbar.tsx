@@ -631,7 +631,7 @@ export function Navbar() {
                 {/* 1. Ultra Luxury Cyber Credit Vault Pill */}
                 <Link
                   href="/shop"
-                  title="Open Credit Shop Vault & Claim Daily Bonus"
+                  title="Open Credit Vault & Claim Daily Bonus"
                   className={cn(
                     "group/vault relative flex h-10 cursor-pointer items-center rounded-full p-[1px] select-none isolate transition-all duration-500 hover:scale-[1.03] active:scale-95 touch-manipulation notranslate",
                     "shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(6,182,212,0.18)] hover:shadow-[0_15px_45px_rgba(6,182,212,0.45),0_0_30px_rgba(99,102,241,0.35)]"
@@ -1079,7 +1079,7 @@ export function Navbar() {
                               </button>
                               <Link href="/shop" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
                                 <Coins size={14} className="text-amber-400" />
-                                <span>Credit Shop Vault</span>
+                                <span>Credit Vault</span>
                                 <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
                               </Link>
                               <button
@@ -1326,7 +1326,7 @@ export function Navbar() {
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] text-left text-xs font-semibold text-zinc-300 transition-colors"
                     >
                       <Coins size={16} className="text-cyan-300" />
-                      <span>Credit Shop Vault</span>
+                      <span>Credit Vault</span>
                     </Link>
 
                     <button
@@ -1498,7 +1498,7 @@ export function Navbar() {
                         className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10"
                       >
                         <Coins size={16} className="text-amber-400" />
-                        Credit Shop Vault
+                        Credit Vault
                         <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
                       </Link>
                       <button

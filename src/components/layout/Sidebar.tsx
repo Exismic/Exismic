@@ -1010,7 +1010,7 @@ export function Sidebar() {
                 <CreditTokenIcon size="sm" />
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-hover/credits:text-zinc-200 transition-colors">
-                    CREDIT SHOP
+                    CREDIT VAULT
                   </span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
                 </div>

@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   Network,
-  Sparkles,
   ZoomIn,
   ZoomOut,
   Maximize2,
@@ -492,15 +491,15 @@ export interface PositionedEdge {
   side?: "left" | "right";
 }
 
-// Node dimensions
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 46;
-const ROOT_WIDTH = 220;
-const ROOT_HEIGHT = 58;
+// Node dimensions (generously sized so topic titles never truncate)
+const NODE_WIDTH = 225;
+const NODE_HEIGHT = 52;
+const ROOT_WIDTH = 240;
+const ROOT_HEIGHT = 60;
 
 // Gap settings
-const HORIZONTAL_GAP = 90;
-const VERTICAL_GAP = 28;
+const HORIZONTAL_GAP = 95;
+const VERTICAL_GAP = 22;
 
 /**
  * Recursively computes layout coordinates based on mode.
@@ -984,12 +983,37 @@ export default function MindMapStudio() {
     }
   };
 
-  // Wheel zoom handler
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomFactor = 1 - e.deltaY * 0.0012;
-    setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.25), 2.5));
-  };
+  // Native non-passive wheel zoom handler (stops outer page scrolling and anchors zoom to cursor)
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
+
+      setZoom((prevZoom) => {
+        const nextZoom = Math.min(Math.max(prevZoom * zoomFactor, 0.25), 2.5);
+        // Anchor zoom around cursor position
+        setPan((prevPan) => ({
+          x: mouseX - (mouseX - prevPan.x) * (nextZoom / prevZoom),
+          y: mouseY - (mouseY - prevPan.y) * (nextZoom / prevZoom),
+        }));
+        return nextZoom;
+      });
+    };
+
+    container.addEventListener("wheel", handleNativeWheel, { passive: false });
+    return () => {
+      container.removeEventListener("wheel", handleNativeWheel);
+    };
+  }, []);
 
   // --------------------------------------------------------------------------
   // TREE MUTATION ACTIONS
@@ -1353,9 +1377,9 @@ ${nodesMarkup}  </g>
     <div className="w-full min-h-[calc(100vh-80px)] flex flex-col gap-6 p-2 sm:p-4 md:p-6 lg:p-8 max-w-[1700px] mx-auto text-slate-100">
       {/* Toast Notification */}
       {copySuccessToast && (
-        <div className="fixed top-6 right-6 z-[9999] flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-          <span className="text-sm font-medium">{copySuccessToast}</span>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#0a0f1d]/95 border border-emerald-500/40 text-emerald-200 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{copySuccessToast}</span>
         </div>
       )}
 
@@ -1468,7 +1492,7 @@ ${nodesMarkup}  </g>
               : "text-slate-400 hover:text-slate-200"
           )}
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <BookOpen className="w-3.5 h-3.5" />
           <span>Presets</span>
         </button>
       </div>
@@ -1659,7 +1683,7 @@ ${nodesMarkup}  </g>
             )}
           >
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <BookOpen className="w-4 h-4 text-indigo-400" />
               <h3 className="text-sm font-semibold text-white">Example Templates</h3>
             </div>
             <p className="text-xs text-slate-400">
@@ -1704,7 +1728,6 @@ ${nodesMarkup}  </g>
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            onWheel={handleWheel}
             className={cn(
               "relative w-full h-[620px] sm:h-[720px] rounded-2xl border border-white/[0.1] overflow-hidden select-none cursor-grab active:cursor-grabbing transition-colors",
               isPanning && "cursor-grabbing"
@@ -1835,7 +1858,7 @@ ${nodesMarkup}  </g>
                           className="w-full bg-black/60 text-white px-2 py-0.5 rounded text-xs focus:outline-none border border-indigo-400"
                         />
                       ) : (
-                        <span className="block truncate text-left select-none">
+                        <span className="block text-left text-xs sm:text-[13px] font-semibold leading-snug line-clamp-2 break-words select-none">
                           {node.text}
                         </span>
                       )}
@@ -1926,31 +1949,40 @@ ${nodesMarkup}  </g>
             </div>
 
             {/* FLOATING ZOOM & VIEW CONTROLS (Bottom Right HUD) */}
-            <div className="absolute bottom-4 right-4 flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-900/90 border border-white/[0.12] shadow-2xl backdrop-blur-xl z-40">
-              <button
-                onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="p-1.5 rounded-lg hover:bg-white/[0.1] text-slate-300 hover:text-white transition-colors"
-                title="Zoom In"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
+            <div className="absolute bottom-4 right-4 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-white/[0.12] shadow-2xl backdrop-blur-xl z-40">
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.25))}
-                className="p-1.5 rounded-lg hover:bg-white/[0.1] text-slate-300 hover:text-white transition-colors"
+                className="p-1.5 rounded-xl hover:bg-white/[0.1] text-slate-300 hover:text-white transition-colors"
                 title="Zoom Out"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
-              <div className="px-2 py-0.5 text-[11px] font-mono font-semibold text-slate-400 min-w-[48px] text-center border-x border-white/[0.08]">
+
+              <button
+                onClick={() => setZoom(1)}
+                className="px-2 py-0.5 text-[11px] font-mono font-semibold text-indigo-300 hover:text-white min-w-[50px] text-center rounded-lg hover:bg-white/[0.08] transition-colors"
+                title="Click to reset to 100%"
+              >
                 {Math.round(zoom * 100)}%
-              </div>
+              </button>
+
+              <button
+                onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
+                className="p-1.5 rounded-xl hover:bg-white/[0.1] text-slate-300 hover:text-white transition-colors"
+                title="Zoom In"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+
+              <div className="h-4 w-[1px] bg-white/[0.12] mx-0.5" />
+
               <button
                 onClick={handleFitToScreen}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/[0.1] text-xs font-semibold text-indigo-300 transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-xs font-semibold text-indigo-200 transition-all active:scale-95"
                 title="Fit entire mind map to screen"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
-                <span>Fit</span>
+                <span>Fit Screen</span>
               </button>
             </div>
 

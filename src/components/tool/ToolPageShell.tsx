@@ -147,16 +147,18 @@ export function ToolPageShell({
   };
 
   return (
-    <div className={cn("mx-auto max-w-[1440px] space-y-8 overflow-x-hidden px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-10 md:px-8 md:pb-28 md:pt-28", className)}>
+    <div className={cn("mx-auto max-w-[1440px] space-y-8 px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-10 md:px-8 md:pb-28 md:pt-28", className)}>
       {/* Schema.org Structured Data for Google Indexing */}
       <script
         id={`schema-software-${toolId}`}
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <script
         id={`schema-breadcrumbs-${toolId}`}
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 

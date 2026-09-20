@@ -8,18 +8,19 @@
 
 | # | Tool Name | Route | Category | Engine / Tech | Status |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **1** | **Aesthetic Code Snippet Studio** | `/tools/developer/code-snippet` | Developer | 100% Client-side Canvas & SVG ($0 server cost) | ✅ Ready to Ship |
-| **2** | **Favicon & App Icon Studio** | `/tools/developer/favicon-studio` | Developer | 100% Client-side Canvas & JSZip ($0 server cost) | ✅ Ready to Ship |
-| **3** | **CSS Mesh Gradient & Glass Studio** | `/tools/developer/mesh-gradient` | Developer | 100% Client-side Canvas & CSS ($0 server cost) | ✅ Ready to Ship |
-| **4** | **Fake Social Post & Tweet Studio** | `/tools/creator/post-mockup` | Creator & Social | 100% Client-side Canvas & HTML ($0 server cost) | ✅ Ready to Ship |
-| **5** | **Social Share Banner Studio (OG Maker)** | `/tools/seo/og-banner` | SEO & Creator | 100% Client-side Canvas & HTML ($0 server cost) | ✅ Ready to Ship |
-| **6** | **Slowed + Reverb & Sped-Up Music Studio** | `/tools/audio/slowed-reverb` | Audio & Music | 100% Client-side Web Audio API ($0 server cost) | ✅ Ready to Ship |
-| **7** | **Private Photo & Screen Blur Studio** | `/tools/image/redact-blur` | Image & Privacy | 100% Client-side Canvas ($0 server cost) | ✅ Ready to Ship |
-| **8** | **Live Studio Teleprompter** | `/tools/creator/teleprompter` | Creator & Video | 100% Client-side JS & WebRTC Camera ($0 server cost) | ✅ Ready to Ship |
-| **9** | **Notes to Mind Map Studio** | `/tools/student/mind-map` | Student & Notes | 100% Client-side SVG, HTML5 & Canvas ($0 server cost) | ✅ Ready to Ship |
-| **10** | **Text & Code Comparison Studio** | `/tools/developer/diff-checker` | Developer Tools | 100% Client-side LCS Diff Engine ($0 server cost) | ✅ Ready to Ship |
-| **11** | **Audio Waveform Video Maker** | `/tools/audio/audiogram` | Audio & Video | 100% Client-side Canvas & MediaRecorder ($0 server cost) | ✅ Ready to Ship |
-| **12** | **AI Mega-Prompt Builder** | `/tools/ai/prompt-builder` | AI & Engineering | 100% Client-side Multi-LLM Protocol Engine ($0 server cost) | ✅ Ready to Ship |
+| **1** | **Aesthetic Code Snippet Studio** | `/tools/developer/code-snippet` | Developer | 100% Client-side Canvas & SVG ($0 server cost) | ✅ Live & Available |
+| **2** | **Favicon & App Icon Studio** | `/tools/developer/favicon-studio` | Developer | 100% Client-side Canvas & JSZip ($0 server cost) | ✅ Live & Available |
+| **3** | **CSS Mesh Gradient & Glass Studio** | `/tools/developer/mesh-gradient` | Developer | 100% Client-side Canvas & CSS ($0 server cost) | ✅ Live & Available |
+| **4** | **Fake Social Post & Tweet Studio** | `/tools/creator/post-mockup` | Creator & Social | 100% Client-side Canvas & HTML ($0 server cost) | ✅ Live & Available |
+| **5** | **Social Share Banner Studio (OG Maker)** | `/tools/seo/og-banner` | SEO & Creator | 100% Client-side Canvas & HTML ($0 server cost) | ✅ Live & Available |
+| **6** | **Slowed + Reverb & Sped-Up Music Studio** | `/tools/audio/slowed-reverb` | Audio & Music | 100% Client-side Web Audio API ($0 server cost) | ✅ Live & Available |
+| **7** | **Private Photo & Screen Blur Studio** | `/tools/image/redact-blur` | Image & Privacy | 100% Client-side Canvas ($0 server cost) | ✅ Live & Available |
+| **8** | **Live Studio Teleprompter** | `/tools/creator/teleprompter` | Creator & Video | 100% Client-side JS & WebRTC Camera ($0 server cost) | ✅ Live & Available |
+| **9** | **Notes to Mind Map Studio** | `/tools/student/mind-map` | Student & Notes | 100% Client-side SVG, HTML5 & Canvas ($0 server cost) | ✅ Live & Available |
+| **10** | **Text & Code Comparison Studio** | `/tools/developer/diff-checker` | Developer Tools | 100% Client-side LCS Diff Engine ($0 server cost) | ✅ Live & Available |
+| **11** | **Audio Waveform Video Maker** | `/tools/audio/audiogram` | Audio & Video | 100% Client-side Canvas & MediaRecorder ($0 server cost) | ✅ Live & Available |
+| **12** | **AI Mega-Prompt Builder** | `/tools/ai/prompt-builder` | AI & Engineering | 100% Client-side Multi-LLM Protocol Engine ($0 server cost) | ✅ Live & Available |
+| **13** | **3D Device & App Mockup Studio** | `/tools/creator/device-mockup` | Creator & 3D | 100% Client-side Canvas & 3D CSS ($0 server cost) | ✅ Live & Available |
 
 ---
 
@@ -42,7 +43,11 @@
     - 1-Click "Copy Image" directly to system clipboard via `navigator.clipboard.write`.
     - High-res 2x Retina PNG download.
     - Scalable Vector SVG download with embedded fonts and gradients.
-  - **Mobile Optimized**: Responsive segmented tabs (`Preview` | `Code` | `Style`) so mobile users never have to endlessly scroll.
+  - **Mobile Optimized**:
+    - Responsive segmented view switcher (`Preview` | `Editor` | `Styling`) preventing layout blowouts on narrow screens.
+    - Floating action bottom bar with 1-tap view switcher, instant Copy to clipboard, and 1-tap PNG download.
+    - Zero horizontal page overflow with touch-friendly swipeable preset blueprints carousel (`<Terminal />` tech icon).
+    - Proportional mobile card padding and responsive code line wrapping/scrolling.
   - **Chaining**: Integrates with `MediaPipelineBar` to pass output to Bulk Compressor, Format Converter, or Exismic Cloud Drive.
 
 ---
@@ -55,27 +60,33 @@
   - `src/app/tools/developer/favicon-studio/page.tsx` (Route with `ToolPageShell` & dynamic SEO metadata)
   - `src/data/tools.ts` (Registered in tool suite catalog with `popular: true`, `proPowerPack: true`)
 * **What It Does**:
-  - Generates full production-ready icon kits from any uploaded image, emoji, or monogram text.
-  - **3 Simple Creation Modes**:
-    - **Upload Image**: Drag & drop any photo or logo with auto-centering.
-    - **Emoji Picker**: Popular emojis (🚀, ⚡, 💎, 🔥, 👑, 🎯, etc.) or custom emoji input.
-    - **Letter Monogram**: 1 or 2 letter initials with modern, serif, or mono font styles.
+  - Grounded in authentic developer purpose: generates complete, production-grade favicon and app icon kits with zero sparkles, zero toy emojis, and 100% client-side binary generation ($0 server cost).
+  - **4 Developer Creation Modes**:
+    - **Upload Brand Logo**: Drag & drop any SVG, PNG, WebP, or JPG logo with live zoom/scale slider and auto-centering.
+    - **Tech Vector Glyphs**: 16 curated developer icons (Terminal, Code, CPU, Database, Server, Shield, Zap, Globe, Package, Git, Command, Lock, Layers, Flame, Rocket, Compass) with 6-color accent selector.
+    - **Brand Geometric Badges**: 8 precision vector geometries (Hexagon Core, Prism Crystal, Quantum Orbit, Hypercube 3D, Infinity Loop, Delta Apex, Neural Nodes, Poly Diamond).
+    - **Letter Monogram**: 1 or 2 letter initials with modern Sans, editorial Serif, or JetBrains Mono typography with custom colors.
   - **Customizable Shapes & Styles**:
-    - 4 Shapes: Squircle (iOS), Rounded, Circle, Square.
-    - 8 Backgrounds: Obsidian Glow, Cyber Neon, Sunset Blaze, Mint Aurora, Dark Carbon, Solid Black, Solid White, and Transparent.
+    - 4 Shapes: iOS Squircle (`roundRect`), Smooth Rounded, Circle, Square.
+    - 8 Backgrounds: Obsidian Glow, Cyber Neon, Sunset Blaze, Mint Aurora, Dark Carbon with tech grid, Solid Dark, Solid White, and Transparent.
     - 3 Inner Insets: Tight, Balanced, Relaxed.
-  - **Realistic Live Previews**:
-    - Desktop Browser Tab mockup with close button and SSL padlock.
-    - iPhone Home Screen mockup with iOS squircle mask.
-    - Google Search Result snippet with favicon.
+  - **Realistic Context Simulators**:
+    - Desktop Browser Tab: macOS Safari/Arc titlebar with traffic lights, active tab with rendered favicon, and SSL padlock.
+    - iPhone Home Screen: iOS 18 layout with 9:41 status bar, dynamic island, companion apps (Camera, Settings, Terminal), and squircle hero icon.
+    - Android Adaptive Icon: Circular mask simulation with safe-area boundary overlay guide.
+    - Google Search (SERP): Accurate Google dark mode SERP card with favicon, site name, URL breadcrumb, title, and snippet.
+    - Resolution Inspector: 16x16, 32x32, 48x48, 180x180, 192x192, 512x512 with 1-click single-file downloads.
   - **1-Click Complete Export Kit (ZIP)**:
-    - `favicon-16x16.png` & `favicon-32x32.png` (Browser tabs)
+    - `favicon.ico` (Multi-resolution 16x16, 32x32, and 48x48 binary format created with custom pure-JS binary pack)
+    - `favicon.svg` (Modern scalable vector favicon with system theme support)
+    - `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png` (Standard web tabs)
     - `apple-touch-icon.png` (180x180 for iPhone & iPad)
     - `android-chrome-192x192.png` & `android-chrome-512x512.png` (PWA & Android)
     - `site.webmanifest` (Web app manifest JSON)
     - `head-tags.html` (Ready-to-paste `<link>` tags)
-  - **1-Click "Copy HTML Tags"**: Copies standard `<link rel="icon">` tags directly to clipboard.
-  - **Mobile Optimized**: Responsive segmented tabs (`Preview` | `Design` | `Export`) for smooth smartphone experience.
+    - `nextjs-metadata.ts` (Next.js App Router metadata snippet for `layout.tsx`)
+  - **Developer Integration Hub**: Interactive toggle between Classic HTML `<head>`, Next.js App Router `layout.tsx` metadata, and `site.webmanifest`.
+  - **Mobile Optimized**: Responsive segmented tabs (`Previews` | `Controls` | `Sizes` | `Code`) and fixed bottom floating action HUD with 1-tap Switch View, Copy Code, and ZIP Download.
 
 ---
 
@@ -161,14 +172,21 @@
   - **8 Color Atmosphere Themes & 4 Patterns**:
     - Obsidian Cosmic (signature), Cyber Neon, Sunset Horizon, Emerald Mint, Midnight Carbon, Tokyo Twilight, Solar Gold, and Clean Light.
     - Tech Grid, Dot Matrix, Smooth Aura, and Solid Glass.
-  - **Realistic Social Previews**:
-    - Live simulator modes for Twitter / X Large Summary Cards, Discord Rich Embeds, LinkedIn Feed Posts, and Google Search Result snippets.
+  - **Realistic Social Previews & Official Verification Badges**:
+    - Live simulator modes for Twitter / X Large Summary Cards, Discord Rich Embeds, LinkedIn Feed Posts, and Google Search Result snippets with interactive engagement metrics.
+    - Official vector verification badges: X Blue Rosette, X Gold Organization Rosette, LinkedIn Identity Shield, and Meta Blue.
+    - GitHub Repo layout featuring authentic GitHub Octocat SVG, TypeScript language dot, Star count, and MIT license pill.
+  - **Zero Generic Emojis**: Replaced all decorative emoji labels across controls with calibrated Lucide tech icons.
   - **Export Engine**:
     - 1-Click **"Copy Picture"** directly to system clipboard via `navigator.clipboard.write`.
     - High-Res **1200x630 PNG download**.
     - 1-Click **"Copy Meta Tags"** with ready-to-paste `<meta property="og:image" ...>` HTML tags.
     - 100% Watermark-Free & $0 Server Cost.
-  - **Mobile Optimized**: Responsive segmented tabs (`Preview` | `Content` | `Look` | `Simulators`) and adaptive ratio scaling.
+  - **Mobile Optimized**:
+    - Segmented mobile tabs (`Preview` | `Content` | `Theme` | `Simulate`) with contextual section filtering preventing 1000px scrolls.
+    - Fixed floating mobile action HUD (`lg:hidden fixed bottom-3`) with 1-tap Edit/Preview toggle, Quick Copy, and PNG export.
+    - Proportional typography scaling across all 5 layouts preventing text overlap or truncation on narrow 320px–390px screens.
+    - Swipeable template blueprint carousel with `<LayoutTemplate />` tech icon.
   - **Pipeline Chaining**: Integrates with `MediaPipelineBar` to pass generated banners into Image Compressor, Format Converter, Meme Studio, or Cloud Drive.
 
 ---
@@ -182,27 +200,38 @@
   - `src/data/tools.ts` (Registered in tool suite catalog with `popular: true`, `proPowerPack: true`)
 * **What It Does**:
   - Transforms any audio file into aesthetic Slowed + Reverb, Sped-Up Nightcore, or Lo-Fi tracks with $0 server cost.
+  - **Obsidian Cyber Pro DSP Audio Console**:
+    - Unified cyan/indigo/violet palette with zero sparkles, zero toy emojis, and high-contrast tactile faceplates.
+  - **Dual-Mode Reactive Frequency Spectrum Visualizer**:
+    - Live Audio Playback: 64 high-definition frequency bands with rounded bezier caps, neon cyan-to-indigo gradient bars, glowing specular needle peaks, and floor reflection.
+    - Idle Breathing Wave: A smooth, organic sinusoidal wave that gently ripples across the canvas when paused so the stage is never a dead black void.
+  - **Pro Studio Transport Controls**:
+    - Tactile Master Play/Pause with glowing cyan-indigo gradient.
+    - Skip -5s and Skip +5s transport buttons.
+    - Seamless Loop toggle (`isLooping` state) for endless looping.
+    - Track restart button and precision scrubbable seekbar.
   - **Real-Time Sound Effects Engine (Web Audio API)**:
-    - **Speed & Pitch**: 0.50x (Ultra Slow Vaporwave) to 1.50x (Nightcore) with classic tape pitch-bend.
-    - **Room Reverb**: Synthetic algorithmic convolution reverb scaling from dry studio to giant cathedral echo.
-    - **Deep Bass Rumble**: Low-shelf 120Hz sub-bass filter (+0 to +12dB).
-    - **Listening Volume**: Real-time gain control.
-  - **Neon Audio Visualizer**: Real-time 64-band frequency spectrum canvas dancing with glowing caps.
-  - **Scrubbable Track Seekbar**: Click or drag to jump to any part of the track with live timestamps.
-  - **Zero-Friction Testing**: Built-in 80s synthwave demo track synthesized in-memory on first visit.
-  - **4 Viral 1-Click Presets**:
+    - **Speed & Pitch Multiplier**: 0.50x to 1.50x with 1-tap "0.85x Gold Ratio" and "1.00x Normal" reset.
+    - **Room Reverb & Decay**: Algorithmic convolution reverb scaling from dry studio to giant cathedral room.
+    - **Sub-Bass Rumble**: Low-shelf 120Hz sub-bass filter (+0 to +12dB).
+    - **Listening Volume**: Real-time gain control with 1-tap mute toggle.
+  - **6 Curated Viral 1-Click Style Blueprints (Vector Icon Badges)**:
     - Slowed + Reverb (0.85x speed, 65% reverb, +4.5dB bass)
-    - Sped Up / Nightcore (1.25x speed, 15% reverb, +2dB bass)
-    - Cathedral Echoes (0.78x speed, 90% reverb, +6dB bass)
-    - Midnight Lo-Fi (0.90x speed, 40% reverb, +5dB bass)
+    - Sped Up / Nightcore (1.25x speed, 15% reverb, +2.0dB bass)
+    - Cathedral Echoes (0.75x speed, 90% reverb, +6.0dB bass)
+    - Midnight Lo-Fi (0.90x speed, 40% reverb, +5.0dB bass)
+    - Club Sub-Bass (1.00x speed, 20% reverb, +10.0dB bass)
+    - Submerged Hallway (0.80x speed, 75% reverb, +3.5dB bass)
   - **Lossless WAV Audio Export ($0 Server Cost)**:
     - Offline rendering via `OfflineAudioContext` capturing the full track plus reverb tail.
-    - Pure JavaScript 16-bit PCM stereo WAV encoding and instant browser download.
-  - **Mobile Optimized**: Big finger-friendly Play/Pause and seekbar controls with segmented mobile navigation.
+    - Pure JavaScript 16-bit PCM stereo WAV encoding with live progress percentage and instant download.
+  - **Mobile Optimized**:
+    - Responsive 3-segment switcher (`Player & EQ` | `DSP Faders` | `Presets`).
+    - Fixed bottom floating action player HUD (`lg:hidden fixed bottom-3 inset-x-3`) with play/pause, track timer, and 1-tap WAV export.
 
 ---
 
-### 7. 🛡️ Private Photo & Screen Blur Studio (Redaction)
+### 7. 🔒 Private Photo & Screen Blur Studio
 * **Route**: [`/tools/image/redact-blur`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/image/redact-blur/page.tsx)
 * **Category**: Image & Privacy
 * **Files Created / Modified**:
@@ -211,23 +240,38 @@
   - `src/data/tools.ts` (Registered in tool suite catalog with `popular: true`, `proPowerPack: true`)
 * **What It Does**:
   - Blurs, pixelates, or blacks out passwords, faces, credit cards, and private text from screenshots and photos with guaranteed 100% on-device privacy ($0 server cost).
-  - **3 Redaction Styles**:
-    - **Smooth Gaussian Blur**: Frosted soft blur with adjustable radius (6px to 36px) for faces, profiles, and background details.
-    - **Pixelate / Mosaic**: Crisp 8-bit mosaic blocks with adjustable block size (8px to 32px) for passwords, API keys, and phone numbers.
+  - **4 Redaction Styles**:
+    - **Smooth Gaussian Blur**: Frosted soft blur with adjustable radius slider (6px to 48px) and tactile presets (`10px`, `18px`, `28px`, `40px`) for faces, profiles, and background details.
+    - **Pixelate / Mosaic**: Crisp 8-bit mosaic blocks with adjustable block size slider (6px to 36px) and tactile presets (`8px`, `14px`, `20px`, `30px`) for passwords, API keys, and phone numbers.
     - **Black Out Tape**: High-security opaque solid censor bars for banking details and legal documents.
+    - **White Out Tape**: Opaque solid white censor bars for light documents and contracts.
+  - **4 Quick-Intent Preset Chips (1-Tap Pro Convenience)**:
+    - `🔑 API Key / Password`: Instant 14px Mosaic blocks.
+    - `💳 Credit Card & Numbers`: Instant Blackout Tape.
+    - `👤 Face / Profile`: Instant 28px Heavy Gaussian Blur.
+    - `📧 Email & Names`: Instant 16px Soft Gaussian Blur.
+  - **Photorealistic Demo Canvas**:
+    - macOS window titlebar with traffic light buttons, live production cluster indicator (`● US-EAST-1 LIVE`), and realistic confidential cards (Root Admin, Stripe API Secret, Corporate Visa, PostgreSQL Master, AWS S3, SSH Gateway).
+    - Pre-drawn demonstration blur/blackout boxes so users immediately see the tool in action upon opening.
   - **Interactive Selection Box Engine**:
-    - Drag to draw rectangular redaction boxes over any part of the image.
-    - Select, inspect, and delete individual boxes or 1-click Undo and Clear All.
+    - Drag to draw rectangular redaction boxes over any part of the image with real-time responsive coordinates.
+    - Select, inspect, and delete individual boxes or 1-click Undo (`Ctrl+Z`) and Clear All.
+    - In-place Selected Layer Inspector allowing switching redaction mode on an existing box.
     - Mobile touch gesture support (`touch-action: none`) preventing page scrolling interference.
+  - **Canvas Zoom & Framing Controls**:
+    - Zoom Out / In (60% to 180%) with 1-click 100% reset.
   - **Frictionless Input**:
-    - File picker & drag-and-drop.
+    - File picker & drag-and-drop with animated backdrop overlay.
     - Global `Ctrl+V` / `Cmd+V` screenshot clipboard paste listener.
     - Built-in sample account dashboard screenshot for instant testing.
     - Automatic incoming pipeline item consumer.
   - **Export Engine ($0 Server Cost)**:
-    - 1-Click **"Copy Picture"** directly to system clipboard via `navigator.clipboard.write`.
-    - High-Res **Lossless PNG download**.
+    - 1-Click **"Copy Picture"** directly to system clipboard via `navigator.clipboard.write([new ClipboardItem(...)])`.
+    - High-Res **Lossless PNG download** with single-hue radiant emerald-teal gradient button.
     - **MediaPipelineBar Integration**: Passes redacted images into Image Compressor, Resizer, Converter, Meme Studio, or Exismic Cloud Drive.
+  - **Mobile Optimized**:
+    - 3-segment responsive tabs (`Canvas` | `Styles` | `Layers (N)`).
+    - Fixed bottom floating action HUD (`lg:hidden fixed bottom-3 inset-x-3`) with 1-tap mode switcher, undo, copy, and clean PNG download.
 
 ---
 
@@ -239,21 +283,40 @@
   - `src/app/tools/creator/teleprompter/page.tsx` (Route with `ToolPageShell` & dynamic SEO metadata)
   - `src/data/tools.ts` (Registered in tool suite catalog with `popular: true`, `proPowerPack: true`)
 * **What It Does**:
-  - Distraction-free, hardware-accelerated auto-scrolling script reader for video recording, YouTube creators, presentations, and speeches ($0 server cost).
-  - **Smooth Auto-Scroll Engine**:
-    - RequestAnimationFrame scroll loop with speed slider (1 to 10 calibrated from 20px/s to 200px/s).
-    - Focus Eye-Line laser indicator with top and bottom atmospheric reading fade gradients.
-    - Global keyboard shortcuts: Space (Play/Pause), Up/Down (Speed), R (Reset), F (Fullscreen).
-  - **Hardware Mirror Mode**:
-    - 1-Click horizontal mirror flip (`scaleX(-1)`) for physical beamsplitter teleprompter glass hardware.
-  - **Live Selfie Camera Preview**:
-    - In-browser WebRTC camera stream in corner PiP so speakers can monitor facial expressions, framing, and eye contact without leaving the script.
-  - **Customizable Reading Settings**:
-    - Font Size (24px to 76px) and Margin Column Width (420px to 1000px).
-    - 4 Color Themes: OLED Pitch Black, High-Contrast Yellow, Obsidian Cyber, and Clean White.
-  - **3 Instant Script Presets**: Viral Video Hook, Product Launch Pitch, and Podcast Intro.
-  - **Fullscreen Studio Mode**:
-    - Native fullscreen with auto-hiding floating HUD overlay that vanishes on mouse idle.
+  - Professional broadcast studio teleprompter running 100% in-browser with zero server compute ($0 compute).
+  - **Dual-Pane Desktop Workspace**:
+    - Left Column (42%): Studio Script Console, word & character analytics, tactile speed controller, typography engine, hardware mirror flips, and display themes.
+    - Right Column (58%): Live Teleprompter Stage (Prompter Glass) with simulated studio bezel, recording timer, optical focus laser guide, and floating transport HUD.
+  - **Live Speech Analytics Header**:
+    - Real-time word count, dynamic estimated speaking duration, calibrated Words Per Minute (WPM) readout, and active elapsed recording stopwatch (`00:00:00`).
+  - **4 Curated Script Blueprints (Authentic Lucide Vector Icons)**:
+    - `Film` *Short Video Hook* (TikTok / Reels / Shorts 3-second retention hook).
+    - `Rocket` *Product Launch Pitch* (SaaS / Startup problem-solution pitch).
+    - `Mic` *Podcast Episode Intro* (Host dialogue & guest roadmap).
+    - `BookOpen` *Tutorial & Explainer* (3-step structured walkthrough).
+  - **Tactile Speed Fader & Calibrated Pacing**:
+    - Smooth slider (`1.0x` to `10.0x`) with dynamic WPM conversion (~85 WPM to ~250 WPM).
+    - 4 Instant Pacing Chips: Relaxed (`1.8x` / 85 WPM), Conversational (`3.5x` / 130 WPM), Energetic (`5.2x` / 170 WPM), Rapid (`7.5x` / 225 WPM).
+  - **Typography & Layout Controls**:
+    - Font size slider (24px to 80px) with 4 quick chips (Small 28px, Studio 44px, Large 58px, Giant 72px).
+    - Text alignment (Left, Center, Right), uppercase toggle (`ALL CAPS`), line spacing (1.3, 1.6, 2.0), and reading column margins (440px to 980px).
+  - **Hardware Rig & Optics**:
+    - **Glass Mirror Flip**: 1-Click horizontal mirror flip (`scaleX(-1)`) for beamsplitter teleprompter glass mirrors.
+    - **Ceiling Inversion**: 1-Click vertical flip (`scaleY(-1)`) for top-down glass mount rigs.
+    - **Optical Focus Laser Guide**: High-visibility glowing horizontal eyeline bar with 3 position settings (Upper 35%, Center 50%, Lower 65%) keeping speaker gaze locked onto the camera lens.
+  - **3-Second Studio Countdown with Web Audio**:
+    - Visual countdown overlay (3... 2... 1... ACTION!) with pleasant frequency-calibrated audio beeps via Web Audio API.
+  - **Live Selfie Camera Monitor (PiP)**:
+    - WebRTC selfie video feed in prompter stage with live status indicator dot and mirror mode.
+  - **4 Display Themes**:
+    - *Obsidian Cyber* (Deep `#070913` with radiant `#00f0ff` cyan accents).
+    - *OLED Pitch Black* (Pure black `#000000` with bright white `#ffffff` text).
+    - *Broadcast Yellow* (TV studio high-contrast `#fde047` on black for distance legibility).
+    - *Paper White* (Crisp `#f8fafc` with deep slate text for bright conference rooms).
+  - **Mobile Optimized**:
+    - 3-segment mobile tabs (`Prompter Stage` | `Script Text` | `Controls`).
+    - Fixed bottom floating action HUD (`fixed bottom-3 inset-x-3 z-50`) with giant Play/Pause, speed adjustment chips, reset, and fullscreen.
+  - **Global Keyboard Shortcuts**: Space (Play/Pause), Up/Down (Speed +/-), R (Reset), M (Mirror), C (Camera), F (Fullscreen).
 
 ---
 
@@ -281,14 +344,16 @@
     - **Tokyo Twilight**: Deep indigo (`#090c1c`) with electric violet, lavender, and sky blue.
     - **Clean Whiteboard**: Crisp bright slate (`#f8fafc`) for classroom presentation and high-contrast printing.
   - **Interactive Canvas Engine**:
+    - Non-passive native mouse wheel zoom engine (`{ passive: false }`) anchored to cursor coordinates, eliminating the outer browser page scroll bug.
+    - Generous 225px node width with `line-clamp-2` and `break-words`, completely eliminating premature `...` ellipses truncation.
     - Smooth pan (drag canvas background with mouse or touch) and scroll wheel zoom (0.25x to 2.5x).
-    - Dedicated HUD: 1-Click "Fit to Screen" (auto-fits entire tree with padding), Zoom In, Zoom Out, and percentage readout.
+    - Dedicated luxury HUD: 1-Click "Fit to Screen", Zoom In, Zoom Out, Reset to 100%, and percentage readout.
   - **In-Place Node Editing & Customization**:
     - Double-click to rename topic.
-    - Add child subtopic (`+`), add sibling (`+Sib`), delete topic (`🗑️`).
+    - Add child subtopic (`+`), add sibling (`+Sib`), delete topic (`Trash2`).
     - Expand / collapse branches with hidden child count badge (`+N`).
     - Custom branch color picker chips.
-  - **4 Built-in Subject Presets**:
+  - **4 Built-in Subject Presets (Zero Sparkles/Emojis)**:
     - Full-Stack Web Development Roadmap (Computer Science)
     - Human Nervous System (Biology & Health)
     - Product Launch Strategy (Business & Marketing)
@@ -422,6 +487,49 @@
 
 ---
 
+### 13. 📱 3D Device & App Mockup Studio (In-Browser Photorealistic Mockups)
+* **Route**: [`/tools/creator/device-mockup`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/tools/creator/device-mockup/page.tsx)
+* **Category**: Creator & 3D
+* **Files Created / Modified**:
+  - `src/components/tool/creator/DeviceMockupStudio.tsx` (Complete studio component)
+  - `src/app/tools/creator/device-mockup/page.tsx` (Route with `ToolPageShell` & dynamic SEO metadata)
+  - `src/data/tools.ts` (Registered in tool suite catalog with `popular: true`, `proPowerPack: true`, `Smartphone` icon)
+* **What It Does**:
+  - 100% in-browser 3D photorealistic device presentation studio for product launches, App Store screenshots, Dribbble shots, and slide decks ($0 server cost).
+  - **5 Flagship Hardware Enclosures**:
+    - **iPhone 16 Pro**: Grade 5 Titanium chassis, micro-bezel display, Dynamic Island, and 3 titanium finishes (Black Titanium, Natural, Silver).
+    - **MacBook Pro 16"**: Space Black finish, edge-to-edge Liquid Retina XDR display, camera notch, and precision aluminum base hinge.
+    - **Glass Browser Window**: Frosted macOS Safari/Arc glass window with traffic light buttons, frosted glass search pill, and SSL indicator.
+    - **iPad Pro**: Edge-to-edge Liquid Retina display, slim uniform bezels, and front camera module.
+    - **Dual Showcase (Combo)**: MacBook Pro workspace paired with angled iPhone 16 Pro hero overlay.
+  - **3D Angle & Perspective Engine**:
+    - Flat 2D front-on presentation.
+    - 3D Isometric elevation (+12° X tilt, -14° Y rotation, +4° Z yaw).
+    - Floating zero-G presentation (+8° X tilt).
+    - Tactile sliders for custom 3-axis rotation (-30° to +30°) and device zoom/scaling (70% to 115%).
+  - **Studio Lighting & Atmosphere Backdrops**:
+    - Obsidian Cosmic (deep navy midnight gradient with cyan & indigo ambient volumetric glows).
+    - Cyber Neon (synthwave purple-magenta gradient).
+    - Studio Spotlight (high-contrast radial studio keylight).
+    - Dark Grid (technical CAD blueprint grid pattern).
+    - Transparent Cutout (checkerboard background for clean PNG overlays).
+    - Custom Color Picker (arbitrary hex background).
+    - 4 Shadow Depths: Subtle, Balanced, Dramatic, None.
+  - **3 Built-in Zero-Load Vector Demo Presets**:
+    - SaaS Analytics Dashboard (Desktop).
+    - Mobile FinTech Wallet (Mobile).
+    - Modern AI Landing Page (Desktop).
+  - **1-Click High-Resolution Export**:
+    - High-Res 4K PNG download rendered via offscreen canvas with photorealistic device bezels, drop shadows, and reflection highlights.
+    - 1-Click "Copy Image" directly to clipboard.
+    - Toggleable "Made with Exismic" studio badge with custom tactile Obsidian checkbox card.
+  - **Mobile Optimized**:
+    - Responsive segmented tabs (`Stage` | `Device` | `Backdrop` | `3D Angles`) providing clean navigation on 320px–430px viewports without vertical clumping.
+    - Fixed bottom floating action HUD with device indicator, 1-tap Copy, and 1-tap Download PNG.
+  - **Pipeline Chaining**: Integrates with `MediaPipelineBar` to pass generated mockups directly to Image Compressor, Format Converter, or Image Resizer.
+
+---
+
 ## 📝 Changelog Snippet (For `/changelog` & Git Commit)
 
 ```markdown
@@ -460,5 +568,9 @@
 
 - **AI Mega-Prompt Builder (`/tools/ai/prompt-builder`)**: 
   Engineer production-grade master prompts from simple 1-line ideas. Features multi-LLM optimization (Claude XML tags, ChatGPT, DeepSeek reasoning, Gemini), 4 prompting frameworks (CREATE, Chain-of-Thought, RTF, APE), 6 expert personas, negative guardrails against AI clichés, and 1-click launch integrations ($0 server cost).
+
+- **3D Device & App Mockup Studio (`/tools/creator/device-mockup`)**: 
+  Create photorealistic 3D hardware presentation mockups in browser for iPhone 16 Pro, MacBook Pro 16", iPad Pro, Glass Browser, and Dual Combo. Features interactive 3D rotation, studio lighting backdrops, zero-load vector blueprints, 1-click clipboard copy, and high-res 4K PNG export ($0 server cost).
 ```
+
 

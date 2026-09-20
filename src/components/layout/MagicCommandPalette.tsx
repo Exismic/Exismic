@@ -74,7 +74,7 @@ const QUICK_COMMANDS = [
   },
   { 
     id: "nav-shop", 
-    label: "Credit Shop Vault", 
+    label: "Credit Vault", 
     description: "Claim daily bonus or purchase credit bundles", 
     route: "/shop",
     category: "Store",

@@ -48,7 +48,7 @@ export function ToolWorkspaceHeader({
           {/* Logo Box Container */}
           <div className="relative group flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center">
              {/* Idle ambient breathing aura strictly matching category color */}
-             <div className={cn("absolute -inset-4 rounded-full blur-2xl animate-pulse pointer-events-none", CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20")} />
+             <div className={cn("absolute inset-0 rounded-2xl blur-xl opacity-80 animate-pulse pointer-events-none", CATEGORY_ANIM_STYLES[categoryId]?.aura || "bg-cyan-500/20")} />
              
              {/* Spinning gradient border clipped strictly to the rounded-2xl bounds */}
              <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">

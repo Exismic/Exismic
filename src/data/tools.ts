@@ -1203,13 +1203,14 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'device-mockup',
-    hidden: true,
     name: '3D Device & App Mockup Studio',
     description: "Wrap your screenshots, app designs, and website previews into photorealistic 3D iPhones, MacBooks, and glass browser frames with custom angles and studio lighting.",
     category: 'creator',
     icon: 'Laptop' as IconName,
     href: '/tools/creator/device-mockup',
-    popular: true,
+    popular: false,
+    hidden: true,
+    indexable: false,
     suggestions: [
       "Wrap mobile app screenshot in iPhone 16 Pro",
       "Create 3D isometric MacBook mockup for SaaS website",
@@ -1320,7 +1321,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'code-snippet',
-    hidden: true,
     name: 'Aesthetic Code Snippet Studio',
     description: "Turn your code into beautiful, glowing images for social media, blogs, presentations, and docs. Pick themes, window frames, and gradient backdrops, then copy or download in one click.",
     category: 'developer',
@@ -1335,7 +1335,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'favicon-studio',
-    hidden: true,
     name: 'Favicon & App Icon Studio',
     description: "Generate complete favicon and app icon kits for websites, iPhone, Android, and web apps. Create from images, emojis, or letters, and download a ready-to-use icon pack.",
     category: 'developer',
@@ -1350,7 +1349,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'mesh-gradient',
-    hidden: true,
     name: 'CSS Mesh Gradient & Glass Studio',
     description: "Create flowing, organic multi-color background gradients and frosted glass cards in real time. Drag color points, adjust blur and shine, and copy website code or download 4K wallpapers.",
     category: 'developer',
@@ -1365,7 +1363,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'post-mockup',
-    hidden: true,
     name: 'Fake Social Post & Tweet Studio',
     description: "Design photorealistic Twitter / X posts, Threads, and Instagram comment cards in seconds. Customize names, handles, verified badges, numbers, and themes for viral videos and presentations.",
     category: 'creator',
@@ -1380,7 +1377,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'og-banner',
-    hidden: true,
     name: 'Social Share Banner Studio (OG Maker)',
     description: "Design custom 1200x630 social preview banners, Open Graph cards, and blog hero graphics in real time. Choose from 5 layouts, customize glowing themes, preview on Twitter and Discord, and download in 1 click.",
     category: 'seo',
@@ -1395,7 +1391,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'slowed-reverb',
-    hidden: true,
     name: 'Slowed + Reverb & Sped-Up Music Studio',
     description: "Transform songs into aesthetic Slowed + Reverb or Sped-Up Nightcore tracks in seconds. Customize speed, cathedral reverb, and bass rumble with live visualizer and instant audio download.",
     category: 'audio',
@@ -1410,7 +1405,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'redact-blur',
-    hidden: true,
     name: 'Private Photo & Screen Blur Studio',
     description: "Blur, pixelate, or black out passwords, faces, credit cards, and private text from screenshots and photos. 100% on-device client privacy with instant clipboard copy and clean image download.",
     category: 'image',
@@ -1425,7 +1419,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'teleprompter',
-    hidden: true,
     name: 'Live Studio Teleprompter',
     description: "Distraction-free auto-scrolling script reader for video creators, presentations, and speeches. Features mirror mode for teleprompter glass, speed controls, and camera selfie preview.",
     category: 'creator',
@@ -1440,7 +1433,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'mind-map',
-    hidden: true,
     name: 'Notes to Mind Map Studio',
     description: "Turn outlines, bullet points, and notes into interactive visual mind maps and concept trees. 100% private in-browser processing with 1-click high-res PNG and vector SVG downloads.",
     category: 'student',
@@ -1455,7 +1447,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'diff-checker',
-    hidden: true,
     name: 'Text & Code Comparison Studio (Diff Checker)',
     description: "Compare two versions of code, contracts, or text side by side. Highlights added, removed, and modified lines with word-level precision. 100% private, zero server cost.",
     category: 'developer',
@@ -1470,7 +1461,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'audiogram',
-    hidden: true,
     name: 'Audio Waveform Video Maker (Podcast Reels)',
     description: "Turn voice clips, podcast soundbites, and music into animated waveform videos for Instagram Reels, TikTok, and YouTube Shorts. 100% free client-side HD video export.",
     category: 'audio',
@@ -1485,7 +1475,6 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'prompt-builder',
-    hidden: true,
     name: 'AI Mega-Prompt Builder',
     description: "Transform simple 1-line ideas into master-grade prompt engineering protocols for ChatGPT, Claude, Gemini, and DeepSeek. Free client-side tool with XML tags and Chain-of-Thought reasoning.",
     category: 'ai',

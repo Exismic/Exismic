@@ -11,7 +11,6 @@ import {
   Download, 
   Copy, 
   Check, 
-  Sparkles, 
   RotateCcw, 
   Sliders, 
   Palette, 
@@ -157,7 +156,7 @@ const SAMPLE_TEMPLATES = [
       <circle cx="100" cy="45" r="16" fill="%2310b981"/>
       <text x="135" y="52" fill="%23ffffff" font-family="sans-serif" font-size="22" font-weight="bold">VORTEX.AI</text>
       <rect x="620" y="200" width="360" height="42" rx="21" fill="%2310b981" fill-opacity="0.15" stroke="%2310b981" stroke-opacity="0.4"/>
-      <text x="655" y="228" fill="%2334d399" font-family="sans-serif" font-size="16" font-weight="bold">✨ NEW: VERSION 3.0 RELEASED</text>
+      <text x="655" y="228" fill="%2334d399" font-family="sans-serif" font-size="16" font-weight="bold">NEW: VERSION 3.0 RELEASED</text>
       <text x="800" y="340" fill="%23ffffff" font-family="sans-serif" font-size="64" font-weight="900" text-anchor="middle">Ship Intelligent Apps Faster.</text>
       <text x="800" y="420" fill="%2394a3b8" font-family="sans-serif" font-size="24" text-anchor="middle">The all-in-one developer workspace designed for state of the art performance.</text>
       <rect x="640" y="480" width="200" height="60" rx="30" fill="%2310b981"/>
@@ -186,6 +185,22 @@ export default function DeviceMockupStudio() {
   const [deviceScale, setDeviceScale] = useState<number>(0.92);
   const [showBadge, setShowBadge] = useState<boolean>(false);
 
+  // Mobile Navigation Tabs
+  const [mobileTab, setMobileTab] = useState<"stage" | "device" | "backdrop" | "angles">("stage");
+
+  // Toast Notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerToast = (msg: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastMessage(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage(null);
+      toastTimeoutRef.current = null;
+    }, 2200);
+  };
+
   // Status
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -199,6 +214,7 @@ export default function DeviceMockupStudio() {
     const item = consumePipelineItem();
     if (item && item.url) {
       setImage(item.url);
+      triggerToast("Imported image from pipeline");
     }
   }, []);
 
@@ -231,6 +247,7 @@ export default function DeviceMockupStudio() {
     setShadowDepth("balanced");
     setDeviceScale(0.92);
     setShowBadge(false);
+    triggerToast("Studio stage reset to default");
   };
 
   // Upload handler
@@ -241,6 +258,7 @@ export default function DeviceMockupStudio() {
       reader.onload = (event) => {
         if (typeof event.target?.result === "string") {
           setImage(event.target.result);
+          triggerToast("Screenshot loaded onto device");
         }
       };
       reader.readAsDataURL(file);
@@ -257,6 +275,7 @@ export default function DeviceMockupStudio() {
       reader.onload = (event) => {
         if (typeof event.target?.result === "string") {
           setImage(event.target.result);
+          triggerToast("Dropped screenshot loaded");
         }
       };
       reader.readAsDataURL(file);
@@ -518,7 +537,7 @@ export default function DeviceMockupStudio() {
           ctx.font = `bold ${14 * s}px sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("🔒 exismic.xyz/preview", 0, -dh / 2 + headerH / 2);
+          ctx.fillText("exismic.xyz/preview", 0, -dh / 2 + headerH / 2);
 
           const sw = dw;
           const sh = dh - headerH;
@@ -638,7 +657,7 @@ export default function DeviceMockupStudio() {
           ctx.font = `600 ${16 * s}px sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("⚡ Made with Exismic", bx + bw / 2, by + bh / 2);
+          ctx.fillText("Made with Exismic", bx + bw / 2, by + bh / 2);
         }
 
         ctx.restore();
@@ -694,8 +713,10 @@ export default function DeviceMockupStudio() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      triggerToast("High-resolution PNG exported!");
     } catch (err) {
       console.error("Export failed:", err);
+      triggerToast("Export failed. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -710,17 +731,27 @@ export default function DeviceMockupStudio() {
         const item = new ClipboardItem({ "image/png": blob });
         await navigator.clipboard.write([item]);
         setIsCopied(true);
+        triggerToast("Mockup image copied to clipboard!");
         setTimeout(() => setIsCopied(false), 2400);
       }
     } catch (err) {
       console.error("Copy failed:", err);
+      triggerToast("Failed to copy image to clipboard.");
     } finally {
       setIsExporting(false);
     }
   };
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 pb-24 lg:pb-8">
+      {/* Toast Notification (Safely below navbar) */}
+      {toastMessage && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#0a0f1d]/95 border border-cyan-500/40 text-cyan-200 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{toastMessage}</span>
+        </div>
+      )}
+
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -756,6 +787,7 @@ export default function DeviceMockupStudio() {
                 setImage(tpl.url);
                 if (tpl.type === "mobile") setSelectedDevice("iphone-16-pro");
                 else setSelectedDevice("macbook-pro");
+                triggerToast(`Loaded demo: ${tpl.name}`);
               }}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-cyan-400/40 text-zinc-300 hover:text-white transition-all flex items-center gap-2 cursor-pointer"
             >
@@ -776,10 +808,67 @@ export default function DeviceMockupStudio() {
         </button>
       </div>
 
+      {/* MOBILE SEGMENTED TABS (Strict 320px - 430px Friendly) */}
+      <div className="flex lg:hidden items-center p-1 rounded-xl bg-[#090c17] border border-white/[0.08]">
+        <button
+          onClick={() => setMobileTab("stage")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            mobileTab === "stage"
+              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              : "text-slate-400 hover:text-slate-200"
+          )}
+        >
+          <Maximize2 className="w-3.5 h-3.5" />
+          <span>Stage</span>
+        </button>
+        <button
+          onClick={() => setMobileTab("device")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            mobileTab === "device"
+              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              : "text-slate-400 hover:text-slate-200"
+          )}
+        >
+          <Laptop className="w-3.5 h-3.5" />
+          <span>Device</span>
+        </button>
+        <button
+          onClick={() => setMobileTab("backdrop")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            mobileTab === "backdrop"
+              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              : "text-slate-400 hover:text-slate-200"
+          )}
+        >
+          <Palette className="w-3.5 h-3.5" />
+          <span>Backdrop</span>
+        </button>
+        <button
+          onClick={() => setMobileTab("angles")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            mobileTab === "angles"
+              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              : "text-slate-400 hover:text-slate-200"
+          )}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>3D Angles</span>
+        </button>
+      </div>
+
       {/* =========================================================
           MAIN CENTERPIECE: 3D VIEWPORT STAGE WITH QUICK BAR
       ========================================================== */}
-      <div className="relative rounded-3xl border border-white/[0.12] bg-[#05060d] shadow-2xl overflow-hidden flex flex-col">
+      <div
+        className={cn(
+          "relative rounded-3xl border border-white/[0.12] bg-[#05060d] shadow-2xl overflow-hidden flex flex-col",
+          mobileTab !== "stage" && "hidden lg:flex"
+        )}
+      >
         {/* Stage Header Controls */}
         <div className="relative z-20 px-5 py-3.5 border-b border-white/[0.08] bg-[#080b18]/80 backdrop-blur-xl flex flex-wrap items-center justify-between gap-3">
           {/* Aspect Ratio Selector */}
@@ -1013,7 +1102,7 @@ export default function DeviceMockupStudio() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* CARD 1: DEVICE SELECTION */}
-        <div className="rounded-2xl border border-white/[0.1] bg-[#080b18]/90 backdrop-blur-2xl p-5 shadow-xl space-y-4">
+        <div className={cn("rounded-2xl border border-white/[0.1] bg-[#080b18]/90 backdrop-blur-2xl p-5 shadow-xl space-y-4", mobileTab !== "device" && "hidden lg:block")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
               <Laptop size={14} />
@@ -1092,7 +1181,7 @@ export default function DeviceMockupStudio() {
         </div>
 
         {/* CARD 2: STUDIO LIGHTING & BACKDROPS */}
-        <div className="rounded-2xl border border-white/[0.1] bg-[#080b18]/90 backdrop-blur-2xl p-5 shadow-xl space-y-4">
+        <div className={cn("rounded-2xl border border-white/[0.1] bg-[#080b18]/90 backdrop-blur-2xl p-5 shadow-xl space-y-4", mobileTab !== "backdrop" && "hidden lg:block")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
               <Palette size={14} />
@@ -1141,7 +1230,7 @@ export default function DeviceMockupStudio() {
         </div>
 
         {/* CARD 3: 3D ANGLE & PERSPECTIVE */}
-        <div className="rounded-2xl border border-white/[0.1] bg-[#080b18]/90 backdrop-blur-2xl p-5 shadow-xl space-y-4">
+        <div className={cn("rounded-2xl border border-white/[0.1] bg-[#080b18]/90 backdrop-blur-2xl p-5 shadow-xl space-y-4", mobileTab !== "angles" && "hidden lg:block")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
               <Sliders size={14} />
@@ -1278,18 +1367,60 @@ export default function DeviceMockupStudio() {
           </button>
         </div>
 
-        {/* Watermark checkbox */}
-        <div className="flex items-center gap-2.5 cursor-pointer">
-          <input
-            type="checkbox"
-            id="showBadgeToggle"
-            checked={showBadge}
-            onChange={(e) => setShowBadge(e.target.checked)}
-            className="w-4 h-4 rounded accent-cyan-400 bg-black/40 border-white/20 cursor-pointer"
-          />
-          <label htmlFor="showBadgeToggle" className="text-xs text-zinc-300 font-semibold cursor-pointer select-none">
+        {/* Watermark Tactile Toggle Card */}
+        <button
+          type="button"
+          onClick={() => setShowBadge(!showBadge)}
+          className={cn(
+            "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer select-none",
+            showBadge
+              ? "bg-cyan-500/15 border-cyan-400/60 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+              : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06]"
+          )}
+        >
+          <div
+            className={cn(
+              "w-4 h-4 rounded flex items-center justify-center border transition-all",
+              showBadge
+                ? "bg-cyan-500 border-cyan-400 text-black shadow-sm"
+                : "border-white/30 bg-black/40"
+            )}
+          >
+            {showBadge && <Check size={11} className="stroke-[3]" />}
+          </div>
+          <span className="text-xs font-semibold">
             Include &quot;Made with Exismic&quot; badge
-          </label>
+          </span>
+        </button>
+      </div>
+
+      {/* MOBILE FLOATING ACTION HUD (Fixed 1-Tap Export on Mobile) */}
+      <div className="lg:hidden fixed bottom-3 left-3 right-3 z-50 flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-[#080b18]/95 border border-white/[0.15] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.85)]">
+        <div className="flex items-center gap-2 pl-2">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-[11px] font-bold text-zinc-200 truncate max-w-[110px]">
+            {DEVICE_OPTIONS.find((d) => d.id === selectedDevice)?.name}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleCopy}
+            disabled={isExporting}
+            className="px-3 py-2 rounded-xl text-xs font-bold bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.12] text-white flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+          >
+            {isCopied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+            <span>{isCopied ? "Copied" : "Copy"}</span>
+          </button>
+          
+          <button
+            onClick={handleDownload}
+            disabled={isExporting}
+            className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-500 to-indigo-600 text-white flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.4)] active:scale-95 transition-all cursor-pointer"
+          >
+            {isExporting ? <RefreshCw size={13} className="animate-spin" /> : <Download size={13} />}
+            <span>{isExporting ? "Rendering..." : "Download"}</span>
+          </button>
         </div>
       </div>
 

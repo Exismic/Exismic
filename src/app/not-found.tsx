@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Compass, Sparkles } from "lucide-react";
+import { ArrowLeft, Compass } from "lucide-react";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { useEffect, useState } from "react";
 
@@ -147,7 +147,7 @@ export default function NotFound() {
             className="group relative flex h-14 w-full sm:w-auto items-center justify-center gap-3 overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#0a0a0f] px-8 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all hover:bg-cyan-500/10 hover:border-cyan-400/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.3)] active:scale-[0.98]"
           >
             Explore Tools
-            <Sparkles size={16} className="text-cyan-400 transition-transform group-hover:scale-110 group-hover:rotate-12" />
+            <Compass size={16} className="text-cyan-400 transition-transform group-hover:rotate-45 group-hover:scale-110" />
           </Link>
         </motion.div>
       </div>

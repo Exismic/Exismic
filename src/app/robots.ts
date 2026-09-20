@@ -22,6 +22,7 @@ export default function robots(): MetadataRoute.Robots {
           "/history",
           "/tools/ai/chat/",
           "/tools/support-agent/widget-test/",
+          "/tools/creator/device-mockup",
         ],
       },
       {
@@ -38,6 +39,7 @@ export default function robots(): MetadataRoute.Robots {
           "/history",
           "/tools/ai/chat/",
           "/tools/support-agent/widget-test/",
+          "/tools/creator/device-mockup",
         ],
       },
       {
@@ -54,6 +56,7 @@ export default function robots(): MetadataRoute.Robots {
           "/history",
           "/tools/ai/chat/",
           "/tools/support-agent/widget-test/",
+          "/tools/creator/device-mockup",
         ],
       },
     ],

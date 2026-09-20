@@ -6,7 +6,7 @@ import {
   Check,
   Download,
   Code2,
-  Sparkles,
+  Edit3,
   Sliders,
   Palette,
   Maximize2,
@@ -19,7 +19,8 @@ import {
   Type,
   Square,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Terminal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
@@ -1132,27 +1133,30 @@ export default function CodeSnippetStudio() {
   };
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 pb-24 lg:pb-0">
       {/* Hidden canvas for high-DPI retina PNG exports */}
       <canvas ref={hiddenCanvasRef} className="hidden" />
 
       {/* =========================================================
-          STARTER TEMPLATES BAR (Quick 1-Click Samples)
+          STARTER TEMPLATES BAR (Quick 1-Click Code Blueprints)
       ========================================================== */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 sm:p-4 rounded-2xl bg-[#090d1a]/80 border border-white/[0.08] backdrop-blur-xl">
-        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-300">
-          <Sparkles size={15} className="text-cyan-400" />
-          <span>Templates:</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 sm:p-4 rounded-2xl bg-[#090d1a]/80 border border-white/[0.08] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="flex items-center gap-2 shrink-0">
+          <Terminal size={15} className="text-cyan-400 shrink-0" />
+          <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">Templates:</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
+            5 Presets
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full pb-1 sm:pb-0 no-scrollbar">
           {SAMPLE_SNIPPETS.map((sample) => (
             <button
               key={sample.id}
               onClick={() => handleLoadSample(sample)}
               className={cn(
-                "px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer",
+                "px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0",
                 filename === sample.filename
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm"
+                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.2)] font-semibold"
                   : "bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08] border border-white/[0.04]"
               )}
             >
@@ -1165,42 +1169,42 @@ export default function CodeSnippetStudio() {
       {/* =========================================================
           MOBILE VIEW SELECTOR (Visible on mobile/tablet)
       ========================================================== */}
-      <div className="lg:hidden flex items-center p-1 rounded-2xl bg-[#080c18] border border-white/[0.08] gap-1">
+      <div className="lg:hidden flex items-center p-1 rounded-xl bg-[#080c18] border border-white/[0.08] shadow-lg gap-1">
         <button
           onClick={() => setMobileTab("preview")}
           className={cn(
-            "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+            "flex-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0",
             mobileTab === "preview"
-              ? "bg-cyan-500 text-white shadow-md"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-gradient-to-r from-cyan-500/25 to-teal-500/25 text-white border border-cyan-500/40 shadow-sm font-bold"
+              : "text-zinc-400 hover:text-white"
           )}
         >
-          <Eye size={14} />
-          <span>Preview</span>
+          <Eye size={14} className="text-cyan-400 shrink-0" />
+          <span className="truncate">Preview</span>
         </button>
         <button
           onClick={() => setMobileTab("code")}
           className={cn(
-            "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+            "flex-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0",
             mobileTab === "code"
-              ? "bg-cyan-500 text-white shadow-md"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-gradient-to-r from-cyan-500/25 to-teal-500/25 text-white border border-cyan-500/40 shadow-sm font-bold"
+              : "text-zinc-400 hover:text-white"
           )}
         >
-          <Code2 size={14} />
-          <span>Code</span>
+          <Code2 size={14} className="text-cyan-400 shrink-0" />
+          <span className="truncate">Editor</span>
         </button>
         <button
           onClick={() => setMobileTab("style")}
           className={cn(
-            "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+            "flex-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-w-0",
             mobileTab === "style"
-              ? "bg-cyan-500 text-white shadow-md"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-gradient-to-r from-cyan-500/25 to-teal-500/25 text-white border border-cyan-500/40 shadow-sm font-bold"
+              : "text-zinc-400 hover:text-white"
           )}
         >
-          <Sliders size={14} />
-          <span>Style</span>
+          <Sliders size={14} className="text-cyan-400 shrink-0" />
+          <span className="truncate">Styling</span>
         </button>
       </div>
 
@@ -1302,9 +1306,9 @@ export default function CodeSnippetStudio() {
             </div>
 
             {/* Window Style Selector */}
-            <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
+            <div className="pt-2 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
               <span className="text-xs font-semibold text-zinc-300">Header:</span>
-              <div className="flex items-center gap-1.5">
+              <div className="grid grid-cols-3 gap-1 sm:flex sm:items-center sm:gap-1.5 w-full sm:w-auto">
                 {(
                   [
                     { id: "mac", label: "Mac" },
@@ -1316,7 +1320,7 @@ export default function CodeSnippetStudio() {
                     key={style.id}
                     onClick={() => setWindowStyle(style.id)}
                     className={cn(
-                      "px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                      "py-1.5 px-2 rounded-lg text-xs font-medium transition-all text-center cursor-pointer",
                       windowStyle === style.id
                         ? "bg-cyan-500/25 text-cyan-300 border border-cyan-400/50"
                         : "text-zinc-400 hover:text-zinc-200 bg-white/[0.03]"
@@ -1329,9 +1333,9 @@ export default function CodeSnippetStudio() {
             </div>
 
             {/* Spacing / Card Padding */}
-            <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
+            <div className="pt-2 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
               <span className="text-xs font-semibold text-zinc-300">Padding:</span>
-              <div className="flex items-center gap-1">
+              <div className="grid grid-cols-4 gap-1 sm:flex sm:items-center sm:gap-1 w-full sm:w-auto">
                 {(
                   [
                     { id: "compact", label: "Compact" },
@@ -1344,7 +1348,7 @@ export default function CodeSnippetStudio() {
                     key={pad.id}
                     onClick={() => setPaddingSize(pad.id)}
                     className={cn(
-                      "px-2 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                      "py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-medium transition-all text-center cursor-pointer",
                       paddingSize === pad.id
                         ? "bg-purple-500/25 text-purple-300 border border-purple-400/50"
                         : "text-zinc-400 hover:text-zinc-200 bg-white/[0.03]"
@@ -1357,16 +1361,16 @@ export default function CodeSnippetStudio() {
             </div>
 
             {/* Font Size & Line Numbers */}
-            <div className="pt-2 border-t border-white/[0.06] grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="pt-2 border-t border-white/[0.06] grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-[11px] font-semibold text-zinc-400 mb-1">Text Size</label>
-                <div className="flex items-center gap-1">
+                <label className="block text-[11px] font-semibold text-zinc-400 mb-1.5">Text Size</label>
+                <div className="grid grid-cols-4 gap-1">
                   {(["small", "medium", "large", "xlarge"] as FontSize[]).map((size) => (
                     <button
                       key={size}
                       onClick={() => setFontSize(size)}
                       className={cn(
-                        "flex-1 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer",
+                        "py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer text-center",
                         fontSize === size
                           ? "bg-cyan-500/25 text-cyan-300 border border-cyan-400/50"
                           : "text-zinc-400 hover:text-zinc-200 bg-white/[0.03]"
@@ -1379,11 +1383,11 @@ export default function CodeSnippetStudio() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-zinc-400 mb-1">Line Numbers</label>
+                <label className="block text-[11px] font-semibold text-zinc-400 mb-1.5">Line Numbers</label>
                 <button
                   onClick={() => setShowLineNumbers(!showLineNumbers)}
                   className={cn(
-                    "w-full py-1 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                    "w-full py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                     showLineNumbers
                       ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40"
                       : "bg-white/[0.04] text-zinc-400 border border-white/[0.06]"
@@ -1411,18 +1415,18 @@ export default function CodeSnippetStudio() {
             {/* Container representing the selected background */}
             <div
               className={cn(
-                "rounded-2xl flex items-center justify-center transition-all duration-300 overflow-x-auto shadow-inner",
+                "rounded-2xl flex items-center justify-center transition-all duration-300 overflow-x-auto shadow-inner w-full min-w-0 max-w-full",
                 activeBg.class,
-                paddingSize === "compact" && "p-3 sm:p-8",
-                paddingSize === "balanced" && "p-4 sm:p-12",
-                paddingSize === "spacious" && "p-6 sm:p-16",
-                paddingSize === "studio" && "p-8 sm:p-20"
+                paddingSize === "compact" && "p-2.5 sm:p-8",
+                paddingSize === "balanced" && "p-3.5 sm:p-12",
+                paddingSize === "spacious" && "p-5 sm:p-16",
+                paddingSize === "studio" && "p-6 sm:p-20"
               )}
             >
               {/* Window Card */}
               <div
                 className={cn(
-                  "rounded-2xl border transition-all duration-300 w-full max-w-full overflow-hidden",
+                  "rounded-2xl border transition-all duration-300 w-full min-w-0 max-w-full overflow-hidden",
                   shadowDepth === "dramatic" && "shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]",
                   shadowDepth === "balanced" && "shadow-[0_15px_35px_-10px_rgba(0,0,0,0.65)]",
                   shadowDepth === "subtle" && "shadow-lg",
@@ -1613,6 +1617,51 @@ export default function CodeSnippetStudio() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* MOBILE BOTTOM FLOATING ACTION BAR (1-Tap instant switch & download on phones) */}
+      <div className="lg:hidden fixed bottom-3 inset-x-3 z-40 p-2 rounded-2xl bg-[#090b14]/95 border border-white/15 backdrop-blur-2xl shadow-2xl flex items-center gap-2">
+        {mobileTab === "preview" ? (
+          <button
+            onClick={() => setMobileTab("code")}
+            className="flex-1 py-2.5 px-2 rounded-xl text-xs font-semibold bg-white/[0.08] hover:bg-white/[0.12] text-white border border-white/10 flex items-center justify-center gap-1.5 active:scale-95 transition-all truncate"
+          >
+            <Edit3 size={14} className="text-cyan-400 shrink-0" />
+            <span className="truncate">Edit Code</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setMobileTab("preview")}
+            className="flex-1 py-2.5 px-2 rounded-xl text-xs font-semibold bg-white/[0.08] hover:bg-white/[0.12] text-white border border-white/10 flex items-center justify-center gap-1.5 active:scale-95 transition-all truncate"
+          >
+            <Eye size={14} className="text-emerald-400 shrink-0" />
+            <span className="truncate">View Preview</span>
+          </button>
+        )}
+
+        <button
+          onClick={handleCopyImage}
+          disabled={isCopying}
+          className={cn(
+            "py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 active:scale-95 shrink-0 cursor-pointer",
+            copiedSuccess
+              ? "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+              : "bg-white/[0.08] hover:bg-white/[0.12] text-zinc-200 border-white/10"
+          )}
+          title="Copy Image to clipboard"
+        >
+          {copiedSuccess ? <Check size={14} className="text-white" /> : isCopying ? <RefreshCw size={14} className="animate-spin" /> : <Copy size={14} />}
+          <span>{copiedSuccess ? "Copied" : "Copy"}</span>
+        </button>
+
+        <button
+          onClick={handleDownloadPng}
+          disabled={isDownloading}
+          className="relative group overflow-hidden px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0 cursor-pointer"
+        >
+          {isDownloading ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
+          <span>{isDownloading ? "..." : "PNG"}</span>
+        </button>
       </div>
     </div>
   );

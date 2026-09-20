@@ -7,27 +7,24 @@ import {
   RotateCcw,
   Download,
   Upload,
-  Sparkles,
   Sliders,
   Volume2,
   VolumeX,
-  Music,
   Disc3,
-  Clock,
   Flame,
   Zap,
   Radio,
-  Church,
   Gauge,
-  CheckCircle2,
-  Share2,
-  FileAudio,
-  Headphones
+  Headphones,
+  Waves,
+  Repeat,
+  Activity,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
-// SOUND PRESETS & TYPES (100% Plain English)
+// SOUND PRESETS & TYPES
 // ============================================================================
 
 export interface SoundPreset {
@@ -37,8 +34,7 @@ export interface SoundPreset {
   speed: number;
   reverb: number; // 0 to 1
   bass: number; // 0 to 12 dB
-  icon: string;
-  description: string;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
 }
 
 const SOUND_PRESETS: SoundPreset[] = [
@@ -49,8 +45,7 @@ const SOUND_PRESETS: SoundPreset[] = [
     speed: 0.85,
     reverb: 0.65,
     bass: 4.5,
-    icon: "🌌",
-    description: "The classic melancholic slowed pitch with deep concert hall echo.",
+    icon: Waves,
   },
   {
     id: "nightcore",
@@ -59,18 +54,16 @@ const SOUND_PRESETS: SoundPreset[] = [
     speed: 1.25,
     reverb: 0.15,
     bass: 2.0,
-    icon: "🏎️",
-    description: "Fast upbeat tempo with high pitch and punchy kick drums.",
+    icon: Zap,
   },
   {
     id: "cathedral",
     name: "Cathedral Echoes",
     badge: "IMMERSIVE",
-    speed: 0.78,
+    speed: 0.75,
     reverb: 0.90,
     bass: 6.0,
-    icon: "⛪",
-    description: "Deep heavy slowdown with massive, endless room decay.",
+    icon: Radio,
   },
   {
     id: "lofi-midnight",
@@ -79,8 +72,25 @@ const SOUND_PRESETS: SoundPreset[] = [
     speed: 0.90,
     reverb: 0.40,
     bass: 5.0,
-    icon: "📻",
-    description: "Smooth late-night relaxation with warm sub-bass presence.",
+    icon: Headphones,
+  },
+  {
+    id: "bass-boost",
+    name: "Club Sub-Bass",
+    badge: "HEAVY 808",
+    speed: 1.00,
+    reverb: 0.20,
+    bass: 10.0,
+    icon: Flame,
+  },
+  {
+    id: "submerged",
+    name: "Submerged Hallway",
+    badge: "AMBIENT",
+    speed: 0.80,
+    reverb: 0.75,
+    bass: 3.5,
+    icon: Activity,
   },
 ];
 
@@ -173,8 +183,8 @@ function writeString(view: DataView, offset: number, string: string) {
   }
 }
 
-// Synthesize a relaxing 12-second 80s Synthwave Demo Track in memory
-function generateSampleAudio(ctx: AudioContext): AudioBuffer {
+// Built-in Initial Demo Track (10-second 80s Synthwave)
+function generateInitialDemoTrack(ctx: AudioContext): AudioBuffer {
   const sampleRate = ctx.sampleRate;
   const duration = 10;
   const length = sampleRate * duration;
@@ -182,12 +192,11 @@ function generateSampleAudio(ctx: AudioContext): AudioBuffer {
   const left = buffer.getChannelData(0);
   const right = buffer.getChannelData(1);
 
-  // Chord progression: Am -> F -> C -> G (2.5s each)
   const chords = [
-    [220.0, 261.63, 329.63], // Am (A3, C4, E4)
-    [174.61, 220.0, 261.63], // F  (F3, A3, C4)
-    [130.81, 164.81, 196.0],  // C  (C3, E3, G3)
-    [196.0, 246.94, 293.66], // G  (G3, B3, D4)
+    [220.0, 261.63, 329.63], // Am
+    [174.61, 220.0, 261.63], // F
+    [130.81, 164.81, 196.0],  // C
+    [196.0, 246.94, 293.66], // G
   ];
 
   for (let i = 0; i < length; i++) {
@@ -195,7 +204,6 @@ function generateSampleAudio(ctx: AudioContext): AudioBuffer {
     const chordIndex = Math.floor((time / 2.5) % 4);
     const chord = chords[chordIndex];
 
-    // Synth pad harmonics
     let sample = 0;
     chord.forEach((freq) => {
       sample += Math.sin(2 * Math.PI * freq * time) * 0.12;
@@ -203,11 +211,9 @@ function generateSampleAudio(ctx: AudioContext): AudioBuffer {
       sample += Math.sin(2 * Math.PI * (freq * 0.5) * time) * 0.08;
     });
 
-    // Soft beat pulse
-    const beatTime = (time * 2) % 1; // 120 bpm pulse
+    const beatTime = (time * 2) % 1;
     const kick = Math.sin(2 * Math.PI * 65 * beatTime) * Math.exp(-beatTime * 12) * 0.25;
 
-    // Pan slightly between channels
     left[i] = (sample + kick) * 0.8;
     right[i] = (sample * 0.9 + kick) * 0.8;
   }
@@ -216,11 +222,153 @@ function generateSampleAudio(ctx: AudioContext): AudioBuffer {
 }
 
 // ============================================================================
+// SLEEK DSP RANGE SLIDER COMPONENT
+// ============================================================================
+
+interface DspSliderProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  displayValue: string;
+  badgeText?: string;
+  accent: "cyan" | "indigo" | "amber" | "emerald";
+  shortcuts: { label: string; value: number }[];
+  onChange: (val: number) => void;
+}
+
+function DspSlider({
+  label,
+  icon: Icon,
+  value,
+  min,
+  max,
+  step,
+  displayValue,
+  badgeText,
+  accent,
+  shortcuts,
+  onChange,
+}: DspSliderProps) {
+  const accentConfig = {
+    cyan: {
+      hex: "#06b6d4",
+      iconColor: "text-cyan-400",
+      badgeColor: "text-cyan-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-cyan-400 [&::-moz-range-thumb]:border-cyan-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(6,182,212,0.85)]",
+      activeChip: "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)] font-bold",
+    },
+    indigo: {
+      hex: "#6366f1",
+      iconColor: "text-indigo-400",
+      badgeColor: "text-indigo-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-indigo-400 [&::-moz-range-thumb]:border-indigo-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(99,102,241,0.85)]",
+      activeChip: "bg-indigo-500/20 text-indigo-300 border-indigo-400/50 shadow-[0_0_8px_rgba(99,102,241,0.25)] font-bold",
+    },
+    amber: {
+      hex: "#f59e0b",
+      iconColor: "text-amber-400",
+      badgeColor: "text-amber-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-amber-400 [&::-moz-range-thumb]:border-amber-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(245,158,11,0.85)]",
+      activeChip: "bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-[0_0_8px_rgba(245,158,11,0.25)] font-bold",
+    },
+    emerald: {
+      hex: "#10b981",
+      iconColor: "text-emerald-400",
+      badgeColor: "text-emerald-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-emerald-400 [&::-moz-range-thumb]:border-emerald-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(16,185,129,0.85)]",
+      activeChip: "bg-emerald-500/20 text-emerald-300 border-emerald-400/50 shadow-[0_0_8px_rgba(16,185,129,0.25)] font-bold",
+    },
+  };
+
+  const cfg = accentConfig[accent];
+  const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+
+  return (
+    <div className="space-y-2 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.09] transition-all">
+      {/* Top Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center">
+            <Icon size={13} className={cfg.iconColor} />
+          </div>
+          <label className="text-xs font-semibold text-zinc-200">{label}</label>
+        </div>
+
+        <div className="flex items-center gap-1.5 font-mono">
+          <span className={cn("text-xs font-bold", cfg.badgeColor)}>
+            {displayValue}
+          </span>
+          {badgeText && (
+            <span className="text-[10px] text-zinc-400 px-1.5 py-0.5 rounded bg-white/[0.05] border border-white/[0.06]">
+              {badgeText}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Custom Sleek Slider Track (Eliminates white Windows bar) */}
+      <div className="relative py-1">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value))}
+          style={{
+            background: `linear-gradient(to right, ${cfg.hex} 0%, ${cfg.hex} ${pct}%, #27272a ${pct}%, #27272a 100%)`,
+          }}
+          className={cn(
+            "w-full h-2 rounded-full appearance-none cursor-pointer outline-none transition-all",
+            "[&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent",
+            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4.5 [&::-webkit-slider-thumb]:h-4.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:-mt-1.25 [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-115",
+            cfg.thumbBorder,
+            cfg.thumbShadow,
+            "[&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-transparent",
+            "[&::-moz-range-thumb]:w-4.5 [&::-moz-range-thumb]:h-4.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:cursor-pointer",
+            cfg.thumbBorder
+          )}
+        />
+      </div>
+
+      {/* Tactile Quick-Select Chips */}
+      <div className="grid grid-cols-4 gap-1.5 pt-0.5">
+        {shortcuts.map((sc) => {
+          const isActive = Math.abs(value - sc.value) < 0.01;
+          return (
+            <button
+              key={sc.label}
+              type="button"
+              onClick={() => onChange(sc.value)}
+              className={cn(
+                "py-1 px-1 text-[10px] font-mono rounded-lg border transition-all text-center truncate cursor-pointer",
+                isActive
+                  ? cfg.activeChip
+                  : "bg-white/[0.03] hover:bg-white/[0.07] text-zinc-400 hover:text-zinc-200 border-white/[0.06]"
+              )}
+            >
+              {sc.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
 export default function SlowedReverbStudio() {
-  // Audio context & node references
+  // Web Audio Context & Node Refs
   const audioCtxRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const bassFilterRef = useRef<BiquadFilterNode | null>(null);
@@ -230,15 +378,22 @@ export default function SlowedReverbStudio() {
   const masterGainRef = useRef<GainNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
 
-  // Playback tracking
-  const startTimeRef = useRef<number>(0);
-  const pauseOffsetRef = useRef<number>(0);
+  // Playhead Tracking Refs (Robust dynamic speed & seek compensation)
   const animFrameRef = useRef<number | null>(null);
+  const playheadPositionRef = useRef<number>(0);
+  const lastAnchorTimeRef = useRef<number>(0);
+  const currentSpeedRef = useRef<number>(0.85);
+  const hasInitializedRef = useRef<boolean>(false);
+  const hasUploadedCustomAudioRef = useRef<boolean>(false);
+  const audioBufferRef = useRef<AudioBuffer | null>(null);
+  const durationRef = useRef<number>(0);
+  const isLoopingRef = useRef<boolean>(true);
 
   // Audio State
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [fileName, setFileName] = useState<string>("Sample_Synthwave_Beat.mp3");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isLooping, setIsLooping] = useState<boolean>(true);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
 
@@ -247,14 +402,37 @@ export default function SlowedReverbStudio() {
   const [reverb, setReverb] = useState<number>(0.65); // 0 to 1
   const [bass, setBass] = useState<number>(4.5); // 0 to 12 dB
   const [volume, setVolume] = useState<number>(0.85); // 0 to 1
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // UI state
   const [activeTab, setActiveTab] = useState<"player" | "effects" | "presets">("player");
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportProgress, setExportProgress] = useState<number>(0);
+  const [activePresetId, setActivePresetId] = useState<string>("slowed-reverb");
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Live stereo meter levels
+  const [meterL, setMeterL] = useState<number>(0);
+  const [meterR, setMeterR] = useState<number>(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state with refs
+  useEffect(() => {
+    isLoopingRef.current = isLooping;
+    if (sourceNodeRef.current) {
+      sourceNodeRef.current.loop = isLooping;
+    }
+  }, [isLooping]);
+
+  useEffect(() => {
+    durationRef.current = duration;
+  }, [duration]);
+
+  useEffect(() => {
+    audioBufferRef.current = audioBuffer;
+  }, [audioBuffer]);
 
   // Initialize Web Audio Context
   const getAudioContext = useCallback((): AudioContext => {
@@ -268,7 +446,7 @@ export default function SlowedReverbStudio() {
     return audioCtxRef.current;
   }, []);
 
-  // Update Reverb Impulse Response on Convolver Node
+  // Update Reverb Impulse Response
   const updateReverb = useCallback(
     (ctx: BaseAudioContext, convolver: ConvolverNode, wetGain: GainNode, dryGain: GainNode, amount: number) => {
       if (amount <= 0.02) {
@@ -276,9 +454,9 @@ export default function SlowedReverbStudio() {
         dryGain.gain.setValueAtTime(1, ctx.currentTime);
         return;
       }
-      const duration = 0.5 + amount * 3.5;
+      const reverbDuration = 0.5 + amount * 3.5;
       const decay = 2.2 - amount * 0.9;
-      const impulse = createImpulseResponse(ctx, duration, decay);
+      const impulse = createImpulseResponse(ctx, reverbDuration, decay);
       convolver.buffer = impulse;
       wetGain.gain.setValueAtTime(amount * 0.85, ctx.currentTime);
       dryGain.gain.setValueAtTime(Math.max(0.2, 1 - amount * 0.5), ctx.currentTime);
@@ -286,7 +464,7 @@ export default function SlowedReverbStudio() {
     []
   );
 
-  // Build real-time graph nodes
+  // Build Real-Time Graph Nodes
   const setupAudioGraph = useCallback(
     (ctx: AudioContext) => {
       if (!bassFilterRef.current) {
@@ -306,7 +484,7 @@ export default function SlowedReverbStudio() {
         dryGainRef.current = dryNode;
 
         const masterNode = ctx.createGain();
-        masterNode.gain.value = volume;
+        masterNode.gain.value = isMuted ? 0 : volume;
         masterGainRef.current = masterNode;
 
         const analyserNode = ctx.createAnalyser();
@@ -315,9 +493,8 @@ export default function SlowedReverbStudio() {
         analyserRef.current = analyserNode;
 
         // Routing:
-        // Source -> BassFilter
-        // BassFilter -> DryGain -> MasterGain
-        // BassFilter -> Convolver -> WetGain -> MasterGain
+        // Source -> BassFilter -> DryGain -> MasterGain
+        // Source -> BassFilter -> Convolver -> WetGain -> MasterGain
         // MasterGain -> Analyser -> Destination
         bassNode.connect(dryNode);
         dryNode.connect(masterNode);
@@ -332,83 +509,28 @@ export default function SlowedReverbStudio() {
         updateReverb(ctx, convNode, wetNode, dryNode, reverb);
       }
     },
-    [bass, reverb, volume, updateReverb]
+    [bass, reverb, volume, isMuted, updateReverb]
   );
 
-  // Load Built-in Demo Track on Mount
+  // Load Built-in Demo Track on Initial Mount (Guarded so it NEVER overwrites uploaded files)
   useEffect(() => {
+    if (hasInitializedRef.current || hasUploadedCustomAudioRef.current) return;
+    hasInitializedRef.current = true;
     const ctx = getAudioContext();
-    const demoBuffer = generateSampleAudio(ctx);
-    setAudioBuffer(demoBuffer);
-    setDuration(demoBuffer.duration);
-  }, [getAudioContext]);
-
-  // Handle Audio File Upload
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const ctx = getAudioContext();
-      const arrayBuffer = await file.arrayBuffer();
-      const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
-
-      // Stop current playback
-      stopPlayback();
-      setAudioBuffer(decodedBuffer);
-      setDuration(decodedBuffer.duration);
-      setFileName(file.name);
-      pauseOffsetRef.current = 0;
-      setCurrentTime(0);
-    } catch {
-      alert("Could not decode audio file. Please try a valid MP3, WAV, or M4A file.");
+    const demoBuffer = generateInitialDemoTrack(ctx);
+    if (!hasUploadedCustomAudioRef.current) {
+      audioBufferRef.current = demoBuffer;
+      setAudioBuffer(demoBuffer);
+      durationRef.current = demoBuffer.duration;
+      setDuration(demoBuffer.duration);
     }
-  };
-
-  // Play audio from specified offset
-  const playFromOffset = useCallback(
-    (offsetSeconds: number) => {
-      if (!audioBuffer) return;
-      const ctx = getAudioContext();
-      setupAudioGraph(ctx);
-
-      if (sourceNodeRef.current) {
-        try {
-          sourceNodeRef.current.stop();
-          sourceNodeRef.current.disconnect();
-        } catch {
-          // ignore
-        }
-      }
-
-      const source = ctx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.playbackRate.value = speed;
-      source.connect(bassFilterRef.current!);
-
-      source.onended = () => {
-        // If track naturally reached the end
-        if (sourceNodeRef.current === source) {
-          setIsPlaying(false);
-          pauseOffsetRef.current = 0;
-          setCurrentTime(0);
-        }
-      };
-
-      const clampedOffset = Math.max(0, Math.min(offsetSeconds, audioBuffer.duration));
-      source.start(0, clampedOffset);
-      sourceNodeRef.current = source;
-      startTimeRef.current = ctx.currentTime - clampedOffset / speed;
-      pauseOffsetRef.current = clampedOffset;
-      setIsPlaying(true);
-    },
-    [audioBuffer, speed, getAudioContext, setupAudioGraph]
-  );
+  }, [getAudioContext]);
 
   // Stop playback cleanly
   const stopPlayback = useCallback(() => {
     if (sourceNodeRef.current) {
       try {
+        sourceNodeRef.current.onended = null;
         sourceNodeRef.current.stop();
         sourceNodeRef.current.disconnect();
       } catch {
@@ -417,38 +539,148 @@ export default function SlowedReverbStudio() {
       sourceNodeRef.current = null;
     }
     setIsPlaying(false);
+    setMeterL(0);
+    setMeterR(0);
   }, []);
 
-  // Toggle Play / Pause
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      // Pause
+  // Play audio from specified offset with anchor compensation
+  const playFromOffset = useCallback(
+    (offsetSeconds: number) => {
+      const activeBuf = audioBufferRef.current;
+      if (!activeBuf) return;
       const ctx = getAudioContext();
-      const elapsed = (ctx.currentTime - startTimeRef.current) * speed;
-      pauseOffsetRef.current = elapsed;
+      setupAudioGraph(ctx);
+
+      stopPlayback();
+
+      const source = ctx.createBufferSource();
+      source.buffer = activeBuf;
+      source.playbackRate.value = currentSpeedRef.current;
+      source.loop = isLoopingRef.current;
+      source.connect(bassFilterRef.current!);
+
+      source.onended = () => {
+        if (!isLoopingRef.current) {
+          setIsPlaying(false);
+          playheadPositionRef.current = 0;
+          setCurrentTime(0);
+        }
+      };
+
+      const clampedOffset = Math.max(0, Math.min(offsetSeconds, activeBuf.duration));
+      source.start(0, clampedOffset);
+      sourceNodeRef.current = source;
+      playheadPositionRef.current = clampedOffset;
+      lastAnchorTimeRef.current = ctx.currentTime;
+      setIsPlaying(true);
+    },
+    [getAudioContext, setupAudioGraph, stopPlayback]
+  );
+
+  // Handle Audio File Upload (Permanently locks out demo buffer overwrite)
+  const handleProcessFile = async (file: File) => {
+    if (!file) return;
+    try {
+      const ctx = getAudioContext();
+      const arrayBuffer = await file.arrayBuffer();
+      const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+      stopPlayback();
+      hasUploadedCustomAudioRef.current = true;
+      audioBufferRef.current = decodedBuffer;
+      setAudioBuffer(decodedBuffer);
+      durationRef.current = decodedBuffer.duration;
+      setDuration(decodedBuffer.duration);
+      setFileName(file.name);
+      playheadPositionRef.current = 0;
+      setCurrentTime(0);
+    } catch {
+      alert("Could not decode audio file. Please try a valid MP3, WAV, or M4A file.");
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleProcessFile(file);
+    e.target.value = "";
+  };
+
+  // Toggle Play / Pause
+  const handleTogglePlay = useCallback(() => {
+    if (isPlaying) {
+      if (audioCtxRef.current && audioBufferRef.current) {
+        const now = audioCtxRef.current.currentTime;
+        const dur = audioBufferRef.current.duration;
+        const elapsedSinceAnchor = (now - lastAnchorTimeRef.current) * currentSpeedRef.current;
+        let pos = playheadPositionRef.current + elapsedSinceAnchor;
+        if (isLoopingRef.current && dur > 0) {
+          pos = pos % dur;
+        } else {
+          pos = Math.min(dur, pos);
+        }
+        playheadPositionRef.current = pos;
+        setCurrentTime(pos);
+      }
       stopPlayback();
     } else {
-      // Play
-      playFromOffset(pauseOffsetRef.current);
+      playFromOffset(playheadPositionRef.current);
+    }
+  }, [isPlaying, playFromOffset, stopPlayback]);
+
+  // Handle Speed Change (Sample-accurate, NEVER cuts off music or changes duration)
+  const handleSpeedChange = (newSpeed: number) => {
+    setSpeed(newSpeed);
+    if (isPlaying && audioCtxRef.current && sourceNodeRef.current) {
+      const now = audioCtxRef.current.currentTime;
+      const dur = audioBufferRef.current?.duration || 0;
+      const elapsedSinceAnchor = (now - lastAnchorTimeRef.current) * currentSpeedRef.current;
+      let currentPos = playheadPositionRef.current + elapsedSinceAnchor;
+      if (isLoopingRef.current && dur > 0) {
+        currentPos = currentPos % dur;
+      } else {
+        currentPos = Math.min(dur, currentPos);
+      }
+
+      playheadPositionRef.current = currentPos;
+      lastAnchorTimeRef.current = now;
+      currentSpeedRef.current = newSpeed;
+
+      // Update Web Audio hardware rate seamlessly
+      sourceNodeRef.current.playbackRate.setValueAtTime(newSpeed, now);
+    } else {
+      currentSpeedRef.current = newSpeed;
+    }
+  };
+
+  // Skip ±5 seconds
+  const handleSkip = (seconds: number) => {
+    const dur = durationRef.current;
+    if (!dur) return;
+    const newTime = Math.max(0, Math.min(dur, currentTime + seconds));
+    playheadPositionRef.current = newTime;
+    setCurrentTime(newTime);
+    if (isPlaying) {
+      playFromOffset(newTime);
     }
   };
 
   // Reset track to start
   const handleReset = () => {
     stopPlayback();
-    pauseOffsetRef.current = 0;
+    playheadPositionRef.current = 0;
     setCurrentTime(0);
   };
 
   // Seek bar click
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioBuffer) return;
+    const dur = durationRef.current;
+    if (!dur) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percent = Math.max(0, Math.min(1, clickX / rect.width));
-    const targetTime = percent * audioBuffer.duration;
+    const targetTime = percent * dur;
 
-    pauseOffsetRef.current = targetTime;
+    playheadPositionRef.current = targetTime;
     setCurrentTime(targetTime);
 
     if (isPlaying) {
@@ -456,13 +688,7 @@ export default function SlowedReverbStudio() {
     }
   };
 
-  // Dynamic parameter changes while playing
-  useEffect(() => {
-    if (sourceNodeRef.current && audioCtxRef.current) {
-      sourceNodeRef.current.playbackRate.setValueAtTime(speed, audioCtxRef.current.currentTime);
-    }
-  }, [speed]);
-
+  // Dynamic DSP node updates
   useEffect(() => {
     if (bassFilterRef.current && audioCtxRef.current) {
       bassFilterRef.current.gain.setValueAtTime(bass, audioCtxRef.current.currentTime);
@@ -471,9 +697,9 @@ export default function SlowedReverbStudio() {
 
   useEffect(() => {
     if (masterGainRef.current && audioCtxRef.current) {
-      masterGainRef.current.gain.setValueAtTime(volume, audioCtxRef.current.currentTime);
+      masterGainRef.current.gain.setValueAtTime(isMuted ? 0 : volume, audioCtxRef.current.currentTime);
     }
-  }, [volume]);
+  }, [volume, isMuted]);
 
   useEffect(() => {
     if (audioCtxRef.current && convolverRef.current && wetGainRef.current && dryGainRef.current) {
@@ -481,14 +707,36 @@ export default function SlowedReverbStudio() {
     }
   }, [reverb, updateReverb]);
 
+  // Keyboard Shortcuts (Space: Play/Pause, L: Loop, R: Reset Flat)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        handleTogglePlay();
+      } else if (e.code === "KeyL") {
+        e.preventDefault();
+        setIsLooping((prev) => !prev);
+      } else if (e.code === "KeyR") {
+        e.preventDefault();
+        handleSpeedChange(1.0);
+        setReverb(0);
+        setBass(0);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleTogglePlay]);
+
   // Apply Sound Preset
   const handleApplyPreset = (preset: SoundPreset) => {
-    setSpeed(preset.speed);
+    setActivePresetId(preset.id);
+    handleSpeedChange(preset.speed);
     setReverb(preset.reverb);
     setBass(preset.bass);
   };
 
-  // Visualizer Animation Loop
+  // High-DPI Visualizer & Continuous Playhead Tracker
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -496,55 +744,118 @@ export default function SlowedReverbStudio() {
     if (!ctx) return;
 
     const dataArray = new Uint8Array(64);
+    let idlePhase = 0;
 
     const render = () => {
       animFrameRef.current = requestAnimationFrame(render);
+      idlePhase += 0.04;
 
-      // Track current playhead time
-      if (isPlaying && audioCtxRef.current && audioBuffer) {
-        const elapsed = (audioCtxRef.current.currentTime - startTimeRef.current) * speed;
-        setCurrentTime(Math.min(audioBuffer.duration, elapsed));
+      // Track playhead continuously with anchored calculation
+      if (isPlaying && audioCtxRef.current && audioBufferRef.current) {
+        const now = audioCtxRef.current.currentTime;
+        const dur = audioBufferRef.current.duration;
+        const elapsedSinceAnchor = (now - lastAnchorTimeRef.current) * currentSpeedRef.current;
+        let pos = playheadPositionRef.current + elapsedSinceAnchor;
+        if (isLoopingRef.current && dur > 0) {
+          pos = pos % dur;
+        } else {
+          pos = Math.min(dur, pos);
+        }
+        setCurrentTime(pos);
+      }
+
+      // Responsive Retina canvas resolution
+      const dpr = window.devicePixelRatio || 1;
+      const displayWidth = canvas.clientWidth;
+      const displayHeight = canvas.clientHeight;
+
+      if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
+        canvas.width = displayWidth * dpr;
+        canvas.height = displayHeight * dpr;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+      // Studio measurement grid
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
+      ctx.lineWidth = 1;
+      for (let y = 0; y < displayHeight; y += 24) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(displayWidth, y);
+        ctx.stroke();
       }
 
       if (analyserRef.current && isPlaying) {
         analyserRef.current.getByteFrequencyData(dataArray);
+
+        // Peak levels for stereo meters
+        let sumLow = 0;
+        let sumHigh = 0;
+        for (let i = 0; i < 32; i++) sumLow += dataArray[i];
+        for (let i = 32; i < 64; i++) sumHigh += dataArray[i];
+        const lvlL = Math.min(100, Math.round((sumLow / (32 * 255)) * 100 * (1 + bass * 0.05)));
+        const lvlR = Math.min(100, Math.round((sumHigh / (32 * 255)) * 100));
+        setMeterL(lvlL);
+        setMeterR(lvlR);
+
+        // Live Neon Spectrum Bars
+        const barCount = 48;
+        const totalSpacing = 3;
+        const barWidth = Math.max(3, (displayWidth - (barCount * totalSpacing)) / barCount);
+        let x = 6;
+
+        for (let i = 0; i < barCount; i++) {
+          const val = dataArray[i] || 0;
+          const percent = val / 255;
+          const barHeight = Math.max(4, percent * displayHeight * 0.85);
+
+          const gradient = ctx.createLinearGradient(0, displayHeight, 0, displayHeight - barHeight);
+          gradient.addColorStop(0, "rgba(99, 102, 241, 0.2)");
+          gradient.addColorStop(0.6, "rgba(99, 102, 241, 0.85)");
+          gradient.addColorStop(1, "rgba(6, 182, 212, 1)");
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.roundRect(x, displayHeight - barHeight, barWidth, barHeight, [3, 3, 0, 0]);
+          ctx.fill();
+
+          if (val > 20) {
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowColor = "rgba(6, 182, 212, 0.9)";
+            ctx.shadowBlur = 6;
+            ctx.fillRect(x, displayHeight - barHeight - 2, barWidth, 2);
+            ctx.shadowBlur = 0;
+          }
+
+          x += barWidth + totalSpacing;
+        }
       } else {
-        // Idle gentle waveform
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = Math.max(0, dataArray[i] * 0.92);
+        // Idle State: Breathing Organic Sinusoidal Wave
+        ctx.lineWidth = 2;
+        const waveGradient = ctx.createLinearGradient(0, 0, displayWidth, 0);
+        waveGradient.addColorStop(0, "rgba(6, 182, 212, 0.2)");
+        waveGradient.addColorStop(0.5, "rgba(99, 102, 241, 0.8)");
+        waveGradient.addColorStop(1, "rgba(168, 85, 247, 0.2)");
+
+        ctx.strokeStyle = waveGradient;
+        ctx.beginPath();
+        const midY = displayHeight / 2;
+
+        for (let xPos = 0; xPos < displayWidth; xPos += 3) {
+          const wave = Math.sin((xPos * 0.015) + idlePhase) * 12 * Math.sin((xPos / displayWidth) * Math.PI);
+          if (xPos === 0) ctx.moveTo(xPos, midY + wave);
+          else ctx.lineTo(xPos, midY + wave);
         }
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(6, 182, 212, 0.12)";
+        ctx.fillRect(0, midY - 1, displayWidth, 2);
       }
 
-      // Draw canvas visualizer
-      const width = canvas.width;
-      const height = canvas.height;
-      ctx.clearRect(0, 0, width, height);
-
-      const barWidth = (width / dataArray.length) * 1.5;
-      let x = 0;
-
-      for (let i = 0; i < dataArray.length; i++) {
-        const val = dataArray[i];
-        const percent = val / 255;
-        const barHeight = Math.max(4, percent * height * 0.85);
-
-        // Neon violet to cyan gradient
-        const gradient = ctx.createLinearGradient(0, height, 0, height - barHeight);
-        gradient.addColorStop(0, "rgba(168, 85, 247, 0.2)");
-        gradient.addColorStop(0.5, "rgba(168, 85, 247, 0.8)");
-        gradient.addColorStop(1, "rgba(6, 182, 212, 1)");
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
-
-        // Specular glowing cap
-        if (val > 20) {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-          ctx.fillRect(x, height - barHeight - 2, barWidth - 2, 2);
-        }
-
-        x += barWidth;
-      }
+      ctx.restore();
     };
 
     render();
@@ -554,25 +865,24 @@ export default function SlowedReverbStudio() {
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [isPlaying, speed, audioBuffer]);
+  }, [isPlaying, bass]);
 
-  // 1-Click Offline Audio Export (WAV Download)
+  // 1-Click Offline Audio Export (16-Bit WAV Download)
   const handleDownloadWav = async () => {
-    if (!audioBuffer || isExporting) return;
+    const activeBuf = audioBufferRef.current;
+    if (!activeBuf || isExporting) return;
     setIsExporting(true);
     setExportProgress(10);
 
     try {
-      // Calculated duration of output including reverb tail
-      const outputDuration = audioBuffer.duration / speed + (reverb > 0.1 ? 3.5 : 0.5);
+      const outputDuration = activeBuf.duration / speed + (reverb > 0.1 ? 3.5 : 0.5);
       const sampleRate = 44100;
       const totalFrames = Math.ceil(outputDuration * sampleRate);
 
       const offlineCtx = new OfflineAudioContext(2, totalFrames, sampleRate);
 
-      // Build identical node chain in offlineCtx
       const source = offlineCtx.createBufferSource();
-      source.buffer = audioBuffer;
+      source.buffer = activeBuf;
       source.playbackRate.value = speed;
 
       const bassNode = offlineCtx.createBiquadFilter();
@@ -586,7 +896,6 @@ export default function SlowedReverbStudio() {
 
       updateReverb(offlineCtx, convolver, wetGain, dryGain, reverb);
 
-      // Routing
       source.connect(bassNode);
       bassNode.connect(dryGain);
       dryGain.connect(offlineCtx.destination);
@@ -622,95 +931,94 @@ export default function SlowedReverbStudio() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-6">
-      {/* Top Banner / Quick Presets */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#0b0f19]/80 border border-white/[0.08] backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-pink-400 shrink-0" />
-          <span className="text-xs font-semibold text-zinc-300">Viral Sound Presets:</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {SOUND_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => handleApplyPreset(preset)}
-              className="px-2.5 py-1 text-xs rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-zinc-300 hover:text-white transition-all active:scale-95 flex items-center gap-1"
-            >
-              <span>{preset.icon}</span>
-              <span>{preset.name}</span>
-            </button>
-          ))}
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-28 lg:pb-8">
+      {/* Top Header Strip */}
+      <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#090c16]/90 border border-white/[0.08] backdrop-blur-xl shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+            <Radio className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-white flex items-center gap-2">
+              <span>Studio DSP Console</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
+                Real-Time Web Audio
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400">Zero-latency pitch shifting, convolution echo & 16-bit WAV export</p>
+          </div>
         </div>
       </div>
 
       {/* Mobile Segmented Navigation Tabs */}
-      <div className="lg:hidden flex items-center p-1 rounded-xl bg-[#090b14] border border-white/[0.08] gap-1">
+      <div className="lg:hidden grid grid-cols-3 p-1 rounded-xl bg-[#090b14] border border-white/[0.08] gap-1 shadow-lg">
         <button
           onClick={() => setActiveTab("player")}
           className={cn(
-            "flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5",
+            "py-2 px-1 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
             activeTab === "player"
-              ? "bg-pink-500/20 text-pink-300 border border-pink-500/30"
+              ? "bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 text-white border border-cyan-500/40 shadow-xs font-bold"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Music className="w-3.5 h-3.5" />
-          Player
+          <Disc3 className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Player & EQ</span>
         </button>
         <button
           onClick={() => setActiveTab("effects")}
           className={cn(
-            "flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5",
+            "py-2 px-1 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
             activeTab === "effects"
-              ? "bg-pink-500/20 text-pink-300 border border-pink-500/30"
+              ? "bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 text-white border border-cyan-500/40 shadow-xs font-bold"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Sliders className="w-3.5 h-3.5" />
-          Sound Effects
+          <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+          <span>DSP Faders</span>
         </button>
         <button
           onClick={() => setActiveTab("presets")}
           className={cn(
-            "flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5",
+            "py-2 px-1 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
             activeTab === "presets"
-              ? "bg-pink-500/20 text-pink-300 border border-pink-500/30"
+              ? "bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 text-white border border-cyan-500/40 shadow-xs font-bold"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          Presets
+          <Waves className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Presets</span>
         </button>
       </div>
 
       {/* Main Studio Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* ================================================================= */}
-        {/* LEFT COLUMN: AUDIO PLAYER & NEON VISUALIZER */}
+        {/* LEFT COLUMN: AUDIO PLAYER & REAL-TIME SPECTRUM VISUALIZER */}
         {/* ================================================================= */}
         <div
           className={cn(
-            "lg:col-span-7 space-y-5",
+            "lg:col-span-7 space-y-4",
             activeTab !== "player" ? "hidden lg:block" : "block"
           )}
         >
-          {/* Main Visualizer Stage */}
-          <div className="p-5 sm:p-7 rounded-3xl bg-[#080914] border border-purple-500/25 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_30px_rgba(168,85,247,0.15)] relative overflow-hidden space-y-5">
-            {/* Top Bar: Track Name & Audio Upload Button */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-2xl space-y-4">
+            {/* Top Track Header */}
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 shadow-xs">
                   <Disc3 className={cn("w-5 h-5", isPlaying && "animate-spin")} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-sm font-bold text-white truncate">{fileName}</div>
-                  <div className="text-xs text-zinc-400">
-                    {formatTime(currentTime)} / {formatTime(duration)}
+                  <div className="text-sm font-bold text-white truncate tracking-tight">{fileName}</div>
+                  <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
+                    <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+                    <span className="text-zinc-600">•</span>
+                    <span className="text-cyan-400 font-semibold">{speed.toFixed(2)}x Speed</span>
                   </div>
                 </div>
               </div>
 
-              {/* Upload Song Button */}
+              {/* Upload Song Trigger */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -719,234 +1027,389 @@ export default function SlowedReverbStudio() {
                 className="hidden"
               />
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+                className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0 cursor-pointer shadow-xs"
               >
-                <Upload className="w-3.5 h-3.5" />
-                Drop Any Song
+                <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Upload Song</span>
               </button>
             </div>
 
-            {/* Reactive Visualizer Canvas */}
-            <div className="h-36 sm:h-44 w-full rounded-2xl bg-black/50 border border-white/[0.06] flex items-center justify-center relative overflow-hidden p-2">
+            {/* Reactive Visualizer Canvas Stage */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) handleProcessFile(file);
+              }}
+              className={cn(
+                "h-44 sm:h-52 w-full rounded-2xl bg-[#04060d] border transition-all flex flex-col items-center justify-center relative overflow-hidden p-2 shadow-inner",
+                isDragging ? "border-cyan-400 bg-cyan-950/20" : "border-white/[0.08]"
+              )}
+            >
               <canvas
                 ref={canvasRef}
-                width={640}
-                height={160}
-                className="w-full h-full object-cover"
+                className="w-full h-full block"
               />
 
-              {!isPlaying && currentTime === 0 && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-xs text-center p-3 pointer-events-none">
-                  <Sparkles className="w-6 h-6 text-purple-400 mb-1 animate-pulse" />
-                  <span className="text-xs font-semibold text-zinc-200">Tap Play to listen to the slowed + reverb mix</span>
-                  <span className="text-[11px] text-zinc-400">Sample synthwave track loaded and ready</span>
+
+              {/* Drag overlay prompt */}
+              {isDragging && (
+                <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-cyan-300 text-xs font-bold gap-1 z-10 pointer-events-none">
+                  <Upload className="w-6 h-6 animate-bounce" />
+                  <span>Drop your song to load into DSP console</span>
                 </div>
               )}
+
+              {/* Real-Time Stereo Channel Peak Meters (VU Meter) */}
+              <div className="absolute bottom-2 inset-x-3 flex items-center justify-between gap-3 px-3 py-1 rounded-xl bg-black/60 border border-white/[0.06] backdrop-blur-md">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-[9px] font-mono font-bold text-zinc-400">L</span>
+                  <div className="h-1.5 flex-1 bg-white/[0.08] rounded-full overflow-hidden relative">
+                    <div
+                      style={{ width: `${meterL}%` }}
+                      className="h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-rose-400 rounded-full transition-all duration-75"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-[9px] font-mono font-bold text-zinc-400">R</span>
+                  <div className="h-1.5 flex-1 bg-white/[0.08] rounded-full overflow-hidden relative">
+                    <div
+                      style={{ width: `${meterR}%` }}
+                      className="h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-rose-400 rounded-full transition-all duration-75"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Scrubbable Seekbar */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 pt-1">
               <div
                 onClick={handleSeek}
-                className="w-full h-3 rounded-full bg-white/[0.08] hover:bg-white/[0.12] cursor-pointer relative overflow-hidden transition-colors"
+                className="w-full h-2 rounded-full bg-white/[0.08] hover:bg-white/[0.12] cursor-pointer relative overflow-hidden transition-colors"
               >
                 <div
                   style={{
                     width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
                   }}
-                  className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 rounded-full relative"
+                  className="h-full bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-500 rounded-full relative"
                 >
-                  <div className="absolute right-0 top-0 bottom-0 w-2 bg-white rounded-full shadow-[0_0_8px_white]" />
+                  <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
                 </div>
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
                 <span>{formatTime(currentTime)}</span>
+                <span className="text-zinc-500 text-[10px]">
+                  {isLooping ? "Continuous Loop Active" : "Single Play"}
+                </span>
                 <span>{formatTime(duration)}</span>
               </div>
             </div>
 
-            {/* Big Friendly Player Controls */}
+            {/* Master Transport Controls */}
             <div className="flex items-center justify-between pt-2 border-t border-white/[0.08]">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
+                  type="button"
                   onClick={handleReset}
                   title="Restart Track"
-                  className="p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-400 hover:text-white transition-all active:scale-95"
+                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-400 hover:text-white transition-all active:scale-95 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSkip(-5)}
+                  title="Rewind 5s"
+                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-400 hover:text-white transition-all active:scale-95 cursor-pointer hidden sm:flex items-center justify-center text-xs font-mono font-bold"
+                >
+                  -5s
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSkip(5)}
+                  title="Forward 5s"
+                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-400 hover:text-white transition-all active:scale-95 cursor-pointer hidden sm:flex items-center justify-center text-xs font-mono font-bold"
+                >
+                  +5s
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsLooping(!isLooping)}
+                  title={isLooping ? "Loop Enabled" : "Loop Disabled"}
+                  className={cn(
+                    "p-2.5 rounded-xl border transition-all active:scale-95 cursor-pointer flex items-center gap-1",
+                    isLooping
+                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/40 shadow-xs"
+                      : "bg-white/[0.04] text-zinc-400 border-white/[0.08] hover:text-white"
+                  )}
+                >
+                  <Repeat className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Master Play / Pause Button */}
               <button
+                type="button"
                 onClick={handleTogglePlay}
-                className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 via-pink-600 to-cyan-400 hover:opacity-95 text-white flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all active:scale-95"
+                className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-indigo-600 hover:from-cyan-300 hover:to-indigo-500 text-white flex items-center justify-center shadow-[0_0_28px_rgba(6,182,212,0.45),inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/25 transition-all active:scale-95 cursor-pointer"
               >
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
               </button>
 
-              {/* Download Action Button */}
+              {/* High-Fidelity 16-Bit WAV Export */}
               <button
+                type="button"
                 onClick={handleDownloadWav}
                 disabled={isExporting}
-                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold text-xs shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-[0_0_20px_rgba(99,102,241,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] border border-indigo-400/30 bg-no-repeat bg-clip-padding overflow-hidden flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
               >
                 <Download className="w-4 h-4" />
-                {isExporting ? `Rendering ${exportProgress}%...` : "Download Audio"}
+                <span>{isExporting ? `Exporting ${exportProgress}%...` : "Download WAV"}</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* ================================================================= */}
-        {/* RIGHT COLUMN: SOUND SLIDERS & PRESETS */}
+        {/* RIGHT COLUMN: DSP SOUND FADERS & VIRAL PRESETS */}
         {/* ================================================================= */}
         <div
           className={cn(
-            "lg:col-span-5 space-y-5",
+            "lg:col-span-5 space-y-4",
             activeTab === "player" ? "hidden lg:block" : "block"
           )}
         >
-          {/* Section: Sound Effects Sliders */}
-          <div className="p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <Sliders className="w-3.5 h-3.5 text-pink-400" />
-              Sound Customizer (Real-Time)
-            </h3>
-
-            {/* Slider 1: Speed & Pitch */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-purple-400" />
-                  Speed & Pitch
-                </label>
-                <span className="text-xs font-mono font-bold text-purple-300">
-                  {speed.toFixed(2)}x {speed < 1.0 ? "(Slowed)" : speed > 1.0 ? "(Sped Up)" : "(Normal)"}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.50"
-                max="1.50"
-                step="0.01"
-                value={speed}
-                onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                className="w-full h-2 rounded-lg bg-white/[0.1] accent-purple-500 cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
-                <span>0.50x (Ultra Slow)</span>
-                <span className="text-purple-400 font-bold">0.85x (Gold Ratio)</span>
-                <span>1.50x (Nightcore)</span>
-              </div>
+          {/* Section 1: Precision Studio DSP Faders */}
+          <div
+            className={cn(
+              "p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3.5",
+              activeTab === "presets" ? "hidden lg:block" : "block"
+            )}
+          >
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
+                <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Sound Customizer (Real-Time)</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  handleSpeedChange(1.0);
+                  setReverb(0);
+                  setBass(0);
+                }}
+                className="text-[11px] text-zinc-500 hover:text-cyan-300 transition-colors cursor-pointer font-medium"
+              >
+                Reset Flat
+              </button>
             </div>
 
-            {/* Slider 2: Cathedral Reverb */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <Church className="w-3.5 h-3.5 text-pink-400" />
-                  Room Reverb & Echo
-                </label>
-                <span className="text-xs font-mono font-bold text-pink-300">
-                  {Math.round(reverb * 100)}% {reverb > 0.7 ? "(Cathedral)" : reverb > 0.3 ? "(Hall)" : "(Clean)"}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.0"
-                max="1.0"
-                step="0.01"
-                value={reverb}
-                onChange={(e) => setReverb(parseFloat(e.target.value))}
-                className="w-full h-2 rounded-lg bg-white/[0.1] accent-pink-500 cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
-                <span>0% (Dry)</span>
-                <span className="text-pink-400 font-bold">65% (Concert)</span>
-                <span>100% (Grand Cathedral)</span>
-              </div>
-            </div>
+            {/* Fader 1: Speed & Pitch Multiplier */}
+            <DspSlider
+              label="Speed & Pitch Multiplier"
+              icon={Gauge}
+              value={speed}
+              min={0.50}
+              max={1.50}
+              step={0.01}
+              displayValue={`${speed.toFixed(2)}x`}
+              badgeText={speed < 1.0 ? "Slowed" : speed > 1.0 ? "Sped Up" : "Normal"}
+              accent="cyan"
+              shortcuts={[
+                { label: "0.75x Slow", value: 0.75 },
+                { label: "0.85x Viral", value: 0.85 },
+                { label: "1.00x Flat", value: 1.00 },
+                { label: "1.25x Night", value: 1.25 },
+              ]}
+              onChange={handleSpeedChange}
+            />
 
-            {/* Slider 3: Deep Bass Rumble */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
-                  Deep Bass Rumble
-                </label>
-                <span className="text-xs font-mono font-bold text-amber-300">
-                  +{bass.toFixed(1)} dB
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="12"
-                step="0.5"
-                value={bass}
-                onChange={(e) => setBass(parseFloat(e.target.value))}
-                className="w-full h-2 rounded-lg bg-white/[0.1] accent-amber-500 cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
-                <span>0 dB (Flat)</span>
-                <span className="text-amber-400 font-bold">+4.5 dB (Punchy)</span>
-                <span>+12 dB (Heavy Sub)</span>
-              </div>
-            </div>
+            {/* Fader 2: Room Reverb & Echo Decay */}
+            <DspSlider
+              label="Room Reverb & Echo Space"
+              icon={Waves}
+              value={reverb}
+              min={0}
+              max={1}
+              step={0.01}
+              displayValue={`${Math.round(reverb * 100)}%`}
+              badgeText={reverb > 0.7 ? "Cathedral" : reverb > 0.3 ? "Concert" : "Dry"}
+              accent="indigo"
+              shortcuts={[
+                { label: "0% Dry", value: 0 },
+                { label: "35% Subtle", value: 0.35 },
+                { label: "65% Concert", value: 0.65 },
+                { label: "90% Space", value: 0.90 },
+              ]}
+              onChange={setReverb}
+            />
 
-            {/* Slider 4: Master Volume */}
-            <div className="space-y-2 pt-2 border-t border-white/[0.06]">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
-                  Listening Volume
-                </label>
-                <span className="text-xs font-mono font-bold text-cyan-300">
-                  {Math.round(volume * 100)}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-full h-1.5 rounded-lg bg-white/[0.1] accent-cyan-400 cursor-pointer"
-              />
-            </div>
+            {/* Fader 3: Sub-Bass Boost */}
+            <DspSlider
+              label="Sub-Bass Boost (120Hz)"
+              icon={Flame}
+              value={bass}
+              min={0}
+              max={12}
+              step={0.5}
+              displayValue={`+${bass.toFixed(1)} dB`}
+              badgeText={bass >= 8 ? "Heavy Sub" : bass >= 4 ? "Punchy" : "Flat"}
+              accent="amber"
+              shortcuts={[
+                { label: "0 dB Flat", value: 0 },
+                { label: "+4.5 dB Punch", value: 4.5 },
+                { label: "+8.0 dB Club", value: 8.0 },
+                { label: "+12 dB Heavy", value: 12.0 },
+              ]}
+              onChange={setBass}
+            />
+
+            {/* Fader 4: Monitoring Volume */}
+            <DspSlider
+              label="Monitoring Volume"
+              icon={isMuted ? VolumeX : Volume2}
+              value={isMuted ? 0 : volume}
+              min={0}
+              max={1}
+              step={0.01}
+              displayValue={isMuted ? "MUTED" : `${Math.round(volume * 100)}%`}
+              accent="emerald"
+              shortcuts={[
+                { label: "Mute", value: 0 },
+                { label: "50% Soft", value: 0.50 },
+                { label: "85% Normal", value: 0.85 },
+                { label: "100% Max", value: 1.00 },
+              ]}
+              onChange={(val) => {
+                setVolume(val);
+                if (isMuted && val > 0) setIsMuted(false);
+                if (val === 0) setIsMuted(true);
+              }}
+            />
           </div>
 
-          {/* Section: Sound Presets Grid */}
-          <div className="p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              1-Click Style Presets
-            </h3>
+          {/* Section 2: 1-Click Style Blueprint Cards */}
+          <div
+            className={cn(
+              "p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3",
+              activeTab === "effects" ? "hidden lg:block" : "block"
+            )}
+          >
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
+                <Waves className="w-3.5 h-3.5 text-indigo-400" />
+                <span>1-Click Style Blueprints</span>
+              </h3>
+              <span className="text-[10px] font-mono text-zinc-500">6 Curated Profiles</span>
+            </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              {SOUND_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleApplyPreset(preset)}
-                  className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] hover:border-purple-500/30 text-left transition-all active:scale-95 group"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-lg">{preset.icon}</span>
-                    <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-white/[0.06] text-zinc-400 group-hover:text-purple-300">
-                      {preset.badge}
-                    </span>
-                  </div>
-                  <div className="text-xs font-bold text-white group-hover:text-purple-200">{preset.name}</div>
-                  <div className="text-[11px] text-zinc-400 line-clamp-1 mt-0.5">{preset.description}</div>
-                </button>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {SOUND_PRESETS.map((preset) => {
+                const Icon = preset.icon;
+                const isSelected = activePresetId === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleApplyPreset(preset)}
+                    className={cn(
+                      "group relative p-3 rounded-2xl border text-left transition-all duration-150 active:scale-[0.98] cursor-pointer flex flex-col justify-between gap-2",
+                      isSelected
+                        ? "bg-gradient-to-br from-cyan-500/15 via-indigo-500/10 to-transparent border-cyan-400/60 shadow-[0_0_18px_rgba(6,182,212,0.18)]"
+                        : "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.07] hover:border-white/[0.12]"
+                    )}
+                  >
+                    {/* Header: Icon + Title + Badge */}
+                    <div className="flex items-start justify-between gap-1.5 w-full">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className={cn(
+                            "w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border transition-colors",
+                            isSelected
+                              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-xs"
+                              : "bg-white/[0.04] text-zinc-400 border-white/[0.08] group-hover:text-zinc-200"
+                          )}
+                        >
+                          <Icon size={14} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs text-white leading-tight">
+                            {preset.name}
+                          </div>
+                          <div className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider mt-0.5">
+                            {preset.badge}
+                          </div>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <span className="w-5 h-5 rounded-full bg-cyan-400/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5 shadow-[0_0_8px_rgba(6,182,212,0.4)]">
+                          <Check size={11} className="stroke-[3]" />
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Clean DSP Specs Bar */}
+                    <div className="grid grid-cols-3 gap-1 pt-0.5 text-[10px] font-mono text-zinc-400">
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center truncate", isSelected && "text-cyan-300 border-cyan-500/30")}>
+                        {preset.speed.toFixed(2)}x
+                      </span>
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center truncate", isSelected && "text-indigo-300 border-indigo-500/30")}>
+                        {Math.round(preset.reverb * 100)}% Echo
+                      </span>
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center truncate", isSelected && "text-amber-300 border-amber-500/30")}>
+                        +{preset.bass.toFixed(1)}dB
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
+      </div>
+
+      {/* MOBILE BOTTOM FLOATING ACTION BAR */}
+      <div className="lg:hidden fixed bottom-3 inset-x-3 z-40 p-2.5 rounded-2xl bg-[#090b14]/95 border border-white/15 backdrop-blur-2xl shadow-2xl flex items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={handleTogglePlay}
+            className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 shadow-md cursor-pointer"
+          >
+            {isPlaying ? <Pause size={16} className="fill-current" /> : <Play size={16} className="fill-current ml-0.5" />}
+          </button>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-white truncate">{fileName}</div>
+            <div className="text-[10px] text-zinc-400 font-mono">
+              {formatTime(currentTime)} / {formatTime(duration)} • {speed.toFixed(2)}x
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleDownloadWav}
+          disabled={isExporting}
+          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 active:scale-95 shadow-md border border-indigo-400/30 bg-no-repeat bg-clip-padding overflow-hidden cursor-pointer disabled:opacity-50"
+        >
+          <Download size={13} />
+          <span>{isExporting ? `${exportProgress}%` : "WAV"}</span>
+        </button>
       </div>
     </div>
   );
