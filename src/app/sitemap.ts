@@ -5,103 +5,108 @@ import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 86400; // Cache sitemap for 24 hours at edge
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+// Stable, meaningful modification timestamps reflecting actual releases and updates
+const PLATFORM_UPDATE_DATE = new Date("2026-09-20T00:00:00.000Z");
+const LEGAL_UPDATE_DATE = new Date("2026-09-01T00:00:00.000Z");
+const PRO_UPDATE_DATE = new Date("2026-09-19T00:00:00.000Z");
+const CONTENT_UPDATE_DATE = new Date("2026-09-15T00:00:00.000Z");
+const COMMERCE_UPDATE_DATE = new Date("2026-09-18T00:00:00.000Z");
 
+export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${SITE_URL}`,
-      lastModified: now,
+      lastModified: PLATFORM_UPDATE_DATE,
       changeFrequency: "daily",
       priority: 1,
     },
     {
       url: `${SITE_URL}/pro`,
-      lastModified: now,
+      lastModified: PRO_UPDATE_DATE,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/pro/benefits`,
-      lastModified: now,
+      lastModified: PRO_UPDATE_DATE,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${SITE_URL}/tools`,
-      lastModified: now,
+      lastModified: PLATFORM_UPDATE_DATE,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/about`,
-      lastModified: now,
+      lastModified: CONTENT_UPDATE_DATE,
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
       url: `${SITE_URL}/help`,
-      lastModified: now,
+      lastModified: CONTENT_UPDATE_DATE,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
       url: `${SITE_URL}/blog`,
-      lastModified: now,
+      lastModified: new Date(BLOG_POSTS[0]?.publishedAt || "2026-09-08"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${SITE_URL}/careers`,
-      lastModified: now,
+      lastModified: PLATFORM_UPDATE_DATE,
       changeFrequency: "monthly",
       priority: 0.4,
     },
     {
       url: `${SITE_URL}/shop`,
-      lastModified: now,
+      lastModified: COMMERCE_UPDATE_DATE,
       changeFrequency: "weekly",
       priority: 0.6,
     },
     {
       url: `${SITE_URL}/pricing`,
-      lastModified: now,
+      lastModified: COMMERCE_UPDATE_DATE,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/privacy-policy`,
-      lastModified: now,
+      lastModified: LEGAL_UPDATE_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${SITE_URL}/terms-of-service`,
-      lastModified: now,
+      lastModified: LEGAL_UPDATE_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${SITE_URL}/cookies`,
-      lastModified: now,
+      lastModified: LEGAL_UPDATE_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${SITE_URL}/refund-policy`,
-      lastModified: now,
+      lastModified: PLATFORM_UPDATE_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${SITE_URL}/changelog`,
-      lastModified: now,
+      lastModified: PLATFORM_UPDATE_DATE,
       changeFrequency: "weekly",
       priority: 0.6,
     },
     {
       url: `${SITE_URL}/giveaway`,
-      lastModified: now,
+      lastModified: CONTENT_UPDATE_DATE,
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -109,7 +114,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({
     url: `${SITE_URL}/category/${category.id}`,
-    lastModified: now,
+    lastModified: PLATFORM_UPDATE_DATE,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
@@ -118,14 +123,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     .filter((tool) => tool.indexable !== false && tool.href.startsWith("/tools/"))
     .map((tool) => ({
       url: `${SITE_URL}${tool.href}`,
-      lastModified: now,
+      lastModified: tool.updatedAt ? new Date(tool.updatedAt) : PLATFORM_UPDATE_DATE,
       changeFrequency: "monthly",
       priority: 0.7,
     }));
 
   const blogPages: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
-    lastModified: post.publishedAt,
+    lastModified: new Date(post.publishedAt),
     changeFrequency: "monthly",
     priority: 0.65,
   }));

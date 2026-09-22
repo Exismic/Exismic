@@ -453,7 +453,7 @@ export function MinecraftSkinMaker() {
     const partCost = referenceImage && referenceMode === "rebuild"
       ? (isPro ? 6 : 10)
       : activeTargetPart === "all"
-        ? (isPro ? 16 : 24)
+        ? (isPro ? 16 : 25)
         : (isPro ? 2 : 4);
 
     if (credits < partCost) {
@@ -523,7 +523,7 @@ export function MinecraftSkinMaker() {
       setError("Generate a character first before regenerating variations.");
       return;
     }
-    const cost = isPro ? 16 : 24;
+    const cost = isPro ? 16 : 25;
     if (credits < cost) {
       setShowUpsell(true);
       setError(`Regenerating a variation needs ${cost} credits. Your balance is ${credits}.`);
@@ -589,7 +589,7 @@ export function MinecraftSkinMaker() {
       setError("Describe the specific change you want to make.");
       return;
     }
-    const cost = isPro ? 16 : 24;
+    const cost = isPro ? 16 : 25;
     if (credits < cost) {
       setShowUpsell(true);
       setError(`Remixing needs ${cost} credits. Your balance is ${credits}.`);
@@ -721,7 +721,7 @@ export function MinecraftSkinMaker() {
   const currentCost = referenceImage && referenceMode === "rebuild"
     ? (isPro ? 6 : 10)
     : targetPart === "all"
-      ? (isPro ? 16 : 24)
+      ? (isPro ? 16 : 25)
       : (isPro ? 2 : 4);
 
   return (
@@ -1232,7 +1232,7 @@ export function MinecraftSkinMaker() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="size-5 shrink-0" />
+                    <MinecraftIcon className="size-5 shrink-0" />
                     <span className="truncate">
                       {referenceImage && referenceMode === "rebuild" && targetPart === "all"
                         ? "Rebuild reference skin"
@@ -1466,7 +1466,7 @@ export function MinecraftSkinMaker() {
                     <>
                       <Dices className="size-4 text-violet-300" />
                       <span>Regenerate Variation</span>
-                      <span className="rounded-full bg-violet-400/20 px-1.5 py-0.5 text-[9px] font-black">{isPro ? 16 : 24} cr</span>
+                      <span className="rounded-full bg-violet-400/20 px-1.5 py-0.5 text-[9px] font-black">{isPro ? 16 : 25} cr</span>
                     </>
                   )}
                 </button>
@@ -1484,7 +1484,7 @@ export function MinecraftSkinMaker() {
                 >
                   <Wand2 className="size-4 text-cyan-300" />
                   <span>Remix Character</span>
-                  <span className="rounded-full bg-cyan-400/20 px-1.5 py-0.5 text-[9px] font-black">{isPro ? 16 : 24} cr</span>
+                  <span className="rounded-full bg-cyan-400/20 px-1.5 py-0.5 text-[9px] font-black">{isPro ? 16 : 25} cr</span>
                 </button>
 
                 {/* 💾 Download Skin */}
@@ -1594,7 +1594,7 @@ export function MinecraftSkinMaker() {
               <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                   <span>Cost:</span>
-                  <span className="font-bold text-cyan-300">{isPro ? 16 : 24} credits</span>
+                  <span className="font-bold text-cyan-300">{isPro ? 16 : 25} credits</span>
                 </div>
                 <div className="flex gap-2">
                   <button

@@ -41,7 +41,7 @@ const SOUND_PRESETS: SoundPreset[] = [
   {
     id: "slowed-reverb",
     name: "Slowed + Reverb",
-    badge: "VIRAL TIKTOK",
+    badge: "VIRAL SLOWED",
     speed: 0.85,
     reverb: 0.65,
     bass: 4.5,
@@ -49,7 +49,7 @@ const SOUND_PRESETS: SoundPreset[] = [
   },
   {
     id: "nightcore",
-    name: "Sped Up / Nightcore",
+    name: "Sped Up (Nightcore)",
     badge: "HIGH ENERGY",
     speed: 1.25,
     reverb: 0.15,
@@ -59,7 +59,7 @@ const SOUND_PRESETS: SoundPreset[] = [
   {
     id: "cathedral",
     name: "Cathedral Echoes",
-    badge: "IMMERSIVE",
+    badge: "DREAMY ECHO",
     speed: 0.75,
     reverb: 0.90,
     bass: 6.0,
@@ -68,7 +68,7 @@ const SOUND_PRESETS: SoundPreset[] = [
   {
     id: "lofi-midnight",
     name: "Midnight Lo-Fi",
-    badge: "WARM CHILL",
+    badge: "CHILL LO-FI",
     speed: 0.90,
     reverb: 0.40,
     bass: 5.0,
@@ -76,8 +76,8 @@ const SOUND_PRESETS: SoundPreset[] = [
   },
   {
     id: "bass-boost",
-    name: "Club Sub-Bass",
-    badge: "HEAVY 808",
+    name: "Club Bass Boost",
+    badge: "DEEP BASS",
     speed: 1.00,
     reverb: 0.20,
     bass: 10.0,
@@ -85,8 +85,8 @@ const SOUND_PRESETS: SoundPreset[] = [
   },
   {
     id: "submerged",
-    name: "Submerged Hallway",
-    badge: "AMBIENT",
+    name: "Submerged Echo",
+    badge: "DREAMLIKE",
     speed: 0.80,
     reverb: 0.75,
     bass: 3.5,
@@ -931,7 +931,7 @@ export default function SlowedReverbStudio() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-28 lg:pb-8">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-20 sm:pb-24 lg:pb-0">
       {/* Top Header Strip */}
       <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#090c16]/90 border border-white/[0.08] backdrop-blur-xl shadow-xl">
         <div className="flex items-center gap-3">
@@ -940,12 +940,12 @@ export default function SlowedReverbStudio() {
           </div>
           <div>
             <div className="text-xs font-bold text-white flex items-center gap-2">
-              <span>Studio DSP Console</span>
+              <span>Slowed & Reverb Studio</span>
               <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
-                Real-Time Web Audio
+                Instant Preview
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">Zero-latency pitch shifting, convolution echo & 16-bit WAV export</p>
+            <p className="text-[11px] text-zinc-400">Slow down songs, add dreamy echo, boost bass, and download clean audio</p>
           </div>
         </div>
       </div>
@@ -962,7 +962,7 @@ export default function SlowedReverbStudio() {
           )}
         >
           <Disc3 className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Player & EQ</span>
+          <span>Player</span>
         </button>
         <button
           onClick={() => setActiveTab("effects")}
@@ -974,7 +974,7 @@ export default function SlowedReverbStudio() {
           )}
         >
           <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-          <span>DSP Faders</span>
+          <span>Adjust Sound</span>
         </button>
         <button
           onClick={() => setActiveTab("presets")}
@@ -986,22 +986,27 @@ export default function SlowedReverbStudio() {
           )}
         >
           <Waves className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Presets</span>
+          <span>Quick Styles</span>
         </button>
       </div>
 
       {/* Main Studio Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* ================================================================= */}
-        {/* LEFT COLUMN: AUDIO PLAYER & REAL-TIME SPECTRUM VISUALIZER */}
+        {/* LEFT COLUMN: AUDIO PLAYER & QUICK SOUND PRESETS */}
         {/* ================================================================= */}
         <div
           className={cn(
             "lg:col-span-7 space-y-4",
-            activeTab !== "player" ? "hidden lg:block" : "block"
+            activeTab !== "player" && activeTab !== "presets" ? "hidden lg:block" : "block"
           )}
         >
-          <div className="p-5 sm:p-6 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-2xl space-y-4">
+          <div
+            className={cn(
+              "p-5 sm:p-6 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-2xl space-y-4",
+              activeTab !== "player" ? "hidden lg:block" : "block"
+            )}
+          >
             {/* Top Track Header */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -1064,7 +1069,7 @@ export default function SlowedReverbStudio() {
               {isDragging && (
                 <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-cyan-300 text-xs font-bold gap-1 z-10 pointer-events-none">
                   <Upload className="w-6 h-6 animate-bounce" />
-                  <span>Drop your song to load into DSP console</span>
+                  <span>Drop your song to load</span>
                 </div>
               )}
 
@@ -1110,7 +1115,7 @@ export default function SlowedReverbStudio() {
               <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
                 <span>{formatTime(currentTime)}</span>
                 <span className="text-zinc-500 text-[10px]">
-                  {isLooping ? "Continuous Loop Active" : "Single Play"}
+                  {isLooping ? "Looping song" : "Plays once"}
                 </span>
                 <span>{formatTime(duration)}</span>
               </div>
@@ -1170,7 +1175,7 @@ export default function SlowedReverbStudio() {
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
               </button>
 
-              {/* High-Fidelity 16-Bit WAV Export */}
+              {/* High-Fidelity WAV Export */}
               <button
                 type="button"
                 onClick={handleDownloadWav}
@@ -1178,146 +1183,27 @@ export default function SlowedReverbStudio() {
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-[0_0_20px_rgba(99,102,241,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] border border-indigo-400/30 bg-no-repeat bg-clip-padding overflow-hidden flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
               >
                 <Download className="w-4 h-4" />
-                <span>{isExporting ? `Exporting ${exportProgress}%...` : "Download WAV"}</span>
+                <span>{isExporting ? `Saving ${exportProgress}%...` : "Download Song (WAV)"}</span>
               </button>
             </div>
           </div>
-        </div>
 
-        {/* ================================================================= */}
-        {/* RIGHT COLUMN: DSP SOUND FADERS & VIRAL PRESETS */}
-        {/* ================================================================= */}
-        <div
-          className={cn(
-            "lg:col-span-5 space-y-4",
-            activeTab === "player" ? "hidden lg:block" : "block"
-          )}
-        >
-          {/* Section 1: Precision Studio DSP Faders */}
-          <div
-            className={cn(
-              "p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3.5",
-              activeTab === "presets" ? "hidden lg:block" : "block"
-            )}
-          >
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Sound Customizer (Real-Time)</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  handleSpeedChange(1.0);
-                  setReverb(0);
-                  setBass(0);
-                }}
-                className="text-[11px] text-zinc-500 hover:text-cyan-300 transition-colors cursor-pointer font-medium"
-              >
-                Reset Flat
-              </button>
-            </div>
-
-            {/* Fader 1: Speed & Pitch Multiplier */}
-            <DspSlider
-              label="Speed & Pitch Multiplier"
-              icon={Gauge}
-              value={speed}
-              min={0.50}
-              max={1.50}
-              step={0.01}
-              displayValue={`${speed.toFixed(2)}x`}
-              badgeText={speed < 1.0 ? "Slowed" : speed > 1.0 ? "Sped Up" : "Normal"}
-              accent="cyan"
-              shortcuts={[
-                { label: "0.75x Slow", value: 0.75 },
-                { label: "0.85x Viral", value: 0.85 },
-                { label: "1.00x Flat", value: 1.00 },
-                { label: "1.25x Night", value: 1.25 },
-              ]}
-              onChange={handleSpeedChange}
-            />
-
-            {/* Fader 2: Room Reverb & Echo Decay */}
-            <DspSlider
-              label="Room Reverb & Echo Space"
-              icon={Waves}
-              value={reverb}
-              min={0}
-              max={1}
-              step={0.01}
-              displayValue={`${Math.round(reverb * 100)}%`}
-              badgeText={reverb > 0.7 ? "Cathedral" : reverb > 0.3 ? "Concert" : "Dry"}
-              accent="indigo"
-              shortcuts={[
-                { label: "0% Dry", value: 0 },
-                { label: "35% Subtle", value: 0.35 },
-                { label: "65% Concert", value: 0.65 },
-                { label: "90% Space", value: 0.90 },
-              ]}
-              onChange={setReverb}
-            />
-
-            {/* Fader 3: Sub-Bass Boost */}
-            <DspSlider
-              label="Sub-Bass Boost (120Hz)"
-              icon={Flame}
-              value={bass}
-              min={0}
-              max={12}
-              step={0.5}
-              displayValue={`+${bass.toFixed(1)} dB`}
-              badgeText={bass >= 8 ? "Heavy Sub" : bass >= 4 ? "Punchy" : "Flat"}
-              accent="amber"
-              shortcuts={[
-                { label: "0 dB Flat", value: 0 },
-                { label: "+4.5 dB Punch", value: 4.5 },
-                { label: "+8.0 dB Club", value: 8.0 },
-                { label: "+12 dB Heavy", value: 12.0 },
-              ]}
-              onChange={setBass}
-            />
-
-            {/* Fader 4: Monitoring Volume */}
-            <DspSlider
-              label="Monitoring Volume"
-              icon={isMuted ? VolumeX : Volume2}
-              value={isMuted ? 0 : volume}
-              min={0}
-              max={1}
-              step={0.01}
-              displayValue={isMuted ? "MUTED" : `${Math.round(volume * 100)}%`}
-              accent="emerald"
-              shortcuts={[
-                { label: "Mute", value: 0 },
-                { label: "50% Soft", value: 0.50 },
-                { label: "85% Normal", value: 0.85 },
-                { label: "100% Max", value: 1.00 },
-              ]}
-              onChange={(val) => {
-                setVolume(val);
-                if (isMuted && val > 0) setIsMuted(false);
-                if (val === 0) setIsMuted(true);
-              }}
-            />
-          </div>
-
-          {/* Section 2: 1-Click Style Blueprint Cards */}
+          {/* Section: Instant Sound Styles (Directly Below Player) */}
           <div
             className={cn(
               "p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3",
-              activeTab === "effects" ? "hidden lg:block" : "block"
+              activeTab !== "presets" ? "hidden lg:block" : "block"
             )}
           >
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
                 <Waves className="w-3.5 h-3.5 text-indigo-400" />
-                <span>1-Click Style Blueprints</span>
+                <span>Instant Sound Styles</span>
               </h3>
-              <span className="text-[10px] font-mono text-zinc-500">6 Curated Profiles</span>
+              <span className="text-[10px] font-mono text-zinc-400">6 Popular Styles</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               {SOUND_PRESETS.map((preset) => {
                 const Icon = preset.icon;
                 const isSelected = activePresetId === preset.id;
@@ -1327,7 +1213,7 @@ export default function SlowedReverbStudio() {
                     type="button"
                     onClick={() => handleApplyPreset(preset)}
                     className={cn(
-                      "group relative p-3 rounded-2xl border text-left transition-all duration-150 active:scale-[0.98] cursor-pointer flex flex-col justify-between gap-2",
+                      "group relative p-3 rounded-2xl border text-left transition-all duration-150 active:scale-[0.98] cursor-pointer flex flex-col justify-between gap-2.5",
                       isSelected
                         ? "bg-gradient-to-br from-cyan-500/15 via-indigo-500/10 to-transparent border-cyan-400/60 shadow-[0_0_18px_rgba(6,182,212,0.18)]"
                         : "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.07] hover:border-white/[0.12]"
@@ -1363,15 +1249,15 @@ export default function SlowedReverbStudio() {
                       )}
                     </div>
 
-                    {/* Clean DSP Specs Bar */}
-                    <div className="grid grid-cols-3 gap-1 pt-0.5 text-[10px] font-mono text-zinc-400">
-                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center truncate", isSelected && "text-cyan-300 border-cyan-500/30")}>
+                    {/* Clean Specs Bar (Proportional columns, zero truncation) */}
+                    <div className="grid grid-cols-[1fr_1.35fr_1fr] gap-1.5 pt-0.5 text-[10px] sm:text-[11px] font-mono text-zinc-400">
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap", isSelected && "text-cyan-300 border-cyan-500/30")}>
                         {preset.speed.toFixed(2)}x
                       </span>
-                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center truncate", isSelected && "text-indigo-300 border-indigo-500/30")}>
+                      <span className={cn("py-0.5 px-1.5 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap font-medium", isSelected && "text-indigo-300 border-indigo-500/30")}>
                         {Math.round(preset.reverb * 100)}% Echo
                       </span>
-                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center truncate", isSelected && "text-amber-300 border-amber-500/30")}>
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap", isSelected && "text-amber-300 border-amber-500/30")}>
                         +{preset.bass.toFixed(1)}dB
                       </span>
                     </div>
@@ -1379,6 +1265,120 @@ export default function SlowedReverbStudio() {
                 );
               })}
             </div>
+          </div>
+        </div>
+
+        {/* ================================================================= */}
+        {/* RIGHT COLUMN: CUSTOMIZE SOUND */}
+        {/* ================================================================= */}
+        <div
+          className={cn(
+            "lg:col-span-5 space-y-4",
+            activeTab !== "effects" ? "hidden lg:block" : "block"
+          )}
+        >
+          {/* Sound Customizer Card */}
+          <div className="p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3.5">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
+                <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Customize Sound</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  handleSpeedChange(1.0);
+                  setReverb(0);
+                  setBass(0);
+                }}
+                className="text-[11px] text-zinc-500 hover:text-cyan-300 transition-colors cursor-pointer font-medium"
+              >
+                Reset All
+              </button>
+            </div>
+
+            {/* Slider 1: Song Speed & Pitch */}
+            <DspSlider
+              label="Speed & Pitch"
+              icon={Gauge}
+              value={speed}
+              min={0.50}
+              max={1.50}
+              step={0.01}
+              displayValue={`${speed.toFixed(2)}x`}
+              badgeText={speed < 1.0 ? "Slowed" : speed > 1.0 ? "Sped Up" : "Normal"}
+              accent="cyan"
+              shortcuts={[
+                { label: "0.75x Slow", value: 0.75 },
+                { label: "0.85x Slowed", value: 0.85 },
+                { label: "1.00x Normal", value: 1.00 },
+                { label: "1.25x Fast", value: 1.25 },
+              ]}
+              onChange={handleSpeedChange}
+            />
+
+            {/* Slider 2: Echo & Reverb */}
+            <DspSlider
+              label="Echo & Reverb"
+              icon={Waves}
+              value={reverb}
+              min={0}
+              max={1}
+              step={0.01}
+              displayValue={`${Math.round(reverb * 100)}%`}
+              badgeText={reverb > 0.7 ? "Dreamy" : reverb > 0.3 ? "Concert" : "Off"}
+              accent="indigo"
+              shortcuts={[
+                { label: "0% Off", value: 0 },
+                { label: "35% Light", value: 0.35 },
+                { label: "65% Concert Hall", value: 0.65 },
+                { label: "90% Deep Echo", value: 0.90 },
+              ]}
+              onChange={setReverb}
+            />
+
+            {/* Slider 3: Bass Boost */}
+            <DspSlider
+              label="Bass Boost"
+              icon={Flame}
+              value={bass}
+              min={0}
+              max={12}
+              step={0.5}
+              displayValue={`+${bass.toFixed(1)} dB`}
+              badgeText={bass >= 8 ? "Heavy Bass" : bass >= 4 ? "Punchy" : "Normal"}
+              accent="amber"
+              shortcuts={[
+                { label: "0 dB Off", value: 0 },
+                { label: "+4.5 dB Punchy", value: 4.5 },
+                { label: "+8.0 dB Deep", value: 8.0 },
+                { label: "+12 dB Max Bass", value: 12.0 },
+              ]}
+              onChange={setBass}
+            />
+
+            {/* Slider 4: Volume */}
+            <DspSlider
+              label="Volume"
+              icon={isMuted ? VolumeX : Volume2}
+              value={isMuted ? 0 : volume}
+              min={0}
+              max={1}
+              step={0.01}
+              displayValue={isMuted ? "MUTED" : `${Math.round(volume * 100)}%`}
+              accent="emerald"
+              shortcuts={[
+                { label: "Mute", value: 0 },
+                { label: "50% Medium", value: 0.50 },
+                { label: "85% Normal", value: 0.85 },
+                { label: "100% Max", value: 1.00 },
+              ]}
+              onChange={(val) => {
+                setVolume(val);
+                if (isMuted && val > 0) setIsMuted(false);
+                if (val === 0) setIsMuted(true);
+              }}
+            />
           </div>
         </div>
       </div>

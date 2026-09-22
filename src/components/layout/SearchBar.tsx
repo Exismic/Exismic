@@ -287,12 +287,6 @@ export function SearchBar({ isHero = false }: SearchBarProps) {
                                     <HighlightedText text={tool.name} query={query} />
                                   </h4>
                                   <div className="flex items-center gap-1.5">
-                                     {tool.pro && (
-                                        <div className="px-2 py-0.5 rounded bg-accent-purple/20 border border-accent-purple/30 text-accent-purple text-[8px] sm:text-[9px] font-black uppercase tracking-widest flex items-center gap-1 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                                          <Crown size={8} fill="currentColor" />
-                                          <span>Pro</span>
-                                        </div>
-                                     )}
                                      <span className="px-2 py-0.5 rounded bg-white/10 border border-white/10 text-zinc-400 text-[8px] sm:text-[9px] font-black uppercase tracking-widest">
                                        {category?.name}
                                      </span>

@@ -140,9 +140,10 @@ export function ToolPageShell({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Tools", "item": `${SITE_URL}/tools` },
-      { "@type": "ListItem", "position": 2, "name": categoryName, "item": `${SITE_URL}/category/${categoryId}` },
-      { "@type": "ListItem", "position": 3, "name": toolName, "item": `${SITE_URL}${tool?.href || `/tools/${categoryId}/${toolId}`}` },
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": `${SITE_URL}/` },
+      { "@type": "ListItem", "position": 2, "name": "Tools", "item": `${SITE_URL}/tools` },
+      { "@type": "ListItem", "position": 3, "name": categoryName, "item": `${SITE_URL}/category/${categoryId}` },
+      { "@type": "ListItem", "position": 4, "name": toolName, "item": `${SITE_URL}${tool?.href || `/tools/${categoryId}/${toolId}`}` },
     ],
   };
 
@@ -189,6 +190,14 @@ export function ToolPageShell({
         categoryName={categoryName}
         categoryId={categoryId}
         toolSlug={toolId}
+        features={tool?.features}
+        howToSteps={tool?.howToSteps}
+        faqs={tool?.faqs}
+        useCases={tool?.useCases}
+        limitations={tool?.limitations}
+        examples={tool?.examples}
+        terminology={tool?.terminology}
+        seoIntro={tool?.seoIntro}
         showRelatedTools={true}
       />
     </div>

@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
-  Sparkles, 
+  LayoutGrid,
+  Wand2,
   X, 
   CornerDownLeft, 
   Loader2,
@@ -54,7 +55,7 @@ const QUICK_COMMANDS = [
     description: "Browse the complete collection of creative utilities", 
     route: "/tools",
     category: "Explore",
-    icon: <Sparkles size={16} className="text-purple-400" />
+    icon: <LayoutGrid size={16} className="text-purple-400" />
   },
   { 
     id: "nav-pro", 
@@ -181,7 +182,7 @@ export function MagicCommandPalette() {
               description: t.description,
               category: t.category,
               route: t.href,
-              icon: ICON_MAP[t.icon] ? (() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} className="text-purple-400" />; })() : <Sparkles size={16} className="text-purple-400" />,
+              icon: ICON_MAP[t.icon] ? (() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} className="text-purple-400" />; })() : <Wand2 size={16} className="text-purple-400" />,
               pro: t.pro
             }))
           }
@@ -206,7 +207,7 @@ export function MagicCommandPalette() {
             description: t.description,
             category: t.category,
             route: t.href,
-            icon: ICON_MAP[t.icon] ? (() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} className="text-purple-400" />; })() : <Sparkles size={16} className="text-purple-400" />,
+            icon: ICON_MAP[t.icon] ? (() => { const Icon = ICON_MAP[t.icon]; return <Icon size={16} className="text-purple-400" />; })() : <Wand2 size={16} className="text-purple-400" />,
             pro: t.pro
           }))
         },

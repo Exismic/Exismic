@@ -144,9 +144,9 @@ export function CategorySection() {
                         style.buttonGrad
                       )}>
                         <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
-                        <span className="relative z-10 flex items-center gap-2 sm:gap-3 text-white">
+                        <span className="relative z-10 flex items-center gap-2 sm:gap-3">
                           View Tools
-                          <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5 text-white" />
+                          <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5" />
                         </span>
                       </div>
                     </div>

@@ -10,6 +10,20 @@ export type CategoryAnimStyle = {
   badge: string;
 };
 
+export const CATEGORY_PRIMARY_HEX: Record<string, string> = {
+  pdf: "#ef4444",
+  image: "#06b6d4",
+  audio: "#ec4899",
+  video: "#8b5cf6",
+  ai: "#f59e0b",
+  productivity: "#10b981",
+  business: "#f97316",
+  seo: "#0284c7",
+  developer: "#84cc16",
+  student: "#fbbf24",
+  creator: "#f43f5e",
+};
+
 export const CATEGORY_ANIM_STYLES: Record<string, CategoryAnimStyle> = {
   pdf: {
     aura: "bg-red-500/20 group-hover:bg-red-400/40",
@@ -56,15 +70,15 @@ export const CATEGORY_ANIM_STYLES: Record<string, CategoryAnimStyle> = {
     badge: "bg-violet-400/10 border-violet-400/40 text-violet-200 shadow-[0_0_15px_rgba(139,92,246,0.3)] fill-violet-200 drop-shadow-[0_0_5px_rgba(139,92,246,0.8)]"
   },
   ai: {
-    aura: "bg-indigo-500/20 group-hover:bg-indigo-400/40",
-    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(99,102,241,0.4)_25%,transparent_50%)]",
-    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(99,102,241,0.9)_25%,transparent_50%)]",
-    iconGlow: "text-indigo-300 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)] group-hover:text-indigo-200 group-hover:drop-shadow-[0_0_20px_rgba(99,102,241,0.9)]",
-    buttonGrad: "bg-gradient-to-r from-amber-400 via-indigo-500 to-violet-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(99,102,241,0.35)] group-hover:shadow-[0_0_40px_rgba(99,102,241,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
-    textGrad: "bg-[linear-gradient(110deg,#a5b4fc_0%,#ffffff_45%,#6366f1_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(99,102,241,0.2)]",
-    cardBorder: "border-2 border-indigo-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(99,102,241,0.2)] hover:border-indigo-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(99,102,241,0.45)]",
+    aura: "bg-amber-500/25 group-hover:bg-amber-400/50",
+    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.5)_25%,rgba(251,191,36,0.3)_50%,transparent_75%)]",
+    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.95)_25%,rgba(251,191,36,0.8)_50%,transparent_75%)]",
+    iconGlow: "text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.7)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_22px_rgba(245,158,11,0.95)]",
+    buttonGrad: "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 font-black tracking-[0.2em] shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]",
+    textGrad: "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.25)]",
+    cardBorder: "border-2 border-amber-400/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.3)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.55)]",
     topBeam: "",
-    badge: "bg-indigo-400/10 border-indigo-400/40 text-indigo-200 shadow-[0_0_15px_rgba(99,102,241,0.3)] fill-indigo-200 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]"
+    badge: "bg-amber-400/15 border-amber-400/50 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)] fill-amber-200 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"
   },
   productivity: {
     aura: "bg-emerald-500/20 group-hover:bg-emerald-400/40",

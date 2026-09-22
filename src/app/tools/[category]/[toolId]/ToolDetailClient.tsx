@@ -57,8 +57,7 @@ import { ToolWorkspaceHeader } from "@/components/tool/ToolWorkspaceFrame";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 import { ToolQualitySelector } from "@/components/tool/ToolQualitySelector";
 import { isQualityUpgradeableTool } from "@/lib/tool-quality-policy";
-import { PRICING_CONFIG } from "@/config/pricing";
-import { SITE_URL } from "@/lib/seo";
+
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import { ToolSeoSection } from "@/components/seo/ToolSeoSection";
 import { ToolAuthGateCard } from "@/components/tool/ToolAuthGateModal";
@@ -191,33 +190,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
     'video-bg-remover'
   ].includes(tool.id);
 
-  // Structured Data for Google (JSON-LD)
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": tool.name,
-    "description": tool.description,
-    "url": `${SITE_URL}${tool.href}`,
-    "applicationCategory": categoryId === "productivity" ? "UtilitiesApplication" : categoryId === "ai" ? "BusinessApplication" : "MultimediaApplication",
-    "operatingSystem": "Any operating system with a modern web browser",
-    "browserRequirements": "Requires JavaScript and a modern web browser",
-    "isAccessibleForFree": !tool.isProTool,
-    "offers": {
-      "@type": "Offer",
-      "price": tool.isProTool ? PRICING_CONFIG.PRO_PLAN.USD.toString() : "0",
-      "priceCurrency": "USD"
-    }
-  };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Tools", "item": `${SITE_URL}/tools` },
-      { "@type": "ListItem", "position": 2, "name": category.name, "item": `${SITE_URL}/category/${category.id}` },
-      { "@type": "ListItem", "position": 3, "name": tool.name, "item": `${SITE_URL}${tool.href}` },
-    ],
-  };
 
   const WorkspaceArea = (
   <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-8">
@@ -487,12 +460,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
       "mx-auto space-y-6 px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
       isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]"
     )}>
-      {tool.indexable !== false && (
-        <>
-          <script id={`tool-schema-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-          <script id={`tool-breadcrumbs-${tool.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-        </>
-      )}
+
       {categoryId === 'pdf' && (
         <Script 
           src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
@@ -544,6 +512,14 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
          categoryName={category.name}
          categoryId={category.id}
          toolSlug={tool.href}
+         features={tool.features}
+         howToSteps={tool.howToSteps}
+         faqs={tool.faqs}
+         useCases={tool.useCases}
+         limitations={tool.limitations}
+         examples={tool.examples}
+         terminology={tool.terminology}
+         seoIntro={tool.seoIntro}
          keywords={tool.seoKeywords}
          showRelatedTools={true}
        />

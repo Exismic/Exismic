@@ -26,6 +26,7 @@ export async function updateSession(request: NextRequest) {
     "/careers",
     "/shop",
     "/cookies",
+    "/refund-policy",
     "/changelog",
     "/privacy-policy",
     "/terms-of-service",
@@ -76,6 +77,7 @@ export async function updateSession(request: NextRequest) {
     normalizedPath.startsWith('/help') ||
     normalizedPath.startsWith('/terms-of-service') ||
     normalizedPath.startsWith('/privacy-policy') ||
+    normalizedPath.startsWith('/refund-policy') ||
     normalizedPath.startsWith('/cookies') ||
     normalizedPath.startsWith('/changelog') ||
     normalizedPath.startsWith('/about') ||

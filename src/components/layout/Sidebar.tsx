@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, TOOLS, ICON_MAP, type Category } from "@/data/tools";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { createPortal } from "react-dom";
 import { 
   LayoutDashboard, 
   LayoutGrid,
@@ -15,6 +16,8 @@ import {
   ChevronRight,
   ChevronLeft,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
   ArrowRight,
   Clock,
   Crown,
@@ -471,6 +474,28 @@ const ITEM_ICON_STYLES: Record<string, {
 };
 
 function SidebarItem({ name, icon: Icon, href, isActive, glowColor = "rgba(124, 58, 237, 0.5)", onClick, isCompact, rightElement }: SidebarItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCompact) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setCoords({
+      top: rect.top + rect.height / 2,
+      left: rect.right + 12,
+    });
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   const indicatorGradient = CATEGORY_INDICATOR_GRADIENTS[href] || "bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400 shadow-[0_0_12px_rgba(168,85,247,0.8)]";
   const hoverStyle = CATEGORY_HOVER_STYLES[href] || {
     bg: "group-hover:bg-gradient-to-r group-hover:from-purple-500/10 group-hover:via-white/[0.02] group-hover:to-transparent",
@@ -493,6 +518,8 @@ function SidebarItem({ name, icon: Icon, href, isActive, glowColor = "rgba(124, 
     <Link href={href} prefetch={true} onClick={onClick}>
       <motion.div
         whileTap={{ scale: 0.98 }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={cn(
           "relative h-[42px] flex items-center rounded-xl transition-all duration-200 group mb-1",
           isCompact ? "justify-center w-[44px] mx-auto px-0" : "gap-2.5 px-3",
@@ -584,11 +611,11 @@ function SidebarItem({ name, icon: Icon, href, isActive, glowColor = "rgba(124, 
         {!isCompact && (
           <span 
             className={cn(
-              "text-[12.5px] font-bold tracking-tight transition-all duration-200 whitespace-nowrap overflow-hidden min-w-0 flex-1 select-none",
+              "text-[12px] font-bold tracking-tight transition-all duration-200 whitespace-nowrap overflow-hidden min-w-0 flex-1 select-none",
               isActive ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" : "text-zinc-300 group-hover:text-white"
             )}
           >
-            {name === 'Go Pro' ? <GradientText className="text-[12.5px] font-bold tracking-tight">{name}</GradientText> : name}
+            {name === 'Go Pro' ? <GradientText className="text-[12px] font-bold tracking-tight">{name}</GradientText> : name}
           </span>
         )}
         
@@ -608,6 +635,39 @@ function SidebarItem({ name, icon: Icon, href, isActive, glowColor = "rgba(124, 
           </motion.div>
         )}
       </motion.div>
+
+      {/* Floating Obsidian Glass Tooltip (Compact Mode) via Portal */}
+      {isCompact && isHovered && coords && mounted && typeof document !== 'undefined' && createPortal(
+        <div 
+          style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+          className="fixed -translate-y-1/2 z-[9999] pointer-events-none flex items-center animate-in fade-in zoom-in-95 duration-150 select-none"
+        >
+          {/* Tooltip Arrow Nib */}
+          <div className="w-1.5 h-1.5 rotate-45 bg-[#0a0b14] border-l border-b border-white/20 -mr-1 shrink-0 shadow-[-2px_2px_4px_rgba(0,0,0,0.6)]" />
+
+          {/* Obsidian Glass Capsule */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#0d0e19]/98 via-[#0b0c16]/98 to-[#090a12]/98 border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.95),0_0_20px_rgba(34,211,238,0.15)] backdrop-blur-2xl whitespace-nowrap">
+            {/* Glowing Accent Dot */}
+            <div 
+              className="w-2 h-2 rounded-full shrink-0 shadow-[0_0_8px_currentColor]"
+              style={{ backgroundColor: glowColor, color: glowColor }}
+            />
+
+            {/* Title */}
+            <span className="text-[12px] font-bold text-white tracking-tight drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+              {name}
+            </span>
+
+            {/* Optional Right Element (e.g. tool count badge or NEW badge) */}
+            {rightElement && (
+              <div className="shrink-0 flex items-center ml-1">
+                {rightElement}
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </Link>
   );
 }
@@ -721,6 +781,13 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
         glowColor={catGlow}
         isCompact={true}
         onClick={onItemClick}
+        rightElement={
+          totalToolCount > 0 ? (
+            <span className="text-[9.5px] font-bold rounded-md px-1.5 py-0.5 leading-none bg-white/[0.08] border border-white/10 text-zinc-300">
+              {totalToolCount} {totalToolCount === 1 ? 'tool' : 'tools'}
+            </span>
+          ) : undefined
+        }
       />
     );
   }
@@ -862,7 +929,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
 export function Sidebar() {
   const { t } = useTranslation();
   const pathname = usePathname();
-  const { isCompact, toggleCompact, isFocusMode, setCompact, isMobileOpen, setMobileOpen } = useSidebarStore();
+  const { isCompact, toggleCompact, isFocusMode, setFocusMode, setCompact, isMobileOpen, setMobileOpen } = useSidebarStore();
   const { isPro, user: dbUser, isLoading: isProLoading } = usePro();
   const { credits, loading: isCreditsLoading, dailyStreak, countdown } = useCredits();
   const [session, setSession] = useState<Session | null>(null);
@@ -912,8 +979,10 @@ export function Sidebar() {
   useEffect(() => {
     if (isStudioRoute) {
       setCompact(true);
+    } else if (isFocusMode) {
+      setFocusMode(false);
     }
-  }, [isStudioRoute, setCompact]);
+  }, [isStudioRoute, isFocusMode, setCompact, setFocusMode]);
 
   useEffect(() => {
     async function getSession() {
@@ -989,31 +1058,27 @@ export function Sidebar() {
     : session?.user?.user_metadata?.name_gradient ?? dbUser?.name_gradient ?? null;
 
   const renderAccountBilling = (isMobile: boolean = false) => (
-    <div className={cn("space-y-2", isCompact && !isMobile ? "p-2" : isMobile ? "px-1 py-1" : "p-2 sm:p-3")}>
-      {/* Real-time Credits Display Vault Card */}
+    <div className={cn("space-y-2", isCompact && !isMobile ? "p-1" : "px-0.5 py-1")}>
+      {/* Real-time Credits Display - Ultra-Refined Micro-Card */}
       {(!isCompact || isMobile) && (
         <div className="block group/credits relative">
           <div 
             onClick={() => setIsBuyCreditsOpen(true)}
-            className="cursor-pointer relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#0c0d16]/90 via-[#07080f]/95 to-[#05060a]/98 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 hover:border-cyan-400/35 hover:shadow-[0_16px_40px_rgba(34,211,238,0.15),0_0_20px_rgba(168,85,247,0.12)] hover:-translate-y-0.5 active:scale-[0.99]"
+            className="cursor-pointer relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-[#11121d]/90 via-[#0a0a14]/90 to-[#06060c]/90 p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-cyan-400/40 hover:shadow-[0_12px_32px_rgba(34,211,238,0.15)] hover:translate-y-[-1px]"
           >
-            {/* Background Neon Plasma Bloom */}
-            <div className="pointer-events-none absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-purple-500/15 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-60" />
-            <div className="pointer-events-none absolute -bottom-10 -left-10 w-24 h-24 bg-gradient-to-tr from-purple-600/15 via-blue-600/10 to-transparent rounded-full blur-xl transition-opacity duration-500 group-hover/credits:opacity-100 opacity-40" />
+            {/* Plasma Glow Bloom */}
+            <div className="pointer-events-none absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-purple-500/15 to-transparent rounded-full blur-2xl opacity-50 group-hover/credits:opacity-100 transition-opacity" />
+            
+            {/* Subtle Shimmer Light Sweep */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover/credits:translate-x-full transition-transform duration-1000" />
 
-            {/* Shimmer Light Sweep on Hover */}
-            <div className="pointer-events-none absolute inset-y-0 -left-20 w-16 skew-x-[-25deg] bg-gradient-to-r from-transparent via-white/20 to-transparent blur-[2px] transition-transform duration-1000 ease-out group-hover/credits:translate-x-[500px]" />
-
-            {/* Top Header Row: Core & Status Badge */}
-            <div className="relative flex items-center justify-between z-10 mb-2">
-              <div className="flex items-center gap-2">
+            {/* Header Row: Token Icon, Vault Title & Top Up Button */}
+            <div className="relative z-10 flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
                 <CreditTokenIcon size="sm" />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-hover/credits:text-zinc-200 transition-colors">
-                    CREDIT VAULT
-                  </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
-                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-300">
+                  Credit Vault
+                </span>
               </div>
 
               {/* Right Badge / Action */}
@@ -1153,19 +1218,24 @@ export function Sidebar() {
               transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.8 }}
               style={{ willChange: isDesktop ? "auto" : "transform" }}
               className={cn(
-                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/95 backdrop-blur-md lg:backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full lg:transition-[width] lg:duration-300 shrink-0 overflow-hidden",
+                "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/95 backdrop-blur-md lg:backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full lg:transition-[width] lg:duration-300 shrink-0 overflow-hidden lg:overflow-visible",
                 isFocusMode ? "hidden" : isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
               )}
             >
-              {/* Compact Toggle Button */}
+              {/* Compact Toggle Button - Distinct High-Contrast Floating Pill */}
               <button 
                 onClick={toggleCompact} 
                 aria-label={isCompact ? "Expand sidebar" : "Collapse sidebar"}
+                title={isCompact ? "Expand sidebar" : "Collapse sidebar"}
                 className={cn(
-                  "hidden lg:flex absolute top-[26px] -right-3 w-6 h-6 rounded-full bg-[#0a0a0e] border border-white/10 items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all z-[150] shadow-[0_0_15px_rgba(0,0,0,0.8)]"
+                  "hidden lg:flex absolute top-[24px] -right-3.5 w-7 h-7 rounded-full bg-[#12131f] hover:bg-[#1d1f33] border border-cyan-400/40 hover:border-cyan-300 items-center justify-center text-zinc-200 hover:text-white transition-all duration-200 z-[160] shadow-[0_2px_10px_rgba(0,0,0,0.8),0_0_12px_rgba(34,211,238,0.25)] hover:shadow-[0_2px_14px_rgba(0,0,0,0.9),0_0_18px_rgba(34,211,238,0.55)] hover:scale-110 active:scale-95 cursor-pointer group/toggle"
                 )}
               >
-                {isCompact ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+                {isCompact ? (
+                  <PanelLeftOpen size={13} className="text-cyan-300 group-hover/toggle:text-white transition-colors" />
+                ) : (
+                  <PanelLeftClose size={13} className="text-zinc-300 group-hover/toggle:text-white transition-colors" />
+                )}
               </button>
 
               <div suppressHydrationWarning className="flex flex-col h-full max-h-full relative overflow-hidden">
@@ -1176,35 +1246,46 @@ export function Sidebar() {
                 <div suppressHydrationWarning className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-purple/10 blur-[120px] rounded-full pointer-events-none" />
 
                 {/* Logo / Branding Section - High-Octane Branding */}
-                <div className={cn("pt-5 pb-3.5 shrink-0 relative z-50 flex items-center justify-between w-full", isCompact ? "justify-center px-0 text-center" : "px-5")}>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <ExismicLogo size={isCompact ? 34 : 38} showText={!isCompact} className={isCompact ? "justify-center mx-auto" : ""} />
-                    
-                    {!isCompact && !isProLoading && isPro && (
-                      <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
-                         <Crown size={8} className="text-accent-purple" fill="currentColor" />
-                         <span className="text-[6.5px] font-black tracking-widest uppercase text-accent-purple">PRO ACTIVE</span>
-                      </div>
-                    )}
+                {isCompact ? (
+                  <div className="pt-5 pb-3.5 shrink-0 relative z-50 flex items-center justify-center w-full px-0">
+                    <ExismicLogo size={36} showText={false} className="justify-center mx-auto" />
                   </div>
+                ) : (
+                  <div className="pt-5 pb-3.5 shrink-0 relative z-50 flex items-center justify-between w-full px-5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <ExismicLogo size={38} showText={true} />
+                      
+                      {!isProLoading && isPro && (
+                        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded bg-accent-purple/10 border border-accent-purple/30 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
+                           <Crown size={8} className="text-accent-purple" fill="currentColor" />
+                           <span className="text-[6.5px] font-black tracking-widest uppercase text-accent-purple">PRO ACTIVE</span>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Mobile Close Button - Positioned cleanly on the right of header, never overlapping the logo */}
-                  <button
-                    type="button"
-                    onClick={() => setMobileOpen(false)}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      setMobileOpen(false);
-                    }}
-                    aria-label="Close navigation"
-                    className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0 ml-2 touch-manipulation"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
+                    {/* Mobile Close Button - Positioned cleanly on the right of header, never overlapping the logo */}
+                    <button
+                      type="button"
+                      onClick={() => setMobileOpen(false)}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        setMobileOpen(false);
+                      }}
+                      aria-label="Close navigation"
+                      className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0 ml-2 touch-manipulation"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                )}
 
                 {/* Nav Groups */}
-                <nav suppressHydrationWarning className="flex-1 px-3 py-1.5 space-y-3 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] relative z-10 min-h-0">
+                <nav suppressHydrationWarning className={cn(
+                  "flex-1 px-3 py-1.5 overflow-y-auto relative z-10 min-h-0 flex flex-col",
+                  isCompact 
+                    ? "space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" 
+                    : "space-y-3 scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20 scrollbar-track-transparent"
+                )}>
                   <LayoutGroup>
                     {/* Main Menu */}
                     <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1">
@@ -1228,7 +1309,7 @@ export function Sidebar() {
                                {...item} 
                                isActive={pathname === item.href} 
                                glowColor={item.glow}
-                               isCompact={isCompact}
+                               isCompact={isCompact} 
                                onClick={() => setMobileOpen(false)}
                            />
                          );
@@ -1249,8 +1330,10 @@ export function Sidebar() {
                     </motion.div>
 
                     {/* Categories Group */}
-                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1 pt-1">
-                       {!isCompact && (
+                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className={cn("space-y-1", isCompact ? "pt-0" : "pt-1")}>
+                       {isCompact ? (
+                         <div className="w-10 h-[1.5px] bg-gradient-to-r from-transparent via-purple-400/70 to-transparent shadow-[0_0_10px_rgba(168,85,247,0.7)] mx-auto my-1.5 rounded-full" />
+                       ) : (
                          <div className="flex items-center justify-between px-3.5 mb-2 pt-1">
                             <div className="flex items-center gap-2">
                                 <LayoutGrid size={12} className="text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
@@ -1260,7 +1343,8 @@ export function Sidebar() {
                          </div>
                        )}
                        {CATEGORIES.map((cat) => {
-                          const catName = t(`nav.${cat.id.replace(/-/g, '_')}_tools`, cat.name);
+                          const rawCatName = t(`nav.${cat.id.replace(/-/g, '_')}_tools`, cat.name);
+                          const catName = rawCatName.replace(/ Tools$/, '');
                           return (
                             <CategoryDropdown
                               key={cat.id}
@@ -1276,8 +1360,10 @@ export function Sidebar() {
                     </motion.div>
 
                     {/* Ecosystem & Resources Group */}
-                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="space-y-1 pt-1">
-                       {!isCompact && (
+                    <motion.div variants={staggerVariants} initial="hidden" animate="visible" className={cn("space-y-1", isCompact ? "pt-0" : "pt-1")}>
+                       {isCompact ? (
+                         <div className="w-10 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent shadow-[0_0_10px_rgba(34,211,238,0.7)] mx-auto my-1.5 rounded-full" />
+                       ) : (
                          <div className="flex items-center justify-between px-3.5 mb-2 pt-1">
                             <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
@@ -1311,22 +1397,18 @@ export function Sidebar() {
                        />
                      </motion.div>
 
-                    {/* On mobile: Account & Billing flows seamlessly right below Ecosystem with zero random gap */}
-                    <div className="lg:hidden pt-2 border-t border-white/[0.08] mt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-1">
-                      {renderAccountBilling(true)}
+                    {/* Account & Billing: located at the very bottom of the sidebar scroll, visible only when user scrolls all the way down */}
+                    <div className="pt-2.5 border-t border-white/[0.08] mt-auto pb-1.5 space-y-1 shrink-0">
+                      {renderAccountBilling(false)}
                     </div>
                   </LayoutGroup>
                 </nav>
-
-                {/* Desktop Pinned Bottom Footer */}
-                <div className="hidden lg:block border-t border-white/[0.06] bg-[#07070a]/95 backdrop-blur-2xl relative z-20 shrink-0">
-                  {renderAccountBilling(false)}
-                </div>
               </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
+
 
       {/* Dynamic Buy Credits Modal */}
       <BuyCreditsModal 

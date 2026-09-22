@@ -854,9 +854,9 @@ export default function DiffCheckerStudio() {
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
+              <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
                 Text & Code Comparison Studio
-              </h1>
+              </h2>
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                 100% Client-Side Private
               </span>

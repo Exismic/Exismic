@@ -84,22 +84,16 @@ export function ToolWorkspaceHeader({
               <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] shadow-lg", (CATEGORY_ANIM_STYLES[categoryId]?.badge || CATEGORY_ANIM_STYLES.image.badge))}>
                 {categoryName} workspace
               </span>
-              {isPro && (
-                <span className="relative overflow-hidden rounded-full border border-amber-400/50 bg-amber-400/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.16em] text-amber-200 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-                  <span className="absolute inset-0 bg-[linear-gradient(110deg,transparent_20%,rgba(255,255,255,0.4)_50%,transparent_80%)] bg-[length:200%_100%] animate-[shine_2s_linear_infinite]" />
-                  <span className="relative z-10">Pro</span>
-                </span>
-              )}
               <ToolReliabilityBadge toolId={toolId} />
             </div>
             
             <div className="relative inline-block">
                {/* Background glow for the text */}
-               <h1 className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 blur-xl opacity-30 select-none pointer-events-none",
+               <span aria-hidden="true" className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 blur-xl opacity-30 select-none pointer-events-none",
                  CATEGORY_ANIM_STYLES[categoryId]?.iconGlow || "text-cyan-400"
                )}>
                  {name}
-               </h1>
+               </span>
                <div className="relative flex items-center gap-4">
                  <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
                    CATEGORY_ANIM_STYLES[categoryId]?.textGrad || CATEGORY_ANIM_STYLES.image.textGrad

@@ -91,8 +91,8 @@ const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: st
     color: "rgba(239, 68, 68, 0.4)",
   },
   ai: {
-    icons: [Wand2, BrainCircuit, Cpu, Bot],
-    color: "rgba(99, 102, 241, 0.4)",
+    icons: [BrainCircuit, Cpu, Bot, Wand2],
+    color: "rgba(245, 158, 11, 0.45)",
   },
   productivity: {
     icons: [Zap, CheckCircle2, Target],
@@ -174,10 +174,16 @@ export default function CategoryBackground({ categoryId }: CategoryBackgroundPro
       <div
         className="absolute inset-0 transition-opacity duration-700"
         style={{
-          backgroundImage: `
-            radial-gradient(circle at 85% 10%, ${config.color.replace(/[\d\.]+\)$/, "0.14)")} 0%, transparent 55%),
-            radial-gradient(circle at 15% 90%, ${config.color.replace(/[\d\.]+\)$/, "0.09)")} 0%, transparent 50%)
-          `,
+          backgroundImage: categoryId === "ai"
+            ? `
+              radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.28) 0%, transparent 65%),
+              radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.20) 0%, transparent 55%),
+              radial-gradient(circle at 15% 85%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)
+            `
+            : `
+              radial-gradient(circle at 85% 10%, ${config.color.replace(/[\d\.]+\)$/, "0.14)")} 0%, transparent 55%),
+              radial-gradient(circle at 15% 90%, ${config.color.replace(/[\d\.]+\)$/, "0.09)")} 0%, transparent 50%)
+            `,
         }}
       />
 

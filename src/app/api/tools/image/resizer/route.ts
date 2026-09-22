@@ -100,14 +100,30 @@ export async function POST(req: NextRequest) {
       throw new ValidationError("Could not read image dimensions.");
     }
 
-    const left = Math.max(0, Math.min(Math.round(cropData.x), sourceWidth - 1));
-    const top = Math.max(0, Math.min(Math.round(cropData.y), sourceHeight - 1));
-    const cropWidth = Math.max(1, Math.min(Math.round(cropData.width), sourceWidth - left));
-    const cropHeight = Math.max(1, Math.min(Math.round(cropData.height), sourceHeight - top));
+    const rotation = ((parseInt((formData.get("rotation") as string) || "0") % 360) + 360) % 360;
+    const flipH = formData.get("flipH") === "true";
+    const flipV = formData.get("flipV") === "true";
 
     let pipeline = sharp(buffer);
+    if (rotation !== 0) {
+      pipeline = pipeline.rotate(rotation);
+    }
+    if (flipH) {
+      pipeline = pipeline.flop();
+    }
+    if (flipV) {
+      pipeline = pipeline.flip();
+    }
 
-    // 1. Perform the Crop (extracting pixels relative to original image size)
+    const orientedWidth = (rotation === 90 || rotation === 270) ? sourceHeight : sourceWidth;
+    const orientedHeight = (rotation === 90 || rotation === 270) ? sourceWidth : sourceHeight;
+
+    const left = Math.max(0, Math.min(Math.round(cropData.x), orientedWidth - 1));
+    const top = Math.max(0, Math.min(Math.round(cropData.y), orientedHeight - 1));
+    const cropWidth = Math.max(1, Math.min(Math.round(cropData.width), orientedWidth - left));
+    const cropHeight = Math.max(1, Math.min(Math.round(cropData.height), orientedHeight - top));
+
+    // 1. Perform the Crop (extracting pixels relative to oriented image size)
     pipeline = pipeline.extract({
       left,
       top,

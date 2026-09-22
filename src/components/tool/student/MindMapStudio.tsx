@@ -1391,9 +1391,9 @@ ${nodesMarkup}  </g>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                 Notes to Mind Map Studio
-              </h1>
+              </h2>
               <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 100% Client Private
               </span>

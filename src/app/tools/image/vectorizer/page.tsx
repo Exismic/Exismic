@@ -13,7 +13,7 @@ export default function SvgVectorizerPage() {
       toolId="svg-vectorizer"
       categoryId="image"
       customTitle="Image Vectorizer"
-      customDescription="Convert PNG, JPG, and WEBP raster images into infinite-resolution vector SVG graphics with client-side edge tracing."
+      customDescription="Turn low-res logos, sketches, and pictures into infinitely scalable vector graphics (SVG) with razor-sharp lines that never pixelate or blur."
     >
       <SvgVectorizer />
     </ToolPageShell>

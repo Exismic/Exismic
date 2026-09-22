@@ -11,17 +11,26 @@ export function FavoritesMigration() {
   useEffect(() => {
     const migrateFavorites = async () => {
       try {
-        const localFavsRaw = localStorage.getItem('exismic-favorites');
-        if (!localFavsRaw) return;
+        const raw1 = localStorage.getItem('exismic-favorites');
+        const raw2 = localStorage.getItem('exismic_guest_favorites');
+        if (!raw1 && !raw2) return;
         
-        const localFavs = JSON.parse(localFavsRaw);
-        if (!Array.isArray(localFavs) || localFavs.length === 0) return;
+        let favs: string[] = [];
+        try {
+          if (raw1) favs.push(...JSON.parse(raw1));
+        } catch {}
+        try {
+          if (raw2) favs.push(...JSON.parse(raw2));
+        } catch {}
+
+        const uniqueFavs = Array.from(new Set(favs)).filter(Boolean);
+        if (uniqueFavs.length === 0) return;
 
         setMigrating(true);
-        console.log("Migrating old local storage favorites to database...", localFavs);
+        console.log("Migrating local favorites to database...", uniqueFavs);
 
         // We migrate sequentially to avoid hammering the API
-        for (const toolId of localFavs) {
+        for (const toolId of uniqueFavs) {
           try {
             await axios.post('/api/user/favorites', {
               toolId,
@@ -34,6 +43,7 @@ export function FavoritesMigration() {
 
         // Clear local storage after successful migration
         localStorage.removeItem('exismic-favorites');
+        localStorage.removeItem('exismic_guest_favorites');
         console.log("Migration complete!");
         
         // Refresh the page to show the newly migrated favorites

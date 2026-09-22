@@ -51,6 +51,7 @@ import { ProBackground } from "@/components/pro/ProBackground";
 import { CyberAliveBackground } from "@/components/ui/CyberAliveBackground";
 import { FallingIconsBackground } from "@/components/ui/FallingIconsBackground";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
+import { FavoritesMigration } from "@/components/ui/FavoritesMigration";
 
 const CreditModal = dynamic(
   () => import("../ui/CreditModal").then((mod) => mod.CreditModal),
@@ -230,6 +231,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
       {/* CYBER ALIVE ANIMATED BACKGROUND ENGINE WITH FALLING ICONS */}
       {isPro ? <ProBackground /> : <CyberAliveBackground />}
       <FallingIconsBackground variant="dashboard" showOrbs={false} showGrid={false} />
+      <FavoritesMigration />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-8 md:pt-14 pb-36 md:pb-32 space-y-12 md:space-y-16">
         

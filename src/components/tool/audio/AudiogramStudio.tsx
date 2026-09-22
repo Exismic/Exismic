@@ -1264,10 +1264,10 @@ export default function AudiogramStudio() {
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
+              <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
                 Audio Waveform Video Maker
-              </h1>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              </h2>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-300 border border-pink-500/30">
                 100% In-Browser &bull; HD 1080p
               </span>
             </div>

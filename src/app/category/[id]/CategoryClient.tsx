@@ -64,7 +64,7 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
       <CategoryBackground categoryId={categoryId} />
 
       <div className="relative z-10 px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 md:pt-10 pb-3 sm:pb-4 max-w-7xl mx-auto space-y-6 sm:space-y-8 overflow-visible">
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-4 sm:space-y-5">
           <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] text-zinc-500 hover:text-white transition-all group touch-manipulation">
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             Back to all tools
@@ -73,9 +73,8 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
           <CategoryHeading 
             icon={Icon}
             title={category.name}
-            subtitle={`Browse our collection of professional ${category.name.toLowerCase()} architected for high-performance workflows.`}
+            subtitle={`Browse free, easy-to-use ${category.name.toLowerCase().endsWith('tools') ? category.name.toLowerCase() : `${category.name.toLowerCase()} tools`} designed to help you create, edit, and get things done in seconds.`}
             categoryId={categoryId}
-            isPro={categoryId === 'ai'}
           />
         </div>
 

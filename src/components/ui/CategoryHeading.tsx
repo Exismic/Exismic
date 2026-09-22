@@ -1,10 +1,8 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Crown } from "lucide-react";
-import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
+import { CATEGORY_ANIM_STYLES, CATEGORY_PRIMARY_HEX } from "@/lib/category-styles";
 
 interface CategoryHeadingProps {
   icon: React.ElementType;
@@ -17,57 +15,57 @@ interface CategoryHeadingProps {
 
 const CATEGORY_LABEL_STYLES: Record<string, { label: string; text: string; iconStyle: string }> = {
   pdf: { 
-    label: "Document & PDF Utility Suite", 
+    label: "PDF & Document Tools", 
     text: "text-red-300", 
     iconStyle: "text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" 
   },
   image: { 
-    label: "Creative Image Studio", 
+    label: "Image & Photo Tools", 
     text: "text-cyan-300", 
     iconStyle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" 
   },
   audio: { 
-    label: "Audio & Acoustics Lab", 
+    label: "Audio & Music Tools", 
     text: "text-pink-300", 
     iconStyle: "text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" 
   },
   video: { 
-    label: "Video & Motion Studio", 
+    label: "Video Tools", 
     text: "text-violet-300", 
     iconStyle: "text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)]" 
   },
   ai: { 
-    label: "Artificial Intelligence Core", 
-    text: "text-indigo-300", 
-    iconStyle: "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" 
+    label: "AI Tools", 
+    text: "text-amber-300", 
+    iconStyle: "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" 
   },
   productivity: { 
-    label: "Productivity & Workflow Suite", 
+    label: "Productivity Tools", 
     text: "text-emerald-300", 
     iconStyle: "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" 
   },
   business: { 
-    label: "Business & Financial Toolkit", 
+    label: "Business & Finance Tools", 
     text: "text-orange-300", 
     iconStyle: "text-orange-400 drop-shadow-[0_0_8px_rgba(255,153,51,0.8)]" 
   },
   seo: { 
-    label: "SEO & Growth Engine", 
+    label: "Search & SEO Tools", 
     text: "text-cyan-300", 
     iconStyle: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" 
   },
   developer: { 
-    label: "Developer Engineering Suite", 
+    label: "Developer Tools", 
     text: "text-lime-300", 
     iconStyle: "text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.8)]" 
   },
   student: { 
-    label: "Student & Academic Suite", 
+    label: "Student & Study Tools", 
     text: "text-amber-300", 
     iconStyle: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" 
   },
   creator: { 
-    label: "Creator & Media Toolkit", 
+    label: "Creator & Social Media Tools", 
     text: "text-rose-300", 
     iconStyle: "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]" 
   },
@@ -78,62 +76,39 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
   title,
   subtitle,
   categoryId,
-  isPro = false,
   className
 }) => {
   const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
+  const primaryHex = CATEGORY_PRIMARY_HEX[categoryId] || "#f59e0b";
   const labelStyle = CATEGORY_LABEL_STYLES[categoryId] || { 
-    label: "Curated Tool Suite", 
+    label: "Curated Tools", 
     text: "text-zinc-300", 
     iconStyle: "text-zinc-400" 
   };
 
   return (
-    <div className={cn("relative space-y-12", className)}>
-      <div className="flex flex-col gap-8">
-        {/* Integrated Studio Badge - Static & Professional */}
-        <div className="flex items-center gap-4">
-          <div className="relative group flex h-14 w-14 shrink-0 items-center justify-center">
-             <div className={cn("absolute -inset-3 rounded-full blur-xl animate-pulse", isPro ? "bg-amber-500/25" : animStyle.aura)} />
-             <div className={cn("absolute inset-0 rounded-xl animate-[spin_4s_linear_infinite]",
-               isPro ? "bg-[conic-gradient(from_0deg,rgba(251,191,36,1)_0%,rgba(245,158,11,1)_33%,rgba(253,230,138,1)_66%,rgba(251,191,36,1)_100%)]"
-                     : animStyle.spinIdle
-             )} />
-             <div className="absolute inset-[1.5px] rounded-[10px] bg-[#0b0c12] flex items-center justify-center overflow-hidden z-10 transition-transform duration-300 group-hover:scale-[0.98]">
-                <Icon size={24} className={cn("relative z-20 transition-transform duration-300 group-hover:scale-110", isPro ? "text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" : animStyle.iconGlow)} />
-                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-             </div>
-          </div>
-          
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              {isPro ? (
-                <Crown size={12} className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] shrink-0" />
-              ) : (
-                <Icon size={12} className={cn("shrink-0", labelStyle.iconStyle)} />
-              )}
-              <p className={cn(
-                "text-[10px] font-black uppercase tracking-[0.35em]",
-                isPro ? "text-amber-300" : labelStyle.text
-              )}>
-                {isPro ? "Premium Pro Series" : labelStyle.label}
-              </p>
+    <div className={cn("relative space-y-5 sm:space-y-6", className)}>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Compact, Integrated Eyebrow Pill */}
+        <div className="flex items-center">
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-xs">
+            <div className="relative flex h-5 w-5 shrink-0 items-center justify-center">
+              <div className={cn("absolute -inset-1 rounded-full blur-xs opacity-60", animStyle.aura)} />
+              <Icon size={14} className={cn("relative z-10 shrink-0", labelStyle.iconStyle)} />
             </div>
-            {isPro && (
-              <div className="flex mt-1">
-                <span className="text-[9px] font-black text-accent-purple uppercase tracking-widest bg-accent-purple/10 px-2 py-0.5 rounded border border-accent-purple/20">Elite Studio</span>
-              </div>
-            )}
+            <span className={cn("text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em]", labelStyle.text)}>
+              {labelStyle.label}
+            </span>
           </div>
         </div>
 
-        {/* Hero Title - Engineered for Zero Clipping */}
-        <div className="space-y-6">
-          <div className="relative py-2 pr-12 overflow-visible inline-block"> 
+        {/* Hero Title & Subtitle - Zero Edge Clipping with generous inner padding */}
+        <div className="space-y-2.5 sm:space-y-3">
+          <div className="relative overflow-visible py-1"> 
             <h1 
               className={cn(
-                "text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter uppercase italic leading-none select-none px-8 -mx-8 bg-clip-text text-transparent bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
-                isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]" : animStyle.textGrad,
+                "text-4xl sm:text-6xl md:text-7xl xl:text-8xl font-black tracking-tighter uppercase italic leading-[1.08] select-none bg-clip-text text-transparent bg-[length:200%_100%] animate-[shine_4s_linear_infinite] px-4 sm:px-8 py-1 -mx-4 sm:-mx-8 overflow-visible inline-block",
+                animStyle.textGrad,
                 className
               )}
             >
@@ -141,26 +116,56 @@ const CategoryHeading: React.FC<CategoryHeadingProps> = ({
             </h1>
             {/* Soft Ambient Depth */}
             <span 
-              className="absolute inset-0 text-white/5 blur-3xl -z-10 select-none uppercase italic font-black text-5xl md:text-7xl xl:text-8xl tracking-tighter leading-none px-8 -mx-8"
+              className="absolute inset-0 text-white/5 blur-3xl -z-10 select-none uppercase italic font-black text-4xl sm:text-6xl md:text-7xl xl:text-8xl tracking-tighter leading-[1.08] px-4 sm:px-8 -mx-4 sm:-mx-8 py-1"
             >
               {title}
             </span>
           </div>
 
-          <p className="text-xl md:text-2xl text-zinc-400 max-w-4xl leading-relaxed font-medium">
+          <p className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-3xl leading-relaxed font-medium">
             {subtitle}
           </p>
         </div>
       </div>
 
-      {/* Cinematic Divider */}
-      <div className="relative h-px w-full overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent" />
-        <motion.div 
-           animate={{ x: ['-100%', '200%'] }}
-           transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-           className={cn("absolute inset-y-0 w-40 bg-linear-to-r from-transparent via-white to-transparent opacity-20")} 
-        />
+      {/* Category-Reactive Laser Horizon Bridge (like Screenshot 5) */}
+      <div className="relative w-full py-1 pointer-events-none select-none">
+        <div className="relative flex items-center justify-center">
+          {/* Ambient Diffused Glow Flare */}
+          <div
+            className="absolute h-9 w-2/3 max-w-md rounded-full blur-xl opacity-40 will-change-transform animate-pulse-glow"
+            style={{
+              background: `radial-gradient(ellipse at center, ${primaryHex}, transparent 70%)`
+            }}
+          />
+
+          {/* Primary Tapered Neon Laser Hairline */}
+          <div
+            className="relative w-full h-[1px]"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${primaryHex}20 15%, ${primaryHex} 50%, ${primaryHex}20 85%, transparent 100%)`
+            }}
+          />
+
+          {/* Center Specular High-Intensity White Needle */}
+          <div
+            className="absolute w-44 sm:w-80 h-[1.5px] blur-[0.5px]"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%)`
+            }}
+          />
+
+          {/* Center Glowing Cyber Core Jewel */}
+          <div className="absolute flex items-center justify-center">
+            <div
+              className="size-1.5 rounded-full"
+              style={{
+                background: "#ffffff",
+                boxShadow: `0 0 10px 2px ${primaryHex}`
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

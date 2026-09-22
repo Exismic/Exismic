@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ICON_MAP, type IconName } from "@/data/tools";
-import { ArrowRight, Crown, Star, Zap, Flame } from "lucide-react";
+import { ArrowRight, Star, Flame } from "lucide-react";
 import { toggleFavorite } from "@/app/actions/favorites";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,24 +29,21 @@ interface ToolCardProps {
   className?: string;
 }
 
-
-
 const CATEGORY_LABELS: Record<string, string> = {
-  image: "Image Studio",
-  video: "Video Studio",
-  audio: "Audio Lab",
-  pdf: "PDF Suite",
-  ai: "AI Magic",
-  productivity: "Productivity",
-  business: "Business & Finance",
-  seo: "SEO Suite",
+  image: "Image Tool",
+  video: "Video Tool",
+  audio: "Audio Tool",
+  pdf: "PDF Tool",
+  ai: "AI Tool",
+  productivity: "Productivity Tool",
+  business: "Business Tool",
+  seo: "SEO Tool",
   developer: "Developer Tool",
-  student: "Student & Academic",
-  creator: "Creator & Social",
+  student: "Study Tool",
+  creator: "Creator Tool",
 };
 
-export function ToolCard({ id, name, description, icon, href, popular, pro, isProTool, proPowerPack, category, index = 0, initialFavorited = false, className }: ToolCardProps) {
-  const isPro = pro || isProTool;
+export function ToolCard({ id, name, description, icon, href, popular, category, index = 0, initialFavorited = false, className }: ToolCardProps) {
   const unavailable = isToolUnavailable(id);
   const Icon = ICON_MAP[icon] || ICON_MAP.Wand2;
   const style = CATEGORY_ANIM_STYLES[category] || CATEGORY_ANIM_STYLES.pdf;
@@ -96,16 +93,18 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
         <div className={cn(
           "relative h-full min-h-[280px] flex flex-col p-5 sm:p-6 md:p-7 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
           unavailable && "opacity-85",
-          isPro 
-            ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90 border-2 border-amber-400/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.3)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.55)]" 
-            : cn("bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90 transition-all duration-500 border-2", style.cardBorder),
+          category === "ai"
+            ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90"
+            : "bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90",
+          "transition-all duration-500 border-2",
+          style.cardBorder,
           "md:group-hover:scale-[1.03] active:scale-[0.99]"
         )}>
           {/* Shine Animation Layer */}
           <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden pointer-events-none z-10">
             <div className={cn(
               "absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/10 to-transparent",
-              isPro && "via-amber-500/20"
+              category === "ai" && "via-amber-400/25"
             )} />
           </div>
 
@@ -114,13 +113,13 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             {/* Top-Left Category Glowing Mesh Aura */}
             <div className={cn(
               "absolute -top-12 -left-12 w-64 h-64 rounded-full blur-[70px] transition-all duration-700 opacity-30 group-hover:opacity-60 group-hover:scale-125",
-              isPro ? "bg-amber-500/25 group-hover:bg-amber-400/50" : style.aura
+              style.aura
             )} />
 
             {/* Bottom-Right Category Soft Secondary Glow */}
             <div className={cn(
               "absolute -bottom-16 -right-16 w-56 h-56 rounded-full blur-[80px] transition-all duration-700 opacity-20 group-hover:opacity-40",
-              isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura
+              style.aura
             )} />
 
             {/* Micro Dot Matrix Watermark Pattern */}
@@ -128,7 +127,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
 
             {/* Giant Background Watermark Category Icon */}
             <div className="absolute -top-6 -right-6 opacity-[0.04] group-hover:opacity-[0.09] transition-all duration-700 group-hover:scale-110 group-hover:-rotate-6 pointer-events-none">
-              <Icon size={160} strokeWidth={1} className={cn("transition-colors duration-500", isPro ? "text-amber-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]" : style.iconGlow)} />
+              <Icon size={160} strokeWidth={1} className={cn("transition-colors duration-500", style.iconGlow)} />
             </div>
           </div>
 
@@ -138,21 +137,23 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
               "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl shrink-0",
               "bg-[#0b0c12] border border-white/5",
             )}>
-              <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", isPro ? "bg-amber-500/20 group-hover:bg-amber-400/40" : style.aura)} />
-              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500", isPro ? "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.4)_25%,transparent_50%)] group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.9)_25%,transparent_50%)]" : cn(style.spinIdle, style.spinHover))} />
+              <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", style.aura)} />
+              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500", style.spinIdle, style.spinHover)} />
               <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
-                <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", isPro && "from-amber-500/10")} />
+                <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", category === "ai" && "from-amber-500/15")} />
                 <div
                   className={cn(
                     "absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg] animate-[cardShine_3.5s_ease-in-out_infinite] pointer-events-none",
-                    isPro ? "bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" : "bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    category === "ai"
+                      ? "bg-gradient-to-r from-transparent via-amber-200/25 to-transparent"
+                      : "bg-gradient-to-r from-transparent via-white/10 to-transparent"
                   )}
                 />
               </div>
               <Icon className={cn(
                 "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
                 "group-hover:scale-110",
-                isPro ? "text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.9)]" : style.iconGlow
+                style.iconGlow
               )} />
             </div>
 
@@ -188,29 +189,17 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
 
           {/* Badges Section: Always present with consistent min-h to preserve uniform vertical rhythm across cards */}
           <div className="relative z-10 flex flex-wrap items-center gap-1.5 mb-3 sm:mb-3.5 min-h-[22px]">
-            {popular && (
+            {popular ? (
               <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/40 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
                 <Flame size={10} className="text-amber-400 fill-amber-400 animate-pulse shrink-0" />
                 <span className="relative z-10">Popular</span>
               </div>
-            )}
-            {isPro ? (
-              <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 backdrop-blur-md border border-amber-300/50 text-[9px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)]">
-                <Crown size={10} className="fill-amber-300 text-amber-300 shrink-0" />
-                <span className="relative z-10">Pro</span>
-              </div>
-            ) : proPowerPack ? (
-              <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-blue-500/20 backdrop-blur-md border border-cyan-300/40 text-[9px] font-black uppercase tracking-[0.14em] text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
-                <Zap size={10} className="fill-cyan-300 text-cyan-300 shrink-0" />
-                <span className="relative z-10">Pro Boost</span>
-              </div>
-            ) : null}
-            {!popular && !isPro && !proPowerPack && (
+            ) : (
               <div className={cn(
                 "relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full backdrop-blur-md border text-[9px] font-black uppercase tracking-[0.14em]",
                 style.badge
               )}>
-                <span className="relative z-10">{CATEGORY_LABELS[category] || "Studio Tool"}</span>
+                <span className="relative z-10">{CATEGORY_LABELS[category] || "Free Tool"}</span>
               </div>
             )}
             <ToolReliabilityBadge toolId={id} />
@@ -221,7 +210,7 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             <div>
               <h3 className={cn(
                 "text-lg sm:text-xl font-black tracking-tight leading-snug transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
-                isPro ? "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.2)]" : style.textGrad
+                style.textGrad
               )}>
                 {name}
               </h3>
@@ -233,10 +222,8 @@ export function ToolCard({ id, name, description, icon, href, popular, pro, isPr
             {/* Premium Button CTA: Uniformly anchored with tight bottom breathing room */}
             <div className="mt-4 sm:mt-5 pt-1">
               <div className={cn(
-                "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu",
-                isPro 
-                  ? "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:scale-[1.02] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]" 
-                  : cn("group-hover:scale-[1.02]", style.buttonGrad)
+                "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu group-hover:scale-[1.02]",
+                style.buttonGrad
               )}>
                 <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] opacity-0 group-hover:opacity-100 group-hover:animate-[shine_2.5s_linear_infinite] transition-opacity duration-300" />
                 <span className="relative z-10 flex items-center gap-2 sm:gap-3">

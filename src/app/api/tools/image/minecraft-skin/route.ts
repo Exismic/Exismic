@@ -749,7 +749,7 @@ export async function POST(request: NextRequest) {
     const user = apiUser ? await ensureDatabaseUser(apiUser) : null;
     const isPro = Boolean(user && (user.plan === "pro" || user.subscriptionStatus === "active"));
     const referenceRebuilt = referenceMode === "rebuild" && Boolean(referenceImage);
-    const baseCost = getToolCreditCost("image-minecraft-skin", 24);
+    const baseCost = getToolCreditCost("image-minecraft-skin", 25);
     const cost = referenceRebuilt
       ? (isPro ? 6 : 10)
       : targetPart === "all"

@@ -6,18 +6,18 @@ import { ToolCard } from "@/components/ui/ToolCard";
 import { TOOLS } from "@/data/tools";
 import { 
   Search, 
-  Sparkles, 
   X, 
   LayoutGrid, 
   ArrowRight, 
   Flame, 
   Palette, 
   Mic2, 
-  PenTool, 
+  BrainCircuit, 
   Film, 
   FileText, 
   Code2,
-  Crown
+  Crown,
+  RotateCcw
 } from "lucide-react";
 import { CategorySection } from "@/components/tool/CategorySection";
 import { createClient } from "@/utils/supabase/client";
@@ -31,7 +31,7 @@ const FILTER_TABS = [
   { id: "popular", label: "Trending", icon: Flame, color: "text-amber-400" },
   { id: "image", label: "Image & Photo", icon: Palette, color: "text-fuchsia-400" },
   { id: "audio", label: "Audio & Music", icon: Mic2, color: "text-cyan-400" },
-  { id: "ai", label: "AI Writing", icon: PenTool, color: "text-emerald-400" },
+  { id: "ai", label: "AI Tools", icon: BrainCircuit, color: "text-amber-400" },
   { id: "video", label: "Video", icon: Film, color: "text-rose-400" },
   { id: "pdf", label: "PDF & Docs", icon: FileText, color: "text-blue-400" },
   { id: "developer", label: "Developer", icon: Code2, color: "text-indigo-400" }
@@ -335,7 +335,7 @@ export default function ToolsLibraryPage() {
                 className="group/reset relative inline-flex items-center gap-3 p-[1.5px] rounded-2xl bg-gradient-to-r from-purple-500 via-cyan-400 to-pink-500 shadow-[0_0_25px_rgba(168,85,247,0.35)] hover:shadow-[0_0_35px_rgba(34,211,238,0.5)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-[#080918] border border-purple-500/30">
-                  <Sparkles size={14} className="text-cyan-300" />
+                  <RotateCcw size={14} className="text-cyan-300" />
                   <span className="text-xs font-black uppercase tracking-widest text-white">Reset Filters</span>
                   <div className="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-zinc-300 group-hover/reset:text-white">
                     <ArrowRight size={12} className="group-hover/reset:translate-x-0.5 transition-transform" />

@@ -30,6 +30,11 @@ interface ToolSeoSectionProps {
   features?: string[];
   howToSteps?: string[];
   faqs?: Array<{ question: string; answer: string }>;
+  useCases?: string[];
+  limitations?: string[];
+  examples?: string[];
+  terminology?: Array<{ term: string; definition: string }>;
+  seoIntro?: string;
   keywords?: string[];
   showRelatedTools?: boolean;
 }
@@ -444,6 +449,11 @@ export function ToolSeoSection({
   features,
   howToSteps,
   faqs,
+  useCases,
+  limitations,
+  examples,
+  terminology,
+  seoIntro,
   keywords,
   showRelatedTools = true,
 }: ToolSeoSectionProps) {
@@ -561,12 +571,12 @@ export function ToolSeoSection({
             `Instant Results: Fast generation with zero waiting queues or complicated setups.`
           ],
           howToSteps: [
-            `Enter your idea, topic, or creative prompt into the ${name} workspace above.`,
-            `Select your desired style, format, or creative tone.`,
-            `Copy your generated content or export your new visual asset in seconds.`
+            `Enter your prompt, text, or parameters into the ${name} workspace above.`,
+            `Choose your preferred style, format, or options.`,
+            `Review your generated output and copy or export your completed result in seconds.`
           ],
           faqs: [
-            { question: `Can I use content generated with ${name} for commercial projects?`, answer: `Yes! Everything you generate is 100% yours to publish, sell, or use for client work.` },
+            { question: `Can I use the output from ${name} for commercial projects?`, answer: `Yes! Everything you generate is 100% yours to publish, sell, or use for client work.` },
             { question: `How do I get the best results from ${name}?`, answer: `Be specific about your topic, audience, and preferred tone for optimal output.` },
             { question: `Are my prompts and ideas kept private?`, answer: `Yes. We do not use your personal prompts or private text to train public models.` },
             { question: `Do I need technical skills or coding knowledge to use this?`, answer: `Not at all. Every tool is designed with a simple, intuitive interface for creators.` }
@@ -582,19 +592,19 @@ export function ToolSeoSection({
           ],
           features: [
             `Streamlined Daily Workflows: Finish routine tasks in seconds without clutter or friction.`,
-            `Instant Visual Output: Generate barcodes, QR codes, palettes, and resumes immediately.`,
-            `Customizable Styles: Tweak colors, fonts, margins, and branding to fit your needs.`,
+            `Instant Visual Output: Generate barcodes, QR codes, palettes, and formatted outputs immediately.`,
+            `Customizable Styles: Tweak colors, fonts, margins, and options to fit your needs.`,
             `Fast 1-Click Exports: Save your results as PDF, PNG, or copy directly to your clipboard.`
           ],
           howToSteps: [
-            `Enter your details, links, or text into the ${name} setup form.`,
-            `Choose your visual layout, color palette, or formatting options.`,
-            `Click download or copy to share your work immediately.`
+            `Enter your values, details, or preferences into the ${name} form above.`,
+            `Configure your layout, formatting, or parameters.`,
+            `Click copy or download to save and share your work immediately.`
           ],
           faqs: [
             { question: `Is ${name} completely free to use?`, answer: `Yes, it is 100% free with no sign-up or credit card required.` },
             { question: `Does it work well on mobile devices?`, answer: `Yes, the interface is fully responsive and works smoothly on smartphones and tablets.` },
-            { question: `Can I download my results with transparent backgrounds?`, answer: `Yes, graphics and QR codes can be downloaded as clean PNG files ready for print or web.` },
+            { question: `Can I export or copy my results easily?`, answer: `Yes, you can copy outputs directly to your clipboard or download formatted files instantly.` },
             { question: `Is my input data saved or tracked?`, answer: `No. Your inputs are used only during your active session and are never saved or sold.` }
           ]
         };
@@ -613,9 +623,9 @@ export function ToolSeoSection({
             `Zero Data Storage: Sensitive tokens, keys, and schemas never leave your browser window.`
           ],
           howToSteps: [
-            `Paste your raw code, JSON payload, or text into the ${name} editor above.`,
-            `Choose your formatting options, indentation, or comparison mode.`,
-            `Inspect the highlighted output and copy or download your clean code.`
+            `Enter your code, text, or parameters into the ${name} workspace above.`,
+            `Select your formatting, options, or conversion settings.`,
+            `Inspect the verified output and copy or download your clean result.`
           ],
           faqs: [
             { question: `Is my proprietary source code or data transmitted to a server?`, answer: `No. Everything runs client-side in your browser. Your code never leaves your computer.` },
@@ -655,24 +665,24 @@ export function ToolSeoSection({
           valueProps: [
             { title: "Bite-Sized Summaries", badge: "Clear Takeaways", desc: "Condenses dense textbooks and lecture notes into easy-to-digest study points.", icon: Zap },
             { title: "Step-by-Step Solutions", badge: "Easy to Follow", desc: "Breaks down complex formulas, math problems, and science questions logically.", icon: Layers },
-            { title: "Standard Citations", badge: "APA • MLA • Chicago", desc: "Generate perfectly formatted academic references and citations in 1 click.", icon: Sliders },
+            { title: "Structured References", badge: "Academic Formats", desc: "Generate organized study guides, summaries, and accurate references.", icon: Sliders },
             { title: "Zero Cost for Students", badge: "100% Free", desc: "Study tools accessible to everyone with zero paywalls, limits, or accounts.", icon: CheckCircle2 },
           ],
           features: [
             `Clear Learning Summaries: Condenses dense textbooks and lecture notes into bite-sized key points.`,
             `Accurate Step-by-Step Solutions: Breaks down complex math, equations, and science concepts.`,
-            `Standard Citation Formats: Generate APA, MLA, Chicago, and Harvard references effortlessly.`,
+            `Structured Learning Support: Generates clear, well-formatted reference outputs and study guides.`,
             `Interactive Study Aids: Flip flashcards and visual mind maps to master difficult topics.`
           ],
           howToSteps: [
-            `Paste your lecture notes, formula, or textbook excerpt into ${name} above.`,
-            `Pick your study format (flashcards, mind map, or summary).`,
+            `Enter your study material, problem, or text into ${name} above.`,
+            `Pick your study format, calculation mode, or options.`,
             `Review the structured learning notes and download your revision sheet.`
           ],
           faqs: [
             { question: `How does ${name} help improve study retention?`, answer: `By structuring complex topics into visual diagrams, key bullet points, and recall cards.` },
             { question: `Can I export study notes to print or share?`, answer: `Yes, you can export your notes, flashcards, and diagrams as clean PDF or image files.` },
-            { question: `Are the citations formatted to official academic standards?`, answer: `Yes, citations follow official APA, MLA, Chicago, and Harvard reference rules.` },
+            { question: `Does ${name} follow standard academic conventions?`, answer: `Yes, all outputs follow verified educational methodologies and standard formatting conventions.` },
             { question: `Is this tool free for students?`, answer: `Yes! It is completely free with no subscription or account required.` }
           ]
         };
@@ -757,19 +767,21 @@ export function ToolSeoSection({
     }
   };
 
-  const catDefaults = getCategoryDefaults(normCatId, toolName);
-
-  const defaultFeatures = features || catDefaults.features;
-  const defaultHowToSteps = howToSteps || catDefaults.howToSteps;
-  const defaultFaqs = faqs || catDefaults.faqs;
-  const defaultCards = catDefaults.valueProps;
-
-  // Contextually relevant companion tools
+  // Contextually relevant companion tools & tool-specific content resolution
   const currentTool = TOOLS.find(
     (t) =>
-      (toolSlug && (t.id === toolSlug || t.href === toolSlug || t.href.endsWith(`/${toolSlug}`))) ||
+      (toolSlug && (t.id === toolSlug || t.href === toolSlug || t.href.endsWith(`/${toolSlug}`) || t.href.endsWith(toolSlug))) ||
       t.name.toLowerCase() === toolName.toLowerCase()
   );
+
+  const catDefaults = getCategoryDefaults(normCatId, toolName);
+
+  const defaultFeatures = features || currentTool?.features || catDefaults.features;
+  const defaultHowToSteps = howToSteps || currentTool?.howToSteps || catDefaults.howToSteps;
+  const defaultFaqs = faqs || currentTool?.faqs || catDefaults.faqs;
+  const defaultCards = catDefaults.valueProps;
+  const effectiveSeoIntro = seoIntro || currentTool?.seoIntro;
+  const effectiveUseCases = useCases || currentTool?.useCases;
 
   const relatedTools = currentTool
     ? getRelatedTools(currentTool, 2, 4)
@@ -795,7 +807,7 @@ export function ToolSeoSection({
     "@context": "https://schema.org",
     "@type": "HowTo",
     "name": `How to use ${toolName}`,
-    "description": toolDescription,
+    "description": effectiveSeoIntro || toolDescription,
     "step": defaultHowToSteps.map((step, idx) => ({
       "@type": "HowToStep",
       "position": idx + 1,
@@ -805,7 +817,7 @@ export function ToolSeoSection({
   };
 
   return (
-    <section className="mt-16 w-full text-left">
+    <section className="mt-2 sm:mt-4 w-full text-left">
       {/* Schema Injection */}
       <script
         type="application/ld+json"
@@ -815,6 +827,48 @@ export function ToolSeoSection({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
       />
+
+      {/* =========================================================
+          ANAMORPHIC NEON HORIZON DIVIDER (SECTION BRIDGE)
+      ========================================================== */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 mb-6 sm:mb-8 pointer-events-none select-none">
+        <div className="relative flex items-center justify-center">
+          {/* Ambient Diffused Glow Flare */}
+          <div
+            className="absolute h-10 w-2/3 max-w-lg rounded-full blur-2xl opacity-40 will-change-transform animate-pulse-glow"
+            style={{
+              background: `radial-gradient(ellipse at center, ${theme.primaryHex}, transparent 70%)`
+            }}
+          />
+
+          {/* Primary Tapered Neon Laser Hairline */}
+          <div
+            className="relative w-full h-[1px]"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${theme.primaryHex}20 15%, ${theme.primaryHex} 50%, ${theme.primaryHex}20 85%, transparent 100%)`
+            }}
+          />
+
+          {/* Center Specular High-Intensity White Needle */}
+          <div
+            className="absolute w-44 sm:w-80 h-[1.5px] blur-[0.5px]"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%)`
+            }}
+          />
+
+          {/* Center Glowing Cyber Core Jewel */}
+          <div className="absolute flex items-center justify-center">
+            <div
+              className="size-1.5 rounded-full"
+              style={{
+                background: "#ffffff",
+                boxShadow: `0 0 10px 2px ${theme.primaryHex}`
+              }}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="mx-auto max-w-6xl space-y-12 px-4 sm:px-6">
         
@@ -876,7 +930,7 @@ export function ToolSeoSection({
                   About {toolName}
                 </h2>
                 <p className="text-sm sm:text-base font-normal text-zinc-300 leading-relaxed pt-0.5">
-                  {toolDescription}
+                  {effectiveSeoIntro || toolDescription}
                 </p>
               </div>
 
@@ -1046,6 +1100,38 @@ export function ToolSeoSection({
             ))}
           </div>
         </div>
+
+        {/* =========================================================
+            3B. PRACTICAL USE CASES (IF AVAILABLE)
+        ========================================================== */}
+        {effectiveUseCases && effectiveUseCases.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
+                <BookOpen size={18} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+                  Popular Real-World Use Cases
+                </h3>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
+                  How creators, students, and professionals use {toolName}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {effectiveUseCases.map((useCase: string, idx: number) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-4 backdrop-blur-md"
+                >
+                  <span className="size-2 rounded-full mt-1.5 bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
+                  <p className="text-xs sm:text-sm font-medium text-zinc-300 leading-relaxed">{useCase}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* =========================================================
             4. FREQUENTLY ASKED QUESTIONS (SILKY SMOOTH ACCORDION)

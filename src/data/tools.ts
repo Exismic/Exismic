@@ -307,6 +307,16 @@ export interface Tool {
   seoKeywords?: string[];
   indexable?: boolean;
   hidden?: boolean;
+  // Tool-specific SEO & Guide Information Architecture
+  seoIntro?: string;
+  features?: string[];
+  howToSteps?: string[];
+  faqs?: Array<{ question: string; answer: string }>;
+  useCases?: string[];
+  limitations?: string[];
+  examples?: string[];
+  terminology?: Array<{ term: string; definition: string }>;
+  updatedAt?: string;
 }
 
 export interface Category {
@@ -321,15 +331,15 @@ export interface Category {
 export const CATEGORIES: Category[] = [
   { id: 'image', name: 'Image Tools', description: 'Remove backgrounds, crop, compress, and create stunning visual art in seconds.', icon: 'ImageIcon' as IconName, color: 'text-cyan-400', glow: 'rgba(6, 182, 212, 0.5)' },
   { id: 'video', name: 'Video Tools', description: 'Trim clips, auto-generate captions, enhance quality, and export smooth GIFs.', icon: 'Video' as IconName, color: 'text-violet-400', glow: 'rgba(139, 92, 246, 0.5)' },
-  { id: 'audio', name: 'Audio & Music', description: 'Isolate vocals, clean noisy recordings, generate sound effects, and produce music.', icon: 'Music' as IconName, color: 'text-pink-400', glow: 'rgba(236, 72, 153, 0.5)' },
+  { id: 'audio', name: 'Audio & Music Tools', description: 'Isolate vocals, clean noisy recordings, generate sound effects, and produce music.', icon: 'Music' as IconName, color: 'text-pink-400', glow: 'rgba(236, 72, 153, 0.5)' },
   { id: 'pdf', name: 'PDF Tools', description: 'Merge, split, shrink file sizes, extract text, and convert documents effortlessly.', icon: 'FileText' as IconName, color: 'text-red-400', glow: 'rgba(239, 68, 68, 0.5)' },
-  { id: 'ai', name: 'AI Magic', description: 'Generate original art, build web apps, brainstorm ideas, and chat with AI.', icon: 'Sparkles' as IconName, color: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
-  { id: 'productivity', name: 'Productivity', description: 'Build resumes, test typing speed, design color schemes, and streamline your day.', icon: 'Zap' as IconName, color: 'text-emerald-400', glow: 'rgba(16, 185, 129, 0.5)' },
-  { id: 'business', name: 'Business & Finance', description: 'Create branded client invoices, calculate profits and taxes, and plan budgets.', icon: 'Receipt' as IconName, color: 'text-orange-400', glow: 'rgba(255, 153, 51, 0.5)' },
+  { id: 'ai', name: 'AI Tools', description: 'Generate images, write articles, summarize videos, and chat with AI.', icon: 'BrainCircuit' as IconName, color: 'text-amber-400', glow: 'rgba(245, 158, 11, 0.5)' },
+  { id: 'productivity', name: 'Productivity Tools', description: 'Build resumes, test typing speed, design color schemes, and streamline your day.', icon: 'Zap' as IconName, color: 'text-emerald-400', glow: 'rgba(16, 185, 129, 0.5)' },
+  { id: 'business', name: 'Business & Finance Tools', description: 'Create branded client invoices, calculate profits and taxes, and plan budgets.', icon: 'Receipt' as IconName, color: 'text-orange-400', glow: 'rgba(255, 153, 51, 0.5)' },
   { id: 'seo', name: 'SEO Tools', description: 'Boost search rankings, optimize headlines, preview social links, and grow traffic.', icon: 'SearchCode' as IconName, color: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
   { id: 'developer', name: 'Developer Tools', description: 'Handy utilities to format data, test matching rules, create IDs, and clean graphics.', icon: 'Terminal' as IconName, color: 'text-lime-400', glow: 'rgba(163, 230, 53, 0.5)' },
-  { id: 'student', name: 'Student & Academic', description: 'Turn lectures into study guides, create flip flashcards, solve math, and cite sources.', icon: 'GraduationCap' as IconName, color: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
-  { id: 'creator', name: 'Creator & Social', description: 'Write viral video hooks, design swipeable carousels, analyze thumbnails, and format posts.', icon: 'Share2' as IconName, color: 'text-rose-400', glow: 'rgba(244, 63, 94, 0.5)' },
+  { id: 'student', name: 'Student & Study Tools', description: 'Turn lectures into study guides, create flip flashcards, solve math, and cite sources.', icon: 'GraduationCap' as IconName, color: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
+  { id: 'creator', name: 'Creator & Social Media', description: 'Write viral video hooks, design swipeable carousels, analyze thumbnails, and format posts.', icon: 'Share2' as IconName, color: 'text-rose-400', glow: 'rgba(244, 63, 94, 0.5)' },
 ];
 
 export const ALL_TOOLS: Tool[] = [
@@ -348,7 +358,29 @@ export const ALL_TOOLS: Tool[] = [
     acceptedFileTypes: ['image/*'],
     seoTitle: "Free Magic Eraser Online - Remove Objects & People from Photos Instantly",
     seoDescription: "The best free background remover online. Use our AI magic eraser to remove unwanted objects, people, or backgrounds from any photo in seconds.",
-    seoKeywords: ["background remover","remove background free","ai bg eraser","transparent background","photo background remover","Exismic"]
+    seoKeywords: ["background remover","remove background free","ai bg eraser","transparent background","photo background remover","Exismic"],
+    seoIntro: "Remove distracting backgrounds and isolate subjects automatically with fine-edge detection for hair, fur, and delicate contours. Download transparent PNG cutouts with zero watermarks.",
+    howToSteps: [
+      "Upload your photo or drag and drop your image directly onto the workspace above.",
+      "Let the AI detect and isolate your foreground subject automatically in real time.",
+      "Preview your cutout against light or dark grids and download your clean, transparent PNG."
+    ],
+    features: [
+      "Sub-Pixel Edge Detection: Cleanly separates wispy hair, delicate fabric, and transparent glass.",
+      "Instant In-Browser Processing: Fast segmentation with zero wait queues or slow upload delays.",
+      "Lossless Transparent PNG: Exports high-resolution cutouts ready for e-commerce, logos, and collages.",
+      "100% Watermark-Free: All exported images are completely unbranded and ready for commercial use."
+    ],
+    faqs: [
+      { question: "Does the background remover handle complex textures like hair and fur?", answer: "Yes, our neural segmentation network cleanly detects fine strands of hair, animal fur, and semi-transparent objects." },
+      { question: "What export format do I receive?", answer: "Cutouts are exported as lossless, high-resolution transparent PNG files that integrate into any design software." },
+      { question: "Are my uploaded photos stored on Exismic servers?", answer: "No. Your uploaded pictures are processed securely in temporary memory and are never saved or used for AI training." }
+    ],
+    useCases: [
+      "Creating white or transparent backgrounds for e-commerce product listings",
+      "Isolating headshots for professional resumes, portfolios, and avatars",
+      "Extracting subjects for YouTube thumbnails, marketing flyers, and graphic collages"
+    ]
   },
   { 
     id: 'image-compressor', 
@@ -596,7 +628,6 @@ export const ALL_TOOLS: Tool[] = [
     icon: 'Layout' as IconName,
     href: '/tools/landing-page-generator',
     suggestions: ["Dark-themed SaaS dashboard","Fitness tracker app landing page","Creative agency portfolio website"],
-    popular: true,
     proPowerPack: true,
     requiresFileUpload: false,
     placeholderPrompt: 'Describe the landing page you want to generate (e.g., modern dark themed SaaS dashboard)...',
@@ -618,7 +649,6 @@ export const ALL_TOOLS: Tool[] = [
     icon: 'PlaySquare' as IconName,
     href: '/tools/youtube-summarizer',
     suggestions: ["How to build a SaaS startup in 2026","Figma to Next.js full design tutorial","Intro to quantum computing"],
-    popular: true,
     proPowerPack: true,
     requiresFileUpload: false,
     placeholderPrompt: 'Paste your YouTube video link here (e.g. https://www.youtube.com/watch?v=...)',
@@ -630,6 +660,28 @@ export const ALL_TOOLS: Tool[] = [
       "youtube transcript downloader",
       "youtube to blog post generator",
       "summarize youtube video ai"
+    ],
+    seoIntro: "Transform long YouTube videos, interviews, conference talks, and podcasts into structured summaries, timestamped highlights, and actionable takeaways in seconds.",
+    howToSteps: [
+      "Paste any public YouTube video link into the URL field above.",
+      "Select your summary style (concise bullets, key insights, or timestamped breakdown).",
+      "Review the generated overview and copy the summary notes or export to markdown."
+    ],
+    features: [
+      "Timestamped Key Moments: Jumps straight to critical talking points with video timestamps.",
+      "Core Takeaway Extraction: Condenses 60-minute presentations into a quick 2-minute digest.",
+      "Speaker Quotes & Action Items: Isolates memorable quotes, statistics, and follow-up points.",
+      "Direct URL Input: Runs immediately from any web link with zero video download required."
+    ],
+    faqs: [
+      { question: "Do I need to download the video file?", answer: "No, simply paste the public YouTube video URL into the input field to summarize it immediately." },
+      { question: "Can it summarize hour-long podcasts and university lectures?", answer: "Yes, our summarizer efficiently processes extended video transcripts into concise, chapter-based summaries." },
+      { question: "Can I use the summary for study notes or content drafts?", answer: "Yes, you can copy the markdown or plain text output directly into Notion, Obsidian, or Google Docs." }
+    ],
+    useCases: [
+      "Extracting quick research insights from technical podcasts and conference keynotes",
+      "Reviewing lecture recordings and tutorial series before exams",
+      "Turning video interviews into readable article summaries and social threads"
     ]
   },
   {
@@ -640,7 +692,6 @@ export const ALL_TOOLS: Tool[] = [
     icon: 'QrCode' as IconName,
     href: '/tools/qr-generator',
     suggestions: ["Medieval castle oil painting","Cyberpunk neon street at night","Steampunk clockwork gear pattern"],
-    popular: true,
     proPowerPack: true,
     requiresFileUpload: false,
     placeholderPrompt: 'Describe the art style you want (e.g. medieval castle on a hill, oil painting)...',
@@ -724,11 +775,57 @@ export const ALL_TOOLS: Tool[] = [
   { id: 'productivity-passgen', name: 'Password Generator', description: "Generate unhackable, super-strong passwords with random letters, numbers, and symbols to keep all your creative and business accounts safe.", category: 'developer', icon: 'KeyRound' as IconName, href: '/tools/productivity/passgen',
     suggestions: ["What makes a password truly secure?","How many characters should I use?","Can I exclude ambiguous characters like I and l?"], requiresFileUpload: false, seoTitle: "Secure Password Generator - Create Strong & Unique Passwords Free",
     seoDescription: "Generate strong, cryptographically secure passwords online with customizable length and symbol parameters.",
-    seoKeywords: ["password generator","strong password maker","secure password generator","random password tool","Exismic"] },
+    seoKeywords: ["password generator","strong password maker","secure password generator","random password tool","Exismic"],
+    seoIntro: "Generate cryptographically secure passwords with custom character lengths, numeric sets, and special punctuation. Generated entirely within local browser memory with zero server telemetry.",
+    howToSteps: [
+      "Select your desired password length using the slider (12 to 64 characters recommended).",
+      "Toggle your character rule preferences: uppercase letters, lowercase, numbers, or symbols.",
+      "Click 'Generate Password' to create a high-entropy string, then click 'Copy' to use it securely."
+    ],
+    features: [
+      "Cryptographically Secure Entropy: Uses browser crypto.getRandomValues for true statistical randomness.",
+      "Client-Side In-Memory Generation: Passwords never touch an external server or database.",
+      "Ambiguous Character Filter: Easily exclude visually identical characters like O and 0 or l and 1.",
+      "Instant Strength Meter: Visual feedback showing estimated crack time and entropy rating."
+    ],
+    faqs: [
+      { question: "Are my generated passwords transmitted or saved anywhere?", answer: "Never. Passwords are generated exclusively on your local device using the browser Web Crypto API and are never stored or logged." },
+      { question: "What password length does Exismic recommend?", answer: "For general web accounts, at least 16 characters with mixed symbols and digits is recommended to prevent brute-force cracking." },
+      { question: "Can I use this password generator offline or on my phone?", answer: "Yes, the tool works completely client-side across all modern desktop, tablet, and mobile browsers." }
+    ],
+    useCases: [
+      "Creating strong master passwords for password managers",
+      "Securing database credentials, SSH keys, and cloud API tokens",
+      "Generating unique, unguessable passwords for social and business accounts"
+    ]
+  },
   { id: 'productivity-units', name: 'Unit Converter', description: "Easily convert between inches, meters, kilograms, cups, Fahrenheit, and dozens of everyday measurements with instant, error-free results.", category: 'student', icon: 'Ruler' as IconName, href: '/tools/productivity/units',
     suggestions: ["How do I convert complex derived units?","Does it support metric to imperial conversions?","Can I save my most used conversions?"], requiresFileUpload: false, seoTitle: "Online Unit Converter - Convert Length, Weight, Temp & More Free",
     seoDescription: "Convert length, weight, temperature, data speed, and currency units online instantly.",
-    seoKeywords: ["unit converter","convert measurement units","length converter","weight unit converter","Exismic"] },
+    seoKeywords: ["unit converter","convert measurement units","length converter","weight unit converter","Exismic"],
+    seoIntro: "Convert length, mass, temperature, area, volume, and digital storage units accurately with real-time bidirectional calculations and exact formula breakdowns.",
+    howToSteps: [
+      "Choose your unit category (such as length, weight, temperature, or data storage).",
+      "Type the numerical value you want to convert into the input box.",
+      "Select your target unit to see the instant converted result and mathematical formula."
+    ],
+    features: [
+      "Instant Bidirectional Conversion: Results update in real time as you adjust numbers.",
+      "Metric and Imperial Support: Seamlessly switch between inches, centimeters, pounds, kilograms, and Celsius/Fahrenheit.",
+      "High Decimal Precision: Exact scientific precision with zero rounding distortions.",
+      "Formula Reference Display: Displays the exact conversion multiplier and formula used."
+    ],
+    faqs: [
+      { question: "Which measurement systems are supported?", answer: "Both the Metric System (SI) and Imperial / US Customary systems are fully supported across all categories." },
+      { question: "How are temperature conversions calculated?", answer: "Temperature conversions apply official offset formulas: °F = (°C × 9/5) + 32 and K = °C + 273.15." },
+      { question: "Does the unit converter work on smartphones?", answer: "Yes, the interface is completely responsive and operates instantly on all phones and tablets." }
+    ],
+    useCases: [
+      "Converting international cooking recipes between grams, ounces, and cups",
+      "Switching engineering drawings between inches and millimeters",
+      "Converting international travel weather forecasts between Celsius and Fahrenheit"
+    ]
+  },
   { id: 'productivity-palette', name: 'Palette Generator', description: "Discover beautiful color combinations and harmonious themes for your next design, brand identity, or website mockup with one-click hex copies.", category: 'productivity', icon: 'Palette' as IconName, href: '/tools/productivity/palette',
     suggestions: ["Help me generate a cyberpunk color scheme","What are the rules of color harmony?","How do I export this palette to Tailwind?"], requiresFileUpload: false, seoTitle: "AI Color Palette Generator - Create Beautiful Color Schemes Online",
     seoDescription: "Generate harmonious color palettes, extract dominant colors from images, and export HEX/RGB color codes.",
@@ -817,7 +914,6 @@ export const ALL_TOOLS: Tool[] = [
     icon: 'MessageSquarePlus' as IconName,
     href: '/tools/social-caption-generator',
     suggestions: ["Write an engaging hook for a lifestyle post","How long should an Instagram caption be?","Should I put hashtags in the caption or comments?"],
-    popular: true,
     pro: true,
     isProTool: true,
     requiresFileUpload: true,
@@ -838,7 +934,29 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Make this essay sound natural and conversational", "Humanize AI generated article for a blog", "Adjust perplexity to pass AI detectors"],
     seoTitle: "Free AI Text Humanizer - Convert AI Content to Natural Human Writing",
     seoDescription: "Bypass AI detectors with our AI Text Humanizer. Rewrite ChatGPT, Claude, and Gemini text into authentic, natural-sounding human writing.",
-    seoKeywords: ["ai humanizer","humanize ai text","bypass ai detection","make ai text sound human","Exismic"]
+    seoKeywords: ["ai humanizer","humanize ai text","bypass ai detection","make ai text sound human","Exismic"],
+    seoIntro: "Transform formulaic, repetitive AI drafts into warm, authentic, and naturally flowing prose. Improves sentence variety, rhythm, and vocabulary while preserving your core meaning.",
+    howToSteps: [
+      "Paste your AI-generated text or draft into the input workspace above.",
+      "Select your desired writing tone, conversational style, and humanization strength.",
+      "Click 'Humanize Text' and copy your polished, authentic writing with 1 click."
+    ],
+    features: [
+      "Natural Rhythm & Cadence: Breaks up robotic sentence structure with varied lengths and clauses.",
+      "Nuanced Vocabulary Replacement: Swaps repetitive AI cliches with conversational expressions.",
+      "Preserves Core Meaning: Keeps your underlying facts, statistics, and arguments completely intact.",
+      "Detector-Bypassing Quality: Rewrites syntax to read naturally to both human reviewers and AI classifiers."
+    ],
+    faqs: [
+      { question: "How does the AI Humanizer make text sound genuinely human?", answer: "It introduces varied sentence pacing, organic transitions, and context-appropriate vocabulary while removing typical repetitive AI patterns." },
+      { question: "Will humanizing change my key facts or data?", answer: "No. The humanizer preserves your message, technical accuracy, and key arguments while rephrasing the sentence flow." },
+      { question: "Are my documents kept private?", answer: "Yes, all processing is private and temporary. Your writing is never saved, shared, or used for model training." }
+    ],
+    useCases: [
+      "Refining AI-drafted blog articles and newsletters to sound relatable",
+      "Polishing academic drafts, personal essays, and cover letters",
+      "Humanizing corporate announcements and social media copy"
+    ]
   },
   {
     id: 'ai-detector',
@@ -847,11 +965,32 @@ export const ALL_TOOLS: Tool[] = [
     category: 'ai',
     icon: 'ShieldCheck' as IconName,
     href: '/tools/ai-detector',
-    popular: true,
     suggestions: ["Is this essay written by ChatGPT?", "Scan article for AI text", "Check paragraph authenticity"],
     seoTitle: "Free AI Content Detector - Scan Text for ChatGPT & AI Writing",
     seoDescription: "Accurately check if text was generated by AI models like ChatGPT, GPT-4, or Claude. Get sentence-by-sentence analysis and confidence scores.",
-    seoKeywords: ["ai detector","ai content checker","gpt detector free","check ai text","Exismic"]
+    seoKeywords: ["ai detector","ai content checker","gpt detector free","check ai text","Exismic"],
+    seoIntro: "Inspect essays, articles, and copy for markers of computer-generated text. Analyzes perplexity, sentence uniformity, and linguistic patterns across major AI models.",
+    howToSteps: [
+      "Paste your text, essay, or article into the detector input field above.",
+      "Click 'Scan Text' to initiate the deep linguistic pattern analysis.",
+      "Review the overall probability score and sentence-by-sentence authenticity highlights."
+    ],
+    features: [
+      "Multi-Model Analysis: Evaluates linguistic markers from ChatGPT, GPT-4o, Claude 3.5, and Gemini.",
+      "Sentence-Level Highlighting: Identifies specific robotic passages that need human refinement.",
+      "Perplexity & Burstiness Scoring: Measures word predictability and sentence length distribution.",
+      "Zero Data Retention: Your submitted text is never stored, indexed, or used to train models."
+    ],
+    faqs: [
+      { question: "How does the AI detector identify computer-generated text?", answer: "It evaluates perplexity (word predictability) and burstiness (variation in sentence structure). AI text tends to be mathematically uniform, while human writing features natural rhythm and varied vocabulary." },
+      { question: "Can it detect writing from ChatGPT, Claude, and Gemini?", answer: "Yes, it analyzes characteristic probabilistic patterns common to all modern Large Language Models." },
+      { question: "Is my text kept confidential when scanned?", answer: "Yes. All analysis is performed transiently in memory; your content is never stored or added to any public database." }
+    ],
+    useCases: [
+      "Verifying student essays and assignments for authentic human authorship",
+      "Screening freelance articles and client deliverables for originality",
+      "Checking your own drafts before submission to avoid false-positive AI flags"
+    ]
   },
   {
     id: 'grammar-checker',
@@ -860,7 +999,6 @@ export const ALL_TOOLS: Tool[] = [
     category: 'ai',
     icon: 'SpellCheck' as IconName,
     href: '/tools/grammar-checker',
-    popular: true,
     suggestions: ["Fix grammar and spelling in this paragraph", "Improve vocabulary and tone", "Check for passive voice"],
     seoTitle: "Free AI Grammar Checker & Style Editor Online",
     seoDescription: "Check grammar, spelling, punctuation, and writing style online. Improve sentence clarity and tone with AI-powered corrections.",
@@ -1133,7 +1271,29 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Generate APA 7 citation for website article", "Create MLA 9 book reference with DOI", "Format Chicago style journal citation"],
     seoTitle: "Free Academic Citation Generator - APA 7, MLA 9, Chicago & Harvard",
     seoDescription: "Generate accurate academic citations and bibliographies in APA 7, MLA 9, Chicago, and Harvard formats instantly.",
-    seoKeywords: ["citation generator","apa citation generator","mla citation builder","chicago style generator","Exismic"]
+    seoKeywords: ["citation generator","apa citation generator","mla citation builder","chicago style generator","Exismic"],
+    seoIntro: "Generate accurate bibliographies, reference lists, and in-text citations in APA 7th, MLA 9th, Chicago, and Harvard formats with official academic styling rules.",
+    howToSteps: [
+      "Select your target citation style: APA 7, MLA 9, Chicago 17, or Harvard.",
+      "Enter your source details such as authors, publication year, article title, and journal/website URL.",
+      "Click 'Generate Citation' and copy your formatted in-text and bibliographic entries with 1 click."
+    ],
+    features: [
+      "Official Academic Standards: Aligned with the latest APA 7th, MLA 9th, Chicago, and Harvard guidelines.",
+      "Dual Citation Formats: Generates both in-text parenthetical citations and complete bibliography entries.",
+      "Multi-Source Media Support: Formats journal papers, book chapters, news articles, websites, and videos.",
+      "1-Click Clipboard Export: Copy clean italicized references directly into Microsoft Word or Google Docs."
+    ],
+    faqs: [
+      { question: "Which academic citation styles are supported?", answer: "We support APA 7th edition, MLA 9th edition, Chicago 17th edition (Author-Date & Notes), and standard Harvard referencing." },
+      { question: "Does the generator format italics and punctuation properly?", answer: "Yes, titles, journal names, volume numbers, and punctuation strictly match the official style manuals." },
+      { question: "Can I cite online web pages and digital articles?", answer: "Yes. Simply input the URL, author, article title, website title, and access date to generate a complete citation." }
+    ],
+    useCases: [
+      "Building bibliography and works-cited pages for term papers and dissertations",
+      "Formatting parenthetical citations for research proposals and essays",
+      "Organizing source references for academic literature reviews"
+    ]
   },
   {
     id: 'math-solver',
@@ -1146,7 +1306,29 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Solve quadratic equation 2x^2 + 5x - 3 = 0 step-by-step", "Calculate derivative of f(x) = x^3 * sin(x)", "Solve linear algebra system of equations"],
     seoTitle: "Free AI Math Solver - Step-by-Step Algebra & Calculus Solutions",
     seoDescription: "Solve math equations, calculus problems, and word problems step-by-step with clear explanations and LaTeX formatting.",
-    seoKeywords: ["ai math solver","step by step math solver","algebra solver online","Exismic"]
+    seoKeywords: ["ai math solver","step by step math solver","algebra solver online","Exismic"],
+    seoIntro: "Solve complex algebraic, calculus, and geometry equations with sequential step-by-step mathematical reasoning, intermediate operations, and clear LaTeX notation.",
+    howToSteps: [
+      "Type or paste your math equation, polynomial, or calculus problem into the solver above.",
+      "Select your solving goal (e.g. solve for x, compute derivative, find roots, or simplify).",
+      "Study the sequential working steps, underlying formulas, and verified final answer."
+    ],
+    features: [
+      "Step-by-Step Working: Clearly displays every intermediate step from factoring to substitution.",
+      "Clean LaTeX Typography: Renders complex fractions, radicals, integrals, and matrices crisply.",
+      "Comprehensive Math Coverage: Solves algebra, polynomials, trigonometry, limits, and derivatives.",
+      "Conceptual Explanations: Explains the underlying mathematical theorems behind each calculation."
+    ],
+    faqs: [
+      { question: "What branches of mathematics can this solver solve?", answer: "It supports pre-algebra, quadratic equations, systems of linear equations, trigonometry, limits, derivatives, and basic integrals." },
+      { question: "Does it provide the step-by-step working or only the answer?", answer: "It provides the complete sequential solution showing intermediate operations, formula applications, and the final solution." },
+      { question: "Is the math solver completely free for students?", answer: "Yes, it is 100% free with no subscription, paywall, or login required." }
+    ],
+    useCases: [
+      "Checking homework assignments and locating where an arithmetic or factoring error occurred",
+      "Studying calculus derivatives and polynomial roots step-by-step",
+      "Preparing for math exams by practicing problem-solving techniques"
+    ]
   },
   // Option 1: Creator & Social Tools
   {
@@ -1475,14 +1657,13 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'prompt-builder',
-    name: 'AI Mega-Prompt Builder',
-    description: "Transform simple 1-line ideas into master-grade prompt engineering protocols for ChatGPT, Claude, Gemini, and DeepSeek. Free client-side tool with XML tags and Chain-of-Thought reasoning.",
+    name: 'AI Prompt Builder',
+    description: "Turn simple 1-line ideas into clear, detailed prompts for ChatGPT, Claude, Gemini, and DeepSeek to get much better answers on your first try.",
     category: 'ai',
     icon: 'BrainCircuit' as IconName,
     href: '/tools/ai/prompt-builder',
-    popular: true,
     proPowerPack: true,
-    suggestions: ["Turn a basic coding task into an elite architecture prompt", "Generate a few-shot Claude prompt with XML tags", "Build a high-converting marketing copywriting prompt"],
+    suggestions: ["Turn a basic coding task into a detailed prompt", "Generate a structured Claude prompt with clear guidelines", "Build a high-converting marketing copywriting prompt"],
     seoTitle: "Free AI Mega-Prompt Builder - Master Prompt Engineering Online",
     seoDescription: "Engineer master prompts for ChatGPT, Claude, Gemini, and DeepSeek. Features CREATE and Chain-of-Thought frameworks, role personas, XML tags, and 1-click clipboard copy.",
     seoKeywords: ["ai prompt generator", "mega prompt builder", "prompt engineering tool", "claude prompt generator", "chatgpt prompt builder", "chain of thought prompt", "Exismic"]

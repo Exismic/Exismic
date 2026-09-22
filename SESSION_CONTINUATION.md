@@ -4,11 +4,346 @@
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
 > **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors). Performance & low-end/mobile architecture hardened.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
-> **Active Sprint Review Tracker**: [`NEXT_TO_REVIEW.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/NEXT_TO_REVIEW.md) (🎉 13 of 13 tools completed — 100% SPRINT COMPLETE; Tool #13 hidden from public catalogs per user directive).
+> **Active Sprint Review Tracker**: [`NEXT_TO_REVIEW.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/NEXT_TO_REVIEW.md) (🎉 13 of 13 tools completed — 100% SPRINT COMPLETE; Tool #13 hidden from public catalogs per user directive).  
+> **Mandatory Tool Design & Copy Standards**: [`TOOL_STANDARDS_AND_GUIDELINES.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/TOOL_STANDARDS_AND_GUIDELINES.md) (Zero tech jargon, zero sparkles, balanced void-free layouts, and laser bridges).
 
 ---
 
 ## 📌 Summary of Completed Architecture & Features
+
+### 0. 🧭 Clean Compact Dock Sidebar, Floating Tooltips & Label Polish [COMPLETED]
+* **Floating Obsidian Glass Hover Tooltips**:
+  - Implemented sleek floating glass tooltips for the clipped/compact dock rail (`88px`) rendered via React Portals (`createPortal(..., document.body)`).
+  - Hovering any icon displays a floating glass badge (`fixed z-[9999]`) showing the item name, category-reactive neon dot, and tool count badges (e.g. `● Creator & Social Media [6 tools]`).
+  - Escapes all parent overflow and clipping constraints with zero horizontal scrollbars.
+  - Hidden the ugly grey vertical scrollbar track in compact mode (`[scrollbar-width:none] [&::-webkit-scrollbar]:hidden`) while preserving smooth trackpad/wheel scrolling.
+  - Added glowing laser dividers between Explore, Studio Tools, and Ecosystem with balanced, tight spacing (`space-y-1`, `pt-0`, `my-1.5`) so non-admin users no longer see an awkward 40px+ gap where Admin Center is omitted.
+* **Fixed "Creator & Social Media" Text Truncation**:
+  - Resolved the issue where "Creator & Social Media Tools" was cut off to "Creator & Social Media To" in the expanded sidebar.
+  - Updated category name in `data/tools.ts` to `Creator & Social Media` and stripped redundant trailing ` Tools` from categories under the `STUDIO TOOLS` heading.
+  - Tuned label typography to `text-[12px]` with ample breathing room, eliminating text truncation across all categories.
+* **Modern Sidebar Panel Toggle Icons**:
+  - Replaced the plain, generic chevron (`<ChevronLeft>` / `<ChevronRight>`) in the border dock toggle button with authentic creative suite dock icons: `<PanelLeftClose />` when expanded and `<PanelLeftOpen />` when collapsed.
+* **Credit Vault & Bottom Spacing Polish**:
+  - Eliminated the redundant nested padding and bottom dead void (~40px) below the Credit Vault and user profile. Reduced `pb` from `max(1.5rem,...)` to `pb-1.5` and nested padding to `px-0.5 py-1` so the card aligns flush with the navigation items above.
+* **Account Favorites Synchronization & Migration**:
+  - Copied all 9 favorited tools from developer account (`syedrayan.dev@gmail.com`) to the active account `Bs Gamar` (`gamarbs32@gmail.com`): `code-snippet`, `device-mockup`, `gst-calculator`, `image-compressor`, `image-converter`, `image-eraser`, `image-minecraft-skin`, `pdf-ocr`, `watermark-remover`.
+  - Upgraded `<FavoritesMigration />` to detect and migrate from BOTH `exismic-favorites` and `exismic_guest_favorites` localStorage keys.
+  - Mounted `<FavoritesMigration />` on both `/favorites` and the main `Dashboard` so client-stored favorites sync into the database automatically.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🎮 Minecraft Skin Generator Credit Cost Synchronization (25 Credits) [COMPLETED]
+* **Synchronized Display with Backend Policy**:
+  - The actual deduction in `credit-policy.ts` is 25 credits (`image-minecraft-skin: 25`).
+  - Updated [`MinecraftSkinMaker.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/MinecraftSkinMaker.tsx) so the primary generate button badge, character remix button badge, variation generator, and modal cost indicators all consistently display **25 credits** instead of 24.
+  - Replaced `<Sparkles>` on the primary action button with authentic `<MinecraftIcon>` complying with tool guidelines.
+  - Updated backend fallback in `src/app/api/tools/image/minecraft-skin/route.ts` to 25.
+  - Updated knowledge base in `exismic-knowledge.ts` to 25 credits.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 😂 Meme Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Upload Void & Jargon Purge**:
+  - Replaced the bare interface and awkward tech jargon (`Architect`, `Matrix Output`, `600x600 Render Target`, `Core Template`, `Meme Logic`) with an ultra-luxury obsidian dual-pane meme creator studio (`lg:col-span-7` stage + `lg:col-span-5` console).
+  - Built an obsidian preview stage featuring an authentic macOS window titlebar (`● ● ●`), live canvas indicator (`600px Live Meme Canvas Stage`), and caption rendering status.
+  - Symmetrical layout eliminating the 100px+ empty black voids below the canvas preview.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click viral demonstration blueprints directly below the meme stage (completely eliminating empty dead voids):
+    1. `Drake Approval`: "WRITING CODE WITH BUGS / CALLING IT AN UNDOCUMENTED FEATURE" · Classic 2-panel dev humor.
+    2. `Distracted Focus`: "NEW JAVASCRIPT FRAMEWORK / MY UNFINISHED SIDE PROJECT" · Trending relatable trio.
+    3. `Hard Dilemma`: "FIX THE CRITICAL BUG / PUSH TO PRODUCTION ON FRIDAY" · High-stakes decision panic.
+  - Instant 1-tap template and caption population.
+* **Pro Productivity & Export Suite**:
+  - **Freely Draggable Captions Anywhere**: Both Headline and Punchline captions can now be clicked and dragged anywhere across the canvas stage in real-time with pointer capture (supporting mouse + mobile touch) and dynamic bounding boxes with corner anchor handles.
+  - **100% Watermark-Free Exports**: Completely eliminated the `⚡ exismic.xyz` watermark badge across both free and pro tiers. All exported and copied memes are 100% clean.
+  - **Quick Placement Presets & Sliders**: Added instant 1-tap placement presets (`Classic Top / Bottom`, `Right Side (Drake)`, `Left Side`, `Centered Stack`) plus precision X and Y percentage sliders.
+  - Global `Ctrl+V` clipboard paste listener allowing creators to paste any picture or screenshot directly from clipboard to make a meme instantly.
+  - 1-Click `Copy Picture (PNG)` to clipboard via `navigator.clipboard.write([new ClipboardItem(...)])` for instant replies in Discord, Slack, or Twitter without downloading files.
+  - 1-Click `Export PNG` with local and cloud history recording (`saveFileHistory`).
+  - Next Action Pipeline Bar (`MediaPipelineBar`) connecting directly to Image Compressor, Format Converter, Resizer, and Background Remover.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Friendly, natural everyday English across all copy, tooltips, and labels (*Meme Controls*, *Choose Template*, *Headline (Top Text)*, *Punchline (Bottom Text)*, *Caption Placement*, *Quick Position Presets*, *Draggable Captions*).
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<Laugh>`, `<Type>`, `<Palette>`, `<Sliders>`, `<Download>`, `<Copy>`, `<Check>`, `<Shuffle>`, `<RotateCcw>`, `<Flame>`, `<ImageIcon>`, `<AlignLeft>`, `<AlignCenter>`, `<AlignRight>`, `<Move>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive laser horizon bridge (`theme.primaryHex`).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🏷️ Purge of Pro & Pro Boost Badges on Tool Cards [COMPLETED]
+* **Free-to-Use Transparency**:
+  - Completely removed the `⚡ Pro Boost` (cyan) and `👑 Pro` (gold) badges from all tool cards (`ToolCard.tsx`), tool search results (`SearchBar.tsx`), and tool workspace headers (`ToolWorkspaceFrame.tsx`).
+  - Since all tools are free to use with no strict need for Pro, tool cards no longer mislead creators with artificial tier gates or paywall badges.
+* **Restored Native Category Visual Identities**:
+  - Cards cleanly display their category badge or `Popular` badge alongside live reliability indicators.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. ✨ AI Category Prestige Golden Theme Unification [COMPLETED]
+* **Golden Tool Cards for All AI Category Tools**:
+  - Unified all tool cards in the AI category (`categoryId === "ai"`) to the luxury obsidian-gold design system previously seen on prestige tools like AI Writer.
+  - In `src/lib/category-styles.ts`, configured `CATEGORY_ANIM_STYLES.ai` with warm amber/gold design tokens:
+    - `aura`: `bg-amber-500/25 group-hover:bg-amber-400/50`
+    - `spinIdle`: `bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.5)_25%,rgba(251,191,36,0.3)_50%,transparent_75%)]`
+    - `spinHover`: `group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.95)_25%,rgba(251,191,36,0.8)_50%,transparent_75%)]`
+    - `iconGlow`: `text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.7)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_22px_rgba(245,158,11,0.95)]`
+    - `buttonGrad`: `bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 font-black tracking-[0.2em] shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]`
+    - `textGrad`: `bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.25)]`
+    - `cardBorder`: `border-2 border-amber-400/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.3)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.55)]`
+    - `badge`: `bg-amber-400/15 border-amber-400/50 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)] fill-amber-200 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]`
+  - In `src/components/ui/ToolCard.tsx`, configured obsidian gold card background (`bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90`), amber card shine (`via-amber-400/25`), and icon container amber accents (`from-amber-500/15` and `via-amber-200/25`).
+* **Golden Ambient Background on `/category/ai` Page**:
+  - In `src/components/ui/CategoryBackground.tsx`, added a rich multi-point ambient radial glow for `categoryId === "ai"`:
+    - Center top ambient sunburst: `radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.28) 0%, transparent 65%)`
+    - Top-right golden bloom: `radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.20) 0%, transparent 55%)`
+    - Bottom-left subtle gold warmth: `radial-gradient(circle at 15% 85%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)`
+    - Updated floating category particles to `[BrainCircuit, Cpu, Bot, Wand2]` with `color: "rgba(245, 158, 11, 0.45)"`.
+* **Category Heading & Studio Tokens Alignment**:
+  - In `src/components/ui/CategoryHeading.tsx`, updated `CATEGORY_LABEL_STYLES.ai` to `text: "text-amber-300"`, `iconStyle: "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]"`.
+  - In `src/app/category/[id]/CategoryClient.tsx`, removed outdated `isPro={categoryId === 'ai'}` prop on `CategoryHeading` so all tools cleanly utilize category tokens without dated crown icons.
+  - In `src/data/tools.ts`, updated category icon for `ai` to `BrainCircuit` with `color: "text-amber-400"` and `glow: "rgba(245, 158, 11, 0.5)"` (complying with zero-sparkle guideline).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🎯 Category Heading Harmonization, Jargon Purge & AI Popular Tag Cleanup [COMPLETED]
+* **Elimination of "Weird Gap" Between Header Texts**:
+  - Overhauled [`CategoryHeading.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/CategoryHeading.tsx) to eliminate the large, detached vertical gaps (`gap-8` between badge and title, `space-y-6` between title and subtitle, and `space-y-12` before divider).
+  - Replaced the bulky, disconnected 56x56 square icon box with an integrated, sleek eyebrow pill badge (`inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10`) positioned directly above the title (`gap-3 sm:gap-4`).
+  - Unified title and subtitle typography into a tight, cohesive group with comfortable natural margin (`space-y-2.5 sm:space-y-3` and `mt-2.5 sm:mt-3`), removing all floating dead space.
+  - Reduced container spacing to a balanced `space-y-6 sm:space-y-7` before the cinematic laser divider.
+* **Tech Jargon Purge Across All Category Labels & Subtitles**:
+  - Replaced technical jargon labels in `CATEGORY_LABEL_STYLES` (`CategoryHeading.tsx`) and `CATEGORY_LABELS` (`ToolCard.tsx`):
+    - `"Audio & Acoustics Lab"` ➔ **`"Audio & Music Tools"`** (explicit user feedback addressed)
+    - `"Creative Image Studio"` ➔ **`"Image & Photo Tools"`**
+    - `"Document & PDF Utility Suite"` ➔ **`"PDF & Document Tools"`**
+    - `"Artificial Intelligence Core"` ➔ **`"AI Tools"`**
+    - `"Productivity & Workflow Suite"` ➔ **`"Productivity Tools"`**
+    - `"Business & Financial Toolkit"` ➔ **`"Business & Finance Tools"`**
+    - `"SEO & Growth Engine"` ➔ **`"Search & SEO Tools"`**
+    - `"Developer Engineering Suite"` ➔ **`"Developer Tools"`**
+    - `"Student & Academic Suite"` ➔ **`"Student & Study Tools"`**
+    - `"Creator & Media Toolkit"` ➔ **`"Creator & Social Media Tools"`**
+  - Replaced technical category page subtitle (*"Browse our collection of professional tools architected for high-performance workflows"*) with friendly, clear everyday English:
+    ➔ *"Browse free, easy-to-use tools designed to help you create, edit, and get things done in seconds."*
+  - Replaced technical jargon in AI Prompt Builder description (*"Transform simple 1-line ideas into master-grade prompt engineering protocols with XML tags and Chain-of-Thought reasoning"*) with plain English (*"Turn simple 1-line ideas into clear, detailed prompts for ChatGPT, Claude, Gemini, and DeepSeek to get much better answers on your first try"*).
+* **Purge of Cluttered "Popular" Tags Across AI Category Tools**:
+  - Previously, almost every single tool in the AI category had `popular: true`, resulting in repetitive `🔥 Popular` flame badges on every card and completely burying the category badge.
+  - Removed `popular: true` from non-flagship AI tools (`landing-page-generator`, `youtube-summarizer`, `qr-generator`, `social-caption-generator`, `ai-detector`, `grammar-checker`, `prompt-builder`), preserving the `Popular` tag only for true standout favorites (`ai-writer`, `ai-humanizer`, `ai-img-gen`).
+  - Cards now cleanly showcase their obsidian-gold category badge (`AI Tool`) or reliability indicator.
+* **Sidebar Credit Vault Architecture & Scrollable Bottom Placement**:
+  - Restored the full-size ultra-luxury Credit Vault micro-card design: plasma glow bloom, shimmer sweep, "+ TOP UP" button, large bold balance with cyan glow, streak counter, and countdown timer.
+  - Restored the animated "UPGRADE TO PRO" button with full ambient glow and shimmering sheen.
+  - **Completely removed the sticky pinned desktop footer** (`shrink-0` pinned block outside `<nav>`), which previously occupied ~240px permanently and suffocated Studio Tools.
+  - Repositioned the Account & Billing section naturally at the **very bottom of the scrollable sidebar navigation** (`<nav className="flex flex-col ...">` with `mt-auto`).
+  - Studio Tools and all 11 categories now have 100% full vertical height when browsing, with zero sticky obstruction. The Credit Vault, Upgrade button, and User Profile only become visible when the user scrolls all the way down to the bottom.
+* **Zero Edge Text Clipping on Category Headers**:
+  - In [`CategoryHeading.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/CategoryHeading.tsx), added `px-4 sm:px-8 py-1 -mx-4 sm:-mx-8 overflow-visible inline-block leading-[1.08]` to `h1`.
+  - Expanded the internal background clip canvas by 32px on both sides, completely eliminating edge clipping on italic letters (like the right wing of `S` in `AI TOOLS` and `IMAGE TOOLS`).
+* **Authentic Category-Reactive Laser Horizon Bridge**:
+  - In `src/lib/category-styles.ts`, exported `CATEGORY_PRIMARY_HEX` for all 11 categories.
+  - Integrated the exact glowing Laser Horizon Bridge from Screenshot 5 into [`CategoryHeading.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/CategoryHeading.tsx):
+    - Ambient diffused glow flare (`radial-gradient(ellipse at center, ${primaryHex}, transparent 70%)`)
+    - Primary tapered neon laser hairline (`linear-gradient(90deg, transparent 0%, ${primaryHex}20 15%, ${primaryHex} 50%, ${primaryHex}20 85%, transparent 100%)`)
+    - Center specular high-intensity white needle (`linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%)`)
+    - Center glowing cyber core jewel with category-reactive glow (`box-shadow: 0 0 10px 2px ${primaryHex}`).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🎬 YouTube Thumbnail Maker Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Upload Void & Jargon Purge**:
+  - Replaced the bare interface and technical phrasing with an ultra-luxury obsidian dual-pane creator studio (`lg:col-span-7` stage + `lg:col-span-5` console).
+  - Built an obsidian preview stage featuring an authentic macOS window titlebar (`● ● ●`), active 16:9 canvas dimensions (`1280 × 720`), live draggable indicator, and YouTube ratio badge.
+  - Interactive drag-and-drop canvas supporting fluid headline title repositioning and subject cutout placement.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the 16:9 canvas stage (completely eliminating empty dead voids):
+    1. `Tech & AI Viral`: "AI TOOLS THAT FEEL ILLEGAL" · Subtitle: "2026 EDITION" · Badge: "VIRAL GUIDE" · Cyber Neon styling with client-side synthesized futuristic cyber grid background.
+    2. `Gaming & Challenge`: "I SURVIVED 100 DAYS" · Subtitle: "HARDCORE WORLD" · Badge: "IMPOSSIBLE" · Crimson Ember styling with client-side synthesized fiery volcanic lava gradient.
+    3. `Finance & Case Study`: "HOW I MADE $10,000" · Subtitle: "IN 30 DAYS STEP-BY-STEP" · Badge: "CASE STUDY" · Emerald Wealth styling with client-side synthesized luxury emerald aura background.
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Pro Productivity & Export Suite**:
+  - Global `Ctrl+V` clipboard paste listener allowing creators to paste background photos or cutout reaction faces directly from their clipboard.
+  - 1-Click `Copy Picture (PNG)` to clipboard via `navigator.clipboard.write([new ClipboardItem(...)])` for instant pasting into YouTube Studio, Discord, or Figma.
+  - 1-Click direct 1280×720 Ultra-HD PNG export with local and cloud history recording (`saveFileHistory`).
+  - Automatic pipeline asset ingestion (`consumePipelineItem`) allowing assets from background remover or converter to load directly on mount.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced engineering terms with friendly everyday English (*Main Headline Title*, *Subtitle Callout*, *Badge Tag*, *Quick Color Vibes*, *Darkness Overlay*, *Subject / Reaction Cutout*).
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<YoutubeIcon>`, `<Move>`, `<Layers>`, `<Target>`, `<Sliders>`, `<Palette>`, `<Type>`, `<Download>`, `<Copy>`, `<Check>`, `<Flame>`, `<RotateCcw>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive laser horizon bridge (`theme.primaryHex`).
+  - **Mobile Optimized**: 2 spacious mobile tabs (`Canvas Preview` | `Text & Styling`) + fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🖼️ Collage Maker Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Bare File-Input Void & Jargon Purge**:
+  - Replaced the bare dashed upload box and awkward tech jargon (`Initialize Collage`, `high-fidelity layout synthesis`, `Select Workspace Files`, `Preset Matrix`, `Composition Core`, `Canvas Alpha`) with an ultra-luxury obsidian dual-pane collage studio (`xl:col-span-7` stage + `xl:col-span-5` console).
+  - Built an obsidian collage workspace featuring an authentic macOS window titlebar (`● ● ●`), active photo counter, live aspect ratio status pill, and 1-click `Clear All` action.
+  - Interactive drag-and-drop collage canvas supporting fluid individual photo movements, 15° rotation, layer scaling, and deletion.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the collage stage:
+    1. `Travel Photo Moodboard`: 4 scenic travel photos (Sunset, Ocean, Alpine Forest, Starry Night) arranged in a balanced 2x2 square grid.
+    2. `Editorial Magazine Trio`: 1 large hero photo + 2 vertical side photos in classic 4:5 editorial magazine ratio.
+    3. `Mobile Story Duo`: 2 vertical cinematic shots side-by-side formatted for Instagram Stories & TikTok (9:16).
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Pro Productivity & Export Suite**:
+  - Global `Ctrl+V` clipboard paste listener allowing users to paste screenshots or copied pictures directly into the collage.
+  - 1-Click `Copy Picture (PNG)` to clipboard via `navigator.clipboard.write([new ClipboardItem(...)])` for instant pasting into Discord, Figma, or Word.
+  - Direct Ultra-HD download (`JPG` or `PNG`).
+  - Pipeline chaining buttons to send the completed collage to `Bulk Compressor` or `Format Converter`.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced all engineering buzzwords with friendly everyday English (*Create Your Photo Collage*, *Collage Layouts*, *Borders & Spacing*, *Canvas Background*, *Create High-Res Collage*).
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<LayoutGrid>`, `<Columns>`, `<Grid>`, `<Layers>`, `<Download>`, `<Copy>`, `<Sliders>`, `<Palette>`, `<CheckCircle2>`, `<RotateCw>`, `<Maximize2>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive cyan laser horizon bridge (`theme.primaryHex`).
+  - **Mobile Optimized**: 2 spacious mobile tabs (`Collage Stage` | `Layout & Styles`) + fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🖋️ Image Vectorizer Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Bare File-Input Void & Jargon Purge**:
+  - Completely replaced the bare dashed upload box and mismatched `PdfSidebar` with an ultra-premium dual-pane vector tracing studio (`xl:col-span-7` vector stage + `xl:col-span-5` vector styling console).
+  - Built an obsidian vector stage featuring an authentic macOS window titlebar (`● ● ●`), active file indicator, live zoom HUD (`ZoomIn`, `ZoomOut`, `Reset`, `Maximize`), and interactive view mode switcher (`Side-by-Side` | `Vector SVG Only` | `Original Photo`).
+  - Purged all heavy technical engineering jargon (`raster`, `bitmap`, `potrace`, `minority turn policy`, `edge tracing`) in favor of clear everyday English: *Line Detail & Threshold*, *Curve & Corner Style* (`Smooth Curves`, `Balanced`, `Sharp Corners`, `Airy Outlines`), *Vector Path Color*, and *Canvas Background*.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the vector stage:
+    1. `Geometric Brand Emblem`: 1000×1000 high-contrast geometric crest with concentric rings, diamond core & bold typography demonstrating sharp logo vectorization.
+    2. `Flowing Signature Monogram`: 1000×1000 elegant calligraphic lettermark with flowing ribbon curves testing smooth curve tracing.
+    3. `Mascot Sticker Line Art`: 1000×1000 crisp cartoon mascot illustration with bold outlines & sunglasses testing line art vectorization.
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Pro Productivity & Export Suite**:
+  - Global `Ctrl+V` clipboard paste listener allowing users to paste screenshots or copied pictures directly into the vector studio.
+  - 1-Click `Copy SVG Code` directly to clipboard (`<svg ...>`) for instant pasting into Figma, React, or HTML.
+  - 1-Click `Copy Picture (PNG)` to clipboard via `navigator.clipboard.write([new ClipboardItem(...)])`.
+  - 1-Click direct SVG file download with clean naming (`<name>_vectorized.svg`).
+  - Pipeline chaining buttons to send vectorized output directly to `Image Format Converter` or `Resizer & Cropper`.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Friendly, natural everyday English across all copy, tooltips, and labels.
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<Spline>`, `<Layers>`, `<Palette>`, `<Sliders>`, `<Download>`, `<Copy>`, `<Code2>`, `<Eye>`, `<FileImage>`, `<Check>`, `<RotateCcw>`, `<Maximize2>`, `<Zap>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive cyan laser horizon bridge (`theme.primaryHex`).
+  - **Mobile Optimized**: 2 spacious mobile tabs (`Vector Stage` | `Styling & Colors`) + fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🔄 Image Format Converter Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Bare File-Input Void**:
+  - Replaced the bare dashed upload box and dull format buttons with an ultra-premium dual-pane luxury batch studio (`xl:col-span-7` batch stage + `xl:col-span-5` right control console).
+  - Built an obsidian batch stage featuring an authentic macOS window titlebar (`● ● ●`), queue count indicator, live status pill, "Add More" trigger, and 1-click `Clear` action.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the dropzone/queue:
+    1. `Scenic Sunset Photo`: 1600×1000 scenic landscape demo showing dramatic reduction from JPG to ultra-light modern WebP.
+    2. `Modern Vector Artwork`: 1400×900 cyber graphic with isometric rings & glowing gradients showing crisp high-res export.
+    3. `Transparent Studio Logo`: 1200×1200 geometric emblem on transparent alpha canvas demonstrating PNG/WebP transparency retention.
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Pro Productivity & Quality Inspection**:
+  - Global `Ctrl+V` clipboard paste listener allowing users to paste screenshots or copied pictures directly into the batch queue.
+  - Interactive 100% Zoom Quality Inspection Modal with checkerboard backdrop (for alpha transparency verification), original vs converted dimensions, and file size comparison.
+  - 1-click clipboard picture copy (`navigator.clipboard.write([new ClipboardItem(...)])`).
+  - Single image direct download + 1-click `Download All Converted (ZIP)` (`JSZip`).
+  - Pipeline chaining buttons to send converted images to `Bulk Compressor` or `Resizer & Cropper`.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced raw format labels with human-first format cards (`Modern WebP`, `Lossless PNG`, `Universal JPG`, `Web GIF`) detailing use cases, transparency support, and platform compatibility. Tactile quality slider chips (`60% Compact`, `80% Balanced`, `90% High`, `100% Best`).
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<FileType>`, `<RefreshCw>`, `<ArrowRightLeft>`, `<Download>`, `<Copy>`, `<FileArchive>`, `<Layers>`, `<Sliders>`, `<Eye>`, `<Zap>`, `<Camera>`, `<ImageIcon>`, `<Trash2>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive cyan laser horizon bridge (`theme.primaryHex`).
+  - **Mobile Optimized**: 2 spacious mobile tabs (`Photos & Queue` | `Format & Quality`) + fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 📐 Resizer & Cropper Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Bare File-Input Void**:
+  - Replaced the bare upload void and scattered inputs with an ultra-premium creative suite studio (`lg:col-span-7` cropper workspace + `lg:col-span-5` right control console).
+  - Built an obsidian cropper stage featuring an authentic macOS window titlebar (`● ● ●`), active file indicator, titlebar zoom controls HUD (`ZoomIn`, `ZoomOut`, `Reset`), and live aspect ratio status pill.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the cropper stage:
+    1. `Instagram Square Feed`: 1400×1400 square photo showing 1:1 feed framing.
+    2. `YouTube Video Banner`: 1920×1080 cinematic landscape showing 16:9 banner framing.
+    3. `Mobile Story & Reels`: 1080×1920 vertical wallpaper showing 9:16 portrait framing.
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Clean Aspect Presets Bar Placed Directly Below Cropper**:
+  - 6 horizontal framing presets placed directly beneath the cropper stage: `1:1 Square`, `16:9 Landscape`, `9:16 Story`, `4:5 Portrait`, `4:3 Standard`, `Freeform Custom`.
+  - Clicking any preset snaps the crop box aspect ratio immediately on the image above it with zero context switching.
+* **Rotation, Flip & Dimension Controls**:
+  - Added 4 instant transformation buttons: Rotate 90° CW, Rotate 90° CCW, Flip Horizontal, Flip Vertical (supported in backend Sharp pipeline).
+  - Custom Width (px) and Height (px) inputs with "Lock Aspect Ratio" toggle link + 4 quick resolution chips (`1920×1080`, `1080×1080`, `1080×1920`, `1200×630`).
+  - Format selector (`JPG`, `PNG`, `WebP`) and Image Quality slider with tactile quick-chips.
+* **Pro Productivity & Convenience Features**:
+  - Global `Ctrl+V` clipboard paste listener allowing users to paste screenshots directly into the cropper.
+  - 1-click clipboard picture copy (`navigator.clipboard.write([new ClipboardItem(...)])`).
+  - Single-hue radiant cyan action buttons.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Friendly, natural everyday English across all copy, tooltips, and labels ("Crop & Resize Photo", "Target Dimensions", "Lock Aspect Ratio", "Clean Output Ready", etc.).
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<Crop>`, `<Maximize2>`, `<RotateCw>`, `<RotateCcw>`, `<FlipHorizontal>`, `<FlipVertical>`, `<Camera>`, `<Video>`, `<Smartphone>`, `<Download>`, `<Copy>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive cyan laser horizon bridge (`theme.primaryHex`).
+  - **Mobile Optimized**: 2 spacious mobile tabs (`Cropper & Presets` | `Dimensions & Export`) + fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+
+### 0. 🗜️ Bulk Image Compressor Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Bare File-Input Void**:
+  - Replaced the bare, dashed upload box and cramped controls with an ultra-premium dual-pane luxury batch studio (`xl:col-span-7` batch stage + `xl:col-span-5` right control console).
+  - Built an obsidian batch stage featuring an authentic macOS window titlebar (`● ● ●`), queue count indicator, live status pill, and 1-click `Clear All` action.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the dropzone/queue:
+    1. `High-Res Sunset Photo`: 1600×1000 scenic landscape demo showing dramatic ~82% reduction to modern WebP.
+    2. `Studio Portrait Shot`: Warm atmospheric portrait with bokeh textures showing crisp ~75% compression.
+    3. `Digital Graphic Art`: Modern vector-style digital artwork showing ~68% lossless size reduction.
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Pro Productivity & Quality Inspection**:
+  - Global `Ctrl+V` clipboard paste listener allowing users to paste screenshots or copied pictures directly into the batch queue.
+  - Interactive Before / After Quality Inspection Modal with draggable split comparison slider allowing users to inspect the clarity of any compressed photo at 100% zoom.
+  - Live savings badges on every item (e.g. `-78%`) and aggregate net savings pill (`-78% Space Saved`).
+  - Single image direct download + 1-click `Download All as ZIP` (`JSZip`).
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced all engineering buzzwords with friendly, natural everyday English:
+    - *"INSTANT LOCAL CLIENT MEMORY OPTIMIZATION & NEXT-GEN FORMAT CONVERSION"* → *"Shrink multiple photos at once with zero quality loss. Fast, private, and runs directly in your browser."*
+    - *"OPTIMIZATION ENGINE"* → *"Compression Settings"*
+    - *"WEBP TRANSCODING - Next-gen 40% size reduction"* → *"Convert to Modern WebP - Makes photos up to 40% smaller while staying razor sharp"*
+    - *"DIMENSION RESIZING"* → *"Resize Picture Dimensions (Optional)"*
+    - *"STRIP EXIF METADATA"* → *"Remove Hidden Photo Data - Deletes camera GPS tags, location, and timestamps for extra privacy"*
+    - *"TARGET QUALITY"* → *"Image Quality"*
+    - Presets: *"50% Smallest"*, *"75% Balanced"*, *"85% High Quality"*, *"95% Best Quality"*.
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>`, using authentic Lucide vector icons (`<Minimize2>`, `<FileArchive>`, `<Camera>`, `<ImageIcon>`, `<Layers>`, `<Sliders>`, `<Eye>`, `<Split>`, `<Download>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, and category-reactive cyan laser horizon bridge (`theme.primaryHex`).
+  - **Mobile Optimized**: 2 spacious mobile tabs (`Photos & Queue` | `Compression Settings`) + fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+
+### 0. 🪄 AI Watermark Remover Studio Luxury Overhaul [COMPLETED]
+* **Elimination of Dated Bare File-Input Void**:
+  - Replaced the bare, dated upload screen with an ultra-premium dual-pane luxury studio workspace (`lg:col-span-7` canvas workspace + `lg:col-span-5` right control console).
+  - Built an obsidian canvas stage featuring an authentic macOS-style window titlebar (`● ● ●`), active file indicator, zoom controls HUD (`ZoomIn`, `ZoomOut`, `RotateCcw`, `Maximize2`), and live status pill.
+* **3 Instant Demonstration Blueprints ($0 Compute Client-Side Canvas)**:
+  - Added 3 interactive 1-click demonstration blueprints with immediate visual feedback directly below the canvas stage:
+    1. `Stock Watermark`: High-contrast photographer watermark demo on an emerald-indigo scenic landscape.
+    2. `Date & Time Stamp`: Retro amber digital camera timestamp overlay (`2026.09.21 11:15 AM`) on a vibrant city sunset.
+    3. `Brand Logo Overlay`: Semi-transparent corporate watermark stamp on an executive dark mesh backdrop.
+  - Dynamically synthesized client-side via HTML5 canvas with zero network calls and $0 compute costs.
+* **Interactive Removal Zone & Controls (Ergonomic Fixes Completed)**:
+  - Fixed drag/resize release bug where the browser's subsequent `click` event fired `handleStageClick` and jerked the box to the mouse release point. Added `hasMovedRef` to strictly prevent unwanted recentering.
+  - Bound the removal zone directly to an `imageContainerRef` wrapping the rendered photo rather than the outer stage, eliminating coordinate offsets caused by image letterboxing.
+  - Added dual corner resize handles (bottom-right `se` and top-left `nw`) with clean anchor mathematics and generous touch/click hit areas.
+  - Added full touch event support (`onTouchStart`, `onTouchMove`, `onTouchEnd`) for fluid mobile & tablet manipulation.
+  - Moved the Zoom Controls toolbar completely OFF the image canvas into the stage window titlebar, eliminating any obstruction over the photo or corner handles.
+  - Clean Zone Presets Card Placed Directly Below Preview: Moved the 4 instant zone placement presets (`Bottom Right Corner`, `Bottom Full Bar`, `Center Logo Stamp`, `Date / Time Stamp`) out of the right column and directly beneath the image canvas stage in `lg:col-span-7`. Formatted in a responsive 4-column horizontal grid (`grid-cols-2 sm:grid-cols-4`) for 1-click immediate alignment with visual symmetry balancing both columns.
+  - Tactile sliders for Zone Width (5% to 80%), Zone Height (3% to 60%), and Blend Strength (10% to 100%) cleanly housed in the right console (`lg:col-span-5`).
+* **Interactive Before / After Split Comparison Slider & Original Peek**:
+  - Added a draggable split comparison slider showing Before (with watermark) vs After (clean image) side-by-side with interactive grip handle and "Hold to View Original" peek button.
+* **Pro Productivity & Convenience Features**:
+  - Global `Ctrl+V` clipboard paste listener allowing users to paste screenshots or copied images directly into the studio.
+  - 1-click clipboard picture copy (`navigator.clipboard.write([new ClipboardItem(...)])`) allowing users to paste the cleaned result directly into Discord, Slack, Figma, or Word.
+  - Single-hue radiant cyan action buttons eliminating subpixel wrap line artifacts.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Friendly, natural everyday English only across all copy, tooltips, and labels ("Image Studio", "Erase Watermark", "Drag box over any mark", "Blend Strength", "Download Clean Image", "Copy Picture", etc.).
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>` icons, replacing them with authentic context-specific vector icons (`Eraser`, `Stamp`, `Camera`, `Layers`, `Download`, `Split`, `Eye`, `RefreshCw`, `Copy`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical controls, void-free layout, and connected to the Guide & Overview via the category-reactive laser horizon divider (`theme.primaryHex`).
+  - **Mobile Optimized**: 3-segment mobile tabs (`Studio Canvas` | `Zone & Size` | `Quick Blueprints`) and fixed bottom floating action HUD.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+
+### 0. 🎵 Slowed & Reverb Studio Layout Balance & Anti-Jargon Plain English Overhaul [COMPLETED]
+* **Balanced 2-Column Desktop Architecture & Void Elimination**:
+  - Moved the presets card ("Instant Sound Styles") directly below the audio player card inside the left column (`lg:col-span-7`), resolving the layout void where the space under the player was previously completely empty.
+  - The right column (`lg:col-span-5`) now cleanly houses the 4 sound customizer sliders ("Customize Sound"), balancing the visual heights of both columns.
+  - On mobile devices, preserved fluid 3-segment tabs (`Player` | `Adjust Sound` | `Quick Styles`).
+* **Purge of Heavy Studio Engineering Jargon (Plain Everyday English)**:
+  - Replaced *"Studio DSP Console"* with *"Slowed & Reverb Studio"*, *"REAL-TIME WEB AUDIO"* with *"Instant Preview"*, and *"Zero-latency pitch shifting, convolution echo & 16-bit WAV export"* with *"Slow down songs, add dreamy echo, boost bass, and download clean audio"*.
+  - Replaced *"DSP Faders"* with *"Adjust Sound"*, *"Sound Customizer (Real-Time)"* with *"Customize Sound"*, and *"Reset Flat"* with *"Reset All"*.
+  - Replaced *"Speed & Pitch Multiplier"* with *"Speed & Pitch"*, *"1.00x Flat"* with *"1.00x Normal"*, *"0.85x Viral"* with *"0.85x Slowed"*, *"1.25x Night"* with *"1.25x Fast"*.
+  - Replaced *"Room Reverb & Echo Space"* with *"Echo & Reverb"*, *"0% Dry"* with *"0% Off"*, *"35% Subtle"* with *"35% Light"*, *"65% Concert"* with *"65% Concert Hall"*, *"90% Space"* with *"90% Deep Echo"*.
+  - Replaced *"Sub-Bass Boost (120Hz)"* with *"Bass Boost"*, *"0 dB Flat"* with *"0 dB Off"*, *"Heavy Sub"* with *"Heavy Bass"*, *"Punch"* with *"Punchy"*, *"Club"* with *"Deep"*, *"Heavy"* with *"Max Bass"*.
+  - Replaced *"Monitoring Volume"* with *"Volume"*, *"Continuous Loop Active"* with *"Looping song"*, and *"Drop your song to load into DSP console"* with *"Drop your song to load"*.
+  - Replaced *"1-Click Style Blueprints"* with *"Instant Sound Styles"* and *"6 Curated Profiles"* with *"6 Popular Styles"*.
+* **Tool & Guide Overview Void Elimination & Category-Reactive Laser Horizon Divider [COMPLETED]**:
+  - **Void Elimination**: Sliced `ToolSeoSection.tsx`'s top margin from `mt-16` (64px) down to `mt-2 sm:mt-4`, and eliminated redundant bottom padding in `SlowedReverbStudio.tsx` (`lg:pb-0` on desktop). Tightened the gap from ~136px down to a sleek, harmonious ~28px.
+  - **Anamorphic Neon Laser Horizon Divider (Section Bridge)**: Embedded the signature cyber laser horizon divider at the top of [`ToolSeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/ToolSeoSection.tsx), dynamically powered by the tool's category theme (`theme.primaryHex`: pink `#ec4899` for audio, violet `#8b5cf6` for video, cyan `#06b6d4` for image, amber `#f59e0b` for AI, etc.). Features the tapered laser hairline, breathing ambient glow flare, white-hot specular center needle (`h-[1.5px] w-80`), and glowing cyber core jewel anchor.
+  - **Preset Card Truncation Fix**: Switched preset cards container from `xl:grid-cols-3` to spacious 2-column `sm:grid-cols-2`, and updated chip layout to `grid-cols-[1fr_1.35fr_1fr]` with `whitespace-nowrap font-medium px-1.5`, completely eliminating the `65% Ec...` ellipsis truncation.
+* **TypeScript Verification**: Zero errors (`npx tsc --noEmit` = 0).
 
 ### 0. 🎨 Category Overview Gap Elimination & Zero-Sparkles Vector Polish [COMPLETED]
 * **Elimination of 100px+ Ugly Vertical Void**:
