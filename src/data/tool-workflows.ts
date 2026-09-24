@@ -433,6 +433,38 @@ export const TOOL_WORKFLOWS: Record<string, ToolWorkflowConfig> = {
         tone: 'from-emerald-500/10 to-teal-500/10 border-emerald-500/30 text-emerald-300'
       }
     ]
+  },
+  'productivity-qr': {
+    headline: 'Next Steps for Your New QR Code',
+    subtitle: 'Showcase your code in realistic device mockups, convert formats, or create artistic AI variants.',
+    suggestions: [
+      {
+        targetToolId: 'device-mockup',
+        badge: 'Recommended',
+        reason: 'Place your generated QR code onto photorealistic 3D iPhones, iPads, and MacBooks for presentations.',
+        actionText: 'Open 3D Mockup',
+        tone: 'from-cyan-500/10 to-blue-500/10 border-cyan-500/30 text-cyan-300'
+      },
+      {
+        targetToolId: 'qr-generator',
+        badge: 'Creative AI',
+        reason: 'Transform simple links into stunning, camera-scannable generative artwork and illustrated codes.',
+        actionText: 'Artistic QR Studio',
+        tone: 'from-amber-500/10 to-orange-500/10 border-amber-500/30 text-amber-300'
+      },
+      {
+        targetToolId: 'image-resizer',
+        reason: 'Resize your exported QR code to exact pixel dimensions for print menus, flyers, and banners.',
+        actionText: 'Resize Image',
+        tone: 'from-emerald-500/10 to-teal-500/10 border-emerald-500/30 text-emerald-300'
+      },
+      {
+        targetToolId: 'image-converter',
+        reason: 'Convert your exported QR code between PNG, WebP, JPG, and other graphic formats.',
+        actionText: 'Convert Format',
+        tone: 'from-purple-500/10 to-violet-500/10 border-purple-500/30 text-purple-300'
+      }
+    ]
   }
 };
 
@@ -441,6 +473,7 @@ export const TOOL_WORKFLOWS: Record<string, ToolWorkflowConfig> = {
  */
 function normalizeToolId(id: string): string {
   if (id === 'bg-remove') return 'image-eraser';
+  if (id === 'qr-code') return 'productivity-qr';
   return id;
 }
 

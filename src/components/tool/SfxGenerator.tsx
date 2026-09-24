@@ -56,7 +56,7 @@ export default function SfxGenerator() {
 
   const simulateProgress = () => {
     setProgress(10);
-    setStatus("Parsing foley text description...");
+    setStatus("Reading your sound description...");
     
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -65,11 +65,11 @@ export default function SfxGenerator() {
           return 95;
         }
         if (prev > 70) {
-          setStatus("Refining audio quality...");
+          setStatus("Cleaning and perfecting audio...");
           return prev + 1;
         }
         if (prev > 40) {
-          setStatus("Generating sound effects...");
+          setStatus("Creating your sound effect...");
           return prev + 3;
         }
         return prev + 6;

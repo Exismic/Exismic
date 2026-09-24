@@ -584,7 +584,7 @@ export const ALL_TOOLS: Tool[] = [
     name: 'AI Image Generator', 
     description: "Type any creative prompt and bring it to life as vibrant digital art, photorealistic portraits, or fantasy landscapes with rich detail and lighting.", 
     category: 'ai', 
-    icon: 'Sparkles' as IconName, 
+    icon: 'ImageIcon' as IconName, 
     href: '/tools/ai/img-gen',
     suggestions: ["What are the best keywords for photorealism?","How do I specify the lighting and camera angle?","Help me fix weird hands or faces"], 
     popular: true, 
@@ -771,7 +771,39 @@ export const ALL_TOOLS: Tool[] = [
   { id: 'productivity-qr', name: 'QR Code Generator', description: "Build clean, scannable QR codes for your portfolio links, social profiles, WiFi networks, and shop menus with custom colors and logo inserts.", category: 'productivity', icon: 'QrCode' as IconName, href: '/tools/qr-code',
     suggestions: ["Can I change the color of the QR code?","How do I add my logo to the center?","Will this QR code expire?"], requiresFileUpload: false, seoTitle: "Free QR Code Generator - Create Custom QR Codes for Links & Text",
     seoDescription: "Create customized high-resolution QR codes with custom colors, logos, and styling. Download PNG or SVG instantly for free.",
-    seoKeywords: ["qr code generator","custom qr code","qr code with logo","free qr maker","Exismic"] },
+    seoKeywords: ["qr code generator","custom qr code","qr code with logo","free qr maker","Exismic"],
+    seoIntro: "Generate customized, high-contrast QR codes for websites, guest Wi-Fi networks, digital business cards (vCard), emails, and plain text. Download high-resolution PNG or clean vector SVG files ready for printing on flyers, menus, business cards, and digital screens.",
+    howToSteps: [
+      "Select what your QR code should open: a website URL, guest Wi-Fi network, digital business card, or plain text note.",
+      "Enter your destination link, Wi-Fi password, or contact details in the fields provided.",
+      "Customize your look: pick a pre-made color vibe or choose your own custom foreground and background colors.",
+      "Add a brand logo: choose from popular social and web icons or upload your own transparent brand logo for the center.",
+      "Test scan the code right on your screen with your smartphone camera, then download as high-resolution PNG or scalable vector SVG."
+    ],
+    features: [
+      "Multi-Format Generator: Instant QR encoding for website links, automatic Wi-Fi connections, vCard contacts, emails, and phone numbers.",
+      "Brand Logo Support: Add your custom company logo or pick from popular built-in icons with automatic center excavating.",
+      "Live Presentation Mockups: Preview your QR code on a studio canvas, smartphone camera viewfinder, executive business card, and café table tent.",
+      "High-Resolution & Vector Exports: Export up to 2,000px Ultra-HD PNG or scalable vector SVG for crisp printing at any size.",
+      "Permanent & Free: Standard static QR codes encode your data directly into the pixel pattern, meaning they never expire and require zero subscriptions."
+    ],
+    faqs: [
+      { question: "Will these QR codes ever expire?", answer: "No. These are static QR codes that directly store your destination URL, Wi-Fi credentials, or contact details directly in the pattern. They will work forever without any expiration dates or fees." },
+      { question: "Can I add my business logo to the center?", answer: "Yes! You can choose from popular preset icons (like Wi-Fi, Globe, Instagram, LinkedIn) or drag and drop your own PNG or SVG logo. The generator automatically applies high error correction to keep the code 100% scannable." },
+      { question: "What error protection level should I use?", answer: "For simple web links without a logo, Standard (7%) or Medium (15%) is great. If you embed a center logo or plan to print on rough materials, choose High (25%) or Maximum (30%) so the camera can scan the code even if part of it is covered." },
+      { question: "Can I print these QR codes on business cards and posters?", answer: "Yes. You can download crisp PNG images up to 2,000px, or download a scalable vector SVG file that can be enlarged to billboard size in Adobe Illustrator, Figma, or Canva without losing quality." },
+      { question: "How does the Wi-Fi QR code work?", answer: "When anyone points their iPhone or Android camera at your Wi-Fi QR code, a prompt pops up asking if they want to join your network. Tapping it connects them automatically without needing to type your password." }
+    ],
+    useCases: [
+      "Café & Restaurant Menus: Display table tent QR codes for contactless digital menus and guest Wi-Fi access.",
+      "Executive Business Cards: Print digital vCard QR codes on physical business cards for instant contact saving.",
+      "Event Posters & Flyers: Direct attendees to ticket links, schedules, and social media hubs.",
+      "Product Packaging: Guide customers to setup guides, warranties, and review pages."
+    ],
+    limitations: [
+      "Static Destination: Because data is encoded directly into the pattern, you cannot change the destination URL after printing without reprinting.",
+      "Contrast Requirements: Always keep sufficient contrast between code pixels and the background to guarantee fast smartphone detection."
+    ] },
   { id: 'productivity-passgen', name: 'Password Generator', description: "Generate unhackable, super-strong passwords with random letters, numbers, and symbols to keep all your creative and business accounts safe.", category: 'developer', icon: 'KeyRound' as IconName, href: '/tools/productivity/passgen',
     suggestions: ["What makes a password truly secure?","How many characters should I use?","Can I exclude ambiguous characters like I and l?"], requiresFileUpload: false, seoTitle: "Secure Password Generator - Create Strong & Unique Passwords Free",
     seoDescription: "Generate strong, cryptographically secure passwords online with customizable length and symbol parameters.",

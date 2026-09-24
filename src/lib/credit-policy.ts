@@ -16,6 +16,7 @@ export const CREDIT_COSTS = {
   "audio-vocal-remover": 20,
   "text-to-3d": 25,
   "sfx-generator": 15,
+  "qr-generator": 15,
 
   // Medium Image Processing
   "image-restorer": 20,

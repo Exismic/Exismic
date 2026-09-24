@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please sign in to use AI Writer" }, { status: 401 });
     }
 
-    const { prompt, tone, length } = await req.json();
+    const { prompt, tone, length, format, language } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
     }
 
     const totalCreditsAvailable = getCreditTotal(user);
-    const cost = getToolCreditCost("ai-writer", 6);
+    const cost = getToolCreditCost("ai-writer", 8);
 
     if (totalCreditsAvailable < cost) {
-      return NextResponse.json({ error: "Insufficient credits. AI Writer costs 5 credits." }, { status: 403 });
+      return NextResponse.json({ error: "Insufficient credits. AI Writer costs 8 credits." }, { status: 403 });
     }
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -51,11 +51,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "The AI text generation service is currently unavailable. Please try again later." }, { status: 500 });
     }
 
-    const systemPrompt = `You are a world-class AI writing assistant. 
-    Your goal is to generate high-quality, engaging, and purposeful content.
-    Tone: ${tone}
-    Length: ${length}
-    Instructions: Respond ONLY with the requested content. No conversational filler or introductions.`;
+    const lengthInstructions = length === "Short"
+      ? "Target length: Short & concise (around 120-200 words). Get straight to the point."
+      : length === "Long"
+      ? "Target length: Comprehensive & in-depth (around 600-1000 words). Develop ideas thoroughly with clear headings and structure."
+      : "Target length: Standard balanced (around 300-500 words). Well-paced and informative.";
+
+    const systemPrompt = `You are a world-class professional AI writing assistant.
+Your goal is to generate high-quality, engaging, purposeful content tailored to the user's requirements.
+
+CONTENT GUIDELINES:
+- Format: ${format || "Article"}
+- Tone of Voice: ${tone || "Professional"}
+- ${lengthInstructions}
+- Language: Write the entire response in ${language || "English"}.
+- Formatting: Use clean, standard Markdown with appropriate headings (#, ##, ###), bullet points, and paragraph breaks for maximum readability.
+- Output Rules: Respond ONLY with the requested written piece. Do NOT include conversational filler, meta-announcements, greetings like "Here is your article:", or postscripts.`;
 
     console.log("[AiWriter] Calling Groq Cloud API...");
 

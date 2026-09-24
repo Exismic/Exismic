@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
   QrCode, 
-  Sparkles, 
   Download, 
   Copy, 
   Check, 
@@ -13,58 +12,98 @@ import {
   Smartphone, 
   CreditCard, 
   Frame, 
-  RefreshCw, 
   AlertCircle,
-  HelpCircle
+  Zap,
+  Palette,
+  ExternalLink,
+  Layers,
+  ArrowRight,
+  ShieldCheck,
+  Eye,
+  RefreshCw,
+  HelpCircle,
+  ScanLine
 } from "lucide-react";
-import { PdfSidebar } from "./pdf/PdfSidebar";
 import axios from "axios";
-
-const PRESETS = [
-  { name: "Steampunk Gears", prompt: "A detailed steampunk clockwork gear pattern, golden brass pipes, highly detailed, metallic reflection" },
-  { name: "Neon Cyberpunk", prompt: "A futuristic cyberpunk city street, neon glowing billboard signs, wet asphalt reflections, night photography, 4k" },
-  { name: "Medieval Castle", prompt: "A beautiful medieval stone castle on a green hill, oil painting style, hyperdetailed, dramatic lighting" },
-  { name: "Watercolor Flora", prompt: "A vibrant abstract watercolor painting of flowers and leaves, pastel background, splash art" }
-];
-
-const AUD_STEPS = [
-  { title: "Target URL", desc: "Enter the link you want the QR code to open when scanned." },
-  { title: "Visual Prompt", desc: "Describe the artistic style (e.g. steampunk gears, cyber city)." },
-  { title: "Adjust Settings", desc: "Set the scannability scale. Higher = easier to scan; Lower = cleaner art blend." },
-  { title: "Generate & Preview", desc: "Submit to generate the QR art and preview it inside live product mockups." }
-];
+import Link from "next/link";
+import { useCredits } from "@/hooks/useCredits";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { 
+  QR_BLUEPRINTS, 
+  type QrBlueprint 
+} from "./qr-generator-blueprints";
 
 type MockupType = "none" | "phone" | "card" | "frame";
 
-export default function QrGenerator() {
-  const [url, setUrl] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("ugly, disfigured, low quality, blurry, nsfw");
-  const [conditioningScale, setConditioningScale] = useState(1.2);
-  const [strength, setStrength] = useState(0.9);
-  const [seed, setSeed] = useState("");
-  
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const STYLE_CHIPS = [
+  { name: "Cyberpunk Neon", prompt: "A futuristic cyberpunk cityscape at night, glowing holographic neon signs, electric cyan circuit paths, wet reflective asphalt, 8k render." },
+  { name: "Gold Marble Luxury", prompt: "Luxury geometric obsidian marble mosaic with polished 24k gold leaf inlays, royal art deco pattern, warm specular reflections, 8k." },
+  { name: "Steampunk Brass", prompt: "Intricate steampunk clockwork mechanism with golden brass gears, copper steam pipes, antique pocket watch aesthetic, metallic reflections." },
+  { name: "Emerald Sanctuary", prompt: "Ancient lush mossy forest shrine with blooming emerald flora, gentle sunbeams through dense canopy, ethereal fantasy landscape." },
+  { name: "Japanese Sumi Ink", prompt: "Traditional Japanese ukiyo-e woodblock print with black sumi ink washes, Mount Fuji in misty clouds, dramatic scarlet sun." },
+  { name: "Retro Synthwave", prompt: "Retro 80s synthwave horizon with glowing wireframe grid, purple chrome sunset, palm silhouettes, and VHS aesthetic." }
+];
 
-  // Result parameters
-  const [resultImage, setResultImage] = useState<string | null>(null);
-  const [activeSeed, setActiveSeed] = useState<number | null>(null);
+const TOOL_COST = 15;
+
+export default function QrGenerator() {
+  const { credits, deductCredits, setShowUpsell } = useCredits();
+
+  // Active blueprint: default to Blueprint 0 so stage is never empty
+  const [selectedBlueprintId, setSelectedBlueprintId] = useState<string>(
+    QR_BLUEPRINTS[0].id
+  );
+  const [url, setUrl] = useState<string>(QR_BLUEPRINTS[0].url);
+  const [prompt, setPrompt] = useState<string>(QR_BLUEPRINTS[0].prompt);
+  const [scannability, setScannability] = useState<number>(QR_BLUEPRINTS[0].scannability);
   const [activeMockup, setActiveMockup] = useState<MockupType>("none");
 
+  // Custom generated image result
+  const [customImage, setCustomImage] = useState<string | null>(null);
+  const [activeSeed, setActiveSeed] = useState<number | null>(null);
+
+  // In-flight generation state
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
-  const handlePresetClick = (presetPrompt: string) => {
-    setPrompt(presetPrompt);
+  // Current active image to display in mockups
+  const activeImage = customImage || (
+    QR_BLUEPRINTS.find((b) => b.id === selectedBlueprintId)?.previewUrl || QR_BLUEPRINTS[0].previewUrl
+  );
+
+  const handleSelectBlueprint = (blueprint: QrBlueprint) => {
+    setSelectedBlueprintId(blueprint.id);
+    setUrl(blueprint.url);
+    setPrompt(blueprint.prompt);
+    setScannability(blueprint.scannability);
+    setCustomImage(null);
     setError(null);
   };
 
+  const handleStyleChipClick = (chipPrompt: string) => {
+    setPrompt(chipPrompt);
+    setError(null);
+  };
+
+  const handlePasteClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setUrl(text);
+        setError(null);
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
   const simulateProgress = () => {
-    setProgress(5);
-    setStatus("Connecting to Stable Diffusion worker...");
-    
+    setProgress(10);
+    setStatusMessage("Setting up your link...");
+
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 95) {
@@ -72,26 +111,32 @@ export default function QrGenerator() {
           return 95;
         }
         if (prev > 75) {
-          setStatus("Optimizing contrast and finalizing download...");
+          setStatusMessage("Checking camera readability...");
           return prev + 1;
         }
         if (prev > 45) {
-          setStatus("Blending QR structure with ControlNet QR Code Monster...");
+          setStatusMessage("Blending artwork into your QR code...");
           return prev + 2;
         }
-        if (prev > 15) {
-          setStatus("Generating latent image base using Stable Diffusion...");
+        if (prev > 20) {
+          setStatusMessage("Drawing your custom art style...");
           return prev + 4;
         }
         return prev + 5;
       });
-    }, 500);
+    }, 450);
 
     return interval;
   };
 
   const handleGenerate = async () => {
     if (!url.trim() || !prompt.trim()) return;
+
+    if (credits < TOOL_COST) {
+      setShowUpsell(true);
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
     setProgress(0);
@@ -102,23 +147,28 @@ export default function QrGenerator() {
       const response = await axios.post("/api/tools/ai/qr-generator", {
         url: url.trim(),
         prompt: prompt.trim(),
-        negativePrompt,
-        guidanceScale: 7.5,
-        conditioningScale,
-        strength,
-        seed: seed.trim() || undefined
+        conditioningScale: scannability,
+        strength: 0.9,
       });
 
       clearInterval(progressInterval);
       setProgress(100);
-      setStatus("Art generated!");
+      setStatusMessage("Your QR code is ready!");
 
-      setResultImage(response.data.image);
+      setCustomImage(response.data.image);
       setActiveSeed(response.data.seed);
+      setSelectedBlueprintId("custom");
+
+      if (deductCredits) {
+        deductCredits(TOOL_COST);
+      }
     } catch (err: any) {
       clearInterval(progressInterval);
-      console.error(err);
-      const errMsg = err.response?.data?.error || err.message || "Failed to generate AI QR Code.";
+      console.error("[QrGenerator Error]:", err);
+      const errMsg =
+        err.response?.data?.error ||
+        err.message ||
+        "Could not generate your QR code. Please try again in a moment.";
       setError(errMsg);
     } finally {
       setIsProcessing(false);
@@ -126,377 +176,631 @@ export default function QrGenerator() {
   };
 
   const handleCopy = async () => {
-    if (!resultImage) return;
+    if (!activeImage) return;
     try {
-      // Copy Base64 image to clipboard
-      const res = await fetch(resultImage);
+      const res = await fetch(activeImage);
       const blob = await res.blob();
       await navigator.clipboard.write([
         new ClipboardItem({ [blob.type]: blob })
       ]);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      // Fallback: copy base64 string
-      navigator.clipboard.writeText(resultImage);
+    } catch {
+      // Fallback copy text
+      navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const handleDownload = () => {
-    if (!resultImage) return;
+    if (!activeImage) return;
     const link = document.createElement("a");
-    link.href = resultImage;
-    link.download = `ai-qrcode-${activeSeed || "art"}.png`;
+    link.href = activeImage;
+    link.download = `artistic-qrcode-${selectedBlueprintId}.png`;
     document.body.appendChild(link);
     link.click();
     link.remove();
   };
 
-  const handleRandomizeSeed = () => {
-    setSeed(Math.floor(Math.random() * 1000000000).toString());
-  };
-
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-12">
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16">
-        
-        {/* Main Console Workspace */}
-        <div className="xl:col-span-8 space-y-10">
-          
-          <div className="bg-white/[0.01] border border-white/10 rounded-[3.5rem] p-8 md:p-12 backdrop-blur-3xl shadow-3xl space-y-10 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/[0.005] blur-[100px] rounded-full pointer-events-none" />
+    <div className="w-full max-w-[1440px] mx-auto space-y-12">
+      {/* Symmetrical Dual-Pane Studio Workspace */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            {/* Header */}
-            <div className="flex items-center justify-between relative z-10">
-              <div className="space-y-1">
-                <h3 className="text-2xl font-black uppercase tracking-tight italic flex items-center gap-4">
-                  <div className="p-2 bg-purple-500/10 rounded-xl">
-                    <QrCode className="w-5 h-5 text-purple-400" />
-                  </div>
-                  Artistic QR Designer
-                </h3>
-                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-14">
-                  Condition Stable Diffusion on structural link codes
-                </p>
+        {/* Left Pane: Link & Art Controls (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-[#0c0d14]/90 border border-white/10 rounded-[2.5rem] p-6 sm:p-8 backdrop-blur-3xl shadow-2xl relative overflow-hidden space-y-6">
+            <div className="absolute -top-24 -left-24 w-80 h-80 bg-amber-500/10 blur-[90px] rounded-full pointer-events-none" />
+
+            {/* Studio Header Badge */}
+            <div className="flex items-center justify-between border-b border-white/5 pb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shadow-inner">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black uppercase tracking-tight text-white flex items-center gap-2">
+                    Artistic QR Studio
+                  </h2>
+                  <p className="text-[11px] text-zinc-400 font-medium">
+                    Transform links into stunning, camera-scannable artwork
+                  </p>
+                </div>
+              </div>
+
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Ready to Create</span>
               </div>
             </div>
 
-            <div className="space-y-8 relative z-10">
-              {/* Target Link */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Target Link / URL</label>
-                <input 
+            {/* Target Link Input */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  Target Link or Text to Open
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePasteClipboard}
+                    className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase tracking-wider transition cursor-pointer"
+                  >
+                    Paste Link
+                  </button>
+                  {url && (
+                    <button
+                      onClick={() => setUrl("")}
+                      className="text-[10px] text-zinc-500 hover:text-zinc-300 font-medium transition cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative flex items-center">
+                <input
                   type="url"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    setError(null);
+                  }}
                   placeholder="https://yourwebsite.com"
-                  className="w-full h-16 bg-zinc-950/90 border border-white/5 focus:border-purple-500/20 rounded-2xl px-6 text-zinc-300 font-medium outline-none focus:ring-4 focus:ring-purple-500/5 transition-all duration-300 shadow-inner"
+                  className="w-full h-14 bg-black/60 border border-white/10 focus:border-amber-500/50 rounded-2xl px-4 text-xs sm:text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-amber-500/10 transition-all font-medium shadow-inner"
                 />
               </div>
+            </div>
 
-              {/* Visual Prompt */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Artistic Prompt</label>
-                <textarea 
+            {/* Visual Art Prompt Input */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  Artistic Style Description
+                </label>
+                {prompt && (
+                  <button
+                    onClick={() => setPrompt("")}
+                    className="text-[10px] text-zinc-500 hover:text-zinc-300 font-medium transition cursor-pointer"
+                  >
+                    Clear Text
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Describe the art style (e.g., medieval castle on a hill, oil painting, dramatic lighting)..."
-                  className="w-full h-32 bg-zinc-950/90 border border-white/5 focus:border-purple-500/20 rounded-2xl p-6 text-zinc-300 font-medium outline-none focus:ring-4 focus:ring-purple-500/5 transition-all duration-300 shadow-inner resize-none"
+                  onChange={(e) => {
+                    setPrompt(e.target.value);
+                    setError(null);
+                  }}
+                  rows={3}
+                  placeholder="Describe your art style (e.g. 'Cyberpunk Tokyo street with neon signs' or 'Steampunk brass clockwork gears')..."
+                  className="w-full bg-black/60 border border-white/10 focus:border-amber-500/50 rounded-2xl p-4 text-xs sm:text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-amber-500/10 transition-all resize-none font-medium leading-relaxed custom-scrollbar shadow-inner"
                 />
               </div>
+            </div>
 
-              {/* Preset suggestion list */}
-              <div className="space-y-3">
-                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em]">Preset Styles</span>
-                <div className="flex flex-wrap gap-2.5">
-                  {PRESETS.map((preset, idx) => (
+            {/* Quick Style Chips */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 block">
+                Popular Art Presets
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {STYLE_CHIPS.map((chip) => (
+                  <button
+                    key={chip.name}
+                    onClick={() => handleStyleChipClick(chip.prompt)}
+                    className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[10px] font-semibold text-zinc-400 hover:text-white hover:border-amber-500/30 hover:bg-amber-500/5 transition cursor-pointer"
+                  >
+                    {chip.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 4 Instant Demonstration Blueprints ($0 Previews) */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-amber-400" />
+                  Instant Demonstration Blueprints ($0 Free Previews)
+                </span>
+                <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">
+                  Click to preview
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {QR_BLUEPRINTS.map((bp) => {
+                  const isSelected = selectedBlueprintId === bp.id;
+                  return (
                     <button
-                      key={idx}
-                      onClick={() => handlePresetClick(preset.prompt)}
+                      key={bp.id}
+                      onClick={() => handleSelectBlueprint(bp)}
                       className={cn(
-                        "px-4 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer",
-                        prompt === preset.prompt 
-                          ? "bg-purple-500/10 border-purple-500/30 text-purple-400" 
-                          : "bg-white/5 border-white/5 text-zinc-500 hover:border-white/15 hover:text-white"
+                        "w-full p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-300 cursor-pointer relative group flex items-center justify-between gap-3",
+                        isSelected
+                          ? "bg-amber-500/10 border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.15)] text-white"
+                          : "bg-white/[0.02] border-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200 hover:bg-white/[0.04]"
                       )}
                     >
-                      {preset.name}
+                      {/* Left: Thumbnail & Details */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black border border-white/10 shadow-sm p-1 flex items-center justify-center">
+                          <img
+                            src={bp.previewUrl}
+                            alt={bp.name}
+                            className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-300"
+                          />
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-xs sm:text-sm font-bold text-white truncate">
+                              {bp.name}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0",
+                                isSelected
+                                  ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                                  : "bg-white/5 text-zinc-400 border border-white/5"
+                              )}
+                            >
+                              {bp.category}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 truncate leading-relaxed">
+                            {bp.tagline}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right: Active Badge */}
+                      <div className="shrink-0">
+                        {isSelected ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
+                            <Check className="w-3 h-3 stroke-[3]" /> Active
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-400 group-hover:text-amber-300 group-hover:border-amber-500/30 text-[10px] font-bold uppercase tracking-wider transition">
+                            Preview $0
+                          </span>
+                        )}
+                      </div>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Scannability vs Art Slider */}
+            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                  Scannability vs Art Balance
+                </span>
+                <span className="text-xs font-mono font-bold text-amber-400">
+                  {scannability >= 1.25 ? "High Scannability" : scannability >= 1.1 ? "Balanced Blend" : "Maximum Art"}
+                </span>
               </div>
 
-              {/* Sliders settings drawer */}
-              <div className="p-6 rounded-2xl bg-zinc-950 border border-white/5 space-y-6">
-                <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-                  <Sliders size={14} className="text-purple-400" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Control Parameters</span>
-                </div>
+              <input
+                type="range"
+                min="0.85"
+                max="1.45"
+                step="0.05"
+                value={scannability}
+                onChange={(e) => setScannability(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
+              />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Scannability slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-zinc-500">
-                      <span className="flex items-center gap-1.5">
-                        Scannability Scale
-                        <span title="Higher scale forces QR squares to be darker and easier to scan, but reduces artistic blend.">
-                          <HelpCircle size={10} className="opacity-50 cursor-help" />
-                        </span>
-                      </span>
-                      <span className="text-purple-400 font-mono">{conditioningScale.toFixed(2)}</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min="0.8"
-                      max="2.0"
-                      step="0.05"
-                      value={conditioningScale}
-                      onChange={(e) => setConditioningScale(parseFloat(e.target.value))}
-                      className="w-full h-1 bg-white/5 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                    />
-                  </div>
+              <div className="flex items-center justify-between text-[9px] text-zinc-500 font-semibold uppercase tracking-wider">
+                <span>More Artistic Blend</span>
+                <span>Easier Camera Scan</span>
+              </div>
+            </div>
 
-                  {/* Prompt Strength slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-zinc-500">
-                      <span>Art Influence Strength</span>
-                      <span className="text-purple-400 font-mono">{strength.toFixed(2)}</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min="0.0"
-                      max="1.0"
-                      step="0.05"
-                      value={strength}
-                      onChange={(e) => setStrength(parseFloat(e.target.value))}
-                      className="w-full h-1 bg-white/5 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Seed controls */}
-                <div className="space-y-3 pt-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Custom Seed (Optional)</label>
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="number"
-                      value={seed}
-                      onChange={(e) => setSeed(e.target.value)}
-                      placeholder="Random seed..."
-                      className="w-full h-12 bg-black border border-white/5 focus:border-purple-500/20 rounded-xl px-4 text-xs font-semibold text-zinc-300 outline-none"
-                    />
-                    <button
-                      onClick={handleRandomizeSeed}
-                      className="h-12 px-4 rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
-                      title="Generate random seed"
-                    >
-                      <RefreshCw size={14} />
-                    </button>
-                  </div>
+            {/* Error Notice */}
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs font-medium flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+                <div className="space-y-0.5">
+                  <div className="font-bold uppercase tracking-wider text-[10px]">Notice</div>
+                  <div className="text-[11px] leading-relaxed text-zinc-300">{error}</div>
                 </div>
               </div>
+            )}
 
-              {/* Submit Trigger */}
-              <div className="pt-2 flex justify-end">
+            {/* Generate Action Button */}
+            <div className="pt-2 space-y-3">
+              {credits >= TOOL_COST ? (
                 <button
                   onClick={handleGenerate}
                   disabled={!url.trim() || !prompt.trim() || isProcessing}
                   className={cn(
-                    "w-full md:w-auto flex min-h-14 items-center justify-center gap-3 rounded-2xl px-10 text-xs font-black uppercase tracking-widest text-white shadow-2xl transition hover:brightness-110 active:scale-98 cursor-pointer",
-                    "bg-gradient-to-r from-purple-600 to-indigo-600",
-                    "disabled:opacity-30 disabled:cursor-not-allowed"
+                    "w-full flex min-h-14 items-center justify-center gap-3 rounded-2xl px-6 text-xs font-black uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-2xl",
+                    "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:brightness-110 text-zinc-950 shadow-amber-500/30 active:scale-[0.98]",
+                    "disabled:opacity-40 disabled:cursor-not-allowed"
                   )}
                 >
-                  <Sparkles size={16} />
-                  {isProcessing ? "Generating Art..." : "Generate AI QR Code"}
+                  <QrCode className="w-4 h-4 text-zinc-950 fill-zinc-950/20 shrink-0" />
+                  <span>
+                    {isProcessing ? "Creating your QR code..." : "Generate Artistic QR Code"}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-black/25 text-zinc-950 text-[10px] font-black border border-black/10">
+                    {TOOL_COST} Credits
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowUpsell(true)}
+                  className="w-full flex min-h-14 items-center justify-center gap-3 rounded-2xl px-6 text-xs font-black uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-xl bg-gradient-to-r from-amber-500/20 via-amber-500/30 to-amber-500/20 border-2 border-amber-500/70 hover:border-amber-400 hover:bg-amber-500/35 text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.2)] active:scale-[0.98]"
+                >
+                  <Zap className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+                  <span className="text-amber-200 font-black">
+                    Refill Credits (Need {TOOL_COST})
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-400/25 border border-amber-400/40 text-amber-200 text-[10px] font-black">
+                    Costs {TOOL_COST} Credits
+                  </span>
+                </button>
+              )}
+
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 px-1 font-medium">
+                <span>
+                  Your balance: <strong className="text-white">{credits} Credits</strong>
+                </span>
+                {credits < TOOL_COST ? (
+                  <button
+                    onClick={() => setShowUpsell(true)}
+                    className="text-amber-400 hover:text-amber-300 font-bold text-[10px] uppercase tracking-wider cursor-pointer transition underline underline-offset-2"
+                  >
+                    Get More Credits
+                  </button>
+                ) : (
+                  <span className="text-zinc-500 text-[10px]">Instant High-Res PNG & SVG</span>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Right Pane: Live Mockup Showcase (7 cols) */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="bg-[#0c0d14]/90 border border-white/10 rounded-[2.5rem] p-5 sm:p-6 backdrop-blur-3xl shadow-2xl relative overflow-hidden space-y-5">
+            <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none" />
+
+            {/* Mockup Toolbar Header */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-white/5 pb-4">
+              {/* Mockup Switcher Tabs */}
+              <div className="flex flex-wrap items-center gap-1.5 bg-black/50 border border-white/10 p-1 rounded-xl w-full sm:w-auto">
+                {[
+                  { id: "none", name: "Standard Code", icon: QrCode },
+                  { id: "phone", name: "Phone Screen", icon: Smartphone },
+                  { id: "card", name: "Business Card", icon: CreditCard },
+                  { id: "frame", name: "Wall Frame", icon: Frame }
+                ].map((m) => {
+                  const Icon = m.icon;
+                  const isCurrent = activeMockup === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setActiveMockup(m.id as MockupType)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer",
+                        isCurrent
+                          ? "bg-amber-500/10 border border-amber-500/40 text-amber-300 shadow-sm"
+                          : "text-zinc-400 hover:text-white"
+                      )}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{m.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  onClick={handleCopy}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copied" : "Copy Image"}
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="px-3.5 py-1.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer shadow"
+                >
+                  <Download className="w-3 h-3" />
+                  Download PNG
                 </button>
               </div>
             </div>
+
+            {/* Mockup Display Canvas Stage */}
+            <div className="min-h-[520px] rounded-2xl bg-black/80 border border-white/10 p-6 flex flex-col items-center justify-center relative overflow-hidden">
+              
+              {/* Scan Helper Tooltip Bar */}
+              <div className="absolute top-4 inset-x-6 flex items-center justify-between text-[10px] text-zinc-500 z-10 pointer-events-none">
+                <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Camera Scannable Verified
+                </span>
+                <span className="font-mono text-zinc-500">
+                  Target: {url.replace(/^https?:\/\//, "").slice(0, 24)}...
+                </span>
+              </div>
+
+              {/* Mockup 1: Standard High-Res Artwork View */}
+              {activeMockup === "none" && (
+                <motion.div
+                  key="standard"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  className="relative flex flex-col items-center justify-center p-6 my-auto"
+                >
+                  <div className="relative w-72 sm:w-80 h-72 sm:h-80 rounded-3xl overflow-hidden border-2 border-white/15 shadow-[0_0_50px_rgba(245,158,11,0.15)] bg-black p-3 group">
+                    <img
+                      src={activeImage}
+                      alt="Artistic AI QR Code"
+                      className="w-full h-full object-cover rounded-2xl"
+                    />
+                    {/* Corner Scanner Reticles */}
+                    <div className="absolute top-5 left-5 w-6 h-6 border-t-2 border-l-2 border-amber-400/80 rounded-tl-lg pointer-events-none" />
+                    <div className="absolute top-5 right-5 w-6 h-6 border-t-2 border-r-2 border-amber-400/80 rounded-tr-lg pointer-events-none" />
+                    <div className="absolute bottom-5 left-5 w-6 h-6 border-b-2 border-l-2 border-amber-400/80 rounded-bl-lg pointer-events-none" />
+                    <div className="absolute bottom-5 right-5 w-6 h-6 border-b-2 border-r-2 border-amber-400/80 rounded-br-lg pointer-events-none" />
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-medium mt-4 text-center">
+                    Point your smartphone camera to scan & verify live link
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Mockup 2: Smartphone Screen View */}
+              {activeMockup === "phone" && (
+                <motion.div
+                  key="phone"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  className="relative w-64 max-w-full h-[470px] bg-zinc-950 rounded-[2.6rem] border-4 border-zinc-800 shadow-2xl p-4 flex flex-col justify-between items-center text-center my-auto overflow-hidden"
+                >
+                  {/* Dynamic Island / Notch */}
+                  <div className="w-20 h-4 bg-zinc-900 rounded-full mt-1 border border-white/5" />
+
+                  {/* Detected Notification Pill */}
+                  <div className="w-full px-3 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-left shadow-lg mt-2">
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
+                      <ScanLine className="w-3 h-3" />
+                      QR Code Link Detected
+                    </div>
+                    <div className="text-[10px] text-zinc-200 font-mono truncate mt-0.5">
+                      {url}
+                    </div>
+                  </div>
+
+                  {/* Centered QR Display */}
+                  <div className="w-40 h-40 rounded-2xl overflow-hidden border border-white/15 shadow-xl my-auto p-1.5 bg-black">
+                    <img src={activeImage} alt="QR Code on phone" className="w-full h-full object-cover rounded-xl" />
+                  </div>
+
+                  {/* Visit Action Button */}
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center justify-center gap-1.5 hover:brightness-110 transition"
+                  >
+                    <span>Open In Browser</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+
+                  {/* Home Indicator */}
+                  <div className="w-24 h-1 bg-zinc-700 rounded-full mt-2" />
+                </motion.div>
+              )}
+
+              {/* Mockup 3: Luxury Executive Business Card View */}
+              {activeMockup === "card" && (
+                <motion.div
+                  key="card"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  className="w-full max-w-md rounded-2xl bg-gradient-to-br from-[#12141c] to-[#08090d] border border-amber-500/30 shadow-2xl p-6 md:p-8 flex flex-col sm:flex-row justify-between items-center gap-6 relative overflow-hidden my-auto"
+                >
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/[0.04] blur-2xl pointer-events-none" />
+
+                  <div className="space-y-4 text-center sm:text-left">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black text-amber-400 uppercase tracking-[0.2em]">Exismic Executive</span>
+                      <h4 className="text-base font-black uppercase tracking-wider text-white">Alexander Vance</h4>
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Founder & Creative Lead</p>
+                    </div>
+
+                    <div className="space-y-1 text-[10px] text-zinc-400 font-medium">
+                      <p>alexander@exismic.com</p>
+                      <p className="font-mono text-zinc-500 truncate max-w-[200px]">{url}</p>
+                    </div>
+                  </div>
+
+                  <div className="w-28 h-28 rounded-xl overflow-hidden border border-amber-500/30 shadow-xl shrink-0 bg-black p-1.5">
+                    <img src={activeImage} alt="QR Code on business card" className="w-full h-full object-cover rounded-lg" />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Mockup 4: Framed Gallery Exhibition View */}
+              {activeMockup === "frame" && (
+                <motion.div
+                  key="frame"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  className="relative w-72 sm:w-80 h-[420px] bg-zinc-950 rounded-xl shadow-2xl p-6 flex flex-col justify-between items-center border border-zinc-800 my-auto"
+                >
+                  {/* Spotlight shadow */}
+                  <div className="w-full h-64 bg-zinc-900 p-4 border-8 border-zinc-900 shadow-2xl rounded-sm flex items-center justify-center">
+                    <div className="w-full h-full rounded shadow-inner overflow-hidden bg-black p-2">
+                      <img src={activeImage} alt="QR Code in frame" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+
+                  {/* Brass Plaque */}
+                  <div className="text-center space-y-1 mt-4 p-2 bg-zinc-900 border border-amber-500/20 rounded-md w-full">
+                    <h6 className="text-[9px] font-black uppercase tracking-widest text-amber-300">
+                      Exismic Generative Gallery
+                    </h6>
+                    <p className="text-[8px] font-mono text-zinc-500 truncate">
+                      {prompt.slice(0, 35)}...
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+
           </div>
-
-          {/* Result viewports */}
-          <AnimatePresence>
-            {resultImage && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white/[0.01] border border-white/10 rounded-[3.5rem] p-8 md:p-12 backdrop-blur-3xl shadow-3xl space-y-8 relative overflow-hidden group"
-              >
-                
-                {/* Result Actions Bar */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pb-4 border-b border-white/5 relative z-10">
-                  <div className="space-y-1">
-                    <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest bg-purple-500/10 px-2 py-0.5 rounded-md">Art Generated</span>
-                    <p className="text-[10px] text-zinc-500 font-mono mt-1">Seed: {activeSeed}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleCopy}
-                      className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer"
-                    >
-                      {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                      {copied ? "Copied" : "Copy Image"}
-                    </button>
-                    <button
-                      onClick={handleDownload}
-                      className="px-4 py-2.5 rounded-xl bg-white text-black text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer hover:bg-zinc-200"
-                    >
-                      <Download size={12} />
-                      Download PNG
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mockup tabs */}
-                <div className="flex flex-wrap gap-2.5 relative z-10">
-                  {[
-                    { id: "none", name: "Standard Code", icon: QrCode },
-                    { id: "phone", name: "Phone View", icon: Smartphone },
-                    { id: "card", name: "Business Card", icon: CreditCard },
-                    { id: "frame", name: "Framed Wall", icon: Frame }
-                  ].map((m) => {
-                    const Icon = m.icon;
-                    return (
-                      <button
-                        key={m.id}
-                        onClick={() => setActiveMockup(m.id as MockupType)}
-                        className={cn(
-                          "px-4 py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer",
-                          activeMockup === m.id 
-                            ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
-                            : "bg-white/5 border-white/5 text-zinc-500 hover:text-white"
-                        )}
-                      >
-                        <Icon size={12} />
-                        {m.name}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Interactive Render Viewport */}
-                <div className="flex items-center justify-center p-6 bg-zinc-950 border border-white/5 rounded-3xl relative z-10 min-h-[400px]">
-                  {activeMockup === "none" && (
-                    /* Standard view */
-                    <motion.div layout className="relative w-80 h-80 max-w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                      <img src={resultImage} alt="Artistic QR Code" className="w-full h-full object-cover" />
-                    </motion.div>
-                  )}
-
-                  {activeMockup === "phone" && (
-                    /* Smartphone screen mock */
-                    <motion.div layout className="relative w-64 max-w-full h-[450px] bg-zinc-900 rounded-[2.5rem] border-4 border-zinc-800 shadow-2xl p-6 flex flex-col justify-between items-center text-center overflow-hidden">
-                      <div className="w-16 h-4 bg-zinc-800 rounded-full mb-4" /> {/* camera notch */}
-                      <div className="space-y-2 mt-4">
-                        <h5 className="text-[10px] font-black uppercase tracking-widest text-purple-400">Scanned Brand</h5>
-                        <p className="text-[8px] text-zinc-500 font-semibold uppercase tracking-wider">Scan code to connect</p>
-                      </div>
-                      <div className="w-40 h-40 rounded-xl overflow-hidden border border-white/10 shadow-lg relative my-6">
-                        <img src={resultImage} alt="QR Code Phone mockup" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="w-full py-2.5 rounded-xl bg-purple-600 text-[8px] font-black uppercase tracking-widest text-white shadow-lg">
-                        Visit Website
-                      </div>
-                      <div className="w-24 h-1 bg-zinc-800 rounded-full mt-4" /> {/* home bar */}
-                    </motion.div>
-                  )}
-
-                  {activeMockup === "card" && (
-                    /* Business card view */
-                    <motion.div layout className="w-full max-w-md h-auto min-h-56 rounded-2xl bg-zinc-900 border border-amber-500/10 shadow-2xl p-6 md:p-8 flex flex-col sm:flex-row justify-between items-center gap-6 relative overflow-hidden group">
-                      {/* gold metallic reflection accent */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/[0.02] rotate-45 pointer-events-none" />
-                      <div className="space-y-4 text-center sm:text-left">
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-white">Alexander Thorne</h4>
-                          <p className="text-[8px] font-black text-amber-500/80 uppercase tracking-widest">Creative Director</p>
-                        </div>
-                        <div className="space-y-0.5 text-[8px] text-zinc-500 font-medium">
-                          <p>alex@exismic.design</p>
-                          <p>+1 (555) 948-3829</p>
-                        </div>
-                      </div>
-                      <div className="w-28 h-28 rounded-lg overflow-hidden border border-amber-500/20 shadow-xl shrink-0 bg-black">
-                        <img src={resultImage} alt="QR Code card mockup" className="w-full h-full object-cover" />
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeMockup === "frame" && (
-                    /* Gallery Frame View */
-                    <motion.div layout className="relative w-80 h-96 max-w-full bg-zinc-900 rounded-lg shadow-2xl p-10 flex flex-col justify-between items-center border border-zinc-800">
-                      {/* Museum styled frame */}
-                      <div className="w-full h-64 bg-white p-6 border-8 border-zinc-950 shadow-inner flex items-center justify-center">
-                        <div className="w-full h-full rounded shadow-md overflow-hidden relative">
-                          <img src={resultImage} alt="QR Code wall frame mockup" className="w-full h-full object-cover" />
-                        </div>
-                      </div>
-                      <div className="text-center space-y-1 mt-4">
-                        <h6 className="text-[8px] font-black uppercase text-zinc-400">Exismic Exhibit #094</h6>
-                        <p className="text-[7px] font-mono text-zinc-600">Stable Diffusion / ControlNet</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-
-              </motion.div>
-            )}
-          </AnimatePresence>
-
         </div>
 
-        {/* Info Sidebar */}
-        <div className="xl:col-span-4 space-y-8">
-          <PdfSidebar 
-            accentColor="text-purple-400"
-            steps={AUD_STEPS}
-            stats={resultImage ? [
-              { label: "Processing Engine", value: "Exismic Art Latent" },
-              { label: "Vector Matrix", value: "Exismic QR-Control v2" },
-              { label: "GPU Acceleration", value: "Cloud Grid (Instant)" }
-            ] : []}
-          />
+      </div>
 
-          {error && (
-            <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4 animate-shake">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
-              <div className="space-y-1">
-                <p className="uppercase tracking-[0.2em]">Generation Error</p>
-                <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
-              </div>
+      {/* Cloud Drive & Email Retention Bar */}
+      <ResultRetentionBar
+        toolType="qr-generator"
+        toolName="Artistic AI QR Code"
+        title="Artistic QR Code"
+        fileUrl={activeImage}
+        metadata={{ url, prompt, scannability }}
+        downloadAction={handleDownload}
+        downloadLabel="Download PNG"
+        onCopy={handleCopy}
+      />
+
+      {/* Companion Creative Tools Pipeline */}
+      <div className="bg-[#0c0d14]/70 border border-white/10 rounded-[2.5rem] p-6 sm:p-8 backdrop-blur-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 block mb-1">
+              Creative Pipeline
+            </span>
+            <h3 className="text-xl font-black uppercase tracking-tight text-white">
+              Showcase Your QR Code With Companion Tools
+            </h3>
+          </div>
+          <span className="text-xs text-zinc-400">
+            Render your QR art into 3D devices, social preview banners, and web packages
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            href="/tools/creator/device-mockup"
+            className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 hover:bg-white/[0.04] transition group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition">
+              <Smartphone className="w-5 h-5" />
             </div>
-          )}
+            <div className="text-sm font-bold text-white mb-1 group-hover:text-amber-300 transition flex items-center justify-between">
+              <span>3D Device Mockup Studio</span>
+              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-400 transition" />
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Place your artistic QR code into photorealistic iPhone 16 and MacBook 3D scenes.
+            </p>
+          </Link>
+
+          <Link
+            href="/tools/seo/og-banner"
+            className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 hover:bg-white/[0.04] transition group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div className="text-sm font-bold text-white mb-1 group-hover:text-amber-300 transition flex items-center justify-between">
+              <span>OG Share Banner Maker</span>
+              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-400 transition" />
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Create matching 1200x630 social preview banners for Twitter and LinkedIn.
+            </p>
+          </Link>
+
+          <Link
+            href="/tools/developer/favicon-studio"
+            className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 hover:bg-white/[0.04] transition group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition">
+              <Palette className="w-5 h-5" />
+            </div>
+            <div className="text-sm font-bold text-white mb-1 group-hover:text-amber-300 transition flex items-center justify-between">
+              <span>Favicon Studio</span>
+              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-400 transition" />
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Generate matching multi-resolution browser favicons and Apple touch icons.
+            </p>
+          </Link>
         </div>
       </div>
 
-      {/* Progress Loader Screen */}
+      {/* In-Flight Processing Modal Overlay */}
       <AnimatePresence>
         {isProcessing && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-[#030303]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-12 text-center"
+            className="fixed inset-0 z-50 bg-[#050608]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-8 text-center"
           >
-            <div className="relative mb-12">
-              <div className="w-24 h-24 border-2 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
-              <QrCode className="absolute inset-0 m-auto w-8 h-8 text-purple-400 animate-pulse" />
+            <div className="relative mb-8">
+              <div className="w-24 h-24 border-2 border-amber-500/20 border-t-amber-400 rounded-full animate-spin" />
+              <QrCode className="absolute inset-0 m-auto w-8 h-8 text-amber-400 animate-pulse" />
             </div>
-            <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4 pr-4 px-4 -mx-4">{status}</h4>
-            <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
+            <h4 className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-3 max-w-md">
+              {statusMessage}
+            </h4>
+            <div className="w-full max-w-sm h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.4em]">Rendering vector lattices</p>
+            <p className="text-xs text-zinc-400 font-medium tracking-normal">
+              Making your QR code beautiful and easy for phones to scan
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

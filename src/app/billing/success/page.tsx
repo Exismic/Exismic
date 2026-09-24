@@ -64,7 +64,7 @@ export default function BillingSuccessPage() {
     if (state === "checking") return;
     const destination = state === "success"
       ? purchaseType === "credits" ? "/shop" : "/dashboard"
-      : purchaseType === "credits" ? "/shop" : "/pricing";
+      : purchaseType === "credits" ? "/shop" : "/pro";
     const delay = state === "success" ? 5 : 8;
     const timeout = window.setTimeout(() => router.replace(destination), delay * 1000);
     return () => {
@@ -124,7 +124,7 @@ export default function BillingSuccessPage() {
         )}
         {!checking && (
           <Link
-            href={success && purchaseType === "credits" ? "/shop" : success ? "/dashboard" : "/pricing"}
+            href={success && purchaseType === "credits" ? "/shop" : success ? "/dashboard" : "/pro"}
             className="mt-7 inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-6 text-[10px] font-black uppercase tracking-[0.18em] text-black transition hover:-translate-y-0.5"
           >
             {copy.action}

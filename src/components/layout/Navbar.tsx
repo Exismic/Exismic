@@ -218,7 +218,7 @@ export function Navbar() {
   const loggedOutLinks: NavLink[] = [
     { name: "Tools", href: "/tools" },
     { name: "Shop", href: "/shop" },
-    { name: "Pricing", href: "/pricing" },
+    { name: "Pro", href: "/pro" },
     { name: "Blog", href: "/blog" },
   ];
 

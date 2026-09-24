@@ -102,17 +102,37 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { prompt: rawPrompt, width = 1024, height = 1024, steps = 4, guidance = 3.5, n = 1 } = await req.json();
+    const { prompt: rawPrompt, width = 1024, height = 1024, steps = 4, guidance = 3.5, n = 1, toolId = "ai-img-gen" } = await req.json();
 
     if (!rawPrompt) return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
 
-    const { prompt, enhancedUsed } = enhancePrompt(rawPrompt);
+    let prompt = rawPrompt.trim();
+    let enhancedUsed = prompt;
+    const numGuidance = Number(guidance) || 3.5;
+    const numSteps = Number(steps) || 4;
+
+    if (toolId !== "ai-logo") {
+      const enhanced = enhancePrompt(rawPrompt);
+      prompt = enhanced.prompt;
+      enhancedUsed = enhanced.enhancedUsed;
+
+      // Apply Fine-Tuning Guidance Weights & Rendering Detail to synthesis prompt
+      if (numGuidance >= 4.5) {
+        prompt = `${prompt}, ultra-faithful composition, precise prompt adherence, sharp focal point`;
+      } else if (numGuidance <= 2.5) {
+        prompt = `${prompt}, creative atmospheric variation, whimsical artistic freedom`;
+      }
+
+      if (numSteps >= 10) {
+        prompt = `${prompt}, masterwork detailing, high texture fidelity, pristine resolution`;
+      }
+    }
 
     // 3. Sync Credits from Prisma (Source of Truth)
     const totalCreditsAvailable = getCreditTotal(user);
     const userPlan = user.plan || "free";
 
-    const costPerGen = getToolCreditCost("ai-img-gen", 18);
+    const costPerGen = getToolCreditCost(toolId, 20);
     const totalCost = costPerGen * n;
 
     if (totalCreditsAvailable < totalCost) {
@@ -211,6 +231,7 @@ export async function POST(req: NextRequest) {
             prompt: prompt,
             image_size: { width, height },
             num_inference_steps: priority ? Math.min(Number(steps) || 6, 6) : 4,
+            guidance_scale: numGuidance,
             sync_mode: true
           })
         });
@@ -249,7 +270,7 @@ export async function POST(req: NextRequest) {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
           },
-          signal: AbortSignal.timeout(15000)
+          signal: AbortSignal.timeout(30000)
         });
 
         if (!response.ok) {
@@ -276,7 +297,7 @@ export async function POST(req: NextRequest) {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
               "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
             },
-            signal: AbortSignal.timeout(12000)
+            signal: AbortSignal.timeout(20000)
           });
 
           if (!response.ok) {
@@ -345,7 +366,7 @@ export async function POST(req: NextRequest) {
     await prisma.userFile.create({
       data: {
         userId: sbUser.id,
-        toolType: 'ai-img-gen',
+        toolType: toolId,
         originalName: prompt.substring(0, 50),
         originalUrl: prompt,
         resultUrl,
@@ -365,7 +386,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const debitResult = await deductCredits(sbUser.id, totalCost, "ai-img-gen");
+    const debitResult = await deductCredits(sbUser.id, totalCost, toolId);
     if (!debitResult.success) {
       console.error("[Image Gen] Credit deduction failed after generation:", debitResult.error);
     }

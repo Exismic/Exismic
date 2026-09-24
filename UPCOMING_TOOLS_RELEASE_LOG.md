@@ -571,6 +571,29 @@
 
 - **3D Device & App Mockup Studio (`/tools/creator/device-mockup`)**: 
   Create photorealistic 3D hardware presentation mockups in browser for iPhone 16 Pro, MacBook Pro 16", iPad Pro, Glass Browser, and Dual Combo. Features interactive 3D rotation, studio lighting backdrops, zero-load vector blueprints, 1-click clipboard copy, and high-res 4K PNG export ($0 server cost).
+
+- **AI Landing Page Generator (`/tools/landing-page-generator`)**: 
+  Generate responsive, modern HTML/CSS landing pages from simple English descriptions. Upgraded to luxury Obsidian Gold & Solaris Amber theme with dual-pane studio layout, macOS browser sandbox with simulated traffic lights and interactive address bar, responsive viewport switcher (Desktop, Tablet, Mobile), 4 instant demonstration blueprints ($0 client-side previews), 1-click HTML download and copy, and ResultRetentionBar integration.
+
+- **YouTube AI Summarizer (`/tools/youtube-summarizer`)**: 
+  Convert any YouTube video into detailed study notes, publication-ready blog posts, viral social threads, and timestamped transcripts. Upgraded to luxury Obsidian Gold theme with authentic video red accents, dual-pane studio layout, 4 pre-loaded real-world demonstration blueprints ($0 client-side previews), simulated video player header, keyword search for transcripts, individual post copy in threads, and ResultRetentionBar integration.
+
+- **Artistic AI QR Code (`/tools/qr-generator`)**: 
+  Transform standard black-and-white QR codes into custom, camera-scannable generative artwork. Upgraded to luxury Obsidian Gold theme, dual-pane studio layout, 4 pre-loaded high-resolution vector demonstration blueprints ($0 client-side previews), 4 interactive presentation mockups (Standard High-Res, iPhone Screen, Executive Card, Framed Wall Art), Scannability vs Art balance slider, and ResultRetentionBar integration.
+
+- **AI Social Media Caption Generator (`/tools/social-caption-generator`)**: 
+  Overhauled to luxury Creator & Social Media suite aesthetics (`#f43f5e` / `text-rose-400`). Symmetrical dual-pane workspace eliminating empty dead voids: Left pane features platform selector (Instagram, X / Twitter, TikTok, LinkedIn, YouTube, Facebook) with live character limit indicators, categorized quick inspiration topic chips, visual context photo uploader with preview & remove, 6 distinct tone & mood presets, 4 instant demonstration blueprints ($0 client-side previews), and credit-aware action button (6 Credits) with in-place refill modal. Right pane features an interactive Live Post Simulator with 4 realistic device/feed mockups (Instagram Post, Twitter/X Tweet Card, TikTok 9:16 Vertical Reel with floating action buttons, LinkedIn Executive Post) syncing live to the active caption, multi-variation output cards with hook type tags, 1-click copy post & copy tags, and clean zero-jargon in-flight progress modal.
+
+- **AI Content Detector (`/tools/ai-detector`)**: 
+  Overhauled to luxury Obsidian Gold & Solaris Amber AI category aesthetics (`#f59e0b` / `amber-400` / `amber-500`). Symmetrical dual-pane workspace eliminating the giant empty black void: Left pane features clipboard paste, character & word counters, 4 instant demonstration blueprints ($0 client-side previews for Robotic Tech Essay, Authentic Personal Story, Mixed Marketing Memo, and Academic Review Paper), and 100% Free instant scan button. Right pane features an authenticity report studio with primary AI Likelihood percentage gauge, Human Flow score, AI Clichés counter with detected buzzword pills, interactive dual-mode sentence breakdown (`Sentence Highlights` with inline red/green indicators and `Sentence Breakdown List` with individual sentence scores & plain-English reasons), 1-click copy, and seamless 1-click "Humanize This Text" piping directly into AI Humanizer. Purged all tech jargon and sparkle icons.
+
+- **Grammar & Style Checker (`/tools/grammar-checker`)**: 
+  Overhauled to Nordic Emerald Productivity suite aesthetics (`#10b981` / `emerald-400` / `emerald-500`). Symmetrical dual-pane studio eliminating the giant empty black void: Left pane features clipboard paste, word & character counters, 4 editing tone styles (Standard Polish, Professional Business, Casual & Friendly, Academic), 4 instant demonstration blueprints ($0 client-side previews for Messy Client Email, Weak Resume Summary, Rambling Product Pitch, and Academic Literature Draft), and 100% Free instant check button. Right pane features a Proofreading Report studio with writing quality gauge (98%), corrections counter, word economy tracker, triple-mode interactive results viewer (`Clean Polished Text` with 1-click copy, `Before vs After Diff` with strikethrough error comparisons, and `Fix Details Breakdown` with plain-English reasons), and 1-click direct workflow chaining into AI Humanizer.
+
+- **Email Reply Generator (`/tools/email-reply-generator`)**: 
+  Overhauled to Nordic Emerald Productivity suite aesthetics (`#10b981` / `emerald-400` / `emerald-500`). Symmetrical dual-pane studio eliminating the empty black void: Left pane features clipboard paste, word & character counters, 5 response intents (Accept & Proceed, Decline Politely, Gentle Follow-Up, Negotiate Offer, Provide Details), 5 tone presets (Professional, Friendly & Warm, Direct & Crisp, Firm & Confident, Formal & Courteous), key details notes input, 4 instant demonstration blueprints ($0 client-side previews for Polite Meeting Decline, Salary Negotiation, Gentle Follow-Up, and Project Kickoff Confirmation), and 100% Free instant draft button. Right pane features an interactive Email Compose Simulator mimicking a real inbox compose card (To:, Subject:, formatted email body, signature box), subject-only copy, body-only copy, full email copy, direct 1-click `mailto:` launch into desktop mail client, and 1-click pipeline chaining to AI Humanizer. Purged all sparkle icons and tech jargon.
 ```
+
+
 
 

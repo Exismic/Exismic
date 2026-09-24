@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       toolId: "social-caption-generator",
       allowedTypes: ["image/png", "image/jpeg", "image/webp"],
       maxSize: 5 * 1024 * 1024,
-      creditCost: 10,
+      creditCost: 6,
       optionalFile: true,
       accessMode: "pro",
     },

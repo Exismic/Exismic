@@ -33,6 +33,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/pricing",
+        destination: "/pro",
+        permanent: true,
+      },
+      {
         source: "/minecraft-skin",
         destination: "/tools/image/minecraft-skin",
         permanent: true,

@@ -1,8 +1,8 @@
 # Exismic Studio — Master Project Continuation & Architecture Memory
 
-> **Last Updated**: September 20, 2026  
+> **Last Updated**: September 24, 2026  
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
-> **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors). Performance & low-end/mobile architecture hardened.
+> **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors), Next.js 16 Production Build verified (`npm run build` = 0 errors). Performance & low-end/mobile architecture hardened.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
 > **Active Sprint Review Tracker**: [`NEXT_TO_REVIEW.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/NEXT_TO_REVIEW.md) (🎉 13 of 13 tools completed — 100% SPRINT COMPLETE; Tool #13 hidden from public catalogs per user directive).  
 > **Mandatory Tool Design & Copy Standards**: [`TOOL_STANDARDS_AND_GUIDELINES.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/TOOL_STANDARDS_AND_GUIDELINES.md) (Zero tech jargon, zero sparkles, balanced void-free layouts, and laser bridges).
@@ -10,6 +10,231 @@
 ---
 
 ## 📌 Summary of Completed Architecture & Features
+
+### 0. 📱 QR Code Studio Luxury Overhaul & Button Layout Hardening [COMPLETED]
+* **Color Palette Button Overflow Fix & 2-Column Responsive Layout**:
+  - Replaced tight 4-column grid (`sm:grid-cols-4`) with an ultra-clean 2-column layout (`grid-cols-2 gap-2 sm:gap-2.5`).
+  - Added `min-w-0` and `truncate` to prevent label text from ever spilling out beyond button borders.
+  - Added 8th curated preset (`Ocean Sapphire`, `#3b82f6` on `#050b18`), creating a perfectly balanced 4×2 grid with zero orphaned empty slots.
+* **Unified Emerald Mint / Obsidian Productivity Theme**:
+  - Replaced arbitrary purple styling with Exismic's signature **Productivity Emerald Mint & Obsidian Glass** theme (`#10b981`, `emerald-400`, `emerald-500`, emerald halo glows, `bg-[#0c0d14]/90` glassmorphic cards).
+  - Perfectly matches the Productivity Tools category branding, dock indicator, and breadcrumbs.
+* **Balanced Dual-Pane Studio Layout (Zero Dead Voids)**:
+  - Symmetrical dual-pane studio layout: Left pane (5 cols) hosts Content & Styling controls; Right pane (7 cols) hosts the live multi-viewport presentation mockup stage.
+  - Symmetrical height alignment completely eliminating empty black voids.
+* **Multi-Content Generation Engine**:
+  - **Website Link (URL)**: Real-time prefix auto-correction and popular shortcut presets (`exismic.com`, `instagram.com`, `linkedin.com`).
+  - **Wi-Fi Network (1-Tap Connect)**: SSID, Password, Encryption (`WPA/WPA2`, `WEP`, `None/Open`), and Hidden SSID toggle. Generates standard `WIFI:T:WPA;S:...;P:...;;` strings for instant camera auto-connect without typing passwords.
+  - **Digital Business Card (vCard)**: Full Name, Company, Job Title, Phone, and Email for instant smartphone address book contact card import.
+  - **Plain Text / Notes**: Direct note or promo code encoding with character counters.
+  - **Email**: Recipient, Subject, and pre-filled message body.
+  - **Phone Call**: Direct dial phone number.
+* **Logo Suite & 8 Brand Preset Icons**:
+  - Custom brand logo upload via drag-and-drop (`useDropzone`) with auto-excavate background.
+  - 8 instant built-in high-contrast brand vector icons: Exismic, Website Globe, Wi-Fi, Instagram, LinkedIn, GitHub, YouTube, WhatsApp.
+* **4 Instant Demonstration Blueprints ($0 Compute Previews)**:
+  - 1. `Portfolio Website`: Direct link to creative agency / portfolio with Emerald Mint styling.
+  - 2. `Café Guest Wi-Fi`: 1-tap phone connect Wi-Fi card with pre-filled SSID & password.
+  - 3. `Executive Business Card`: Founder vCard with name, title, and direct contact details.
+  - 4. `Social Media Hub`: Multi-link social profile tree for Instagram / Linktree.
+  - Preloaded on mount; clicking any blueprint instantly updates all inputs, colors, and live mockups at $0 cost and 0s delay.
+* **4 Interactive Presentation Mockups**:
+  - `Studio Canvas`: Crisp centered vector canvas with scannability verification badge and instant smartphone test guidance.
+  - `Phone Screen`: Realistic smartphone frame with Dynamic Island, camera reticle overlay, and interactive "Link Detected" notification banner.
+  - `Business Card`: Luxury executive matte dark & gold foiled business card mockup with typography and embedded QR code.
+  - `Table Tent`: Acrylic restaurant / café display mockup on studio surface.
+* **Pro Export Suite & Retention**:
+  - 1-Click "Copy Picture" to clipboard via `navigator.clipboard.write([new ClipboardItem(...)])`.
+  - 1-Click High-Res PNG export with resolution options up to 2,000px Ultra-HD.
+  - 1-Click Scalable Vector SVG download (`.svg`).
+  - `ResultRetentionBar` (Cloud Vault & Email asset delivery).
+  - `ToolWorkflowChaining` connecting to 3D Device Mockup, Artistic AI QR, Image Resizer, and Image Converter.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Purged "CONFIG CONSOLE", "CONTENT PROTOCOL", "QR MATRIX", "ENVIRONMENT", "VECTOR ENGINE ACTIVE", "COPIED MATRIX", "IDENTITY OVERLAY", and "REDUNDANCY". Replaced with clear everyday English ("Customize Your Code", "What Should This QR Open?", "Code Color", "Background Color", "Center Logo or Icon", "Ready to Scan", "Copied to Clipboard", "Camera Scan Reliability").
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>` from the entire tool, replacing with authentic Lucide vector icons (`<QrCode>`, `<Globe>`, `<Wifi>`, `<User>`, `<Mail>`, `<Phone>`, `<Layers>`, `<Palette>`, `<Download>`, `<Copy>`, `<ShieldCheck>`, `<Smartphone>`, `<CreditCard>`, `<Store>`).
+  - **Category Laser Horizon Bridge**: Sits seamlessly above the category-reactive emerald laser bridge (`#10b981`) and rich SEO guide section.
+
+### 0. 🏷️ AI Logo Generator Studio Luxury Overhaul [COMPLETED]
+* **Unified Solaris Amber / Obsidian Gold Aesthetics**:
+  - Replaced outdated cyan/purple/indigo gradients with Exismic's luxury **Obsidian Gold / Solaris Amber** AI category theme (`#f59e0b` / `amber-400` / `amber-500` / amber halos / `bg-[#0c0d12]/90`).
+  - Built an obsidian dual-pane branding workspace featuring authentic macOS window titlebars (`● ● ●`), ready/status pills, and 1024×1024 vector stage indicators.
+* **Purge of Sparkles & Tech Jargon (`TOOL_STANDARDS_AND_GUIDELINES.md`)**:
+  - Completely purged `<Sparkles>` from the entire tool, primary action buttons, spinners, and badges.
+  - Replaced tech jargon with natural everyday English: "Logo Studio Config", "Branding Style", "Canvas Background", "Transparent Background (Alpha Key)", "Color Sensitivity", "Designing Brand Logo...", "Estimated wait: ~X.Xs", "Exismic Brand Vector Engine".
+  - Replaced emoji placeholders in style presets with authentic Lucide vector icons: Minimalist (`<Layers>`), Modern Sleek (`<Gem>`), Vintage Emblem (`<Stamp>`), Tech & Digital (`<Cpu>`), Luxury & Gold (`<Crown>`), Gaming Mascot (`<Flame>`), Abstract Concept (`<Boxes>`).
+  - Added authentic layout icons: Icon + Name (`<LayoutGrid>`), Icon Only (`<Shapes>`), Wordmark Only (`<Type>`).
+* **4 Instant Demonstration Blueprints ($0 Compute Previews)**:
+  - Added 4 interactive vector blueprints directly on the canvas stage to eliminate the empty black dead void:
+    1. `Apex Cybernetics`: Futuristic geometric falcon emblem composed of gold & obsidian circuit lines (Tech & AI Startup · Combination Mark · Luxury Obsidian).
+    2. `Aura Coffee Roasters`: Minimalist continuous line-art coffee bean sprouting an organic emerald leaf (Artisan & Organic · Minimalist · Nordic Emerald).
+    3. `Vanguard Capital`: Prestigious architectural Doric pillar inside an engraved gold heraldic shield (Finance & Prestige · Luxury & Gold · Luxury Obsidian).
+    4. `Titan Gaming Arena`: Aggressive stylized robotic cyber wolf head with high-contrast neon angles (Esports Mascot · Gaming Mascot · Neon Cyber).
+  - 1-click instant population of brand parameters AND client-side SVG demo with zero credit cost or API wait.
+* **Real-World Brand Mockups Suite (5 Interactive Showcases)**:
+  - **1. Luxury Matte Business Card**: 85×55mm executive card with gold foil embossing, EMV chip, NFC wave, and CEO credentials.
+  - **2. iPhone 16 Pro Splash Screen**: Dynamic Island, status bar, and ambient dark wallpaper with centered glowing brandmark.
+  - **3. Branded Crewneck Apparel**: Heavyweight dark garment texture with embroidered chest pocket brandmark.
+  - **4. Modern SaaS Website Hero**: Dark mode navbar, hero typography, and CTA buttons demonstrating digital brand placement.
+  - **5. Browser Tab Favicon Bar**: Realistic browser tab showing simulated 32×32 favicon and secure HTTPS padlock URL bar.
+* **Pro Export & Next Action Pipeline Chaining**:
+  - **1-Click Copy Picture** directly to clipboard via `navigator.clipboard.write([new ClipboardItem(...)])`.
+  - **1-Click High-Res PNG** (Original and Transparent with real-time color sensitivity slider).
+  - **1-Click Scalable SVG Export** with editable vector wrapper, typography, and metadata.
+  - **MediaPipelineBar**: Direct 1-click piping to AI Background Cutout, Svg Vectorizer, Resizer & Cropper, Format Converter, and Bulk Compressor.
+  - **ResultRetentionBar**: Direct saving to Exismic Cloud Vault & Email asset delivery.
+  - **Category Laser Horizon Bridge Fixed**: Eliminated internal duplicate laser horizon bridge from `LogoGeneratorTool.tsx` so only the official `ToolSeoSection` single category-reactive laser bridge renders seamlessly above the Guide & Overview.
+  - **Generation Resilience & Auth Recovery**: Configured `toolId: "ai-logo"` handling in `src/app/api/tools/ai/image-generate/route.ts`, increased Pollinations network timeouts to 30s with turbo fallback, added proactive sign-in prompts with 1-click CTA buttons for unauthenticated guests, and implemented robust error extraction so transient errors or timeouts never crash the UI into a generic error message.
+  - **In-Place Upsell Modal on Out-of-Credits (Zero Page Redirects)**: Replaced `<a href="/pricing">` links in `LogoGeneratorTool` and `ImageGeneratorTool` with direct `setShowUpsell(true)` triggers that open the native `BuyCreditsModal` popup in-place. Users never lose their prompt or active tool session.
+  - **Currency / Regional Checkout Overhaul & /pricing Retirement**: Retired the legacy `/pricing` page with its manual "Regional checkout (INDIA vs INTERNATIONAL)" switcher. `/pricing` now permanently redirects (308) to `/pro`. International users outside India strictly and automatically receive USD ($3.99, $8.99, $19.99, $6.99/mo, $59.99/yr, PayPal & Cards) without any INR or Razorpay references, while Indian users automatically receive INR (UPI, Razorpay & Cards).
+
+
+### 0. 👤 AI Text Humanizer Studio Luxury Overhaul [COMPLETED]
+* **Unified Solaris Amber / Obsidian Gold Aesthetics**:
+  - Replaced dated purple styling (`border-purple-600`, `bg-purple-900/30`, `focus:border-purple-500`, purple gradients) with Exismic's luxury **Obsidian Gold / Solaris Amber** AI category theme (`#f59e0b` / `amber-400` / `amber-500` / amber halos).
+  - Built an obsidian dual-pane workspace featuring authentic macOS window titlebars (`● ● ●`), live word/character counters, and AI cliché detection badges.
+* **Purge of Sparkles & Tech Jargon (`TOOL_STANDARDS_AND_GUIDELINES.md`)**:
+  - Purged `<Sparkles>` from the primary action button, replacing with authentic `<UserCheck>` icon.
+  - Replaced tech jargon with natural everyday English: "Humanize Writing", "Target Tone of Voice", "Rewrite Depth", "Human Flow Score", "AI Cliches Purged".
+* **4 Instant Demonstration Blueprints ($0 Compute Previews)**:
+  - Added 4 interactive demonstration blueprints directly beneath the dual-pane workspace to eliminate empty dead voids:
+    1. `Robotic Corporate Memo`: Eliminates corporate jargon ("synergistic paradigms", "testament to agility") in favor of clear, direct action (Executive tone · 98% Human Score).
+    2. `Formulaic Tech Essay`: Transforms stiff AI clichés ("beacon of innovation", "computational tapestries") into natural engineering voice (Conversational tone · 96% Human Score).
+    3. `Stiff Outreach Email`: Replaces awkward corporate pitches with authentic, friendly developer communication (Casual tone · 99% Human Score).
+    4. `Repetitive Social Hook`: Replaces overused AI tropes ("buckle up", "tapestry of habits") with genuine personal experience (Storyteller tone · 97% Human Score).
+  - 1-click instant population of input draft AND side-by-side humanized output with zero credit cost or API wait.
+* **Pro Editing Suite & Metrics HUD**:
+  - **5 Tone Options with Authentic Lucide Icons**: Conversational (`<Coffee>`), Academic (`<GraduationCap>`), Casual (`<Laugh>`), Executive (`<Award>`), Storyteller (`<BookOpen>`).
+  - **Rewrite Depth Switcher**: Balanced vs. Deep Rewrite.
+  - **Live Diff & Comparison Mode**: Clean polished view vs. Side-by-side Diff showing strikethroughs on stiff AI patterns and emerald highlights on human phrasing.
+  - **Live Metrics HUD**: Output word count, Authenticity percentage, and AI Cliches Purged count.
+  - **Synchronized Credit Cost**: 8 credits (matching `credit-policy.ts`).
+  - **ResultRetentionBar & ToolWorkflowChaining**: Direct saving to Cloud Vault, email delivery, and multi-format exports (.txt, .md, clipboard).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🎨 AI Image Generator Studio Luxury Overhaul [COMPLETED]
+* **Unified Solaris Amber / Obsidian Gold Aesthetics**:
+  - Purged all dated purple/violet/cyan styling (`accent-purple`, `bg-accent-purple/20`, `border-purple-500`, etc.) and replaced with Exismic's luxury **Obsidian Gold / Solaris Amber** AI category theme (`#f59e0b` / `amber-400` / `amber-500` / amber halos).
+  - Built an obsidian dual-pane creative studio with authentic macOS window titlebars (`● ● ●`), ready/rendering status indicators, and clean symmetrical height alignment.
+* **Purge of Sparkles & Tech Jargon (`TOOL_STANDARDS_AND_GUIDELINES.md`)**:
+  - Replaced `icon: 'Sparkles'` with `icon: 'ImageIcon'` for `ai-img-gen` in `src/data/tools.ts`, removing the sparkle icon from page header, sidebar dock, and command palette.
+  - Purged all `<Sparkles>` from buttons, spinners, badges, and preset cards.
+  - Replaced "Generate Magic", "Flux.1 Schnell", "Flux.1 Pro Latent Diffusion", "Inference", "Steps", and "Guidance Scale" with natural everyday English: "Generate Artwork", "Rendering in progress...", "Rendering Detail", and "Prompt Adherence".
+* **4 Instant Demonstration Blueprints ($0 Compute Previews)**:
+  - Added 4 interactive demonstration blueprints directly on the canvas stage to eliminate the empty black dead void:
+    1. `Cyberpunk Neo-Tokyo`: Sleek chrome cybernetic runner on a rain-drenched rooftop in Neo-Tokyo (16:9 Cinema · Cyberpunk).
+    2. `Bioluminescent Forest`: Ancient glowing tree with crystal petals and misty twilight river (1:1 Square · Fantasy Realm).
+    3. `Alpine Wildlife Vista`: Cinematic atmospheric mountain vista with pristine snowy ridges and golden rim lighting (4:3 Classic · Photorealistic).
+    4. `Dimensional Fluid Art`: Fluid dynamic acrylic waves swirling with floating holographic bubbles (16:9 Cinema · 3D Digital Art).
+  - Clicking any blueprint instantly populates prompt, aspect ratio, and style with zero credit cost or API wait.
+* **Rich Creative Controls & Output Retention**:
+  - **5 Aspect Ratios**: Square (1:1), Cinema (16:9), Story (9:16), Standard (4:3), DSLR (3:2) with aspect preview shapes.
+  - **8 Style Presets with Authentic Lucide Icons**: Natural (`<Palette>`), Photorealistic (`<Camera>`), Cinematic (`<Film>`), Anime & Manga (`<Brush>`), Cyberpunk (`<Cpu>`), Fantasy Realm (`<Compass>`), 3D Digital Art (`<Box>`), Minimalist Vector (`<Layers>`).
+  - **Synchronized Credit Cost**: 20 credits (matching `credit-policy.ts`).
+  - **ResultRetentionBar & MediaPipelineBar**: Direct saving to Cloud Vault, email exports, and 1-click piping to Background Eraser, Meme Maker, Resizer, Compressor, and Format Converter.
+  - **History Gallery**: Session history with 1-click re-loading and downloading.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🏁 Artistic AI QR Code Luxury Overhaul [COMPLETED]
+* **Obsidian Gold / Solaris Amber Aesthetics**:
+  - Replaced dated purple styling (`purple-600`, `purple-500`, `purple-400`) with Exismic's signature AI Studio aesthetic (`#f59e0b`, `amber-400`, `amber-500`, amber halos, `bg-[#0c0d14]/90` glassmorphic cards).
+* **Balanced Dual-Pane Studio Layout (Zero Dead Voids)**:
+  - Eliminated the awkward 8/4 grid, the mismatched `PdfSidebar`, and the hundreds of pixels of empty black space.
+  - Symmetrical dual-pane studio layout: Left pane (5 cols) hosts Link & Art Blueprint controls; Right pane (7 cols) hosts the live multi-viewport presentation mockup stage.
+* **4 Instant Demonstration Blueprints ($0 Previews & Preloaded)**:
+  - Created [qr-generator-blueprints.ts](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/qr-generator-blueprints.ts) containing 4 high-resolution artistic QR vector SVGs with authentic alignment patterns and artistic overlays:
+    1. `Cyberpunk Neon Grid` (Electric cyan & hot magenta holographic city grid)
+    2. `Obsidian Gold Luxury` (Polished black marble with 24k gold foil inlays)
+    3. `Steampunk Clockwork` (Intricate golden brass gears & copper steam conduits)
+    4. `Emerald Forest Shrine` (Ancient mossy botanical flora with bioluminescent glow)
+  - Preloaded on initial page load: The stage is immediately populated with Blueprint #1. Clicking any blueprint immediately switches the URL, art prompt, and vector artwork across all 4 mockups at $0 cost and 0s delay!
+* **4 Interactive Presentation Mockups**:
+  - `Standard Code`: High-res artwork with camera scanner reticles, scannability verification badge, and direct smartphone test guidance.
+  - `Phone Screen`: Realistic smartphone frame with dynamic notch, link detected notification banner, and interactive "Open In Browser" button.
+  - `Business Card`: Luxury executive matte black & gold foiled business card mockup with typography and embedded artistic QR.
+  - `Wall Frame`: Museum gallery exhibition frame on dark wall with studio spotlight and brass exhibit plaque.
+  - Quick action toolbar: 1-Click Copy Image (via `ClipboardItem`), 1-Click Download PNG, and Scannability vs Art balance slider.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced "Condition Stable Diffusion on structural link codes", "ControlNet QR Code Monster", and "Rendering vector lattices" with plain everyday English ("Artistic QR Studio", "Transform links into stunning, camera-scannable artwork", "Scannability vs Art Balance").
+  - **Zero Sparkle Icons**: Completely eliminated `<Sparkles>` from the tool, buttons, and loading screen; implemented authentic Lucide icons (`<QrCode>`, `<Smartphone>`, `<CreditCard>`, `<Frame>`, `<Palette>`, `<Download>`, `<Copy>`, `<Zap>`, `<ShieldCheck>`).
+  - **High-Contrast Action Button**: Built-in dynamic state switching with 100% visible icons and text (no invisible black text), with seamless `setShowUpsell(true)` triggers when credits are low.
+  - **Result Retention & Companion Pipeline**: Embedded `ResultRetentionBar` (Cloud Vault & Email delivery) and pipeline cards linking to 3D Device Mockup Studio, OG Share Banner Maker, and Favicon Studio.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 📺 YouTube AI Summarizer Luxury Overhaul [COMPLETED]
+* **Obsidian Gold / Solaris Amber & Authentic Video Red Theming**:
+  - Upgraded to Exismic's signature AI Studio aesthetic (`#f59e0b`, `amber-400`, `amber-500`, amber halos, `bg-[#0c0d14]/90` glassmorphic cards) complemented by authentic YouTube video red accents (`#ef4444`).
+* **Balanced Dual-Pane Studio Layout (Zero Dead Voids)**:
+  - Eliminated the awkward 8/4 grid, the mismatched `PdfSidebar`, and the hundreds of pixels of empty black space.
+  - Symmetrical dual-pane studio layout: Left pane (5 cols) hosts Video Notes Studio controls; Right pane (7 cols) hosts the live video player header and study notes reader canvas.
+* **4 Instant Demonstration Blueprints ($0 Previews & Preloaded)**:
+  - Created [youtube-summarizer-blueprints.ts](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/youtube-summarizer-blueprints.ts) containing 4 pre-loaded real-world video breakdowns with authentic video thumbnails, channels, and durations:
+    1. `Neural Networks & Deep Learning Architecture` (3Blue1Brown - 19:13)
+    2. `How Figma Built a $20B Design Monopoly` (Startup Breakdown - 16:45)
+    3. `The Future of Autonomous AI & Superintelligence` (Lex Fridman Podcast - 1:52:10)
+    4. `Quantum Computing & Cryptography Simply Explained` (Veritasium - 23:40)
+  - Preloaded on initial page load: The stage is populated immediately with Blueprint #1. Clicking any blueprint immediately switches the thumbnail, duration, channel, study notes, blog article, social thread, and timestamped transcript at $0 cost and 0s delay!
+* **Multi-Format Study Studio & Dynamic Reader**:
+  - **4 Output Formats**: Study Notes (key takeaways & bullet outline), Blog Article (publication-ready markdown), Social Thread (numbered card view with character counters and 1-click post copy), and Timed Transcript (interactive timestamp pills with keyword search filter).
+  - Quick action toolbar: 1-Click Copy Notes, 1-Click Download Markdown (`.md`), Watch on YouTube external link, and live word count / reading time indicator.
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced "YouTube Transcript Engine" and "Repurpose video assets into study guides & threads" with plain everyday English ("Video Notes Studio", "Convert YouTube videos into detailed study notes & threads").
+  - **Zero Sparkle Icons**: Completely eliminated `<Sparkles>` from the tool, buttons, and loading screen; implemented authentic Lucide icons (`<PlayCircle>`, `<Video>`, `<ListChecks>`, `<FileText>`, `<Share2>`, `<Clock>`, `<Search>`, `<Download>`, `<Copy>`, `<Zap>`).
+  - **High-Contrast Action Button**: Built-in dynamic state switching with 100% visible icons and text (no invisible black text), with seamless `setShowUpsell(true)` triggers when credits are low.
+  - **Result Retention & Companion Pipeline**: Embedded `ResultRetentionBar` (Cloud Vault & Email delivery) and pipeline cards linking to AI Writer Studio, AI Humanizer, and Code Snippet Studio.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🌐 AI Landing Page Generator Luxury Overhaul [COMPLETED]
+* **Obsidian Gold / Solaris Amber Category Theming**:
+  - Replaced outdated cold `accent-blue` styling with Exismic's signature Obsidian Gold / Solaris Amber aesthetic (`#f59e0b`, `amber-400`, `amber-500`, amber halos, `bg-[#0c0d14]/90` glassmorphic cards).
+  - Perfectly matches the "AI Tools" category branding and breadcrumbs.
+* **Balanced Dual-Pane Studio Layout (Zero Voids)**:
+  - Eliminated the awkward 8/4 grid, the mismatched `PdfSidebar`, and the hundreds of pixels of empty black dead space.
+  - Symmetrical dual-pane studio layout: Left pane (5 cols) hosts Website Blueprint Studio controls; Right pane (7 cols) hosts the live interactive macOS browser sandbox.
+* **4 Instant Demonstration Blueprints ($0 Previews & Preloaded)**:
+  - Created [landing-page-generator-blueprints.ts](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/landing-page-generator-blueprints.ts) containing 4 standalone, production-grade responsive HTML landing pages:
+    1. `Dark SaaS Analytics` (ApexMetrics: floating glass navbar, real-time KPI metric cards, cohort progression chart, 3-column features, tiered pricing cards, star rating proof).
+    2. `Modern Creative Agency` (Aura Design Studio: editorial typography, client marquee ticker with Stripe/Linear/Figma, 2x2 case study grid, testimonial quote).
+    3. `Mobile App Showcase` (PulseFit: phone mockup frame with glowing calorie ring, real-time heart rate bpm, App Store & Google Play download badges).
+    4. `AI Studio Platform` (Synthetix AI: obsidian gold gradient halos, multi-model engine cards, 3-tier pricing table with "Most Popular" glow, FAQ accordion).
+  - Preloaded on initial page load: The canvas never opens to an empty void. Clicking any blueprint immediately populates prompt, style, AND renders that interactive website directly into the sandbox iframe at $0 cost and 0s delay!
+* **Interactive macOS Browser Sandbox & Viewport Switcher**:
+  - Simulated macOS traffic lights (`● ● ●` red, yellow, green) and interactive SSL address bar (`preview.exismic.app/...`) with live reload button.
+  - Smooth spring-animated responsive viewport switcher: `Desktop (100%)` | `Tablet (768px)` | `Mobile (375px)`.
+  - Dual view modes: `Interactive Preview` (sandboxed iframe) and `HTML Source Code` (formatted monospace syntax viewer with 1-click copy).
+  - Quick action toolbar: Fullscreen in new tab, 1-Click Copy Code with checkmark feedback, and 1-Click Download HTML (`index.html`).
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Replaced "Page Synthesis Studio", "Synthesis engine", and "Synthesis Error" with clear everyday English ("Website Blueprint Studio", "Draft, preview & export responsive HTML landing pages", "Notice").
+  - **Zero Sparkle Icons**: Completely eliminated `<Sparkles>` from the tool, buttons, and spinners; implemented authentic Lucide icons (`<PanelTop>`, `<Monitor>`, `<Tablet>`, `<Smartphone>`, `<Code2>`, `<Globe>`, `<Rocket>`, `<Download>`, `<Copy>`, `<RotateCw>`, `<ExternalLink>`, `<Layers>`, `<Palette>`, `<Cpu>`).
+  - **In-Place Upsell Modal**: Connected to `useCredits()`; when credits are insufficient, triggers `setShowUpsell(true)` in-place (never redirects to `/pricing`).
+  - **Result Retention & Companion Pipeline**: Embedded `ResultRetentionBar` (Cloud Vault & Email delivery) and pipeline cards linking to Code Snippet Studio, OG Share Banner Maker, and Favicon Studio.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
+### 0. 🖋️ AI Writer Studio Luxury Overhaul [COMPLETED]
+* **Unified Solaris Amber / Obsidian Gold Aesthetics**:
+  - Replaced all dated purple/magenta styling (`purple-600`, `purple-500`, `violet-500`) with Exismic's luxury **Obsidian Gold / Solaris Amber** AI category theme (`#f59e0b` / `amber-400` / `amber-500` / amber halos).
+  - Built an obsidian preview stage featuring an authentic macOS window titlebar (`● ● ●`), active view mode tabs (`Write Editor` | `Preview Output` | `Split View` on desktop), word counter, reading time badge, and format status pill.
+* **4 Instant Demonstration Blueprints ($0 Compute Client-Side Previews)**:
+  - Added 4 interactive 1-click demonstration blueprints directly below the editor stage (completely eliminating empty dead voids):
+    1. `5 Clean Code Habits for 2026`: High-impact Dev & Tech Blog post with pragmatic clean coding tips, guard clauses, and actionable takeaways.
+    2. `Podcast Partnership Proposal`: High-converting Cold Email to a tech podcast host proposing a guest interview about developer productivity.
+    3. `Why Creators Quit 2 Weeks Early`: Punchy Viral Social Hook breaking down creative compound interest and consistency.
+    4. `From Weekend Hack to 10k Users`: Inspiring Founder Storytelling narrative chronicling the journey from prototype to 10,000 active creators.
+  - 1-click instant population of prompt, format, tone, length, and rich sample output with zero credit cost or API wait.
+* **Pro Writing Controls & Format Suite**:
+  - **6 Content Formats**: Blog Post, Cold Email, Social Hook, Video Script, Creative Story, Product Pitch.
+  - **6 Tones of Voice with Authentic Lucide Icons**: Professional (`<Award>`), Casual (`<Coffee>`), Witty & Fun (`<Laugh>`), Persuasive (`<Target>`), Creative (`<Lightbulb>`), Educational (`<GraduationCap>`).
+  - **3 Content Lengths with Word Estimates**: Short (~150 words), Medium (~400 words), Long (~800 words).
+  - **Interactive Global Language Selector**: English (US), English (UK), Spanish, French, German, Japanese, Hindi, Portuguese, Arabic, Italian.
+  - **Multi-Format Exports**: 1-Click Copy with check toast, 1-Click Download Plain Text (`.txt`), and 1-Click Download Markdown (`.md`).
+  - **Live Metrics HUD**: Word count, character count, and estimated reading time (`~X min read`).
+  - **Next Action Pipeline Chaining**: 1-Click handover to AI Humanizer (`/tools/ai/humanizer`), Grammar Checker (`/tools/ai/grammar`), and Social Caption Generator (`/tools/ai/social-caption`).
+* **Strict Compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`**:
+  - **Zero Tech Jargon**: Friendly, natural everyday English across all copy, tooltips, and labels ("AI Writer Studio", "Writing Controls", "Draft Output", "Human Quality", "Write Content").
+  - **Zero Sparkle Icons**: Completely purged `<Sparkles>` from the entire tool and buttons, using authentic Lucide vector icons (`<Feather>`, `<PenTool>`, `<FileText>`, `<Mail>`, `<Layers>`, `<BookOpen>`, `<Video>`, `<Award>`, `<Coffee>`, `<Laugh>`, `<Target>`, `<Lightbulb>`, `<GraduationCap>`).
+  - **Balanced Layout & Laser Bridge**: Symmetrical column heights, zero 100px+ voids, tightened bottom padding (`lg:pb-2`), seamlessly connecting to the Solaris Amber laser horizon bridge (`#f59e0b`).
+  - **Credit Synchronization**: Synchronized cost display to 8 credits (matching `credit-policy.ts`).
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors).
+
 
 ### 0. 🧭 Clean Compact Dock Sidebar, Floating Tooltips & Label Polish [COMPLETED]
 * **Floating Obsidian Glass Hover Tooltips**:
@@ -1527,6 +1752,15 @@
     * **Explore Tools Icon Fix (`src/app/not-found.tsx`)**: Replaced the random `Sparkles` icon on the `EXPLORE TOOLS` button with a dedicated `Compass` navigation icon with smooth hover rotation.
     * **Dev Server Clean Cache Purge**: Killed localhost server, purged `.next/cache`, and cleanly restarted Next.js Turbopack (`task-1270`). TypeScript check `npx tsc --noEmit` = 0 errors; HTTP 200 verified on `/careers`.
     * **Production Build Clean Pass**: Ran `npm run build` with Turbopack — all 117+ routes, tools, and endpoints compiled and generated static/dynamic bundles with 0 errors (Exit code 0). Staged and committed all sprint changes (`b2b63c0`) ready to push to GitHub.
+    * **Zero Tech Jargon Purge Across Tool Loading Screens**: Completely removed robotic AI jargon ("synthesizing artwork with neural guidance", "conditioning neural artwork on link matrix", "encoding link matrix into vector layout", "foley parsing", etc.) and replaced with 100% natural, human-friendly English ("Setting up your link...", "Drawing your custom art style...", "Blending artwork into your QR code...", "Checking camera readability...", "Your QR code is ready!", "Making your QR code beautiful and easy for phones to scan"). Cleaned all uppercase italic styling from modal headlines. Type check passed with 0 errors.
+    * **AI Social Media Caption Generator Studio Overhaul (`/tools/social-caption-generator`)**: Rebuilt the component into a balanced, dual-pane Creator Studio. Completely eliminated the giant empty right-hand void by introducing 4 zero-cost demonstration blueprints (Instagram Sunday Ritual, TikTok Relatable Founder, X Productivity Thread, LinkedIn Thought Leadership) and an interactive Live Post Simulator supporting real-time platform views (Instagram Post, Twitter/X Card, TikTok 9:16 vertical screen with floating metrics, and LinkedIn Executive Post). Purged all sparkle icons and tech jargon, synced with credit policy (6 credits with in-place refill modal), and added character limit trackers and quick topic inspiration chips. TypeScript compilation passed cleanly with 0 errors.
+    * **AI Content Detector Studio Overhaul (`/tools/ai-detector`)**: Replaced dated cyan/purple styling with signature Obsidian Gold / Solaris Amber AI category aesthetics (`#f59e0b` / `amber-400`). Rebuilt into a symmetrical dual-pane workspace eliminating the giant empty black void: Left pane features clipboard paste, 4 instant demonstration blueprints ($0 previews for AI Essay, Human Story, Hybrid Memo, Academic Paper), and a 100% Free instant scan button. Right pane features an interactive Authenticity Studio with primary AI Likelihood gauge, Human Flow score, AI clichés counter with detected buzzword pills, dual-mode sentence breakdown (`Sentence Highlights` with inline indicators and `Sentence Breakdown List` with individual sentence scores & friendly explanations), 1-click text copy, and seamless 1-click "Humanize This Text" piping directly into AI Humanizer. Purged all tech jargon ("perplexity", "burstiness", "heuristics") and all sparkle icons. TypeScript compilation clean with 0 errors.
+    * **Grammar & Style Checker Studio Overhaul (`/tools/grammar-checker`)**: Rebuilt the component with Nordic Emerald Productivity suite aesthetics (`#10b981` / `emerald-400` / `emerald-500`). Symmetrical dual-pane studio completely eliminates the empty black void: Left pane features clipboard paste, word & character counters, 4 editing tone styles (Standard Polish, Professional Business, Casual & Friendly, Academic), 4 instant demonstration blueprints ($0 client-side previews for Messy Client Email, Weak Resume Summary, Rambling Product Pitch, Academic Literature Draft), and 100% Free instant check button. Right pane features a Proofreading Report studio with writing quality gauge (98%), corrections counter, word economy tracker, triple-mode interactive results viewer (`Clean Polished Text` with 1-click copy, `Before vs After Diff` with strikethrough error comparisons, and `Fix Details Breakdown` with plain-English reasons), and 1-click direct workflow chaining into AI Humanizer. Purged all tech jargon and sparkle icons. TypeScript compilation verified with 0 errors.
+    * **Email Reply Generator Studio Overhaul (`/tools/email-reply-generator`)**: Rebuilt the component with Nordic Emerald Productivity suite aesthetics (`#10b981` / `emerald-400` / `emerald-500`). Symmetrical dual-pane studio completely eliminates the empty black void: Left pane features clipboard paste, word & character counters, 5 response intents (Accept & Proceed, Decline Politely, Gentle Follow-Up, Negotiate Offer, Provide Details), 5 tone presets (Professional, Friendly & Warm, Direct & Crisp, Firm & Confident, Formal & Courteous), key details notes input, 4 instant demonstration blueprints ($0 client-side previews for Polite Meeting Decline, Salary Negotiation, Gentle Follow-Up, and Project Kickoff Confirmation), and 100% Free instant draft button. Right pane features an interactive Email Compose Simulator mimicking a real inbox compose card (To:, Subject:, formatted email body, signature box), subject-only copy, body-only copy, full email copy, direct 1-click `mailto:` launch into desktop mail client, and 1-click pipeline chaining to AI Humanizer. Purged all sparkle icons and tech jargon. TypeScript compilation clean with 0 errors.
+
+
+
+
 
 
 ---

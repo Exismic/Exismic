@@ -10,7 +10,7 @@ import {
   Copy,
   Download,
   Loader2,
-  Sparkles,
+  Trophy,
   Send,
   X,
   Lock,
@@ -201,7 +201,7 @@ export function ResultRetentionBar({
         </div>
 
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
-          <Sparkles size={12} className="text-amber-300 shrink-0" />
+          <Trophy size={12} className="text-amber-300 shrink-0" />
           <span>Earn daily quest credits</span>
         </div>
       </div>
@@ -274,7 +274,7 @@ export function ResultRetentionBar({
 
         {isSaved && (
           <Link
-            href="/dashboard"
+            href="/library"
             className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-4 ml-auto"
           >
             View in Library &rarr;

@@ -541,7 +541,7 @@ export function BuyCreditsModal({
                                         GET {pack.displayCredits} • {priceLabel}
                                       </span>
                                       <span className={cn("block text-[9px] font-bold uppercase tracking-[0.14em]", pack.style.subtitleColor)}>
-                                        Card, UPI & Instant Checkout
+                                        {isIndia ? "Card, UPI & Instant Checkout" : "Cards, PayPal & Instant Checkout"}
                                       </span>
                                     </div>
                                   </div>
@@ -644,7 +644,7 @@ export function BuyCreditsModal({
                                     UPGRADE 1-MONTH • {isIndia ? "₹499" : "$6.99"}
                                   </span>
                                   <span className="block text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-cyan-300/90 truncate">
-                                    Card, UPI & Instant Activation
+                                    {isIndia ? "Card, UPI & Instant Activation" : "Cards, PayPal & Instant Activation"}
                                   </span>
                                 </div>
                               </div>
