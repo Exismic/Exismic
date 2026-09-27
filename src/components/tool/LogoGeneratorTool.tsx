@@ -42,13 +42,17 @@ import {
   Shirt,
   Monitor,
   Globe,
-  SlidersVertical
+  SlidersVertical,
+  Archive,
+  FolderArchive
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
 import axios from "axios";
 import { useCredits } from "@/hooks/useCredits";
 import { saveFileHistory } from "@/lib/history";
+import { generateStartupBrandKitZip } from "@/lib/brand-kit-generator";
 import { MediaPipelineBar } from "./MediaPipelineBar";
 import { ResultRetentionBar } from "./ResultRetentionBar";
 
@@ -271,6 +275,10 @@ export function LogoGeneratorTool() {
   const [isRemovingBg, setIsRemovingBg] = useState(false);
   const [bgRemovalEnabled, setBgRemovalEnabled] = useState(false);
 
+  // Brand Kit states
+  const [isBuildingBrandKit, setIsBuildingBrandKit] = useState(false);
+  const [showBrandKitModal, setShowBrandKitModal] = useState(false);
+
   // Decimal countdown timer
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | undefined;
@@ -403,6 +411,15 @@ export function LogoGeneratorTool() {
     setBgRemovalEnabled(false);
     showToast(`Loaded "${blueprint.brandName}" blueprint ($0 preview)`);
   };
+
+  const searchParams = useSearchParams();
+  const isBrandKitPack = searchParams?.get("pack") === "brand-kit";
+
+  useEffect(() => {
+    if (isBrandKitPack && results.length === 0 && INSTANT_BLUEPRINTS.length > 0) {
+      handleApplyBlueprint(INSTANT_BLUEPRINTS[0]);
+    }
+  }, [isBrandKitPack, results.length]);
 
   const onSubmit = async (data: LogoGeneratorOptions) => {
     if (!data.concept.trim()) {
@@ -679,6 +696,54 @@ export function LogoGeneratorTool() {
     showToast("SVG wrapper exported!");
   };
 
+  const handleBrandKitClick = async () => {
+    if (!logoToRender) return;
+    if (!isPro) {
+      setShowBrandKitModal(true);
+      return;
+    }
+    await executeBrandKitDownload();
+  };
+
+  const executeBrandKitDownload = async () => {
+    if (!logoToRender) return;
+    setIsBuildingBrandKit(true);
+    try {
+      const paletteObj = COLOR_PALETTES.find((p) => p.id === selectedPalette);
+      const primaryHex = paletteObj?.colors[0] || "#f59e0b";
+      const secondaryHex = paletteObj?.colors[1] || "#06b6d4";
+      const bgHex = selectedBg === "solid-light" ? "#f4f4f5" : selectedBg === "solid-dark" ? "#0c0d12" : "#0c0d12";
+
+      const zipBlob = await generateStartupBrandKitZip({
+        brandName: brandName || "Brand",
+        slogan: slogan || "",
+        imageUrl: logoToRender,
+        stylePreset: STYLE_PRESETS.find((s) => s.id === selectedStyle)?.name,
+        primaryColorHex: primaryHex,
+        secondaryColorHex: secondaryHex,
+        backgroundColorHex: bgHex,
+      });
+
+      const safeName = (brandName || "brand").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const blobUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${safeName}-startup-brand-kit.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+
+      showToast("Startup Brand Kit downloaded!");
+      setShowBrandKitModal(false);
+    } catch (err) {
+      console.error("Failed to build brand kit:", err);
+      showToast("Failed to compile Brand Kit. Please try again.");
+    } finally {
+      setIsBuildingBrandKit(false);
+    }
+  };
+
   const handleShufflePrompt = () => {
     const random = INSPIRATION_PROMPTS[Math.floor(Math.random() * INSPIRATION_PROMPTS.length)];
     setValue("concept", random);
@@ -688,6 +753,40 @@ export function LogoGeneratorTool() {
 
   return (
     <div className="w-full space-y-6 pb-6 lg:pb-2 text-left selection:bg-amber-500/30">
+      {isBrandKitPack && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-400/30 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_0_35px_rgba(245,158,11,0.15)]">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+              <FolderArchive className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                  Startup Brand Kit Mode
+                </h3>
+                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 font-bold">
+                  Ready to Export
+                </span>
+              </div>
+              <p className="text-xs text-zinc-300">
+                Loaded live brand parameters. Download the full kit: Scalable Vector SVG, 3 Transparent PNGs, Multi-size .ico Favicons, and Brand Guidelines PDF (.ZIP).
+              </p>
+            </div>
+          </div>
+          {logoToRender && (
+            <button
+              type="button"
+              onClick={handleBrandKitClick}
+              disabled={isBuildingBrandKit}
+              className="shrink-0 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-amber-950 font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg flex items-center gap-2 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{isBuildingBrandKit ? "Compiling..." : "Download Brand Kit (.ZIP)"}</span>
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start">
         
         {/* ========================================================================= */}
@@ -705,7 +804,7 @@ export function LogoGeneratorTool() {
               <div className="flex items-center gap-2">
                 <Stamp className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300/90">
-                  Logo Studio Config
+                  Logo Designer
                 </span>
               </div>
             </div>
@@ -954,7 +1053,7 @@ export function LogoGeneratorTool() {
 
             <div className="px-6 py-4 border-t border-amber-500/15 bg-white/[0.02] flex items-center justify-between">
               <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">
-                Exismic Brand Engine
+                Exismic Logo Studio
               </span>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
@@ -1239,7 +1338,7 @@ export function LogoGeneratorTool() {
                             </div>
                             <div className="text-right">
                               <span className="text-[9px] font-mono text-amber-400/90 uppercase tracking-wider font-bold">
-                                Exismic Vector Engine
+                                Vector Artwork
                               </span>
                               <p className="text-[8px] text-zinc-500 font-medium">1024 × 1024 px</p>
                             </div>
@@ -1322,10 +1421,32 @@ export function LogoGeneratorTool() {
                               <button
                                 type="button"
                                 onClick={handleExportSvg}
-                                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2"
+                                className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2"
                               >
                                 <Shapes className="w-3.5 h-3.5 text-amber-400" />
                                 Export Scalable SVG (Vector Wrapper)
+                              </button>
+
+                              {/* 1-Click Startup Brand Kit (.ZIP) Pro Moat */}
+                              <button
+                                type="button"
+                                onClick={handleBrandKitClick}
+                                disabled={isBuildingBrandKit}
+                                className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:brightness-110 text-amber-950 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-between shadow-lg cursor-pointer border border-amber-300/40 active:scale-[0.99] disabled:opacity-50"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  {isBuildingBrandKit ? (
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-950" />
+                                  ) : (
+                                    <Crown className="w-3.5 h-3.5 text-amber-950 fill-amber-950/20" />
+                                  )}
+                                  <span>
+                                    {isBuildingBrandKit ? "Building Brand Kit (.ZIP)..." : "Complete Brand Kit (.ZIP)"}
+                                  </span>
+                                </div>
+                                <span className="text-[8px] px-2 py-0.5 rounded-full bg-black/20 text-amber-950 font-black">
+                                  {isPro ? "1-Click Download" : "Exismic Pro"}
+                                </span>
                               </button>
                             </div>
                           </div>
@@ -1762,6 +1883,136 @@ export function LogoGeneratorTool() {
           >
             <Check className="w-3.5 h-3.5 text-amber-400" />
             <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Brand Kit Pro Modal */}
+      <AnimatePresence>
+        {showBrandKitModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+            onClick={() => setShowBrandKitModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg rounded-3xl bg-[#0c0d14] border border-amber-500/30 p-6 sm:p-7 shadow-[0_0_60px_rgba(245,158,11,0.15)] relative overflow-hidden space-y-6 text-left"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
+
+              {/* Title & Close */}
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <Crown className="w-4 h-4 fill-amber-400/20" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                      Startup Brand Kit (.ZIP)
+                    </h3>
+                    <p className="text-[10px] text-zinc-400">
+                      Everything needed to launch your brand across web, apps, and social
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowBrandKitModal(false)}
+                  className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* What is inside the Brand Kit */}
+              <div className="space-y-2.5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-400/90">
+                  Included in Your 1-Click Download
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <Shapes className="w-3.5 h-3.5 text-amber-400" />
+                      Scalable Vector (.SVG)
+                    </div>
+                    <p className="text-[10px] text-zinc-400">
+                      Infinitely scalable vector with clean shapes for web and high-res print.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+                      Transparent PNG Suite
+                    </div>
+                    <p className="text-[10px] text-zinc-400">
+                      3 ready-to-use resolutions: 512px, 1024px, and 2048px Ultra-HD.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <Globe className="w-3.5 h-3.5 text-amber-400" />
+                      Complete Favicon Pack
+                    </div>
+                    <p className="text-[10px] text-zinc-400">
+                      favicon.ico, apple-touch-icon (180px), 32×32, and 16×16 for all browsers.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <Smartphone className="w-3.5 h-3.5 text-amber-400" />
+                      Social Profile Avatars
+                    </div>
+                    <p className="text-[10px] text-zinc-400">
+                      Pre-formatted avatars for Twitter / X, YouTube, LinkedIn, and Instagram.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white">Official Brand Guidelines (PDF)</div>
+                      <div className="text-[10px] text-zinc-400">Exact hex color codes, typography recommendations, and logo clear-space rules.</div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                    PDF Included
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBrandKitModal(false);
+                    setShowUpsell(true);
+                  }}
+                  className="w-full sm:flex-1 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 hover:brightness-110 text-amber-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Crown className="w-4 h-4 text-amber-950 fill-amber-950/20" />
+                  <span>Unlock with Exismic Pro</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBrandKitModal(false)}
+                  className="w-full sm:w-auto py-3.5 px-5 rounded-2xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -19,11 +19,13 @@ import {
   Layers,
   Eye,
   Split,
-  Copy
+  Copy,
+  Crown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
+import { useCredits } from "@/hooks/useCredits";
 import { saveFileHistory } from "@/lib/history";
 import { detectCompressorCapabilities, processCompressLocally } from "@/lib/client-compressor";
 import { consumePipelineItem, pipelineUrlToFile } from "@/lib/pipeline";
@@ -214,6 +216,9 @@ function generateDemoImageFile(type: "landscape" | "portrait" | "graphic"): Prom
 }
 
 export function BulkImageCompressor() {
+  const { isPro, setShowUpsell } = useCredits();
+  const FREE_BATCH_LIMIT = 3;
+
   const [files, setFiles] = useState<CompressedFile[]>([]);
   const [quality, setQuality] = useState(80);
   const [maxWidth, setMaxWidth] = useState<number | "">("");
@@ -442,8 +447,12 @@ export function BulkImageCompressor() {
   };
 
   const compressAll = async () => {
-    setIsBulkProcessing(true);
     const idleFiles = files.filter(f => f.status === "idle" || f.status === "error");
+    if (!isPro && idleFiles.length > FREE_BATCH_LIMIT) {
+      setShowUpsell(true);
+      return;
+    }
+    setIsBulkProcessing(true);
     for (const file of idleFiles) {
       await compressFile(file);
     }
@@ -693,6 +702,28 @@ export function BulkImageCompressor() {
             {/* Queue Item List */}
             {files.length > 0 && (
               <div className="space-y-2.5 pt-1">
+                {/* Free Batch Limit Banner */}
+                {!isPro && files.length > FREE_BATCH_LIMIT && (
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                        <Crown className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">Free Batch Limit: 3 files</p>
+                        <p className="text-[10px] text-zinc-400">Upgrade to Pro to compress up to 50 files simultaneously in 1 click.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowUpsell(true)}
+                      className="shrink-0 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 text-[10px] font-black uppercase tracking-wider hover:brightness-110 transition shadow-sm cursor-pointer"
+                    >
+                      Unlock 50-File Batch Studio
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between text-xs font-bold text-zinc-400 px-1">
                   <span>Batch Queue ({files.length} items)</span>
                   <span className="text-[10px] font-mono text-zinc-500">Click photo to preview</span>

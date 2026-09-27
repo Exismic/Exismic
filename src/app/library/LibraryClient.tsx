@@ -10,7 +10,6 @@ import {
   Trash2,
   Search,
   Check,
-  Sparkles,
   Zap,
   Image as ImageIcon,
   FileText,
@@ -34,6 +33,8 @@ import {
   LayoutGrid,
   List,
   FolderOpen,
+  Folder,
+  FolderPlus,
   Palette,
   Share2,
 } from "lucide-react";
@@ -45,6 +46,7 @@ import { sendToTool } from "@/lib/pipeline";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
 import { MinecraftIcon } from "@/components/ui/MinecraftIcon";
 import { ResultFileType } from "@/lib/results";
+import { Portal } from "@/components/ui/Portal";
 
 interface DriveFile {
   id: string;
@@ -148,7 +150,40 @@ export function LibraryClient() {
   // Modals
   const [activeLightboxFile, setActiveLightboxFile] = useState<DriveFile | null>(null);
   const [showProModal, setShowProModal] = useState(false);
-  const [activeToolMenuFileId, setActiveToolMenuFileId] = useState<string | null>(null);
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [activeToolMenu, setActiveToolMenu] = useState<{ file: DriveFile; rect: DOMRect } | null>(null);
+
+  useEffect(() => {
+    const handleDismiss = () => setActiveToolMenu(null);
+    window.addEventListener("scroll", handleDismiss, { passive: true });
+    window.addEventListener("resize", handleDismiss, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleDismiss);
+      window.removeEventListener("resize", handleDismiss);
+    };
+  }, []);
+
+  // Project Folders State (Pillar 1.3)
+  const [projectFolders, setProjectFolders] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("exismic_vault_folders");
+      if (saved) {
+        try { return JSON.parse(saved); } catch {}
+      }
+    }
+    return ["My Startup", "Client Deliverables", "Social Content"];
+  });
+  const [selectedFolder, setSelectedFolder] = useState<string>("all");
+  const [fileFolderMap, setFileFolderMap] = useState<Record<string, string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("exismic_vault_file_folders");
+      if (saved) {
+        try { return JSON.parse(saved); } catch {}
+      }
+    }
+    return {};
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -382,9 +417,53 @@ export function LibraryClient() {
     }
   };
 
+  // Folder Handlers (Pillar 1.3)
+  const handleAssignFolder = (fileId: string, folderName: string) => {
+    setFileFolderMap((prev) => {
+      const next = { ...prev, [fileId]: folderName };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("exismic_vault_file_folders", JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  const handleCreateFolder = () => {
+    const trimmed = newFolderName.trim();
+    if (!trimmed) return;
+    if (projectFolders.includes(trimmed)) {
+      setShowCreateFolderModal(false);
+      setNewFolderName("");
+      return;
+    }
+    const updated = [...projectFolders, trimmed];
+    setProjectFolders(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("exismic_vault_folders", JSON.stringify(updated));
+    }
+    setShowCreateFolderModal(false);
+    setNewFolderName("");
+    setSelectedFolder(trimmed);
+  };
+
+  const handleNewFolderClick = () => {
+    if (!isPro) {
+      setShowProModal(true);
+      return;
+    }
+    setShowCreateFolderModal(true);
+  };
+
   // Filtered files calculation
   const filteredFiles = useMemo(() => {
     return files.filter((item) => {
+      // 1. Folder filter
+      if (selectedFolder !== "all") {
+        const assigned = fileFolderMap[item.id];
+        if (assigned !== selectedFolder) return false;
+      }
+
+      // 2. Category filter
       const t = item.toolType.toLowerCase();
 
       if (selectedCategory === "art") {
@@ -408,7 +487,7 @@ export function LibraryClient() {
 
       return true;
     });
-  }, [files, selectedCategory, searchQuery]);
+  }, [files, selectedCategory, searchQuery, selectedFolder, fileFolderMap]);
 
   // Performance Pagination: Initial 24 items, expanding on demand
   const [displayCount, setDisplayCount] = useState(24);
@@ -603,6 +682,69 @@ export function LibraryClient() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 2.5 Persistent Project Folders Deck (Pillar 1.3) */}
+      <div className="rounded-2xl bg-[#090a16]/80 border border-white/10 p-3 sm:p-4 space-y-3 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+            <Folder className="w-4 h-4 text-cyan-400" />
+            <span>Project Folders</span>
+            {!isPro && (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 font-black">
+                Exismic Pro
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleNewFolderClick}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-cyan-400" />
+            <span>New Folder</span>
+          </button>
+        </div>
+
+        {/* Folder Pills Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setSelectedFolder("all")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-tight flex items-center gap-2 shrink-0 transition cursor-pointer",
+              selectedFolder === "all"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-xs"
+                : "bg-black/30 border border-white/5 text-zinc-400 hover:text-white"
+            )}
+          >
+            <FolderOpen className="w-3.5 h-3.5" />
+            <span>All Assets</span>
+            <span className="text-[10px] text-zinc-500 font-mono">({files.length})</span>
+          </button>
+
+          {projectFolders.map((folder) => {
+            const count = files.filter((f) => fileFolderMap[f.id] === folder).length;
+            const isSelected = selectedFolder === folder;
+            return (
+              <button
+                key={folder}
+                type="button"
+                onClick={() => setSelectedFolder(folder)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-tight flex items-center gap-2 shrink-0 transition cursor-pointer group",
+                  isSelected
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-xs"
+                    : "bg-black/30 border border-white/5 text-zinc-400 hover:text-white"
+                )}
+              >
+                <Folder className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{folder}</span>
+                <span className="text-[10px] text-zinc-500 font-mono">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* 3. Controls & Filter Bar */}
       <div className="flex flex-col gap-3.5 md:flex-row md:items-center md:justify-between">
@@ -923,73 +1065,29 @@ export function LibraryClient() {
                       </button>
 
                       {/* Tool Handoff Dropdown Trigger */}
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveToolMenuFileId(activeToolMenuFileId === file.id ? null : file.id);
-                          }}
-                          className="flex h-6 items-center gap-1 rounded-lg border border-purple-500/30 bg-purple-500/20 px-2 text-[10px] font-bold text-purple-200 backdrop-blur-md hover:bg-purple-500/30"
-                          title="Pipe into companion tool"
-                        >
-                          <Zap size={10} className="text-purple-300" />
-                          <span>Open in...</span>
-                          <ChevronDown size={9} />
-                        </button>
-
-                        {/* Interactive Handoff Menu */}
-                        {activeToolMenuFileId === file.id && (
-                          <div
-                            onClick={(e) => e.stopPropagation()}
-                            className="absolute bottom-full right-0 mb-1.5 w-44 rounded-xl border border-white/15 bg-[#121326] p-1.5 shadow-2xl backdrop-blur-2xl z-30"
-                          >
-                            <p className="px-2 py-1 text-[9px] font-black uppercase tracking-wider text-zinc-500">
-                              Pipe into Tool
-                            </p>
-                            <button
-                              type="button"
-                              onClick={(e) => handlePipeToTool(file, "/tools/image/eraser", e)}
-                              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
-                            >
-                              <Scissors size={12} className="text-emerald-400" />
-                              <span>Remove Background</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => handlePipeToTool(file, "/tools/meme-generator", e)}
-                              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
-                            >
-                              <Smile size={12} className="text-amber-400" />
-                              <span>Turn into Meme</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => handlePipeToTool(file, "/tools/image/resizer", e)}
-                              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
-                            >
-                              <Maximize2 size={12} className="text-cyan-400" />
-                              <span>Resize & Crop</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => handlePipeToTool(file, "/tools/image/compressor", e)}
-                              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
-                            >
-                              <Zap size={12} className="text-purple-400" />
-                              <span>Compress File</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => handlePipeToTool(file, "/tools/image/converter", e)}
-                              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white"
-                            >
-                              <RefreshCw size={12} className="text-blue-400" />
-                              <span>Convert Format</span>
-                            </button>
-                          </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          if (activeToolMenu?.file.id === file.id) {
+                            setActiveToolMenu(null);
+                          } else {
+                            setActiveToolMenu({ file, rect });
+                          }
+                        }}
+                        className={cn(
+                          "flex h-6 items-center gap-1 rounded-lg border px-2 text-[10px] font-bold backdrop-blur-md transition-all cursor-pointer",
+                          activeToolMenu?.file.id === file.id
+                            ? "border-purple-400 bg-purple-500/40 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)]"
+                            : "border-purple-500/30 bg-purple-500/20 text-purple-200 hover:bg-purple-500/30"
                         )}
-                      </div>
+                        title="Open in companion tool"
+                      >
+                        <Zap size={10} className="text-purple-300" />
+                        <span>Open in...</span>
+                        <ChevronDown size={9} />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1109,6 +1207,116 @@ export function LibraryClient() {
         </div>
       )}
 
+      {/* Tool Handoff Portal Popover Menu (Zero-Clipping Architecture) */}
+      {activeToolMenu && (
+        <Portal>
+          {/* Click-outside backdrop */}
+          <div 
+            className="fixed inset-0 z-[99998] bg-transparent"
+            onClick={() => setActiveToolMenu(null)}
+            onContextMenu={() => setActiveToolMenu(null)}
+          />
+          
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              top: activeToolMenu.rect.top > 230 
+                ? activeToolMenu.rect.top - 215 
+                : activeToolMenu.rect.bottom + 6,
+              left: typeof window !== "undefined"
+                ? Math.min(window.innerWidth - 208, Math.max(16, activeToolMenu.rect.right - 192))
+                : activeToolMenu.rect.left,
+              zIndex: 99999,
+            }}
+            className="w-48 rounded-2xl border-2 border-white/[0.12] bg-[#0c0d18]/95 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.85),0_0_30px_rgba(168,85,247,0.2)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150"
+          >
+            {/* Menu Header with Category Badge */}
+            <div className="flex items-center justify-between px-2 py-1.5 mb-1 border-b border-white/[0.08]">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                Open in Tool
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                Handoff
+              </span>
+            </div>
+
+            {/* Menu Options */}
+            <div className="space-y-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  handlePipeToTool(activeToolMenu.file, "/tools/image/eraser", e);
+                  setActiveToolMenu(null);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer group"
+              >
+                <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Scissors size={13} />
+                </div>
+                <span>Remove Background</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  handlePipeToTool(activeToolMenu.file, "/tools/meme-generator", e);
+                  setActiveToolMenu(null);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer group"
+              >
+                <div className="p-1 rounded-lg bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
+                  <Smile size={13} />
+                </div>
+                <span>Turn into Meme</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  handlePipeToTool(activeToolMenu.file, "/tools/image/resizer", e);
+                  setActiveToolMenu(null);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer group"
+              >
+                <div className="p-1 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:scale-110 transition-transform">
+                  <Maximize2 size={13} />
+                </div>
+                <span>Resize & Crop</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  handlePipeToTool(activeToolMenu.file, "/tools/image/compressor", e);
+                  setActiveToolMenu(null);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer group"
+              >
+                <div className="p-1 rounded-lg bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
+                  <Zap size={13} />
+                </div>
+                <span>Compress File</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  handlePipeToTool(activeToolMenu.file, "/tools/image/converter", e);
+                  setActiveToolMenu(null);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer group"
+              >
+                <div className="p-1 rounded-lg bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
+                  <RefreshCw size={13} />
+                </div>
+                <span>Convert Format</span>
+              </button>
+            </div>
+          </div>
+        </Portal>
+      )}
+
       {/* 6. Lightbox Preview Modal */}
       <AnimatePresence>
         {activeLightboxFile && (
@@ -1208,14 +1416,101 @@ export function LibraryClient() {
                   </button>
                 </div>
 
-                {/* Direct Download Button */}
+                {/* Folder Selector & Direct Download */}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5">
+                    <Folder size={13} className="text-cyan-400" />
+                    <span className="text-[10px] text-zinc-400 font-bold uppercase">Folder:</span>
+                    <select
+                      value={fileFolderMap[activeLightboxFile.id] || ""}
+                      onChange={(e) => handleAssignFolder(activeLightboxFile.id, e.target.value)}
+                      className="bg-transparent text-xs text-white outline-none cursor-pointer font-medium"
+                    >
+                      <option value="" className="bg-[#0c0d14] text-zinc-400">Unorganized</option>
+                      {projectFolders.map((f) => (
+                        <option key={f} value={f} className="bg-[#0c0d14] text-white">📁 {f}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDirectDownload(activeLightboxFile)}
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 px-5 py-2 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:brightness-110"
+                  >
+                    <Download size={14} />
+                    <span>Download Clean File</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Project Folder Modal */}
+      <AnimatePresence>
+        {showCreateFolderModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => setShowCreateFolderModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl bg-[#0c0d14] border border-cyan-500/30 p-6 shadow-2xl space-y-5 text-left"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <div className="flex items-center gap-2">
+                  <FolderPlus className="w-4 h-4 text-cyan-400" />
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                    New Project Folder
+                  </h3>
+                </div>
                 <button
                   type="button"
-                  onClick={() => handleDirectDownload(activeLightboxFile)}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 px-5 py-2 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:brightness-110"
+                  onClick={() => setShowCreateFolderModal(false)}
+                  className="p-1 text-zinc-400 hover:text-white"
                 >
-                  <Download size={14} />
-                  <span>Download Clean File</span>
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-zinc-300 font-bold">Folder Name</label>
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="e.g. My Startup, YouTube Channel, Client Alpha"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-400"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreateFolder();
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCreateFolder}
+                  disabled={!newFolderName.trim()}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white text-xs font-bold uppercase tracking-wider hover:brightness-110 disabled:opacity-50 transition cursor-pointer"
+                >
+                  Create Folder
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateFolderModal(false)}
+                  className="py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                >
+                  Cancel
                 </button>
               </div>
             </motion.div>

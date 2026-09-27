@@ -63,16 +63,22 @@ export const PRICING_CONFIG = {
 export function getIsIndia() {
   if (typeof window === "undefined") return false;
 
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const locale = navigator.language || "";
-  const locales = Array.isArray(navigator.languages) ? navigator.languages.join(",") : locale;
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const locale = navigator.language || "";
+    const locales = Array.isArray(navigator.languages) ? navigator.languages.join(",") : locale;
+    const offset = new Date().getTimezoneOffset();
 
-  return (
-    timezone === "Asia/Kolkata" ||
-    timezone === "Asia/Calcutta" ||
-    /(^|[-_,])IN($|[-_,])/i.test(locale) ||
-    /(^|[-_,])IN($|[-_,])/i.test(locales)
-  );
+    return (
+      timezone === "Asia/Kolkata" ||
+      timezone === "Asia/Calcutta" ||
+      offset === -330 ||
+      /(^|[-_,])IN($|[-_,])/i.test(locale) ||
+      /(^|[-_,])IN($|[-_,])/i.test(locales)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function formatPrice(amount: number, currency: 'USD' | 'INR') {

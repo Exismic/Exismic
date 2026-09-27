@@ -73,6 +73,25 @@
     100% { background-position: 32px 0; }
   }
 
+  @keyframes spin-smooth {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes laser-dash {
+    0% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -240; }
+  }
+
+  @keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes shimmer-sweep {
+    0% { transform: translateX(-150%) skewX(-20deg); }
+    35%, 100% { transform: translateX(200%) skewX(-20deg); }
+  }
+
   --animate-shimmer: shimmer 8s infinite linear;
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
@@ -81,9 +100,26 @@
   --animate-scanline: scanline 8s linear infinite;
   --animate-gradient-x: gradient-x 3s ease infinite;
   --animate-marquee: marquee 25s linear infinite;
+  --animate-spin-smooth: spin-smooth 3.5s linear infinite;
+  --animate-gradient-flow: gradient-flow 5s ease infinite;
+  --animate-shimmer-sweep: shimmer-sweep 3.5s infinite ease-in-out;
 
   --font-sans: var(--font-inter), sans-serif;
   --font-outfit: var(--font-outfit), sans-serif;
+}
+
+.animate-spin-smooth {
+  animation: spin-smooth 3.5s linear infinite;
+}
+.animate-laser-dash {
+  animation: laser-dash 2.5s linear infinite;
+}
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 5s ease infinite;
+}
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 3.5s infinite ease-in-out;
 }
 
 :root {

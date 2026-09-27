@@ -901,7 +901,7 @@ export default function HelpPage() {
                   <Crown size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-tight text-white">{activeIsPro ? "Pro VIP Active" : "Free Plan"}</p>
+                  <p className="text-xs font-black uppercase tracking-tight text-white">{activeIsPro ? "Pro Active" : "Free Plan"}</p>
                   <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">{activeIsPro ? "500 Daily Credits" : "50 Daily Credits"}</p>
                 </div>
               </div>

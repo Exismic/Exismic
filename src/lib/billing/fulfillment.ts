@@ -348,6 +348,17 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
           amount: commissionCredits,
         };
       }
+
+      // Mark referral status as upgraded if a Pro plan was purchased
+      if (isProPlan && referral.status !== "upgraded") {
+        await tx.referral.update({
+          where: { id: referral.id },
+          data: {
+            status: "upgraded",
+            rewardClaimed: true,
+          },
+        });
+      }
     }
 
     return {

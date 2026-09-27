@@ -2,6 +2,7 @@ import { constructMetadata, SITE_URL } from "@/lib/seo";
 import QRCodeGenerator from "./QrCodeClient";
 import { Metadata } from "next";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
+import { Suspense } from "react";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free Custom QR Code Generator with Logo | Exismic",
@@ -18,7 +19,9 @@ export default function Page() {
       customTitle="QR Code Studio"
       customDescription="Generate customized high-resolution QR codes with custom colors, logos, and instant PNG downloads."
     >
-      <QRCodeGenerator />
+      <Suspense fallback={<div className="min-h-[400px]" />}>
+        <QRCodeGenerator />
+      </Suspense>
     </ToolPageShell>
   );
 }

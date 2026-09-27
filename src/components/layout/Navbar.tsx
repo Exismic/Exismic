@@ -6,7 +6,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Session } from "@supabase/supabase-js";
 import { 
-  Sparkles, 
+  Wand2, 
+  Compass,
   Search, 
   Crown, 
   LogIn, 
@@ -217,9 +218,9 @@ export function Navbar() {
 
   const loggedOutLinks: NavLink[] = [
     { name: "Tools", href: "/tools" },
-    { name: "Shop", href: "/shop" },
+    { name: "Workflows", href: "/#workflows" },
     { name: "Pro", href: "/pro" },
-    { name: "Blog", href: "/blog" },
+    { name: "FAQ", href: "/#faq" },
   ];
 
   const navLinks = authUser ? loggedInLinks : loggedOutLinks;
@@ -236,6 +237,10 @@ export function Navbar() {
         return LayoutDashboard;
       case "Tools":
         return FolderOpen;
+      case "Workflows":
+        return Compass;
+      case "FAQ":
+        return HelpCircle;
       case "Rewards":
         return Star;
       case "AI Chat":
@@ -243,13 +248,14 @@ export function Navbar() {
       case "Shop":
         return Coins;
       case "Explore":
-        return Sparkles;
+        return Compass;
       case "Pricing":
-        return CreditCard;
+      case "Pro":
+        return Crown;
       case "Blog":
         return BookOpen;
       default:
-        return Sparkles;
+        return LayoutGrid;
     }
   };
 
@@ -378,6 +384,7 @@ export function Navbar() {
                   {/* 1. Tools */}
                   <Link 
                     href="/tools" 
+                    prefetch={true}
                     onMouseEnter={() => setHoveredNavTab("tools")}
                     className={cn(
                       "group/item relative flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 select-none z-10",
@@ -422,6 +429,7 @@ export function Navbar() {
                   {/* 3. Pro */}
                   <Link 
                     href="/pro" 
+                    prefetch={true}
                     onMouseEnter={() => setHoveredNavTab("pro")}
                     className={cn(
                       "group/pro relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 select-none z-10",
@@ -539,16 +547,16 @@ export function Navbar() {
                             <div className="space-y-4">
                               <div className="text-[10px] font-black tracking-widest text-accent-purple uppercase pl-2">Creative AI Suite</div>
                               <div className="space-y-1">
-                                <Link href="/tools/ai/img-gen" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
+                                <Link href="/tools/ai/img-gen" prefetch={true} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
                                   <div className="w-9 h-9 rounded-xl bg-accent-purple/10 flex items-center justify-center text-accent-purple group-hover:bg-accent-purple group-hover:text-white transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-                                    <Sparkles size={16} />
+                                    <Wand2 size={16} />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="text-xs font-black text-white italic">AI Image Generator</div>
                                     <div className="text-[10px] text-zinc-500 line-clamp-1">Create stunning 4K AI art</div>
                                   </div>
                                 </Link>
-                                <Link href="/tools/image/eraser" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
+                                <Link href="/tools/image/eraser" prefetch={true} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
                                   <div className="w-9 h-9 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]">
                                     <FolderOpen size={16} />
                                   </div>
@@ -563,7 +571,7 @@ export function Navbar() {
                             <div className="space-y-4">
                               <div className="text-[10px] font-black tracking-widest text-accent-cyan uppercase pl-2">Developer Tools</div>
                               <div className="space-y-1">
-                                <Link href="/tools/developer/json-to-types" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
+                                <Link href="/tools/developer/json-to-types" prefetch={true} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
                                   <div className="w-9 h-9 rounded-xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover:bg-accent-cyan group-hover:text-black transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]">
                                     <Code2 size={16} />
                                   </div>
@@ -572,7 +580,7 @@ export function Navbar() {
                                     <div className="text-[10px] text-zinc-500 line-clamp-1">TypeScript & interface generator</div>
                                   </div>
                                 </Link>
-                                <Link href="/chat" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
+                                <Link href="/chat" prefetch={true} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all group">
                                   <div className="w-9 h-9 rounded-xl bg-accent-purple/10 flex items-center justify-center text-accent-purple group-hover:bg-accent-purple group-hover:text-white transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]">
                                     <MessageSquare size={16} />
                                   </div>
@@ -594,6 +602,7 @@ export function Navbar() {
                   <Link 
                     key={link.href} 
                     href={link.href}
+                    prefetch={true}
                     className={cn(
                       "group/item relative flex h-11 min-w-11 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.13em] transition-all duration-300 xl:px-4",
                       isActive ? "text-white" : "text-zinc-400 hover:bg-white/[0.045] hover:text-white"
@@ -631,6 +640,7 @@ export function Navbar() {
                 {/* 1. Ultra Luxury Cyber Credit Vault Pill */}
                 <Link
                   href="/shop"
+                  prefetch={true}
                   title="Open Credit Vault & Claim Daily Bonus"
                   className={cn(
                     "group/vault relative flex h-10 cursor-pointer items-center rounded-full p-[1px] select-none isolate transition-all duration-500 hover:scale-[1.03] active:scale-95 touch-manipulation notranslate",
@@ -1077,7 +1087,7 @@ export function Navbar() {
                                   </span>
                                 )}
                               </button>
-                              <Link href="/shop" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
+                              <Link href="/shop" prefetch={true} onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-300 hover:text-white hover:bg-amber-400/10 transition-all text-xs font-black uppercase tracking-wider">
                                 <Coins size={14} className="text-amber-400" />
                                 <span>Credit Vault</span>
                                 <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
@@ -1094,13 +1104,14 @@ export function Navbar() {
                                 <span>Redeem Code / Voucher</span>
                                 <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
                               </button>
-                              <Link href="/account/settings" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
+                              <Link href="/account/settings" prefetch={true} onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-wider">
                                 <Settings size={14} />
                                 <span>Account Settings</span>
                               </Link>
                               {isAdmin && (
                                 <Link 
                                   href="/admin" 
+                                  prefetch={true}
                                   onClick={() => setUserDropdownOpen(false)} 
                                   className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-300 hover:text-white bg-gradient-to-r from-rose-500/[0.08] to-transparent hover:from-rose-500/20 hover:to-rose-500/5 border border-rose-500/20 hover:border-rose-400/40 transition-all text-xs font-black uppercase tracking-wider text-left group/admin shadow-[0_0_15px_rgba(244,63,94,0.06)] hover:shadow-[0_0_25px_rgba(244,63,94,0.2)]"
                                 >
@@ -1122,7 +1133,7 @@ export function Navbar() {
                                   <span>Manage Subscription</span>
                                 </button>
                               ) : (
-                                <Link href="/pro" onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-accent-purple hover:text-white hover:bg-accent-purple/10 transition-all text-xs font-black uppercase tracking-wider">
+                                <Link href="/pro" prefetch={true} onClick={() => setUserDropdownOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-accent-purple hover:text-white hover:bg-accent-purple/10 transition-all text-xs font-black uppercase tracking-wider">
                                   <Crown size={14} />
                                   <span>Upgrade to Pro</span>
                                 </Link>
@@ -1157,13 +1168,14 @@ export function Navbar() {
                 {/* Clean, Refined Log In Link */}
                 <Link 
                   href="/auth/login" 
+                  prefetch={true}
                   className="px-3.5 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-all tracking-wide cursor-pointer"
                 >
                   Log in
                 </Link>
 
                 {/* Jewel CTA: Try for Free */}
-                <Link href="/tools" className="group/tryfree relative select-none">
+                <Link href="/tools" prefetch={true} className="group/tryfree relative select-none">
                   {/* Soft Ambient Halo */}
                   <div className="pointer-events-none absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-500 opacity-35 blur-[10px] group-hover/tryfree:opacity-75 group-hover/tryfree:blur-[14px] transition-all duration-300" />
                   
@@ -1173,7 +1185,7 @@ export function Navbar() {
                       {/* Smooth Light Sweep */}
                       <div className="pointer-events-none absolute inset-y-0 -left-12 w-8 skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/30 to-transparent blur-[1px] group-hover/tryfree:translate-x-44 transition-transform duration-700 ease-out" />
                       
-                      <span className="tracking-wide">Try for Free</span>
+                      <span className="tracking-wide">Start creating</span>
                       <ArrowRight size={13} className="group-hover/tryfree:translate-x-0.5 transition-transform duration-200" />
                     </button>
                   </div>
@@ -1278,6 +1290,7 @@ export function Navbar() {
                   <div className="grid grid-cols-2 gap-2">
                     <Link
                       href="/tools"
+                      prefetch={true}
                       onClick={() => setMobileNavOpen(false)}
                       className="flex flex-col p-3 rounded-2xl bg-purple-500/[0.08] border border-purple-500/20 active:bg-purple-500/20 transition-all"
                     >
@@ -1293,6 +1306,7 @@ export function Navbar() {
 
                     <Link
                       href="/pro"
+                      prefetch={true}
                       onClick={() => setMobileNavOpen(false)}
                       className="flex flex-col p-3 rounded-2xl bg-amber-500/[0.08] border border-amber-500/20 active:bg-amber-500/20 transition-all"
                     >
@@ -1312,22 +1326,25 @@ export function Navbar() {
                       type="button"
                       onClick={() => {
                         setMobileNavOpen(false);
-                        handleScrollTo("explore");
+                        handleScrollTo("workflows");
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] text-left text-xs font-semibold text-zinc-300 transition-colors"
                     >
-                      <Zap size={16} className="text-cyan-400" />
-                      <span>Featured Showcase</span>
+                      <Compass size={16} className="text-amber-400" />
+                      <span>Curated Workflows</span>
                     </button>
 
-                    <Link
-                      href="/shop"
-                      onClick={() => setMobileNavOpen(false)}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileNavOpen(false);
+                        handleScrollTo("tools");
+                      }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] text-left text-xs font-semibold text-zinc-300 transition-colors"
                     >
-                      <Coins size={16} className="text-cyan-300" />
-                      <span>Credit Vault</span>
-                    </Link>
+                      <LayoutGrid size={16} className="text-cyan-400" />
+                      <span>Explore Tools</span>
+                    </button>
 
                     <button
                       type="button"
@@ -1345,6 +1362,7 @@ export function Navbar() {
                   <div className="pt-2 flex flex-col gap-2">
                     <Link
                       href="/auth/login"
+                      prefetch={true}
                       onClick={() => setMobileNavOpen(false)}
                       className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-center text-xs font-bold text-white transition-all"
                     >
@@ -1352,6 +1370,7 @@ export function Navbar() {
                     </Link>
                     <Link
                       href="/tools"
+                      prefetch={true}
                       onClick={() => setMobileNavOpen(false)}
                       className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-center text-xs font-bold text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all flex items-center justify-center gap-2"
                     >

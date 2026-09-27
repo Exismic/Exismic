@@ -249,7 +249,7 @@ export function ManageSubscriptionModal({
                 )}
                 <div className="min-w-0">
                   <h2 id="membership-modal-title" className="truncate text-sm font-black tracking-[-0.01em] text-white">
-                    {step === "overview" && (isYearly ? "Exismic Pro (Annual VIP)" : "Exismic Pro (Monthly)")}
+                    {step === "overview" && (isYearly ? "Exismic Pro (Annual)" : "Exismic Pro (Monthly)")}
                     {step === "loss_summary" && "Before you cancel..."}
                     {step === "survey" && "Help us improve"}
                     {step === "save_offer" && "Special Pro Offer"}

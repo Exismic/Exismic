@@ -80,7 +80,7 @@ export function InteractivePlayground() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState(0);
-  const [showResult, setShowResult] = useState(false);
+  const [showResult, setShowResult] = useState(true);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   // Background Remover State
@@ -194,7 +194,7 @@ export function InteractivePlayground() {
     if (isGenerating) return;
     setSelectedPromptIdx(idx);
     setCustomPromptText(PRESET_PROMPTS[idx].text);
-    setShowResult(false);
+    setShowResult(true);
   };
 
   // Copy prompt
@@ -469,19 +469,19 @@ export function InteractivePlayground() {
               className="p-4 sm:p-6 md:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start"
             >
               {/* Left Controls Panel */}
-              <div className="lg:col-span-6 space-y-6 flex flex-col justify-between h-full">
-                <div className="space-y-5">
+              <div className="lg:col-span-6 space-y-4">
+                <div className="space-y-4">
                   
                   {/* Prompt Showcase Box */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-purple-400 flex items-center gap-1.5">
-                        <Wand2 size={12} /> Sandbox Sample Prompt
+                        <Wand2 size={12} /> Sample Inspiration Prompt
                       </label>
                       <span className="text-[9px] font-mono text-zinc-500">Preset Prompt</span>
                     </div>
 
-                    <div className="relative bg-zinc-950/70 border border-white/[0.08] rounded-2xl p-4 min-h-[90px] flex items-center justify-between gap-3">
+                    <div className="relative bg-zinc-950/70 border border-white/[0.08] rounded-2xl p-4 min-h-[85px] flex items-center justify-between gap-3">
                       <p className="text-xs sm:text-sm text-white font-medium leading-relaxed pr-12">
                         "{PRESET_PROMPTS[selectedPromptIdx].text}"
                       </p>
@@ -497,22 +497,22 @@ export function InteractivePlayground() {
                   </div>
 
                   {/* Quick Preset Prompts */}
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                        Select Inspiration Preset
+                        Choose a Scene
                       </span>
                       <span className="text-[9px] font-semibold text-zinc-500">Click to switch</span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-3 gap-2">
                       {PRESET_PROMPTS.map((preset, idx) => (
                         <button
                           key={idx}
                           onClick={() => handleSelectPreset(idx)}
                           disabled={isGenerating}
                           className={cn(
-                            "p-3 rounded-2xl border text-left transition-all duration-200 group flex flex-col justify-between h-20 cursor-pointer",
+                            "p-2.5 sm:p-3 rounded-2xl border text-left transition-all duration-200 group flex flex-col justify-between h-18 sm:h-20 cursor-pointer",
                             selectedPromptIdx === idx 
                               ? "bg-purple-500/15 border-purple-500/50 text-white shadow-[0_4px_20px_rgba(168,85,247,0.2)] scale-[1.02]" 
                               : "bg-zinc-950/40 border-white/[0.04] text-zinc-400 hover:border-white/10 hover:text-zinc-200 hover:bg-white/[0.02]"
@@ -530,23 +530,68 @@ export function InteractivePlayground() {
                     </div>
                   </div>
 
+                  {/* Style & Format Options (Fills space productively) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
+                        Visual Style & Ratio
+                      </span>
+                      <span className="text-[9px] font-mono text-purple-400 font-bold">{selectedStyle} • {selectedAspect}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {["Cinematic", "Photoreal", "Anime", "Cyberpunk"].map((style) => (
+                        <button
+                          key={style}
+                          type="button"
+                          onClick={() => setSelectedStyle(style)}
+                          className={cn(
+                            "px-2.5 py-1 rounded-xl border text-[10px] font-bold transition-all cursor-pointer",
+                            selectedStyle === style
+                              ? "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-sm"
+                              : "bg-zinc-950/40 border-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.02]"
+                          )}
+                        >
+                          {style}
+                        </button>
+                      ))}
+                      <div className="h-4 w-px bg-white/10 mx-1 hidden sm:block" />
+                      {["1:1", "16:9"].map((ratio) => (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() => setSelectedAspect(ratio)}
+                          className={cn(
+                            "px-2.5 py-1 rounded-xl border text-[10px] font-mono font-bold transition-all cursor-pointer",
+                            selectedAspect === ratio
+                              ? "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-sm"
+                              : "bg-zinc-950/40 border-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.02]"
+                          )}
+                        >
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
 
                 {/* Generate Action Button */}
-                <button
-                  onClick={handleStartGeneration}
-                  disabled={isGenerating}
-                  className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:brightness-110 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 shadow-[0_15px_35px_rgba(124,58,237,0.35)] relative overflow-hidden group cursor-pointer mt-4"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  <Wand2 size={16} className={isGenerating ? "animate-spin" : "group-hover:rotate-12 transition-transform"} />
-                  <span>{isGenerating ? "Creating Artwork..." : "Generate AI Artwork"}</span>
-                </button>
+                <div className="pt-1">
+                  <button
+                    onClick={handleStartGeneration}
+                    disabled={isGenerating}
+                    className="w-full h-13 sm:h-14 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:brightness-110 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 shadow-[0_15px_35px_rgba(124,58,237,0.35)] relative overflow-hidden group cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <Wand2 size={16} className={isGenerating ? "animate-spin" : "group-hover:rotate-12 transition-transform"} />
+                    <span>{isGenerating ? "Creating Artwork..." : "Generate AI Artwork"}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Right Output Preview Canvas */}
-              <div className="lg:col-span-6 flex flex-col items-center justify-center min-h-[420px]">
-                <div className="aspect-square w-full max-w-[440px] rounded-3xl bg-zinc-950/80 border border-white/[0.08] overflow-hidden relative flex items-center justify-center shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.05)] group">
+              <div className="lg:col-span-6 flex flex-col items-center justify-center">
+                <div className="aspect-square w-full max-w-[400px] rounded-3xl bg-zinc-950/80 border border-white/[0.08] overflow-hidden relative flex items-center justify-center shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.05)] group">
                   
                   {/* Subtle Grid Lines Overlay */}
                   <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />

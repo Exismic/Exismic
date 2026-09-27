@@ -5,12 +5,19 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { Metadata } from "next";
 
 export async function generateCategoryToolMetadata(category: string, toolId: string): Promise<Metadata> {
+  if (category === "ai" && (toolId === "landing-page" || toolId === "landing-page-generator")) {
+    return getToolMetadata("landing-page-generator", "ai");
+  }
   return getToolMetadata(toolId, category);
 }
 
 export async function renderCategoryToolPage(categoryId: string, toolId: string) {
   if (categoryId === "ai" && (toolId === "chat" || toolId === "ai-chat")) {
     permanentRedirect("/chat");
+  }
+
+  if (categoryId === "ai" && (toolId === "landing-page" || toolId === "landing-page-generator")) {
+    permanentRedirect("/tools/landing-page-generator");
   }
   
   const tool = TOOLS.find(t => t.id === toolId || t.id === `${categoryId}-${toolId}`);

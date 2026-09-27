@@ -31,7 +31,7 @@ export function useRequireAuth() {
 
   const redirectToLogin = (message?: string) => {
     const returnUrl = encodeURIComponent(pathname + (searchParams.toString() ? `?${searchParams.toString()}` : ""));
-    const msg = message || "Login required to use Pro tools and credits system";
+    const msg = message || "Please log in to continue";
     router.push(`/auth/login?returnUrl=${returnUrl}&message=${encodeURIComponent(msg)}`);
   };
 

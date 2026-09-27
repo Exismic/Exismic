@@ -33,8 +33,8 @@ import {
   WandSparkles,
   Zap,
   BadgePercent,
-  Diamond,
   Tag,
+  Layers,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -61,45 +61,69 @@ const OUTCOMES = [
 const CREATOR_BENEFITS = [
   {
     icon: ImageDown,
+    tag: "Ultra-HD",
     title: "4K-ready exports",
     description: "Keep detail intact when supported tools produce high-resolution output.",
-    tone: "border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-200",
-    glow: "bg-cyan-500/30",
+    badgeStyle: "border-cyan-400/40 bg-cyan-500/10 text-cyan-300",
+    iconColor: "text-cyan-400",
+    glow: "bg-cyan-500/25",
+    cardBorder: "hover:border-cyan-400/50 hover:shadow-[0_0_35px_rgba(6,182,212,0.2)]",
+    spinConic: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(6,182,212,0.6)_25%,transparent_50%)]"
   },
   {
     icon: Palette,
+    tag: "Personalization",
     title: "A workspace that feels yours",
     description: "Exclusive themes, avatar frames, and animated identity styles.",
-    tone: "border-fuchsia-300/20 bg-fuchsia-300/[0.06] text-fuchsia-200",
-    glow: "bg-fuchsia-500/30",
+    badgeStyle: "border-fuchsia-400/40 bg-fuchsia-500/10 text-fuchsia-300",
+    iconColor: "text-fuchsia-400",
+    glow: "bg-fuchsia-500/25",
+    cardBorder: "hover:border-fuchsia-400/50 hover:shadow-[0_0_35px_rgba(217,70,239,0.2)]",
+    spinConic: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(217,70,239,0.6)_25%,transparent_50%)]"
   },
   {
-    icon: WandSparkles,
+    icon: Flame,
+    tag: "Early Access",
     title: "New tools before everyone else",
     description: "Early access to new creative workflows and AI capabilities.",
-    tone: "border-amber-300/20 bg-amber-300/[0.06] text-amber-200",
-    glow: "bg-amber-500/30",
+    badgeStyle: "border-amber-400/40 bg-amber-500/10 text-amber-300",
+    iconColor: "text-amber-400",
+    glow: "bg-amber-500/25",
+    cardBorder: "hover:border-amber-400/50 hover:shadow-[0_0_35px_rgba(245,158,11,0.2)]",
+    spinConic: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.6)_25%,transparent_50%)]"
   },
   {
     icon: MessageSquareText,
+    tag: "Zero Limits",
     title: "Unlimited AI conversations",
     description: "Think, refine, and build without a daily message ceiling.",
-    tone: "border-purple-300/20 bg-purple-300/[0.06] text-purple-200",
-    glow: "bg-purple-500/30",
+    badgeStyle: "border-purple-400/40 bg-purple-500/10 text-purple-300",
+    iconColor: "text-purple-400",
+    glow: "bg-purple-500/25",
+    cardBorder: "hover:border-purple-400/50 hover:shadow-[0_0_35px_rgba(168,85,247,0.2)]",
+    spinConic: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(168,85,247,0.6)_25%,transparent_50%)]"
   },
   {
-    icon: Sparkles,
+    icon: Layers,
+    tag: "Unified Studio",
     title: "Unified creative power",
-    description: "Use the same membership across Exismic Ai, creative suites, and Pro tools.",
-    tone: "border-blue-300/20 bg-blue-300/[0.06] text-blue-200",
-    glow: "bg-blue-500/30",
+    description: "Use the same membership across Exismic AI, creative suites, and Pro tools.",
+    badgeStyle: "border-blue-400/40 bg-blue-500/10 text-blue-300",
+    iconColor: "text-blue-400",
+    glow: "bg-blue-500/25",
+    cardBorder: "hover:border-blue-400/50 hover:shadow-[0_0_35px_rgba(59,130,246,0.2)]",
+    spinConic: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(59,130,246,0.6)_25%,transparent_50%)]"
   },
   {
-    icon: Shield,
+    icon: ShieldCheck,
+    tag: "Commercial Rights",
     title: "Commercial usage rights",
     description: "Use eligible Pro outputs for brands, client work, and paid projects.",
-    tone: "border-emerald-300/20 bg-emerald-300/[0.06] text-emerald-200",
-    glow: "bg-emerald-500/30",
+    badgeStyle: "border-emerald-400/40 bg-emerald-500/10 text-emerald-300",
+    iconColor: "text-emerald-400",
+    glow: "bg-emerald-500/25",
+    cardBorder: "hover:border-emerald-400/50 hover:shadow-[0_0_35px_rgba(16,185,129,0.2)]",
+    spinConic: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(16,185,129,0.6)_25%,transparent_50%)]"
   },
 ];
 
@@ -215,6 +239,17 @@ export function ProClient() {
 
   useEffect(() => {
     let active = true;
+
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramMarket = urlParams.get("market");
+      if (paramMarket === "IN" || paramMarket === "GLOBAL") {
+        setMarket(paramMarket);
+      } else if (getIsIndia()) {
+        setMarket("IN");
+      }
+    }
+
     fetch("/api/billing/market", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
@@ -759,7 +794,7 @@ export function ProClient() {
                       </div>
                     </motion.div>
 
-                    {/* 2. Annual Pro VIP (Featured & Best Value - Purple Theme) */}
+                    {/* 2. Annual Pro (Featured & Best Value - Purple Theme) */}
                     <motion.div
                       whileHover={{ y: -8 }}
                       transition={{ duration: 0.3 }}
@@ -777,11 +812,11 @@ export function ProClient() {
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0">
                               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
-                                <Diamond size={22} className="text-purple-300 fill-purple-400/20" />
+                                <Crown size={22} className="text-purple-300 fill-purple-400/30" />
                               </div>
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="text-xl font-black text-white tracking-tight whitespace-nowrap">Annual VIP</h3>
+                                  <h3 className="text-xl font-black text-white tracking-tight whitespace-nowrap">Annual Pro</h3>
                                   <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm shrink-0">
                                     Best Value
                                   </span>
@@ -849,12 +884,12 @@ export function ProClient() {
                                 badgeStyle: "text-fuchsia-200 bg-fuchsia-500/20 border-fuchsia-400/40 shadow-[0_0_10px_rgba(217,70,239,0.25)]",
                               },
                               {
-                                icon: Crown,
+                                icon: Palette,
                                 iconColor: "text-pink-300",
                                 iconBg: "border-pink-400/35 bg-pink-500/15 shadow-[0_0_15px_rgba(244,114,182,0.25)]",
-                                title: "Permanent VIP Cosmetics",
-                                subtitle: "Discord VIP role, animated frame & nametag aura",
-                                badge: "VIP Suite",
+                                title: "Permanent Pro Cosmetics",
+                                subtitle: "Discord Pro role, animated frame & nametag aura",
+                                badge: "Pro Suite",
                                 badgeStyle: "text-pink-300 bg-pink-500/15 border-pink-400/30",
                               },
                             ].map((item) => {
@@ -911,7 +946,7 @@ export function ProClient() {
                                 <ExismicMark size={34} letter="P" theme="purple" animated={true} />
                                 <div className="text-left min-w-0">
                                   <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] truncate">
-                                    GET YEARLY VIP • {isIndia ? "₹4,499" : "$59.99"}
+                                    GET YEARLY PRO • {isIndia ? "₹4,499" : "$59.99"}
                                   </span>
                                   <span className="block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-200 truncate">
                                     🔥 SAVE 28% • 3.5 MO FREE
@@ -1160,41 +1195,69 @@ export function ProClient() {
             />
 
             <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {CREATOR_BENEFITS.map(({ icon: Icon, title, description, tone, glow }, index) => (
-                <motion.div
-                  key={title}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
-                  whileHover={prefersReducedMotion ? undefined : { y: -8, scale: 1.02 }}
-                  className="group relative overflow-hidden rounded-[24px] border border-white/[0.05] bg-white/[0.015] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-500 hover:border-white/[0.12] hover:bg-white/[0.03] hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
-                >
-                  <div className={cn("absolute -right-20 -top-20 h-40 w-40 rounded-full blur-[80px] transition-all duration-500 group-hover:opacity-100 opacity-0", glow)} />
-                  <div className="absolute inset-0 -translate-x-full bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.04),transparent)] skew-x-[-30deg] transition-transform duration-1000 group-hover:translate-x-full pointer-events-none" />
+              {CREATOR_BENEFITS.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
+                    whileHover={prefersReducedMotion ? undefined : { y: -6, scale: 1.02 }}
+                    className={cn(
+                      "group relative overflow-hidden rounded-[2rem] border-2 border-white/[0.08] bg-gradient-to-b from-[#0f111e]/90 via-[#0a0a14]/85 to-[#06060c]/90 p-7 sm:p-8 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] transition-all duration-500",
+                      item.cardBorder
+                    )}
+                  >
+                    {/* Ambient Glow Mesh */}
+                    <div className={cn("absolute -right-16 -top-16 h-40 w-40 rounded-full blur-[80px] opacity-25 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none", item.glow)} />
+                    
+                    {/* Micro Dot Matrix Watermark Pattern */}
+                    <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500 pointer-events-none" />
 
-                  <div className="relative z-10 flex flex-col gap-6">
-                    <span className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]", tone)}>
-                      <Icon size={24} className="opacity-90 transition-opacity group-hover:opacity-100" />
-                    </span>
-                    <div>
-                      <h3 className="text-[15px] font-black tracking-wide text-white transition-colors group-hover:text-cyan-50 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">{title}</h3>
-                      <p className="mt-3 text-[13px] font-medium leading-relaxed text-zinc-500 transition-colors group-hover:text-zinc-300">
-                        {description}
-                      </p>
+                    {/* Shine Hover Sweep */}
+                    <div className="absolute inset-0 -translate-x-full bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.06),transparent)] skew-x-[-30deg] transition-transform duration-1000 group-hover:translate-x-full pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
+                      {/* Top Row: Rotating Orb on left, Tag Chip on right */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="relative h-14 w-14 rounded-2xl flex items-center justify-center overflow-hidden bg-[#090a14] border border-white/10 shadow-xl group-hover:scale-110 transition-transform duration-500 shrink-0">
+                          {/* Rotating Conic Aura */}
+                          <div className={cn("absolute inset-[-100%] animate-[spin_4s_linear_infinite] opacity-60 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none", item.spinConic)} />
+                          {/* Inner dark glass */}
+                          <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] bg-[#090a14] z-0" />
+                          <Icon size={24} className={cn("relative z-10 transition-all duration-500 group-hover:scale-110", item.iconColor)} />
+                        </div>
+
+                        <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border shadow-sm", item.badgeStyle)}>
+                          {item.tag}
+                        </span>
+                      </div>
+
+                      {/* Content Section */}
+                      <div className="space-y-2">
+                        <h3 className="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-cyan-100 transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs sm:text-[13px] font-medium leading-relaxed text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
 
-            <div className="mt-12 text-center">
+            <div className="mt-14 text-center">
               <Link
                 href="/pro/benefits"
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-6 py-3 text-xs font-black uppercase tracking-[0.18em] text-zinc-300 backdrop-blur-md transition-all hover:border-cyan-400/40 hover:bg-cyan-500/10 hover:text-white"
+                className="group/btn relative inline-flex items-center gap-3 rounded-full border border-cyan-400/40 bg-gradient-to-r from-cyan-500/20 via-purple-500/15 to-cyan-500/20 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-cyan-200 backdrop-blur-xl shadow-[0_0_35px_rgba(6,182,212,0.25)] transition-all duration-300 hover:border-cyan-300 hover:text-white hover:shadow-[0_0_55px_rgba(6,182,212,0.5)] hover:scale-[1.02] active:scale-[0.98] overflow-hidden cursor-pointer"
               >
-                <span>Explore Full Pro Benefits Breakdown</span>
-                <ArrowRight size={14} className="text-cyan-400" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+                <span className="relative z-10">Explore Full Pro Benefits Breakdown</span>
+                <ArrowRight size={15} className="relative z-10 text-cyan-400 transition-transform group-hover/btn:translate-x-1" />
               </Link>
             </div>
           </div>

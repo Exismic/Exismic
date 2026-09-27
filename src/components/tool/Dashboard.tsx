@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { 
-  Sparkles, 
+  Rocket, 
   ShieldCheck, 
   ArrowRight, 
   History, 
@@ -52,6 +52,7 @@ import { CyberAliveBackground } from "@/components/ui/CyberAliveBackground";
 import { FallingIconsBackground } from "@/components/ui/FallingIconsBackground";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 import { FavoritesMigration } from "@/components/ui/FavoritesMigration";
+import { AudienceWorkflows } from "@/components/home/AudienceWorkflows";
 
 const CreditModal = dynamic(
   () => import("../ui/CreditModal").then((mod) => mod.CreditModal),
@@ -84,6 +85,7 @@ type StatCardProps = {
 
 const CATEGORY_TABS = [
   { id: "all", label: "All Tools", icon: LayoutGrid },
+  { id: "workflows", label: "Workflows", icon: Rocket },
   { id: "creative", label: "AI & Design", icon: Wand2 },
   { id: "dev", label: "Developer", icon: Code2 },
   { id: "productivity", label: "Productivity", icon: Layers },
@@ -415,33 +417,37 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
             </div>
           </div>
 
-          {/* 5-Suite Cyber Card Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          {/* 6-Suite Cyber Card Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
             {CATEGORY_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
 
               const suiteToolCount = tab.id === "all" 
                 ? TOOLS.length 
-                : tab.id === "creative"
-                  ? TOOLS.filter(t => ["ai", "image", "video", "audio", "creator"].includes(t.category)).length
-                  : tab.id === "dev"
-                    ? TOOLS.filter(t => ["developer", "seo"].includes(t.category)).length
-                    : tab.id === "productivity"
-                      ? TOOLS.filter(t => ["productivity", "student", "business", "pdf"].includes(t.category)).length
-                      : tab.id === "favorites"
-                        ? favorites.length 
-                        : 0;
+                : tab.id === "workflows"
+                  ? 3
+                  : tab.id === "creative"
+                    ? TOOLS.filter(t => ["ai", "image", "video", "audio", "creator"].includes(t.category)).length
+                    : tab.id === "dev"
+                      ? TOOLS.filter(t => ["developer", "seo"].includes(t.category)).length
+                      : tab.id === "productivity"
+                        ? TOOLS.filter(t => ["productivity", "student", "business", "pdf"].includes(t.category)).length
+                        : tab.id === "favorites"
+                          ? favorites.length 
+                          : 0;
 
               const suiteBadgeLabel = tab.id === "all" 
                 ? "ALL" 
-                : tab.id === "creative" 
-                  ? "DESIGN" 
-                  : tab.id === "dev" 
-                    ? "CODE" 
-                    : tab.id === "productivity" 
-                      ? "PROD" 
-                      : "SAVED";
+                : tab.id === "workflows"
+                  ? "ROLES"
+                  : tab.id === "creative" 
+                    ? "DESIGN" 
+                    : tab.id === "dev" 
+                      ? "CODE" 
+                      : tab.id === "productivity" 
+                        ? "PROD" 
+                        : "SAVED";
 
               const cardThemes: Record<string, { 
                 activeBg: string; 
@@ -466,6 +472,18 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                   idleBorder: "border-purple-500/30 hover:border-purple-400/70",
                   idleGlow: "shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_35px_rgba(168,85,247,0.5)]",
                   iconColor: "text-purple-300"
+                },
+                workflows: {
+                  activeBg: "bg-gradient-to-br from-amber-900/90 via-orange-950/90 to-yellow-950/90",
+                  activeBorder: "border-amber-400",
+                  activeGlow: "shadow-[0_0_35px_rgba(245,158,11,0.7)]",
+                  activeText: "text-white",
+                  badgeBg: "bg-amber-500/30 border-amber-400/50",
+                  badgeText: "text-amber-200",
+                  idleBg: "bg-gradient-to-br from-[#2e1903]/90 via-[#1c0f01]/80 to-[#0a0500]/90",
+                  idleBorder: "border-amber-500/30 hover:border-amber-400/70",
+                  idleGlow: "shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)]",
+                  iconColor: "text-amber-300"
                 },
                 creative: {
                   activeBg: "bg-gradient-to-br from-fuchsia-900/90 via-pink-950/90 to-rose-950/90",
@@ -594,12 +612,14 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
             <div className="space-y-1">
               <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
                 {activeTab === "all" && <LayoutGrid size={22} className="text-purple-400" />}
+                {activeTab === "workflows" && <Rocket size={22} className="text-amber-400" />}
                 {activeTab === "creative" && <Wand2 size={22} className="text-fuchsia-400" />}
                 {activeTab === "dev" && <Code2 size={22} className="text-amber-400" />}
                 {activeTab === "productivity" && <Layers size={22} className="text-emerald-400" />}
                 {activeTab === "favorites" && <Star size={22} className="text-amber-300 fill-amber-300" />}
                 <span>
                   {activeTab === "all" && "All Available Tools"}
+                  {activeTab === "workflows" && "Audience Workflow Bundles"}
                   {activeTab === "creative" && "AI & Design Suite"}
                   {activeTab === "dev" && "Developer AI Suite"}
                   {activeTab === "productivity" && "Productivity Suite"}
@@ -608,6 +628,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
               </h2>
               <p className="text-zinc-400 text-xs font-semibold">
                 {activeTab === "all" && "Explore and launch all tools available in your workspace catalog."}
+                {activeTab === "workflows" && "Targeted step-by-step toolkits tailored for Indie Hackers, Content Creators, and Small Businesses."}
                 {activeTab === "creative" && "Transform media, generate high-fidelity 4K art, remove backgrounds, and erase objects."}
                 {activeTab === "dev" && "Full-stack AI IDEs, code generation, refactoring, and developer utilities."}
                 {activeTab === "productivity" && "Document converters, PDF suites, resume builders, and workflow tools."}
@@ -625,7 +646,11 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
             )}
           </div>
 
-          {filteredTools.length > 0 ? (
+          {activeTab === "workflows" ? (
+            <div className="pt-2">
+              <AudienceWorkflows />
+            </div>
+          ) : filteredTools.length > 0 ? (
             <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
               {filteredTools.map((tool, idx) => (
                 <ToolCard 
@@ -880,7 +905,7 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, h
   );
 
   if (href) {
-    return <Link href={href} className="block group/link">{cardContent}</Link>;
+    return <Link href={href} prefetch={true} className="block group/link">{cardContent}</Link>;
   }
 
   return cardContent;

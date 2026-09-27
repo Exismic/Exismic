@@ -595,6 +595,57 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
     const authUserId = await getAuthUserIdForEmail(emailLower);
     
     if (authUserId) {
+      // Check for referral cookie
+      const cookieStore = await cookies();
+      const referralCodeCookie = cookieStore.get("exismic_referral")?.value;
+      let referrerUser = null;
+      let isSuspicious = false;
+
+      if (referralCodeCookie) {
+        referrerUser = await prisma.user.findFirst({
+          where: {
+            referralCode: { equals: referralCodeCookie.trim(), mode: "insensitive" },
+          },
+        });
+      }
+
+      if (referrerUser) {
+        // Anti-Fraud check: Email similarity (plus addressing)
+        const getNormalizedEmail = (emailStr: string) => {
+          const parts = emailStr.toLowerCase().split("@");
+          if (parts.length !== 2) return emailStr;
+          const name = parts[0].split("+")[0];
+          return `${name}@${parts[1]}`;
+        };
+        const referrerNormalized = getNormalizedEmail(referrerUser.email || "");
+        const signupNormalized = getNormalizedEmail(emailLower);
+
+        // Anti-Fraud check: IP Address matching
+        const headerList = await headers();
+        const reqIp = headerList.get("x-forwarded-for")?.split(",")[0].trim() ||
+                      headerList.get("x-real-ip")?.trim() ||
+                      null;
+
+        const referrerDevice = await prisma.trustedLoginDevice.findFirst({
+          where: { userId: referrerUser.id },
+          select: { lastIp: true },
+        });
+        const referrerIp = referrerDevice?.lastIp;
+
+        const isSelfReferralEmail = referrerNormalized === signupNormalized;
+        const isSelfReferralIp = Boolean(referrerIp && reqIp && referrerIp === reqIp);
+
+        if (isSelfReferralEmail || isSelfReferralIp) {
+          isSuspicious = true;
+        }
+      }
+
+      // Generate unique referral code for this user
+      const prefix = emailLower.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6) || "EXISM";
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      const myReferralCode = `${prefix.padEnd(6, "X")}${rand}`;
+      const hasReferralPayout = referrerUser && !isSuspicious;
+
       await prisma.user.upsert({
         where: { email: emailLower },
         update: {},
@@ -602,12 +653,65 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
           id: authUserId,
           email: emailLower,
           dailyCredits: 50,
-          bonusCredits: 0,
-          lifetimeCredits: 0,
+          bonusCredits: hasReferralPayout ? 50 : 0,
+          lifetimeCredits: hasReferralPayout ? 50 : 0,
           plan: 'free',
+          referralCode: myReferralCode,
           hasSeenWelcome: false,
         }
       });
+
+      if (referrerUser) {
+        // 1. Create the referral relation mapping
+        await prisma.referral.upsert({
+          where: { referredId: authUserId },
+          create: {
+            referrerId: referrerUser.id,
+            referredId: authUserId,
+            status: isSuspicious ? "flagged_self_referral" : "registered",
+            rewardClaimed: !isSuspicious,
+          },
+          update: {},
+        });
+
+        if (!isSuspicious) {
+          // 2. Award credits to the referrer
+          await prisma.user.update({
+            where: { id: referrerUser.id },
+            data: {
+              bonusCredits: { increment: 50 },
+              lifetimeCredits: { increment: 50 },
+            },
+          });
+
+          // 3. Record transaction logs for both parties
+          await prisma.creditTransaction.create({
+            data: {
+              userId: referrerUser.id,
+              amount: 50,
+              balanceType: "bonus",
+              transactionType: "referral_reward",
+              description: `Earned 50 bonus credits for inviting a friend (${emailLower})`,
+              metadata: { referredUserId: authUserId, referredEmail: emailLower },
+            },
+          });
+
+          await prisma.creditTransaction.create({
+            data: {
+              userId: authUserId,
+              amount: 50,
+              balanceType: "bonus",
+              transactionType: "referral_welcome_bonus",
+              description: `Earned 50 bonus credits for joining via a referral invite!`,
+              metadata: { referrerUserId: referrerUser.id },
+            },
+          });
+        }
+
+        try {
+          cookieStore.delete("exismic_referral");
+        } catch {}
+      }
     }
 
     await prisma.verificationToken.deleteMany({

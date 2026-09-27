@@ -25,6 +25,7 @@ import { ExismicMark } from "@/components/ui/ExismicLogo";
 import type { Session } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const FILTER_TABS = [
   { id: "all", label: "All Tools", icon: LayoutGrid, color: "text-purple-400" },
@@ -38,10 +39,19 @@ const FILTER_TABS = [
 ];
 
 export default function ToolsLibraryPage() {
+  const searchParams = useSearchParams();
+  const catParam = searchParams.get("cat");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeCategory, setActiveCategory] = useState(catParam || "all");
   const [session, setSession] = useState<Session | null>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    const cat = searchParams.get("cat");
+    if (cat) {
+      setActiveCategory(cat);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }: any) => {

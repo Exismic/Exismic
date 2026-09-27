@@ -738,7 +738,7 @@ export default function AuthPage() {
                 EXISMIC<span className="text-purple-400 font-sans">.</span>
               </span>
               <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400">
-                AI Creation Platform
+                Online Creative Studio
               </span>
             </div>
           </Link>
@@ -755,18 +755,18 @@ export default function AuthPage() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/25 bg-purple-500/10 text-purple-300 text-[11px] font-bold tracking-wider">
               <Layers size={12} className="text-purple-400" />
-              <span>Next-Gen Creative Platform</span>
+              <span>Everything In One Place</span>
             </div>
 
             <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-white leading-[1.14]">
               Everything you need to <br />
               <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(168,85,247,0.35)]">
-                create with AI.
+                create and get things done.
               </span>
             </h1>
 
             <p className="text-zinc-400 text-sm sm:text-base leading-relaxed font-normal max-w-lg">
-              Fast image generation, vocal separation, and developer tools in a unified creative workspace.
+              Images, audio, video, documents, writing, and developer tools — all in one simple place.
             </p>
           </motion.div>
 
@@ -784,11 +784,11 @@ export default function AuthPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Image & Visual Studio</h3>
+                  <h3 className="text-sm font-bold text-white tracking-tight">Images & Photos</h3>
                   <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-purple-500/20 bg-purple-500/10 text-purple-300">50+ Tools</span>
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Instant background removal, AI image creation, and photo enhancement in high resolution.
+                  Remove backgrounds, enhance photos, and make new images in high quality.
                 </p>
               </div>
             </motion.div>
@@ -805,11 +805,11 @@ export default function AuthPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Audio & Stem Separation</h3>
+                  <h3 className="text-sm font-bold text-white tracking-tight">Audio & Music</h3>
                   <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">High-Res</span>
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Studio-grade vocal and instrumental stem separation for music producers and video creators.
+                  Separate vocals and instruments, clean up audio, and convert tracks.
                 </p>
               </div>
             </motion.div>
@@ -818,7 +818,7 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-emerald-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(16,185,129,0.25)] hover:-translate-y-0.5"
+              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-emerald-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(168,85,247,0.25)] hover:-translate-y-0.5"
             >
               <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
               <div className="w-12 h-12 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-md">
@@ -826,11 +826,11 @@ export default function AuthPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Code & Workflow Utilities</h3>
+                  <h3 className="text-sm font-bold text-white tracking-tight">Documents & Code</h3>
                   <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">Instant</span>
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Format and transform code schemas, extract text with smart OCR, and automate export workflows.
+                  Format files, extract text from images, convert data, and simplify your work.
                 </p>
               </div>
             </motion.div>
@@ -883,10 +883,10 @@ export default function AuthPage() {
               />
             </div>
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">Authentication Approved</h2>
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">Signed in successfully</h2>
               <p className="text-zinc-400 text-sm flex items-center justify-center gap-2 font-medium">
                 <Loader2 className="animate-spin text-purple-400" size={16} /> 
-                Redirecting to your workspace...
+                Redirecting to your account...
               </p>
             </div>
           </motion.div>
@@ -1546,8 +1546,8 @@ export default function AuthPage() {
                       </h2>
                       <p className="text-xs text-zinc-400 mt-1 font-normal">
                         {state === 'signup' 
-                          ? 'Start creating with 50 free credits replenished daily.' 
-                          : 'Enter your credentials to access your workspace.'}
+                          ? 'Start creating with 50 free credits refreshed daily.' 
+                          : 'Sign in to continue to your account.'}
                       </p>
                     </div>
 
@@ -1783,7 +1783,7 @@ export default function AuthPage() {
                           className="space-y-1.5 pt-0.5 px-0.5"
                         >
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-zinc-400 font-medium">Security Rating</span>
+                            <span className="text-zinc-400 font-medium">Password strength</span>
                             <span className={`font-bold ${
                               passStrength.score >= 3 ? "text-emerald-400" : passStrength.score === 2 ? "text-amber-400" : "text-rose-400"
                             }`}>
@@ -1816,7 +1816,7 @@ export default function AuthPage() {
                                 Confirm Password
                               </label>
                               <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
-                                Verification
+                                Match Password
                               </span>
                             </div>
 
@@ -1854,27 +1854,6 @@ export default function AuthPage() {
                         )}
                       </AnimatePresence>
 
-                      {/* Forgot Password Link (Sign In Only) */}
-                      <AnimatePresence initial={false}>
-                        {state === 'signin' && (
-                          <motion.div
-                            key="forgot-password-link"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                            className="overflow-hidden flex justify-end pt-0.5"
-                          >
-                            <button 
-                              type="button" 
-                              onClick={() => setState('forgot')}
-                              className="text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-                            >
-                              Forgot password?
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
 
                       {/* 13+ Age Confirmation Checkbox (COPPA & Account Safety) */}
                       {state === 'signup' && (
@@ -1910,7 +1889,7 @@ export default function AuthPage() {
                               I confirm that I am <span className="text-white font-bold">13 years of age or older</span>
                             </div>
                             <div className="text-[10px] text-zinc-500 font-normal">
-                              Required for COPPA compliance & account protection
+                              Required for account safety & age verification
                             </div>
                           </div>
 
@@ -1946,7 +1925,7 @@ export default function AuthPage() {
                                 </>
                               ) : (
                                 <>
-                                  <span>{state === 'signin' ? 'Sign In to Workspace' : 'Create Exismic Account'}</span>
+                                  <span>{state === 'signin' ? 'Sign In' : 'Create Account'}</span>
                                   <ArrowRight size={15} className="group-hover/btn:translate-x-1 transition-transform" />
                                 </>
                               )}

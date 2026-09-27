@@ -66,10 +66,10 @@ export function ProtectedTool({ children }: ProtectedToolProps) {
 
           <div className="space-y-4">
             <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">
-              Elite Access Required
+              Log In to Continue
             </h2>
-            <p className="text-zinc-500 font-medium leading-relaxed">
-              Login required to use Pro tools and credits system. Connect your account to unlock our high-performance AI engine.
+            <p className="text-zinc-400 font-medium leading-relaxed text-sm sm:text-base">
+              This tool uses credits, so you need to be logged in to use it. Sign in or create a free account to get started.
             </p>
           </div>
 

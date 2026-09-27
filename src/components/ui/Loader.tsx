@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
-import { Sparkles } from "lucide-react";
+import { Zap } from "lucide-react";
 
 interface LoaderProps {
   isLoading?: boolean;
@@ -186,7 +186,7 @@ export const Loader = ({
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="text-zinc-200 font-medium tracking-[0.18em] uppercase text-xs flex items-center justify-center gap-2 drop-shadow-sm"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400 opacity-80 animate-pulse" />
+                    <Zap className="w-3.5 h-3.5 text-cyan-400 opacity-80 animate-pulse" />
                     <span>{activeText}</span>
                   </motion.p>
                 </AnimatePresence>

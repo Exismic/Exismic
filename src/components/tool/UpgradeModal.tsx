@@ -6,7 +6,10 @@ import {
   X, 
   CheckCircle2, 
   AlertCircle, 
-  Sparkles, 
+  FolderArchive,
+  FileSpreadsheet,
+  FolderPlus,
+  Code2,
   Zap, 
   ShieldCheck, 
   ArrowRight,
@@ -48,10 +51,12 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   }, []);
 
   const BENEFITS = [
-    { icon: Infinity, text: "Unlimited AI Generations" },
-    { icon: Zap, text: `${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS} Daily Credits` },
-    { icon: Cpu, text: "20x Faster Processing" },
-    { icon: Sparkles, text: "4K Resolution Exports" },
+    { icon: Zap, text: `${PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS} Daily Credits (10x Free Tier)` },
+    { icon: FolderArchive, text: "1-Click Startup Brand Kit (.ZIP)" },
+    { icon: FileSpreadsheet, text: "Bulk CSV & Batch Processing Studio" },
+    { icon: FolderPlus, text: "Cloud Vault Project Folders" },
+    { icon: Code2, text: "AI Landing Page Next.js 15 Starter (.ZIP)" },
+    { icon: Cpu, text: "20x Faster Processing & 4K Exports" },
     { icon: ShieldCheck, text: "Commercial Usage Rights" },
     { icon: Headset, text: "24/7 Priority Support" },
   ];

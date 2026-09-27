@@ -19,7 +19,8 @@ const GradientText: React.FC<GradientTextProps> = ({
   glow = true,
   speed = 4,
 }) => {
-  const hasCustomBg = className?.includes("from-") || className?.includes("bg-gradient");
+  const hasCustomBg = className?.includes("from-") || className?.includes("bg-gradient") || className?.includes("bg-linear");
+  const needsGradientDir = hasCustomBg && !className?.includes("bg-gradient") && !className?.includes("bg-linear");
 
   return (
     <span className={cn(
@@ -29,6 +30,7 @@ const GradientText: React.FC<GradientTextProps> = ({
       <motion.span
         className={cn(
           "bg-clip-text text-transparent relative z-10 pr-1.5",
+          needsGradientDir && "bg-gradient-to-r",
           hasCustomBg && className
         )}
         style={{

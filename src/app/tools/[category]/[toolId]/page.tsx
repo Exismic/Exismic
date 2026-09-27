@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { generateCategoryToolMetadata, renderCategoryToolPage } from "@/lib/tool-page-render";
 import { Metadata } from "next";
 import { TOOLS } from "@/data/tools";
@@ -23,7 +24,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ToolDetailPage({ params }: PageProps) {
   const { category, toolId } = await params;
-  return renderCategoryToolPage(category, toolId);
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#07090e]" />}>
+      {await renderCategoryToolPage(category, toolId)}
+    </Suspense>
+  );
 }
 
 

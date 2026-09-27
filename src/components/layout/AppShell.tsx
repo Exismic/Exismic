@@ -149,7 +149,7 @@ export function AppShell({ children, hasSession }: AppShellProps) {
           <div
             id="app-main-content"
             suppressHydrationWarning
-            className="relative flex-1 overflow-y-auto overflow-x-hidden min-h-0 z-10 scroll-smooth"
+            className="relative flex-1 overflow-y-auto overflow-x-hidden min-h-0 z-10"
           >
             {pathname === "/" && !clientHasSession && !isStandaloneRoute ? <Navbar /> : null}
             <div className="flex min-h-full flex-col justify-between">

@@ -773,7 +773,10 @@ export default function AdminPage() {
 
   async function loadTickets(page: number, query: string, status: string) {
     try {
-      const res = await fetch(`/api/admin/tickets?page=${page}&search=${encodeURIComponent(query)}&status=${status}`);
+      const isAffiliateFilter = status === "affiliates";
+      const statusParam = isAffiliateFilter ? "all" : status;
+      const subjectParam = isAffiliateFilter ? encodeURIComponent("Creator & Affiliate Partnership") : "all";
+      const res = await fetch(`/api/admin/tickets?page=${page}&search=${encodeURIComponent(query)}&status=${statusParam}&subject=${subjectParam}`);
       const data = await res.json();
       if (res.ok && data.success) {
         setTickets(data.tickets);
@@ -1081,14 +1084,15 @@ export default function AdminPage() {
   };
 
   // Support Reply handler
-  const handleSendReply = async () => {
-    if (!selectedTicket || !replyText.trim()) return;
+  const handleSendReply = async (action: "reply" | "accept" | "refuse" = "reply", customText?: string) => {
+    const textToSend = customText !== undefined ? customText : replyText;
+    if (!selectedTicket || !textToSend.trim()) return;
     setSendingReply(true);
     try {
       const res = await fetch("/api/admin/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticketId: selectedTicket.id, replyText }),
+        body: JSON.stringify({ ticketId: selectedTicket.id, replyText: textToSend, action }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -1792,9 +1796,12 @@ export default function AdminPage() {
                         onChange={(e) => { setTicketStatusFilter(e.target.value); setTicketPage(1); }}
                         className="w-full bg-white/[0.02] border border-white/5 text-xs font-black uppercase tracking-wide rounded-xl px-4 py-3.5 text-zinc-300 outline-hidden"
                       >
-                        <option value="all" className="bg-[#0b0c12]">All Statuses</option>
-                        <option value="open" className="bg-[#0b0c12]">Open</option>
+                        <option value="all" className="bg-[#0b0c12]">All Inquiries & Requests</option>
+                        <option value="affiliates" className="bg-[#0b0c12]">🤝 Affiliate Partner Requests</option>
+                        <option value="open" className="bg-[#0b0c12]">Open Inquiries</option>
                         <option value="replied" className="bg-[#0b0c12]">Replied</option>
+                        <option value="accepted" className="bg-[#0b0c12]">Approved Partners</option>
+                        <option value="refused" className="bg-[#0b0c12]">Refused Applications</option>
                         <option value="resolved" className="bg-[#0b0c12]">Resolved</option>
                       </select>
                     </div>
@@ -1803,28 +1810,40 @@ export default function AdminPage() {
                       {tickets.length === 0 ? (
                         <div className="text-center py-16 text-zinc-500 text-xs font-bold">No tickets found.</div>
                       ) : (
-                        tickets.map((t) => (
-                          <div 
-                            key={t.id} 
-                            onClick={() => setSelectedTicket(t)}
-                            className={cn(
-                              "p-5 cursor-pointer hover:bg-white/[0.01] transition-colors relative",
-                              selectedTicket?.id === t.id && "bg-white/[0.02]"
-                            )}
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <span className={cn(
-                                "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
-                                t.status === "open" && "bg-red-500/10 border border-red-500/20 text-red-400",
-                                t.status === "replied" && "bg-accent-purple/10 border border-accent-purple/20 text-accent-purple",
-                                t.status === "resolved" && "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                              )}>{t.status}</span>
-                              <span className="text-[9px] text-zinc-500 font-bold">{new Date(t.createdAt).toLocaleDateString()}</span>
+                        tickets.map((t) => {
+                          const isAffiliate = t.subject.toLowerCase().includes("affiliate") || t.subject.toLowerCase().includes("partner");
+                          return (
+                            <div 
+                              key={t.id} 
+                              onClick={() => setSelectedTicket(t)}
+                              className={cn(
+                                "p-5 cursor-pointer hover:bg-white/[0.01] transition-colors relative",
+                                selectedTicket?.id === t.id && "bg-white/[0.02]"
+                              )}
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider",
+                                    t.status === "open" && "bg-red-500/10 border border-red-500/20 text-red-400",
+                                    t.status === "replied" && "bg-accent-purple/10 border border-accent-purple/20 text-accent-purple",
+                                    t.status === "accepted" && "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold",
+                                    t.status === "refused" && "bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold",
+                                    t.status === "resolved" && "bg-teal-500/10 border border-teal-500/20 text-teal-400"
+                                  )}>{t.status}</span>
+                                  {isAffiliate && (
+                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1">
+                                      🤝 Partner
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[9px] text-zinc-500 font-bold">{new Date(t.createdAt).toLocaleDateString()}</span>
+                              </div>
+                              <h4 className="text-xs font-black text-white truncate">{t.subject}</h4>
+                              <p className="text-[10px] text-zinc-400 font-semibold truncate mt-1">{t.name} • {t.email}</p>
                             </div>
-                            <h4 className="text-xs font-black text-white truncate">{t.subject}</h4>
-                            <p className="text-[10px] text-zinc-400 font-semibold truncate mt-1">{t.name} • {t.email}</p>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
 
                       {ticketTotalPages > 1 && (
@@ -1854,92 +1873,291 @@ export default function AdminPage() {
                   {/* Reply Details */}
                   <div className="lg:col-span-3">
                     {selectedTicket ? (
-                      <div className="p-8 rounded-[2.5rem] bg-[#0b0c12]/60 border border-white/5 backdrop-blur-md space-y-6 relative">
-                        <div className="flex justify-between items-start border-b border-white/5 pb-5">
-                          <div className="space-y-1">
-                            <h3 className="text-lg font-black text-white uppercase italic tracking-tight">{selectedTicket.subject}</h3>
-                            <p className="text-xs text-zinc-500 font-medium">From: <strong className="text-white">{selectedTicket.name}</strong> ({selectedTicket.email})</p>
-                            <p className="text-[10px] text-zinc-600 font-semibold">Submitted: {new Date(selectedTicket.createdAt).toLocaleString()}</p>
-                          </div>
+                      (() => {
+                        const isAffiliate = selectedTicket.subject.toLowerCase().includes("affiliate") || selectedTicket.subject.toLowerCase().includes("partner");
+                        
+                        let channelUrl = "";
+                        let audienceSize = "";
+                        let pitchNotes = "";
+                        
+                        if (isAffiliate) {
+                          const channelMatch = selectedTicket.message.match(/(?:Partner Channel \/ Website|Channel \/ Platform):\s*([^\n]+)/i);
+                          if (channelMatch) channelUrl = channelMatch[1].trim();
 
-                          <div className="flex gap-2">
-                            {selectedTicket.status !== "resolved" ? (
-                              <button
-                                onClick={() => handleToggleTicketStatus(selectedTicket.id, "resolved")}
-                                className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/20 transition-all"
-                              >
-                                Mark Resolved
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleToggleTicketStatus(selectedTicket.id, "open")}
-                                className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[10px] font-black uppercase tracking-wider hover:bg-white/10 transition-all"
-                              >
-                                Reopen Ticket
-                              </button>
+                          const audienceMatch = selectedTicket.message.match(/(?:Estimated Audience Size|Audience Size):\s*([^\n]+)/i);
+                          if (audienceMatch) audienceSize = audienceMatch[1].trim();
+
+                          const notesMatch = selectedTicket.message.match(/(?:Pitch & Notes|Proposal & Promotion Plan):\s*([\s\S]+)/i);
+                          if (notesMatch) pitchNotes = notesMatch[1].trim();
+                        }
+
+                        const fillApprovalTemplate = () => {
+                          setReplyText(
+                            `Hi ${selectedTicket.name},\n\n` +
+                            `Congratulations! We are delighted to approve your application for the Exismic Creator & Partner Program.\n\n` +
+                            `We've reviewed your content and would love to collaborate. You now have access to our partner benefits including recurring revenue share and custom community assets.\n\n` +
+                            `Let us know if you have any questions or need custom promo codes for your audience!\n\n` +
+                            `Warm regards,\n` +
+                            `Exismic Partnerships Team`
+                          );
+                        };
+
+                        const fillRefusalTemplate = () => {
+                          setReplyText(
+                            `Hi ${selectedTicket.name},\n\n` +
+                            `Thank you for taking the time to apply for the Exismic Creator & Partner Program.\n\n` +
+                            `After reviewing your channel, we are unfortunately unable to approve your application for our creator tier at this time. As your audience continues to grow, we welcome you to re-apply in 90 days.\n\n` +
+                            `Thank you again for your interest in Exismic, and we wish you continued success with your content.\n\n` +
+                            `Best regards,\n` +
+                            `Exismic Partnerships Team`
+                          );
+                        };
+
+                        const fillRequestStatsTemplate = () => {
+                          setReplyText(
+                            `Hi ${selectedTicket.name},\n\n` +
+                            `Thank you for applying to the Exismic Partner Program! Could you reply with a quick screenshot or summary of your channel's 28-day analytics (views and primary countries)? This helps us tailor your custom partnership terms.\n\n` +
+                            `Best regards,\n` +
+                            `Exismic Partnerships Team`
+                          );
+                        };
+
+                        return (
+                          <div className="p-8 rounded-[2.5rem] bg-[#0b0c12]/60 border border-white/5 backdrop-blur-md space-y-6 relative">
+                            {/* Header */}
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 border-b border-white/5 pb-5">
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="text-lg font-black text-white uppercase italic tracking-tight">{selectedTicket.subject}</h3>
+                                  {isAffiliate && (
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                                      🤝 Creator Application
+                                    </span>
+                                  )}
+                                  <span className={cn(
+                                    "px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                                    selectedTicket.status === "open" && "bg-red-500/10 border border-red-500/20 text-red-400",
+                                    selectedTicket.status === "replied" && "bg-accent-purple/10 border border-accent-purple/20 text-accent-purple",
+                                    selectedTicket.status === "accepted" && "bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold",
+                                    selectedTicket.status === "refused" && "bg-rose-500/15 border border-rose-500/40 text-rose-300 font-bold",
+                                    selectedTicket.status === "resolved" && "bg-teal-500/10 border border-teal-500/20 text-teal-400"
+                                  )}>
+                                    Status: {selectedTicket.status}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-zinc-400 font-medium">
+                                  Applicant: <strong className="text-white">{selectedTicket.name}</strong> (<a href={`mailto:${selectedTicket.email}`} className="text-accent-purple hover:underline">{selectedTicket.email}</a>)
+                                </p>
+                                <p className="text-[10px] text-zinc-500 font-semibold">Submitted: {new Date(selectedTicket.createdAt).toLocaleString()} • Ticket #{selectedTicket.id}</p>
+                              </div>
+
+                              <div className="flex gap-2 shrink-0">
+                                {selectedTicket.status !== "resolved" ? (
+                                  <button
+                                    onClick={() => handleToggleTicketStatus(selectedTicket.id, "resolved")}
+                                    className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/20 transition-all"
+                                  >
+                                    Mark Resolved
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleToggleTicketStatus(selectedTicket.id, "open")}
+                                    className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[10px] font-black uppercase tracking-wider hover:bg-white/10 transition-all"
+                                  >
+                                    Reopen Ticket
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Affiliate Partner Highlights (if Affiliate Ticket) */}
+                            {isAffiliate && (
+                              <div className="p-5 rounded-2xl bg-amber-500/[0.04] border border-amber-500/20 space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
+                                    <Users size={13} /> Creator Information Dossier
+                                  </span>
+                                  {selectedTicket.status === "accepted" && (
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                                      <CheckCircle2 size={11} /> Approved Partner
+                                    </span>
+                                  )}
+                                  {selectedTicket.status === "refused" && (
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                                      <Ban size={11} /> Application Refused
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                  <div className="p-3 rounded-xl bg-black/40 border border-white/5">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-1">Channel / Platform</span>
+                                    {channelUrl ? (
+                                      <a
+                                        href={channelUrl.startsWith("http") ? channelUrl : `https://${channelUrl}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1.5 break-all group transition-colors"
+                                      >
+                                        <Globe size={13} className="shrink-0 text-amber-400" />
+                                        <span className="truncate">{channelUrl}</span>
+                                        <ExternalLink size={11} className="shrink-0 opacity-70 group-hover:opacity-100" />
+                                      </a>
+                                    ) : (
+                                      <span className="text-zinc-400 font-medium">Inspect full message below</span>
+                                    )}
+                                  </div>
+
+                                  <div className="p-3 rounded-xl bg-black/40 border border-white/5">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-1">Audience Size</span>
+                                    <span className="text-emerald-400 font-black flex items-center gap-1.5">
+                                      <Users size={13} className="shrink-0" />
+                                      {audienceSize || "Not specified"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {pitchNotes && (
+                                  <div className="p-3 rounded-xl bg-black/40 border border-white/5">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-1">Pitch / Promotion Strategy</span>
+                                    <p className="text-zinc-300 text-xs italic leading-relaxed">&ldquo;{pitchNotes}&rdquo;</p>
+                                  </div>
+                                )}
+                              </div>
                             )}
-                          </div>
-                        </div>
 
-                        {/* Ticket Message */}
-                        <div className="space-y-2">
-                          <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">User Message</span>
-                          <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed font-semibold">
-                            {selectedTicket.message}
-                          </div>
-                        </div>
+                            {/* Ticket Message */}
+                            <div className="space-y-2">
+                              <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Application / Message Content</span>
+                              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed font-semibold">
+                                {selectedTicket.message}
+                              </div>
+                            </div>
 
-                        {/* Ticket Screenshot Attachment */}
-                        {selectedTicket.attachmentUrl && (
-                          <div className="space-y-2">
-                            <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Attachment</span>
-                            <div className="relative w-full max-w-md rounded-2xl overflow-hidden border border-white/10 group">
-                              <img src={selectedTicket.attachmentUrl} alt="Ticket attachment" className="w-full h-auto" />
-                              <a 
-                                href={selectedTicket.attachmentUrl} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs font-black uppercase tracking-widest text-white gap-2"
-                              >
-                                <Eye size={14} /> View Fullscreen
-                              </a>
+                            {/* Ticket Screenshot Attachment */}
+                            {selectedTicket.attachmentUrl && (
+                              <div className="space-y-2">
+                                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Attachment</span>
+                                <div className="relative w-full max-w-md rounded-2xl overflow-hidden border border-white/10 group">
+                                  <img src={selectedTicket.attachmentUrl} alt="Ticket attachment" className="w-full h-auto" />
+                                  <a 
+                                    href={selectedTicket.attachmentUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs font-black uppercase tracking-widest text-white gap-2"
+                                  >
+                                    <Eye size={14} /> View Fullscreen
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Ticket Reply Form & Actions */}
+                            <div className="border-t border-white/5 pt-5 space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">
+                                  {isAffiliate ? "Partner Decision & Email Response" : "Send Email Reply"}
+                                </span>
+                                {isAffiliate && (
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[9px] text-zinc-500 font-bold mr-1">Quick Templates:</span>
+                                    <button
+                                      type="button"
+                                      onClick={fillApprovalTemplate}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider transition-all border border-emerald-500/20"
+                                    >
+                                      ✓ Approval Template
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={fillRefusalTemplate}
+                                      className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[9px] font-black uppercase tracking-wider transition-all border border-rose-500/20"
+                                    >
+                                      ✕ Refusal Template
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={fillRequestStatsTemplate}
+                                      className="px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-[9px] font-black uppercase tracking-wider transition-all border border-purple-500/20"
+                                    >
+                                      📊 Request Analytics
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              <textarea
+                                placeholder={
+                                  isAffiliate
+                                    ? "Compose email reply, or click an action button below to automatically send approval or refusal notification..."
+                                    : "Type support response to be emailed directly to user..."
+                                }
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                rows={5}
+                                className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-sm font-semibold rounded-2xl p-5 text-white placeholder-zinc-500 outline-hidden resize-none leading-relaxed"
+                              />
+
+                              {isAffiliate ? (
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSendReply("refuse", replyText || `Hi ${selectedTicket.name},\n\nThank you for applying to the Exismic Creator Program. At this time, we are unable to approve your application. You are welcome to re-apply in 90 days as your audience grows.\n\nBest regards,\nExismic Team`)}
+                                    disabled={sendingReply}
+                                    className="px-5 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
+                                  >
+                                    {sendingReply ? <Loader2 size={13} className="animate-spin" /> : <Ban size={13} />}
+                                    <span>Refuse / Decline Application</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSendReply("reply")}
+                                    disabled={sendingReply || !replyText.trim()}
+                                    className="px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
+                                  >
+                                    {sendingReply ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                                    <span>Send Custom Reply</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSendReply("accept", replyText || `Hi ${selectedTicket.name},\n\nCongratulations! We are delighted to approve your Exismic Partner application. Your tracking link is active and ready for your community!\n\nBest regards,\nExismic Partnerships Team`)}
+                                    disabled={sendingReply}
+                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 transition-all"
+                                  >
+                                    {sendingReply ? <Loader2 size={13} className="animate-spin text-black" /> : <CheckCircle2 size={14} />}
+                                    <span>Accept & Approve Partner</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSendReply("reply")}
+                                  disabled={sendingReply || !replyText.trim()}
+                                  className="px-6 py-3.5 rounded-xl bg-accent-purple hover:bg-purple-400 text-black text-xs font-black uppercase tracking-wider flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all ml-auto"
+                                >
+                                  {sendingReply ? (
+                                    <>
+                                      <Loader2 size={13} className="animate-spin" />
+                                      Sending response...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Send size={13} />
+                                      Dispatch Reply
+                                    </>
+                                  )}
+                                </button>
+                              )}
                             </div>
                           </div>
-                        )}
-
-                        {/* Ticket Reply Form */}
-                        <div className="border-t border-white/5 pt-5 space-y-4">
-                          <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Send Email Reply</span>
-                          <textarea
-                            placeholder="Type support response to be emailed directly to user..."
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            rows={5}
-                            className="w-full bg-white/[0.02] border border-white/5 focus:border-accent-purple/40 text-sm font-semibold rounded-2xl p-5 text-white placeholder-zinc-500 outline-hidden resize-none leading-relaxed"
-                          />
-                          <button
-                            onClick={handleSendReply}
-                            disabled={sendingReply || !replyText.trim()}
-                            className="px-6 py-3.5 rounded-xl bg-accent-purple hover:bg-purple-400 text-black text-xs font-black uppercase tracking-wider flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all ml-auto"
-                          >
-                            {sendingReply ? (
-                              <>
-                                <Loader2 size={13} className="animate-spin" />
-                                Sending response...
-                              </>
-                            ) : (
-                              <>
-                                <Send size={13} />
-                                Dispatch Reply
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                        );
+                      })()
                     ) : (
                       <div className="h-full min-h-[300px] border border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-zinc-500">
                         <Mail size={32} className="mb-4 text-zinc-700" />
-                        <span className="text-xs font-bold uppercase tracking-wider">Select a support ticket from the list.</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">Select a support ticket or affiliate request from the list.</span>
                       </div>
                     )}
                   </div>

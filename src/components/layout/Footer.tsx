@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { ArrowRight, ArrowUpRight, Sparkles, Layers } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
@@ -16,12 +16,14 @@ const FOOTER_LINKS = [
       { name: "Exismic Ai", href: "/chat" },
       { name: "Exismic Pro", href: "/pro" },
       { name: "Credit Shop", href: "/shop" },
+      { name: "Affiliates", href: "/affiliates" },
     ],
   },
   {
     title: "Resources",
     links: [
       { name: "Help center", href: "/help" },
+      { name: "Developer API", href: "/developer" },
       { name: "Product updates", href: "/changelog" },
       { name: "Blog", href: "/blog" },
       { name: "Giveaway", href: "/giveaway" },
@@ -31,6 +33,7 @@ const FOOTER_LINKS = [
     title: "Company",
     links: [
       { name: "About Exismic", href: "/about" },
+      { name: "Brand & Press", href: "/brand" },
       { name: "Careers", href: "/careers" },
       { name: "Contact", href: "/help" },
     ],
@@ -42,6 +45,8 @@ const FOOTER_LINKS = [
       { name: "Terms", href: "/terms-of-service" },
       { name: "Cookies", href: "/cookies" },
       { name: "Refunds", href: "/refund-policy" },
+      { name: "Digital delivery", href: "/delivery-policy" },
+      { name: "DMCA policy", href: "/dmca" },
     ],
   },
 ];
@@ -90,14 +95,14 @@ export function Footer() {
               <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
               <Layers size={12} className="relative z-10 text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
               <span className="relative z-10 text-purple-200 drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]">
-                Your Exismic workspace
+                Exismic
               </span>
             </div>
             <h2 className="mt-5 bg-[linear-gradient(100deg,#fff_0%,#f5f3ff_46%,#d8b4fe_72%,#a5f3fc_100%)] bg-clip-text text-[clamp(2rem,5vw,4.5rem)] font-black leading-[1.1] pb-2 tracking-[-0.045em] text-transparent">
               Make something worth shipping.
             </h2>
             <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-zinc-400 sm:text-base">
-              Create, refine, and deliver from one focused workspace built for practical AI work.
+              Create, edit, and get things done with practical tools for your everyday work.
             </p>
           </div>
 
@@ -112,6 +117,7 @@ export function Footer() {
 
             <Link
               href={session ? "/" : "/auth/login"}
+              prefetch={true}
               className="relative isolate flex h-[54px] sm:h-[62px] md:h-[72px] w-full overflow-hidden rounded-[16px] sm:rounded-[20px] p-[2px] shadow-[0_20px_55px_rgba(0,0,0,0.5),0_0_30px_rgba(124,58,237,0.15)] transition-shadow duration-500 hover:shadow-[0_20px_65px_rgba(0,0,0,0.6),0_0_40px_rgba(34,211,238,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45"
             >
               {/* Continuous Seamless Rotating Neon Border */}
@@ -144,7 +150,7 @@ export function Footer() {
                     {session ? "Open Exismic" : "Enter Exismic"}
                   </span>
                   <span className="mt-0.5 sm:mt-1 block text-[7.5px] sm:text-[8px] font-bold uppercase tracking-[0.14em] sm:tracking-[0.16em] text-zinc-500 transition-colors duration-500 group-hover/launch:text-cyan-200/90 whitespace-nowrap">
-                    Creative workspace
+                    Explore tools
                   </span>
                 </span>
 
@@ -176,7 +182,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="mt-4 max-w-sm text-sm font-medium leading-relaxed text-zinc-400 mx-auto md:mx-0">
-              A practical creative platform for AI, media, documents, code, and everyday work.
+              Create, edit, and make things with simple tools for images, media, documents, and code.
             </p>
             <div className="mt-5 inline-flex items-center justify-center md:justify-start gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
               <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
@@ -193,6 +199,7 @@ export function Footer() {
                     <li key={link.name}>
                       <Link
                         href={link.href}
+                        prefetch={true}
                         className="group inline-flex min-h-6 items-center gap-1.5 text-xs font-bold text-zinc-400 transition-colors hover:text-white"
                       >
                         {link.name}
@@ -229,16 +236,22 @@ export function Footer() {
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
-            <Link href="/privacy-policy" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+            <Link href="/privacy-policy" prefetch={true} className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Privacy
             </Link>
-            <Link href="/terms-of-service" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+            <Link href="/terms-of-service" prefetch={true} className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Terms
             </Link>
-            <Link href="/refund-policy" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+            <Link href="/refund-policy" prefetch={true} className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Refunds
             </Link>
-            <Link href="/help" className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+            <Link href="/delivery-policy" prefetch={true} className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+              Delivery
+            </Link>
+            <Link href="/dmca" prefetch={true} className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
+              DMCA
+            </Link>
+            <Link href="/help" prefetch={true} className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 transition-colors hover:text-white">
               Support
             </Link>
             <span className="hidden h-3.5 w-px bg-white/20 sm:block" />

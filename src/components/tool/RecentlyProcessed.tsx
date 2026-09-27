@@ -16,7 +16,8 @@ import {
   Search,
   Check,
   ArrowRight,
-  Sparkles,
+  Layers,
+  Cloud,
   Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,23 @@ const FileIcon = ({ type }: { type: string }) => {
   if (type.includes('video')) return <Video className="w-10 h-10 text-blue-400" />;
   if (type.includes('pdf') || type.includes('doc')) return <FileText className="w-10 h-10 text-emerald-400" />;
   return <FileText className="w-10 h-10 text-zinc-400" />;
+};
+
+const getToolBadgeIcon = (toolType: string) => {
+  const t = (toolType || "").toLowerCase();
+  if (t.includes("logo") || t.includes("image") || t.includes("photo") || t.includes("bg") || t.includes("compress") || t.includes("crop") || t.includes("skin") || t.includes("icon") || t.includes("vector") || t.includes("upscale")) {
+    return <ImageIcon size={10} className="shrink-0 text-cyan-400" />;
+  }
+  if (t.includes("audio") || t.includes("voice") || t.includes("music") || t.includes("sound") || t.includes("stem")) {
+    return <AudioWaveform size={10} className="shrink-0 text-purple-400" />;
+  }
+  if (t.includes("video") || t.includes("clip") || t.includes("anim")) {
+    return <Video size={10} className="shrink-0 text-blue-400" />;
+  }
+  if (t.includes("pdf") || t.includes("doc") || t.includes("text") || t.includes("writer") || t.includes("humanizer")) {
+    return <FileText size={10} className="shrink-0 text-emerald-400" />;
+  }
+  return <Layers size={10} className="shrink-0 text-cyan-400" />;
 };
 
 const formatTimeAgo = (dateString: string) => {
@@ -380,7 +398,7 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-zinc-950/80 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
           <div className="flex items-center gap-3.5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-300">
-              <Sparkles size={20} />
+              <Cloud size={20} />
             </div>
             <div className="text-left">
               <h4 className="text-sm font-black text-white uppercase tracking-wider">Browser History Vault Active</h4>
@@ -471,13 +489,15 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       stiffness: 140,
                       damping: 18
                     }}
-                    className="w-full h-full p-2.5 rounded-2xl bg-[#090a14]/90 backdrop-blur-xl border border-white/[0.08] group hover:border-cyan-400/40 hover:shadow-[0_15px_50px_rgba(6,182,212,0.12)] transition-all duration-300 relative touch-manipulation overflow-hidden shadow-lg hover:-translate-y-1 flex flex-col justify-between"
+                    className="w-full h-full p-3 rounded-[1.75rem] bg-gradient-to-b from-[#0f111e]/90 via-[#0a0a14]/85 to-[#06060c]/90 backdrop-blur-xl border-2 border-white/[0.08] group hover:border-cyan-400/40 hover:shadow-[0_15px_50px_rgba(6,182,212,0.15)] transition-all duration-300 relative touch-manipulation overflow-hidden shadow-lg hover:-translate-y-1 flex flex-col justify-between"
                   >
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/0 via-purple-500/0 to-transparent group-hover:from-cyan-500/5 group-hover:via-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.025] pointer-events-none" />
+                    <div className="absolute inset-0 -translate-x-full bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.06),transparent)] skew-x-[-30deg] transition-transform duration-700 group-hover:translate-x-full pointer-events-none" />
+                    <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-br from-cyan-500/0 via-purple-500/0 to-transparent group-hover:from-cyan-500/5 group-hover:via-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     
                     {/* Media Preview Box */}
                     <div>
-                      <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center transition-transform duration-500 group-hover:scale-[0.99]">
+                      <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center transition-transform duration-500 group-hover:scale-[0.99]">
                         {(item.fileType === 'image' || item.resultUrl?.match(/\.(webp|jpg|jpeg|gif|png)/i)) && downloadableUrl ? (
                           <>
                             <img 
@@ -541,9 +561,9 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       <div className="p-3.5 sm:p-4 space-y-2.5">
                         {/* Tool Badge & Timestamp */}
                         <div className="flex items-center justify-between gap-2">
-                          <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1">
-                            <Sparkles size={10} className="shrink-0 text-cyan-400" />
-                            <span className="truncate max-w-[130px]">{toolInfo.name}</span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5 shadow-sm">
+                            {getToolBadgeIcon(item.toolType)}
+                            <span className="truncate max-w-[140px]">{toolInfo.name}</span>
                           </span>
                           <div className="flex items-center gap-1 text-[10px] font-medium text-zinc-400 shrink-0">
                             <History size={11} className="shrink-0 text-zinc-500" />
@@ -583,24 +603,24 @@ export function RecentlyProcessed({ limit = 10, fullPage = false }: RecentlyProc
                       </div>
                     </div>
 
-                    {/* Action Buttons: [ 🔄 Run Again | ✏️ Edit | 💾 Save ] */}
+                    {/* Action Buttons: [ 🔄 Re-run | ✏️ Edit | 💾 Save ] */}
                     <div className="p-3.5 pt-0 grid grid-cols-12 gap-1.5 w-full items-center">
                       <Link
                         href={runUrl}
-                        className="col-span-5 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-gradient-to-r from-cyan-500/20 via-cyan-500/10 to-blue-500/20 hover:from-cyan-500 hover:via-cyan-400 hover:to-blue-500 border border-cyan-500/30 hover:border-transparent text-cyan-300 hover:text-black font-black text-[11px] uppercase tracking-wider shadow-sm hover:shadow-[0_0_18px_rgba(6,182,212,0.4)] transition-all active:scale-95 group/run text-center"
+                        className="col-span-5 flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 via-cyan-500/10 to-blue-500/20 hover:from-cyan-500 hover:via-cyan-400 hover:to-blue-500 border border-cyan-500/30 hover:border-transparent text-cyan-300 hover:text-black font-black text-[11px] uppercase tracking-wider shadow-sm hover:shadow-[0_0_18px_rgba(6,182,212,0.4)] transition-all active:scale-95 group/run text-center"
                         title="Re-run immediately with exact preserved settings"
                       >
-                        <RefreshCw size={12} className="group-hover/run:rotate-180 transition-transform duration-700 text-cyan-400 group-hover/run:text-black shrink-0" />
-                        <span className="truncate">Run Again</span>
+                        <RefreshCw size={11} className="group-hover/run:rotate-180 transition-transform duration-700 text-cyan-400 group-hover/run:text-black shrink-0" />
+                        <span className="whitespace-nowrap">Re-run</span>
                       </Link>
 
                       <Link
                         href={editUrl}
-                        className="col-span-4 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 text-zinc-300 hover:text-white font-bold text-[11px] uppercase tracking-wider transition-all active:scale-95 group/edit text-center"
+                        className="col-span-4 flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 text-zinc-300 hover:text-white font-bold text-[11px] uppercase tracking-wider transition-all active:scale-95 group/edit text-center"
                         title="Pre-fill inputs in workspace to customize"
                       >
                         <Pencil size={11} className="text-zinc-400 group-hover/edit:text-cyan-300 shrink-0" />
-                        <span className="truncate">Edit</span>
+                        <span className="whitespace-nowrap">Edit</span>
                       </Link>
 
                       {downloadableUrl ? (

@@ -2,10 +2,9 @@ import { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Dashboard } from "@/components/tool/Dashboard";
 import { LandingPage } from "@/components/layout/LandingPage";
-import { createClient } from "@/utils/supabase/server";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { HomeToolConcierge } from "@/components/tool/HomeToolConcierge";
-import { cookies } from "next/headers";
+import { getCachedAuthUser } from "@/lib/server/cached-auth";
 
 export const metadata: Metadata = constructMetadata({
   title: "Exismic - All-in-One AI Tools | Free Background Remover, Image Generator & More",
@@ -42,31 +41,16 @@ const faqSchema = {
   ]
 };
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll();
-  const hasAuthCookie = allCookies.some(
-    (c) => c.name.includes("auth-token") || c.name.startsWith("sb-")
-  );
+export default async function Home(props: {
+  searchParams?: Promise<{ preview?: string; view?: string }>;
+}) {
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
+  const user = await getCachedAuthUser();
 
-  let user = null;
-  if (hasAuthCookie) {
-    try {
-      const supabase = await createClient();
-      const result = await supabase.auth.getUser();
-      user = result?.data?.user || null;
-    } catch {
-      user = null;
-    }
-  }
+  const showLanding = !user || searchParams?.preview === "landing" || searchParams?.view === "landing";
 
-  if (!user) {
-    return (
-      <>
-        <LandingPage />
-        <HomeToolConcierge />
-      </>
-    );
+  if (showLanding) {
+    return <LandingPage />;
   }
 
   return (

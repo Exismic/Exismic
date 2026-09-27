@@ -99,6 +99,42 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
     {
+      url: `${SITE_URL}/delivery-policy`,
+      lastModified: LEGAL_UPDATE_DATE,
+      changeFrequency: "yearly",
+      priority: 0.4,
+    },
+    {
+      url: `${SITE_URL}/dmca`,
+      lastModified: LEGAL_UPDATE_DATE,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${SITE_URL}/affiliates`,
+      lastModified: COMMERCE_UPDATE_DATE,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/brand`,
+      lastModified: CONTENT_UPDATE_DATE,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/developer`,
+      lastModified: PLATFORM_UPDATE_DATE,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/developer/docs`,
+      lastModified: PLATFORM_UPDATE_DATE,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
       url: `${SITE_URL}/changelog`,
       lastModified: PLATFORM_UPDATE_DATE,
       changeFrequency: "weekly",

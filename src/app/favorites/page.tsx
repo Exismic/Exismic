@@ -1,4 +1,4 @@
-import { Star, Sparkles, ArrowRight } from "lucide-react";
+import { Star, Compass, ArrowRight, Layers, Flame } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { TOOLS } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
@@ -7,8 +7,23 @@ import { FavoritesMigration } from "@/components/ui/FavoritesMigration";
 import { isFavoriteToolId } from "@/lib/favorites";
 import { listFavoriteToolIds, resolveFavoriteOwner } from "@/lib/server/favorites";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+const CATEGORY_NAMES: Record<string, string> = {
+  image: "Image Tool",
+  video: "Video Tool",
+  audio: "Audio Tool",
+  pdf: "PDF Tool",
+  ai: "AI Tool",
+  productivity: "Productivity",
+  business: "Business",
+  seo: "SEO Tool",
+  developer: "Developer",
+  student: "Study Tool",
+  creator: "Creator Tool",
+};
 
 export default async function FavoritesPage() {
   const supabase = await createClient();
@@ -17,13 +32,20 @@ export default async function FavoritesPage() {
   
   if (!user) {
     return (
-      <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 min-h-[60vh] flex flex-col items-center justify-center text-center overflow-x-hidden">
-        <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
-          <Star size={40} className="text-zinc-600" />
+      <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 min-h-[60vh] flex flex-col items-center justify-center text-center overflow-x-hidden relative">
+        <div className="relative h-20 w-20 rounded-3xl flex items-center justify-center overflow-hidden bg-[#090a14] border border-amber-400/30 shadow-[0_0_35px_rgba(245,158,11,0.2)] mb-2">
+          <div className="absolute inset-[-100%] animate-[spin_4s_linear_infinite] opacity-60 pointer-events-none bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.8)_25%,transparent_50%)]" />
+          <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] bg-[#090a14] z-0" />
+          <Star size={36} className="relative z-10 text-amber-400 fill-amber-400/20" />
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">Please Login</h1>
-        <p className="text-zinc-500 max-w-xs">You need to be logged in to see your favorite tools.</p>
-        <Link href="/auth/login" className="mt-8 min-h-12 px-8 py-4 rounded-xl premium-gradient text-white font-black text-xs uppercase tracking-widest flex items-center justify-center touch-manipulation">
+        <div className="space-y-2 max-w-sm">
+          <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">Account Login Required</h1>
+          <p className="text-zinc-400 text-sm font-medium">Log in to view and manage your saved studio tools across all devices.</p>
+        </div>
+        <Link 
+          href="/auth/login" 
+          className="min-h-12 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:brightness-110 text-black font-black text-xs uppercase tracking-widest flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.35)] transition-all active:scale-95 cursor-pointer"
+        >
           Login Now
         </Link>
       </div>
@@ -37,20 +59,52 @@ export default async function FavoritesPage() {
   const favoritedTools = TOOLS.filter(tool => favoritedIds.includes(tool.id));
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 sm:space-y-10 pb-28 md:pb-32 overflow-x-hidden">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 sm:space-y-10 pb-28 md:pb-32 overflow-x-hidden relative">
+      {/* 🌌 High-End Ambient Lighting Architecture */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[5%] -left-[10%] w-[600px] h-[600px] bg-gradient-to-tr from-amber-500/10 via-orange-500/5 to-transparent blur-[140px] rounded-full" />
+        <div className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-bl from-cyan-500/10 via-blue-500/5 to-transparent blur-[140px] rounded-full" />
+        <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.025]" />
+      </div>
+
       <PageBreadcrumb items={[{ label: "Favorite Tools" }]} />
       <FavoritesMigration />
+
       {/* Header Section */}
       <div className="relative space-y-4">
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-accent-purple/10 blur-[100px] rounded-full -z-10" />
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] shrink-0">
-            <Star size={24} fill="currentColor" />
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 min-w-0">
+            {/* Signature Rotating Conic Aura Orb */}
+            <div className="relative h-14 w-14 rounded-2xl flex items-center justify-center overflow-hidden bg-[#090a14] border border-amber-400/30 shadow-[0_0_30px_rgba(245,158,11,0.25)] shrink-0 group">
+              <div className="absolute inset-[-100%] animate-[spin_4s_linear_infinite] opacity-75 pointer-events-none bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.7)_25%,transparent_50%)]" />
+              <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] bg-[#090a14] z-0" />
+              <Star size={24} className="relative z-10 text-amber-400 fill-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
+            </div>
+
+            <div className="min-w-0 space-y-1">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white uppercase italic break-words">
+                  Your Favorites
+                </h1>
+                <span className="px-3 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-300 shadow-sm">
+                  {favoritedTools.length} {favoritedTools.length === 1 ? "Tool" : "Tools"} Saved
+                </span>
+              </div>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                Quick access to your saved creative and studio tools
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white uppercase italic break-words">Your Favorites</h1>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Quick access to your most used AI tools</p>
-          </div>
+
+          {favoritedTools.length > 0 && (
+            <Link
+              href="/tools"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-amber-400/40 text-xs font-bold text-zinc-300 hover:text-white transition-all duration-300 group"
+            >
+              <span>Explore All Tools</span>
+              <ArrowRight size={13} className="text-amber-400 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -66,41 +120,107 @@ export default async function FavoritesPage() {
           ))}
         </div>
       ) : (
-        <div className="py-20 sm:py-28 md:py-32 px-5 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8 bg-zinc-900/20 border border-dashed border-white/5 rounded-[2rem] md:rounded-[3rem] backdrop-blur-sm">
-          <div className="relative">
-            <div className="absolute inset-0 bg-amber-500/20 blur-3xl rounded-full" />
-            <Star size={80} className="text-zinc-800 relative z-10" />
+        <div className="py-20 sm:py-28 md:py-32 px-6 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8 rounded-[2.5rem] border-2 border-white/[0.08] bg-gradient-to-b from-[#0f111e]/90 via-[#0a0a14]/85 to-[#06060c]/90 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_70%)] pointer-events-none" />
+          
+          <div className="relative h-20 w-20 rounded-3xl flex items-center justify-center overflow-hidden bg-[#090a14] border border-amber-400/30 shadow-[0_0_35px_rgba(245,158,11,0.2)]">
+            <div className="absolute inset-[-100%] animate-[spin_4s_linear_infinite] opacity-60 pointer-events-none bg-[conic-gradient(from_0deg,transparent_0%,rgba(245,158,11,0.8)_25%,transparent_50%)]" />
+            <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] bg-[#090a14] z-0" />
+            <Star size={36} className="relative z-10 text-amber-400 fill-amber-400/20" />
           </div>
-          <div className="space-y-3">
-            <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">No favorites yet</h2>
-            <p className="text-zinc-500 max-w-sm font-medium">
-              Star some tools to save them here for quick access. Start exploring our collection to find your favorites!
+
+          <div className="space-y-2 max-w-md relative z-10">
+            <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">
+              No favorites saved yet
+            </h2>
+            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
+              Click the star icon on any tool card in Exismic Studio to add it here for instant, 1-click access.
             </p>
           </div>
-          <Link href="/tools" className="group flex min-h-12 items-center justify-center gap-3 px-8 py-4 rounded-xl glass-dark border border-white/10 text-zinc-400 font-black text-[10px] uppercase tracking-widest hover:text-white hover:border-white/20 transition-all touch-manipulation">
-            Explore All Tools
+
+          <Link 
+            href="/tools" 
+            className="group relative z-10 inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:brightness-110 text-black font-black text-xs uppercase tracking-wider shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          >
+            <span>Explore All Studio Tools</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       )}
 
-      {/* Suggested Section */}
+      {/* Suggested / Discover More Section */}
       {favoritedTools.length > 0 && (
-        <div className="pt-12 md:pt-20 space-y-6 sm:space-y-8">
-           <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 rounded-xl bg-accent-purple/10 flex items-center justify-center text-accent-purple shrink-0">
-                 <Sparkles size={20} />
+        <div className="space-y-6 sm:space-y-8 pt-8">
+          {/* Laser Horizon Bridge */}
+          <div className="relative my-4">
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-500/30 to-transparent shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
+          </div>
+
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              {/* Authentic Context Icon: Compass replacing generic Sparkles */}
+              <div className="relative h-10 w-10 rounded-xl flex items-center justify-center overflow-hidden bg-[#090a14] border border-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.2)] shrink-0">
+                <div className="absolute inset-[-100%] animate-[spin_6s_linear_infinite] opacity-50 pointer-events-none bg-[conic-gradient(from_0deg,transparent_0%,rgba(6,182,212,0.6)_25%,transparent_50%)]" />
+                <div className="absolute inset-[1.5px] rounded-[calc(0.75rem-1.5px)] bg-[#090a14] z-0" />
+                <Compass size={18} className="relative z-10 text-cyan-400" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase italic">Discover More</h2>
-           </div>
-           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {TOOLS.filter(t => !favoritedIds.includes(t.id)).slice(0, 4).map((tool) => (
-                 <Link key={tool.id} href={tool.href} className="group min-h-[112px] p-5 sm:p-6 rounded-2xl sm:rounded-3xl glass-dark border border-white/5 hover:border-accent-purple/30 transition-all flex flex-col justify-center touch-manipulation">
-                    <p className="text-white font-bold mb-1 group-hover:text-accent-purple transition-colors break-words">{tool.name}</p>
-                    <p className="text-[10px] text-zinc-500 font-medium line-clamp-2 break-words">{tool.description}</p>
-                 </Link>
-              ))}
-           </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase italic">
+                  Discover More Tools
+                </h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                  Recommended engines to expand your creative workflow
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/tools"
+              className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors group"
+            >
+              <span>View Full Catalog</span>
+              <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {TOOLS.filter(t => !favoritedIds.includes(t.id)).slice(0, 4).map((tool) => (
+              <Link 
+                key={tool.id} 
+                href={tool.href} 
+                className="group relative overflow-hidden rounded-[1.75rem] border-2 border-white/[0.08] bg-gradient-to-b from-[#0f111e]/90 via-[#0a0a14]/85 to-[#06060c]/90 p-5 sm:p-6 backdrop-blur-2xl shadow-lg hover:border-cyan-400/40 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-300 flex flex-col justify-between"
+              >
+                {/* Micro Dot Matrix Watermark */}
+                <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.03] pointer-events-none" />
+                
+                {/* Diagonal Shine Sweep on Hover */}
+                <div className="absolute inset-0 -translate-x-full bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.06),transparent)] skew-x-[-30deg] transition-transform duration-700 group-hover:translate-x-full pointer-events-none" />
+
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider border border-white/10 bg-white/[0.03] text-zinc-400 group-hover:border-cyan-400/30 group-hover:text-cyan-300 transition-colors">
+                      {CATEGORY_NAMES[tool.category] || "Studio Tool"}
+                    </span>
+                    <ArrowRight size={13} className="text-zinc-600 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-black text-white group-hover:text-cyan-100 transition-colors tracking-tight line-clamp-1">
+                      {tool.name}
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-medium line-clamp-2 leading-relaxed">
+                      {tool.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/[0.06] mt-4 flex items-center justify-between text-[11px] font-bold text-zinc-500 group-hover:text-cyan-300 transition-colors relative z-10">
+                  <span>Launch Tool</span>
+                  <span className="text-[10px] text-zinc-600 group-hover:text-cyan-400">→</span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

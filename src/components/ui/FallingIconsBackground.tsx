@@ -28,9 +28,14 @@ import {
   Bot,
   Mic2,
   Terminal,
+  Eraser,
+  QrCode,
+  FileSpreadsheet,
+  FolderArchive,
+  Download,
 } from "lucide-react";
 
-export type FallingIconsVariant = "credits" | "dashboard";
+export type FallingIconsVariant = "credits" | "dashboard" | "landing";
 
 interface FallingIconsBackgroundProps {
   variant?: FallingIconsVariant;
@@ -79,6 +84,28 @@ const DASHBOARD_PARTICLES = [
   { icon: Star, color: "rgba(253, 224, 71, 0.45)", glow: "rgba(253, 224, 71, 0.35)" },
 ];
 
+// 3. Landing Page Icon Palette (Images, media, code, writing, files, tools)
+const LANDING_PARTICLES = [
+  { icon: ImageIcon, color: "rgba(34, 211, 238, 0.45)", glow: "rgba(34, 211, 238, 0.35)" },
+  { icon: Video, color: "rgba(168, 85, 247, 0.45)", glow: "rgba(168, 85, 247, 0.35)" },
+  { icon: Music, color: "rgba(236, 72, 153, 0.45)", glow: "rgba(236, 72, 153, 0.35)" },
+  { icon: Code2, color: "rgba(16, 185, 129, 0.45)", glow: "rgba(16, 185, 129, 0.35)" },
+  { icon: Eraser, color: "rgba(6, 182, 212, 0.45)", glow: "rgba(6, 182, 212, 0.35)" },
+  { icon: QrCode, color: "rgba(20, 184, 166, 0.45)", glow: "rgba(20, 184, 166, 0.35)" },
+  { icon: FileText, color: "rgba(245, 158, 11, 0.45)", glow: "rgba(245, 158, 11, 0.35)" },
+  { icon: FileSpreadsheet, color: "rgba(16, 185, 129, 0.45)", glow: "rgba(16, 185, 129, 0.35)" },
+  { icon: FolderArchive, color: "rgba(251, 191, 36, 0.45)", glow: "rgba(251, 191, 36, 0.35)" },
+  { icon: Palette, color: "rgba(217, 70, 239, 0.45)", glow: "rgba(217, 70, 239, 0.35)" },
+  { icon: Layers, color: "rgba(56, 189, 248, 0.45)", glow: "rgba(56, 189, 248, 0.35)" },
+  { icon: Mic2, color: "rgba(244, 63, 94, 0.45)", glow: "rgba(244, 63, 94, 0.35)" },
+  { icon: Terminal, color: "rgba(132, 204, 22, 0.45)", glow: "rgba(132, 204, 22, 0.35)" },
+  { icon: Download, color: "rgba(14, 165, 233, 0.45)", glow: "rgba(14, 165, 233, 0.35)" },
+  { icon: ShieldCheck, color: "rgba(5, 150, 105, 0.45)", glow: "rgba(5, 150, 105, 0.35)" },
+  { icon: Zap, color: "rgba(234, 179, 8, 0.45)", glow: "rgba(234, 179, 8, 0.35)" },
+  { icon: Crown, color: "rgba(147, 51, 234, 0.45)", glow: "rgba(147, 51, 234, 0.35)" },
+  { icon: Coins, color: "rgba(6, 182, 212, 0.45)", glow: "rgba(6, 182, 212, 0.35)" },
+];
+
 export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
   variant = "dashboard",
   showOrbs = true,
@@ -101,7 +128,11 @@ export const FallingIconsBackground: React.FC<FallingIconsBackgroundProps> = ({
   }, []);
 
   // Deterministic particle set based on active variant
-  const particleSet = variant === "credits" ? CREDIT_SHOP_PARTICLES : DASHBOARD_PARTICLES;
+  const particleSet = variant === "credits" 
+    ? CREDIT_SHOP_PARTICLES 
+    : variant === "landing" 
+    ? LANDING_PARTICLES 
+    : DASHBOARD_PARTICLES;
 
   // Generate deterministic floating falling icons
   const floatingIcons = useMemo(() => {

@@ -99,7 +99,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { ticketId, replyText } = body;
+    const { ticketId, replyText, action = "reply" } = body;
 
     if (!ticketId || !replyText?.trim()) {
       return NextResponse.json({ error: "ticketId and replyText are required" }, { status: 400 });
@@ -113,36 +113,92 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
+    const isAffiliate = ticket.subject.toLowerCase().includes("affiliate") || ticket.subject.toLowerCase().includes("partner");
+    let newStatus = "replied";
+    let emailSubject = `Re: ${ticket.subject} (Ticket Ref: ${ticket.id})`;
+    let emailBadge = "Support Response";
+    let badgeColor = "#8B5CF6";
+    let headerTitle = "Exismic Help Center";
+
+    if (action === "accept") {
+      newStatus = "accepted";
+      emailSubject = `🎉 Congratulations! Your Exismic Creator Partnership is Approved`;
+      emailBadge = "Partnership Approved";
+      badgeColor = "#10b981";
+      headerTitle = "Exismic Partner Program";
+    } else if (action === "refuse") {
+      newStatus = "refused";
+      emailSubject = `Update regarding your Exismic Creator Partner Application`;
+      emailBadge = "Application Status";
+      badgeColor = "#f43f5e";
+      headerTitle = "Exismic Partner Program";
+    }
+
     // Send email response using Resend
     if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
-        from: SUPPORT_SENDER,
-        to: ticket.email,
-        replyTo: `support@${EMAIL_DOMAIN}`,
-        subject: `Re: ${ticket.subject} (Ticket Ref: ${ticket.id})`,
-        html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6;">
-          <h2 style="color: #8B5CF6;">Exismic Help Center</h2>
-          <p>Hi <strong>${ticket.name}</strong>,</p>
-          <p>A support specialist has responded to your request:</p>
-          <div style="background-color: #f3f4f6; border-left: 4px solid #8B5CF6; padding: 15px; margin: 20px 0; font-style: italic; border-radius: 4px;">
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #ffffff; background-color: #090a10; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);">
+          <div style="margin-bottom: 16px;">
+            <span style="display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.06); border: 1px solid ${badgeColor}60; border-radius: 999px; color: ${badgeColor}; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+              ${emailBadge}
+            </span>
+          </div>
+
+          <h2 style="color: #ffffff; font-size: 20px; font-weight: 900; margin: 0 0 12px 0;">
+            ${headerTitle}
+          </h2>
+
+          <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
+            Hi <strong>${ticket.name}</strong>,
+          </p>
+
+          <div style="background: rgba(255,255,255,0.03); border-left: 4px solid ${badgeColor}; padding: 18px; margin: 20px 0; border-radius: 8px; color: #f4f4f5; font-size: 14px; line-height: 1.7;">
             ${replyText.replace(/\n/g, "<br />")}
           </div>
-          <p>If you have any further details to add, feel free to reply directly to this email.</p>
-          <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-          <p style="color: #6b7280; font-size: 12px; line-height: 1.5;">
-            Your Original Message (${new Date(ticket.createdAt).toLocaleDateString()}):<br />
-            <em>${ticket.message.replace(/\n/g, "<br />")}</em>
+
+          <p style="color: #a1a1aa; font-size: 13px; line-height: 1.6; margin: 0 0 24px 0;">
+            ${
+              action === "accept"
+                ? "You can generate your custom tracking link inside your dashboard or reply directly to this email to coordinate custom vanity promo codes."
+                : "If you have any questions, feel free to reply directly to this email."
+            }
           </p>
-        </div>`,
-      });
+
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 24px 0;" />
+          
+          <div style="color: #71717a; font-size: 11px; line-height: 1.5;">
+            Original Reference (${new Date(ticket.createdAt).toLocaleDateString()}):<br />
+            <em style="color: #a1a1aa;">${ticket.message.replace(/\n/g, "<br />")}</em>
+          </div>
+        </div>
+      `;
+
+      try {
+        await resend.emails.send({
+          from: isAffiliate ? `Exismic Partners <partners@${EMAIL_DOMAIN}>` : SUPPORT_SENDER,
+          to: ticket.email,
+          replyTo: isAffiliate ? `partners@${EMAIL_DOMAIN}` : `support@${EMAIL_DOMAIN}`,
+          subject: emailSubject,
+          html: emailHtml,
+        });
+      } catch (sendErr) {
+        // Fallback for unverified domain
+        await resend.emails.send({
+          from: "Exismic <onboarding@resend.dev>",
+          to: ticket.email,
+          replyTo: isAffiliate ? `partners@${EMAIL_DOMAIN}` : `support@${EMAIL_DOMAIN}`,
+          subject: emailSubject,
+          html: emailHtml,
+        });
+      }
     } else {
       console.warn("No RESEND_API_KEY set, skipped support email send.");
     }
 
-    // Update ticket status to replied
+    // Update ticket status
     const updatedTicket = await prisma.supportTicket.update({
       where: { id: ticketId },
-      data: { status: "replied" },
+      data: { status: newStatus },
     });
 
     return NextResponse.json({

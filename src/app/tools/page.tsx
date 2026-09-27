@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import ToolsLibraryClient from "./ToolsLibraryClient";
@@ -14,7 +15,9 @@ export const metadata: Metadata = constructMetadata({
 export default function ToolsPage() {
   return (
     <>
-      <ToolsLibraryClient />
+      <Suspense fallback={<div className="min-h-screen bg-[#03040b]" />}>
+        <ToolsLibraryClient />
+      </Suspense>
       <ToolSeoSection
         toolName="Exismic AI Tools Library"
         toolDescription="Explore over 50+ high-performance AI, media processing, PDF, developer, and student productivity tools built for studio-grade results in your browser."

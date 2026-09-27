@@ -33,12 +33,15 @@ import {
   X,
   Cpu,
   Layout,
-  Clock
+  Clock,
+  FolderArchive,
+  Crown
 } from "lucide-react";
 import axios from "axios";
 import Link from "next/link";
 import { useCredits } from "@/hooks/useCredits";
 import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { generateNextjsProjectZip } from "@/lib/nextjs-starter-generator";
 import {
   LANDING_PAGE_BLUEPRINTS,
   type LandingPageBlueprint
@@ -112,6 +115,8 @@ export default function LandingPageGenerator() {
   const [viewport, setViewport] = useState<ViewportMode>("desktop");
   const [copied, setCopied] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
+  const [isExportingZip, setIsExportingZip] = useState(false);
+  const [showNextjsProModal, setShowNextjsProModal] = useState(false);
 
   // In-flight generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -227,6 +232,40 @@ export default function LandingPageGenerator() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadNextjsProject = async () => {
+    if (!htmlOutput) return;
+
+    if (!isPro) {
+      setShowNextjsProModal(true);
+      return;
+    }
+
+    try {
+      setIsExportingZip(true);
+      const cleanName =
+        prompt.trim().slice(0, 24).toLowerCase().replace(/[^a-z0-9]/g, "-") ||
+        "landing-page";
+
+      const zipBlob = await generateNextjsProjectZip({
+        projectName: cleanName,
+        htmlContent: htmlOutput,
+      });
+
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${cleanName}-nextjs-starter.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[Next.js Zip Export Error]:", err);
+    } finally {
+      setIsExportingZip(false);
+    }
   };
 
   const handleOpenNewTab = () => {
@@ -605,15 +644,15 @@ export default function LandingPageGenerator() {
             </div>
 
             {/* Stage View & Action Toolbar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white/[0.02] p-2.5 rounded-2xl border border-white/5">
               {/* Tabs: Interactive Preview vs Source Code */}
-              <div className="flex items-center gap-2 bg-black/40 border border-white/5 p-1 rounded-xl w-full sm:w-auto">
+              <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 p-1 rounded-xl shrink-0">
                 <button
                   onClick={() => setActiveTab("preview")}
                   className={cn(
-                    "flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer",
+                    "px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap",
                     activeTab === "preview"
-                      ? "bg-amber-500/10 border border-amber-500/30 text-amber-300"
+                      ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 shadow-sm"
                       : "text-zinc-500 hover:text-white"
                   )}
                 >
@@ -623,9 +662,9 @@ export default function LandingPageGenerator() {
                 <button
                   onClick={() => setActiveTab("code")}
                   className={cn(
-                    "flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer",
+                    "px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer whitespace-nowrap",
                     activeTab === "code"
-                      ? "bg-amber-500/10 border border-amber-500/30 text-amber-300"
+                      ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 shadow-sm"
                       : "text-zinc-500 hover:text-white"
                   )}
                 >
@@ -635,27 +674,41 @@ export default function LandingPageGenerator() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-end">
                 <button
                   onClick={handleOpenNewTab}
                   title="Open website in full new tab"
-                  className="p-2 rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  className="p-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={handleCopy}
-                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0"
                 >
                   {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy Code"}
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="px-3.5 py-1.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer shadow"
+                  className="px-3.5 py-1.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer shadow whitespace-nowrap shrink-0"
                 >
                   <Download className="w-3 h-3" />
                   Download HTML
+                </button>
+                <button
+                  onClick={handleDownloadNextjsProject}
+                  disabled={isExportingZip}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-400/25 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/30 text-amber-200 border border-amber-500/40 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95 disabled:opacity-50 whitespace-nowrap shrink-0"
+                  title="Download complete Next.js 15 + Tailwind CSS starter project"
+                >
+                  <FolderArchive className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isExportingZip ? "Packaging..." : "Next.js 15 Starter (.ZIP)"}</span>
+                  {!isPro && (
+                    <span className="px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 text-[9px] font-black border border-amber-400/30 flex items-center gap-0.5">
+                      <Crown className="w-2.5 h-2.5" /> Pro
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -800,6 +853,101 @@ export default function LandingPageGenerator() {
             <p className="text-xs text-zinc-400 font-medium tracking-normal">
               Creating a clean, responsive landing page for you
             </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Exismic Pro Modal for Next.js Starter Export */}
+      <AnimatePresence>
+        {showNextjsProModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0e0f17] border border-amber-500/30 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute -top-20 -right-20 w-48 h-48 bg-amber-500/10 blur-[60px] rounded-full pointer-events-none" />
+
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <Crown className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white tracking-tight">
+                      Next.js 15 Starter Project
+                    </h3>
+                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider">
+                      Exismic Pro Feature
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNextjsProModal(false)}
+                  className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-sm text-zinc-300 leading-relaxed mb-5">
+                Turn your landing page preview into a complete, modern web project ready to run on your computer or publish to the web in one click.
+              </p>
+
+              <div className="space-y-2.5 mb-6">
+                {[
+                  {
+                    title: "Modern Next.js 15 App Architecture",
+                    desc: "Organized app router with layout, page components, and global styling."
+                  },
+                  {
+                    title: "Built-In Tailwind CSS",
+                    desc: "Responsive utilities and smooth effects ready to customize."
+                  },
+                  {
+                    title: "Standalone Offline Backup",
+                    desc: "Includes a standalone HTML file you can open directly in any browser."
+                  },
+                  {
+                    title: "Quick-Start Guide Included",
+                    desc: "Simple steps to test locally or publish online to Vercel."
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5">
+                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{item.title}</h4>
+                      <p className="text-[11px] text-zinc-400">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setShowNextjsProModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-zinc-400 hover:text-white transition cursor-pointer"
+                >
+                  Maybe Later
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNextjsProModal(false);
+                    setShowUpsell(true);
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-110 text-zinc-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-lg shadow-amber-500/25 flex items-center gap-2"
+                >
+                  <Crown className="w-3.5 h-3.5" />
+                  Upgrade to Pro
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

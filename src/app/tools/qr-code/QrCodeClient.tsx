@@ -31,9 +31,16 @@ import {
   Lock,
   Layers,
   ChevronDown,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileSpreadsheet,
+  Crown,
+  FolderArchive,
+  X
 } from "lucide-react";
+import JSZip from "jszip";
+import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useCredits } from "@/hooks/useCredits";
 import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
 import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
 
@@ -344,6 +351,25 @@ function StudioDropdown<T extends string | number>({
 }
 
 export default function QRCodeGenerator() {
+  const { isPro, setShowUpsell } = useCredits();
+  const searchParams = useSearchParams();
+  const isBulkParam = searchParams.get("mode") === "bulk";
+  const [studioMode, setStudioMode] = useState<"single" | "bulk">(isBulkParam ? "bulk" : "single");
+  const [showBulkProModal, setShowBulkProModal] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("mode") === "bulk") {
+      setStudioMode("bulk");
+    }
+  }, [searchParams]);
+
+  // Bulk CSV States
+  const [csvText, setCsvText] = useState(
+    "Table 1, https://menu.exismic.app/t1\nTable 2, https://menu.exismic.app/t2\nTable 3, https://menu.exismic.app/t3\nTable 4, https://menu.exismic.app/t4\nTable 5, https://menu.exismic.app/t5\nGuest WiFi, WIFI:T:WPA;S:RestaurantGuest;P:Delicious2026;;\nVIP Club, https://menu.exismic.app/vip"
+  );
+  const [isGeneratingBulkZip, setIsGeneratingBulkZip] = useState(false);
+  const [bulkZipSuccess, setBulkZipSuccess] = useState(false);
+
   // Content Type State
   const [contentType, setContentType] = useState<ContentType>("url");
 
@@ -492,6 +518,90 @@ export default function QRCodeGenerator() {
     }
   };
 
+  // Parsed CSV items
+  const parsedBulkItems = useMemo(() => {
+    const lines = csvText.split("\n").map(l => l.trim()).filter(Boolean);
+    return lines.map((line, idx) => {
+      const parts = line.includes(",") ? line.split(",") : line.includes("\t") ? line.split("\t") : [line, line];
+      const label = parts[0]?.trim() || `Item ${idx + 1}`;
+      const data = parts.slice(1).join(",").trim() || label;
+      return {
+        id: `qr-${idx}-${label.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+        label,
+        data: data.startsWith("http") || data.startsWith("WIFI:") || data.startsWith("tel:") || data.startsWith("mailto:") ? data : `https://${data}`,
+      };
+    }).slice(0, 100);
+  }, [csvText]);
+
+  // Bulk CSV demo loader
+  const handleLoadDemoCsv = (type: "restaurant" | "event") => {
+    if (type === "restaurant") {
+      setCsvText(
+        "Table 1, https://menu.exismic.app/table/1\nTable 2, https://menu.exismic.app/table/2\nTable 3, https://menu.exismic.app/table/3\nTable 4, https://menu.exismic.app/table/4\nTable 5, https://menu.exismic.app/table/5\nTable 6, https://menu.exismic.app/table/6\nGuest WiFi, WIFI:T:WPA;S:StudioGuest;P:Welcome2026;;\nVIP Lounge, https://menu.exismic.app/vip"
+      );
+    } else {
+      setCsvText(
+        "Badge A - Speaker, https://event.exismic.app/badge/speaker-1\nBadge B - Keynote, https://event.exismic.app/badge/keynote-2\nBadge C - VIP Guest, https://event.exismic.app/badge/vip-guest\nBadge D - Sponsor, https://event.exismic.app/badge/sponsor-alpha\nBooth 101, https://event.exismic.app/booths/101\nEvent Schedule, https://event.exismic.app/schedule"
+      );
+    }
+  };
+
+  // Bulk ZIP Download Handler
+  const handleBulkZipDownload = async () => {
+    if (!parsedBulkItems.length) return;
+    if (!isPro) {
+      setShowBulkProModal(true);
+      return;
+    }
+
+    setIsGeneratingBulkZip(true);
+    try {
+      const zip = new JSZip();
+      for (let i = 0; i < parsedBulkItems.length; i++) {
+        const item = parsedBulkItems[i];
+        const canvas = document.getElementById(`bulk-canvas-${item.id}`) as HTMLCanvasElement | null;
+        if (canvas) {
+          const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+          if (blob) {
+            const safeName = (item.label || `qr-${i + 1}`).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            zip.file(`${safeName}.png`, blob);
+          }
+        }
+      }
+
+      zip.file(
+        "README.txt",
+        `===========================================================
+EXISMIC STUDIO — BULK QR CODE EXPORT
+===========================================================
+Total QR Codes Generated: ${parsedBulkItems.length}
+Color Settings: Foreground ${fgColor} on Background ${bgColor}
+Error Correction: Level ${errorLevel} (High Scannability)
+
+All QR codes are formatted as clean PNG files ready for printing, display, and merchandise.
+Generated with Exismic Studio (https://exismic.xyz)
+`
+      );
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const blobUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `exismic-bulk-qr-codes-${parsedBulkItems.length}-items.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+
+      setBulkZipSuccess(true);
+      setTimeout(() => setBulkZipSuccess(false), 3000);
+    } catch (err) {
+      console.error("Bulk QR download failed:", err);
+    } finally {
+      setIsGeneratingBulkZip(false);
+    }
+  };
+
   // High-Resolution PNG Download
   const downloadHighResPNG = () => {
     const offscreen = document.createElement("canvas");
@@ -556,8 +666,227 @@ export default function QRCodeGenerator() {
 
   return (
     <div className="w-full space-y-8 lg:space-y-10">
-      {/* Main Studio Dual-Pane Layout */}
-      <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      {/* Studio Mode Switcher */}
+      <div className="flex items-center justify-between flex-wrap gap-3 p-2 rounded-2xl bg-[#0c0d14]/90 border border-white/10 backdrop-blur-xl">
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setStudioMode("single")}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition cursor-pointer",
+              studioMode === "single"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                : "text-zinc-400 hover:text-white"
+            )}
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Single QR Code</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setStudioMode("bulk")}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition cursor-pointer",
+              studioMode === "bulk"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                : "text-zinc-400 hover:text-white"
+            )}
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Bulk CSV Spreadsheet</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[9px] font-black border border-emerald-400/30">
+              Exismic Pro
+            </span>
+          </button>
+        </div>
+        <div className="text-[10px] text-zinc-400 px-3 hidden sm:block">
+          {studioMode === "single" ? "Single scan preview with live mockups" : "Batch generate up to 100 QR codes with 1-click ZIP export"}
+        </div>
+      </div>
+
+      {studioMode === "bulk" ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* Left 5 Cols: CSV Input & Settings */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="bg-[#0c0d14]/90 border border-white/10 rounded-[2rem] p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5">
+                <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <FileSpreadsheet className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black text-white uppercase tracking-wider">Spreadsheet Data</h2>
+                      <p className="text-xs text-zinc-400">One item per line (Label, Link or Text)</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 font-bold">
+                    {parsedBulkItems.length} Rows
+                  </span>
+                </div>
+
+                {/* Instant Blueprints / Demo Loaders */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">
+                    Instant Demo Blueprints ($0 Previews)
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleLoadDemoCsv("restaurant")}
+                      className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-left transition cursor-pointer"
+                    >
+                      <div className="text-[11px] font-bold text-white">Restaurant Menus</div>
+                      <div className="text-[9px] text-zinc-400">7 tables & guest WiFi</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadDemoCsv("event")}
+                      className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-left transition cursor-pointer"
+                    >
+                      <div className="text-[11px] font-bold text-white">Event Badges</div>
+                      <div className="text-[9px] text-zinc-400">Speakers, VIPs & booths</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* CSV Text Area */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-zinc-300">
+                    Paste CSV Data or Links
+                  </label>
+                  <textarea
+                    rows={8}
+                    value={csvText}
+                    onChange={(e) => setCsvText(e.target.value)}
+                    placeholder="Table 1, https://menu.exismic.app/t1&#10;Table 2, https://menu.exismic.app/t2"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50"
+                  />
+                  <p className="text-[9px] text-zinc-500 leading-relaxed">
+                    Format: <code className="text-zinc-300">Label, URL/Data</code> on each line. Supports up to 100 codes in one batch.
+                  </p>
+                </div>
+
+                {/* Color Styling */}
+                <div className="pt-2 border-t border-white/5 space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400">
+                    Batch Code Colors
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-zinc-400">Code Color</span>
+                      <div className="flex items-center gap-2 bg-black/30 border border-white/10 p-2 rounded-xl">
+                        <input
+                          type="color"
+                          value={fgColor}
+                          onChange={(e) => setFgColor(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                        />
+                        <span className="text-xs font-mono text-zinc-300 uppercase">{fgColor}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-zinc-400">Background</span>
+                      <div className="flex items-center gap-2 bg-black/30 border border-white/10 p-2 rounded-xl">
+                        <input
+                          type="color"
+                          value={bgColor}
+                          onChange={(e) => setBgColor(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                        />
+                        <span className="text-xs font-mono text-zinc-300 uppercase">{bgColor}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary Export Action */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleBulkZipDownload}
+                    disabled={isGeneratingBulkZip || !parsedBulkItems.length}
+                    className={cn(
+                      "w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer",
+                      isPro
+                        ? "bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:brightness-110 text-emerald-950 shadow-emerald-500/30"
+                        : "bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:brightness-110 text-amber-950 shadow-amber-500/30"
+                    )}
+                  >
+                    {isGeneratingBulkZip ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <span>Packaging {parsedBulkItems.length} QR Codes (.ZIP)...</span>
+                      </>
+                    ) : isPro ? (
+                      <>
+                        <FolderArchive className="w-4 h-4" />
+                        <span>Download All ({parsedBulkItems.length} Codes) (.ZIP)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="w-4 h-4" />
+                        <span>Unlock Bulk CSV Export (.ZIP)</span>
+                      </>
+                    )}
+                  </button>
+                  {bulkZipSuccess && (
+                    <p className="text-center text-[10px] text-emerald-400 font-bold mt-2">
+                      ✓ Bulk QR codes packaged and downloaded!
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right 7 Cols: Live Grid of Parsed QR Codes */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="bg-[#0c0d14]/90 border border-white/10 rounded-[2rem] p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5">
+                <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                      Live Batch Preview ({parsedBulkItems.length} Codes)
+                    </h3>
+                    <p className="text-xs text-zinc-400">All codes rendered with high scannability</p>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold">
+                    Camera Tested
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[560px] overflow-y-auto pr-1">
+                  {parsedBulkItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center gap-2.5 hover:border-emerald-500/30 transition text-center"
+                    >
+                      <div
+                        className="p-2.5 rounded-xl border border-white/10 flex items-center justify-center shadow-md"
+                        style={{ backgroundColor: bgColor }}
+                      >
+                        <QRCodeCanvas
+                          id={`bulk-canvas-${item.id}`}
+                          value={item.data}
+                          size={110}
+                          fgColor={fgColor}
+                          bgColor={bgColor}
+                          level={errorLevel}
+                        />
+                      </div>
+                      <div className="w-full">
+                        <div className="text-xs font-bold text-white truncate">{item.label}</div>
+                        <div className="text-[9px] text-zinc-500 font-mono truncate mt-0.5">{item.data}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Main Studio Dual-Pane Layout */
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         
         {/* LEFT COLUMN (5 COLS): Controls & Customization */}
         <div className="lg:col-span-5 space-y-6 order-2 lg:order-1">
@@ -1426,6 +1755,85 @@ export default function QRCodeGenerator() {
         </div>
 
       </main>
+      )}
+
+      {/* Bulk CSV Pro Modal */}
+      <AnimatePresence>
+        {showBulkProModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+            onClick={() => setShowBulkProModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-3xl bg-[#0c0d14] border border-emerald-500/30 p-6 sm:p-7 shadow-[0_0_60px_rgba(16,185,129,0.15)] relative overflow-hidden space-y-6 text-left"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Crown className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                      Bulk CSV Studio (Pro)
+                    </h3>
+                    <p className="text-[10px] text-zinc-400">
+                      Batch export up to 100 QR codes in a single ZIP
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkProModal(false)}
+                  className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-2 text-xs text-zinc-300 leading-relaxed">
+                <p>
+                  Free accounts can design and download individual QR codes. Bulk CSV export is an <strong>Exismic Pro</strong> power feature designed for events, restaurants, and inventory management.
+                </p>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1 text-[11px]">
+                  <div className="text-white font-bold">Included with Pro:</div>
+                  <div className="text-zinc-400">• Up to 100 QR codes per batch</div>
+                  <div className="text-zinc-400">• 1-click labeled ZIP archive download</div>
+                  <div className="text-zinc-400">• Print-ready high-contrast rendering</div>
+                  <div className="text-zinc-400">• Commercial use license included</div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBulkProModal(false);
+                    setShowUpsell(true);
+                  }}
+                  className="w-full sm:flex-1 py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:brightness-110 text-emerald-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Crown className="w-4 h-4" />
+                  <span>Unlock with Exismic Pro</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkProModal(false)}
+                  className="w-full sm:w-auto py-3 px-5 rounded-2xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

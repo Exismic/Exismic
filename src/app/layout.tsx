@@ -29,6 +29,7 @@ import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
 import { MaintenanceScreen } from "@/components/layout/MaintenanceScreen";
 
 import { getCachedMaintenanceConfig, getCachedActiveAnnouncements, getCachedUserRoleStatus } from "@/lib/server/cached-config";
+import { getCachedAuthUser } from "@/lib/server/cached-auth";
 
 export const metadata: Metadata = constructMetadata();
 
@@ -42,30 +43,12 @@ export default async function RootLayout({
   const pathname = headersList.get("x-pathname") || "";
   const isAuthRoute = pathname.startsWith("/auth") || pathname.startsWith("/api") || pathname.startsWith("/maintenance");
 
-  // Fast cookie check before making any Supabase auth network calls
-  const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll();
-  const hasAuthCookie = allCookies.some(
-    (c) => c.name.startsWith("sb-") || c.name.includes("auth") || c.name.includes("token") || c.name.includes("session")
-  );
-
-  // 2. PARALLELIZE Auth session (only if auth cookie exists) and cached database config queries
-  const [sessionResult, maintenanceCfg, activeAnnouncements] = await Promise.all([
-    hasAuthCookie
-      ? (async () => {
-          try {
-            const supabase = await createClient();
-            return await supabase.auth.getUser();
-          } catch {
-            return { data: { user: null } };
-          }
-        })()
-      : Promise.resolve({ data: { user: null } }),
+  // 2. PARALLELIZE Request-cached Auth session and cached database config queries
+  const [user, maintenanceCfg, activeAnnouncements] = await Promise.all([
+    getCachedAuthUser(),
     getCachedMaintenanceConfig(),
     getCachedActiveAnnouncements(),
   ]);
-
-  const user = sessionResult?.data?.user || null;
   const isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "true" || maintenanceCfg?.value === "true";
   let isAdmin = false;
   let isSuspended = false;
@@ -138,29 +121,27 @@ export default async function RootLayout({
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white bg-[#030303]`} suppressHydrationWarning>
         <JsonLd type="Organization" data={defaultSchemaData.organization} />
         <JsonLd type="WebSite" data={defaultSchemaData.website} />
-        <Suspense fallback={null}>
-          <AppLoader>
-            <SessionProvider>
-              <ProfileThemeProvider>
-                <I18nProvider>
-                  <AnnouncementBanner announcements={activeAnnouncements} />
-                  <AppShell hasSession={Boolean(user)}>{children}</AppShell>
-                  {isMaintenance && isAdmin && (
-                    <aside aria-label="Maintenance Mode Admin Bypass" className="fixed bottom-4 right-4 z-[9999] px-3.5 py-1.5 rounded-full bg-[#070814]/90 border border-purple-500/30 text-purple-300 text-[11px] font-medium shadow-2xl backdrop-blur-xl flex items-center gap-2 pointer-events-none ring-1 ring-white/5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
-                      <span>Maintenance active • Admin bypass enabled</span>
-                    </aside>
-                  )}
-                  <ReferralTracker />
-                  <ConsentAwareAnalytics />
-                  <Analytics />
-                  <SpeedInsights />
-                  <CookieConsent />
-                </I18nProvider>
-              </ProfileThemeProvider>
-            </SessionProvider>
-          </AppLoader>
-        </Suspense>
+        <AppLoader>
+          <SessionProvider>
+            <ProfileThemeProvider>
+              <I18nProvider>
+                <AnnouncementBanner announcements={activeAnnouncements} />
+                <AppShell hasSession={Boolean(user)}>{children}</AppShell>
+                {isMaintenance && isAdmin && (
+                  <aside aria-label="Maintenance Mode Admin Bypass" className="fixed bottom-4 right-4 z-[9999] px-3.5 py-1.5 rounded-full bg-[#070814]/90 border border-purple-500/30 text-purple-300 text-[11px] font-medium shadow-2xl backdrop-blur-xl flex items-center gap-2 pointer-events-none ring-1 ring-white/5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
+                    <span>Maintenance active • Admin bypass enabled</span>
+                  </aside>
+                )}
+                <ReferralTracker />
+                <ConsentAwareAnalytics />
+                <Analytics />
+                <SpeedInsights />
+                <CookieConsent />
+              </I18nProvider>
+            </ProfileThemeProvider>
+          </SessionProvider>
+        </AppLoader>
       </body>
     </html>
   );

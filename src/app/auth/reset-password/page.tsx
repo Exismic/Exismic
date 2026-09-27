@@ -12,7 +12,7 @@ import {
   Eye,
   EyeOff,
   Wand2,
-  Sparkles,
+  KeyRound,
   Check,
   ShieldCheck,
   RefreshCw,
@@ -279,7 +279,7 @@ function ResetPasswordForm() {
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 group-hover/btn:scale-110 transition-transform">
-              <Sparkles size={16} />
+              <KeyRound size={16} />
             </div>
             <div className="text-left">
               <p className="text-xs font-extrabold text-white flex items-center gap-1.5">

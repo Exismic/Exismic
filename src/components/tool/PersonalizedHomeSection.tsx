@@ -123,6 +123,7 @@ export function PersonalizedHomeSection({
           {/* 1. Cloud Drive Button */}
           <Link
             href="/library"
+            prefetch={true}
             className="group relative z-0 hover:z-10 isolate inline-flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-3.5 sm:pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#0e243a]/95 via-[#091829]/95 to-[#040e1a]/98 border border-cyan-500/40 hover:border-cyan-400 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_0_12px_rgba(6,182,212,0.15),0_2px_8px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.5),inset_0_0_16px_rgba(6,182,212,0.25),0_6px_20px_rgba(6,182,212,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 overflow-hidden cursor-pointer shrink-0 [transform:translateZ(0)]"
           >
             {/* Ambient Glass Shimmer Sweep */}
@@ -148,6 +149,7 @@ export function PersonalizedHomeSection({
           {/* 2. Creation Vault Button */}
           <Link
             href="/history"
+            prefetch={true}
             className="group relative z-0 hover:z-10 isolate inline-flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-3.5 sm:pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#24113b]/95 via-[#170a27]/95 to-[#0c0316]/98 border border-purple-500/40 hover:border-purple-400 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_0_12px_rgba(168,85,247,0.15),0_2px_8px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.5),inset_0_0_16px_rgba(168,85,247,0.25),0_6px_20px_rgba(168,85,247,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 overflow-hidden cursor-pointer shrink-0 [transform:translateZ(0)]"
           >
             {/* Ambient Glass Shimmer Sweep */}
@@ -173,6 +175,7 @@ export function PersonalizedHomeSection({
           {/* 3. Sparks Shop Button */}
           <Link
             href="/rewards"
+            prefetch={true}
             className="group relative z-0 hover:z-10 isolate inline-flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-3.5 sm:pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#311b02]/95 via-[#201001]/95 to-[#100600]/98 border border-amber-500/40 hover:border-amber-400 text-white text-xs font-black transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_0_12px_rgba(245,158,11,0.15),0_2px_8px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.5),inset_0_0_16px_rgba(245,158,11,0.25),0_6px_20px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 overflow-hidden cursor-pointer shrink-0 [transform:translateZ(0)]"
           >
             {/* Ambient Glass Shimmer Sweep */}

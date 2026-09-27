@@ -655,7 +655,7 @@ export function BuyCreditsModal({
                       </div>
                     </div>
 
-                    {/* Annual VIP Pro Pass */}
+                    {/* Annual Pro Pass */}
                     <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-br from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col justify-between">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl opacity-80 group-hover:opacity-100" />
 
@@ -668,7 +668,7 @@ export function BuyCreditsModal({
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <h3 className="text-lg font-black text-white tracking-tight">1-Year VIP Pro</h3>
+                                  <h3 className="text-lg font-black text-white tracking-tight">1-Year Pro</h3>
                                   <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-white">
                                     Best Value
                                   </span>
@@ -697,7 +697,7 @@ export function BuyCreditsModal({
                           <div className="mt-5 space-y-2 sm:space-y-2.5">
                             {[
                               { icon: Coins, text: "182,500 Total Creative Credits", sub: "500 daily allowance for 365 days", chip: "365 Days", color: "text-purple-300" },
-                              { icon: Flame, text: "VIP Immediate Compute Queue", sub: "Top-priority rendering capacity", chip: "VIP Queue", color: "text-fuchsia-300" },
+                              { icon: Flame, text: "Priority Compute Queue", sub: "Top-priority rendering capacity", chip: "Priority Queue", color: "text-fuchsia-300" },
                               { icon: Palette, text: "Full Studio Suite & 4K Exports", sub: "Maximum resolution & priority models", chip: "Full Suite", color: "text-pink-300" },
                               { icon: ShieldCheck, text: "1-Year Commercial License", sub: "Full client & commercial revenue rights", chip: "Save 28%", color: "text-emerald-300" },
                             ].map((item, idx) => {
@@ -723,7 +723,7 @@ export function BuyCreditsModal({
                         <div className="mt-6">
                           <motion.button
                             type="button"
-                            onClick={() => handleOpenCheckoutOptions("pro_yearly", "1-Year VIP Pro Pass", 182500, PRICING_CONFIG.PRO_YEARLY_PLAN.INR, PRICING_CONFIG.PRO_YEARLY_PLAN.USD, "pro")}
+                            onClick={() => handleOpenCheckoutOptions("pro_yearly", "1-Year Pro Pass", 182500, PRICING_CONFIG.PRO_YEARLY_PLAN.INR, PRICING_CONFIG.PRO_YEARLY_PLAN.USD, "pro")}
                             disabled={loadingId !== null}
                             whileHover={{ y: -2, scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
