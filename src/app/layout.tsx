@@ -1,10 +1,6 @@
 // Build Trigger: 2026-07-29T10:48:00Z
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
 
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AppLoader } from "@/components/providers/AppLoader";
@@ -98,7 +94,7 @@ export default async function RootLayout({
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         </head>
-        <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white bg-[#030408]`} suppressHydrationWarning>
+        <body className="font-sans antialiased text-white bg-[#030408]" suppressHydrationWarning>
           <MaintenanceScreen />
         </body>
       </html>
@@ -114,11 +110,12 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <link rel="preconnect" href="https://mgirjaamphcgnispdofo.supabase.co" />
         <link rel="preconnect" href="https://translate.googleapis.com" />
         <link rel="preconnect" href="https://translate.google.com" />
       </head>
-      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white bg-[#030303]`} suppressHydrationWarning>
+      <body className="font-sans antialiased text-white bg-[#030303]" suppressHydrationWarning>
         <JsonLd type="Organization" data={defaultSchemaData.organization} />
         <JsonLd type="WebSite" data={defaultSchemaData.website} />
         <AppLoader>

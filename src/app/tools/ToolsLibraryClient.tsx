@@ -86,7 +86,7 @@ export default function ToolsLibraryPage() {
   const trendingTools = useMemo(() => TOOLS.filter(t => t.popular), []);
 
   return (
-    <div className="min-h-screen bg-[#03040b] text-white p-4 sm:p-6 md:p-10 pb-28 md:pb-32 overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#03040b] text-white p-4 sm:p-6 md:p-10 pb-6 sm:pb-8 overflow-x-hidden relative">
       {/* Ambient Cyber Radial Light Beams */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute -top-[10%] left-[20%] w-[600px] h-[600px] bg-purple-600/[0.08] blur-[180px] rounded-full" />
@@ -358,7 +358,7 @@ export default function ToolsLibraryPage() {
 
         {/* Category Universe Section (when in default view) */}
         {!searchQuery.trim() && activeCategory === "all" && (
-          <section className="space-y-6 pt-12 border-t border-white/[0.06]">
+          <section className="space-y-6 pt-8 border-t border-white/[0.06]">
             <div className="space-y-2">
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Explore by <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Category</span>
@@ -367,7 +367,7 @@ export default function ToolsLibraryPage() {
                 Browse our focused collections organized by creative discipline.
               </p>
             </div>
-            <CategorySection />
+            <CategorySection hideHeader={true} />
           </section>
         )}
 

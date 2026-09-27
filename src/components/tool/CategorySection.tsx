@@ -7,7 +7,7 @@ import Link from "next/link";
 import { LayoutGrid, ArrowRight } from "lucide-react";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
 
-export function CategorySection() {
+export function CategorySection({ hideHeader = false }: { hideHeader?: boolean } = {}) {
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -45,7 +45,7 @@ export function CategorySection() {
   };
 
   return (
-    <section className="relative py-14 sm:py-20 md:py-24 px-0 sm:px-4 overflow-hidden">
+    <section className="relative pt-4 sm:pt-6 pb-6 sm:pb-8 px-0 sm:px-4 overflow-hidden">
       {/* Background Decorative Grid */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -53,22 +53,24 @@ export function CategorySection() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col items-center mb-10 sm:mb-14 md:mb-16 space-y-4 px-1">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            className="flex min-h-9 items-center gap-2 px-4 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 text-accent-purple shadow-[0_0_15px_rgba(124,58,237,0.2)]"
-          >
-            <LayoutGrid size={16} />
-            <span className="text-xs font-black uppercase tracking-[0.2em]">Curated Universe</span>
-          </motion.div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white text-center">
-            Explore <span className="gradient-text">Categories</span>
-          </h2>
-          <p className="text-zinc-500 max-w-lg text-center font-medium text-sm sm:text-base leading-relaxed">
-            Discover a wide range of AI-powered utilities tailored for every creative and professional need.
-          </p>
-        </div>
+        {!hideHeader && (
+          <div className="flex flex-col items-center mb-8 sm:mb-10 space-y-3 px-1">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              className="flex min-h-9 items-center gap-2 px-4 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 text-accent-purple shadow-[0_0_15px_rgba(124,58,237,0.2)]"
+            >
+              <LayoutGrid size={16} />
+              <span className="text-xs font-black uppercase tracking-[0.2em]">Curated Universe</span>
+            </motion.div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white text-center">
+              Explore <span className="gradient-text">Categories</span>
+            </h2>
+            <p className="text-zinc-500 max-w-lg text-center font-medium text-sm sm:text-base leading-relaxed">
+              Discover a wide range of AI-powered utilities tailored for every creative and professional need.
+            </p>
+          </div>
+        )}
 
         {/* Categories Grid */}
         <motion.div 
@@ -90,7 +92,7 @@ export function CategorySection() {
               >
                 <Link href={`/category/${cat.id}`} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
                   <div className={cn(
-                    "relative h-full min-h-[260px] flex flex-col items-center text-center p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
+                    "relative h-full min-h-[260px] flex flex-col items-center text-center p-5 sm:p-6 md:p-8 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation justify-between",
                     "border", style.cardBorder,
                     "bg-zinc-950/50 hover:bg-zinc-900/60",
                     "md:group-hover:scale-[1.03] active:scale-[0.99]"
@@ -138,7 +140,7 @@ export function CategorySection() {
                     </div>
 
                     {/* Premium Button CTA */}
-                    <div className="mt-6 sm:mt-8 w-full">
+                    <div className="mt-auto pt-6 sm:pt-8 w-full">
                       <div className={cn(
                         "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-widest text-[9px] sm:text-[10px] transition-all duration-500 relative overflow-hidden group-hover:scale-[1.02] border shadow-lg",
                         style.buttonGrad

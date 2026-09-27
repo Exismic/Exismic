@@ -104,8 +104,8 @@
   --animate-gradient-flow: gradient-flow 5s ease infinite;
   --animate-shimmer-sweep: shimmer-sweep 3.5s infinite ease-in-out;
 
-  --font-sans: var(--font-inter), sans-serif;
-  --font-outfit: var(--font-outfit), sans-serif;
+  --font-sans: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+  --font-outfit: var(--font-outfit, 'Outfit', system-ui, -apple-system, sans-serif);
 }
 
 .animate-spin-smooth {
@@ -123,6 +123,8 @@
 }
 
 :root {
+  --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-outfit: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --background: #ffffff;
   --foreground: #09090b;
   --card: #ffffff;

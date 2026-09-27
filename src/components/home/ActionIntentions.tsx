@@ -174,30 +174,33 @@ export function ActionIntentions() {
                     </div>
                   </div>
 
-                  {/* Title & Description */}
-                  <div className="relative z-10">
-                    <h3 className="text-base font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal">
-                      {item.detail}
-                    </p>
+                  {/* Details Wrapper */}
+                  <div className="relative z-10 flex-1 flex flex-col">
+                    {/* Title & Description */}
+                    <div>
+                      <h3 className="text-base font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors line-clamp-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal line-clamp-2 min-h-[34px]">
+                        {item.detail}
+                      </p>
+                    </div>
+
+                    {/* Key Workspace Tool Pills (Fills empty space with real value, zero void gap) */}
+                    <div className="flex flex-wrap gap-1.5 mt-auto pt-3 border-t border-white/[0.06] min-h-[44px] items-start content-start">
+                      {item.tags.map((tag) => (
+                        <span 
+                          key={tag}
+                          className="px-2 py-0.5 rounded-lg text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/[0.06] group-hover/card:border-white/15 transition-colors whitespace-nowrap"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Key Workspace Tool Pills (Fills empty space with real value, zero void gap) */}
-                  <div className="relative z-10 flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/[0.06]">
-                    {item.tags.map((tag) => (
-                      <span 
-                        key={tag}
-                        className="px-2 py-0.5 rounded-lg text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/[0.06] group-hover/card:border-white/15 transition-colors"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Full-Width Saturated Launch Button - Tightly connected directly below */}
-                  <div className="relative z-10 mt-4 pt-1">
+                  {/* Full-Width Saturated Launch Button - Pinned to bottom */}
+                  <div className="relative z-10 mt-3 pt-1">
                     <div
                       className={cn(
                         "relative w-full py-2.5 px-4 rounded-full flex items-center justify-center gap-2 uppercase tracking-wider text-xs transition-all duration-300 transform-gpu group-hover/card:scale-[1.02] active:scale-95 shadow-lg overflow-hidden antialiased",

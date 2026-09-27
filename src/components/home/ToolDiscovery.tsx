@@ -260,7 +260,7 @@ export function ToolDiscovery() {
             <div
               key={tool.id}
               className={cn(
-                "group/card relative p-5 sm:p-5.5 rounded-[1.75rem] flex flex-col transition-all duration-300 transform-gpu hover:-translate-y-1.5 active:translate-y-0 hover:shadow-2xl overflow-hidden",
+                "group/card relative p-5 sm:p-5.5 rounded-[1.75rem] flex flex-col justify-between transition-all duration-300 transform-gpu hover:-translate-y-1.5 active:translate-y-0 hover:shadow-2xl overflow-hidden h-full",
                 tool.cardBg,
                 tool.cardBorder
               )}
@@ -291,58 +291,61 @@ export function ToolDiscovery() {
                 />
               </div>
 
-              {/* Top Row: Luxury Squircle Icon with Conic Spinning Neon Ring + Category/Popular Badge */}
-              <div className="relative z-10 flex items-center justify-between gap-3 mb-3">
-                {/* Squircle Icon Container with Circling Conic Neon Ring */}
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-500 shadow-xl bg-[#0b0c12] border border-white/10 group-hover/card:rotate-6 group-hover/card:scale-105 shrink-0">
-                  <div 
-                    className="absolute inset-[-100%] animate-spin-smooth opacity-80"
-                    style={{
-                      background: `conic-gradient(from 0deg, transparent 0%, ${tool.accentColor} 30%, transparent 60%)`,
-                    }}
-                  />
-                  <div className="absolute inset-[1.5px] rounded-[14.5px] bg-[#0b0c12] z-0" />
-                  <ToolIcon 
-                    className="w-5.5 h-5.5 transition-all duration-300 relative z-10 group-hover/card:scale-110"
-                    style={{ color: tool.accentColor }}
-                    strokeWidth={2}
-                  />
+              {/* Top Details Wrapper */}
+              <div className="relative z-10 flex-1 flex flex-col">
+                {/* Top Row: Luxury Squircle Icon with Conic Spinning Neon Ring + Category/Popular Badge */}
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  {/* Squircle Icon Container with Circling Conic Neon Ring */}
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-500 shadow-xl bg-[#0b0c12] border border-white/10 group-hover/card:rotate-6 group-hover/card:scale-105 shrink-0">
+                    <div 
+                      className="absolute inset-[-100%] animate-spin-smooth opacity-80"
+                      style={{
+                        background: `conic-gradient(from 0deg, transparent 0%, ${tool.accentColor} 30%, transparent 60%)`,
+                      }}
+                    />
+                    <div className="absolute inset-[1.5px] rounded-[14.5px] bg-[#0b0c12] z-0" />
+                    <ToolIcon 
+                      className="w-5.5 h-5.5 transition-all duration-300 relative z-10 group-hover/card:scale-110"
+                      style={{ color: tool.accentColor }}
+                      strokeWidth={2}
+                    />
+                  </div>
+
+                  {/* Tool Badge (Top-Right Balanced Placement) */}
+                  <div className={cn(
+                    "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-mono text-[10px] font-bold uppercase tracking-wider shadow-sm",
+                    tool.badgeStyle
+                  )}>
+                    {tool.isPopular && <Flame className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />}
+                    <span>{tool.isPopular ? "POPULAR" : tool.categoryLabel}</span>
+                  </div>
                 </div>
 
-                {/* Tool Badge (Top-Right Balanced Placement) */}
-                <div className={cn(
-                  "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-mono text-[10px] font-bold uppercase tracking-wider shadow-sm",
-                  tool.badgeStyle
-                )}>
-                  {tool.isPopular && <Flame className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />}
-                  <span>{tool.isPopular ? "POPULAR" : tool.categoryLabel}</span>
+                {/* Tool Title & Description with balanced height */}
+                <div>
+                  <h3 className="text-base sm:text-[17px] font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors line-clamp-1">
+                    {tool.name}
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal line-clamp-2 min-h-[34px]">
+                    {tool.description}
+                  </p>
+                </div>
+
+                {/* Concrete Format / Deliverable Pills (Even height across all cards) */}
+                <div className="flex flex-wrap gap-1.5 mt-auto pt-3 border-t border-white/[0.06] min-h-[48px] items-start content-start">
+                  {tool.tags.map((tag) => (
+                    <span 
+                      key={tag}
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/[0.06] group-hover/card:border-white/15 transition-colors whitespace-nowrap"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              {/* Tool Title & Description */}
-              <div className="relative z-10">
-                <h3 className="text-base sm:text-[17px] font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors">
-                  {tool.name}
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal line-clamp-2">
-                  {tool.description}
-                </p>
-              </div>
-
-              {/* Concrete Format / Deliverable Pills (Eliminates empty void gap) */}
-              <div className="relative z-10 flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/[0.06]">
-                {tool.tags.map((tag) => (
-                  <span 
-                    key={tag}
-                    className="px-2 py-0.5 rounded-lg text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/[0.06] group-hover/card:border-white/15 transition-colors"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Full-Width Saturated Launch Button - Tightly connected directly below */}
-              <div className="relative z-10 mt-4 pt-1">
+              {/* Full-Width Saturated Launch Button - Pinned to Exact Same Bottom Baseline */}
+              <div className="relative z-10 mt-3 pt-1">
                 <Link
                   href={tool.href}
                   className={cn(
