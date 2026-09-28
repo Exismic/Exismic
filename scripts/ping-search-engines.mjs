@@ -1,6 +1,6 @@
 import https from "https";
 
-const INDEXNOW_KEY = "24c88599426f43e387063cf4613bfa47";
+const INDEXNOW_KEY = "8789a4c3c47949c38112c26bcebb37d3";
 const HOST = "www.exismic.xyz";
 const KEY_LOCATION = `https://${HOST}/${INDEXNOW_KEY}.txt`;
 const SITEMAP_URL = `https://${HOST}/sitemap.xml`;
@@ -50,7 +50,9 @@ async function pingIndexNow(urls) {
         },
         body: payload,
       });
-      console.log(`  ✓ ${endpoint}: Status ${res.status} (${res.status === 200 || res.status === 202 ? "SUCCESS - Submitted to Indexing Queue" : "Received"})`);
+      const responseText = await res.text();
+      const isSuccess = res.status === 200 || res.status === 202;
+      console.log(`  ✓ ${endpoint}: Status ${res.status} (${isSuccess ? "SUCCESS - Submitted to Indexing Queue" : "Response: " + responseText})`);
     } catch (e) {
       console.error(`  ✗ ${endpoint} error:`, e.message);
     }
