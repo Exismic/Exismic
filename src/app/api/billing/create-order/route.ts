@@ -278,7 +278,7 @@ export async function POST(req: NextRequest) {
     // Check for Exismic 1.7 Launch Special (20% OFF on Pro Monthly and Credit Packs; NO discount on Yearly Pro)
     if (PRICING_CONFIG.V17_LAUNCH_PROMO.ACTIVE) {
       const cleanCode = body.couponCode?.trim().toUpperCase();
-      const isPromoCode = cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE;
+      const isPromoCode = cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE || cleanCode === "EXISMIC17" || cleanCode === "V16LAUNCH";
 
       // Block all custom coupons during the 1-week launch sale
       if (cleanCode && !isPromoCode) {

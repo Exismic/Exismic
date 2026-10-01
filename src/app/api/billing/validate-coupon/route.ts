@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     // 0. Exismic 1.7 Launch Special (Official 20% Discount) & Custom Coupon Blocking
     if (PRICING_CONFIG.V17_LAUNCH_PROMO.ACTIVE) {
-      if (cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE) {
+      if (cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE || cleanCode === "EXISMIC17" || cleanCode === "V16LAUNCH") {
         if (plan.id === "pro_yearly") {
           return NextResponse.json({
             valid: false,

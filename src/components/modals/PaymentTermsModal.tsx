@@ -269,6 +269,8 @@ export function PaymentTermsModal({
           setCouponInput("EXISMIC17");
         } else {
           setIsLaunchDiscountEligible(false);
+          setAppliedCoupon(null);
+          setCouponInput("");
         }
       }
     } else {
@@ -1075,8 +1077,8 @@ export function PaymentTermsModal({
                   <button
                     type="button"
                     onClick={() => {
-                      const codeToSend = (planId === "pro" && isLaunchDiscountEligible)
-                        ? "V16LAUNCH"
+                      const codeToSend = isLaunchDiscountEligible
+                        ? PRICING_CONFIG.V17_LAUNCH_PROMO.CODE
                         : (appliedCoupon && couponInput.trim() === appliedCoupon.code ? appliedCoupon.code : (couponInput.trim() || undefined));
                       onConfirm(codeToSend);
                     }}

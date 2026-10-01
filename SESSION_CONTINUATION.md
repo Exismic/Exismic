@@ -9,6 +9,15 @@
 > **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
 
+### 0.000000000000000000000 🎟️ Fix Checkout False Positive Custom Coupon Error [100% COMPLETED]
+* **Problems Addressed**:
+  - Clicking "Proceed to Razorpay" triggered an unexpected error toast: *"Custom coupons cannot be used during the Exismic 1.7 Launch Sale (official 20% discount is already active from us)"* even when the user entered no custom coupon.
+* **Root Cause & Solution Implemented**:
+  - In [`PaymentTermsModal.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/modals/PaymentTermsModal.tsx), line 1079 had a stale hardcoded string `? "V16LAUNCH"` when `isLaunchDiscountEligible` was true. The backend rejected `V16LAUNCH` as an unauthorized custom code because the v1.7 promo code is `EXISMIC17`.
+  - Updated `PaymentTermsModal.tsx` to pass `PRICING_CONFIG.V17_LAUNCH_PROMO.CODE` (`"EXISMIC17"`).
+  - Updated [`create-order/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/billing/create-order/route.ts) and [`validate-coupon/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/billing/validate-coupon/route.ts) to gracefully recognize `EXISMIC17` and legacy `V16LAUNCH` as official launch promo aliases, preventing any false positive blocks.
+  - Reset coupon state properly for non-launch plans (e.g. `pro_yearly`).
+
 ### 0.00000000000000000000 🌊 Fluid Scroll Entrance Animations for Tool & Category Overview & Features [100% COMPLETED]
 * **Problems Addressed**:
   - The Overview, Key Features, How-to Workflow, and Related companion sections across tool pages and category pages sat completely idle and static upon initial scroll, lacking fluid entrance transitions.
