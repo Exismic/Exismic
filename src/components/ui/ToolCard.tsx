@@ -272,7 +272,7 @@ export function ToolCard({ id, name, description, icon, href, popular, category,
             )}>
               {name}
             </h3>
-            <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-4 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words">
+            <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words">
               {description}
             </p>
           </div>

@@ -147,7 +147,7 @@ export const DAILY_QUEST_TEMPLATES: QuestTemplate[] = [
     type: "daily",
     title: "Spark Creator",
     descriptionTemplate: (target) => `Produce ${target} AI creations across creative tools`,
-    icon: "Sparkles",
+    icon: "Layers",
     category: "creation",
     targetMin: 2,
     targetMax: 3,

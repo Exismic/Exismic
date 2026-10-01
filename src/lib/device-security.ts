@@ -226,21 +226,68 @@ export async function registerTrustedDevice(
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + DEVICE_TRUST_DAYS);
 
-  await prisma.trustedLoginDevice.create({
-    data: {
-      userId,
-      loginEmail: emailLower,
-      deviceTokenHash,
-      deviceName: parsedUa.deviceName,
-      deviceType: parsedUa.deviceType,
-      platform: parsedUa.os,
-      browserName: parsedUa.browser,
-      status: "active",
-      lastIp: ip,
-      userAgent,
-      expiresAt,
-    },
-  });
+  try {
+    await prisma.trustedLoginDevice.upsert({
+      where: { userId },
+      update: {
+        loginEmail: emailLower,
+        deviceTokenHash,
+        deviceName: parsedUa.deviceName,
+        deviceType: parsedUa.deviceType,
+        platform: parsedUa.os,
+        browserName: parsedUa.browser,
+        status: "active",
+        lastIp: ip,
+        userAgent,
+        expiresAt,
+        lastSeenAt: new Date(),
+        revokedAt: null,
+      },
+      create: {
+        userId,
+        loginEmail: emailLower,
+        deviceTokenHash,
+        deviceName: parsedUa.deviceName,
+        deviceType: parsedUa.deviceType,
+        platform: parsedUa.os,
+        browserName: parsedUa.browser,
+        status: "active",
+        lastIp: ip,
+        userAgent,
+        expiresAt,
+      },
+    });
+  } catch (upsertError) {
+    console.warn("[DeviceSecurity] Upsert failed, performing safe cleanup replace:", upsertError);
+    try {
+      await prisma.trustedLoginDevice.deleteMany({
+        where: {
+          OR: [
+            { userId },
+            { loginEmail: emailLower },
+            { deviceTokenHash },
+          ],
+        },
+      });
+      await prisma.trustedLoginDevice.create({
+        data: {
+          userId,
+          loginEmail: emailLower,
+          deviceTokenHash,
+          deviceName: parsedUa.deviceName,
+          deviceType: parsedUa.deviceType,
+          platform: parsedUa.os,
+          browserName: parsedUa.browser,
+          status: "active",
+          lastIp: ip,
+          userAgent,
+          expiresAt,
+        },
+      });
+    } catch (fallbackError) {
+      console.error("[DeviceSecurity] Non-blocking trusted device registration error:", fallbackError);
+    }
+  }
 
   return {
     rawDeviceToken,

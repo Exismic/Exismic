@@ -9,6 +9,17 @@
 > **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
 
+### 0.00000000000000000000 🌊 Fluid Scroll Entrance Animations for Tool & Category Overview & Features [100% COMPLETED]
+* **Problems Addressed**:
+  - The Overview, Key Features, How-to Workflow, and Related companion sections across tool pages and category pages sat completely idle and static upon initial scroll, lacking fluid entrance transitions.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Tool & Category SEO Guides ([`ToolSeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/ToolSeoSection.tsx) & [`CategorySeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/CategorySeoSection.tsx))**:
+    - Integrated `framer-motion` viewport triggers (`whileInView={{ opacity: 1, y: 0 }}`) with Apple/Linear-style cubic-bezier deceleration curve (`ease: [0.22, 1, 0.36, 1]`) and comfortable trigger offset (`viewport: { once: true, margin: "-40px" }`).
+    - Staggered individual feature and value card children (`delay: idx * 0.05` to `0.08s`) so cards glide and cascade smoothly into place as the user scrolls.
+    - Synchronized Framer Motion `whileHover={{ y: -5 }}` with hardware acceleration to prevent inline transform collision with Tailwind CSS hover styles.
+    - Zero frame drops or mobile layout shifts (`y: 16` to `28` subtle elevations).
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
 ### 0.0000000000000000000 🏷️ Exismic 1.7 Launch Special (20% OFF Pro Monthly & Credit Packs) [100% COMPLETED]
 * **Problems Addressed**:
   - Exismic 1.7 release required a 1-week official 20% promotional discount across **Exismic Pro Monthly** and **Credit Packs** (Starter, Creator, Studio Power).

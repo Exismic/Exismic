@@ -482,7 +482,7 @@ export function PersonalizedHomeSection({
                     >
                       {tool.name}
                     </h3>
-                    <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-4 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors">
+                    <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors">
                       {tool.description}
                     </p>
                   </div>
@@ -770,7 +770,7 @@ export function PersonalizedHomeSection({
                     >
                       {rec.tool.name}
                     </h3>
-                    <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-4 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors">
+                    <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors">
                       {rec.tool.description}
                     </p>
                     <p className="mt-2 text-[10.5px] font-bold text-zinc-400 truncate flex items-center gap-1.5">

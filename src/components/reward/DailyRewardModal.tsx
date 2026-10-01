@@ -12,7 +12,6 @@ import {
   Lock,
   Trophy,
   Loader2,
-  Sparkles,
   Coins,
   CheckCheck,
   Zap,
@@ -763,8 +762,8 @@ export function DailyRewardModal({ isOpen, onClose }: DailyRewardModalProps) {
                               <CheckCheck size={11} className="stroke-[3]" />
                             </div>
                           ) : isEligible ? (
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/30 border border-amber-300 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-spin shrink-0">
-                              <Sparkles size={11} className="fill-amber-300" />
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/30 border border-amber-300 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.9)] shrink-0">
+                              <Flame size={11} className="text-amber-300" />
                             </div>
                           ) : (
                             <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black/40 border border-white/10 text-zinc-500 shrink-0">
@@ -843,7 +842,7 @@ export function DailyRewardModal({ isOpen, onClose }: DailyRewardModalProps) {
                               {isClaimingThis ? (
                                 <Loader2 size={12} className="animate-spin" />
                               ) : (
-                                <Sparkles size={12} className="fill-black" />
+                                <Gift size={13} className="stroke-[2.5]" />
                               )}
                               <span>Claim Drop</span>
                             </button>

@@ -347,7 +347,7 @@ export const ALL_TOOLS: Tool[] = [
   { 
     id: 'image-eraser', 
     name: 'Background Remover', 
-    description: "Instantly remove distracting backgrounds from your portraits, product shots, or selfies. Get clean cutouts with smooth edges ready to drop into any new design or video.", 
+    description: "Instantly remove distracting backgrounds from portraits, product shots, or selfies. Get clean cutouts with smooth edges ready for any design or video.", 
     category: 'image', 
     icon: 'Eraser' as IconName, 
     href: '/tools/image/eraser',
@@ -526,7 +526,7 @@ export const ALL_TOOLS: Tool[] = [
   { 
     id: 'audio-vocal-remover', 
     name: 'Vocal Remover', 
-    description: "Strip out the singing from any song to create clean karaoke instrumentals, or isolate the vocals to use as an acapella track in your own remixes.", 
+    description: "Strip out singing from any song to create clean karaoke instrumentals, or isolate vocals to use as an acapella track in your remixes.", 
     category: 'audio', 
     icon: 'MicOff' as IconName, 
     href: '/tools/audio/vocal-remover',
@@ -786,7 +786,7 @@ export const ALL_TOOLS: Tool[] = [
   { 
     id: 'ai-img-gen', 
     name: 'AI Image Generator', 
-    description: "Type any creative prompt and bring it to life as vibrant digital art, photorealistic portraits, or fantasy landscapes with rich detail and lighting.", 
+    description: "Type any creative prompt and bring it to life as vibrant digital art, photorealistic portraits, or fantasy landscapes with rich lighting.", 
     category: 'ai', 
     icon: 'ImageIcon' as IconName, 
     href: '/tools/ai/img-gen',

@@ -591,8 +591,21 @@ export default function AuthPage() {
         setIsRedirectingState(true);
         setStoredPassword("");
         window.location.replace(returnUrl);
+        return;
       }
     } catch {
+      // Check if user is already authenticated despite any network/action error
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setState('success');
+          setIsRedirectingState(true);
+          setStoredPassword("");
+          window.location.replace(returnUrl);
+          return;
+        }
+      } catch {}
       setError("Device verification failed. Please try again.");
     } finally {
       setIsLoading(false);
@@ -1162,9 +1175,24 @@ export default function AuthPage() {
                           document.getElementById(`device-otp-${i + 1}`)?.focus();
                         }
                       }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                        if (!pasted) return;
+                        const next = [...deviceOtp];
+                        for (let k = 0; k < pasted.length; k++) {
+                          next[k] = pasted[k];
+                        }
+                        setDeviceOtp(next);
+                        const targetIdx = Math.min(pasted.length, 5);
+                        document.getElementById(`device-otp-${targetIdx}`)?.focus();
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Backspace' && !deviceOtp[i] && i > 0) {
                           document.getElementById(`device-otp-${i - 1}`)?.focus();
+                        } else if (e.key === 'Enter') {
+                          e.preventDefault();
+                          void handleVerifyDeviceOtp();
                         }
                       }}
                       className="w-11 h-13 bg-[#07080e]/80 border border-white/10 hover:border-white/20 rounded-xl text-center text-lg font-bold focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 transition-all font-mono"

@@ -750,8 +750,143 @@ const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; tex
   }
 };
 
+const CATEGORY_TOOL_STYLES: Record<string, {
+  hoverBg: string;
+  hoverBorder: string;
+  hoverText: string;
+  hoverIcon: string;
+  activeBg: string;
+  activeBorder: string;
+  activeText: string;
+  activeIcon: string;
+  activeShadow: string;
+}> = {
+  image: {
+    hoverBg: "hover:bg-cyan-500/10",
+    hoverBorder: "hover:border-cyan-400/30",
+    hoverText: "group-hover/tool:text-cyan-200",
+    hoverIcon: "group-hover/tool:text-cyan-300",
+    activeBg: "bg-cyan-500/15",
+    activeBorder: "border-cyan-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(6,182,212,0.25)]",
+  },
+  video: {
+    hoverBg: "hover:bg-violet-500/10",
+    hoverBorder: "hover:border-violet-400/30",
+    hoverText: "group-hover/tool:text-violet-200",
+    hoverIcon: "group-hover/tool:text-violet-300",
+    activeBg: "bg-violet-500/15",
+    activeBorder: "border-violet-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-violet-300 drop-shadow-[0_0_8px_rgba(139,92,246,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(139,92,246,0.25)]",
+  },
+  audio: {
+    hoverBg: "hover:bg-pink-500/10",
+    hoverBorder: "hover:border-pink-400/30",
+    hoverText: "group-hover/tool:text-pink-200",
+    hoverIcon: "group-hover/tool:text-pink-300",
+    activeBg: "bg-pink-500/15",
+    activeBorder: "border-pink-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-pink-300 drop-shadow-[0_0_8px_rgba(236,72,153,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(236,72,153,0.25)]",
+  },
+  pdf: {
+    hoverBg: "hover:bg-red-500/10",
+    hoverBorder: "hover:border-red-400/30",
+    hoverText: "group-hover/tool:text-red-200",
+    hoverIcon: "group-hover/tool:text-red-300",
+    activeBg: "bg-red-500/15",
+    activeBorder: "border-red-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(239,68,68,0.25)]",
+  },
+  ai: {
+    hoverBg: "hover:bg-amber-500/10",
+    hoverBorder: "hover:border-amber-400/30",
+    hoverText: "group-hover/tool:text-amber-200",
+    hoverIcon: "group-hover/tool:text-amber-300",
+    activeBg: "bg-amber-500/15",
+    activeBorder: "border-amber-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-amber-300 drop-shadow-[0_0_8px_rgba(245,158,11,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(245,158,11,0.25)]",
+  },
+  productivity: {
+    hoverBg: "hover:bg-emerald-500/10",
+    hoverBorder: "hover:border-emerald-400/30",
+    hoverText: "group-hover/tool:text-emerald-200",
+    hoverIcon: "group-hover/tool:text-emerald-300",
+    activeBg: "bg-emerald-500/15",
+    activeBorder: "border-emerald-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(16,185,129,0.25)]",
+  },
+  business: {
+    hoverBg: "hover:bg-orange-500/10",
+    hoverBorder: "hover:border-orange-400/30",
+    hoverText: "group-hover/tool:text-orange-200",
+    hoverIcon: "group-hover/tool:text-orange-300",
+    activeBg: "bg-orange-500/15",
+    activeBorder: "border-orange-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-orange-300 drop-shadow-[0_0_8px_rgba(255,153,51,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(255,153,51,0.25)]",
+  },
+  seo: {
+    hoverBg: "hover:bg-cyan-500/10",
+    hoverBorder: "hover:border-cyan-400/30",
+    hoverText: "group-hover/tool:text-cyan-200",
+    hoverIcon: "group-hover/tool:text-cyan-300",
+    activeBg: "bg-cyan-500/15",
+    activeBorder: "border-cyan-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(34,211,238,0.25)]",
+  },
+  developer: {
+    hoverBg: "hover:bg-lime-500/10",
+    hoverBorder: "hover:border-lime-400/30",
+    hoverText: "group-hover/tool:text-lime-200",
+    hoverIcon: "group-hover/tool:text-lime-300",
+    activeBg: "bg-lime-500/15",
+    activeBorder: "border-lime-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-lime-300 drop-shadow-[0_0_8px_rgba(163,230,53,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(163,230,53,0.25)]",
+  },
+  student: {
+    hoverBg: "hover:bg-amber-500/10",
+    hoverBorder: "hover:border-amber-400/30",
+    hoverText: "group-hover/tool:text-amber-200",
+    hoverIcon: "group-hover/tool:text-amber-300",
+    activeBg: "bg-amber-500/15",
+    activeBorder: "border-amber-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(251,191,36,0.25)]",
+  },
+  creator: {
+    hoverBg: "hover:bg-indigo-500/10",
+    hoverBorder: "hover:border-indigo-400/30",
+    hoverText: "group-hover/tool:text-indigo-200",
+    hoverIcon: "group-hover/tool:text-indigo-300",
+    activeBg: "bg-indigo-500/15",
+    activeBorder: "border-indigo-400/35",
+    activeText: "text-white font-bold",
+    activeIcon: "text-indigo-300 drop-shadow-[0_0_8px_rgba(99,102,241,0.9)]",
+    activeShadow: "shadow-[0_0_12px_rgba(99,102,241,0.25)]",
+  }
+};
+
 function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onItemClick }: CategoryDropdownProps) {
   const Icon = ICON_MAP[category.icon] || Sparkles;
+  const toolStyle = CATEGORY_TOOL_STYLES[category.id] || CATEGORY_TOOL_STYLES.image;
   
   const allCategoryTools = useMemo(() => {
     return TOOLS.filter(t => t.category === category.id);
@@ -891,12 +1026,20 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
               return (
                 <Link key={tool.id} href={tool.href} prefetch={true} onClick={onItemClick}>
                   <div className={cn(
-                    "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all duration-150 group/tool select-none",
+                    "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold border border-transparent transition-all duration-150 group/tool select-none",
                     isToolActive
-                      ? "bg-purple-500/15 text-white border border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-                      : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                      ? cn(toolStyle.activeBg, toolStyle.activeBorder, toolStyle.activeText, toolStyle.activeShadow)
+                      : cn("text-zinc-400 hover:text-white", toolStyle.hoverBg, toolStyle.hoverBorder, toolStyle.hoverText)
                   )}>
-                    <ToolIcon size={13} className={cn("shrink-0 transition-transform group-hover/tool:scale-110", isToolActive ? "text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.8)]" : "text-zinc-500 group-hover/tool:text-purple-300")} />
+                    <ToolIcon 
+                      size={13} 
+                      className={cn(
+                        "shrink-0 transition-transform group-hover/tool:scale-110", 
+                        isToolActive 
+                          ? toolStyle.activeIcon 
+                          : cn("text-zinc-500", toolStyle.hoverIcon)
+                      )} 
+                    />
                     <span className="truncate">{tool.name}</span>
                   </div>
                 </Link>

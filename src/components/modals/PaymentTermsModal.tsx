@@ -434,7 +434,7 @@ export function PaymentTermsModal({
     <Portal>
       <AnimatePresence>
         {isOpen && (
-          <div key="payment-terms-modal" className="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-6 pt-12 sm:pt-16 overflow-y-auto">
+          <div key="payment-terms-modal" className="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -452,7 +452,7 @@ export function PaymentTermsModal({
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
             role="dialog"
             aria-modal="true"
-            className="relative flex max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl sm:rounded-[26px] border border-white/10 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_35px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
+            className="relative flex max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl sm:rounded-[24px] border border-white/10 bg-[#07080f]/98 shadow-[0_32px_100px_rgba(0,0,0,0.85),0_0_35px_rgba(34,211,238,0.12)] backdrop-blur-2xl sm:max-w-xl z-10 my-auto"
           >
             {/* Background Mesh & Radial Ambient Glow */}
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
@@ -464,27 +464,28 @@ export function PaymentTermsModal({
               onClick={onClose}
               disabled={isProcessing || isSubmittingGift}
               aria-label="Close modal"
-              className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-zinc-400 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-95 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+              className="absolute right-3 top-3 z-20 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-zinc-400 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-95 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
             >
-              <X size={15} />
+              <X size={14} />
             </button>
 
             {/* Header Section */}
-            <div className="relative z-10 shrink-0 border-b border-white/[0.08] px-4 pt-5 pb-4 sm:px-8 sm:pt-7 sm:pb-6 text-center bg-gradient-to-b from-white/[0.02] to-transparent">
-              <div className="relative mx-auto mb-2.5 sm:mb-3 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-b from-cyan-400/25 via-blue-900/30 to-black/80 text-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-md">
-                <div className="absolute -inset-1 rounded-2xl bg-cyan-400/20 blur-md -z-10 animate-pulse" />
-                <ShieldCheck size={24} className="sm:w-7 sm:h-7 drop-shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
+            <div className="relative z-10 shrink-0 border-b border-white/[0.08] px-4 pt-3.5 pb-2.5 sm:px-6 sm:pt-4 sm:pb-3 text-center bg-gradient-to-b from-white/[0.02] to-transparent">
+              <div className="flex items-center justify-center gap-2 mb-1.5">
+                <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl border border-cyan-400/40 bg-gradient-to-b from-cyan-400/25 via-blue-900/30 to-black/80 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] backdrop-blur-md">
+                  <ShieldCheck size={16} className="drop-shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
+                </div>
+                <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
+                  Secure Checkout
+                </h2>
               </div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
-                Secure Checkout
-              </h2>
-              <div className="mt-2 sm:mt-2.5 inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-full border border-cyan-400/35 bg-cyan-400/[0.08] px-3 sm:px-4 py-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.15)] backdrop-blur-md max-w-full text-center leading-normal">
+              <div className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-cyan-400/35 bg-cyan-400/[0.08] px-3 py-0.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.12)]">
                 <span className="text-white font-black">{type === "pro" ? (planId === "pro_yearly" ? "Exismic Pro Yearly" : "Exismic Pro Monthly") : packName || "Credit Pack"}</span>
                 {price && (
                   <>
                     <span className="text-cyan-400/50">•</span>
                     {appliedCoupon ? (
-                      <span className="inline-flex items-center gap-1.5 font-extrabold">
+                      <span className="inline-flex items-center gap-1 font-extrabold">
                         <span className="line-through text-zinc-500 font-semibold">{price}</span>
                         <span className="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent font-black">{appliedCoupon.displayFinal}</span>
                         <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold">{appliedCoupon.discountLabel}</span>
@@ -497,70 +498,69 @@ export function PaymentTermsModal({
               </div>
 
               {/* Payment Method Selector Tabs */}
-              <div className="mt-3.5 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-1.5 p-1 sm:p-1.5 bg-[#05060d]/90 border border-white/[0.08] rounded-xl sm:rounded-2xl shadow-inner backdrop-blur-xl">
+              <div className="mt-2.5 grid grid-cols-3 gap-1 p-1 bg-[#05060d]/90 border border-white/[0.08] rounded-xl shadow-inner backdrop-blur-xl">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("gateway")}
                   className={cn(
-                    "py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none",
+                    "py-1.5 px-1.5 sm:px-2.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer select-none",
                     paymentMethod === "gateway"
-                      ? "bg-gradient-to-r from-cyan-500/25 via-blue-500/20 to-cyan-500/25 border border-cyan-400/50 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-black"
+                      ? "bg-gradient-to-r from-cyan-500/25 via-blue-500/20 to-cyan-500/25 border border-cyan-400/50 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.25)] font-black"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}
                 >
-                  <CreditCard size={13} className={cn("shrink-0", paymentMethod === "gateway" ? "text-cyan-300" : "text-zinc-500")} />
-                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight sm:tracking-wider whitespace-nowrap">{gatewayName}</span>
+                  <CreditCard size={12} className={cn("shrink-0", paymentMethod === "gateway" ? "text-cyan-300" : "text-zinc-500")} />
+                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight whitespace-nowrap">{gatewayName}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("giftcard")}
                   className={cn(
-                    "py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none",
+                    "py-1.5 px-1.5 sm:px-2.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer select-none",
                     paymentMethod === "giftcard"
-                      ? "bg-gradient-to-r from-amber-500/25 via-orange-500/20 to-amber-500/25 border border-amber-400/50 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-black"
+                      ? "bg-gradient-to-r from-amber-500/25 via-orange-500/20 to-amber-500/25 border border-amber-400/50 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.25)] font-black"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}
                 >
-                  <Ticket size={13} className={cn("shrink-0", paymentMethod === "giftcard" ? "text-amber-300" : "text-zinc-500")} />
-                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight sm:tracking-wider whitespace-nowrap">Gift Card</span>
+                  <Ticket size={12} className={cn("shrink-0", paymentMethod === "giftcard" ? "text-amber-300" : "text-zinc-500")} />
+                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight whitespace-nowrap">Gift Card</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("history")}
                   className={cn(
-                    "py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none",
+                    "py-1.5 px-1.5 sm:px-2.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer select-none",
                     paymentMethod === "history"
-                      ? "bg-gradient-to-r from-purple-500/25 via-fuchsia-500/20 to-purple-500/25 border border-purple-400/50 text-purple-200 shadow-[0_0_20px_rgba(168,85,247,0.25),inset_0_1px_0_rgba(255,255,255,0.2)] font-black"
+                      ? "bg-gradient-to-r from-purple-500/25 via-fuchsia-500/20 to-purple-500/25 border border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.25)] font-black"
                       : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                   )}
                 >
-                  <History size={13} className={cn("shrink-0", paymentMethod === "history" ? "text-purple-300" : "text-zinc-500")} />
-                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight sm:tracking-wider whitespace-nowrap">History</span>
+                  <History size={12} className={cn("shrink-0", paymentMethod === "history" ? "text-purple-300" : "text-zinc-500")} />
+                  <span className="text-[10px] sm:text-xs font-bold sm:font-black tracking-tight whitespace-nowrap">History</span>
                 </button>
               </div>
             </div>
 
             {/* Scrollable Content Body */}
-            <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-4 sm:px-8 sm:py-5 sm:space-y-5 custom-scrollbar">
+            <div className="relative z-10 flex-1 overflow-y-auto px-4 py-2.5 space-y-2.5 sm:px-6 sm:py-3 sm:space-y-3 custom-scrollbar">
               {paymentMethod === "gateway" && (
                 <>
                   {/* Secure Payment Info Box */}
-                  <div className="relative overflow-hidden rounded-2xl border border-emerald-400/35 bg-gradient-to-r from-emerald-500/12 via-teal-500/8 to-black/60 p-4 shadow-[0_0_25px_rgba(52,211,153,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] text-left backdrop-blur-md">
-                    <div className="absolute top-0 right-0 h-32 w-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex items-start gap-3.5">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-400/40 bg-gradient-to-b from-emerald-400/25 to-teal-500/10 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.35)]">
-                        <Lock size={18} />
+                  <div className="relative overflow-hidden rounded-xl border border-emerald-400/30 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-black/60 px-3.5 py-2.5 shadow-[0_0_15px_rgba(52,211,153,0.08)] text-left backdrop-blur-md">
+                    <div className="relative z-10 flex items-start gap-2.5 sm:gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-400/20 text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.2)] mt-0.5">
+                        <Lock size={13} />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="text-[10.5px] sm:text-xs font-black uppercase tracking-wider text-emerald-300">
                             Protected by {gatewayName}
                           </h4>
                           <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,1)]" />
                         </div>
-                        <p className="mt-1 text-[11px] font-medium leading-relaxed text-zinc-300">
+                        <p className="text-[10.5px] sm:text-[11px] font-medium leading-relaxed text-zinc-300 mt-0.5">
                           {gatewayDescription}
                         </p>
                       </div>
@@ -569,72 +569,65 @@ export function PaymentTermsModal({
 
                   {/* Luxury Coupon & Voucher Code Field */}
                   {isLaunchDiscountEligible ? (
-                    <div className="rounded-2xl border border-emerald-400/35 bg-gradient-to-b from-emerald-950/30 via-emerald-950/10 to-transparent p-4 text-left shadow-[0_0_25px_rgba(52,211,153,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] relative overflow-hidden">
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <label className="text-[10.5px] font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                          <BadgePercent size={14} className="text-emerald-400" />
+                    <div className="rounded-xl border border-emerald-400/35 bg-gradient-to-b from-emerald-950/30 via-emerald-950/10 to-transparent p-2.5 sm:p-3 text-left shadow-[0_0_20px_rgba(52,211,153,0.1)] relative overflow-hidden">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                          <BadgePercent size={13} className="text-emerald-400" />
                           <span>Exismic 1.7 Launch Special (20% OFF)</span>
                         </label>
-                        <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]">
+                        <span className="text-[8.5px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-400/40">
                           Auto-Applied
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-emerald-400/30 bg-black/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="h-8 w-8 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 text-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.2)]">
-                            <Ticket size={16} />
+                      <div className="flex items-center justify-between gap-2.5 p-2 rounded-lg border border-emerald-400/30 bg-black/60">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="h-7 w-7 rounded-md bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 text-emerald-400">
+                            <Ticket size={13} />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-white tracking-wide truncate">
+                            <p className="text-[11px] font-bold text-white tracking-wide truncate">
                               Code: <span className="font-mono text-emerald-300 font-black">EXISMIC17</span>
                             </p>
-                            <p className="text-[11px] text-zinc-300 leading-tight">
+                            <p className="text-[10px] text-zinc-300 leading-tight">
                               Special price: <span className="font-bold text-emerald-300">{appliedCoupon?.displayFinal}</span>
                             </p>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="block text-xs font-black text-emerald-400 font-mono">
+                          <span className="block text-[11px] font-black text-emerald-400 font-mono leading-tight">
                             Save {appliedCoupon?.displayDiscount}
                           </span>
-                          <span className="text-[9px] text-zinc-400 font-semibold uppercase">20% OFF</span>
+                          <span className="text-[8.5px] text-zinc-400 font-semibold uppercase">20% OFF</span>
                         </div>
-                      </div>
-
-                      <div className="mt-2.5 flex items-center gap-2 text-[11px] text-zinc-300 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2">
-                        <Lock size={13} className="text-amber-400 shrink-0" />
-                        <span className="leading-snug">
-                          Custom coupons are blocked — official 20% launch discount is active from us for 1 week.
-                        </span>
                       </div>
                     </div>
                   ) : isExismic17PromoActive() ? (
-                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-left">
-                      <div className="flex items-center gap-2 text-xs text-zinc-400">
-                        <Lock size={14} className="text-zinc-500 shrink-0" />
-                        <span>Custom coupon codes cannot be used during the Exismic 1.7 launch period.</span>
+                    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-2.5 text-left">
+                      <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+                        <Lock size={13} className="text-zinc-500 shrink-0" />
+                        <span>Custom coupon codes cannot be used during launch discount.</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-white/[0.1] bg-white/[0.02] p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <label className="text-[10.5px] font-black uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-                          <Ticket size={13} className="text-purple-400" />
+                    <div className="rounded-xl border border-white/[0.1] bg-white/[0.02] p-2.5 text-left">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                          <Ticket size={12} className="text-purple-400" />
                           <span>Have a Discount Coupon?</span>
                         </label>
                         {appliedCoupon && (
-                          <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]">
+                          <span className="text-[8.5px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-400/40">
                             -{appliedCoupon.discountLabel} Applied
                           </span>
                         )}
                       </div>
 
-                      <form onSubmit={handleApplyCoupon} className="space-y-2.5">
+                      <form onSubmit={handleApplyCoupon} className="space-y-1.5">
                         <div className="relative flex items-center gap-2">
                           <div className="relative flex-1">
-                            <Ticket size={14} className={cn(
-                              "absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors",
+                            <Ticket size={13} className={cn(
+                              "absolute left-3 top-1/2 -translate-y-1/2 transition-colors",
                               appliedCoupon ? "text-emerald-400" : "text-zinc-500"
                             )} />
                             <input
@@ -644,17 +637,16 @@ export function PaymentTermsModal({
                                 const val = e.target.value.toUpperCase();
                                 setCouponInput(val);
                                 if (couponError) setCouponError(null);
-                                // Immediately revoke discount if code is modified or removed!
                                 if (appliedCoupon && val.trim() !== appliedCoupon.code) {
                                   setAppliedCoupon(null);
                                 }
                               }}
-                              placeholder="Enter coupon code (e.g. OFF100 / PRO20)"
+                              placeholder="Enter coupon code"
                               className={cn(
-                                "w-full rounded-xl pl-9 pr-8 py-2.5 text-xs font-mono tracking-wider transition-all focus:outline-none",
+                                "w-full rounded-lg pl-8 pr-7 py-2 text-[11px] font-mono tracking-wider transition-all focus:outline-none",
                                 appliedCoupon
-                                  ? "bg-emerald-950/25 border border-emerald-400/60 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.15)] placeholder:text-emerald-400/40"
-                                  : "bg-black/60 border border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
+                                  ? "bg-emerald-950/25 border border-emerald-400/60 text-emerald-200"
+                                  : "bg-black/60 border border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-400"
                               )}
                             />
                             {couponInput && (
@@ -662,9 +654,9 @@ export function PaymentTermsModal({
                                 type="button"
                                 onClick={handleRemoveCoupon}
                                 aria-label="Clear coupon code"
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10"
                               >
-                                <X size={12} />
+                                <X size={10} />
                               </button>
                             )}
                           </div>
@@ -673,7 +665,7 @@ export function PaymentTermsModal({
                             <button
                               type="button"
                               onClick={handleRemoveCoupon}
-                              className="px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 active:scale-95 shrink-0"
+                              className="px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider border border-rose-500/40 bg-rose-500/10 text-rose-300"
                             >
                               Remove
                             </button>
@@ -682,94 +674,74 @@ export function PaymentTermsModal({
                               type="submit"
                               disabled={isValidatingCoupon || !couponInput.trim()}
                               className={cn(
-                                "px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 shrink-0 select-none",
+                                "px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1",
                                 couponInput.trim() && !isValidatingCoupon
-                                  ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-white shadow-md shadow-purple-500/30 hover:brightness-110 active:scale-95 hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                                  ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-white shadow-sm"
                                   : "bg-white/[0.04] border border-white/[0.08] text-zinc-500 cursor-not-allowed"
                               )}
                             >
-                              {isValidatingCoupon ? (
-                                <>
-                                  <Loader2 size={13} className="animate-spin text-white" />
-                                  <span>Checking...</span>
-                                </>
-                              ) : (
-                                "Apply"
-                              )}
+                              {isValidatingCoupon ? "Checking..." : "Apply"}
                             </button>
                           )}
                         </div>
 
-                        {/* Active Coupon Banner */}
                         {appliedCoupon && (
-                          <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-400/40 bg-emerald-950/20 px-3 py-2 text-xs">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
-                              <span className="text-[11px] font-medium text-emerald-300">
-                                {appliedCoupon.note || `${appliedCoupon.discountLabel} discount applied to this order!`}
-                              </span>
-                            </div>
-                            <span className="font-mono text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+                          <div className="flex items-center justify-between gap-2 rounded-lg border border-emerald-400/40 bg-emerald-950/20 px-2.5 py-1 text-[10.5px]">
+                            <span className="text-emerald-300 truncate">
+                              {appliedCoupon.note || `${appliedCoupon.discountLabel} discount applied!`}
+                            </span>
+                            <span className="font-mono text-[9px] font-black text-emerald-400 uppercase bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30 shrink-0">
                               Saved {appliedCoupon.displayDiscount}
                             </span>
                           </div>
                         )}
 
-                        {/* Error Message */}
                         {couponError && (
-                          <p className="text-[11px] text-rose-400 font-medium px-1 leading-tight flex items-start gap-1">
-                            <span className="font-bold">•</span>
-                            <span>{couponError}</span>
+                          <p className="text-[10px] text-rose-400 font-medium px-1 leading-tight">
+                            • {couponError}
                           </p>
                         )}
                       </form>
                     </div>
                   )}
 
-                  {/* Terms Section */}
-                  <div className="space-y-3 text-left">
-                    <p className="text-[9px] font-black uppercase tracking-[0.22em] text-zinc-400">Important Terms</p>
-                    <div className="space-y-2.5">
+                  {/* Terms Section - Compact 2x2 Grid */}
+                  <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-2.5 sm:p-3 text-left space-y-1.5">
+                    <p className="text-[8.5px] font-black uppercase tracking-[0.2em] text-zinc-400">Important Terms</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10.5px] text-zinc-300">
                       {type === "pro" ? (
                         <>
-                          <div className="flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-white/[0.01] p-3.5 text-xs text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-white/15">
-                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-gradient-to-b from-cyan-400/20 to-blue-500/10 text-[10px] font-black text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</span>
-                            <span className="leading-relaxed">
-                              <strong className="text-white font-black">Automatic Renewal:</strong> Your Pro subscription automatically renews {planId === "pro_yearly" ? "annually (yearly)" : "monthly"}{planId === "pro" && isLaunchDiscountEligible ? ` at standard price (${gateway === "razorpay" ? "₹499" : "$6.99"}/mo) starting month 2` : ""}. Cancel anytime in account settings.
+                          <div className="flex items-start gap-2">
+                            <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border border-cyan-400/40 bg-cyan-400/20 text-[9px] font-black text-cyan-200">1</span>
+                            <span className="leading-snug">
+                              <strong className="text-white font-bold">Auto-Renews:</strong> {planId === "pro_yearly" ? "Annually" : "Monthly"}{planId === "pro" && isLaunchDiscountEligible ? ` (${gateway === "razorpay" ? "₹499" : "$6.99"}/mo after)` : ""}. Cancel anytime in settings.
                             </span>
                           </div>
-
-                          <div className="flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-white/[0.01] p-3.5 text-xs text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-white/15">
-                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-gradient-to-b from-cyan-400/20 to-blue-500/10 text-[10px] font-black text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]">2</span>
-                            <span className="leading-relaxed">
-                              <strong className="text-white font-black">Daily Limits:</strong> Priority GPU processing with daily credits that restore every 24 hours.
+                          <div className="flex items-start gap-2">
+                            <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border border-cyan-400/40 bg-cyan-400/20 text-[9px] font-black text-cyan-200">2</span>
+                            <span className="leading-snug">
+                              <strong className="text-white font-bold">Daily Limits:</strong> Priority GPU limits refresh every 24 hours.
                             </span>
                           </div>
                         </>
                       ) : (
-                        <div className="flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-white/[0.01] p-3.5 text-xs text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-white/15">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-gradient-to-b from-cyan-400/20 to-blue-500/10 text-[10px] font-black text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</span>
-                          <span className="leading-relaxed">
-                            <strong className="text-white font-black">Permanent Credits:</strong> Credits do not expire and remain active on your account indefinitely.
+                        <div className="flex items-start gap-2">
+                          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border border-cyan-400/40 bg-cyan-400/20 text-[9px] font-black text-cyan-200">1</span>
+                          <span className="leading-snug">
+                            <strong className="text-white font-bold">Permanent:</strong> Credits never expire on your account.
                           </span>
                         </div>
                       )}
-
-                      <div className="flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-white/[0.01] p-3.5 text-xs text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-white/15">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-gradient-to-b from-cyan-400/20 to-blue-500/10 text-[10px] font-black text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-                          {type === "pro" ? 3 : 2}
-                        </span>
-                        <span className="leading-relaxed">
-                          <strong className="text-white font-black">Non-Refundable:</strong> Due to compute infrastructure costs, active subscriptions and used credits are non-refundable.
+                      <div className="flex items-start gap-2">
+                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border border-cyan-400/40 bg-cyan-400/20 text-[9px] font-black text-cyan-200">{type === "pro" ? 3 : 2}</span>
+                        <span className="leading-snug">
+                          <strong className="text-white font-bold">Non-Refundable:</strong> Due to server GPU compute costs.
                         </span>
                       </div>
-
-                      <div className="flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-white/[0.01] p-3.5 text-xs text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-white/15">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-gradient-to-b from-cyan-400/20 to-blue-500/10 text-[10px] font-black text-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-                          {type === "pro" ? 4 : 3}
-                        </span>
-                        <span className="leading-relaxed">
-                          <strong className="text-white font-black">Fair Usage:</strong> Subject to standard fair usage policies to prevent automated API abuse.
+                      <div className="flex items-start gap-2">
+                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border border-cyan-400/40 bg-cyan-400/20 text-[9px] font-black text-cyan-200">{type === "pro" ? 4 : 3}</span>
+                        <span className="leading-snug">
+                          <strong className="text-white font-bold">Fair Usage:</strong> Standard abuse prevention rules apply.
                         </span>
                       </div>
                     </div>
@@ -778,9 +750,9 @@ export function PaymentTermsModal({
                   {/* Agreement Checkbox */}
                   <label
                     className={cn(
-                      "relative overflow-hidden flex cursor-pointer items-start gap-3.5 rounded-2xl border p-4 transition-all duration-300 select-none text-left",
+                      "relative overflow-hidden flex cursor-pointer items-start gap-2.5 rounded-xl border p-2.5 sm:p-3 transition-all duration-200 select-none text-left",
                       agreed
-                        ? "border-emerald-400/60 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent text-white shadow-[0_0_25px_rgba(52,211,153,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]"
+                        ? "border-emerald-400/60 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent text-white shadow-[0_0_20px_rgba(52,211,153,0.15)]"
                         : "border-white/[0.1] bg-white/[0.02] text-zinc-300 hover:border-white/20 hover:bg-white/[0.04]"
                     )}
                   >
@@ -792,15 +764,15 @@ export function PaymentTermsModal({
                     />
                     <div
                       className={cn(
-                        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 shadow-sm",
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border transition-all duration-200",
                         agreed
-                          ? "border-emerald-300 bg-gradient-to-br from-emerald-400 to-teal-500 text-black shadow-[0_0_12px_rgba(52,211,153,0.8)] scale-105"
+                          ? "border-emerald-300 bg-gradient-to-br from-emerald-400 to-teal-500 text-black shadow-[0_0_8px_rgba(52,211,153,0.8)] scale-105"
                           : "border-white/30 bg-black/40 text-transparent hover:border-white/50"
                       )}
                     >
-                      <CheckSquare size={13} strokeWidth={3} className={agreed ? "opacity-100" : "opacity-0"} />
+                      <CheckSquare size={11} strokeWidth={3} className={agreed ? "opacity-100" : "opacity-0"} />
                     </div>
-                    <div className="text-[11px] font-medium leading-relaxed text-zinc-200">
+                    <div className="text-[10.5px] sm:text-[11px] font-medium leading-relaxed text-zinc-200">
                       I have read and agree to the{" "}
                       <Link
                         href="/terms-of-service"
@@ -821,7 +793,7 @@ export function PaymentTermsModal({
                       >
                         Privacy Policy
                       </Link>
-                      , and confirm secure processing via {gatewayName}.
+                      , and confirm secure payment via {gatewayName}.
                     </div>
                   </label>
                 </>
@@ -903,20 +875,20 @@ export function PaymentTermsModal({
                                 key={brand.id}
                                 onClick={() => handleBrandChange(brand.id)}
                                 className={cn(
-                                  "p-3 rounded-2xl border text-left transition-all duration-300 flex items-center gap-3 cursor-pointer select-none relative overflow-hidden",
+                                  "p-2.5 sm:p-3 rounded-xl border text-left transition-all duration-300 flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none relative overflow-hidden",
                                   isSelected
                                     ? activeBorder
                                     : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:border-white/25 hover:bg-white/[0.05] hover:text-white"
                                 )}
                               >
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl p-1 bg-white/[0.03] border border-white/10">
+                                <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg p-1 bg-white/[0.03] border border-white/10">
                                   <BrandIconComponent className="w-full h-full drop-shadow-md" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center justify-between gap-1">
                                     <span className="text-xs font-black text-white whitespace-nowrap tracking-tight">{brand.name}</span>
                                     <span className={cn(
-                                      "px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider border shrink-0",
+                                      "px-1.5 py-0.5 rounded-full text-[8px] sm:text-[8.5px] font-black uppercase tracking-wider border shrink-0",
                                       isSelected
                                         ? "bg-white/15 text-white border-white/25 shadow-sm"
                                         : "bg-white/[0.04] text-zinc-400 border-white/10"
@@ -924,7 +896,7 @@ export function PaymentTermsModal({
                                       {brand.tag}
                                     </span>
                                   </div>
-                                  <div className="text-[10.5px] text-zinc-400 font-medium whitespace-nowrap mt-0.5">{brand.description}</div>
+                                  <div className="text-[10px] sm:text-[10.5px] text-zinc-400 font-medium whitespace-nowrap mt-0.5">{brand.description}</div>
                                 </div>
                               </button>
                             );
@@ -1090,13 +1062,13 @@ export function PaymentTermsModal({
 
             {/* Actions Footer */}
             {paymentMethod === "gateway" && (
-              <div className="relative z-10 shrink-0 border-t border-white/[0.08] bg-gradient-to-b from-[#06070e]/95 to-[#030408]/98 p-3.5 sm:p-5 sm:px-6 backdrop-blur-2xl">
-                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+              <div className="relative z-10 shrink-0 border-t border-white/[0.08] bg-gradient-to-b from-[#06070e]/95 to-[#030408]/98 p-2.5 sm:p-3 sm:px-5 backdrop-blur-2xl">
+                <div className="flex items-center gap-2 sm:gap-2.5">
                   <button
                     type="button"
                     onClick={onClose}
                     disabled={isProcessing}
-                    className="w-full sm:w-28 shrink-0 min-h-[42px] sm:min-h-12 py-2.5 sm:py-3.5 px-4 flex items-center justify-center rounded-xl sm:rounded-full border border-white/10 sm:border-white/[0.12] bg-white/[0.02] sm:bg-white/[0.04] text-xs font-bold uppercase tracking-wider text-zinc-400 sm:text-zinc-300 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-200 active:scale-[0.98] sm:active:scale-95 disabled:opacity-40 cursor-pointer"
+                    className="w-20 sm:w-24 shrink-0 h-10 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1110,33 +1082,33 @@ export function PaymentTermsModal({
                     }}
                     disabled={!agreed || isProcessing}
                     className={cn(
-                      "group relative w-full sm:flex-1 min-h-[48px] sm:min-h-12 py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-wider sm:tracking-[0.14em] text-xs sm:text-sm transition-all duration-300 isolate overflow-hidden cursor-pointer select-none shadow-lg",
+                      "group relative flex-1 h-10 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 font-black uppercase tracking-wider text-xs sm:text-sm transition-all duration-300 isolate overflow-hidden cursor-pointer select-none shadow-lg",
                       agreed
-                        ? "bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-600 text-white shadow-[0_0_28px_rgba(6,182,212,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.65)] hover:scale-[1.01] active:scale-[0.99]"
+                        ? "bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] hover:scale-[1.01] active:scale-[0.99]"
                         : "cursor-not-allowed border border-white/[0.08] bg-white/[0.03] text-zinc-600 opacity-40 shadow-none"
                     )}
                   >
                     {/* Shimmer sweep on active */}
                     {agreed && (
-                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full rounded-xl sm:rounded-full" />
+                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] transition-transform duration-1000 group-hover:translate-x-full rounded-xl" />
                     )}
                     {isProcessing ? (
                       <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
-                        <Loader2 size={16} className="animate-spin text-white shrink-0" />
-                        <span className="whitespace-nowrap">Processing Checkout...</span>
+                        <Loader2 size={14} className="animate-spin text-white shrink-0" />
+                        <span className="whitespace-nowrap text-xs">Processing...</span>
                       </span>
                     ) : (
-                      <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-2.5 w-full whitespace-nowrap">
-                        <Zap size={15} className="text-white fill-white/20 shrink-0 animate-pulse" />
-                        <span className="font-black uppercase tracking-wider sm:tracking-[0.14em] text-white whitespace-nowrap text-xs sm:text-sm">
+                      <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 w-full">
+                        <Zap size={13} className="text-white fill-white/20 shrink-0 hidden xs:inline" />
+                        <span className="font-black uppercase tracking-wider text-white whitespace-nowrap text-[11.5px] sm:text-xs md:text-sm">
                           Proceed to {gatewayName}
                         </span>
                         {displayFinalAmount && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-black/40 border border-white/25 text-white font-mono text-xs font-black tracking-tight shadow-inner shrink-0 whitespace-nowrap">
+                          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-md bg-black/40 border border-white/25 text-white font-mono text-[10.5px] sm:text-[11px] font-black tracking-tight shadow-inner shrink-0 whitespace-nowrap">
                             {displayFinalAmount}
                           </span>
                         )}
-                        <ArrowRight size={15} strokeWidth={2.5} className="text-white transition-transform duration-300 group-hover:translate-x-1 shrink-0" />
+                        <ArrowRight size={13} strokeWidth={2.5} className="text-white transition-transform duration-300 group-hover:translate-x-1 shrink-0" />
                       </span>
                     )}
                   </button>

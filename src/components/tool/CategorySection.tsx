@@ -134,7 +134,7 @@ export function CategorySection({ hideHeader = false }: { hideHeader?: boolean }
                       )}>
                         {cat.name}
                       </h3>
-                      <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-3 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words mx-auto">
+                      <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words mx-auto">
                         {cat.description}
                       </p>
                     </div>

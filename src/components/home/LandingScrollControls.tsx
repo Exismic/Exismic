@@ -172,7 +172,7 @@ export function LandingScrollControls() {
   return (
     <aside 
       aria-label="Page navigation controls" 
-      className="fixed bottom-5 right-4 sm:bottom-7 sm:right-7 z-40 pointer-events-auto select-none"
+      className="fixed bottom-20 right-5 sm:bottom-24 sm:right-7 z-40 pointer-events-auto select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

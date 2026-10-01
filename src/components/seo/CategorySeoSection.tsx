@@ -435,727 +435,727 @@ export function CategorySeoSection({
     switch (id) {
       case "image":
         return {
-          title: "Next-Gen Image & Graphics Processing",
+          title: "Simple, High-Quality Photo & Image Tools",
           intro:
-            "Transform, upscale, convert, and craft visual media in seconds. Exismic combines in-browser canvas speed with deep neural cutouts to remove backgrounds, compress photos without quality loss, and create custom Minecraft 3D skins with zero watermarks.",
+            "Edit, shrink, convert, and create photos in seconds. Remove backgrounds cleanly, compress file sizes without losing clarity, make custom Minecraft skins, and save everything with zero watermarks.",
           valueCards: [
             {
-              title: "Zero Watermarks",
-              desc: "Export 100% clean PNG, WebP, and SVG files ready for client deliverables and commercial branding.",
-              badge: "Royalty Free",
+              title: "No Watermarks",
+              desc: "Download clean PNG, JPG, and SVG pictures ready to use anywhere.",
+              badge: "Free to Use",
               icon: Shield,
             },
             {
-              title: "Lossless Edge Detail",
-              desc: "Preserve fine hair, furry edges, and semi-transparent alpha channels with pixel-perfect precision.",
-              badge: "Precision",
+              title: "Clean Cutouts",
+              desc: "Keep fine details like hair and soft edges looking sharp and natural.",
+              badge: "High Detail",
               icon: Layers,
             },
             {
-              title: "In-Browser Speed",
-              desc: "Resize, convert, and compress images directly inside your browser with zero upload lag.",
-              badge: "Instant",
+              title: "Instant Editing",
+              desc: "Resize, change formats, and shrink pictures right in your browser with no waiting.",
+              badge: "Fast",
               icon: Zap,
             },
             {
-              title: "Universal Formats",
-              desc: "Full support for PNG, JPG, WebP, AVIF, SVG, and high-resolution texture maps.",
-              badge: "Universal",
+              title: "Works with Any Photo",
+              desc: "Full support for standard picture formats including PNG, JPG, WebP, and SVG.",
+              badge: "All Formats",
               icon: ImageIcon,
             },
           ],
           features: [
-            "Zero-Loss Compression: Shrink bloated image file sizes up to 85% without noticeable artifacting or blur.",
-            "Ephemeral Canvas Sandbox: Your personal photos, screenshots, and artwork never leave your device.",
-            "Commercial Royalty-Free: 100% full commercial copyright on all created skins, cutouts, and banners.",
-            "Cross-Tool Chaining: Send your transparent cutout directly into the compressor, resizer, or meme studio with 1 click.",
+            "Shrink File Sizes: Reduce large picture sizes up to 85% without making them blurry or pixelated.",
+            "100% Private: Your photos, screenshots, and graphics are processed right in your browser and never leave your device.",
+            "Free for Any Project: Use every cutout, skin, and graphic you make for personal, business, or client work.",
+            "Easy Workflow: Send your cut out photo directly to other tools like our compressor or resizer with one click.",
           ],
           faqs: [
             {
               question: "Does Exismic degrade photo resolution or sharpness?",
               answer:
-                "No. Exismic uses perceptual image preservation algorithms that maintain pixel sharpness, dynamic contrast, and vibrant color depth across all export formats.",
+                "No. Exismic keeps your photos crisp and sharp, maintaining natural colors and fine details across all downloads.",
             },
             {
               question: "Can I use edited images commercially?",
               answer:
-                "Yes. Any asset processed or created on Exismic is completely yours for personal, client, or commercial use without royalties or licensing restrictions.",
+                "Yes. Any image processed or created on Exismic is completely yours for personal, client, or commercial use with zero royalties or restrictions.",
             },
             {
               question: "How does the Minecraft Skin Maker work?",
               answer:
-                "Our AI skin studio turns text prompts and reference palettes into game-ready 64x64 PNG skins with full 3D interactive inspection and layer editing.",
+                "You can type in ideas or pick colors to create a ready-to-play 64x64 PNG Minecraft skin with an interactive 3D preview.",
             },
             {
               question: "Are uploads stored on Exismic servers?",
               answer:
-                "Your uploads are processed securely in an encrypted client-side sandbox and are never retained, monitored, or used for model training.",
+                "Your uploads are processed right inside your browser on your device and are never saved, monitored, or shared.",
             },
           ],
         };
 
       case "video":
         return {
-          title: "Studio-Grade Video Editing & Subtitle Suite",
+          title: "Fast Video Tools & Automatic Subtitles",
           intro:
-            "Produce high-impact video content without bulky software or slow rendering queues. Trim clips, generate animated captions, isolate backgrounds, and compress videos directly in your browser with zero watermarks.",
+            "Create great videos without heavy software or long waits. Cut clips, add captions that match your speech, shrink video file sizes, and export clean videos with no watermarks.",
           valueCards: [
             {
-              title: "Clean Video Exports",
-              desc: "Export clean MP4 and WebM videos ready for YouTube Shorts, TikTok, and Instagram Reels.",
-              badge: "Zero Watermarks",
+              title: "No Watermarks",
+              desc: "Download clean MP4 and WebM videos ready to share on any social app.",
+              badge: "Clean Videos",
               icon: VideoIcon,
             },
             {
-              title: "Auto Captions Engine",
-              desc: "Generate word-by-word synced subtitles that boost retention and watch time.",
-              badge: "High Retention",
+              title: "Auto Subtitles",
+              desc: "Add synchronized subtitles word-by-word so people can watch with sound off.",
+              badge: "Clear Captions",
               icon: FileText,
             },
             {
-              title: "Lossless Video Shrink",
-              desc: "Reduce GB-sized raw video files to lightweight web-friendly clips in seconds.",
-              badge: "Fast Render",
+              title: "Shrink Video Size",
+              desc: "Make large video files much smaller so they are easy to send and upload.",
+              badge: "Smaller Files",
               icon: Zap,
             },
             {
-              title: "1-Click Social Ratios",
-              desc: "Instant 9:16 vertical, 1:1 square, and 16:9 widescreen formats for every channel.",
-              badge: "Multi-Platform",
+              title: "Preset Sizes",
+              desc: "Quickly switch between vertical for phones, square, and widescreen formats.",
+              badge: "All Sizes",
               icon: Sliders,
             },
           ],
           features: [
-            "In-Browser WebAssembly Encoding: Process and trim clips locally without uploading gigabytes to cloud servers.",
-            "High-Retention Subtitles: Animated word highlights keep viewers hooked through the critical first 3 seconds.",
-            "Crisp 1080p & 4K Output: Crystal-clear video exports without blurry downscaling or forced brand watermarks.",
-            "Platform-Ready Presets: Tailored export profiles optimized for TikTok, Instagram Reels, and YouTube Shorts.",
+            "Runs on Your Device: Edit and trim clips right in your browser without waiting for long file uploads.",
+            "Easy-to-Read Captions: Highlight words as you speak to help viewers follow along easily.",
+            "High Resolution: Save your videos in clear quality without any forced brand stamps or logos.",
+            "Ready for Social Media: Preset sizes made specifically for TikTok, Instagram Reels, and YouTube Shorts.",
           ],
           faqs: [
             {
               question: "Does Exismic put watermarks on exported videos?",
               answer:
-                "Never. All video exports from Exismic are 100% clean and watermark-free for both personal and commercial use.",
+                "Never. All videos you export from Exismic are 100% clean and watermark-free for both personal and commercial use.",
             },
             {
-              question: "How does in-browser video processing work without software installation?",
+              question: "How does video editing work without installing software?",
               answer:
-                "We utilize WebAssembly and WebGPU engines directly inside modern browsers to decode, transform, and encode clips locally with zero latency.",
+                "Our tools run directly inside your web browser on your phone, tablet, or computer, so you can edit and trim clips without installing anything.",
             },
             {
               question: "What video formats does Exismic support?",
               answer:
-                "You can import and export MP4, WebM, MOV, and MKV video formats across all major desktop and mobile browsers.",
+                "You can open and export popular video formats including MP4, WebM, MOV, and MKV across all devices.",
             },
             {
-              question: "Can I use generated video clips for commercial client work?",
+              question: "Can I use video clips for commercial or client work?",
               answer:
-                "Yes, 100%. All video assets produced on Exismic are unencumbered and approved for commercial deliverables.",
+                "Yes, 100%. All video clips and files you make on Exismic are yours to use for client deliverables, ads, or social channels.",
             },
           ],
         };
 
       case "audio":
         return {
-          title: "Studio-Grade Audio, Music & Voice Workflows",
+          title: "Simple Audio, Music & Voice Tools",
           intro:
-            "Shape, refine, and produce pristine audio in seconds. Isolate crisp vocals, split instrumental stems, craft viral slowed + reverb mixes, generate lifelike speech, and visualize soundwaves with zero audio compression artifacts.",
+            "Clean up, remix, and create audio in seconds. Separate vocals from background music, make slowed and reverb tracks, turn text into speech, and create soundwave videos without losing sound quality.",
           valueCards: [
             {
-              title: "Crystal Stem Split",
-              desc: "Isolate vocals, drums, bass, and melody lines with studio-grade acoustic clarity.",
-              badge: "AI Stems",
+              title: "Separate Vocals",
+              desc: "Split voice and background music cleanly from any song or recording.",
+              badge: "Split Audio",
               icon: Headphones,
             },
             {
-              title: "Real-Time DSP Engine",
-              desc: "Apply cathedral reverb, bass boost, and pitch shifts instantly with zero buffer lag.",
-              badge: "Zero Buffer Lag",
+              title: "Sound Effects",
+              desc: "Add reverb, boost the bass, or change the speed and pitch with simple controls.",
+              badge: "Simple Controls",
               icon: Sliders,
             },
             {
-              title: "Lossless Audio Master",
-              desc: "Export studio-mastered 16-bit 44.1kHz audio files ready for streaming platforms.",
-              badge: "Lossless Master",
+              title: "Clear Sound Quality",
+              desc: "Download high quality WAV and MP3 files that sound great on headphones and speakers.",
+              badge: "High Quality",
               icon: Award,
             },
             {
-              title: "Waveform Video Studio",
-              desc: "Render animated audiogram videos for podcast teasers and social music sharing.",
+              title: "Soundwave Videos",
+              desc: "Turn your audio into animated video clips for sharing podcasts and music online.",
               badge: "Visualizer",
               icon: Zap,
             },
           ],
           features: [
-            "Hardware-Accelerated DSP: Real-time frequency filtering and convolution reverb run natively on your device.",
-            "Zero Telemetry Privacy: Audio files, private voiceovers, and voice notes are processed securely in an isolated sandbox.",
-            "Studio Acoustic Integrity: Perceptual audio engines prevent robotic phase cancellation and muddy low-end frequencies.",
-            "1-Click Chaining: Seamlessly move from audio slowing and stem splitting to animated waveform video creation.",
+            "Instant Playback: Listen to your changes in real time without annoying loading delays.",
+            "Private & Secure: Your songs, voice notes, and recordings stay on your computer and are never saved online.",
+            "Natural Sound: Clean filters keep your voice clear and natural without robotic glitches or muffled bass.",
+            "Connected Tools: Easily take your separated vocal or remix and turn it into a shareable video.",
           ],
           faqs: [
             {
               question: "Can I split vocals and instruments from any song?",
               answer:
-                "Yes. Our stem separation algorithms accurately separate lead vocals from backing instruments, drums, and basslines in seconds.",
+                "Yes. Our audio splitter cleanly separates lead singing from backing music, drums, and bass in seconds.",
             },
             {
               question: "Are audio exports compressed or degraded in quality?",
               answer:
-                "No. Exismic exports clean 16-bit 44.1kHz WAV and high-bitrate 320kbps MP3 audio with full dynamic frequency range.",
+                "No. Exismic gives you clear, high-quality audio downloads in both WAV and high-bitrate MP3 formats.",
             },
             {
               question: "Can I use Exismic audio tools on mobile phones?",
               answer:
-                "Yes. All audio tools feature responsive touch sliders, low-latency Web Audio engines, and mobile-friendly media players.",
+                "Yes. All audio tools feature easy touch controls, volume sliders, and mobile-friendly media players.",
             },
             {
-              question: "Are my uploaded tracks or recordings saved on Exismic servers?",
+              question: "Are my uploaded songs or recordings saved on Exismic servers?",
               answer:
-                "Never. Audio files are processed locally in your browser session and are never retained, analyzed, or monetized.",
+                "Never. Audio tracks are processed right in your browser session and are never saved or shared.",
             },
           ],
         };
 
       case "pdf":
         return {
-          title: "Effortless PDF Document & Publishing Suite",
+          title: "Easy & Private PDF Tools",
           intro:
-            "Organize, merge, convert, compress, and extract text from PDF documents with complete privacy. Everything executes inside your browser with bank-grade sandboxing, ensuring sensitive contracts and records never leave your control.",
+            "Combine, shrink, convert, and read PDF files with complete privacy. Everything works right in your browser, so sensitive forms, receipts, and contracts never leave your computer or phone.",
           valueCards: [
             {
-              title: "Bank-Grade Privacy",
-              desc: "Documents are processed locally in an ephemeral sandbox and never uploaded or stored.",
-              badge: "Zero Leakage",
+              title: "Completely Private",
+              desc: "Your documents are processed right on your device and are never saved or seen by anyone.",
+              badge: "100% Private",
               icon: Lock,
             },
             {
-              title: "Instant Document Merge",
-              desc: "Combine unlimited PDF pages and files into a single organized document in seconds.",
-              badge: "High Speed",
+              title: "Combine PDFs",
+              desc: "Put multiple PDF files and pages together into one neat document in seconds.",
+              badge: "Merge Files",
               icon: Layers,
             },
             {
-              title: "Lossless File Shrink",
-              desc: "Reduce bloated document file sizes by up to 75% while keeping text and diagrams razor-sharp.",
-              badge: "Sharp Text",
+              title: "Make Files Smaller",
+              desc: "Cut PDF file sizes by up to 75% so they are easy to email while keeping text sharp.",
+              badge: "Smaller Files",
               icon: FileCheck,
             },
             {
-              title: "Optical OCR Engine",
-              desc: "Extract searchable text from scanned paperwork and screenshots with high accuracy.",
-              badge: "High Accuracy",
+              title: "Text from Scans",
+              desc: "Copy and search text from scanned papers, photos, and screenshots easily.",
+              badge: "Copy Text",
               icon: Zap,
             },
           ],
           features: [
-            "Strict Client-Side Encryption: Financial records, signed contracts, and tax filings stay 100% on your device.",
-            "Vector Text Preservation: Document compression reduces image weight while keeping fonts crisp and vector-sharp.",
-            "Zero File Size Limits: Process lengthy research papers and multi-chapter eBooks without artificial file barriers.",
-            "Cross-Platform Ready: Merge, sign, and convert documents effortlessly across iPhones, Androids, iPads, and PCs.",
+            "Safe for Personal Documents: Tax papers, bills, and signed agreements never get sent to cloud servers.",
+            "Keeps Letters Sharp: Shrinks document sizes while making sure words and charts remain clear and easy to read.",
+            "No Page Limits: Work with big books, long reports, and study guides without getting blocked.",
+            "Works on Any Device: Open, combine, and convert PDFs smoothly on your phone, tablet, or computer.",
           ],
           faqs: [
             {
               question: "Are my confidential PDF documents safe on Exismic?",
               answer:
-                "Yes, 100%. Exismic PDF utilities process documents in client-side WebAssembly sandboxes without ever transmitting pages to cloud servers.",
+                "Yes, 100%. All PDF tools process your files directly inside your web browser, so your pages never get sent to cloud servers.",
             },
             {
               question: "How much can Exismic compress a PDF without losing readability?",
               answer:
-                "You can reduce file sizes between 40% and 80% while retaining crisp, printable typography and sharp graphics.",
+                "You can reduce file sizes between 40% and 80% while keeping text and diagrams crisp and easy to read.",
             },
             {
               question: "Can I extract text from scanned PDFs or images?",
               answer:
-                "Yes. Our built-in OCR (Optical Character Recognition) engine extracts plain text and formatting from scanned documents.",
+                "Yes. Our text scanner reads text from scanned papers and screenshots so you can copy and edit it easily.",
             },
             {
               question: "Is there any limit on the number of PDFs I can merge?",
               answer:
-                "No. You can combine as many pages and individual documents as needed with instant 1-click downloads.",
+                "No. You can combine as many pages and files as you need with instant downloads.",
             },
           ],
         };
 
       case "ai":
         return {
-          title: "High-Intelligence AI Studio & Creative Generators",
+          title: "Helpful AI Writing & Idea Generators",
           intro:
-            "Unlock next-generation generative AI for writing, coding, visual design, and prompt engineering. From drafting viral content to architecting multi-model LLM prompts and building custom avatars, create with cutting-edge neural models.",
+            "Get help writing, brainstorming, and making content with smart AI assistants. Draft clear articles, write video ideas, build useful prompts, and create images with simple tools.",
           valueCards: [
             {
-              title: "Multi-Model Power",
-              desc: "Leverage state-of-the-art LLMs engineered for reasoning, copywriting, and code generation.",
-              badge: "Multi-Model",
+              title: "Smart Assistance",
+              desc: "Get quick answers, clear writing drafts, and practical ideas whenever you are stuck.",
+              badge: "Helpful AI",
               icon: Cpu,
             },
             {
-              title: "Structured Frameworks",
-              desc: "Generate bulletproof XML-tagged prompts using CREATE, CoT, and RTF methodologies.",
-              badge: "High Precision",
+              title: "Better Prompts",
+              desc: "Turn simple thoughts into clear instructions that get great results from AI.",
+              badge: "Easy Prompts",
               icon: Wand2,
             },
             {
-              title: "Human-Sounding Copy",
-              desc: "Write compelling articles, scripts, and product hooks free from robotic filler and clichés.",
+              title: "Natural Writing",
+              desc: "Draft friendly, natural text that sounds like a real person wrote it.",
               badge: "Natural Tone",
               icon: FileText,
             },
             {
               title: "Daily Free Credits",
-              desc: "Receive a fresh replenishment of generation credits every 24 hours across all AI studios.",
-              badge: "Free Refreshes",
+              desc: "Get fresh free credits every day to try out and use any AI tool you like.",
+              badge: "Free Daily",
               icon: RefreshCw,
             },
           ],
           features: [
-            "Zero Hallucination Guardrails: AI prompts and generators enforce strict formatting rules for consistent outputs.",
-            "One-Click AI Launchers: Instantly launch your generated prompts into ChatGPT, Claude, or DeepSeek.",
-            "Privacy-First Sessions: Prompts and generative queries are strictly ephemeral and never used to train public models.",
-            "Commercial Rights Included: Retain 100% ownership of all generated articles, code snippets, and creative assets.",
+            "Clear & Useful Results: Structured to give you direct, helpful answers without confusing text.",
+            "Use with Other AI Apps: Copy your generated prompt directly into ChatGPT, Claude, or any AI app in one click.",
+            "Private Questions: Your questions and notes are private and are never used to train public systems.",
+            "You Own Everything: Everything you write or generate is yours to use for personal projects or business.",
           ],
           faqs: [
             {
-              question: "What AI models power Exismic's generative tools?",
+              question: "What AI models power Exismic's tools?",
               answer:
-                "We orchestrate top-tier neural models including DeepSeek, Claude, and specialized vision models for maximum precision.",
+                "We use top-tier, reliable AI models to help you brainstorm, write drafts, and create content quickly.",
             },
             {
               question: "How do free credits work for AI tools?",
               answer:
-                "Every account receives free credits every 24 hours. Pro members receive expanded credit pools and priority generation queues.",
+                "Every account receives free credits refreshed every day. Pro members receive extra credits and faster generations.",
             },
             {
-              question: "Can I use AI-generated copy and code commercially?",
+              question: "Can I use AI-generated copy and ideas commercially?",
               answer:
-                "Yes. All copy, code, and creative media generated on Exismic are 100% royalty-free and yours to monetize.",
+                "Yes. Everything you create with our AI tools is 100% yours to publish, share, or monetize.",
             },
             {
-              question: "Are my AI prompts or inputs kept private?",
+              question: "Are my prompts and ideas kept private?",
               answer:
-                "Absolutely. We enforce strict data privacy policies; your inputs are never sold, exposed, or used for model training.",
+                "Yes. Your prompts, notes, and drafts are private and are never shared or used to train public models.",
             },
           ],
         };
 
       case "productivity":
         return {
-          title: "High-Efficiency Productivity & Daily Utilities",
+          title: "Everyday Helpers & Productivity Tools",
           intro:
-            "Eliminate friction from your daily workflow with instantaneous web utilities. Generate scannable custom QR codes, generate cryptographically secure passwords, calculate conversions, and organize notes without installing extensions.",
+            "Save time with quick, helpful tools for everyday tasks. Make custom QR codes, generate strong random passwords, convert numbers, and take notes without installing any apps or browser extensions.",
           valueCards: [
             {
-              title: "Zero-Latency Launch",
-              desc: "Tools launch and execute in milliseconds with zero loading screens or server wait times.",
-              badge: "0ms Latency",
+              title: "Instant Results",
+              desc: "Every tool opens and gives you results right away without loading screens.",
+              badge: "Instant",
               icon: Zap,
             },
             {
-              title: "High-Entropy Security",
-              desc: "Generate randomized passwords with cryptographic entropy directly in your browser.",
-              badge: "High Security",
+              title: "Strong Passwords",
+              desc: "Create secure, random passwords directly on your device to keep accounts safe.",
+              badge: "Safe & Secure",
               icon: Lock,
             },
             {
-              title: "Vector QR Codes",
-              desc: "Create high-contrast QR codes with custom colors and logo inserts in SVG and PNG.",
-              badge: "Vector Sharp",
+              title: "Custom QR Codes",
+              desc: "Make scannable QR codes with your favorite colors and download them as clean images.",
+              badge: "QR Codes",
               icon: Globe,
             },
             {
-              title: "Universal Device Sync",
-              desc: "Access all utilities seamlessly across smartphones, tablets, laptops, and desktops.",
-              badge: "Multi-Device",
+              title: "Works Anywhere",
+              desc: "Open and use every helper smoothly on your phone, tablet, laptop, or desktop.",
+              badge: "Any Device",
               icon: Sliders,
             },
           ],
           features: [
-            "Offline-Capable Execution: Core utilities run locally so you can generate QR codes and passwords anywhere.",
-            "Zero Account Wall: Access essential converters and generators immediately without mandatory sign-up hurdles.",
-            "One-Click Clipboard: Copy formatted outputs, codes, or credentials straight to your clipboard with 1 click.",
-            "Ad-Free Clean Workspace: Distraction-free interfaces focused strictly on rapid task completion.",
+            "Works Without Internet: Essential tools run right in your browser, so you can make QR codes and passwords anywhere.",
+            "No Sign-up Needed: Use calculators, converters, and generators right away without needing an account.",
+            "One-Click Copy: Copy your finished text, password, or code straight to your clipboard with one click.",
+            "Clean & Distraction-Free: Simple, clean pages with no pop-ups or clutter so you can finish your task quickly.",
           ],
           faqs: [
             {
               question: "Are passwords generated on Exismic secure?",
               answer:
-                "Yes. We utilize the browser's native crypto.getRandomValues() CSPRNG, ensuring passwords are mathematically unpredictable.",
+                "Yes. They are generated with strong random formulas directly inside your browser so they are impossible to guess.",
             },
             {
               question: "Do QR codes created on Exismic expire?",
               answer:
-                "Never. Static QR codes encode your data directly into the pixel matrix and will function indefinitely without recurring fees.",
+                "Never. The QR codes you download hold your links or info permanently and will work forever with no fees.",
             },
             {
               question: "Do I need an account to use productivity tools?",
               answer:
-                "No. All essential productivity utilities are open and accessible with zero sign-up requirements.",
+                "No. Essential converters, timers, and generators are completely open to use without needing to sign up.",
             },
             {
-              question: "Can I print QR codes on commercial merchandise?",
+              question: "Can I print QR codes on signs or business cards?",
               answer:
-                "Yes. You can export high-resolution PNG and scalable vector SVG files suitable for billboards, menus, and business cards.",
+                "Yes. You can download sharp PNG pictures and scalable vector SVG files that stay clear at any print size.",
             },
           ],
         };
 
       case "developer":
         return {
-          title: "Engineered for Modern Web Developers",
+          title: "Helpful Tools for Coding & Data",
           intro:
-            "High-throughput development utilities built to run in your browser with zero latency and zero data leakage. Test regex patterns, format JSON, inspect diffs, build cron schedules, and generate hashes locally in an isolated sandbox.",
+            "Fast, reliable utilities for formatting and inspecting code. Format and clean up JSON, test pattern searches, compare text differences, set up repeating schedules, and generate IDs right in your browser with complete privacy.",
           valueCards: [
             {
-              title: "Client-Side Sandbox",
-              desc: "Code and sensitive JSON payloads are parsed locally with zero telemetry logging.",
-              badge: "Zero Telemetry",
+              title: "Completely Private",
+              desc: "Your code and data are checked right on your computer and never sent over the internet.",
+              badge: "100% Private",
               icon: Code2,
             },
             {
-              title: "RFC Spec Compliance",
-              desc: "Formatted outputs strictly follow ECMAScript, TypeScript, and RFC cryptographic standards.",
-              badge: "RFC Compliant",
+              title: "Clean Formatting",
+              desc: "Fix messy data and code into clean, readable text that is easy to understand.",
+              badge: "Clean Format",
               icon: Award,
             },
             {
-              title: "Zero CLI Overhead",
-              desc: "Instant browser utilities that replace heavy npm CLI packages and browser extensions.",
-              badge: "Zero Installs",
+              title: "No Installs Needed",
+              desc: "Quick browser tools that work right away without needing to install packages.",
+              badge: "No Installs",
               icon: Zap,
             },
             {
-              title: "1-Click Code Exports",
-              desc: "Copy formatted JSON, SHA-256 hashes, or Git patches directly into your editor.",
-              badge: "Instant Copy",
+              title: "One-Click Copy",
+              desc: "Copy cleaned JSON, generated IDs, or formatted text directly into your project.",
+              badge: "Easy Copy",
               icon: FileText,
             },
           ],
           features: [
-            "Client-Side Sandboxing: Code and sensitive JSON payloads are parsed locally with zero telemetry logging.",
-            "AST & Spec Compliance: Formatted outputs strictly follow ECMAScript, TypeScript, and RFC standards.",
-            "Zero Dependency Overhead: Instant tools that replace bulky npm CLI packages and browser extensions.",
-            "One-Click Clipboard Exports: Instantly copy formatted code, hashes, or SQL queries directly into your codebase.",
+            "Runs on Your Device: Your code snippets and private data are formatted locally and never logged or stored.",
+            "Accurate Standards: Results follow standard coding rules so you can paste them into your projects without errors.",
+            "Fast & Lightweight: Open and use tools in seconds without heavy installations or extra plugins.",
+            "Instant Clipboard Copy: Grab formatted text, hashes, or database queries in one click ready for your editor.",
           ],
           faqs: [
             {
-              question: "Are my code snippets, JSON feeds, or database queries logged on Exismic?",
+              question: "Are my code snippets or data logged on Exismic?",
               answer:
-                "No. Exismic developer tools operate in strict privacy-first environments. Transformations, hashing, and regex evaluations run client-side in your browser and are never stored or inspected.",
+                "No. Everything runs right in your browser. Your code, JSON data, and queries are never stored or inspected.",
             },
             {
-              question: "Can I use outputs from Exismic developer tools in commercial proprietary projects?",
+              question: "Can I use outputs from developer tools in work projects?",
               answer:
-                "Yes, 100%. All code, types, SQL queries, and hashes generated on Exismic are completely unencumbered and open for commercial production use.",
+                "Yes, 100%. All code formatting, hashes, IDs, and queries are free to use in personal and client projects.",
             },
             {
-              question: "Does Exismic support modern JavaScript and TypeScript dialects?",
+              question: "What formats and languages are supported?",
               answer:
-                "Yes. Our developer utilities support ES2024+, TypeScript 5+, JSON5, standard SQL dialects (PostgreSQL, MySQL, SQLite), and POSIX cron formats.",
+                "Our tools support modern JavaScript, TypeScript, JSON, SQL queries, and common schedule formats.",
             },
             {
               question: "Are developer tools free on Exismic?",
               answer:
-                "All core developer tools (Regex Tester, JSON Formatter, Hash Generator, UUID Creator, Cron Builder) are completely free with unlimited daily usage.",
+                "Yes. Core utilities like the JSON Formatter, Regex Tester, and Hash Generator are completely free to use.",
             },
           ],
         };
 
       case "creator":
         return {
-          title: "Audience Growth & Social Media Workflows",
+          title: "Tools for Creators & Social Media",
           intro:
-            "Built for creators, YouTubers, newsletter writers, and social strategists. Create realistic viral post mockups, design 1200x630 social share banners, analyze video thumbnail contrast, and craft high-retention script hooks.",
+            "Made for creators, YouTubers, and writers. Preview realistic social media posts, design share images, check your video thumbnails, and write video hooks that grab attention.",
           valueCards: [
             {
-              title: "Retention Science",
-              desc: "Script hooks and carousel layouts structured around proven organic engagement formulas.",
-              badge: "High Retention",
+              title: "Engaging Hooks",
+              desc: "Write video intros and carousel layouts that grab attention and keep people watching.",
+              badge: "Catchy Hooks",
               icon: TrendingUp,
             },
             {
-              title: "Multi-Platform Native",
-              desc: "Formatted specifically for YouTube, Instagram Reels, TikTok, LinkedIn, and X.",
-              badge: "Social Native",
+              title: "Ready for Social Media",
+              desc: "Sized and formatted for YouTube, Instagram, TikTok, LinkedIn, and X.",
+              badge: "All Platforms",
               icon: Globe,
             },
             {
-              title: "2.5x Retina Exports",
-              desc: "Export ultra-sharp graphics and copy images directly to your operating system clipboard.",
-              badge: "2.5x Retina",
+              title: "Sharp Image Downloads",
+              desc: "Save clear, high-resolution pictures and copy images straight to your clipboard.",
+              badge: "High Quality",
               icon: Award,
             },
             {
-              title: "Royalty-Free Assets",
-              desc: "100% full commercial copyright on all created banners, post mockups, and scripts.",
+              title: "Completely Yours",
+              desc: "100% free to use for your personal channels, business, or client work.",
               badge: "100% Free",
               icon: Shield,
             },
           ],
           features: [
-            "Audience Retention Science: Script hooks and carousel layouts structured around proven organic engagement formulas.",
-            "Multi-Platform Native: Formatted specifically for YouTube, Instagram Reels, TikTok, LinkedIn, and X.",
-            "Visual Thumbnail Analysis: Preview your video thumbnails against light and dark feed backgrounds with contrast ratings.",
-            "Clean Exports: Download ready-to-publish assets and copy clean formatting directly to your clipboard.",
+            "Grab Attention Fast: Write hooks and post layouts that get viewers interested right away.",
+            "Made for All Platforms: Create content fitted for YouTube, Instagram, TikTok, LinkedIn, and X.",
+            "Thumbnail Preview: Check how your video cover looks on both light and dark backgrounds before publishing.",
+            "Easy Downloads: Save finished graphics or copy formatted text directly to your clipboard.",
           ],
           faqs: [
             {
               question: "How do the creator tools help improve video reach?",
               answer:
-                "Our hook script generator and thumbnail analyzer focus on the first 3 seconds of viewer psychology and visual contrast to maximize click-through rate (CTR) and average view duration (AVD).",
+                "Our hook generator and thumbnail previewer help you grab viewer interest in the first few seconds and stand out on feeds.",
             },
             {
               question: "Can I format LinkedIn posts with bold and italic text?",
               answer:
-                "Yes! Our LinkedIn Formatter converts text into compliant Unicode styling with clean line spacing that reads effortlessly on mobile feeds.",
+                "Yes! Our post formatter lets you add bold, italic, and clean line breaks that look great on phones and computers.",
             },
             {
               question: "Does Exismic claim rights to my scripts or designs?",
               answer:
-                "Never. You retain 100% copyright and ownership of all content and assets generated on Exismic.",
+                "Never. You own 100% of all scripts, post previews, and graphics you create.",
             },
             {
               question: "How many credits do creator tools cost?",
               answer:
-                "Most creator utilities cost between 5 and 15 credits, and all users receive free credits refreshed every 24 hours.",
+                "Most creator tools cost just a few credits, and every user gets free credits refreshed daily.",
             },
           ],
         };
 
       case "student":
         return {
-          title: "Supercharge Your Academic Research & Studies",
+          title: "Helpful Study & Homework Tools",
           intro:
-            "Empowering learners to study smarter and write with academic rigor. Convert lecture notes into interactive mind maps, evaluate reading grade levels, generate structured essay outlines, and calculate step-by-step solutions.",
+            "Study smarter and write better papers with simple tools. Turn class notes into visual mind maps, check reading difficulty, build clear essay outlines, and see step-by-step problem explanations.",
           valueCards: [
             {
-              title: "Academic Rigor",
-              desc: "Structure research arguments and essay outlines around scholarly thesis standards.",
-              badge: "Thesis Ready",
+              title: "Clear Essay Outlines",
+              desc: "Organize your main ideas, thesis, and paragraphs into a clean, logical outline.",
+              badge: "Essay Ready",
               icon: Award,
             },
             {
-              title: "Step-by-Step Clarity",
-              desc: "Break down complex concepts into visual mind maps and easy-to-follow outlines.",
-              badge: "Visual Learning",
+              title: "Step-by-Step Help",
+              desc: "Break complicated topics and math problems down into simple, easy-to-follow steps.",
+              badge: "Step-by-Step",
               icon: Layers,
             },
             {
-              title: "Standard Citations",
-              desc: "Support for APA 7th, MLA 9th, Chicago, and Harvard academic bibliography standards.",
-              badge: "APA & MLA",
+              title: "Simple Citations",
+              desc: "Format sources easily using standard formats like APA, MLA, and Chicago.",
+              badge: "Easy Sources",
               icon: FileText,
             },
             {
-              title: "Ephemeral Privacy",
-              desc: "Notes, papers, and essays are processed in an ephemeral sandbox and never logged.",
-              badge: "Zero Leakage",
+              title: "Private Homework",
+              desc: "Your notes, papers, and study materials stay on your device and are never saved.",
+              badge: "100% Private",
               icon: Lock,
             },
           ],
           features: [
-            "Academic Rigor & Integrity: Tools engineered to assist your research, outline logic, and citation accuracy.",
-            "Step-by-Step Learning: Math solver and readability tools explain intermediate steps to facilitate deep understanding.",
-            "Standard Citation Formats: Built-in support for APA 7th, MLA 9th, Chicago, and Harvard academic styles.",
-            "Cross-Platform Accessibility: Study from laptops, tablets, or smartphones with zero software installation.",
+            "Organize Your Thoughts: Plan research papers and essays with clear outlines and logical arguments.",
+            "Understand Every Step: Math and problem solvers walk you through each step so you actually understand the answer.",
+            "Format Your Sources: Easily create citations in APA, MLA, and Chicago styles for your bibliographies.",
+            "Study on Any Device: Access your study tools anytime from your phone, tablet, or laptop.",
           ],
           faqs: [
             {
-              question: "How does the AI Essay Outline Builder work?",
+              question: "How does the Essay Outline Builder work?",
               answer:
-                "The outline builder takes your topic or thesis statement and generates a comprehensive, paragraph-by-paragraph structure with topic sentences, supporting arguments, and research prompts.",
+                "Type in your topic or main thesis, and the outline builder organizes it into clear paragraphs with main points and supporting ideas.",
             },
             {
-              question: "Does Exismic save or share my student papers and research?",
+              question: "Does Exismic save or share my student papers?",
               answer:
-                "Never. Your academic papers, essays, and notes are processed in an ephemeral sandbox and permanently deleted immediately after processing.",
+                "Never. Your essays, notes, and homework stay on your device and are never saved or shared.",
             },
             {
               question: "How does the Readability Assessor evaluate text?",
               answer:
-                "It calculates standard linguistic metrics including the Flesch-Kincaid Grade Level, Flesch Reading Ease, and average sentence length, while offering simplified rewrites to enhance clarity.",
+                "It checks reading levels, sentence lengths, and word choices, suggesting simpler phrasing so your writing is easy to follow.",
             },
             {
               question: "Can students use Exismic for free?",
               answer:
-                "Yes! Every student gets a daily allowance of free generation credits refreshed every 24 hours to use across all academic and creative tools.",
+                "Yes! Every student gets a daily allowance of free credits refreshed every 24 hours.",
             },
           ],
         };
 
       case "business":
         return {
-          title: "Financial Calculators & Business Operations Suite",
+          title: "Simple Invoicing & Business Calculators",
           intro:
-            "Accelerate daily financial planning and commerce operations. Generate clean professional PDF invoices, calculate GST and sales tax, compute loan EMI amortization schedules, and evaluate gross profit margins in seconds.",
+            "Handle everyday business tasks without complicated software. Create clean PDF invoices for clients, calculate sales taxes and discounts, figure out monthly loan payments, and check your profit margins in seconds.",
           valueCards: [
             {
-              title: "Tax & GST Accuracy",
-              desc: "Compute accurate tax breakdowns, inclusive and exclusive pricing with 1 click.",
-              badge: "Tax Compliant",
+              title: "Quick Tax Math",
+              desc: "Calculate exact tax additions or deductions with a single click.",
+              badge: "Exact Math",
               icon: Award,
             },
             {
-              title: "Branded PDF Invoices",
-              desc: "Generate branded, itemized client invoices with custom logos and payment terms.",
-              badge: "Client Ready",
+              title: "Custom Invoices",
+              desc: "Make clean client invoices with your own logo, payment info, and item lists.",
+              badge: "Clean Invoices",
               icon: FileCheck,
             },
             {
-              title: "Loan EMI Schedules",
-              desc: "Visualize monthly principal vs. interest payments with complete breakdown tables.",
-              badge: "Clear Figures",
+              title: "Loan Payment Tables",
+              desc: "See exactly how much you pay each month for principal and interest on a loan.",
+              badge: "Clear Numbers",
               icon: Sliders,
             },
             {
-              title: "Zero Financial Leakage",
-              desc: "Financial data, revenue numbers, and customer details never leave your device.",
+              title: "Private Financial Data",
+              desc: "Your prices, customer names, and revenue numbers are never uploaded or stored.",
               badge: "100% Private",
               icon: Lock,
             },
           ],
           features: [
-            "Zero Setup Invoicing: Generate and print polished commercial invoices without costly accounting software.",
-            "Precise Financial Math: Decimal-exact rounding ensures calculations match bank and accounting ledger totals.",
-            "Instant Print & PDF Export: Download clean, printable documents formatted perfectly for standard A4 and Letter paper.",
-            "Unrestricted Commercial Use: All generated invoices, receipts, and reports are 100% yours to bill clients.",
+            "No Accounting Software Needed: Make and print professional invoices without paying for expensive subscriptions.",
+            "Accurate Numbers: Exact calculations make sure your invoices and tax totals match your bank records.",
+            "Easy to Print or Send: Download neat PDF invoices that look great when printed or emailed to clients.",
+            "Free to Bill Clients: All invoices, receipts, and calculations are 100% yours to use for your business.",
           ],
           faqs: [
             {
               question: "Can I customize invoices with my company logo and currency?",
               answer:
-                "Yes. You can add your business logo, choose any global currency (USD, EUR, GBP, INR, etc.), and customize payment notes.",
+                "Yes. You can add your business logo, select your preferred currency (USD, EUR, GBP, INR, etc.), and add payment notes.",
             },
             {
               question: "Is my business financial data kept private?",
               answer:
-                "Completely. Invoices and calculations are processed entirely in your browser memory and are never stored on Exismic servers.",
+                "Completely. Invoices and calculations run right in your browser and are never saved on Exismic servers.",
             },
             {
-              question: "Does Exismic charge fees per invoice or transaction?",
+              question: "Does Exismic take any cuts or transaction fees?",
               answer:
-                "No fees at all. You can generate unlimited invoices and calculations for free with zero hidden platform cuts.",
+                "No fees at all. You can generate unlimited invoices and calculations for free with zero hidden platform charges.",
             },
             {
-              question: "Are invoice PDFs compliant with standard business tax practices?",
+              question: "Can I print or email the generated invoices?",
               answer:
-                "Yes. Our invoice layouts include standard fields for Tax IDs (GST/VAT), itemized line items, and payment instructions.",
+                "Yes. Invoices download as clean, professional PDFs formatted neatly for standard A4 and Letter paper.",
             },
           ],
         };
 
       case "seo":
         return {
-          title: "Search Engine Optimization & SERP Dominance",
+          title: "Simple Tools to Help People Find Your Website",
           intro:
-            "Inspect, preview, and optimize your web pages to rank higher on Google. Generate valid Schema.org JSON-LD markup, design 1200x630 social share cards, preview Google SERP snippets, and build XML sitemaps.",
+            "Improve how your website appears on Google and social media. Preview how your pages look in search results, design share banners, create structured tags, and check your titles before you publish.",
           valueCards: [
             {
-              title: "Googlebot Schema Engine",
-              desc: "Generate syntax-validated JSON-LD markup for FAQPage, Product, and Article schemas.",
-              badge: "Google Validated",
-              icon: Award,
-            },
-            {
-              title: "SERP Pixel Simulator",
-              desc: "Preview title and description truncate limits across mobile and desktop search results.",
-              badge: "SERP Preview",
+              title: "Search Previews",
+              desc: "See how your page title and description will look on Google before publishing.",
+              badge: "Search Preview",
               icon: Globe,
             },
             {
-              title: "Open Graph Banners",
-              desc: "Design 1200x630 social share cards that double CTR on Twitter, LinkedIn, and Discord.",
-              badge: "2x Social CTR",
+              title: "Social Share Cards",
+              desc: "Design images that show up nicely when people share your link on Twitter or LinkedIn.",
+              badge: "Social Cards",
               icon: Zap,
             },
             {
-              title: "Robots & Sitemap Tools",
-              desc: "Build error-free robots.txt rules and XML sitemaps to optimize crawl budgets.",
-              badge: "Fast Indexing",
+              title: "Google Schema Tags",
+              desc: "Create structured code for FAQs and products that helps Google understand your site.",
+              badge: "Clean Code",
+              icon: Award,
+            },
+            {
+              title: "Sitemap Helpers",
+              desc: "Make clean site maps and search instructions to help Google find all your pages.",
+              badge: "Easy Setup",
               icon: FileCheck,
             },
           ],
           features: [
-            "Direct Search Console Compliance: Schemas strictly adhere to Google Search Central structured data specifications.",
-            "Real-Time Pixel Truncation: Calculates exact Google pixel widths to ensure meta tags never get cut off with ugly dots.",
-            "Social Platform Simulators: Preview how your links look when shared on X/Twitter, Discord, LinkedIn, and Facebook.",
-            "Instant Code Exports: Copy validated JSON-LD scripts and HTML meta tags directly into your Next.js or HTML head.",
+            "Follows Search Guidelines: Generates clean tags and code that search engines can read and index easily.",
+            "Check Title Length: Make sure your titles and descriptions don't get cut off awkwardly in Google results.",
+            "Social Link Preview: Preview how your links look when shared on X/Twitter, Discord, LinkedIn, and Facebook.",
+            "One-Click Copy: Copy ready-to-use tags and code snippets directly into your website.",
           ],
           faqs: [
             {
               question: "How does structured schema markup help search ranking?",
               answer:
-                "Schema markup enables rich search results (rich snippets, FAQ dropdowns, star ratings) that dramatically improve click-through rates.",
+                "Schema markup helps search engines understand your content, often showing extra details like FAQ drop-downs and review stars in search results.",
             },
             {
-              question: "What are the character and pixel limits for Google meta descriptions?",
+              question: "How long can my Google title and description be?",
               answer:
-                "Google typically displays up to ~155-160 characters (~960px) on desktop and ~120 characters (~680px) on mobile viewports.",
+                "Titles usually look best under 60 characters, and descriptions under 155 characters so Google doesn't cut them off.",
             },
             {
-              question: "Are generated schemas validated against Schema.org standards?",
+              question: "Are generated tags checked for errors?",
               answer:
-                "Yes. All generated JSON-LD code strictly follows Schema.org schemas and passes the Google Rich Results Test.",
+                "Yes. All code follows official search engine guidelines and passes standard structured data tests.",
             },
             {
-              question: "Can I use the OG Banner maker for commercial client websites?",
+              question: "Can I use the banner maker for client websites?",
               answer:
-                "Yes, 100%. All banner graphics, meta tags, and structured data created on Exismic are open for commercial production use.",
+                "Yes, 100%. All share cards and graphics created on Exismic are free to use for any commercial or personal site.",
             },
           ],
         };
 
       default:
         return {
-          title: `Professional ${name} Solutions Online`,
-          intro: `Access Exismic's purpose-built suite of online ${name.toLowerCase()}. Streamline repetitive tasks, enhance creative output, and achieve professional results in seconds directly within your browser with zero server latency.`,
+          title: `Useful Online ${name}`,
+          intro: `A collection of simple, fast online tools for ${name.toLowerCase()}. Get tasks done in seconds right in your web browser with complete privacy and zero setup.`,
           valueCards: [
             {
-              title: "In-Browser Sandbox",
-              desc: "Processing executes directly inside your browser with zero software installation and zero data leakage.",
+              title: "Runs in Your Browser",
+              desc: "Everything works right on your device with no downloads and complete privacy.",
               badge: "100% Private",
               icon: Lock,
             },
             {
-              title: "Studio-Grade Precision",
-              desc: "High-fidelity outputs built to meet professional creator, developer, and business standards.",
-              badge: "Studio Grade",
+              title: "High Quality",
+              desc: "Clean, reliable results built for everyday personal and work projects.",
+              badge: "Reliable",
               icon: Award,
             },
             {
-              title: "Zero Watermarks",
-              desc: "All exports and generated assets are 100% clean and approved for commercial deliverables.",
-              badge: "Royalty Free",
+              title: "No Watermarks",
+              desc: "All downloads and generated files are clean and completely free to use.",
+              badge: "Clean Files",
               icon: Shield,
             },
             {
               title: "Daily Free Credits",
-              desc: "Test, create, and refine with free generation credits refreshed automatically every 24 hours.",
-              badge: "Free Refreshes",
+              desc: "Get fresh free credits every day to try out and use any tool.",
+              badge: "Free Daily",
               icon: RefreshCw,
             },
           ],
           features: [
-            "Instant In-Browser Processing: Zero software installation, zero setup, accessible on any modern device.",
-            "Privacy-First Security: Uploaded files and inputs are strictly sandboxed and never monetized or exposed.",
-            "Studio-Grade Precision: High-fidelity outputs built to meet professional creator and business standards.",
+            "Instant In-Browser Tools: Zero software installation, zero setup, accessible on any modern device.",
+            "Privacy-First Security: Uploaded files and inputs are strictly private and never monetized or exposed.",
+            "Reliable Results: High-quality outputs built for everyday personal and work projects.",
             "Daily Free Allowance: Test, create, and refine with free daily generation credits refreshed every 24 hours.",
           ],
           faqs: [
             {
               question: `Are ${name} on Exismic free to use?`,
-              answer: `Yes! Every tool in our ${name.toLowerCase()} suite can be accessed for free with your daily credit allowance. Pro subscriptions are available for extended capacity.`,
+              answer: `Yes! Every tool in our ${name.toLowerCase()} suite can be accessed with your free daily credits. Pro accounts are available if you need extra capacity.`,
             },
             {
               question: `Do I need to install any software to use ${name}?`,
-              answer: `None at all. All Exismic tools run entirely inside modern web browsers on desktop, tablet, and mobile devices.`,
+              answer: `No installation needed. All Exismic tools run smoothly right in your web browser on computers, phones, and tablets.`,
             },
             {
-              question: `How does Exismic safeguard user privacy?`,
-              answer: `We use end-to-end SSL encryption. Your uploaded documents and generated files are ephemeral and automatically purged after processing.`,
+              question: `How does Exismic protect my privacy?`,
+              answer: `Your files and inputs are processed right on your device and are never saved or shared.`,
             },
             {
-              question: `Can I use assets from ${name} for commercial projects?`,
-              answer: `Yes, all outputs generated through Exismic are 100% royalty-free and approved for commercial and client deliverables.`,
+              question: `Can I use outputs from ${name} for client work?`,
+              answer: `Yes. Everything you make on Exismic is completely free to use for personal, work, or client projects.`,
             },
           ],
         };
@@ -1233,7 +1233,13 @@ export function CategorySeoSection({
         {/* =========================================================
             1. HERO LIVING CONTAINER (360° LASER BORDER BEAM)
         ========================================================== */}
-        <div className="relative p-[1.5px] overflow-hidden rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] group/beam">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="relative p-[1.5px] overflow-hidden rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] group/beam"
+        >
           {/* Animated Conic Laser Beam Circling the Entire Perimeter */}
           <div
             className="absolute inset-[-150%] animate-[spin_5s_linear_infinite] pointer-events-none will-change-transform"
@@ -1300,7 +1306,7 @@ export function CategorySeoSection({
                         )}
                       />
                     </span>
-                    <span>Category Overview & Standards</span>
+                    <span>Overview & Features</span>
                   </div>
                   <div
                     className={cn(
@@ -1311,7 +1317,7 @@ export function CategorySeoSection({
                     )}
                   >
                     <Check size={11} className={theme.textAccent} />
-                    <span>100% Free • In-Browser Processing</span>
+                    <span>100% Free • Runs in Your Browser</span>
                   </div>
                 </div>
 
@@ -1334,10 +1340,15 @@ export function CategorySeoSection({
                 {content.valueCards.map((vp, idx) => {
                   const Icon = vp.icon;
                   return (
-                    <div
+                    <motion.div
                       key={idx}
+                      initial={{ opacity: 0, y: 18 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-20px" }}
+                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                      transition={{ duration: 0.45, delay: 0.08 + idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
                       className={cn(
-                        "group/card relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5",
+                        "group/card relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 backdrop-blur-xl transition-colors duration-300",
                         theme.cardBorderHover,
                         theme.cardShadowHover
                       )}
@@ -1353,7 +1364,7 @@ export function CategorySeoSection({
                         }}
                       />
 
-                      <div className="relative z-10 flex flex-col justify-between h-full gap-3.5">
+                      <div className="relative z-10 flex flex-col gap-3 sm:gap-3.5">
                         <div className="flex items-center justify-between">
                           {/* 3D Icon Container with Category Accent & Micro-Tilt */}
                           <div
@@ -1401,18 +1412,24 @@ export function CategorySeoSection({
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             2. CATEGORY STANDARDS & ARCHITECTURE
         ========================================================== */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
           <div className="flex items-center gap-3">
             <div
               className={cn(
@@ -1424,20 +1441,25 @@ export function CategorySeoSection({
             </div>
             <div>
               <h3 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
-                Why Creators Rely on Exismic {categoryName}
+                Why People Choose Exismic {categoryName}
               </h3>
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
-                Precision engineering and high-performance infrastructure
+                Simple, reliable tools made for everyday work
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {content.features.map((feat, idx) => (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20px" }}
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
                 className={cn(
-                  "flex items-start gap-4 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-6 backdrop-blur-md transition-all duration-300",
+                  "flex items-start gap-4 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-6 backdrop-blur-md transition-colors duration-300",
                   theme.whyChooseCardHover
                 )}
               >
@@ -1452,15 +1474,21 @@ export function CategorySeoSection({
                   <CheckCircle2 size={18} />
                 </div>
                 <p className="text-sm font-medium leading-relaxed text-zinc-200">{feat}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             3. FREQUENTLY ASKED QUESTIONS (SILKY SMOOTH ACCORDION)
         ========================================================== */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
           <div className="flex items-center gap-3">
             <div
               className={cn(
@@ -1475,7 +1503,7 @@ export function CategorySeoSection({
                 Frequently Asked Questions about {categoryName}
               </h3>
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
-                Key questions answered regarding performance, privacy, and commercial rights
+                Common questions about privacy, features, and how to use these tools
               </p>
             </div>
           </div>
@@ -1546,7 +1574,7 @@ export function CategorySeoSection({
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             4. MORE TO COME SHOWCASE BANNER (SUGGEST A TOOL)
@@ -1573,7 +1601,7 @@ export function CategorySeoSection({
                   <Compass size={11} className="animate-pulse" />
                   More To Come
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-[10px] font-bold uppercase tracking-widest text-zinc-300">
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-[10px] font-bold uppercase tracking-widest text-zinc-300">
                   <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", theme.badgeDot)} />
                   {categoryName} Suite
                 </span>
@@ -1584,7 +1612,7 @@ export function CategorySeoSection({
                   More tools on the <span className={cn("inline-block pr-3 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]", animStyle.textGrad)}>horizon.</span>
                 </h3>
                 <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed">
-                  We continuously drop new tools, creators, and workflow enhancements. Have a specific generator or feature you want to see here next?
+                  We are always adding new tools and helpful features. Have a specific tool or idea you want to see here next?
                 </p>
               </div>
 
@@ -1626,14 +1654,20 @@ export function CategorySeoSection({
         {/* =========================================================
             5. OTHER CATEGORIES NAVIGATION (ZERO CLIPPING AGAINST FOOTER)
         ========================================================== */}
-        <div className="space-y-6 pt-8 border-t border-white/[0.08] relative z-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6 pt-8 border-t border-white/[0.08] relative z-20"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                Explore Other Creative Suites
+                Explore More Tool Categories
               </h3>
               <p className="text-xs font-medium text-zinc-400 mt-0.5">
-                Switch workspaces to streamline image, audio, video, or developer workflows
+                Check out more free online tools for photos, audio, video, documents, and code
               </p>
             </div>
             <Link
@@ -1649,64 +1683,73 @@ export function CategorySeoSection({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 pb-4 overflow-visible">
-            {otherCategories.map((cat) => {
+            {otherCategories.map((cat, idx) => {
               const CatIcon = ICON_MAP[cat.icon] || Layers;
               const catTheme = CATEGORY_THEMES[cat.id] || CATEGORY_THEMES.image;
 
               return (
-                <Link
+                <motion.div
                   key={cat.id}
-                  href={`/category/${cat.id}`}
-                  className={cn(
-                    "group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-5 sm:p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 isolate",
-                    catTheme.suggestionsCardHover
-                  )}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  className="h-full"
                 >
-                  {/* Top Specular Rim */}
-                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
+                  <Link
+                    href={`/category/${cat.id}`}
+                    className={cn(
+                      "group relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-5 sm:p-6 backdrop-blur-xl transition-colors duration-300 isolate",
+                      catTheme.suggestionsCardHover
+                    )}
+                  >
+                    {/* Top Specular Rim */}
+                    <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
 
-                  {/* Ambient Hover Spotlight */}
-                  <div
-                    className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{
-                      background: `radial-gradient(220px circle at top left, ${catTheme.cardSpotlight}, transparent 70%)`,
-                    }}
-                  />
+                    {/* Ambient Hover Spotlight */}
+                    <div
+                      className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{
+                        background: `radial-gradient(220px circle at top left, ${catTheme.cardSpotlight}, transparent 70%)`,
+                      }}
+                    />
 
-                  <div className="relative z-10 flex flex-col justify-between h-full gap-4">
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={cn(
-                          "size-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3",
-                          catTheme.iconContainer
-                        )}
-                      >
-                        <CatIcon size={18} />
+                    <div className="relative z-10 flex flex-col gap-3.5">
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={cn(
+                            "size-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3",
+                            catTheme.iconContainer
+                          )}
+                        >
+                          <CatIcon size={18} />
+                        </div>
+                        <span
+                          className={cn(
+                            "text-[10px] font-bold uppercase tracking-wider",
+                            catTheme.textAccent
+                          )}
+                        >
+                          Explore →
+                        </span>
                       </div>
-                      <span
-                        className={cn(
-                          "text-[10px] font-bold uppercase tracking-wider",
-                          catTheme.textAccent
-                        )}
-                      >
-                        Explore →
-                      </span>
-                    </div>
 
-                    <div>
-                      <h4 className="text-base font-bold text-white group-hover:text-zinc-100 transition-colors">
-                        {cat.name}
-                      </h4>
-                      <p className="text-xs text-zinc-400 line-clamp-3 mt-1.5 leading-relaxed min-h-[36px]">
-                        {cat.description}
-                      </p>
+                      <div>
+                        <h4 className="text-base font-bold text-white group-hover:text-zinc-100 transition-colors">
+                          {cat.name}
+                        </h4>
+                        <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed min-h-[36px]">
+                          {cat.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

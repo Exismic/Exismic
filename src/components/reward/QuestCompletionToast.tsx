@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Gift, Sparkles, X, Check, ArrowRight, Coins, Zap, Flame, Crown } from "lucide-react";
+import { Trophy, Gift, CheckCircle2, X, Check, ArrowRight, Coins, Zap, Flame, Crown } from "lucide-react";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { QuestItem, useQuests } from "@/hooks/useQuests";
@@ -224,7 +224,7 @@ export function QuestCompletionToast() {
               <div className="flex-1 min-w-0 pr-6">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1">
-                    <Sparkles size={11} className="fill-amber-400" />
+                    <Trophy size={11} className="text-amber-400 stroke-[2.2]" />
                     Quest Completed!
                   </span>
                   <span className={cn(
@@ -273,7 +273,7 @@ export function QuestCompletionToast() {
                           : "bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-amber-950 shadow-[0_0_20px_rgba(245,158,11,0.5)] animate-pulse"
                       )}
                     >
-                      <Gift size={13} className="fill-current" />
+                      <Gift size={14} className="stroke-[2.3] shrink-0" />
                       <span>{isClaiming ? "Claiming..." : "Claim Reward"}</span>
                     </button>
                   )}

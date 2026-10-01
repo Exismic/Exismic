@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { ArrowRight, ArrowUpRight, Layers, LayoutGrid, Boxes, Compass, ShieldCheck } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, ArrowUpRight, Layers, LayoutGrid, Boxes, Compass, ShieldCheck, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 import { createClient } from "@/utils/supabase/client";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 
@@ -124,7 +125,22 @@ const XIcon = ({ size = 15, className = "" }: { size?: number; className?: strin
 
 export function Footer() {
   const [session, setSession] = useState<Session | null>(null);
+  const [socialAlert, setSocialAlert] = useState<{ open: boolean; platform: string; icon: "github" | "x" | "instagram" } | null>(null);
+  const [mounted, setMounted] = useState(false);
   const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!socialAlert) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSocialAlert(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [socialAlert]);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }: any) => {
@@ -133,7 +149,8 @@ export function Footer() {
   }, [supabase]);
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/[0.08] bg-[#020205] pb-16 sm:pb-8" suppressHydrationWarning>
+    <>
+      <footer className="relative overflow-hidden border-t border-white/[0.08] bg-[#020205]" suppressHydrationWarning>
       {/* Ambient Multi-Spectrum Laser Horizon Top Border */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 via-fuchsia-500 via-purple-500 to-transparent shadow-[0_0_20px_rgba(168,85,247,0.7)]" />
       
@@ -325,41 +342,41 @@ export function Footer() {
           })}
         </div>
 
-        {/* Bottom Sub-Footer Bar: Added sm:pr-28 / lg:pr-32 to clear the floating AI Helper widget */}
-        <div className="border-t border-white/[0.08] py-7 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left sm:pr-28 lg:pr-32">
+        {/* Bottom Sub-Footer Bar: Clean bottom anchor with clearance for floating AI launcher */}
+        <div className="border-t border-white/[0.08] py-4.5 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left sm:pr-20 lg:pr-24">
           <p className="text-[11.5px] font-black uppercase tracking-[0.2em] text-zinc-400">
             &copy; 2026 <span className="text-white font-black drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">EXISMIC STUDIO</span>. ALL RIGHTS RESERVED.
           </p>
 
-          {/* Social Icons with Distinct Colored Hover Rings */}
+          {/* Social Icons with Distinct Colored Hover Rings - Custom Coming Soon Alert */}
           <div className="flex items-center gap-3">
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => setSocialAlert({ open: true, platform: "GitHub", icon: "github" })}
               aria-label="GitHub"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:border-purple-400 hover:bg-purple-500/20 hover:text-purple-200 hover:shadow-[0_0_22px_rgba(168,85,247,0.55)] hover:scale-110"
+              title="GitHub (Coming Soon)"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:border-purple-400 hover:bg-purple-500/20 hover:text-purple-200 hover:shadow-[0_0_22px_rgba(168,85,247,0.55)] hover:scale-110 active:scale-95 cursor-pointer"
             >
               <GithubIcon size={16} />
-            </a>
-            <a
-              href="https://x.com"
-              target="_blank"
-              rel="noreferrer"
+            </button>
+            <button
+              type="button"
+              onClick={() => setSocialAlert({ open: true, platform: "X (Twitter)", icon: "x" })}
               aria-label="X (Twitter)"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 hover:shadow-[0_0_22px_rgba(34,211,238,0.55)] hover:scale-110"
+              title="X / Twitter (Coming Soon)"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-200 hover:shadow-[0_0_22px_rgba(34,211,238,0.55)] hover:scale-110 active:scale-95 cursor-pointer"
             >
               <XIcon size={16} />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
+            </button>
+            <button
+              type="button"
+              onClick={() => setSocialAlert({ open: true, platform: "Instagram", icon: "instagram" })}
               aria-label="Instagram"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:border-pink-400 hover:bg-pink-500/20 hover:text-pink-200 hover:shadow-[0_0_22px_rgba(236,72,153,0.55)] hover:scale-110"
+              title="Instagram (Coming Soon)"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:border-pink-400 hover:bg-pink-500/20 hover:text-pink-200 hover:shadow-[0_0_22px_rgba(236,72,153,0.55)] hover:scale-110 active:scale-95 cursor-pointer"
             >
               <InstagramIcon size={16} />
-            </a>
+            </button>
           </div>
 
           {/* Quick Legal Links: Fully visible with ample clearance before the AI helper button */}
@@ -375,5 +392,94 @@ export function Footer() {
         </div>
       </div>
     </footer>
+
+    {/* Custom Coming Soon Social Media Alert Modal */}
+    {mounted && typeof document !== "undefined" && createPortal(
+      <AnimatePresence>
+        {socialAlert && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 isolate">
+            {/* Darkened Blur Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setSocialAlert(null)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md -z-10"
+            />
+
+            {/* Custom Alert Card */}
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="social-alert-title"
+              initial={{ opacity: 0, scale: 0.9, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 10 }}
+              transition={{ type: "spring", stiffness: 350, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-[390px] overflow-hidden rounded-[26px] border border-white/15 bg-[linear-gradient(145deg,#0c0b16_0%,#07070d_55%,#0a0818_100%)] p-6 sm:p-7 text-center shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_50px_rgba(139,92,246,0.22)] backdrop-blur-2xl"
+            >
+              {/* Laser Horizon Border Accent */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 via-purple-500 to-transparent shadow-[0_0_20px_rgba(168,85,247,0.8)]" />
+              
+              {/* Ambient Top Glow Spotlights */}
+              <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-36 bg-purple-600/25 blur-[70px] rounded-full" />
+              <div className="pointer-events-none absolute -bottom-20 right-0 w-44 h-36 bg-cyan-500/15 blur-[60px] rounded-full" />
+
+              {/* Top Close Button */}
+              <button
+                type="button"
+                onClick={() => setSocialAlert(null)}
+                aria-label="Close alert"
+                className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white active:scale-95 cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+
+              {/* Glowing Platform Icon Badge */}
+              <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.05] text-white shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+                {socialAlert.icon === "github" && <GithubIcon size={24} className="text-purple-300" />}
+                {socialAlert.icon === "x" && <XIcon size={24} className="text-cyan-300" />}
+                {socialAlert.icon === "instagram" && <InstagramIcon size={24} className="text-pink-300" />}
+              </div>
+
+              {/* Tag pill */}
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1 text-[9.5px] font-black uppercase tracking-[0.2em] text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)] mb-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                Official Channels
+              </div>
+
+              {/* Title */}
+              <h3 id="social-alert-title" className="text-xl font-black tracking-tight text-white">
+                Coming Soon
+              </h3>
+
+              {/* Message */}
+              <p className="mt-2 text-xs sm:text-[13px] font-medium leading-relaxed text-zinc-400">
+                Our official <span className="font-bold text-zinc-200">{socialAlert.platform}</span> page is currently being prepared and will launch soon. Stay tuned!
+              </p>
+
+              {/* OK Action Button */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={() => setSocialAlert(null)}
+                  className="relative group min-w-[130px] overflow-hidden rounded-xl border border-purple-400/50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 px-6 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_0_25px_rgba(147,51,234,0.45)] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_35px_rgba(147,51,234,0.7)] hover:border-purple-300 active:scale-95 cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_2.5s_linear_infinite]" />
+                  <span className="relative z-10 flex items-center justify-center font-black">
+                    OK
+                  </span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+  </>
   );
 }

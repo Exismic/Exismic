@@ -175,7 +175,7 @@ export function HomeToolConcierge() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.94 }}
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
-            className="group/launcher fixed bottom-4 right-4 z-40 sm:bottom-7 sm:right-7"
+            className="group/launcher fixed bottom-3 right-3 z-40 sm:bottom-4 sm:right-4"
           >
             {/* Temporary Dismiss / Hide Button */}
             <button

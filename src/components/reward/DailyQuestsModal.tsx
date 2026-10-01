@@ -4,7 +4,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, 
-  Sparkles, 
+  CheckCheck,
   CheckCircle2, 
   Gift, 
   X, 
@@ -78,8 +78,8 @@ const ICON_MAP: Record<string, { icon: React.ReactNode; bg: string; border: stri
     glowColor: "rgba(59,130,246,0.25)",
     text: "text-blue-300",
   },
-  Sparkles: {
-    icon: <Sparkles size={22} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />,
+  Layers: {
+    icon: <Layers size={22} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />,
     bg: "bg-gradient-to-br from-yellow-500/25 via-amber-900/30 to-black/60",
     border: "border-yellow-400/40",
     glow: "shadow-[0_0_25px_rgba(234,179,8,0.4)]",
@@ -270,7 +270,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                     
                     {unclaimedCount > 0 ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 text-amber-950 shadow-[0_0_20px_rgba(245,158,11,0.6)] animate-pulse">
-                        <Gift size={11} className="fill-amber-950" />
+                        <Gift size={12} className="stroke-[2.3] shrink-0" />
                         {unclaimedCount} {unclaimedCount === 1 ? "Reward Ready" : "Rewards Ready"}
                       </span>
                     ) : (
@@ -459,7 +459,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                           : "bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 text-amber-950 shadow-[0_0_20px_rgba(245,158,11,0.6)]"
                       )}
                     >
-                      <Sparkles size={13} className="fill-current animate-pulse" />
+                      <CheckCheck size={14} className="stroke-[2.5] shrink-0" />
                       <span>Claim All ({currentUnclaimed})</span>
                     </button>
                   )}
@@ -494,7 +494,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                 const isClaimable = quest.completed && !quest.claimed;
                 const isWeekly = quest.type === "weekly" || activeTab === "weekly";
                 const iconMeta = ICON_MAP[quest.icon] || {
-                  icon: <Sparkles size={22} className="text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />,
+                  icon: <Trophy size={22} className="text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />,
                   bg: "bg-gradient-to-br from-purple-500/25 via-indigo-900/30 to-black/60",
                   border: "border-purple-500/40",
                   glow: "shadow-[0_0_25px_rgba(168,85,247,0.4)]",
@@ -596,7 +596,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                                 : "bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 text-amber-950 shadow-[0_0_30px_rgba(245,158,11,0.7)]"
                             )}
                           >
-                            <Gift size={15} className="fill-current animate-bounce" />
+                            <Gift size={15} className="stroke-[2.3] animate-bounce shrink-0" />
                             <span>{claimingId === quest.id ? "CLAIMING..." : "CLAIM REWARD"}</span>
                           </motion.button>
                         ) : (

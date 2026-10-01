@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { 
   HelpCircle, 
   CheckCircle2, 
@@ -889,7 +890,13 @@ export function ToolSeoSection({
         {/* =========================================================
             1. HERO LIVING CONTAINER (360° LASER BORDER BEAM)
         ========================================================== */}
-        <div className="relative p-[1.5px] overflow-hidden rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] group/beam">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="relative p-[1.5px] overflow-hidden rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] group/beam"
+        >
           {/* Animated Conic Laser Beam Circling the Entire Perimeter */}
           <div 
             className="absolute inset-[-150%] animate-[spin_5s_linear_infinite] pointer-events-none will-change-transform"
@@ -953,10 +960,15 @@ export function ToolSeoSection({
                 {defaultCards.map((vp, idx) => {
                   const Icon = vp.icon;
                   return (
-                    <div
+                    <motion.div
                       key={idx}
+                      initial={{ opacity: 0, y: 18 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-20px" }}
+                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                      transition={{ duration: 0.45, delay: 0.08 + idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
                       className={cn(
-                        "group/card relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5",
+                        "group/card relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 backdrop-blur-xl transition-colors duration-300",
                         theme.cardBorderHover,
                         theme.cardShadowHover
                       )}
@@ -972,7 +984,7 @@ export function ToolSeoSection({
                         }}
                       />
 
-                      <div className="relative z-10 flex flex-col justify-between h-full gap-3.5">
+                      <div className="relative z-10 flex flex-col gap-3 sm:gap-3.5">
                         <div className="flex items-center justify-between">
                           {/* 3D Icon Container with Category Accent & Micro-Tilt */}
                           <div className={cn("size-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-300 group-hover/card:scale-110 group-hover/card:-rotate-3", theme.iconContainer)}>
@@ -998,19 +1010,25 @@ export function ToolSeoSection({
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
 
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             2. 3-STEP WORKFLOW (WITH CATEGORY LASER CONDUIT)
         ========================================================== */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
           <div className="flex items-center gap-3">
             <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
               <Zap size={18} />
@@ -1038,10 +1056,15 @@ export function ToolSeoSection({
               const stepBadges = defaultHowToSteps.map((_, index) => `Step ${index + 1}`);
 
               return (
-                <div
+                <motion.div
                   key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   className={cn(
-                    "group relative z-10 flex flex-col justify-between rounded-2xl border border-white/[0.1] bg-[#070914]/90 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 shadow-xl",
+                    "group relative z-10 flex flex-col justify-between rounded-2xl border border-white/[0.1] bg-[#070914]/90 p-6 backdrop-blur-xl transition-colors duration-300 shadow-xl",
                     theme.cardBorderHover,
                     theme.cardShadowHover
                   )}
@@ -1073,16 +1096,22 @@ export function ToolSeoSection({
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             3. KEY FEATURES GRID (WHY CHOOSE)
         ========================================================== */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
           <div className="flex items-center gap-3">
             <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
               <CheckCircle2 size={20} />
@@ -1099,10 +1128,15 @@ export function ToolSeoSection({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {defaultFeatures.map((feat, idx) => (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20px" }}
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
                 className={cn(
-                  "flex items-start gap-4 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-6 backdrop-blur-md transition-all duration-300",
+                  "flex items-start gap-4 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-6 backdrop-blur-md transition-colors duration-300",
                   theme.whyChooseCardHover
                 )}
               >
@@ -1110,32 +1144,51 @@ export function ToolSeoSection({
                   <CheckCircle2 size={18} />
                 </div>
                 <p className="text-sm font-medium leading-relaxed text-zinc-200">{feat}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             3B. PRACTICAL USE CASES (IF AVAILABLE)
         ========================================================== */}
         {[{ title: "Examples to try", items: effectiveExamples }, { title: "Things to know", items: effectiveLimitations }].map(({ title, items }) => items?.length ? (
-          <div key={title} className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6">
+          <motion.div 
+            key={title} 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6"
+          >
             <h3 className="text-xl font-bold text-white">{title}</h3>
             <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-300">
               {items.map((item) => <li key={item}>{item}</li>)}
             </ul>
-          </div>
+          </motion.div>
         ) : null)}
         {effectiveTerminology?.length ? (
-          <div className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6"
+          >
             <h3 className="text-xl font-bold text-white">Useful terms</h3>
             <dl className="space-y-3 text-sm text-zinc-300">
               {effectiveTerminology.map(({ term, definition }) => <div key={term}><dt className="font-semibold text-white">{term}</dt><dd className="mt-1 leading-relaxed">{definition}</dd></div>)}
             </dl>
-          </div>
+          </motion.div>
         ) : null}
         {effectiveUseCases && effectiveUseCases.length > 0 && (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-6"
+          >
             <div className="flex items-center gap-3">
               <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
                 <BookOpen size={18} />
@@ -1160,13 +1213,19 @@ export function ToolSeoSection({
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* =========================================================
             4. FREQUENTLY ASKED QUESTIONS (SILKY SMOOTH ACCORDION)
         ========================================================== */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
           <div className="flex items-center gap-3">
             <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
               <HelpCircle size={20} />
@@ -1243,13 +1302,19 @@ export function ToolSeoSection({
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* =========================================================
             5. RELATED TOOLS (UPGRADED HIGH-END SUGGESTIONS UI)
         ========================================================== */}
         {showRelatedTools && relatedTools.length > 0 && (
-          <div className="relative overflow-hidden rounded-3xl border border-white/[0.1] bg-[#070914]/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="relative overflow-hidden rounded-3xl border border-white/[0.1] bg-[#070914]/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6"
+          >
             {/* Top Specular Rim */}
             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
@@ -1279,60 +1344,69 @@ export function ToolSeoSection({
 
             {/* 4 Enhanced Suggestion Cards with Authentic 3D Tool Icons */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedTools.map((relTool) => {
+              {relatedTools.map((relTool, idx) => {
                 const ToolIcon = (relTool.icon && ICON_MAP[relTool.icon as keyof typeof ICON_MAP]) || ImageIcon || Layers;
                 return (
-                  <Link
+                  <motion.div
                     key={relTool.id}
-                    href={relTool.href}
-                    className={cn(
-                      "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#090d1f]/70 p-5 backdrop-blur-md transition-all duration-300 hover:bg-[#0c1228]/90 hover:-translate-y-1.5",
-                      theme.suggestionsCardHover
-                    )}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-20px" }}
+                    whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                    transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                    className="h-full"
                   >
-                    {/* Top Specular Rim */}
-                    <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                    <Link
+                      href={relTool.href}
+                      className={cn(
+                        "group relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-[#090d1f]/70 p-5 backdrop-blur-md transition-colors duration-300 hover:bg-[#0c1228]/90",
+                        theme.suggestionsCardHover
+                      )}
+                    >
+                      {/* Top Specular Rim */}
+                      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
-                    {/* Ambient Hover Spotlight */}
-                    <div
-                      className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{
-                        background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
-                      }}
-                    />
+                      {/* Ambient Hover Spotlight */}
+                      <div
+                        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        style={{
+                          background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
+                        }}
+                      />
 
-                    <div className="relative z-10 space-y-3.5">
-                      {/* Top Row: 3D Tool Icon & Instant Badge */}
-                      <div className="flex items-center justify-between">
-                        <div className={cn("size-10 rounded-xl border flex items-center justify-center shrink-0 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3", theme.iconContainer)}>
-                          <ToolIcon size={18} />
+                      <div className="relative z-10 space-y-3.5">
+                        {/* Top Row: 3D Tool Icon & Instant Badge */}
+                        <div className="flex items-center justify-between">
+                          <div className={cn("size-10 rounded-xl border flex items-center justify-center shrink-0 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3", theme.iconContainer)}>
+                            <ToolIcon size={18} />
+                          </div>
+                          <span className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold", theme.badgeBorder, theme.badgeBg, theme.badgeText)}>
+                            <span className={cn("size-1 rounded-full", theme.badgeDot)} />
+                            <span>Instant</span>
+                          </span>
                         </div>
-                        <span className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold", theme.badgeBorder, theme.badgeBg, theme.badgeText)}>
-                          <span className={cn("size-1 rounded-full", theme.badgeDot)} />
-                          <span>Instant</span>
-                        </span>
+
+                        <div>
+                          <h4 className="text-sm font-bold text-white group-hover:text-zinc-100 transition-colors">
+                            {relTool.name}
+                          </h4>
+                          <p className="text-xs font-medium text-zinc-400 leading-relaxed line-clamp-2 mt-1">
+                            {relTool.description}
+                          </p>
+                        </div>
                       </div>
 
-                      <div>
-                        <h4 className="text-sm font-bold text-white group-hover:text-zinc-100 transition-colors">
-                          {relTool.name}
-                        </h4>
-                        <p className="text-xs font-medium text-zinc-400 leading-relaxed line-clamp-2 mt-1">
-                          {relTool.description}
-                        </p>
+                      {/* Action Link at Bottom */}
+                      <div className={cn("relative z-10 mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold uppercase tracking-wider transition-colors", theme.suggestionsActionText)}>
+                        <span>Open Tool</span>
+                        <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
                       </div>
-                    </div>
-
-                    {/* Action Link at Bottom */}
-                    <div className={cn("relative z-10 mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold uppercase tracking-wider transition-colors", theme.suggestionsActionText)}>
-                      <span>Open Tool</span>
-                      <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </Link>
+                    </Link>
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </section>

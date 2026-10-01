@@ -263,7 +263,7 @@ export function FavoritesClient({
                     <h3 className="text-sm font-black text-white group-hover:text-cyan-100 transition-colors tracking-tight line-clamp-1">
                       {tool.name}
                     </h3>
-                    <p className="text-xs text-zinc-400 font-medium line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-zinc-400 font-medium leading-relaxed">
                       {tool.description}
                     </p>
                   </div>

@@ -877,38 +877,42 @@ export async function verifyDeviceOtpAction(
     return { error: "Authentication session expired. Please sign in again." };
   }
 
-  const reqHeaders = await headers();
-  const clientIp = extractClientIp(reqHeaders);
-  const userAgent = reqHeaders.get("user-agent") || "";
+  try {
+    const reqHeaders = await headers();
+    const clientIp = extractClientIp(reqHeaders);
+    const userAgent = reqHeaders.get("user-agent") || "";
 
-  // Register device as trusted
-  const deviceReg = await registerTrustedDevice(
-    result.userId,
-    emailLower,
-    userAgent,
-    clientIp,
-  );
+    // Register device as trusted
+    const deviceReg = await registerTrustedDevice(
+      result.userId,
+      emailLower,
+      userAgent,
+      clientIp,
+    );
 
-  // Set HTTP-only device token cookie
-  const cookieStore = await cookies();
-  cookieStore.set(DEVICE_TOKEN_COOKIE_NAME, deviceReg.rawDeviceToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: deviceReg.expiresAt,
-  });
+    // Set HTTP-only device token cookie
+    const cookieStore = await cookies();
+    cookieStore.set(DEVICE_TOKEN_COOKIE_NAME, deviceReg.rawDeviceToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      expires: deviceReg.expiresAt,
+    });
 
-  // Send security login alert email
-  const timeStr = new Date().toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-  void sendLoginSecurityAlertEmail(emailLower, {
-    deviceName: deviceReg.deviceName,
-    ip: clientIp,
-    time: timeStr,
-  }).catch((err) => console.error("[Auth] Security alert email error:", err));
+    // Send security login alert email
+    const timeStr = new Date().toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    void sendLoginSecurityAlertEmail(emailLower, {
+      deviceName: deviceReg.deviceName,
+      ip: clientIp,
+      time: timeStr,
+    }).catch((err) => console.error("[Auth] Security alert email error:", err));
+  } catch (deviceError) {
+    console.error("[Auth] Non-blocking trusted device registration error:", deviceError);
+  }
 
   return { success: true };
 }
