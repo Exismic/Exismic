@@ -1475,6 +1475,11 @@ export function ProClient() {
             ? `${currencySymbol}${isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR.toLocaleString("en-IN") : PRICING_CONFIG.PRO_YEARLY_PLAN.USD}/yr`
             : `${currencySymbol}${priceDisplay}${priceSuffix}`
         }
+        regularPrice={
+          selectedPlanId === "pro_yearly"
+            ? `${currencySymbol}${isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR.toLocaleString("en-IN") : PRICING_CONFIG.PRO_YEARLY_PLAN.USD}/yr`
+            : `${currencySymbol}${isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD}/mo`
+        }
         packName={selectedPlanId === "pro_yearly" ? "Exismic Pro (Annual)" : "Exismic Pro (Monthly)"}
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={loading}

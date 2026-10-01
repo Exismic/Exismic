@@ -148,12 +148,12 @@ async function createRazorpayProSubscription(
           interval: 1,
           item: {
             name: `Exismic Pro ${isYearly ? "Yearly" : "Monthly"} (Launch Special)`,
-            description: `First month Exismic Pro membership at ₹299 launch discount`,
+            description: `First month Exismic Pro membership at ${price.display} launch discount`,
             amount: price.amountMinor,
             currency: price.currency,
           },
           notes: {
-            source: "exismic_v16_launch_plan",
+            source: "exismic_v17_launch_plan",
           },
         });
         promoPlanId = String(promoPlan.id);
@@ -498,7 +498,7 @@ export async function POST(req: NextRequest) {
           user.id,
           price,
           plan.id === "pro_yearly",
-          isLaunchDiscount ? basePrice.amountMinor : undefined,
+          isLaunchDiscount || appliedRetentionDiscount ? basePrice.regularAmountMinor : undefined,
         );
 
         await prisma.paymentOrder.update({
@@ -578,7 +578,7 @@ export async function POST(req: NextRequest) {
           tierId: plan.id,
           currency: price.currency,
           amount: price.amount,
-          regularAmount: isLaunchDiscount ? basePrice.amount : undefined,
+          regularAmount: isLaunchDiscount || appliedRetentionDiscount ? basePrice.regularAmount : undefined,
         },
         returnUrl: `${origin}/billing/success?${successParams.toString()}`,
         cancelUrl: `${origin}/billing/cancel?${cancelParams.toString()}`,

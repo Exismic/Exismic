@@ -38,8 +38,8 @@ export function LaunchOfferModal() {
     regularInr: number;
     regularUsd: number;
   }>({
-    inr: 299,
-    usd: 3.99,
+    inr: 399,
+    usd: 5.59,
     regularInr: 499,
     regularUsd: 6.99,
   });
@@ -81,8 +81,8 @@ export function LaunchOfferModal() {
 
         if (eligibility.prices) {
           setPromoPrices({
-            inr: eligibility.prices.INR ?? 299,
-            usd: eligibility.prices.USD ?? 3.99,
+            inr: eligibility.prices.INR ?? 399,
+            usd: eligibility.prices.USD ?? 5.59,
             regularInr: eligibility.prices.regularINR ?? 499,
             regularUsd: eligibility.prices.regularUSD ?? 6.99,
           });

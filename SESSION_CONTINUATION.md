@@ -9,6 +9,15 @@
 > **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
 
+### 0.0000000000000000000000 💳 Fix Razorpay & PayPal Subscription Launch Discount Price Passing [100% COMPLETED]
+* **Problems Addressed**:
+  - Razorpay checkout modal was displaying full regular price (₹499) instead of the 20% launch discounted price (₹399).
+* **Root Cause & Solution Implemented**:
+  - In [`create-order/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/billing/create-order/route.ts), `createRazorpayProSubscription` was passed `basePrice.amountMinor` (39900) instead of `basePrice.regularAmountMinor` (49900) for the `regularPriceMinor` parameter.
+  - As a result, `Boolean(regularPriceMinor > price.amountMinor)` evaluated to `false` (39900 > 39900 is false), causing Razorpay to skip introductory discount plan generation and default to the standard ₹499 monthly plan ID.
+  - Same bug affected PayPal subscription creation where `basePrice.amount` was passed instead of `basePrice.regularAmount`.
+  - Fixed both call sites to pass `basePrice.regularAmountMinor` and `basePrice.regularAmount`, properly triggering promotional plan subscription at ₹399 / $5.59 for month 1 with standard migration scheduled for renewal.
+
 ### 0.000000000000000000000 🎟️ Fix Checkout False Positive Custom Coupon Error [100% COMPLETED]
 * **Problems Addressed**:
   - Clicking "Proceed to Razorpay" triggered an unexpected error toast: *"Custom coupons cannot be used during the Exismic 1.7 Launch Sale (official 20% discount is already active from us)"* even when the user entered no custom coupon.

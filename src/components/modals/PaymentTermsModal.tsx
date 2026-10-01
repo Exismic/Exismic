@@ -170,6 +170,7 @@ interface PaymentTermsModalProps {
   onConfirm: (couponCode?: string) => void;
   type: "pro" | "credits";
   price?: string;
+  regularPrice?: string;
   packName?: string;
   gateway?: "paypal" | "razorpay";
   isProcessing?: boolean;
@@ -185,6 +186,7 @@ export function PaymentTermsModal({
   onConfirm,
   type,
   price,
+  regularPrice,
   packName,
   gateway = "paypal",
   isProcessing = false,
@@ -205,6 +207,7 @@ export function PaymentTermsModal({
     discountLabel: string;
     displayDiscount: string;
     displayFinal: string;
+    displayOriginal?: string;
     note?: string;
   } | null>(null);
 
@@ -246,24 +249,32 @@ export function PaymentTermsModal({
           setIsLaunchDiscountEligible(true);
           const displayDiscount = isIndia ? "₹100" : "$1.40";
           const displayFinal = isIndia ? "₹399" : "$5.59";
+          const displayOriginal = isIndia ? "₹499" : "$6.99";
           setAppliedCoupon({
             code: "EXISMIC17",
             discountLabel: "20% OFF",
             displayDiscount,
             displayFinal,
-            note: `Exismic 1.7 Special: First month for ${displayFinal} (20% OFF), renews at standard ${isIndia ? "₹499" : "$6.99"}/mo. Cancel anytime.`,
+            displayOriginal,
+            note: `Exismic 1.7 Special: First month for ${displayFinal} (20% OFF), renews at standard ${displayOriginal}/mo. Cancel anytime.`,
           });
           setCouponInput("EXISMIC17");
-        } else if (planId === "starter" || planId === "creator" || planId === "ultimate") {
+        } else if (
+          planId === "starter" || planId === "creator" || planId === "ultimate" ||
+          planId === "tier_1" || planId === "tier_2" || planId === "tier_3"
+        ) {
           setIsLaunchDiscountEligible(true);
-          const pack = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS[planId as keyof typeof PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS];
+          const key = (planId === "tier_1" ? "starter" : planId === "tier_2" ? "creator" : planId === "tier_3" ? "ultimate" : planId) as "starter" | "creator" | "ultimate";
+          const pack = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS[key];
           const displayFinal = isIndia ? `₹${pack.INR}` : `$${pack.USD}`;
+          const displayOriginal = isIndia ? `₹${pack.regularINR}` : `$${pack.regularUSD}`;
           const displayDiscount = isIndia ? `₹${pack.regularINR - pack.INR}` : `$${(pack.regularUSD - pack.USD).toFixed(2)}`;
           setAppliedCoupon({
             code: "EXISMIC17",
             discountLabel: "20% OFF",
             displayDiscount,
             displayFinal,
+            displayOriginal,
             note: `Exismic 1.7 Special: 20% discount applied to ${packName || "credit pack"}.`,
           });
           setCouponInput("EXISMIC17");
@@ -290,7 +301,7 @@ export function PaymentTermsModal({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, planId, gateway, price]);
+  }, [isOpen, planId, gateway, price, regularPrice]);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -320,6 +331,7 @@ export function PaymentTermsModal({
           discountLabel: data.discountLabel,
           displayDiscount: data.displayDiscount,
           displayFinal: data.displayFinal,
+          displayOriginal: data.displayOriginal,
           note: data.note,
         });
         setCouponError(null);
@@ -364,14 +376,35 @@ export function PaymentTermsModal({
       ? "Your transaction will be processed securely through Razorpay using UPI, cards, wallets, or net banking. Exismic does not see or store your payment details."
       : "Your transaction will be processed securely through PayPal. Exismic does not see or store your payment details.";
 
+  const calculatedRegularPrice = useMemo(() => {
+    if (regularPrice) return regularPrice;
+    const isIndia = gateway === "razorpay";
+    if (planId === "pro") {
+      return isIndia ? `₹${PRICING_CONFIG.PRO_PLAN.INR}` : `$${PRICING_CONFIG.PRO_PLAN.USD}`;
+    }
+    if (planId === "starter" || planId === "tier_1") {
+      return isIndia ? `₹${PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.starter.regularINR}` : `$${PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.starter.regularUSD}`;
+    }
+    if (planId === "creator" || planId === "tier_2") {
+      return isIndia ? `₹${PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.creator.regularINR}` : `$${PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.creator.regularUSD}`;
+    }
+    if (planId === "ultimate" || planId === "tier_3") {
+      return isIndia ? `₹${PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.ultimate.regularINR}` : `$${PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.ultimate.regularUSD}`;
+    }
+    if (planId === "pro_yearly") {
+      return isIndia ? `₹${PRICING_CONFIG.PRO_YEARLY_PLAN.INR}` : `$${PRICING_CONFIG.PRO_YEARLY_PLAN.USD}`;
+    }
+    return price;
+  }, [regularPrice, planId, gateway, price]);
+
   const displayFinalAmount = useMemo(() => {
     if (appliedCoupon?.displayFinal) return appliedCoupon.displayFinal;
     if (planId === "pro" && isLaunchDiscountEligible) {
-      return gateway === "razorpay" ? "₹299" : "$3.99";
+      return gateway === "razorpay" ? "₹399" : "$5.59";
     }
     if (price) return price;
     if (planId === "pro_yearly") {
-      return gateway === "razorpay" ? "₹3,999" : "$49.99";
+      return gateway === "razorpay" ? "₹4,499" : "$59.99";
     }
     return gateway === "razorpay" ? "₹499" : "$6.99";
   }, [appliedCoupon, planId, isLaunchDiscountEligible, gateway, price]);
@@ -483,17 +516,22 @@ export function PaymentTermsModal({
               </div>
               <div className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-cyan-400/35 bg-cyan-400/[0.08] px-3 py-0.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.12)]">
                 <span className="text-white font-black">{type === "pro" ? (planId === "pro_yearly" ? "Exismic Pro Yearly" : "Exismic Pro Monthly") : packName || "Credit Pack"}</span>
-                {price && (
+                {(price || calculatedRegularPrice || appliedCoupon?.displayFinal) && (
                   <>
                     <span className="text-cyan-400/50">•</span>
                     {appliedCoupon ? (
                       <span className="inline-flex items-center gap-1 font-extrabold">
-                        <span className="line-through text-zinc-500 font-semibold">{price}</span>
+                        {(() => {
+                          const strikePrice = appliedCoupon.displayOriginal || calculatedRegularPrice;
+                          return strikePrice && strikePrice !== appliedCoupon.displayFinal ? (
+                            <span className="line-through text-zinc-500 font-semibold">{strikePrice}</span>
+                          ) : null;
+                        })()}
                         <span className="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent font-black">{appliedCoupon.displayFinal}</span>
                         <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold">{appliedCoupon.discountLabel}</span>
                       </span>
                     ) : (
-                      <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent font-extrabold">{price}</span>
+                      <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent font-extrabold">{price || calculatedRegularPrice}</span>
                     )}
                   </>
                 )}

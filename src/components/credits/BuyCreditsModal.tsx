@@ -167,6 +167,7 @@ export function BuyCreditsModal({
     title: string;
     credits: number;
     priceDisplay: string;
+    regularPriceDisplay?: string;
     category: "pro" | "credits";
   } | null>(null);
 
@@ -237,14 +238,18 @@ export function BuyCreditsModal({
     creditsNum: number, 
     inrPrice: number, 
     usdPrice: number, 
-    category: "pro" | "credits"
+    category: "pro" | "credits",
+    regularInr?: number,
+    regularUsd?: number
   ) => {
     const priceDisplay = isIndia ? `₹${inrPrice}` : `$${usdPrice}`;
+    const regularPriceDisplay = regularInr && regularUsd ? (isIndia ? `₹${regularInr}` : `$${regularUsd}`) : undefined;
     setTermsPlan({
       id: planId,
       title: planTitle,
       credits: creditsNum,
       priceDisplay,
+      regularPriceDisplay,
       category,
     });
     setIsTermsOpen(true);
@@ -544,7 +549,7 @@ export function BuyCreditsModal({
                             <div className="flex shrink-0 items-center justify-end sm:min-w-[260px]">
                               <motion.button
                                 type="button"
-                                onClick={() => handleOpenCheckoutOptions(pack.id, pack.label, pack.credits, actualInrPrice, actualUsdPrice, "credits")}
+                                onClick={() => handleOpenCheckoutOptions(pack.id, pack.label, pack.credits, actualInrPrice, actualUsdPrice, "credits", pack.inrPrice, pack.usdPrice)}
                                 disabled={loadingId !== null}
                                 whileHover={{ y: -2, scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -674,7 +679,9 @@ export function BuyCreditsModal({
                               15000,
                               isExismic17PromoActive() ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR : PRICING_CONFIG.PRO_PLAN.INR,
                               isExismic17PromoActive() ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD : PRICING_CONFIG.PRO_PLAN.USD,
-                              "pro"
+                              "pro",
+                              PRICING_CONFIG.PRO_PLAN.INR,
+                              PRICING_CONFIG.PRO_PLAN.USD
                             )}
                             disabled={loadingId !== null}
                             whileHover={{ y: -2, scale: 1.02 }}
@@ -781,7 +788,7 @@ export function BuyCreditsModal({
                         <div className="mt-6">
                           <motion.button
                             type="button"
-                            onClick={() => handleOpenCheckoutOptions("pro_yearly", "1-Year Pro Pass", 182500, PRICING_CONFIG.PRO_YEARLY_PLAN.INR, PRICING_CONFIG.PRO_YEARLY_PLAN.USD, "pro")}
+                            onClick={() => handleOpenCheckoutOptions("pro_yearly", "1-Year Pro Pass", 182500, PRICING_CONFIG.PRO_YEARLY_PLAN.INR, PRICING_CONFIG.PRO_YEARLY_PLAN.USD, "pro", PRICING_CONFIG.PRO_YEARLY_PLAN.INR, PRICING_CONFIG.PRO_YEARLY_PLAN.USD)}
                             disabled={loadingId !== null}
                             whileHover={{ y: -2, scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -841,6 +848,7 @@ export function BuyCreditsModal({
           planId={termsPlan.id}
           packName={termsPlan.title}
           price={termsPlan.priceDisplay}
+          regularPrice={termsPlan.regularPriceDisplay}
           gateway={isIndia ? "razorpay" : "paypal"}
         />
       )}

@@ -771,6 +771,7 @@ export default function ShopPage() {
         type="credits"
         packName={selectedPack?.label}
         price={selectedPack?.priceLabel}
+        regularPrice={selectedPack?.regularPriceLabel}
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={isProcessingId !== null}
         planId={selectedPack?.billingPlanId || selectedPack?.id || "starter"}

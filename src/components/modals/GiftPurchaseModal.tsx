@@ -182,6 +182,7 @@ export function GiftPurchaseModal({
     title: string;
     credits: number;
     priceDisplay: string;
+    regularPriceDisplay?: string;
     category: "pro" | "credits";
   } | null>(null);
 
@@ -224,14 +225,18 @@ export function GiftPurchaseModal({
     credits: number, 
     inrPrice: number, 
     usdPrice: number, 
-    category: "pro" | "credits"
+    category: "pro" | "credits",
+    regularInr?: number,
+    regularUsd?: number
   ) => {
     const priceDisplay = isIndia ? `₹${inrPrice}` : `$${usdPrice}`;
+    const regularPriceDisplay = regularInr && regularUsd ? (isIndia ? `₹${regularInr}` : `$${regularUsd}`) : undefined;
     setTermsPlan({
       id: planId,
       title: planTitle,
       credits,
       priceDisplay,
+      regularPriceDisplay,
       category,
     });
     setIsTermsOpen(true);
@@ -844,6 +849,7 @@ export function GiftPurchaseModal({
           type={termsPlan.category}
           planId={termsPlan.id}
           price={termsPlan.priceDisplay}
+          regularPrice={termsPlan.regularPriceDisplay}
           packName={termsPlan.title}
           isGift={true}
           recipientName={recipientName}

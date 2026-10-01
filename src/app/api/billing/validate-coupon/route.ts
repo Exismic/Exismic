@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
           currency: basePrice.currency,
           displayDiscount: "20%",
           displayFinal: basePrice.display,
+          displayOriginal: basePrice.regularDisplay,
           note: plan.id === "pro"
             ? `Exismic 1.7 Special: First month for ${basePrice.display} (20% OFF). Auto-renews at standard ${basePrice.regularDisplay}/mo. Cancel anytime.`
             : `Exismic 1.7 Special: 20% discount applied to ${plan.name}.`,
@@ -196,6 +197,7 @@ export async function POST(req: NextRequest) {
         currency: basePrice.currency,
         displayDiscount: isIndia ? "₹100" : "$1.50",
         displayFinal: isIndia ? `₹${(finalAmountMinor / 100).toFixed(0)}` : `$${(finalAmountMinor / 100).toFixed(2)}`,
+        displayOriginal: basePrice.display,
       });
     }
 
@@ -235,6 +237,7 @@ export async function POST(req: NextRequest) {
         currency: basePrice.currency,
         displayDiscount: "20%",
         displayFinal: isIndia ? `₹${(finalAmountMinor / 100).toFixed(0)}` : `$${(finalAmountMinor / 100).toFixed(2)}`,
+        displayOriginal: basePrice.display,
         note: "Applies to your first monthly billing cycle. Subsequent months renew at standard price.",
       });
     }
