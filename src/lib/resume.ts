@@ -19,6 +19,7 @@ export interface Project {
   role: string;
   description: string;
   link: string;
+  period?: string;
 }
 
 export interface ResumeData {
@@ -81,9 +82,9 @@ export const RESUME_TEMPLATES: Array<{
 ];
 
 export const RESUME_ACCENT_COLORS = [
-  "#7c3aed",
-  "#06b6d4",
   "#10b981",
+  "#06b6d4",
+  "#7c3aed",
   "#f43f5e",
   "#f59e0b",
   "#334155",
@@ -144,6 +145,7 @@ function normalizeProject(value: unknown, index: number): Project {
     role: text(item.role),
     description: text(item.description),
     link: text(item.link),
+    period: text(item.period),
   };
 }
 

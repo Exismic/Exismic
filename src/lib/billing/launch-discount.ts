@@ -17,7 +17,7 @@ export type LaunchDiscountEligibility = {
 };
 
 export async function checkUserLaunchDiscountEligibility(userId?: string | null): Promise<LaunchDiscountEligibility> {
-  const promo = PRICING_CONFIG.V16_LAUNCH_PROMO;
+  const promo = PRICING_CONFIG.V17_LAUNCH_PROMO;
   const regular = PRICING_CONFIG.PRO_PLAN;
 
   const baseResponse: LaunchDiscountEligibility = {
@@ -25,12 +25,12 @@ export async function checkUserLaunchDiscountEligibility(userId?: string | null)
     code: promo.CODE,
     expiresAt: promo.EXPIRES_AT,
     prices: {
-      USD: promo.DISCOUNTED_PRICE_USD,
-      INR: promo.DISCOUNTED_PRICE_INR,
+      USD: promo.PRO_MONTHLY.USD,
+      INR: promo.PRO_MONTHLY.INR,
       regularUSD: regular.USD,
       regularINR: regular.INR,
-      discountUSD: promo.DISCOUNT_AMOUNT_USD,
-      discountINR: promo.DISCOUNT_AMOUNT_INR,
+      discountUSD: promo.PRO_MONTHLY.DISCOUNT_AMOUNT_USD,
+      discountINR: promo.PRO_MONTHLY.DISCOUNT_AMOUNT_INR,
     },
   };
 
@@ -38,7 +38,7 @@ export async function checkUserLaunchDiscountEligibility(userId?: string | null)
     return {
       ...baseResponse,
       eligible: false,
-      reason: "The v1.6 Launch Special promotional period has concluded.",
+      reason: "The Exismic 1.7 Launch Special promotional period has concluded.",
     };
   }
 

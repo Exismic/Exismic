@@ -1,5 +1,6 @@
-import { AudioProcessingTool } from "@/components/tool/AudioProcessingTool";
+import VocalRemoverStudio from "@/components/tool/audio/VocalRemoverStudio";
 
 export function VocalRemover() {
-  return <AudioProcessingTool mode="vocal-remover" />;
+  return <VocalRemoverStudio />;
 }
+

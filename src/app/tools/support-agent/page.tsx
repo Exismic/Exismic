@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { constructMetadata, SITE_URL } from "@/lib/seo";
+import { getToolMetadata } from "@/lib/seo";
 import {
   ArrowRight,
   BarChart3,
@@ -11,7 +11,6 @@ import {
   Handshake,
   MessageSquare,
   MessagesSquare,
-  Sparkles,
   Store,
   Users,
   Clock,
@@ -24,15 +23,10 @@ import {
   SUPPORT_AGENT_USE_CASES,
 } from "@/lib/support-agent/types";
 
-export const metadata: Metadata = constructMetadata({
-  title: "Exismic Support Agent - AI support agents for your website",
-  description:
-    "Create an AI customer support chatbot for your website. Train Exismic with FAQs, policies, documents, and product details, then embed it in minutes.",
-  canonicalUrl: `${SITE_URL}/tools/support-agent`,
-});
+export const metadata: Metadata = getToolMetadata("support-agent");
 
 const featureIcons = [BookOpen, MessageSquare, Users, Handshake, MessagesSquare, BarChart3];
-const useCaseIcons = [Store, Bot, Sparkles, Users, Code2, MessageSquare];
+const useCaseIcons = [Store, Bot, Bot, Users, Code2, MessageSquare];
 
 import { SupportAgentMaintenanceScreen } from "@/components/support-agent/SupportAgentMaintenanceScreen";
 
@@ -109,7 +103,7 @@ export default function SupportAgentLandingPage() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-10">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SUPPORT_AGENT_FEATURES.map((feature, index) => {
-            const Icon = featureIcons[index] ?? Sparkles;
+            const Icon = featureIcons[index] ?? Bot;
             return (
               <div key={feature} className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl transition hover:-translate-y-1 hover:border-cyan-300/25 hover:bg-white/[0.055]">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10">

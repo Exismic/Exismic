@@ -18,17 +18,29 @@ export function CategoryClient({ categoryId }: CategoryClientProps) {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
+    // Load local favorites immediately to prevent state flickering
+    try {
+      const guest = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+      if (Array.isArray(guest) && guest.length > 0) {
+        setFavorites((prev) => Array.from(new Set([...prev, ...guest])));
+      }
+    } catch {}
+
     const fetchFavorites = async () => {
-      const response = await fetch('/api/user/favorites', { cache: 'no-store' });
-      if (!response.ok) return;
-      const data = await response.json();
-      setFavorites(Array.isArray(data.favorites) ? data.favorites : []);
+      try {
+        const response = await fetch('/api/user/favorites', { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.authenticated && Array.isArray(data.favorites)) {
+          setFavorites(data.favorites);
+        }
+      } catch {}
     };
     void fetchFavorites();
 
     const handleFavoritesChanged = (event: Event) => {
-      const favorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
-      if (Array.isArray(favorites)) setFavorites(favorites);
+      const nextFavorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(nextFavorites)) setFavorites(nextFavorites);
     };
     window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
     return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);

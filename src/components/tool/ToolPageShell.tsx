@@ -68,6 +68,15 @@ export function ToolPageShell({
       }
     };
     void fetchFavorites();
+
+    const handleFavoritesChanged = (event: Event) => {
+      const favorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(favorites)) {
+        setIsFavorited(favorites.includes(tool.id));
+      }
+    };
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
   }, [tool?.id]);
 
   const handleShare = () => {
@@ -83,26 +92,7 @@ export function ToolPageShell({
     const nextState = !isFavorited;
     setIsFavorited(nextState);
 
-    try {
-      const response = await axios.post(
-        "/api/user/favorites",
-        { toolId: tool.id, action: nextState ? "add" : "remove" },
-        { validateStatus: () => true }
-      );
-
-      if (response.status === 200 && response.data?.success) {
-        setIsFavorited(response.data.isFavorited === true);
-        window.dispatchEvent(
-          new CustomEvent(FAVORITES_CHANGED_EVENT, {
-            detail: { favorites: response.data.favorites },
-          })
-        );
-        return;
-      }
-    } catch {
-      // Local fallback
-    }
-
+    // Instant optimistic update for local storage & cross-tab / cross-component sync
     if (typeof window !== "undefined") {
       try {
         const guestFavs = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
@@ -117,6 +107,25 @@ export function ToolPageShell({
         // Ignore
       }
     }
+
+    try {
+      const response = await axios.post(
+        "/api/user/favorites",
+        { toolId: tool.id, action: nextState ? "add" : "remove" },
+        { validateStatus: () => true }
+      );
+
+      if (response.status === 200 && response.data?.success) {
+        setIsFavorited(response.data.isFavorited === true);
+        window.dispatchEvent(
+          new CustomEvent(FAVORITES_CHANGED_EVENT, {
+            detail: { favorites: response.data.favorites },
+          })
+        );
+      }
+    } catch {
+      // Offline / guest handled optimistically
+    }
   };
 
   // Structured Data Schema for Google Indexing
@@ -125,7 +134,7 @@ export function ToolPageShell({
     "@type": "SoftwareApplication",
     "name": toolName,
     "description": toolDescription,
-    "url": typeof window !== "undefined" ? window.location.href : `${SITE_URL}${tool?.href || `/tools/${categoryId}/${toolId}`}`,
+    "url": `${SITE_URL}${tool?.href || `/tools/${categoryId}/${toolId}`}`,
     "applicationCategory": categoryId === "productivity" ? "UtilitiesApplication" : categoryId === "creator" ? "SocialApplication" : "MultimediaApplication",
     "operatingSystem": "All modern browsers (Desktop & Mobile)",
     "isAccessibleForFree": !tool?.isProTool,

@@ -3,7 +3,6 @@
 import React, { useState, useRef } from "react";
 import { 
   BookOpen, 
-  Sparkles, 
   Copy, 
   CheckCircle2, 
   RefreshCw, 
@@ -296,7 +295,7 @@ export default function PdfToNotes() {
 
                      <div className="flex items-center gap-2 pt-2">
                         <span className="flex items-center gap-1 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
-                           <FileText size={12} className="text-amber-400" /> Native PDF OCR Parsing
+                           <FileText size={12} className="text-amber-400" /> Automatic Text Reader
                         </span>
                      </div>
 
@@ -340,7 +339,7 @@ export default function PdfToNotes() {
                 type="button"
                 onClick={handleGenerate}
                 disabled={isProcessing || (inputMode === "upload" ? !pdfFile : !inputText.trim())}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-widest shadow-[0_0_30px_rgba(245,158,11,0.25)] transition-all flex items-center justify-center gap-2.5 disabled:opacity-40 cursor-pointer active:scale-[0.99]"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-widest shadow-[0_0_30px_rgba(245,158,11,0.35)] transition-all flex items-center justify-center gap-2.5 disabled:opacity-40 cursor-pointer active:scale-[0.99]"
               >
                 {isProcessing ? (
                   <>
@@ -349,8 +348,8 @@ export default function PdfToNotes() {
                   </>
                 ) : (
                   <>
-                    <Sparkles size={18} />
-                    <span>Convert to AI Study Notes</span>
+                    <Brain size={18} />
+                    <span>Convert to Study Notes</span>
                   </>
                 )}
               </button>
@@ -384,7 +383,7 @@ export default function PdfToNotes() {
                 <div className="flex flex-col items-center justify-center h-full space-y-4 py-20 text-center">
                    <div className="relative size-16 flex items-center justify-center">
                       <div className="absolute inset-0 rounded-full border-2 border-amber-500/20 animate-ping" />
-                      <Sparkles size={36} className="text-amber-400 animate-pulse" />
+                      <Brain size={36} className="text-amber-400 animate-pulse" />
                    </div>
                    <div className="space-y-1">
                       <h4 className="text-xs font-black text-white uppercase tracking-widest">Synthesizing Notes & Questions...</h4>
@@ -466,9 +465,9 @@ export default function PdfToNotes() {
       {/* FOOTER STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
          {[
-           { label: "Document Extractor", value: "Native PDF OCR Text Parser", icon: FileText, color: "text-amber-400" },
-           { label: "Study AI Assistant", value: "Exismic Study Assistant", icon: Zap, color: "text-purple-400" },
-           { label: "Revision Suite", value: "Automated Q&As & Definitions", icon: HelpCircle, color: "text-cyan-400" }
+           { label: "Document Reader", value: "Fast Document Text Extractor", icon: FileText, color: "text-amber-400" },
+           { label: "Study Assistant", value: "Smart Summary & Chapter Breakdown", icon: Zap, color: "text-amber-300" },
+           { label: "Revision Suite", value: "Practice Questions & Core Definitions", icon: HelpCircle, color: "text-yellow-400" }
          ].map((stat, i) => (
            <div key={i} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0c0d17]/80 p-4 backdrop-blur-2xl">
               <div className={cn("flex size-10 items-center justify-center rounded-xl bg-white/5 border border-white/10", stat.color)}>

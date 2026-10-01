@@ -231,18 +231,6 @@ export function GiveawayPageClient() {
     giveaway && !isUpcoming && (data?.winner || timeLeft.isEnded || data?.isExpired)
   );
 
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      if (!giveaway) {
-        document.title = "Giveaways | Exismic";
-      } else if (isUpcoming) {
-        document.title = "New Giveaway Coming Soon | Exismic";
-      } else {
-        document.title = `${giveaway.title} | Exismic`;
-      }
-    }
-  }, [isUpcoming, giveaway?.title]);
-
   const handleShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "https://exismic.com/giveaway";
     if (navigator.clipboard) {

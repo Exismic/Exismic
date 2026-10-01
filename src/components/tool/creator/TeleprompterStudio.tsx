@@ -32,6 +32,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // SCRIPT PRESETS (Plain Everyday English, Authentic Lucide Icons)
@@ -162,6 +163,7 @@ function playCountdownBeep(freq = 520, duration = 0.12) {
 
 export default function TeleprompterStudio() {
   // Script content
+  const [selectedPresetId, setSelectedPresetId] = useState<string>(SCRIPT_PRESETS[0].id);
   const [scriptText, setScriptText] = useState<string>(SCRIPT_PRESETS[0].text);
   const [copiedScript, setCopiedScript] = useState<boolean>(false);
 
@@ -490,18 +492,18 @@ export default function TeleprompterStudio() {
     "pure-black": {
       stageBg: "bg-black",
       textColor: "text-white",
-      accentBorder: "border-sky-500/40",
-      guideLine: "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.8)]",
-      guidePill: "bg-sky-500/20 text-sky-300 border-sky-500/40",
-      hudBg: "bg-black/90 border-white/10",
+      accentBorder: "border-indigo-500/40",
+      guideLine: "bg-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.8)]",
+      guidePill: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+      hudBg: "bg-black/95 border-white/15",
     },
     obsidian: {
       stageBg: "bg-[#070913]",
-      textColor: "text-cyan-50",
-      accentBorder: "border-cyan-500/40",
-      guideLine: "bg-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.85)]",
-      guidePill: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
-      hudBg: "bg-[#090d1a]/95 border-cyan-500/30",
+      textColor: "text-indigo-50",
+      accentBorder: "border-indigo-500/40",
+      guideLine: "bg-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.85)]",
+      guidePill: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+      hudBg: "bg-[#090d1a]/95 border-indigo-500/30",
     },
     "broadcast-yellow": {
       stageBg: "bg-black",
@@ -514,9 +516,9 @@ export default function TeleprompterStudio() {
     "paper-white": {
       stageBg: "bg-[#f8fafc]",
       textColor: "text-[#0f172a]",
-      accentBorder: "border-blue-500/40",
-      guideLine: "bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.85)]",
-      guidePill: "bg-blue-600/15 text-blue-800 border-blue-600/40",
+      accentBorder: "border-indigo-500/40",
+      guideLine: "bg-indigo-600 shadow-[0_0_12px_rgba(99,102,241,0.85)]",
+      guidePill: "bg-indigo-600/15 text-indigo-800 border-indigo-600/40",
       hudBg: "bg-white/95 border-slate-300",
     },
   }[theme];
@@ -533,8 +535,75 @@ export default function TeleprompterStudio() {
   // ==========================================================================
   return (
     <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-5 space-y-4">
+      {/* 1-Click Production Script Blueprints Gallery */}
+      <div className="rounded-3xl border border-indigo-500/20 bg-[#0a0c16]/90 p-4 sm:p-5 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(99,102,241,0.06)] space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <Film className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-white">
+                Production Script Blueprints
+              </span>
+              <p className="text-[11px] text-zinc-400 font-medium">
+                Click any proven script structure to load calibrated speech pacing, hooks, and timing
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400/90 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20 self-start sm:self-auto">
+            {SCRIPT_PRESETS.length} Formats Available
+          </span>
+        </div>
+
+        {/* 4 Responsive Blueprint Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {SCRIPT_PRESETS.map((preset) => {
+            const isSelected = selectedPresetId === preset.id;
+            const Icon = preset.icon;
+            const wordCountPreset = preset.text.trim().split(/\s+/).length;
+            const estSeconds = Math.round((wordCountPreset / 130) * 60);
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => {
+                  setSelectedPresetId(preset.id);
+                  setScriptText(preset.text);
+                  handleReset();
+                }}
+                className={cn(
+                  "relative flex flex-col items-start justify-between text-left p-3.5 rounded-2xl transition-all duration-200 border cursor-pointer min-h-[96px]",
+                  isSelected
+                    ? "bg-indigo-600/20 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.25)] text-white"
+                    : "bg-[#0c0e18] border-white/10 text-zinc-300 hover:border-indigo-500/40 hover:bg-white/[0.04] hover:text-white"
+                )}
+              >
+                <div className="w-full flex items-center justify-between gap-1 mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-indigo-300" : "text-indigo-400")} />
+                    <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase">
+                      {preset.badge}
+                    </span>
+                  </div>
+                  {isSelected && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-[0_0_6px_#6366f1]" />
+                  )}
+                </div>
+                <div className="w-full space-y-0.5">
+                  <p className="text-xs font-bold leading-snug line-clamp-1">{preset.title}</p>
+                  <p className="text-[10px] text-zinc-500 font-medium">
+                    {wordCountPreset} words · ~{estSeconds}s pacing
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ==================================================================== */}
-      {/* 1. TOP STATUS & SPEECH PACING BAR                                     */}
+      {/* 2. TOP STATUS & SPEECH PACING BAR                                     */}
       {/* ==================================================================== */}
       <div className="rounded-2xl sm:rounded-3xl bg-[#090d1a]/90 border border-white/[0.08] p-3 sm:p-4 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -571,57 +640,30 @@ export default function TeleprompterStudio() {
           </div>
 
           {/* Right: Live Speech Analytics */}
-          <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-1 md:pb-0 scrollbar-none text-xs">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-none text-xs">
             {/* Word Count */}
-            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0">
+            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0 text-center sm:text-left">
               <span className="text-[10px] uppercase tracking-wider text-zinc-400 block font-medium">Words</span>
-              <span className="font-mono text-zinc-200 font-bold">{wordCount}</span>
+              <span className="font-mono text-zinc-100 font-bold">{wordCount}</span>
             </div>
 
             {/* Estimated Speaking Time */}
-            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0">
+            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0 text-center sm:text-left">
               <span className="text-[10px] uppercase tracking-wider text-zinc-400 block font-medium">Est. Time</span>
-              <span className="font-mono text-cyan-300 font-bold">{formattedEstimatedTime}</span>
+              <span className="font-mono text-indigo-300 font-bold">{formattedEstimatedTime}</span>
             </div>
 
             {/* Reading Pacing WPM */}
-            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0">
+            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0 text-center sm:text-left">
               <span className="text-[10px] uppercase tracking-wider text-zinc-400 block font-medium">Pacing</span>
-              <span className="font-mono text-purple-300 font-bold">~{calculatedWpm} WPM</span>
+              <span className="font-mono text-indigo-300 font-bold">~{calculatedWpm} WPM</span>
             </div>
 
             {/* Timer Counter */}
-            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0">
+            <div className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] shrink-0 text-center sm:text-left">
               <span className="text-[10px] uppercase tracking-wider text-zinc-400 block font-medium">Elapsed</span>
-              <span className="font-mono text-emerald-300 font-bold">{formatStopwatch(elapsedSeconds)}</span>
+              <span className="font-mono text-emerald-400 font-bold">{formatStopwatch(elapsedSeconds)}</span>
             </div>
-          </div>
-        </div>
-
-        {/* Script Inspiration Templates Bar */}
-        <div className="mt-3 pt-3 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400 shrink-0">
-            <Film className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-            <span className="font-semibold text-zinc-300 text-[11px]">Instant Blueprints:</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-            {SCRIPT_PRESETS.map((preset) => {
-              const Icon = preset.icon;
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => {
-                    setScriptText(preset.text);
-                    handleReset();
-                  }}
-                  className="px-2.5 py-1 text-[11px] rounded-lg bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-300 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
-                >
-                  <Icon className="w-3 h-3 text-cyan-400" />
-                  <span>{preset.title}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>
@@ -635,7 +677,7 @@ export default function TeleprompterStudio() {
           className={cn(
             "flex-1 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5",
             mobileTab === "stage"
-              ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+              ? "bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-[0_0_12px_rgba(99,102,241,0.2)]"
               : "text-zinc-400 hover:text-white"
           )}
         >
@@ -648,7 +690,7 @@ export default function TeleprompterStudio() {
           className={cn(
             "flex-1 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5",
             mobileTab === "script"
-              ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+              ? "bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-[0_0_12px_rgba(99,102,241,0.2)]"
               : "text-zinc-400 hover:text-white"
           )}
         >
@@ -661,7 +703,7 @@ export default function TeleprompterStudio() {
           className={cn(
             "flex-1 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5",
             mobileTab === "controls"
-              ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+              ? "bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-[0_0_12px_rgba(99,102,241,0.2)]"
               : "text-zinc-400 hover:text-white"
           )}
         >
@@ -688,7 +730,7 @@ export default function TeleprompterStudio() {
           <div className="p-4 sm:p-5 rounded-3xl bg-[#090d1a]/95 border border-white/[0.08] backdrop-blur-xl shadow-xl space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-cyan-400" />
+                <FileText className="w-4 h-4 text-indigo-400" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-white">Your Script Text</h2>
               </div>
 
@@ -699,7 +741,7 @@ export default function TeleprompterStudio() {
                   title="Paste from Clipboard"
                   className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all active:scale-95 flex items-center gap-1"
                 >
-                  <ClipboardCopy className="w-3 h-3 text-cyan-400" />
+                  <ClipboardCopy className="w-3 h-3 text-indigo-400" />
                   Paste
                 </button>
 
@@ -731,14 +773,14 @@ export default function TeleprompterStudio() {
               onChange={(e) => setScriptText(e.target.value)}
               rows={10}
               placeholder="Paste or type your video presentation script here..."
-              className="w-full p-3.5 text-sm rounded-2xl bg-black/40 border border-white/[0.08] text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-400/60 focus:ring-1 focus:ring-cyan-400/30 transition-all font-sans leading-relaxed resize-y scrollbar-none"
+              className="w-full p-3.5 text-sm rounded-2xl bg-black/40 border border-white/[0.08] text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-0 transition-all font-sans leading-relaxed resize-y scrollbar-none"
             />
 
             {/* Mobile-only CTA to switch directly to prompter */}
             <div className="lg:hidden pt-1">
               <button
                 onClick={() => setMobileTab("stage")}
-                className="w-full py-2.5 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-black shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95"
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-400 text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95"
               >
                 <MonitorPlay className="w-4 h-4" />
                 Open Prompter Stage
@@ -750,10 +792,10 @@ export default function TeleprompterStudio() {
           <div className="p-4 sm:p-5 rounded-3xl bg-[#090d1a]/95 border border-white/[0.08] backdrop-blur-xl shadow-xl space-y-3.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-purple-400" />
+                <SlidersHorizontal className="w-4 h-4 text-indigo-400" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-white">Reading Speed & Pacing</h3>
               </div>
-              <span className="font-mono text-xs font-bold text-cyan-300">{speed.toFixed(1)}x Speed</span>
+              <span className="font-mono text-xs font-bold text-indigo-300">{speed.toFixed(1)}x Speed</span>
             </div>
 
             {/* Speed Range Slider */}
@@ -765,11 +807,11 @@ export default function TeleprompterStudio() {
                 step="0.2"
                 value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                className="w-full h-2 rounded-lg bg-white/[0.1] accent-cyan-400 cursor-pointer"
+                className="w-full h-2 rounded-lg bg-white/[0.1] accent-indigo-500 cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-zinc-400">
                 <span>1.0x (Slow / Calm)</span>
-                <span className="text-cyan-300 font-semibold">~{calculatedWpm} Words / Min</span>
+                <span className="text-indigo-300 font-semibold">~{calculatedWpm} Words / Min</span>
                 <span>10.0x (Rapid)</span>
               </div>
             </div>
@@ -783,7 +825,7 @@ export default function TeleprompterStudio() {
                   className={cn(
                     "py-1.5 px-2 rounded-xl text-[11px] font-semibold border transition-all active:scale-95 text-center",
                     Math.abs(speed - preset.speed) < 0.2
-                      ? "bg-cyan-500/20 text-cyan-200 border-cyan-500/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                      ? "bg-indigo-600/20 text-indigo-100 border-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.25)] font-semibold"
                       : "bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.08] text-zinc-400 hover:text-white"
                   )}
                 >
@@ -798,7 +840,7 @@ export default function TeleprompterStudio() {
           <div className="p-4 sm:p-5 rounded-3xl bg-[#090d1a]/95 border border-white/[0.08] backdrop-blur-xl shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Type className="w-4 h-4 text-emerald-400" />
+                <Type className="w-4 h-4 text-indigo-400" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-white">Text Size & Layout</h3>
               </div>
               <span className="font-mono text-xs font-bold text-zinc-300">{fontSize}px</span>
@@ -813,7 +855,7 @@ export default function TeleprompterStudio() {
                 step="2"
                 value={fontSize}
                 onChange={(e) => setFontSize(parseInt(e.target.value))}
-                className="w-full h-2 rounded-lg bg-white/[0.1] accent-emerald-400 cursor-pointer"
+                className="w-full h-2 rounded-lg bg-white/[0.1] accent-indigo-500 cursor-pointer"
               />
               <div className="flex items-center gap-1.5 pt-1">
                 {[
@@ -828,7 +870,7 @@ export default function TeleprompterStudio() {
                     className={cn(
                       "flex-1 py-1 text-[10px] font-semibold rounded-lg border transition-all",
                       fontSize === chip.val
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                        ? "bg-indigo-600/20 text-indigo-100 border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.2)] font-semibold"
                         : "bg-white/[0.03] border-white/[0.06] text-zinc-400 hover:text-white"
                     )}
                   >
@@ -880,7 +922,7 @@ export default function TeleprompterStudio() {
                 className={cn(
                   "px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5",
                   isUppercase
-                    ? "bg-purple-500/20 text-purple-200 border-purple-500/40"
+                    ? "bg-indigo-600/20 text-indigo-100 border-indigo-400 font-semibold"
                     : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-white"
                 )}
               >
@@ -924,16 +966,16 @@ export default function TeleprompterStudio() {
                 step="20"
                 value={columnWidth}
                 onChange={(e) => setColumnWidth(parseInt(e.target.value))}
-                className="w-full h-1.5 rounded-lg bg-white/[0.1] accent-cyan-400 cursor-pointer"
+                className="w-full h-1.5 rounded-lg bg-white/[0.1] accent-indigo-500 cursor-pointer"
               />
             </div>
           </div>
 
-          {/* Card D: Hardware Rig, Optics & Theme */}
+          {/* Card D: Mirror Reflection & Camera Settings */}
           <div className="p-4 sm:p-5 rounded-3xl bg-[#090d1a]/95 border border-white/[0.08] backdrop-blur-xl shadow-xl space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-              <Eye className="w-4 h-4 text-amber-400" />
-              Hardware Mirror & Optics
+              <Eye className="w-4 h-4 text-indigo-400" />
+              Mirror Reflection & Camera Settings
             </h3>
 
             {/* Mirror Flips */}
@@ -944,12 +986,12 @@ export default function TeleprompterStudio() {
                 className={cn(
                   "p-2.5 rounded-2xl border transition-all text-left space-y-1 active:scale-95",
                   mirrorX
-                    ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-200 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+                    ? "bg-indigo-600/20 border-indigo-400 text-indigo-100 shadow-[0_0_12px_rgba(99,102,241,0.25)] font-semibold"
                     : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-white"
                 )}
               >
                 <div className="flex items-center gap-1.5 font-semibold text-xs">
-                  <FlipHorizontal className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <FlipHorizontal className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                   <span>Glass Mirror</span>
                 </div>
                 <p className="text-[10px] text-zinc-400 leading-tight">Flips text for physical prompter glass</p>
@@ -961,12 +1003,12 @@ export default function TeleprompterStudio() {
                 className={cn(
                   "p-2.5 rounded-2xl border transition-all text-left space-y-1 active:scale-95",
                   mirrorY
-                    ? "bg-purple-500/20 border-purple-500/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                    ? "bg-indigo-600/20 border-indigo-400 text-indigo-100 shadow-[0_0_12px_rgba(99,102,241,0.25)] font-semibold"
                     : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-white"
                 )}
               >
                 <div className="flex items-center gap-1.5 font-semibold text-xs">
-                  <FlipVertical className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <FlipVertical className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                   <span>Ceiling Invert</span>
                 </div>
                 <p className="text-[10px] text-zinc-400 leading-tight">Inverts text vertically for top-down rigs</p>
@@ -977,7 +1019,7 @@ export default function TeleprompterStudio() {
             <div className="pt-2 border-t border-white/[0.06] space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                  <Eye className="w-3.5 h-3.5 text-indigo-400" />
                   Eye Contact Laser Guide
                 </span>
                 <button
@@ -985,7 +1027,7 @@ export default function TeleprompterStudio() {
                   className={cn(
                     "px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all",
                     showFocusLine
-                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                      ? "bg-indigo-600/20 text-indigo-300 border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.25)] font-semibold"
                       : "bg-white/[0.03] border-white/[0.08] text-zinc-500"
                   )}
                 >
@@ -1006,7 +1048,7 @@ export default function TeleprompterStudio() {
                       className={cn(
                         "py-1 text-[10px] font-semibold rounded-lg border transition-all",
                         focusLinePosition === pos.id
-                          ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                          ? "bg-indigo-600/20 text-indigo-200 border-indigo-400 font-semibold"
                           : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-white"
                       )}
                     >
@@ -1025,7 +1067,7 @@ export default function TeleprompterStudio() {
                 className={cn(
                   "p-2.5 rounded-2xl border transition-all text-left space-y-1",
                   countdownEnabled
-                    ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-200"
+                    ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-200 font-semibold"
                     : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-white"
                 )}
               >
@@ -1042,13 +1084,13 @@ export default function TeleprompterStudio() {
                 className={cn(
                   "p-2.5 rounded-2xl border transition-all text-left space-y-1",
                   cameraActive
-                    ? "bg-purple-500/20 border-purple-500/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                    ? "bg-indigo-600/20 border-indigo-400 text-indigo-100 shadow-[0_0_12px_rgba(99,102,241,0.25)] font-semibold"
                     : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-white"
                 )}
               >
                 <div className="flex items-center gap-1.5 font-semibold text-xs">
                   {cameraActive ? (
-                    <Camera className="w-3.5 h-3.5 text-purple-300" />
+                    <Camera className="w-3.5 h-3.5 text-indigo-300" />
                   ) : (
                     <CameraOff className="w-3.5 h-3.5 text-zinc-400" />
                   )}
@@ -1063,7 +1105,7 @@ export default function TeleprompterStudio() {
               <span className="text-xs font-semibold text-zinc-300 block">Display Color Theme</span>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                 {[
-                  { id: "obsidian", label: "Obsidian Cyber", color: "bg-[#070913] border-cyan-400" },
+                  { id: "obsidian", label: "Obsidian Cyber", color: "bg-[#070913] border-indigo-400" },
                   { id: "pure-black", label: "OLED Black", color: "bg-black border-white" },
                   { id: "broadcast-yellow", label: "Broadcast Yellow", color: "bg-black border-yellow-400" },
                   { id: "paper-white", label: "Paper White", color: "bg-white border-slate-900" },
@@ -1074,7 +1116,7 @@ export default function TeleprompterStudio() {
                     className={cn(
                       "p-2 rounded-xl border text-[10px] font-semibold text-center transition-all flex flex-col items-center gap-1",
                       theme === item.id
-                        ? "bg-white/[0.1] border-cyan-400/80 text-white shadow-[0_0_10px_rgba(0,240,255,0.25)]"
+                        ? "bg-indigo-500/20 border-indigo-400 text-white shadow-[0_0_10px_rgba(99,102,241,0.25)] font-semibold"
                         : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1092,7 +1134,7 @@ export default function TeleprompterStudio() {
         {/* ================================================================== */}
         <div
           className={cn(
-            "lg:col-span-7",
+            "lg:col-span-7 lg:sticky lg:top-4",
             mobileTab === "script" && "hidden lg:block",
             mobileTab === "controls" && "hidden lg:block"
           )}
@@ -1118,7 +1160,7 @@ export default function TeleprompterStudio() {
                 <span
                   className={cn(
                     "w-2 h-2 rounded-full",
-                    isPlaying ? "bg-rose-500 animate-ping" : "bg-zinc-600"
+                    isPlaying ? "bg-rose-500 animate-ping" : "bg-emerald-400"
                   )}
                 />
                 <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
@@ -1133,7 +1175,7 @@ export default function TeleprompterStudio() {
                 className={cn(
                   "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-mono transition-all active:scale-95",
                   showFocusLine
-                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                    ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.25)]"
                     : "bg-white/[0.04] text-zinc-400 border-white/[0.08] hover:text-white"
                 )}
               >
@@ -1201,7 +1243,7 @@ export default function TeleprompterStudio() {
                         ? "bg-gradient-to-r from-yellow-400/60 via-yellow-400/20 to-yellow-400/60"
                         : theme === "paper-white"
                         ? "bg-gradient-to-r from-blue-600/40 via-blue-600/15 to-blue-600/40"
-                        : "bg-gradient-to-r from-cyan-400/60 via-cyan-400/20 to-cyan-400/60"
+                        : "bg-gradient-to-r from-indigo-500/70 via-indigo-400/25 to-indigo-500/70"
                     )}
                   />
 
@@ -1214,7 +1256,7 @@ export default function TeleprompterStudio() {
                           ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.4)]"
                           : theme === "paper-white"
                           ? "bg-blue-500/20 border-blue-500/50 text-blue-700 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
-                          : "bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.4)]"
+                          : "bg-indigo-500/25 border-indigo-500/50 text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.45)]"
                       )}
                     >
                       <span className="text-[11px] font-black leading-none">▶</span>
@@ -1226,7 +1268,7 @@ export default function TeleprompterStudio() {
                           ? "bg-yellow-500/15 text-yellow-300/90 border-yellow-500/30"
                           : theme === "paper-white"
                           ? "bg-blue-500/15 text-blue-700/90 border-blue-500/30"
-                          : "bg-cyan-500/15 text-cyan-300/90 border-cyan-500/30"
+                          : "bg-indigo-500/15 text-indigo-300/90 border-indigo-500/30"
                       )}
                     >
                       Eye-Line
@@ -1242,7 +1284,7 @@ export default function TeleprompterStudio() {
                           ? "bg-yellow-500/15 text-yellow-300/90 border-yellow-500/30"
                           : theme === "paper-white"
                           ? "bg-blue-500/15 text-blue-700/90 border-blue-500/30"
-                          : "bg-cyan-500/15 text-cyan-300/90 border-cyan-500/30"
+                          : "bg-indigo-500/15 text-indigo-300/90 border-indigo-500/30"
                       )}
                     >
                       Eye-Line
@@ -1254,7 +1296,7 @@ export default function TeleprompterStudio() {
                           ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.4)]"
                           : theme === "paper-white"
                           ? "bg-blue-500/20 border-blue-500/50 text-blue-700 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
-                          : "bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.4)]"
+                          : "bg-indigo-500/25 border-indigo-500/50 text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.45)]"
                       )}
                     >
                       <span className="text-[11px] font-black leading-none">◀</span>
@@ -1265,12 +1307,32 @@ export default function TeleprompterStudio() {
             )}
 
             {/* -------------------------------------------------------------- */}
+            {/* Standby Central Quick-Start Affordance (Eliminates empty void) */}
+            {/* -------------------------------------------------------------- */}
+            {!isPlaying && countdownValue === null && (
+              <div
+                onClick={togglePlayPause}
+                className="absolute inset-x-0 top-[28%] z-20 flex flex-col items-center justify-center pointer-events-auto cursor-pointer group px-4 text-center transition-all"
+              >
+                <div className="px-5 py-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/40 text-indigo-200 backdrop-blur-md shadow-[0_0_30px_rgba(99,102,241,0.25)] flex items-center gap-3.5 group-hover:scale-105 group-hover:bg-indigo-500/25 group-hover:border-indigo-400 transition-all">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/40">
+                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-white tracking-wide">Click Stage or Press Space to Start</p>
+                    <p className="text-[10px] text-indigo-300/80 font-mono">3s countdown • Auto-scrolls smoothly</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* -------------------------------------------------------------- */}
             {/* 3-2-1 Giant Animated Countdown Overlay                         */}
             {/* -------------------------------------------------------------- */}
             {countdownValue !== null && (
-              <div className="absolute inset-0 z-40 bg-black/75 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto">
-                <div className="w-32 h-32 rounded-full border-4 border-cyan-400/60 bg-cyan-500/10 flex items-center justify-center shadow-[0_0_50px_rgba(0,240,255,0.4)] animate-pulse">
-                  <span className="text-7xl font-black font-mono text-cyan-300">{countdownValue}</span>
+              <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto">
+                <div className="w-32 h-32 rounded-full border-4 border-indigo-400/60 bg-indigo-500/15 flex items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.5)] animate-pulse">
+                  <span className="text-7xl font-black font-mono text-indigo-300">{countdownValue}</span>
                 </div>
                 <p className="mt-4 text-xs font-mono uppercase tracking-widest text-zinc-300">
                   Look into the camera lens...
@@ -1288,7 +1350,7 @@ export default function TeleprompterStudio() {
             {/* Draggable / Top-Right Selfie Camera Monitor (PiP)              */}
             {/* -------------------------------------------------------------- */}
             {cameraActive && (
-              <div className="absolute top-16 right-4 z-30 w-36 sm:w-48 aspect-[4/3] rounded-2xl overflow-hidden border-2 border-cyan-400/60 shadow-[0_15px_35px_rgba(0,0,0,0.8)] bg-black">
+              <div className="absolute top-16 right-4 z-30 w-36 sm:w-48 aspect-[4/3] rounded-2xl overflow-hidden border-2 border-indigo-400/60 shadow-[0_15px_35px_rgba(0,0,0,0.8)] bg-black">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -1325,7 +1387,8 @@ export default function TeleprompterStudio() {
             {/* -------------------------------------------------------------- */}
             <div
               ref={scrollContainerRef}
-              className="w-full h-full overflow-y-scroll scrollbar-none px-4 sm:px-8 pt-[320px] pb-[380px]"
+              onClick={togglePlayPause}
+              className="w-full h-full overflow-y-scroll scrollbar-none px-4 sm:px-8 pt-[220px] pb-[380px] cursor-pointer"
             >
               <div
                 style={{
@@ -1367,14 +1430,14 @@ export default function TeleprompterStudio() {
                     "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-lg",
                     isPlaying
                       ? "bg-rose-500 hover:bg-rose-600 text-white shadow-[0_0_25px_rgba(244,63,94,0.4)]"
-                      : "bg-gradient-to-r from-cyan-400 to-blue-500 hover:opacity-95 text-black font-bold shadow-[0_0_25px_rgba(0,240,255,0.4)]"
+                      : "bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-400 hover:via-indigo-500 text-white font-bold shadow-[0_0_25px_rgba(99,102,241,0.45)]"
                   )}
                   title={isPlaying ? "Pause (Space)" : "Start (Space)"}
                 >
                   {isPlaying ? (
                     <Pause className="w-6 h-6 fill-current text-white" />
                   ) : (
-                    <Play className="w-6 h-6 fill-current text-black ml-0.5" />
+                    <Play className="w-6 h-6 fill-current text-white ml-0.5" />
                   )}
                 </button>
 
@@ -1398,7 +1461,7 @@ export default function TeleprompterStudio() {
                   </button>
 
                   <div className="text-center px-1">
-                    <span className="font-mono text-xs sm:text-sm font-bold text-cyan-300 block">
+                    <span className="font-mono text-xs sm:text-sm font-bold text-indigo-300 block">
                       {speed.toFixed(1)}x
                     </span>
                     <span className="text-[9px] text-zinc-400 hidden sm:block">~{calculatedWpm} WPM</span>
@@ -1420,7 +1483,7 @@ export default function TeleprompterStudio() {
                   className={cn(
                     "p-2.5 sm:p-3 rounded-xl border transition-all active:scale-95 shrink-0",
                     mirrorX
-                      ? "bg-cyan-500/25 border-cyan-500/50 text-cyan-200 shadow-[0_0_12px_rgba(0,240,255,0.3)]"
+                      ? "bg-indigo-500/25 border-indigo-500/50 text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.3)]"
                       : "bg-white/[0.06] border-white/[0.08] text-zinc-300 hover:text-white"
                   )}
                 >
@@ -1434,7 +1497,7 @@ export default function TeleprompterStudio() {
                   className={cn(
                     "p-2.5 sm:p-3 rounded-xl border transition-all active:scale-95 shrink-0",
                     showFocusLine
-                      ? "bg-cyan-500/25 border-cyan-500/50 text-cyan-200 shadow-[0_0_12px_rgba(0,240,255,0.3)]"
+                      ? "bg-indigo-500/25 border-indigo-500/50 text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.3)]"
                       : "bg-white/[0.06] border-white/[0.08] text-zinc-300 hover:text-white"
                   )}
                 >
@@ -1448,7 +1511,7 @@ export default function TeleprompterStudio() {
                   className={cn(
                     "p-2.5 sm:p-3 rounded-xl border transition-all active:scale-95 shrink-0",
                     cameraActive
-                      ? "bg-purple-500/25 border-purple-500/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                      ? "bg-indigo-500/25 border-indigo-500/50 text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.3)]"
                       : "bg-white/[0.06] border-white/[0.08] text-zinc-300 hover:text-white"
                   )}
                 >
@@ -1521,6 +1584,9 @@ export default function TeleprompterStudio() {
           </div>
         </div>
       </div>
+
+      {/* Category Reactive Laser Horizon Divider */}
+      <ToolLaserDivider primaryHex="#6366f1" />
     </div>
   );
 }

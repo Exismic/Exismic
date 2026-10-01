@@ -44,8 +44,11 @@ export async function toggleFavorite(toolId: string) {
       });
     }
 
-    revalidatePath('/favorites');
-    revalidatePath('/'); // Revalidate dashboard
+    try {
+      revalidatePath('/favorites');
+    } catch {
+      // Ignore in non-request contexts
+    }
     return {
       success: true,
       isFavorited: !existing,

@@ -6,14 +6,12 @@ import {
   BookOpen,
   CheckCircle2,
   Zap,
-  Sparkles,
   RefreshCw,
   Copy,
   Check,
   Info,
   AlertCircle,
   FileText,
-  Wand2,
   SlidersHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -198,16 +196,16 @@ export default function ReadabilityAssessor() {
           <button
             onClick={handleRunAiAudit}
             disabled={!textInput.trim() || isAnalyzing}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-extrabold text-xs tracking-widest uppercase shadow-xl hover:shadow-amber-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-110 text-black font-extrabold text-xs tracking-widest uppercase shadow-xl hover:shadow-amber-500/35 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             {isAnalyzing ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <RefreshCw className="w-4 h-4 animate-spin text-black" />
                 <span>Running Deep AI Readability Audit...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
+                <BookOpen className="w-4 h-4 text-black" />
                 <span>Run AI Readability & Sentence Audit</span>
               </>
             )}
@@ -231,7 +229,7 @@ export default function ReadabilityAssessor() {
                 <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
                   Est. Grade Level
                 </span>
-                <div className="text-2xl font-black text-purple-400 mt-1">
+                <div className="text-2xl font-black text-amber-300 mt-1">
                   Grade {liveMetrics.gradeLevel}
                 </div>
               </div>
@@ -259,7 +257,7 @@ export default function ReadabilityAssessor() {
                 {/* Target Audience & Status Badges */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-bold">
+                    <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold">
                       🎯 {aiReport.targetAudience}
                     </span>
                     <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold">
@@ -294,10 +292,10 @@ export default function ReadabilityAssessor() {
 
                 {/* 1-Click AI Simplifier Tabs */}
                 {aiReport.simplifiedRewrites && (
-                  <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-purple-950/40 to-neutral-950 border border-purple-500/30">
+                  <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-amber-950/30 to-neutral-950 border border-amber-500/30">
                     <div className="flex items-center justify-between">
-                      <span className="text-purple-300 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                        <Wand2 className="w-3.5 h-3.5 text-purple-400" /> AI 1-Click Text Simplifier
+                      <span className="text-amber-300 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                        <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" /> Instant Text Simplifier
                       </span>
                     </div>
 
@@ -306,7 +304,7 @@ export default function ReadabilityAssessor() {
                         onClick={() => setActiveRewriteTab("middleSchool")}
                         className={cn(
                           "flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer",
-                          activeRewriteTab === "middleSchool" ? "bg-purple-600 text-white shadow-md" : "text-neutral-400"
+                          activeRewriteTab === "middleSchool" ? "bg-amber-400 text-black shadow-md" : "text-neutral-400 hover:text-white"
                         )}
                       >
                         8th Grade
@@ -315,7 +313,7 @@ export default function ReadabilityAssessor() {
                         onClick={() => setActiveRewriteTab("highSchool")}
                         className={cn(
                           "flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer",
-                          activeRewriteTab === "highSchool" ? "bg-purple-600 text-white shadow-md" : "text-neutral-400"
+                          activeRewriteTab === "highSchool" ? "bg-amber-400 text-black shadow-md" : "text-neutral-400 hover:text-white"
                         )}
                       >
                         10th Grade
@@ -324,7 +322,7 @@ export default function ReadabilityAssessor() {
                         onClick={() => setActiveRewriteTab("executive")}
                         className={cn(
                           "flex-1 py-1.5 rounded-lg font-bold transition-all cursor-pointer",
-                          activeRewriteTab === "executive" ? "bg-purple-600 text-white shadow-md" : "text-neutral-400"
+                          activeRewriteTab === "executive" ? "bg-amber-400 text-black shadow-md" : "text-neutral-400 hover:text-white"
                         )}
                       >
                         Executive
@@ -337,7 +335,7 @@ export default function ReadabilityAssessor() {
 
                     <button
                       onClick={() => handleApplyRewrite(aiReport.simplifiedRewrites[activeRewriteTab])}
-                      className="w-full py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-bold transition-all border border-purple-500/40 cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-all border border-amber-500/40 cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5" /> Replace Input Text with Simplified Version
                     </button>
@@ -346,7 +344,7 @@ export default function ReadabilityAssessor() {
               </div>
             ) : (
               <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 text-center space-y-2">
-                <Sparkles className="w-6 h-6 text-amber-400 mx-auto opacity-80" />
+                <BrainCircuit className="w-6 h-6 text-amber-400 mx-auto opacity-80" />
                 <p className="text-xs text-neutral-400 leading-relaxed">
                   Click <strong>"Run AI Readability & Sentence Audit"</strong> to generate target audience analysis, complex sentence breakdowns, and 1-click simplified rewrites.
                 </p>

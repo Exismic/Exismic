@@ -15,6 +15,14 @@ import {
   Eye,
   EyeOff,
   Compass,
+  User,
+  Footprints,
+  Zap,
+  Hand,
+  Shield,
+  Waves,
+  Moon,
+  Orbit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MinecraftArmModel } from "@/lib/minecraft-skin";
@@ -30,29 +38,33 @@ interface Minecraft3DStudioViewerProps {
   className?: string;
 }
 
-const ANIMATION_OPTIONS: Array<{ id: SkinAnimationType; label: string; icon: string }> = [
-  { id: "idle", label: "Idle Pose", icon: "🧍" },
-  { id: "walk", label: "Walk", icon: "🚶" },
-  { id: "run", label: "Sprint", icon: "🏃" },
-  { id: "fly", label: "Elytra Flight", icon: "🦅" },
-  { id: "wave", label: "Wave", icon: "👋" },
-  { id: "crouch", label: "Sneak", icon: "🧎" },
-  { id: "swim", label: "Swim", icon: "🏊" },
+const ANIMATION_OPTIONS: Array<{
+  id: SkinAnimationType;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { id: "idle", label: "Idle Stance", icon: User },
+  { id: "walk", label: "Walk Cycle", icon: Footprints },
+  { id: "run", label: "Sprint Action", icon: Zap },
+  { id: "fly", label: "Elytra Glide", icon: Compass },
+  { id: "wave", label: "Wave Greeting", icon: Hand },
+  { id: "crouch", label: "Sneak Crouch", icon: Shield },
+  { id: "swim", label: "Water Swim", icon: Waves },
 ];
 
 const ENVIRONMENT_OPTIONS: Array<{
   id: SkinEnvironmentType;
   label: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
   bgHex: number;
   badgeColor: string;
   glow: string;
 }> = [
-  { id: "studio", label: "Studio Dark", icon: "🌑", bgHex: 0x070810, badgeColor: "border-purple-500/30 text-purple-300", glow: "rgba(168,85,247,0.15)" },
-  { id: "cyber", label: "Cyber Neon", icon: "⚡", bgHex: 0x060514, badgeColor: "border-cyan-400/30 text-cyan-300", glow: "rgba(6,182,212,0.2)" },
-  { id: "nether", label: "Nether Fire", icon: "🔥", bgHex: 0x140404, badgeColor: "border-orange-500/30 text-orange-300", glow: "rgba(249,115,22,0.2)" },
-  { id: "end", label: "End Void", icon: "🔮", bgHex: 0x05030e, badgeColor: "border-indigo-400/30 text-indigo-300", glow: "rgba(99,102,241,0.2)" },
-  { id: "meadow", label: "Sunlight", icon: "☀️", bgHex: 0x0a120a, badgeColor: "border-emerald-500/30 text-emerald-300", glow: "rgba(16,185,129,0.2)" },
+  { id: "studio", label: "Studio Dark", icon: Moon, bgHex: 0x070810, badgeColor: "border-purple-500/30 text-purple-300", glow: "rgba(168,85,247,0.15)" },
+  { id: "cyber", label: "Cyber Neon", icon: Zap, bgHex: 0x060514, badgeColor: "border-cyan-400/30 text-cyan-300", glow: "rgba(6,182,212,0.2)" },
+  { id: "nether", label: "Nether Fire", icon: Flame, bgHex: 0x140404, badgeColor: "border-orange-500/30 text-orange-300", glow: "rgba(249,115,22,0.2)" },
+  { id: "end", label: "End Void", icon: Orbit, bgHex: 0x05030e, badgeColor: "border-indigo-400/30 text-indigo-300", glow: "rgba(99,102,241,0.2)" },
+  { id: "meadow", label: "Daylight Sun", icon: Sun, bgHex: 0x0a120a, badgeColor: "border-emerald-500/30 text-emerald-300", glow: "rgba(16,185,129,0.2)" },
 ];
 
 export function Minecraft3DStudioViewer({
@@ -264,15 +276,18 @@ export function Minecraft3DStudioViewer({
   const currentAnim = ANIMATION_OPTIONS.find((a) => a.id === animation) || ANIMATION_OPTIONS[0];
   const currentEnv = ENVIRONMENT_OPTIONS.find((e) => e.id === environment) || ENVIRONMENT_OPTIONS[0];
 
+  const AnimIcon = currentAnim.icon;
+  const EnvIcon = currentEnv.icon;
+
   return (
     <div
       ref={shellRef}
       className={cn(
-        "relative h-[420px] min-h-[380px] w-full overflow-hidden rounded-2xl sm:h-[530px] border border-white/[0.08] shadow-2xl group/studio",
+        "relative h-[500px] min-h-[460px] sm:h-[580px] xl:h-[640px] w-full overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.7)] group/studio bg-[#06070e]",
         className
       )}
       style={{
-        boxShadow: `0 0 50px -10px ${currentEnv.glow}`,
+        boxShadow: `0 0 60px -10px ${currentEnv.glow}`,
       }}
     >
       {/* 3D WebGL Canvas */}
@@ -291,37 +306,41 @@ export function Minecraft3DStudioViewer({
               setIsAnimDropdownOpen(!isAnimDropdownOpen);
               setIsEnvDropdownOpen(false);
             }}
-            className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg transition-all"
+            className="px-3.5 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-2 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40"
           >
-            <span>{currentAnim.icon}</span>
+            <AnimIcon className="size-3.5 text-cyan-300" />
             <span className="hidden sm:inline">{currentAnim.label}</span>
-            <ChevronDown size={12} className={cn("text-zinc-400 transition-transform", isAnimDropdownOpen && "rotate-180")} />
+            <ChevronDown size={12} className={cn("text-zinc-400 transition-transform", isAnimDropdownOpen && "rotate-180 text-cyan-300")} />
           </button>
 
           {isAnimDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1.5 w-44 rounded-xl bg-[#090a12]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
-              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2 py-1 block">
-                Action Animations
+            <div className="absolute top-full left-0 mt-2 w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2.5 py-1 block">
+                Character Poses
               </span>
-              {ANIMATION_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => {
-                    setAnimation(opt.id);
-                    setIsPaused(false);
-                    setIsAnimDropdownOpen(false);
-                  }}
-                  className={cn(
-                    "w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors text-left",
-                    animation === opt.id
-                      ? "bg-purple-500/20 text-purple-300 font-bold"
-                      : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
-                  )}
-                >
-                  <span>{opt.icon}</span>
-                  <span>{opt.label}</span>
-                </button>
-              ))}
+              {ANIMATION_OPTIONS.map((opt) => {
+                const OptIcon = opt.icon;
+                const isSelected = animation === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => {
+                      setAnimation(opt.id);
+                      setIsPaused(false);
+                      setIsAnimDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "w-full px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-colors text-left cursor-pointer",
+                      isSelected
+                        ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
+                        : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+                    )}
+                  >
+                    <OptIcon className={cn("size-3.5 shrink-0", isSelected ? "text-cyan-300" : "text-zinc-400")} />
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -335,39 +354,43 @@ export function Minecraft3DStudioViewer({
                 setIsEnvDropdownOpen(!isEnvDropdownOpen);
                 setIsAnimDropdownOpen(false);
               }}
-              className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg transition-all"
+              className="px-3.5 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-2 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40"
             >
-              <span>{currentEnv.icon}</span>
+              <EnvIcon className="size-3.5 text-cyan-300" />
               <span className="hidden sm:inline">{currentEnv.label}</span>
-              <ChevronDown size={12} className={cn("text-zinc-400 transition-transform", isEnvDropdownOpen && "rotate-180")} />
+              <ChevronDown size={12} className={cn("text-zinc-400 transition-transform", isEnvDropdownOpen && "rotate-180 text-cyan-300")} />
             </button>
 
             {isEnvDropdownOpen && (
-              <div className="absolute top-full right-0 mt-1.5 w-44 rounded-xl bg-[#090a12]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
-                <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2 py-1 block">
+              <div className="absolute top-full right-0 mt-2 w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+                <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2.5 py-1 block">
                   Studio Lighting
                 </span>
-                {ENVIRONMENT_OPTIONS.map((env) => (
-                  <button
-                    key={env.id}
-                    onClick={() => {
-                      setEnvironment(env.id);
-                      setIsEnvDropdownOpen(false);
-                    }}
-                    className={cn(
-                      "w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors text-left",
-                      environment === env.id
-                        ? "bg-purple-500/20 text-purple-300 font-bold"
-                        : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
-                    )}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>{env.icon}</span>
-                      <span>{env.label}</span>
-                    </span>
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: `#${env.bgHex.toString(16).padStart(6, '0')}` }} />
-                  </button>
-                ))}
+                {ENVIRONMENT_OPTIONS.map((env) => {
+                  const OptEnvIcon = env.icon;
+                  const isSelected = environment === env.id;
+                  return (
+                    <button
+                      key={env.id}
+                      onClick={() => {
+                        setEnvironment(env.id);
+                        setIsEnvDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors text-left cursor-pointer",
+                        isSelected
+                          ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
+                          : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+                      )}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <OptEnvIcon className={cn("size-3.5 shrink-0", isSelected ? "text-cyan-300" : "text-zinc-400")} />
+                        <span>{env.label}</span>
+                      </span>
+                      <span className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: `#${env.bgHex.toString(16).padStart(6, '0')}` }} />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -377,7 +400,7 @@ export function Minecraft3DStudioViewer({
             onClick={handleTakeSnapshot}
             disabled={isCapturing}
             title="Download 3D Pose Snapshot (PNG)"
-            className="p-2 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-cyan-300 shadow-lg transition-all"
+            className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-cyan-300 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 disabled:opacity-50"
           >
             <Camera size={14} className={cn(isCapturing && "animate-spin text-cyan-400")} />
           </button>
@@ -385,12 +408,12 @@ export function Minecraft3DStudioViewer({
       </div>
 
       {/* Right Side Vertical Studio Controls */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 pointer-events-auto z-20">
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 pointer-events-auto z-20">
         {/* Play / Pause Animation */}
         <button
           onClick={() => setIsPaused(!isPaused)}
           title={isPaused ? "Resume Animation" : "Pause Animation"}
-          className="p-2 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-lg transition-all"
+          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95"
         >
           {isPaused ? <Play size={14} className="text-emerald-400" /> : <Pause size={14} className="text-amber-400" />}
         </button>
@@ -398,12 +421,12 @@ export function Minecraft3DStudioViewer({
         {/* 3D Overlays Toggle */}
         <button
           onClick={() => setShowOverlays(!showOverlays)}
-          title={showOverlays ? "Hide 3D Outer Layer Overlays" : "Show 3D Outer Layer Overlays"}
+          title={showOverlays ? "Hide Outer Layer Details" : "Show Outer Layer Details"}
           className={cn(
-            "p-2 rounded-xl backdrop-blur-xl border shadow-lg transition-all",
+            "p-2.5 rounded-xl backdrop-blur-xl border shadow-xl transition-all cursor-pointer active:scale-95",
             showOverlays
-              ? "bg-purple-600/30 border-purple-500/50 text-purple-200"
-              : "bg-black/70 border-white/15 text-zinc-400 hover:text-white"
+              ? "bg-cyan-500/25 border-cyan-400/50 text-cyan-200"
+              : "bg-black/80 border-white/15 text-zinc-400 hover:text-white hover:border-white/30"
           )}
         >
           <Layers size={14} />
@@ -414,10 +437,10 @@ export function Minecraft3DStudioViewer({
           onClick={() => onAutoRotateChange?.(!autoRotate)}
           title={autoRotate ? "Stop Auto-Rotation" : "Enable Auto-Rotation"}
           className={cn(
-            "p-2 rounded-xl backdrop-blur-xl border shadow-lg transition-all",
+            "p-2.5 rounded-xl backdrop-blur-xl border shadow-xl transition-all cursor-pointer active:scale-95",
             autoRotate
-              ? "bg-cyan-600/30 border-cyan-500/50 text-cyan-200"
-              : "bg-black/70 border-white/15 text-zinc-400 hover:text-white"
+              ? "bg-cyan-500/25 border-cyan-400/50 text-cyan-200"
+              : "bg-black/80 border-white/15 text-zinc-400 hover:text-white hover:border-white/30"
           )}
         >
           <Compass size={14} className={cn(autoRotate && "animate-spin [animation-duration:8s]")} />
@@ -427,7 +450,7 @@ export function Minecraft3DStudioViewer({
         <button
           onClick={handleResetView}
           title="Reset Camera to Front"
-          className="p-2 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-lg transition-all"
+          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95"
         >
           <RotateCcw size={14} />
         </button>
@@ -436,25 +459,25 @@ export function Minecraft3DStudioViewer({
         <button
           onClick={() => handleZoom(0.15)}
           title="Zoom In"
-          className="p-2 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-lg transition-all hidden sm:flex"
+          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 hidden sm:flex"
         >
           <ZoomIn size={14} />
         </button>
         <button
           onClick={() => handleZoom(-0.15)}
           title="Zoom Out"
-          className="p-2 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-lg transition-all hidden sm:flex"
+          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 hidden sm:flex"
         >
           <ZoomOut size={14} />
         </button>
       </div>
 
-      {/* Bottom Subtle Interaction Hint */}
+      {/* Bottom Interaction Hint */}
       <div className="pointer-events-none absolute inset-x-6 bottom-4 flex justify-center z-10">
-        <span className="rounded-full border border-white/10 bg-black/60 px-3.5 py-1 text-[10px] font-bold text-zinc-400 backdrop-blur-md shadow-lg flex items-center gap-2">
-          <span>👆 Drag to rotate</span>
+        <span className="rounded-full border border-white/10 bg-black/75 px-4 py-1.5 text-[11px] font-semibold text-zinc-400 backdrop-blur-md shadow-2xl flex items-center gap-2">
+          <span>Click and drag to rotate</span>
           <span className="text-zinc-600">·</span>
-          <span>🔍 Scroll to zoom</span>
+          <span>Scroll to zoom</span>
         </span>
       </div>
     </div>

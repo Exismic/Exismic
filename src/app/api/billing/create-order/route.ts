@@ -275,30 +275,23 @@ export async function POST(req: NextRequest) {
     let appliedCouponDiscountMinor = 0;
     let isLaunchDiscount = false;
 
-    // Check for v1.6 Launch Special (Pro Monthly only)
-    if (plan.id === "pro") {
-      const launchEligibility = await checkUserLaunchDiscountEligibility(user.id);
+    // Check for Exismic 1.7 Launch Special (20% OFF on Pro Monthly and Credit Packs; NO discount on Yearly Pro)
+    if (PRICING_CONFIG.V17_LAUNCH_PROMO.ACTIVE) {
       const cleanCode = body.couponCode?.trim().toUpperCase();
-      const isExplicitLaunchCode = cleanCode === PRICING_CONFIG.V16_LAUNCH_PROMO.CODE;
+      const isPromoCode = cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE;
 
-      if (launchEligibility.eligible) {
-        if (!cleanCode || isExplicitLaunchCode) {
-          appliedCouponCode = PRICING_CONFIG.V16_LAUNCH_PROMO.CODE;
-          isLaunchDiscount = true;
-          const targetAmountMinor = market === "IN" 
-            ? PRICING_CONFIG.V16_LAUNCH_PROMO.DISCOUNTED_PRICE_INR * 100 
-            : Math.round(PRICING_CONFIG.V16_LAUNCH_PROMO.DISCOUNTED_PRICE_USD * 100);
-          appliedCouponDiscountMinor = Math.max(0, basePrice.amountMinor - targetAmountMinor);
-          finalAmountMinor = targetAmountMinor;
-        } else {
-          return NextResponse.json({
-            error: "The v1.6 Launch Special is already active on Pro Monthly. Additional coupon codes cannot be stacked.",
-          }, { status: 400 });
-        }
-      } else if (isExplicitLaunchCode) {
+      // Block all custom coupons during the 1-week launch sale
+      if (cleanCode && !isPromoCode) {
         return NextResponse.json({
-          error: launchEligibility.reason || "You have already redeemed your one-time v1.6 Launch Special discount.",
+          error: "Custom coupons cannot be used during the Exismic 1.7 Launch Sale (official 20% discount is already active from us).",
         }, { status: 400 });
+      }
+
+      if (plan.id === "pro" || plan.id === "starter" || plan.id === "creator" || plan.id === "ultimate") {
+        appliedCouponCode = PRICING_CONFIG.V17_LAUNCH_PROMO.CODE;
+        isLaunchDiscount = true;
+        finalAmountMinor = basePrice.amountMinor;
+        appliedCouponDiscountMinor = Math.max(0, basePrice.regularAmountMinor - basePrice.amountMinor);
       }
     }
 

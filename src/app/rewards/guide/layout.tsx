@@ -1,9 +1,12 @@
 import { Metadata } from "next";
+import { SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
+  alternates: { canonical: `${SITE_URL}/rewards/guide` },
   title: "Exismic Currencies & Rewards Guide | Credits, Sparks & Refund Policy",
   description: "Learn how Generation Credits and Exismic Sparks work, how to earn them through daily quests and streaks, and our strict all-sales-final refund policy.",
   openGraph: {
+    url: `${SITE_URL}/rewards/guide`,
     title: "Exismic Currencies & Rewards Guide | Credits, Sparks & Refund Policy",
     description: "Learn how Generation Credits and Exismic Sparks work, how to earn them through daily quests and streaks, and our strict all-sales-final refund policy.",
     type: "website",

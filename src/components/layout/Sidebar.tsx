@@ -81,7 +81,7 @@ const CATEGORY_INDICATOR_GRADIENTS: Record<string, string> = {
   "/category/productivity": "bg-gradient-to-b from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_14px_rgba(16,185,129,0.9)]",
   "/category/developer": "bg-gradient-to-b from-lime-400 via-emerald-400 to-green-500 shadow-[0_0_14px_rgba(132,204,22,0.9)]",
   "/category/student": "bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-500 shadow-[0_0_14px_rgba(251,191,36,0.9)]",
-  "/category/creator": "bg-gradient-to-b from-rose-400 via-orange-400 to-pink-500 shadow-[0_0_14px_rgba(244,63,94,0.9)]",
+  "/category/creator": "bg-gradient-to-b from-indigo-400 via-indigo-500 to-blue-500 shadow-[0_0_14px_rgba(99,102,241,0.9)]",
   "/category/business": "bg-gradient-to-b from-orange-400 via-amber-400 to-yellow-500 shadow-[0_0_14px_rgba(255,153,51,0.9)]",
   "/category/seo": "bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-500 shadow-[0_0_14px_rgba(34,211,238,0.9)]",
 };
@@ -208,10 +208,10 @@ const CATEGORY_HOVER_STYLES: Record<string, { bg: string; border: string; glow: 
     text: "group-hover:text-amber-200"
   },
   "/category/creator": {
-    bg: "group-hover:bg-gradient-to-r group-hover:from-rose-500/15 group-hover:via-pink-950/20 group-hover:to-transparent",
-    border: "group-hover:border-rose-400/40",
-    glow: "rgba(244,63,94,0.5)",
-    text: "group-hover:text-rose-200"
+    bg: "group-hover:bg-gradient-to-r group-hover:from-indigo-500/15 group-hover:via-indigo-950/20 group-hover:to-transparent",
+    border: "group-hover:border-indigo-400/40",
+    glow: "rgba(99,102,241,0.5)",
+    text: "group-hover:text-indigo-200"
   },
   "/category/business": {
     bg: "group-hover:bg-gradient-to-r group-hover:from-orange-500/15 group-hover:via-amber-950/20 group-hover:to-transparent",
@@ -250,7 +250,7 @@ const CATEGORY_ACTIVE_BG_STYLES: Record<string, string> = {
   "/category/productivity": "bg-gradient-to-r from-emerald-500/20 via-teal-950/25 to-transparent border border-emerald-400/40 shadow-[0_4px_20px_rgba(16,185,129,0.25)]",
   "/category/developer": "bg-gradient-to-r from-lime-500/20 via-emerald-950/25 to-transparent border border-lime-400/40 shadow-[0_4px_20px_rgba(132,204,22,0.25)]",
   "/category/student": "bg-gradient-to-r from-amber-500/20 via-amber-950/25 to-transparent border border-amber-400/40 shadow-[0_4px_20px_rgba(251,191,36,0.25)]",
-  "/category/creator": "bg-gradient-to-r from-rose-500/20 via-pink-950/25 to-transparent border border-rose-400/40 shadow-[0_4px_20px_rgba(244,63,94,0.25)]",
+  "/category/creator": "bg-gradient-to-r from-indigo-500/20 via-indigo-950/25 to-transparent border border-indigo-400/40 shadow-[0_4px_20px_rgba(99,102,241,0.25)]",
   "/category/business": "bg-gradient-to-r from-orange-500/20 via-amber-950/25 to-transparent border border-orange-400/40 shadow-[0_4px_20px_rgba(255,153,51,0.25)]",
   "/category/seo": "bg-gradient-to-r from-cyan-500/20 via-blue-950/25 to-transparent border border-cyan-400/40 shadow-[0_4px_20px_rgba(34,211,238,0.25)]",
 };
@@ -445,13 +445,13 @@ const ITEM_ICON_STYLES: Record<string, {
     ambientGlow: "rgba(251,191,36,0.75)"
   },
   "/category/creator": {
-    borderGrad: "from-rose-400/50 via-orange-400/15 to-transparent group-hover:from-rose-300 group-hover:via-orange-400/40",
-    glowPool: "from-rose-400/35 via-orange-400/20 to-transparent",
-    icon: "text-rose-300 fill-rose-400/15 drop-shadow-[0_0_10px_rgba(251,113,133,0.95)]",
-    activeBorderGrad: "from-rose-400 via-orange-400 to-pink-500",
-    activeGlowPool: "from-rose-400/70 via-orange-400/45 to-pink-900/60",
-    activeIcon: "text-rose-200 fill-rose-400/35 drop-shadow-[0_0_14px_rgba(251,113,133,1)]",
-    ambientGlow: "rgba(244,63,94,0.7)"
+    borderGrad: "from-indigo-400/50 via-blue-500/15 to-transparent group-hover:from-indigo-300 group-hover:via-blue-500/40",
+    glowPool: "from-indigo-400/35 via-blue-500/20 to-transparent",
+    icon: "text-indigo-300 fill-indigo-400/15 drop-shadow-[0_0_10px_rgba(99,102,241,0.95)]",
+    activeBorderGrad: "from-indigo-400 via-indigo-400 to-blue-500",
+    activeGlowPool: "from-indigo-500/70 via-indigo-600/45 to-blue-900/60",
+    activeIcon: "text-indigo-100 fill-indigo-300/35 drop-shadow-[0_0_14px_rgba(99,102,241,1)]",
+    ambientGlow: "rgba(99,102,241,0.75)"
   },
   "/category/business": {
     borderGrad: "from-orange-400/50 via-amber-500/15 to-transparent group-hover:from-orange-300 group-hover:via-amber-500/40",
@@ -743,10 +743,10 @@ const CATEGORY_VIEW_ALL_STYLES: Record<string, { bg: string; border: string; tex
     hoverShadow: "shadow-[0_0_15px_rgba(251,191,36,0.25)]"
   },
   creator: {
-    bg: "bg-rose-500/10 hover:bg-rose-500/20",
-    border: "border-rose-500/30 hover:border-rose-400/60",
-    text: "text-rose-300 group-hover/viewall:text-rose-200",
-    hoverShadow: "shadow-[0_0_15px_rgba(244,63,94,0.25)]"
+    bg: "bg-indigo-500/10 hover:bg-indigo-500/20",
+    border: "border-indigo-500/30 hover:border-indigo-400/60",
+    text: "text-indigo-300 group-hover/viewall:text-indigo-200",
+    hoverShadow: "shadow-[0_0_15px_rgba(99,102,241,0.25)]"
   }
 };
 
@@ -817,7 +817,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
                       category.id === "ai" ? "text-amber-300 bg-amber-500/15 border border-amber-400/30" :
                       category.id === "productivity" ? "text-emerald-300 bg-emerald-500/15 border border-emerald-400/30" :
                       category.id === "student" ? "text-amber-300 bg-amber-500/15 border border-amber-400/30" :
-                      category.id === "creator" ? "text-rose-300 bg-rose-500/15 border border-rose-400/30" :
+                      category.id === "creator" ? "text-indigo-300 bg-indigo-500/15 border border-indigo-400/30" :
                       category.id === "business" ? "text-orange-300 bg-orange-500/15 border border-orange-400/30" :
                       category.id === "seo" ? "text-cyan-300 bg-cyan-500/15 border border-cyan-400/30" :
                       "text-purple-300 bg-purple-500/15 border border-purple-400/30"
@@ -851,7 +851,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
                     category.id === "ai" ? "text-amber-300" :
                     category.id === "productivity" ? "text-emerald-300" :
                     category.id === "student" ? "text-amber-300" :
-                    category.id === "creator" ? "text-rose-300" :
+                    category.id === "creator" ? "text-indigo-300" :
                     category.id === "business" ? "text-orange-300" :
                     category.id === "seo" ? "text-cyan-300" : "text-purple-300"
                   )
@@ -879,7 +879,7 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
               category.id === "ai" ? "border-amber-500/25" :
               category.id === "productivity" ? "border-emerald-500/25" :
               category.id === "student" ? "border-amber-500/25" :
-              category.id === "creator" ? "border-rose-500/25" :
+              category.id === "creator" ? "border-indigo-500/25" :
               category.id === "business" ? "border-orange-500/25" :
               category.id === "seo" ? "border-cyan-500/25" : "border-purple-500/25"
             )}
@@ -1019,7 +1019,7 @@ export function Sidebar() {
     productivity: 'rgba(16, 185, 129, 0.5)',
     developer: 'rgba(132, 204, 22, 0.5)',
     student: 'rgba(251, 191, 36, 0.5)',
-    creator: 'rgba(244, 63, 94, 0.5)',
+    creator: 'rgba(99, 102, 241, 0.5)',
     business: 'rgba(255, 153, 51, 0.5)',
     seo: 'rgba(34, 211, 238, 0.5)',
   };

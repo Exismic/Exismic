@@ -27,6 +27,9 @@ export async function updateSession(request: NextRequest) {
     "/shop",
     "/cookies",
     "/refund-policy",
+    "/delivery-policy",
+    "/dmca",
+    "/brand",
     "/changelog",
     "/privacy-policy",
     "/terms-of-service",
@@ -160,4 +163,3 @@ export async function updateSession(request: NextRequest) {
 
   return response;
 }
-

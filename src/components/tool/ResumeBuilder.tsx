@@ -18,12 +18,10 @@ import {
   MapPin,
   Phone,
   Plus,
-  Sparkles,
   Target,
   Trash2,
   Trophy,
   User,
-  Wand2,
   Wrench,
   X,
   Maximize2,
@@ -32,6 +30,16 @@ import {
   ZoomOut,
   PanelLeftClose,
   PanelLeftOpen,
+  CheckCircle2,
+  Check,
+  Copy,
+  RotateCcw,
+  Zap,
+  Bot,
+  Brain,
+  Cpu,
+  LayoutGrid,
+  Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
@@ -74,24 +82,347 @@ interface ResumeSuggestResponse {
   error?: string;
 }
 
+interface CareerBlueprint {
+  id: string;
+  title: string;
+  role: string;
+  badge: string;
+  data: ResumeData;
+}
+
 const STORAGE_KEY = "exismic_resume_data_v2";
+
+const CAREER_BLUEPRINTS: CareerBlueprint[] = [
+  {
+    id: "fullstack",
+    title: "Full-Stack Engineer",
+    role: "Senior Full-Stack Developer",
+    badge: "Engineering",
+    data: {
+      personalInfo: {
+        fullName: "Alex Chen",
+        email: "alex.chen@example.com",
+        phone: "+1 (555) 234-5678",
+        location: "San Francisco, CA (Remote)",
+        website: "github.com/alexchen-dev",
+        profileImage: "",
+        summary: "Product-minded Senior Full-Stack Engineer with 5+ years of experience architecting high-throughput web applications, microservices, and design systems. Led migration to Next.js and Node.js reducing page load times by 42% across 1.2M monthly users.",
+      },
+      experience: [
+        {
+          id: "exp-1",
+          company: "TechVanguard Labs",
+          role: "Senior Software Engineer",
+          period: "2022 - Present",
+          description: "• Architected high-performance cloud services using Next.js, TypeScript, and PostgreSQL serving 1.2M active users.\n• Reduced API response latency by 38% through optimized database indexing and Redis query caching.\n• Mentored 6 junior engineers and established automated CI/CD deployment pipelines with 94% test coverage.",
+        },
+        {
+          id: "exp-2",
+          company: "CloudFlow Systems",
+          role: "Frontend Engineer",
+          period: "2019 - 2022",
+          description: "• Built company core component design system used by 45+ developers, cutting feature delivery time by 30%.\n• Implemented real-time collaboration canvas using WebSockets handling 40,000 concurrent state updates.",
+        },
+      ],
+      education: [
+        {
+          id: "edu-1",
+          school: "University of California, Berkeley",
+          degree: "B.S. in Computer Science",
+          period: "2015 - 2019",
+        },
+      ],
+      skills: ["TypeScript", "React", "Next.js", "Node.js", "PostgreSQL", "Tailwind CSS", "Docker", "GraphQL", "AWS", "Redis"],
+      projects: [
+        {
+          id: "proj-1",
+          name: "HyperScale UI",
+          role: "Lead Maintainer",
+          period: "2023",
+          description: "Open-source accessible UI component primitives with 14,000+ GitHub stars and 200k weekly npm downloads.",
+          link: "github.com/alexchen/hyperscale-ui",
+        },
+      ],
+    },
+  },
+  {
+    id: "designer",
+    title: "Product Designer",
+    role: "Lead UI/UX Designer",
+    badge: "Design",
+    data: {
+      personalInfo: {
+        fullName: "Sophia Miller",
+        email: "sophia.miller@example.com",
+        phone: "+1 (555) 345-6789",
+        location: "New York, NY",
+        website: "sophiadesigns.io",
+        profileImage: "",
+        summary: "Lead Product Designer passionate about transforming complex enterprise workflows into intuitive, beautiful consumer-grade software. Specialize in multi-brand design systems, user journey mapping, and conversion-focused SaaS interfaces.",
+      },
+      experience: [
+        {
+          id: "exp-1",
+          company: "Orbit Creative Studio",
+          role: "Lead UI/UX Designer",
+          period: "2021 - Present",
+          description: "• Spearheaded end-to-end redesign of flagship mobile app, increasing 30-day user retention by 28% and achieving a 4.9 App Store rating.\n• Created multi-platform token design system that accelerated developer handoff by 45%.\n• Conducted 50+ qualitative user interviews to validate feature roadmaps.",
+        },
+        {
+          id: "exp-2",
+          company: "PixelCraft Agency",
+          role: "Senior Product Designer",
+          period: "2018 - 2021",
+          description: "• Delivered complete brand guidelines, design systems, and responsive web applications for 14 venture-backed startups.\n• Designed interactive dashboards that boosted client enterprise sales closing rates by 22%.",
+        },
+      ],
+      education: [
+        {
+          id: "edu-1",
+          school: "Rhode Island School of Design",
+          degree: "B.F.A. in Interaction Design",
+          period: "2014 - 2018",
+        },
+      ],
+      skills: ["Figma", "Design Systems", "User Research", "Prototyping", "Information Architecture", "Design Tokens", "Mobile UX", "Wireframing"],
+      projects: [
+        {
+          id: "proj-1",
+          name: "Aura Design Tokens",
+          role: "Creator",
+          period: "2023",
+          description: "Modular, accessible design system token generator used by over 80,000 designers worldwide.",
+          link: "figma.com/@auratokens",
+        },
+      ],
+    },
+  },
+  {
+    id: "product",
+    title: "Product Manager",
+    role: "Principal Product Manager",
+    badge: "Product",
+    data: {
+      personalInfo: {
+        fullName: "Marcus Vance",
+        email: "marcus.vance@example.com",
+        phone: "+1 (555) 456-7890",
+        location: "Austin, TX (Hybrid)",
+        website: "linkedin.com/in/marcusvance",
+        profileImage: "",
+        summary: "Outcome-driven Product Leader with 7+ years translating customer discovery into scalable commercial products. Proven track record driving $14M in ARR expansion, lifting onboarding funnel conversion by 34%, and leading cross-functional squads.",
+      },
+      experience: [
+        {
+          id: "exp-1",
+          company: "Apex Cloud Technologies",
+          role: "Principal Product Manager",
+          period: "2022 - Present",
+          description: "• Owned product roadmap for enterprise collaboration suite, growing quarterly active users from 400k to 1.8M.\n• Introduced tiered packaging and self-serve onboarding that drove $6.2M in net new ARR within 9 months.\n• Aligned engineering, design, and GTM teams across bi-weekly agile development sprints.",
+        },
+        {
+          id: "exp-2",
+          company: "Pulse Commerce",
+          role: "Senior Product Manager",
+          period: "2019 - 2022",
+          description: "• Shipped 1-click checkout experience that increased mobile checkout conversion by 22% and added $8M annualized GMV.\n• Defined product telemetry metrics and instituted rigorous A/B experimentation framework.",
+        },
+      ],
+      education: [
+        {
+          id: "edu-1",
+          school: "Stanford University",
+          degree: "B.S. in Management Science & Engineering",
+          period: "2015 - 2019",
+        },
+      ],
+      skills: ["Product Strategy", "Agile Sprints", "A/B Testing", "User Discovery", "Go-To-Market", "SQL & Analytics", "OKRs", "Pricing"],
+      projects: [
+        {
+          id: "proj-1",
+          name: "SaaS Funnel Blueprint",
+          role: "Author",
+          period: "2022",
+          description: "Comprehensive product playbook on optimizing B2B self-serve onboarding conversion rates.",
+          link: "marcusvance.com/playbook",
+        },
+      ],
+    },
+  },
+  {
+    id: "data",
+    title: "Data & AI Specialist",
+    role: "Senior Machine Learning Engineer",
+    badge: "Data & AI",
+    data: {
+      personalInfo: {
+        fullName: "Elena Rostova",
+        email: "elena.rostova@example.com",
+        phone: "+1 (555) 567-8901",
+        location: "Seattle, WA",
+        website: "github.com/erostova",
+        profileImage: "",
+        summary: "Machine Learning Engineer specializing in large language model fine-tuning, retrieval-augmented generation (RAG), and high-throughput real-time inference pipelines. Built predictive architectures handling 60M+ daily events.",
+      },
+      experience: [
+        {
+          id: "exp-1",
+          company: "NeuralCore AI",
+          role: "Senior Machine Learning Engineer",
+          period: "2021 - Present",
+          description: "• Trained and deployed domain-specific LLM classifiers achieving 97.4% precision on semantic categorization benchmarks.\n• Optimized vector database query latency by 55% using custom HNSW graph indexing and quantization.\n• Supervised pipeline infrastructure handling 60M daily embedding lookups with 99.98% uptime.",
+        },
+        {
+          id: "exp-2",
+          company: "DataPulse Analytics",
+          role: "Data Scientist",
+          period: "2018 - 2021",
+          description: "• Developed anomaly detection algorithms that reduced annual payment fraud chargebacks by $3.2M.\n• Constructed automated feature engineering pipelines in Python and Apache Spark.",
+        },
+      ],
+      education: [
+        {
+          id: "edu-1",
+          school: "Carnegie Mellon University",
+          degree: "M.S. in Machine Learning & Robotics",
+          period: "2016 - 2018",
+        },
+      ],
+      skills: ["Python", "PyTorch", "Transformers", "LLMs", "RAG Pipelines", "SQL", "FastAPI", "Vector DBs", "Docker", "MLOps"],
+      projects: [
+        {
+          id: "proj-1",
+          name: "FastEmbed Python Engine",
+          role: "Core Contributor",
+          period: "2023",
+          description: "High-speed tokenization library with zero PyTorch runtime dependencies for edge inference.",
+          link: "github.com/erostova/fastembed",
+        },
+      ],
+    },
+  },
+  {
+    id: "marketing",
+    title: "Growth Marketer",
+    role: "Head of Growth Marketing",
+    badge: "Marketing",
+    data: {
+      personalInfo: {
+        fullName: "Jordan Lee",
+        email: "jordan.lee@example.com",
+        phone: "+1 (555) 678-9012",
+        location: "Chicago, IL (Remote)",
+        website: "jordangrowth.com",
+        profileImage: "",
+        summary: "Data-driven Growth Marketing Leader experienced in scaling early-stage B2B and consumer SaaS from $1M to $12M ARR. Specialize in customer acquisition cost reduction, SEO keyword dominance, and viral product-led expansion loops.",
+      },
+      experience: [
+        {
+          id: "exp-1",
+          company: "LaunchPad Media",
+          role: "Head of Growth Marketing",
+          period: "2022 - Present",
+          description: "• Directed $4.5M annual performance marketing budget, delivering 3.4x blended return on ad spend (ROAS) across paid search and paid social.\n• Scaled organic inbound search traffic from 80k to 550k monthly sessions through programmatic SEO content hub architecture.\n• Lowered customer acquisition cost (CAC) by 32% while doubling qualified sales demo velocity.",
+        },
+        {
+          id: "exp-2",
+          company: "SaaSify Scale",
+          role: "Senior Growth Marketer",
+          period: "2019 - 2022",
+          description: "• Architected automated email lifecycle workflows that increased free-to-paid trial conversion by 26%.\n• Designed customer referral engine accounting for 35% of total monthly new logo acquisitions.",
+        },
+      ],
+      education: [
+        {
+          id: "edu-1",
+          school: "New York University",
+          degree: "B.S. in Marketing & Data Analytics",
+          period: "2015 - 2019",
+        },
+      ],
+      skills: ["Growth Strategy", "SEO", "Google Ads", "Conversion Rate Optimization", "HubSpot", "Google Analytics 4", "Email Lifecycle", "Mixpanel"],
+      projects: [
+        {
+          id: "proj-1",
+          name: "Organic Search Masterclass",
+          role: "Lead Creator",
+          period: "2023",
+          description: "Playbook on programmatic search optimization read by over 40,000 marketing professionals.",
+          link: "jordangrowth.com/masterclass",
+        },
+      ],
+    },
+  },
+  {
+    id: "executive",
+    title: "Executive Director",
+    role: "Director of Operations & Strategy",
+    badge: "Executive",
+    data: {
+      personalInfo: {
+        fullName: "David Sterling",
+        email: "david.sterling@example.com",
+        phone: "+1 (555) 789-0123",
+        location: "Boston, MA",
+        website: "linkedin.com/in/davidsterling-ops",
+        profileImage: "",
+        summary: "Executive Operations Strategist with 10+ years driving global supply chain efficiencies, restructuring corporate operations, and executing multi-million dollar capital budgets. Proven expertise in cross-functional team leadership and P&L governance.",
+      },
+      experience: [
+        {
+          id: "exp-1",
+          company: "Global Logistics Hub",
+          role: "Director of Operations",
+          period: "2020 - Present",
+          description: "• Managed $35M departmental operating budget across 4 international regional fulfillment centers.\n• Decreased average supply chain transit turnaround times by 24% while reducing operational overhead by 16%.\n• Championed enterprise ERP migration unifying inventory visibility across 14 distribution hubs.",
+        },
+        {
+          id: "exp-2",
+          company: "Apex Holdings",
+          role: "Senior Operations Manager",
+          period: "2015 - 2020",
+          description: "• Consolidated 120 key vendor contracts, generating $4.8M in negotiated multi-year procurement savings.\n• Led corporate workforce productivity audit that improved fulfillment throughput by 31%.",
+        },
+      ],
+      education: [
+        {
+          id: "edu-1",
+          school: "Georgia Institute of Technology",
+          degree: "B.S. in Industrial & Systems Engineering",
+          period: "2011 - 2015",
+        },
+      ],
+      skills: ["Strategic Planning", "P&L Management", "Supply Chain Optimization", "Team Leadership", "Process Automation", "Vendor Negotiation", "Risk Governance"],
+      projects: [
+        {
+          id: "proj-1",
+          name: "Global Ops Framework",
+          role: "Co-Author",
+          period: "2021",
+          description: "Standard operating procedure framework for decentralized international logistics teams.",
+          link: "davidsterling.com/framework",
+        },
+      ],
+    },
+  },
+];
 
 const SECTION_NAV: Array<{ id: ActiveSection; label: string; icon: typeof User }> = [
   { id: "personal", label: "Profile", icon: User },
   { id: "experience", label: "Work", icon: Briefcase },
-  { id: "education", label: "School", icon: GraduationCap },
+  { id: "education", label: "Education", icon: GraduationCap },
   { id: "skills", label: "Skills", icon: Wrench },
   { id: "projects", label: "Projects", icon: Trophy },
 ];
 
 const TOP_TABS: Array<{ id: ActiveTab; label: string; icon: typeof User }> = [
   { id: "content", label: "Content", icon: User },
-  { id: "design", label: "Design", icon: Layout },
-  { id: "ai", label: "AI Generator", icon: Wand2 },
+  { id: "design", label: "Design & Style", icon: Layout },
+  { id: "ai", label: "AI Tailoring", icon: Bot },
 ];
 
-const inputClass = "w-full min-h-12 rounded-2xl border border-white/10 bg-black/35 px-4 text-sm font-bold text-white placeholder:text-zinc-700 outline-none transition-all focus:border-violet-300/50 focus:ring-4 focus:ring-violet-500/10";
-const textareaClass = "w-full min-h-28 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold leading-relaxed text-white placeholder:text-zinc-700 outline-none transition-all focus:border-violet-300/50 focus:ring-4 focus:ring-violet-500/10 resize-none";
+const inputClass = "w-full min-h-12 rounded-2xl border border-white/10 bg-black/40 px-4 text-sm font-bold text-white placeholder:text-zinc-600 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10";
+const textareaClass = "w-full min-h-28 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm font-bold leading-relaxed text-white placeholder:text-zinc-600 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 resize-none";
 
 function createId(prefix: string) {
   return `${prefix}-${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
@@ -113,11 +444,12 @@ export function ResumeBuilder() {
   const { credits, refreshCredits, setShowUpsell } = useCredits();
   const { isCompact, toggleCompact, isFocusMode, toggleFocusMode } = useSidebarStore();
   const [zoom, setZoom] = useState<number>(0.85);
-  const [data, setData] = useState<ResumeData>(() => createEmptyResume());
+  const [data, setData] = useState<ResumeData>(() => CAREER_BLUEPRINTS[0].data);
+  const [activeBlueprintId, setActiveBlueprintId] = useState<string>("fullstack");
   const [activeTab, setActiveTab] = useState<ActiveTab>("content");
   const [activeSection, setActiveSection] = useState<ActiveSection>("personal");
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplateId>("modern");
-  const [accentColor, setAccentColor] = useState("#7c3aed");
+  const [accentColor, setAccentColor] = useState("#10b981"); // Default Emerald
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [aiBrief, setAiBrief] = useState("");
@@ -128,6 +460,7 @@ export function ResumeBuilder() {
   const [isClient, setIsClient] = useState(false);
   const [PDFRenderer, setPDFRenderer] = useState<PDFRendererModule | null>(null);
   const [ResumePDF, setResumePDF] = useState<ResumePDFComponent | null>(null);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const { pipedPayload, isPiped, clearPiped } = usePipedContent((payload) => {
     if (payload.content) {
@@ -300,51 +633,30 @@ export function ResumeBuilder() {
 
   const saveDraft = () => {
     const saved = setFunctionalStorageItem(STORAGE_KEY, JSON.stringify({ data, selectedTemplate, accentColor }));
-    setNotice(saved ? "Resume saved on this device." : "Enable Functional cookies to save this resume on your device.");
+    setSavedSuccess(true);
+    setNotice(saved ? "Resume saved locally on this device." : "Enable Functional cookies to save this resume on your device.");
+    window.setTimeout(() => {
+      setNotice(null);
+      setSavedSuccess(false);
+    }, 2500);
+  };
+
+  const applyBlueprint = (bp: CareerBlueprint) => {
+    setData(bp.data);
+    setActiveBlueprintId(bp.id);
+    setNotice(`Loaded ${bp.title} career blueprint.`);
+    window.setTimeout(() => setNotice(null), 2500);
+  };
+
+  const clearAll = () => {
+    setData(createEmptyResume());
+    setActiveBlueprintId("");
+    setNotice("Cleared to blank resume canvas.");
     window.setTimeout(() => setNotice(null), 2500);
   };
 
   const fillSample = () => {
-    setData({
-      personalInfo: {
-        fullName: "Rayan Studio",
-        email: "rayan@example.com",
-        phone: "+1 555 0149",
-        location: "Remote",
-        website: "portfolio.example.com",
-        profileImage: "",
-        summary: "Product-focused frontend developer with experience building polished SaaS interfaces, AI tool workflows, and responsive design systems. Known for shipping fast, improving usability, and translating messy product ideas into clean user experiences.",
-      },
-      experience: [
-        {
-          id: createId("exp"),
-          company: "Exismic Labs",
-          role: "Frontend Developer",
-          period: "2024 - Present",
-          description: "- Built responsive AI tool pages used across image, productivity, and video workflows\n- Improved conversion-focused UI patterns with premium dark-mode components\n- Partnered with backend engineers to connect AI generation APIs and user history",
-        },
-      ],
-      education: [
-        {
-          id: createId("edu"),
-          school: "Independent Product Studio",
-          degree: "Full Stack Product Development",
-          period: "2023 - 2024",
-        },
-      ],
-      skills: ["React", "Next.js", "TypeScript", "Tailwind CSS", "UI Design", "API Integration", "Supabase", "AI Workflows"],
-      projects: [
-        {
-          id: createId("project"),
-          name: "Exismic Tool Suite",
-          role: "Builder",
-          description: "- Designed and implemented premium AI tools with responsive layouts\n- Connected generation flows to API routes, local state, and downloadable results",
-          link: "exismic.ai",
-        },
-      ],
-    });
-    setSelectedTemplate("modern");
-    setAccentColor("#06b6d4");
+    applyBlueprint(CAREER_BLUEPRINTS[0]);
   };
 
   const generateWithAI = async (section: "summary" | "experience" | "skills", role: string, context: string, id?: string) => {
@@ -491,21 +803,63 @@ export function ResumeBuilder() {
 
   return (
     <div className="w-full max-w-[1720px] mx-auto px-2 sm:px-4 lg:px-6 pb-24">
-      <div className="mb-5 rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 sm:p-5 backdrop-blur-2xl shadow-xl">
+      {/* Studio Top Control Deck */}
+      <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 sm:p-5 backdrop-blur-2xl shadow-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">
-              Live Editor
-            </span>
-            <ScorePill label="Ready" value={`${completionScore}%`} />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-black uppercase tracking-wider">
+              <FileText size={14} className="text-emerald-400" />
+              <span>Resume Studio</span>
+            </div>
+            
+            {/* Dynamic Strength Meter */}
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-3.5 py-1.5">
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Strength</span>
+                  <span className={cn(
+                    "text-xs font-mono font-black",
+                    completionScore >= 80 ? "text-emerald-400" : completionScore >= 50 ? "text-cyan-400" : "text-amber-400"
+                  )}>
+                    {completionScore}%
+                  </span>
+                </div>
+                <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden mt-0.5">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-300 rounded-full",
+                      completionScore >= 80 ? "bg-emerald-400" : completionScore >= 50 ? "bg-cyan-400" : "bg-amber-400"
+                    )}
+                    style={{ width: `${completionScore}%` }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={fillSample} className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-zinc-300 transition hover:text-white cursor-pointer">
-              Sample
+            <button
+              type="button"
+              onClick={saveDraft}
+              className={cn(
+                "min-h-11 rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer",
+                savedSuccess
+                  ? "border-emerald-400 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                  : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 hover:border-emerald-400/50"
+              )}
+            >
+              {savedSuccess ? <Check size={14} /> : <CheckCircle2 size={14} />}
+              <span>{savedSuccess ? "Saved!" : "Save Draft"}</span>
             </button>
-            <button onClick={saveDraft} className="min-h-11 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 text-xs font-black uppercase text-emerald-100 transition hover:bg-emerald-300/15 cursor-pointer">
-              Save Draft
+
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={!isClient || !ResumePDF || !PDFRenderer || isGenerating === "exporting"}
+              className="min-h-11 rounded-2xl bg-white hover:bg-zinc-200 text-black px-4 text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isGenerating === "exporting" ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              <span>Export PDF</span>
             </button>
 
             {/* Studio Workspace Layout Toggles */}
@@ -516,7 +870,7 @@ export function ResumeBuilder() {
                 title={isCompact ? "Expand Sidebar" : "Collapse Sidebar"}
                 className={cn(
                   "min-h-11 px-3.5 rounded-2xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer",
-                  isCompact ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                  isCompact ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
                 )}
               >
                 {isCompact ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
@@ -529,7 +883,7 @@ export function ResumeBuilder() {
                 title={isFocusMode ? "Exit Focus Mode" : "Focus Studio (Hide UI)"}
                 className={cn(
                   "min-h-11 px-3.5 rounded-2xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer",
-                  isFocusMode ? "border-violet-400/40 bg-violet-500/20 text-violet-200 shadow-lg" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                  isFocusMode ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "border-white/10 bg-white/5 text-zinc-300 hover:text-white"
                 )}
               >
                 {isFocusMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
@@ -537,6 +891,66 @@ export function ResumeBuilder() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 1-Click Instant Career Blueprints Bar */}
+      <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-4 sm:p-5 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <LayoutGrid size={15} />
+            </div>
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-white">Instant Career Blueprints</h3>
+              <p className="text-[11px] font-medium text-zinc-400">Select a pre-filled, ATS-ready blueprint to jumpstart your resume in 1 click</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={clearAll}
+              className="px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw size={12} />
+              <span>Start Blank</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {CAREER_BLUEPRINTS.map((bp) => {
+            const isSelected = activeBlueprintId === bp.id;
+            return (
+              <button
+                key={bp.id}
+                type="button"
+                onClick={() => applyBlueprint(bp)}
+                className={cn(
+                  "p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer flex flex-col justify-between group",
+                  isSelected
+                    ? "bg-emerald-500/15 border-emerald-400/50 shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-1 ring-emerald-400/30"
+                    : "bg-white/[0.03] border-white/10 hover:border-white/25 hover:bg-white/[0.06]"
+                )}
+              >
+                <div>
+                  <span className={cn(
+                    "text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md inline-block mb-1.5",
+                    isSelected ? "bg-emerald-400 text-black font-black" : "bg-white/10 text-zinc-400 group-hover:text-zinc-200"
+                  )}>
+                    {bp.badge}
+                  </span>
+                  <p className={cn(
+                    "text-xs font-bold leading-snug line-clamp-1",
+                    isSelected ? "text-white font-black" : "text-zinc-300 group-hover:text-white"
+                  )}>
+                    {bp.title}
+                  </p>
+                </div>
+                <p className="text-[10px] text-zinc-500 line-clamp-1 mt-1 font-medium">{bp.role}</p>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -571,7 +985,9 @@ export function ResumeBuilder() {
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     "flex min-h-12 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-black uppercase tracking-wider transition",
-                    activeTab === tab.id ? "bg-white text-black" : "text-zinc-500 hover:bg-white/[0.05] hover:text-white",
+                    activeTab === tab.id
+                      ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] font-black"
+                      : "text-zinc-400 hover:bg-white/[0.05] hover:text-white",
                   )}
                 >
                   <tab.icon size={15} />
@@ -592,7 +1008,9 @@ export function ResumeBuilder() {
                         onClick={() => setActiveSection(section.id)}
                         className={cn(
                           "flex min-w-[92px] flex-1 items-center justify-center gap-2 px-3 py-4 text-[10px] font-black uppercase tracking-widest transition",
-                          activeSection === section.id ? "bg-violet-500/15 text-violet-100" : "text-zinc-600 hover:text-white",
+                          activeSection === section.id
+                            ? "bg-emerald-500/15 text-emerald-300 border-b-2 border-emerald-400 font-black"
+                            : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]",
                         )}
                       >
                         <section.icon size={14} />
@@ -607,7 +1025,7 @@ export function ResumeBuilder() {
                         <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4">
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                             <div
-                              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.6rem] border border-white/15 bg-gradient-to-br from-cyan-500 to-violet-600 bg-cover bg-center text-2xl font-black text-white shadow-[0_18px_50px_rgba(6,182,212,0.18)]"
+                              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.6rem] border border-white/15 bg-gradient-to-br from-emerald-500 to-teal-700 bg-cover bg-center text-2xl font-black text-white shadow-[0_18px_50px_rgba(16,185,129,0.18)]"
                               style={data.personalInfo.profileImage ? { backgroundImage: `url(${data.personalInfo.profileImage})` } : undefined}
                             >
                               {!data.personalInfo.profileImage && (data.personalInfo.fullName || "YN")
@@ -688,9 +1106,12 @@ export function ResumeBuilder() {
                     {activeSection === "skills" && (
                       <Panel title="Skills" icon={Wrench}>
                         <SkillInput onAdd={addSkill} />
-                        <button onClick={() => generateWithAI("skills", targetRole || "professional", data.skills.join(", "))} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-violet-300/20 bg-violet-400/10 text-xs font-black uppercase tracking-widest text-violet-100 transition hover:bg-violet-400/15">
-                          {isGenerating === "skills" ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                          Generate Skill Set
+                        <button
+                          onClick={() => generateWithAI("skills", targetRole || "professional", data.skills.join(", "))}
+                          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-black uppercase tracking-widest text-emerald-200 transition hover:bg-emerald-500/15 cursor-pointer"
+                        >
+                          {isGenerating === "skills" ? <Loader2 size={16} className="animate-spin" /> : <Cpu size={16} />}
+                          Suggest Skills With AI
                         </button>
                         <div className="flex flex-wrap gap-2">
                           {data.skills.map((skill) => (
@@ -733,8 +1154,8 @@ export function ResumeBuilder() {
                           key={template.id}
                           onClick={() => setSelectedTemplate(template.id)}
                           className={cn(
-                            "text-left rounded-3xl border p-3 transition-all",
-                            selectedTemplate === template.id ? "border-violet-300/50 bg-violet-400/10" : "border-white/10 bg-white/[0.035] hover:border-white/20",
+                            "text-left rounded-3xl border p-3 transition-all cursor-pointer",
+                            selectedTemplate === template.id ? "border-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-400/30 shadow-[0_0_20px_rgba(16,185,129,0.15)]" : "border-white/10 bg-white/[0.035] hover:border-white/20",
                           )}
                         >
                           <div className={cn("mb-4 aspect-[4/3] rounded-2xl bg-gradient-to-br p-3", template.previewClass)}>
@@ -773,25 +1194,33 @@ export function ResumeBuilder() {
 
               {activeTab === "ai" && (
                 <motion.div key="ai" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5 p-5">
-                  <Panel title="AI Resume Generator" icon={Wand2}>
+                  <Panel title="AI Resume Tailor" icon={Bot}>
                     <ProNotice isPro={isPro} credits={credits} />
-                    <input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Target role, e.g. Frontend Developer" className={inputClass} />
-                    <textarea value={aiBrief} onChange={(event) => setAiBrief(event.target.value)} placeholder="Briefly describe your experience, education, projects, strongest skills, achievements, and target industry." className={cn(textareaClass, "min-h-36")} />
-                    <textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste a job description for ATS matching and targeted resume generation." className={cn(textareaClass, "min-h-36")} />
+                    <input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Target role or job title, e.g. Senior Frontend Developer" className={inputClass} />
+                    <textarea value={aiBrief} onChange={(event) => setAiBrief(event.target.value)} placeholder="Briefly describe your career background, key projects, strongest skills, and achievements." className={cn(textareaClass, "min-h-36")} />
+                    <textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste the job description here for keyword matching and role-targeted tailoring." className={cn(textareaClass, "min-h-36")} />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button onClick={generateFullResume} disabled={!aiBrief.trim() || isGenerating === "full-resume"} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 via-cyan-400 to-emerald-300 px-4 text-xs font-black uppercase tracking-widest text-white transition hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
-                        {isGenerating === "full-resume" ? <Loader2 size={17} className="animate-spin" /> : <Wand2 size={17} />}
+                      <button
+                        onClick={generateFullResume}
+                        disabled={!aiBrief.trim() || isGenerating === "full-resume"}
+                        className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 px-4 text-xs font-black uppercase tracking-widest text-black transition hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-[0_0_25px_rgba(16,185,129,0.25)]"
+                      >
+                        {isGenerating === "full-resume" ? <Loader2 size={17} className="animate-spin" /> : <Bot size={17} />}
                         {isPro ? "Build Resume (Pro)" : "Build Resume (15 Credits)"}
                       </button>
-                      <button onClick={runAtsMatch} disabled={!jobDescription.trim() || isGenerating === "ats"} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-4 text-xs font-black uppercase tracking-widest text-cyan-100 transition hover:bg-cyan-300/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+                      <button
+                        onClick={runAtsMatch}
+                        disabled={!jobDescription.trim() || isGenerating === "ats"}
+                        className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 text-xs font-black uppercase tracking-widest text-emerald-200 transition hover:bg-emerald-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                      >
                         {isGenerating === "ats" ? <Loader2 size={17} className="animate-spin" /> : <Target size={17} />}
-                        {isPro ? "ATS Match (Pro)" : "ATS Match (10 Credits)"}
+                        {isPro ? "Job Match Scan (Pro)" : "Job Match Scan (10 Credits)"}
                       </button>
                     </div>
                   </Panel>
 
                   {atsInsight && (
-                    <Panel title="ATS Insights" icon={Target}>
+                    <Panel title="Job Match Insights" icon={Target}>
                       <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-5">
                         <p className="text-[10px] font-black uppercase tracking-widest text-emerald-200/70">Match Score</p>
                         <p className="mt-2 text-5xl font-black text-white">{atsInsight.score}%</p>
@@ -825,9 +1254,9 @@ export function ResumeBuilder() {
             {/* Canvas Zoom and Dimensions Control Bar */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-white/[0.03] border border-white/10 rounded-2xl backdrop-blur-xl">
               <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
-                <FileText size={15} className="text-cyan-400" />
+                <FileText size={15} className="text-emerald-400" />
                 <span className="text-white font-black text-xs uppercase tracking-wider">A4 Live Sheet</span>
-                <span className="text-zinc-500 text-[11px] hidden sm:inline">· Standard ATS Canvas</span>
+                <span className="text-zinc-500 text-[11px] hidden sm:inline">· Standard Printable A4</span>
               </div>
 
               <div className="flex items-center gap-1.5">
@@ -856,7 +1285,7 @@ export function ResumeBuilder() {
                   onClick={() => setZoom(0.78)}
                   className={cn(
                     "px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
-                    Math.abs(zoom - 0.78) < 0.03 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
+                    Math.abs(zoom - 0.78) < 0.03 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
                   )}
                 >
                   Fit
@@ -866,7 +1295,7 @@ export function ResumeBuilder() {
                   onClick={() => setZoom(1)}
                   className={cn(
                     "px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
-                    zoom === 1 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
+                    zoom === 1 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-white/5 text-zinc-400 hover:text-white"
                   )}
                 >
                   100%
@@ -875,14 +1304,29 @@ export function ResumeBuilder() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <ScorePill label="Complete" value={`${completionScore}%`} />
+              <ScorePill label="Strength" value={`${completionScore}%`} />
               <ScorePill label="Sections" value={`${data.experience.length + data.education.length + data.projects.length}`} />
               <ScorePill label="Skills" value={`${data.skills.length}`} />
-              <ScorePill label="Template" value={selectedTemplate} />
+              <ScorePill label="Style" value={selectedTemplate} />
             </div>
-            {missingFields.length > 0 && (
-              <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-5 py-4 text-sm font-bold text-amber-100">
-                Missing: {missingFields.join(", ")}
+            {missingFields.length > 0 ? (
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 backdrop-blur-md">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-300 mb-1.5">
+                  <CheckCircle2 size={14} className="text-emerald-400" />
+                  <span>Suggested additions to maximize hiring score:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {missingFields.map((field) => (
+                    <span key={field} className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-[10px] font-bold uppercase tracking-wider">
+                      + Add {field}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex items-center gap-2.5 text-xs font-bold text-emerald-300">
+                <CheckCircle2 size={16} className="text-emerald-400" />
+                <span>All core sections completed. Your resume is fully ready for job applications!</span>
               </div>
             )}
             <ResumePreview data={data} accentColor={accentColor} selectedTemplate={selectedTemplate} zoom={zoom} />
@@ -922,7 +1366,7 @@ function Panel({ title, icon: Icon, action, children }: { title: string; icon: t
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-violet-100">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
             <Icon size={18} />
           </div>
           <h2 className="text-sm font-black uppercase tracking-widest text-white">{title}</h2>
@@ -936,7 +1380,7 @@ function Panel({ title, icon: Icon, action, children }: { title: string; icon: t
 
 function IconButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/10">
+    <button onClick={onClick} className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/10 cursor-pointer">
       {children}
     </button>
   );
@@ -944,8 +1388,13 @@ function IconButton({ onClick, children }: { onClick: () => void; children: Reac
 
 function AIButton({ loading, onClick }: { loading: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg transition hover:bg-violet-500" aria-label="Generate with AI">
-      {loading ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+    <button
+      onClick={onClick}
+      className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] transition active:scale-95 cursor-pointer"
+      aria-label="Enhance with AI"
+      title="Enhance with AI"
+    >
+      {loading ? <Loader2 size={15} className="animate-spin" /> : <Zap size={14} className="fill-white" />}
     </button>
   );
 }
@@ -953,7 +1402,7 @@ function AIButton({ loading, onClick }: { loading: boolean; onClick: () => void 
 function EditorCard({ onRemove, children }: { onRemove: () => void; children: ReactNode }) {
   return (
     <div className="relative space-y-3 rounded-3xl border border-white/10 bg-white/[0.035] p-4">
-      <button onClick={onRemove} className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full border border-rose-400/30 bg-rose-500/20 text-rose-200 transition hover:bg-rose-500/30" aria-label="Remove">
+      <button onClick={onRemove} className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full border border-rose-400/30 bg-rose-500/20 text-rose-200 transition hover:bg-rose-500/30 cursor-pointer" aria-label="Remove">
         <Trash2 size={14} />
       </button>
       {children}
@@ -992,7 +1441,7 @@ function SkillInput({ onAdd }: { onAdd: (skill: string) => void }) {
           onAdd(value);
           setValue("");
         }}
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-black transition hover:scale-105 active:scale-95"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-black transition hover:scale-105 active:scale-95 cursor-pointer"
         aria-label="Add skill"
       >
         <Plus size={17} />
@@ -1004,8 +1453,11 @@ function SkillInput({ onAdd }: { onAdd: (skill: string) => void }) {
 function ProNotice({ isPro, credits }: { isPro: boolean; credits: number }) {
   if (isPro) {
     return (
-      <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm font-bold leading-relaxed text-cyan-100 flex items-center justify-between">
-        <span>✨ Pro Active: Unlimited resume generation & ATS audits included.</span>
+      <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs font-bold leading-relaxed text-emerald-200 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <Crown size={16} className="text-emerald-400 shrink-0" />
+          <span>Pro Active: Unlimited resume tailoring and job keyword scans included.</span>
+        </div>
       </div>
     );
   }
@@ -1013,10 +1465,10 @@ function ProNotice({ isPro, credits }: { isPro: boolean; credits: number }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 flex items-center justify-between text-xs font-bold text-zinc-300">
       <div className="flex items-center gap-2.5">
-        <Sparkles size={16} className="text-cyan-400 shrink-0" />
-        <span>Use your daily credits to generate a complete resume or run ATS keyword scans.</span>
+        <Zap size={16} className="text-emerald-400 shrink-0" />
+        <span>Use your daily credits to generate a complete resume or run keyword scans.</span>
       </div>
-      <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-500/10 border border-cyan-400/20 px-2.5 py-1 rounded-full shrink-0">
+      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
         {credits} Credits Available
       </span>
     </div>
@@ -1041,8 +1493,8 @@ function InsightList({ title, items }: { title: string; items: string[] }) {
 function ScorePill({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3">
-      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">{label}</p>
-      <p className="mt-1 truncate text-sm font-black text-white">{value}</p>
+      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">{label}</p>
+      <p className="mt-1 truncate text-sm font-black text-white capitalize">{value}</p>
     </div>
   );
 }

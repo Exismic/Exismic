@@ -58,6 +58,7 @@ dev.db
 
 # scratch
 /scratch/
+/scripts/send-test-pro-emails.ts
 /public/generations/*
 !/public/generations/sandbox_*
 !/public/generations/macarena_*

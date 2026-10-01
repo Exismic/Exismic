@@ -9,19 +9,25 @@ import {
   Brain,
   CalendarCheck,
   CheckCircle2,
+  Check,
+  Copy,
   Crown,
   Flame,
   Gauge,
+  Keyboard,
   LineChart,
   RefreshCw,
   Share2,
-  Sparkles,
   Target,
   Timer,
   Trophy,
   Type,
-  Wand2,
+  Volume2,
+  VolumeX,
   Zap,
+  Info,
+  RotateCcw,
+  Sparkles as _ForbiddenSparkles, // explicitly not used
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie-consent";
@@ -29,6 +35,7 @@ import { getFunctionalStorageItem, setFunctionalStorageItem } from "@/lib/cookie
 type TestMode = "30" | "60" | "120" | "endless";
 type ThemeId = "tech" | "motivation" | "story" | "coding" | "startup" | "daily";
 type Status = "idle" | "running" | "finished";
+type SoundMode = "off" | "thock" | "clicky";
 
 type TypingStats = {
   wpm: number;
@@ -52,20 +59,20 @@ type StreakState = {
   streak: number;
 };
 
-const MODE_OPTIONS: Array<{ id: TestMode; label: string; description: string }> = [
-  { id: "30", label: "30s", description: "Sprint" },
-  { id: "60", label: "60s", description: "Classic" },
-  { id: "120", label: "120s", description: "Endurance" },
-  { id: "endless", label: "Endless", description: "Flow" },
+const MODE_OPTIONS: Array<{ id: TestMode; label: string; desc: string }> = [
+  { id: "30", label: "30s", desc: "Sprint" },
+  { id: "60", label: "60s", desc: "Classic" },
+  { id: "120", label: "120s", desc: "Endurance" },
+  { id: "endless", label: "Endless", desc: "Flow" },
 ];
 
-const THEMES: Array<{ id: ThemeId; label: string; icon: typeof Sparkles; accent: string }> = [
-  { id: "tech", label: "Tech", icon: Activity, accent: "text-cyan-300" },
-  { id: "motivation", label: "Motivation", icon: Flame, accent: "text-amber-300" },
-  { id: "story", label: "Storytelling", icon: Wand2, accent: "text-pink-300" },
-  { id: "coding", label: "Coding", icon: Type, accent: "text-emerald-300" },
-  { id: "startup", label: "Startup", icon: Brain, accent: "text-purple-300" },
-  { id: "daily", label: "Daily Challenge", icon: CalendarCheck, accent: "text-blue-300" },
+const THEMES: Array<{ id: ThemeId; label: string; icon: typeof Type; accent: string }> = [
+  { id: "tech", label: "Technology", icon: Activity, accent: "text-emerald-400" },
+  { id: "motivation", label: "Motivation", icon: Flame, accent: "text-amber-400" },
+  { id: "story", label: "Storytelling", icon: Type, accent: "text-cyan-400" },
+  { id: "coding", label: "Code Snippets", icon: Keyboard, accent: "text-indigo-400" },
+  { id: "startup", label: "Product & Craft", icon: Brain, accent: "text-purple-400" },
+  { id: "daily", label: "Daily Drill", icon: CalendarCheck, accent: "text-rose-400" },
 ];
 
 const THEME_BANK: Record<ThemeId, string[]> = {
@@ -102,7 +109,7 @@ const THEME_BANK: Record<ThemeId, string[]> = {
     "The fastest growth loops start with a user who feels a result clearly enough to invite someone else.",
     "Premium software earns trust through speed, polish, reliability, and the absence of tiny daily annoyances.",
     "Great onboarding removes doubt, shows value quickly, and lets people feel capable before asking for commitment.",
-    "A founder's best dashboard is not vanity traffic but repeat usage from people who would miss the product tomorrow.",
+    "A founder best dashboard is not vanity traffic but repeat usage from people who would miss the product tomorrow.",
   ],
   daily: [
     "Today is a precision drill: type with relaxed hands, steady rhythm, and careful attention to every difficult transition.",
@@ -113,12 +120,17 @@ const THEME_BANK: Record<ThemeId, string[]> = {
   ],
 };
 
-const KEY_ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm", "1234567890"];
+const KEYBOARD_ROWS = [
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="],
+  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]"],
+  ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'"],
+  ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
+];
 
 const GLOBAL_LEADERBOARD: ResultRecord[] = [
-  { id: "g1", date: "Elite", mode: "60", theme: "tech", duration: 60, wpm: 168, rawWpm: 174, accuracy: 98, consistency: 94, correctChars: 820, incorrectChars: 14 },
-  { id: "g2", date: "Elite", mode: "60", theme: "coding", duration: 60, wpm: 151, rawWpm: 160, accuracy: 96, consistency: 91, correctChars: 739, incorrectChars: 27 },
-  { id: "g3", date: "Elite", mode: "30", theme: "story", duration: 30, wpm: 142, rawWpm: 149, accuracy: 97, consistency: 89, correctChars: 348, incorrectChars: 11 },
+  { id: "g1", date: "All-Time", mode: "60", theme: "tech", duration: 60, wpm: 148, rawWpm: 154, accuracy: 98, consistency: 94, correctChars: 740, incorrectChars: 12 },
+  { id: "g2", date: "All-Time", mode: "60", theme: "coding", duration: 60, wpm: 132, rawWpm: 140, accuracy: 96, consistency: 91, correctChars: 660, incorrectChars: 22 },
+  { id: "g3", date: "All-Time", mode: "30", theme: "story", duration: 30, wpm: 126, rawWpm: 131, accuracy: 97, consistency: 89, correctChars: 315, incorrectChars: 9 },
 ];
 
 function seededRandom(seed: number) {
@@ -149,7 +161,7 @@ function yesterdayKey() {
 function generateParagraph(theme: ThemeId, mode: TestMode, salt = Date.now()) {
   const seed = theme === "daily" ? hashSeed(todayKey()) : hashSeed(`${theme}-${mode}-${salt}`);
   const random = seededRandom(seed);
-  const bank = THEME_BANK[theme];
+  const bank = THEME_BANK[theme] || THEME_BANK.tech;
   const sentenceCount = mode === "120" || mode === "endless" ? 12 : mode === "60" ? 8 : 5;
   const selected: string[] = [];
 
@@ -207,62 +219,89 @@ function buildHeatmap(input: string, target: string) {
   for (let index = 0; index < input.length; index += 1) {
     if (input[index] !== target[index]) {
       const key = (target[index] || input[index] || "").toLowerCase();
-      if (/^[a-z0-9]$/.test(key)) map[key] = (map[key] || 0) + 1;
+      if (/^[a-z0-9\-\=\[\]\;\',\.\/]$/.test(key)) {
+        map[key] = (map[key] || 0) + 1;
+      }
     }
   }
   return map;
 }
 
-function buildInsights(stats: TypingStats, heatmap: Record<string, number>, input: string, target: string) {
+function buildInsights(stats: TypingStats, heatmap: Record<string, number>) {
   const topMistake = Object.entries(heatmap).sort((a, b) => b[1] - a[1])[0];
-  const typedNumbers = /\d/.test(input);
-  const targetHasNumbers = /\d/.test(target);
   const insights: string[] = [];
 
-  if (stats.accuracy < 92) insights.push("Slow down slightly and rebuild accuracy first. Your speed will climb faster once corrections drop.");
-  else insights.push("Your accuracy base is strong. Start pushing short 30s sprints to raise your ceiling.");
+  if (stats.accuracy < 92) {
+    insights.push("Prioritize rhythm over speed. Slow down 5 WPM to reduce backspacing; speed will naturally follow once your accuracy exceeds 96%.");
+  } else {
+    insights.push("Exceptional accuracy foundation. Start pushing your boundaries on short 30-second sprints to unlock higher top-end speed.");
+  }
 
-  if (stats.consistency < 75) insights.push("Your rhythm is spiky. Try typing in smooth word groups instead of reacting character by character.");
-  else insights.push("Your cadence is stable. Keep that rhythm and gradually increase pace.");
+  if (stats.consistency < 75) {
+    insights.push("Noticeable speed spikes between word transitions. Practice reading two words ahead so your fingers move in fluid phrases rather than single keystrokes.");
+  } else {
+    insights.push("Steady, metronomic cadence. Your finger travel time between difficult keys is balanced and efficient.");
+  }
 
   if (topMistake) {
-    const fingerHint = "qaz".includes(topMistake[0]) ? "left pinky" : "p;/".includes(topMistake[0]) ? "right pinky" : "targeted finger";
-    insights.push(`Most errors came from "${topMistake[0].toUpperCase()}". Add a 2-minute ${fingerHint} drill before your next test.`);
+    const key = topMistake[0].toUpperCase();
+    const fingerHint = "QAZ1".includes(key) ? "left pinky" : "P;/0-=".includes(key) ? "right pinky" : "targeted key placement";
+    insights.push(`Key '${key}' had the highest error rate (${topMistake[1]} misses). Focus on your ${fingerHint} before starting your next round.`);
   }
 
-  if (targetHasNumbers && !typedNumbers) insights.push("Numbers appeared in the text, but you avoided or missed them. Practice number-row transitions.");
-  if (stats.wpm >= 100 && stats.accuracy >= 96) insights.push("Elite session. Your next gain will come from reducing hesitation after punctuation.");
-
-  return insights.slice(0, 4);
+  return insights.slice(0, 3);
 }
 
-function saveResult(result: ResultRecord) {
-  const stored = getFunctionalStorageItem("exismic_typing_leaderboard");
-  const current = stored ? (JSON.parse(stored) as ResultRecord[]) : [];
-  const next = [result, ...current]
-    .sort((a, b) => b.wpm - a.wpm || b.accuracy - a.accuracy)
-    .slice(0, 12);
-  setFunctionalStorageItem("exismic_typing_leaderboard", JSON.stringify(next));
-  return next;
+function getRankBadge(wpm: number, accuracy: number) {
+  if (wpm >= 100 && accuracy >= 95) return { title: "Godspeed Master", color: "from-amber-400 to-emerald-400 text-black border-amber-300", icon: Crown };
+  if (wpm >= 80) return { title: "Elite Typist", color: "from-emerald-400 to-teal-400 text-black border-emerald-300", icon: Trophy };
+  if (wpm >= 60) return { title: "Advanced Typist", color: "from-cyan-400 to-blue-400 text-black border-cyan-300", icon: Gauge };
+  if (wpm >= 40) return { title: "Fluent Typist", color: "from-indigo-400 to-purple-400 text-white border-indigo-300", icon: Zap };
+  return { title: "Building Speed", color: "from-zinc-300 to-zinc-400 text-black border-white/20", icon: Target };
 }
 
-function loadLeaderboard() {
-  if (typeof window === "undefined") return [];
+// Client-side Web Audio Synthesizer for tactile mechanical keyboard sound effects ($0 external files)
+let audioCtx: AudioContext | null = null;
+function playKeyClick(mode: SoundMode) {
+  if (mode === "off" || typeof window === "undefined") return;
   try {
-    const stored = getFunctionalStorageItem("exismic_typing_leaderboard");
-    return stored ? (JSON.parse(stored) as ResultRecord[]) : [];
-  } catch {
-    return [];
-  }
-}
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!audioCtx) {
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
 
-function loadStreak(): StreakState {
-  if (typeof window === "undefined") return { date: "", streak: 0 };
-  try {
-    const stored = getFunctionalStorageItem("exismic_typing_streak");
-    return stored ? (JSON.parse(stored) as StreakState) : { date: "", streak: 0 };
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    if (mode === "thock") {
+      // Deep mechanical switch sound
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.035);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.035);
+    } else {
+      // Crisp typewriter click
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(750, now);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.025);
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.025);
+    }
   } catch {
-    return { date: "", streak: 0 };
+    // Ignore audio policy errors
   }
 }
 
@@ -279,29 +318,48 @@ export default function TypingSpeedTesterPage() {
   const [finalResult, setFinalResult] = useState<ResultRecord | null>(null);
   const [leaderboard, setLeaderboard] = useState<ResultRecord[]>([]);
   const [streak, setStreak] = useState<StreakState>({ date: "", streak: 0 });
-  const [ghostEnabled, setGhostEnabled] = useState(true);
+  const [ghostEnabled, setGhostEnabled] = useState(false);
+  const [soundMode, setSoundMode] = useState<SoundMode>("off");
   const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const duration = getDuration(mode);
   const heatmap = useMemo(() => buildHeatmap(input, targetText), [input, targetText]);
-  const liveStats = useMemo(() => computeStats(input, targetText, elapsed || 1, keyIntervals), [elapsed, input, keyIntervals, targetText]);
+  const liveStats = useMemo(
+    () => computeStats(input, targetText, elapsed || 1, keyIntervals),
+    [elapsed, input, keyIntervals, targetText]
+  );
   const resultStats = finalResult ?? liveStats;
-  const progress = duration ? Math.min(100, (elapsed / duration) * 100) : Math.min(100, (input.length / targetText.length) * 100);
+  const progress = duration
+    ? Math.min(100, (elapsed / duration) * 100)
+    : Math.min(100, (input.length / targetText.length) * 100);
   const remaining = duration ? Math.max(0, Math.ceil(duration - elapsed)) : null;
-  const ghostWpm = mode === "30" ? 145 : mode === "120" ? 122 : 132;
+  const ghostWpm = mode === "30" ? 140 : mode === "120" ? 115 : 125;
   const ghostChars = Math.min(targetText.length, Math.floor((ghostWpm * 5 * elapsed) / 60));
-  const insights = useMemo(() => buildInsights(resultStats, heatmap, input, targetText), [heatmap, input, resultStats, targetText]);
+  const insights = useMemo(() => buildInsights(resultStats, heatmap), [heatmap, resultStats]);
 
+  // Load persistence
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setLeaderboard(loadLeaderboard());
-      setStreak(loadStreak());
+      try {
+        const storedLeaderboard = getFunctionalStorageItem("exismic_typing_leaderboard");
+        if (storedLeaderboard) setLeaderboard(JSON.parse(storedLeaderboard));
+        const storedStreak = getFunctionalStorageItem("exismic_typing_streak");
+        if (storedStreak) setStreak(JSON.parse(storedStreak));
+        const storedSound = getFunctionalStorageItem("exismic_typing_sound") as SoundMode;
+        if (storedSound) setSoundMode(storedSound);
+      } catch {
+        // Fallback
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
-  const focusTypingArea = () => textareaRef.current?.focus();
+  const focusTypingArea = () => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
 
   const resetTest = useCallback((nextTheme = theme, nextMode = mode) => {
     setTargetText(generateParagraph(nextTheme, nextMode));
@@ -341,10 +399,18 @@ export default function TypingSpeedTesterPage() {
     };
     setFinalResult(result);
     setStatus("finished");
-    setLeaderboard(saveResult(result));
+
+    // Save to leaderboard
+    setLeaderboard((prev) => {
+      const updated = [result, ...prev].sort((a, b) => b.wpm - a.wpm || b.accuracy - a.accuracy).slice(0, 10);
+      setFunctionalStorageItem("exismic_typing_leaderboard", JSON.stringify(updated));
+      return updated;
+    });
+
     completeDailyChallenge();
   }, [completeDailyChallenge, elapsed, input, keyIntervals, mode, targetText, theme]);
 
+  // Main countdown timer
   useEffect(() => {
     if (status !== "running" || !startTime) return;
     const timer = window.setInterval(() => {
@@ -359,26 +425,22 @@ export default function TypingSpeedTesterPage() {
     return () => window.clearInterval(timer);
   }, [duration, finishTest, input, startTime, status]);
 
-  const handleModeChange = (nextMode: TestMode) => {
-    setMode(nextMode);
-    resetTest(theme, nextMode);
-  };
-
-  const handleThemeChange = (nextTheme: ThemeId) => {
-    setTheme(nextTheme);
-    resetTest(nextTheme, mode);
-  };
-
+  // Handle keyboard input & sound
   const handleInput = (value: string) => {
     if (status === "finished") return;
     const now = Date.now();
+
     if (status === "idle") {
       setStatus("running");
       setStartTime(now);
       setElapsed(0);
     }
-    if (lastKeyTime && value.length > input.length) {
-      setKeyIntervals((current) => [...current.slice(-240), now - lastKeyTime]);
+
+    if (value.length > input.length) {
+      playKeyClick(soundMode);
+      if (lastKeyTime) {
+        setKeyIntervals((current) => [...current.slice(-240), now - lastKeyTime]);
+      }
     }
     setLastKeyTime(now);
 
@@ -391,442 +453,667 @@ export default function TypingSpeedTesterPage() {
     }
   };
 
+  // Keyboard shortcut listener (Tab or Esc to reset)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        resetTest(theme, mode);
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        resetTest(theme, mode);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mode, resetTest, theme]);
+
+  const handleModeChange = (nextMode: TestMode) => {
+    setMode(nextMode);
+    resetTest(theme, nextMode);
+  };
+
+  const handleThemeChange = (nextTheme: ThemeId) => {
+    setTheme(nextTheme);
+    resetTest(nextTheme, mode);
+  };
+
+  const toggleSound = () => {
+    const next: SoundMode = soundMode === "off" ? "thock" : soundMode === "thock" ? "clicky" : "off";
+    setSoundMode(next);
+    setFunctionalStorageItem("exismic_typing_sound", next);
+    if (next !== "off") playKeyClick(next);
+  };
+
   const copySummary = async () => {
-    const text = `Exismic Typing Test: ${resultStats.wpm} WPM, ${resultStats.accuracy}% accuracy, ${resultStats.consistency}% consistency.`;
+    const text = `Exismic Typing Test: ${resultStats.wpm} WPM | ${resultStats.accuracy}% Accuracy | ${resultStats.consistency}% Rhythm | Mode: ${mode === "endless" ? "Flow" : `${mode}s`}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    window.setTimeout(() => setCopied(false), 2000);
   };
 
   const downloadResultImage = () => {
     const canvas = document.createElement("canvas");
-    canvas.width = 1400;
-    canvas.height = 860;
+    canvas.width = 1200;
+    canvas.height = 700;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Gradient background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "#050816");
-    gradient.addColorStop(0.5, "#13051f");
-    gradient.addColorStop(1, "#031822");
+    gradient.addColorStop(0, "#080c14");
+    gradient.addColorStop(0.5, "#0b151e");
+    gradient.addColorStop(1, "#071c17");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "rgba(168,85,247,0.22)";
+    // Subtle emerald light glow
+    ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
     ctx.beginPath();
-    ctx.arc(1180, 90, 280, 0, Math.PI * 2);
+    ctx.arc(1050, 120, 260, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "rgba(6,182,212,0.14)";
-    ctx.beginPath();
-    ctx.arc(160, 760, 320, 0, Math.PI * 2);
-    ctx.fill();
+
+    // Brand title
+    ctx.fillStyle = "#10b981";
+    ctx.font = "900 24px sans-serif";
+    ctx.fillText("EXISMIC STUDIO • TYPING SPEED TEST", 80, 100);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "900 74px Arial";
-    ctx.fillText("Exismic Typing Test", 90, 130);
-    ctx.font = "700 28px Arial";
-    ctx.fillStyle = "#9ca3af";
-    ctx.fillText(`${THEMES.find((item) => item.id === theme)?.label} • ${mode === "endless" ? "Endless" : `${mode}s`} • ${new Date().toLocaleDateString()}`, 94, 178);
+    ctx.font = "900 52px sans-serif";
+    ctx.fillText(`${resultStats.wpm} WPM`, 80, 180);
 
-    const cards = [
-      ["WPM", resultStats.wpm],
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "600 20px sans-serif";
+    const modeLabel = mode === "endless" ? "Endless Flow" : `${mode}-Second Sprint`;
+    ctx.fillText(`${modeLabel} • ${resultStats.accuracy}% Accuracy • ${resultStats.consistency}% Rhythm`, 80, 225);
+
+    // Metric Cards
+    const metrics = [
+      ["Net Speed", `${resultStats.wpm} WPM`],
       ["Accuracy", `${resultStats.accuracy}%`],
-      ["Consistency", `${resultStats.consistency}%`],
-      ["Errors", resultStats.incorrectChars],
+      ["Rhythm", `${resultStats.consistency}%`],
+      ["Total Keystrokes", `${resultStats.correctChars} / ${resultStats.correctChars + resultStats.incorrectChars}`],
     ];
-    cards.forEach(([label, value], index) => {
-      const x = 90 + index * 310;
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.lineWidth = 2;
+
+    metrics.forEach(([lbl, val], idx) => {
+      const x = 80 + idx * 260;
+      const y = 300;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.25)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(x, 260, 260, 190, 34);
+      ctx.roundRect(x, y, 240, 150, 24);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "#a78bfa";
-      ctx.font = "900 22px Arial";
-      ctx.fillText(String(label).toUpperCase(), x + 32, 318);
+
+      ctx.fillStyle = "#6ee7b7";
+      ctx.font = "800 14px sans-serif";
+      ctx.fillText(lbl.toUpperCase(), x + 24, y + 45);
+
       ctx.fillStyle = "#ffffff";
-      ctx.font = "900 68px Arial";
-      ctx.fillText(String(value), x + 32, 395);
+      ctx.font = "900 36px sans-serif";
+      ctx.fillText(val, x + 24, y + 105);
     });
 
-    ctx.fillStyle = "#d1d5db";
-    ctx.font = "700 32px Arial";
-    ctx.fillText("AI Coach", 94, 560);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "500 26px Arial";
-    insights.slice(0, 3).forEach((tip, index) => {
-      ctx.fillText(`${index + 1}. ${tip.slice(0, 82)}`, 96, 615 + index * 50);
-    });
-
-    ctx.fillStyle = "#22d3ee";
-    ctx.font = "900 28px Arial";
-    ctx.fillText("exismic.ai/tools/typing-test", 94, 810);
+    // Verification link
+    ctx.fillStyle = "#64748b";
+    ctx.font = "600 16px sans-serif";
+    ctx.fillText("Tested on exismic.ai/tools/typing-test", 80, 620);
 
     const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
     link.download = `exismic-typing-${resultStats.wpm}wpm.png`;
+    link.href = canvas.toDataURL("image/png");
     link.click();
   };
 
-  const topMistakes = Object.entries(heatmap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const rank = getRankBadge(resultStats.wpm, resultStats.accuracy);
+  const RankIcon = rank.icon;
 
   return (
-    <div className="w-full space-y-6">
-      <section className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 items-start">
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Duration Mode</span>
-            <div className="grid grid-cols-2 sm:flex gap-3">
-                {MODE_OPTIONS.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleModeChange(item.id)}
-                    className={cn(
-                      "min-h-14 rounded-2xl border px-4 text-left transition-all active:scale-95",
-                      mode === item.id
-                        ? "border-purple-300/40 bg-purple-400/15 shadow-[0_0_30px_rgba(168,85,247,0.12)]"
-                        : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
-                    )}
-                  >
-                    <span className="block text-sm font-black text-white">{item.label}</span>
-                    <span className="block text-[10px] font-bold uppercase text-zinc-500">{item.description}</span>
-                  </button>
-                ))}
+    <div className="w-full space-y-8" suppressHydrationWarning>
+      {/* ==================================================================== */}
+      {/* 1. HERO TYPING ARENA: FRONT, CENTER & MESMERIZING                     */}
+      {/* ==================================================================== */}
+      <section className="rounded-3xl border-2 border-emerald-500/25 bg-[#090d16]/95 p-5 sm:p-7 shadow-[0_0_50px_rgba(16,185,129,0.08)] backdrop-blur-2xl">
+        
+        {/* Sleek Top Control Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+          {/* Duration Mode Pills */}
+          <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-black/40 p-1">
+            {MODE_OPTIONS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleModeChange(item.id)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all",
+                  mode === item.id
+                    ? "bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <span>{item.label}</span>
+                <span className={cn("text-[9px] uppercase opacity-75 font-semibold", mode === item.id ? "text-black" : "text-zinc-500")}>
+                  {item.desc}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Action Toggles */}
+          <div className="flex items-center gap-2">
+            {/* Sound Toggle (Off / Thock / Clicky) */}
+            <button
+              type="button"
+              onClick={toggleSound}
+              className={cn(
+                "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all",
+                soundMode !== "off"
+                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300 shadow-sm"
+                  : "border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+              )}
+              title="Click to cycle typing sound effects (Off, Thock, Clicky)"
+            >
+              {soundMode === "off" ? <VolumeX size={14} /> : <Volume2 size={14} className="text-emerald-400" />}
+              <span className="capitalize">{soundMode === "off" ? "Muted" : soundMode}</span>
+            </button>
+
+            {/* Ghost Mode Toggle */}
+            <button
+              type="button"
+              onClick={() => setGhostEnabled(!ghostEnabled)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all",
+                ghostEnabled
+                  ? "border-amber-500/40 bg-amber-500/15 text-amber-300"
+                  : "border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+              )}
+              title="Race against a simulated 125 WPM top typist"
+            >
+              <Zap size={14} />
+              <span>Ghost {ghostEnabled ? "On" : "Pace"}</span>
+            </button>
+
+            {/* Quick Restart Button */}
+            <button
+              type="button"
+              onClick={() => resetTest(theme, mode)}
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+              title="Quick restart (Shortcut: Tab or Esc)"
+            >
+              <RefreshCw size={13} className={status === "running" ? "animate-spin" : ""} />
+              <span className="hidden sm:inline">New Text</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Topic Category Strip */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mr-1">
+            Topic:
+          </span>
+          {THEMES.map((item) => {
+            const Icon = item.icon;
+            const isActive = theme === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleThemeChange(item.id)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all active:scale-95",
+                  isActive
+                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300 shadow-sm"
+                    : "border-white/5 bg-white/[0.02] text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                )}
+              >
+                <Icon size={12} className={isActive ? "text-emerald-400" : item.accent} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Live HUD Telemetry Strip */}
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 border-y border-white/5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Gauge size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Net WPM</p>
+              <p className="text-2xl font-black text-white tracking-tight">{liveStats.wpm}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
+              <Target size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Accuracy</p>
+              <p className={cn(
+                "text-2xl font-black tracking-tight",
+                liveStats.accuracy >= 96 ? "text-emerald-400" : liveStats.accuracy >= 90 ? "text-amber-400" : "text-rose-400"
+              )}>
+                {liveStats.accuracy}%
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <LineChart size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Rhythm</p>
+              <p className="text-2xl font-black text-white tracking-tight">{liveStats.consistency}%</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Timer size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                {mode === "endless" ? "Elapsed Time" : "Time Left"}
+              </p>
+              <p className="text-2xl font-black text-amber-300 tracking-tight">
+                {mode === "endless" ? `${Math.floor(elapsed)}s` : `${remaining ?? mode}s`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Slim Progress Bar */}
+        <div className="mt-4 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400"
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.15, ease: "linear" }}
+          />
+        </div>
+
+        {/* ================================================================ */}
+        {/* INTERACTIVE TYPING STAGE                                         */}
+        {/* ================================================================ */}
+        <div
+          onClick={focusTypingArea}
+          className="relative mt-5 min-h-[260px] cursor-text rounded-2xl border border-emerald-500/20 bg-black/60 p-6 sm:p-8 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)] overflow-hidden transition-all focus-within:border-emerald-500/50 focus-within:shadow-[0_0_30px_rgba(16,185,129,0.12)]"
+        >
+          {/* Subtle Ghost Bar */}
+          {ghostEnabled && status === "running" && (
+            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-2 flex items-center justify-between text-xs text-amber-300">
+              <div className="flex items-center gap-2">
+                <Zap size={14} className="text-amber-400" />
+                <span>Ghost Target Pace: {ghostWpm} WPM</span>
+              </div>
+              <span className="font-mono text-[10px] text-amber-200/80">
+                {Math.round((ghostChars / targetText.length) * 100)}% Complete
+              </span>
+            </div>
+          )}
+
+          {/* Hidden Actual Native Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => handleInput(e.target.value)}
+            disabled={status === "finished"}
+            autoCapitalize="off"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            autoFocus
+            className="absolute inset-0 z-20 h-full w-full opacity-0 cursor-text resize-none p-6 outline-none"
+            aria-label="Typing test input arena"
+          />
+
+          {/* Rendered Text with High-Contrast Typography & Caret */}
+          <div className="relative z-10 font-mono text-xl sm:text-2xl leading-[2.1] font-medium select-none tracking-normal break-words">
+            {targetText.split("").map((char, index) => {
+              const typed = input[index];
+              const isCurrent = index === input.length && status !== "finished";
+              const isCorrect = typed === char;
+              const isWrong = typed !== undefined && typed !== char;
+              const isGhost = ghostEnabled && status === "running" && index === ghostChars;
+
+              return (
+                <span
+                  key={`${char}-${index}`}
+                  className={cn(
+                    "relative transition-colors duration-75 rounded-[3px]",
+                    typed === undefined && "text-zinc-500",
+                    typed !== undefined && isCorrect && "text-emerald-300 font-semibold",
+                    isWrong && "bg-red-500/30 text-red-200 font-bold px-0.5",
+                    isCurrent && "border-b-2 border-emerald-400 text-white bg-emerald-500/20 animate-pulse",
+                    isGhost && "ring-1 ring-amber-400/50"
+                  )}
+                >
+                  {char}
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Floating Instructions when Idle */}
+          {status === "idle" && (
+            <div className="pointer-events-none mt-6 flex items-center justify-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur-md animate-bounce">
+                <Keyboard size={14} />
+                <span>Click here or begin typing to start</span>
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Arena Footer Controls */}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Correct: <strong className="text-white">{liveStats.correctChars}</strong>
+            </span>
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="h-2 w-2 rounded-full bg-rose-500" />
+              Mistakes: <strong className="text-white">{liveStats.incorrectChars}</strong>
+            </span>
+            <span className="text-zinc-600">|</span>
+            <span className="hidden sm:inline text-zinc-500">
+              Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">Esc</kbd> or{" "}
+              <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">Tab</kbd> to restart
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {status === "running" && (
+              <button
+                type="button"
+                onClick={() => finishTest(input, elapsed)}
+                className="rounded-xl bg-white px-4 py-1.5 text-xs font-bold text-black hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                Finish Early
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => resetTest(theme, mode)}
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-1.5"
+            >
+              <RotateCcw size={12} />
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================================================================== */}
+      {/* 2. CELEBRATORY TEST REPORT CARD (Shown on finish)                    */}
+      {/* ==================================================================== */}
+      <AnimatePresence>
+        {status === "finished" && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="rounded-3xl border-2 border-emerald-500/40 bg-[#090e18] p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.15)] space-y-6"
+          >
+            {/* Header with Rank Badge */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                    Test Completed Successfully
+                  </span>
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white">Your Typing Scorecard</h3>
+              </div>
+
+              {/* Dynamic Speed Tier Badge */}
+              <div className={cn("flex items-center gap-2 rounded-2xl border px-4 py-2 font-black text-xs shadow-md bg-gradient-to-r", rank.color)}>
+                <RankIcon size={16} />
+                <span>{rank.title}</span>
               </div>
             </div>
 
-            <section className="rounded-[2rem] sm:rounded-[2.5rem] border border-white/10 bg-white/[0.035] backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.35)] overflow-hidden">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-white/10 p-4 sm:p-5">
-                <div className="flex flex-wrap gap-2">
-                  {THEMES.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => handleThemeChange(item.id)}
-                        className={cn(
-                          "min-h-11 rounded-2xl px-4 flex items-center gap-2 text-[10px] font-black uppercase transition-all active:scale-95",
-                          theme === item.id ? "bg-white text-black" : "bg-black/30 border border-white/10 text-zinc-400 hover:text-white"
-                        )}
-                      >
-                        <Icon size={14} className={theme === item.id ? "text-black" : item.accent} />
-                        {item.label}
-                      </button>
-                    );
-                  })}
+            {/* 4 Large Highlight Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 sm:p-5">
+                <div className="flex items-center justify-between text-emerald-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Net Speed</span>
+                  <Gauge size={18} />
                 </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => resetTest(theme, mode)}
-                    className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-[10px] font-black uppercase text-zinc-300 hover:text-white transition-all flex items-center gap-2"
-                  >
-                    <RefreshCw size={14} />
-                    New Paragraph
-                  </button>
-                  <button
-                    onClick={() => setGhostEnabled((value) => !value)}
-                    className={cn(
-                      "min-h-11 rounded-2xl px-4 text-[10px] font-black uppercase transition-all flex items-center gap-2",
-                      ghostEnabled ? "bg-cyan-300 text-black" : "border border-white/10 bg-white/[0.04] text-zinc-400"
-                    )}
-                  >
-                    <Zap size={14} />
-                    Ghost Mode
-                  </button>
-                </div>
+                <p className="mt-2 text-3xl sm:text-4xl font-black text-white">{resultStats.wpm}</p>
+                <p className="mt-1 text-[11px] text-zinc-400">Words Per Minute</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-4 border-b border-white/10">
-                <MetricCard icon={Gauge} label="WPM" value={liveStats.wpm} accent="text-cyan-300" />
-                <MetricCard icon={Target} label="Accuracy" value={`${liveStats.accuracy}%`} accent="text-emerald-300" />
-                <MetricCard icon={LineChart} label="Consistency" value={`${liveStats.consistency}%`} accent="text-purple-300" />
-                <MetricCard icon={Timer} label={mode === "endless" ? "Elapsed" : "Time Left"} value={mode === "endless" ? `${Math.floor(elapsed)}s` : `${remaining ?? mode}s`} accent="text-amber-300" />
+              <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-4 sm:p-5">
+                <div className="flex items-center justify-between text-teal-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Accuracy</span>
+                  <Target size={18} />
+                </div>
+                <p className="mt-2 text-3xl sm:text-4xl font-black text-white">{resultStats.accuracy}%</p>
+                <p className="mt-1 text-[11px] text-zinc-400">{resultStats.incorrectChars} typing errors</p>
               </div>
 
-              <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-                <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-purple-500 via-cyan-400 to-emerald-300"
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.25 }}
-                  />
+              <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4 sm:p-5">
+                <div className="flex items-center justify-between text-cyan-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Consistency</span>
+                  <LineChart size={18} />
                 </div>
-
-                <div
-                  onClick={focusTypingArea}
-                  className="relative min-h-[320px] cursor-text rounded-[1.75rem] sm:rounded-[2.25rem] border border-white/10 bg-[#050509]/90 p-5 sm:p-8 lg:p-10 shadow-inner overflow-hidden"
-                >
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
-                  {ghostEnabled && status === "running" && (
-                    <div className="absolute left-5 right-5 sm:left-8 sm:right-8 top-5 sm:top-7">
-                      <div className="relative h-1 rounded-full bg-white/5 overflow-hidden">
-                        <motion.div
-                          className="h-full bg-amber-300/70"
-                          animate={{ width: `${Math.min(100, (ghostChars / targetText.length) * 100)}%` }}
-                        />
-                      </div>
-                      <div className="mt-2 text-[10px] font-black uppercase text-amber-200/80">Ghost pace: top typist at {ghostWpm} WPM</div>
-                    </div>
-                  )}
-
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(event) => handleInput(event.target.value)}
-                    disabled={status === "finished"}
-                    autoCapitalize="off"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    className="absolute inset-0 z-20 h-full w-full resize-none bg-transparent p-5 sm:p-8 lg:p-10 text-transparent caret-cyan-300 outline-none"
-                    aria-label="Typing test input"
-                  />
-
-                  <div className="relative z-10 pt-10 sm:pt-8 text-xl sm:text-2xl lg:text-3xl leading-[1.8] font-semibold text-zinc-500 select-none whitespace-pre-wrap break-words">
-                    {targetText.split("").map((char, index) => {
-                      const typed = input[index];
-                      const isCurrent = index === input.length && status !== "finished";
-                      const isCorrect = typed === char;
-                      const isWrong = typed !== undefined && typed !== char;
-                      const isGhost = ghostEnabled && status === "running" && index === ghostChars;
-
-                      return (
-                        <span
-                          key={`${char}-${index}`}
-                          className={cn(
-                            "relative rounded-[0.35rem] transition-colors duration-100",
-                            typed === undefined && "text-zinc-500",
-                            typed !== undefined && isCorrect && "text-white",
-                            isWrong && "bg-red-500/25 text-red-200",
-                            isCurrent && "bg-cyan-300/20 text-cyan-100 animate-pulse",
-                            isGhost && "after:absolute after:-top-5 after:left-1/2 after:h-4 after:w-px after:bg-amber-300"
-                          )}
-                        >
-                          {char}
-                        </span>
-                      );
-                    })}
-                  </div>
-
-                  {status === "idle" && (
-                    <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
-                      <div className="rounded-full border border-white/10 bg-black/60 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 backdrop-blur-xl">
-                        Click here and start typing
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                  <div className="flex flex-wrap gap-3 text-[10px] font-black uppercase text-zinc-500">
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">Correct {liveStats.correctChars}</span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">Errors {liveStats.incorrectChars}</span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">Raw {liveStats.rawWpm} WPM</span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">Streak {streak.streak} days</span>
-                  </div>
-
-                  <div className="flex gap-3">
-                    {status === "running" && (
-                      <button onClick={() => finishTest(input, elapsed)} className="min-h-12 rounded-2xl bg-white text-black px-5 text-xs font-black uppercase transition-all hover:bg-zinc-200">
-                        Finish Test
-                      </button>
-                    )}
-                    <button onClick={() => resetTest(theme, mode)} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-5 text-xs font-black uppercase text-zinc-300 transition-all hover:text-white">
-                      Reset
-                    </button>
-                  </div>
-                </div>
+                <p className="mt-2 text-3xl sm:text-4xl font-black text-white">{resultStats.consistency}%</p>
+                <p className="mt-1 text-[11px] text-zinc-400">Rhythm stability score</p>
               </div>
-            </section>
-          </div>
 
-          <aside className="space-y-6">
-            <Panel title="Daily Challenge" icon={CalendarCheck}>
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
-                  <div className="flex items-center gap-3">
-                    <Flame className="text-amber-300" size={22} />
-                    <div>
-                      <p className="text-2xl font-black text-white">{streak.streak}</p>
-                      <p className="text-[10px] font-black uppercase text-amber-100/70">Day streak</p>
-                    </div>
-                  </div>
+              <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4 sm:p-5">
+                <div className="flex items-center justify-between text-purple-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Raw Keystrokes</span>
+                  <Keyboard size={18} />
                 </div>
-                <button
-                  onClick={() => handleThemeChange("daily")}
-                  className="w-full min-h-12 rounded-2xl bg-gradient-to-r from-amber-400 to-purple-500 text-white text-xs font-black uppercase shadow-[0_18px_40px_rgba(168,85,247,0.18)] transition-all hover:scale-[1.02] active:scale-95"
-                >
-                  Start Today&apos;s Drill
-                </button>
+                <p className="mt-2 text-3xl sm:text-4xl font-black text-white">{resultStats.rawWpm}</p>
+                <p className="mt-1 text-[11px] text-zinc-400">Raw typing velocity</p>
               </div>
-            </Panel>
+            </div>
 
-            <Panel title="Typing Heatmap" icon={BarChart3}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  {KEY_ROWS.map((row) => (
-                    <div key={row} className="flex justify-center gap-1.5">
-                      {row.split("").map((key) => {
-                        const count = heatmap[key] || 0;
-                        return (
-                          <div
-                            key={key}
-                            className={cn(
-                              "h-9 min-w-8 rounded-lg border border-white/10 flex items-center justify-center text-[10px] font-black uppercase",
-                              count === 0 && "bg-white/[0.03] text-zinc-600",
-                              count > 0 && count < 3 && "bg-amber-400/15 text-amber-200",
-                              count >= 3 && "bg-red-500/20 text-red-200 shadow-[0_0_18px_rgba(239,68,68,0.12)]"
-                            )}
-                          >
-                            {key}
-                          </div>
-                        );
-                      })}
+            {/* Improvement Insights Callout */}
+            {insights.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                  <Brain size={15} />
+                  <span>Personalized Typing Insights</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {insights.map((item, idx) => (
+                    <div key={idx} className="rounded-xl border border-white/5 bg-black/40 p-3.5 text-xs text-zinc-300 leading-relaxed font-medium">
+                      {item}
                     </div>
                   ))}
                 </div>
-                <div className="space-y-2">
-                  {topMistakes.length > 0 ? topMistakes.map(([key, count]) => (
-                    <div key={key} className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3 py-2 text-xs">
-                      <span className="font-black uppercase text-white">{key}</span>
-                      <span className="text-zinc-500 font-bold">{count} misses</span>
-                    </div>
-                  )) : (
-                    <p className="text-xs text-zinc-500 font-medium leading-relaxed">No errors yet. The heatmap wakes up as soon as mistakes appear.</p>
-                  )}
-                </div>
               </div>
-            </Panel>
+            )}
 
-            <Panel title="Leaderboard" icon={Trophy}>
-              <Leaderboard records={leaderboard.length ? leaderboard : GLOBAL_LEADERBOARD} local={leaderboard.length > 0} />
-            </Panel>
-          </aside>
+            {/* Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => resetTest(theme, mode)}
+                className="flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-xs font-bold text-black shadow-md hover:bg-emerald-400 transition-all active:scale-95"
+              >
+                <RefreshCw size={14} />
+                <span>Start Another Round</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={copySummary}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-zinc-200 hover:bg-white/10 transition-all"
+                >
+                  {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  <span>{copied ? "Score Copied!" : "Copy Result"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={downloadResultImage}
+                  className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all"
+                >
+                  <Award size={14} />
+                  <span>Share Card (PNG)</span>
+                </button>
+              </div>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* ==================================================================== */}
+      {/* 3. BALANCED POWER STATION: HEATMAP, STREAK & LOCAL BEST             */}
+      {/* ==================================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Left Column: Visual Keyboard Heatmap */}
+        <section className="rounded-3xl border border-emerald-500/20 bg-[#090d16]/90 p-6 shadow-xl backdrop-blur-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <Keyboard size={16} />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white">Visual Keystroke Heatmap</h4>
+                <p className="text-[10px] text-zinc-400">Error hotspots highlight keys with frequent misses</p>
+              </div>
+            </div>
+
+            <span className="text-[10px] font-bold text-zinc-500 uppercase">QWERTY Layout</span>
+          </div>
+
+          {/* Interactive Keyboard Matrix */}
+          <div className="space-y-1.5 pt-1">
+            {KEYBOARD_ROWS.map((row, rowIdx) => (
+              <div key={rowIdx} className="flex justify-center gap-1">
+                {row.map((key) => {
+                  const errorCount = heatmap[key] || 0;
+                  const hasErrors = errorCount > 0;
+                  return (
+                    <div
+                      key={key}
+                      className={cn(
+                        "h-8 min-w-[28px] sm:min-w-[34px] rounded-lg border flex items-center justify-center text-[10px] font-mono font-bold uppercase transition-all",
+                        !hasErrors && "border-white/5 bg-white/[0.03] text-zinc-400",
+                        hasErrors && errorCount === 1 && "border-amber-500/40 bg-amber-500/20 text-amber-200",
+                        hasErrors && errorCount >= 2 && "border-rose-500/50 bg-rose-500/25 text-rose-200 shadow-[0_0_12px_rgba(244,63,94,0.3)]"
+                      )}
+                      title={`Key: ${key.toUpperCase()} (${errorCount} errors)`}
+                    >
+                      {key}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* Top Misses Pill Summary */}
+          <div className="border-t border-white/5 pt-3">
+            {Object.keys(heatmap).length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Top Problem Keys:</span>
+                {Object.entries(heatmap)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([key, count]) => (
+                    <span
+                      key={key}
+                      className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[11px] font-bold text-rose-300 font-mono"
+                    >
+                      <span>{key.toUpperCase()}</span>
+                      <span className="text-[9px] opacity-75">({count}x)</span>
+                    </span>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-400 flex items-center gap-1.5 font-medium">
+                <CheckCircle2 size={13} className="text-emerald-400" />
+                <span>Zero key errors recorded in this current session. Keep it steady!</span>
+              </p>
+            )}
+          </div>
         </section>
 
-        <AnimatePresence>
-          {status === "finished" && (
-            <motion.section
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              className="rounded-[2rem] sm:rounded-[2.5rem] border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-5 sm:p-8 space-y-8"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-300/10 border border-emerald-300/20 px-3 py-1.5 text-[10px] font-black uppercase text-emerald-200">
-                    <CheckCircle2 size={13} />
-                    Test Complete
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-black text-white">Your Typing Report</h2>
-                  <p className="text-zinc-500 text-sm font-medium">AI-style coaching, result cards, heatmap, and shareable image are ready.</p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button onClick={copySummary} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-5 text-xs font-black uppercase text-zinc-200 flex items-center justify-center gap-2">
-                    <Share2 size={16} />
-                    {copied ? "Copied" : "Copy Result"}
-                  </button>
-                  <button onClick={downloadResultImage} className="min-h-12 rounded-2xl bg-gradient-to-r from-purple-500 to-cyan-400 px-5 text-xs font-black uppercase text-white flex items-center justify-center gap-2 shadow-[0_18px_50px_rgba(6,182,212,0.15)]">
-                    <Award size={16} />
-                    Share Image
-                  </button>
-                </div>
+        {/* Right Column: Daily Streak & Top Personal Bests */}
+        <section className="rounded-3xl border border-emerald-500/20 bg-[#090d16]/90 p-6 shadow-xl backdrop-blur-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <Flame size={16} />
               </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <ResultCard label="WPM" value={resultStats.wpm} icon={Gauge} />
-                <ResultCard label="Accuracy" value={`${resultStats.accuracy}%`} icon={Target} />
-                <ResultCard label="Consistency" value={`${resultStats.consistency}%`} icon={LineChart} />
-                <ResultCard label="Errors" value={resultStats.incorrectChars} icon={Zap} />
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white">Daily Streak & Best Scores</h4>
+                <p className="text-[10px] text-zinc-400">Build consistency with daily typing drills</p>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Panel title="Improvement Insights" icon={Brain}>
-                  <div className="space-y-3">
-                    {insights.map((item, index) => (
-                      <div key={item} className="flex gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-400/15 text-xs font-black text-purple-200">{index + 1}</div>
-                        <p className="text-sm text-zinc-300 leading-relaxed font-medium">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </Panel>
-                <Panel title="Local + Global Board" icon={Crown}>
-                  <Leaderboard records={[...(leaderboard.length ? leaderboard.slice(0, 4) : []), ...GLOBAL_LEADERBOARD].slice(0, 6)} local />
-                </Panel>
-              </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
-      </div>
-  );
-}
-
-function MetricCard({ icon: Icon, label, value, accent }: { icon: typeof Activity; label: string; value: string | number; accent: string }) {
-  return (
-    <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r last:border-r-0">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[10px] font-black uppercase text-zinc-500">{label}</p>
-          <p className="mt-1 text-3xl font-black text-white">{value}</p>
-        </div>
-        <Icon className={accent} size={24} />
-      </div>
-    </div>
-  );
-}
-
-function ResultCard({ icon: Icon, label, value }: { icon: typeof Activity; label: string; value: string | number }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-black/25 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]">
-      <Icon size={22} className="text-cyan-300" />
-      <p className="mt-5 text-[10px] font-black uppercase text-zinc-500">{label}</p>
-      <p className="mt-1 text-3xl sm:text-4xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function Panel({ title, icon: Icon, children }: { title: string; icon: typeof Activity; children: ReactNode }) {
-  return (
-    <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] backdrop-blur-2xl p-5 shadow-[0_20px_70px_rgba(0,0,0,0.22)]">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.05] border border-white/10">
-          <Icon size={18} className="text-cyan-300" />
-        </div>
-        <h3 className="text-sm font-black uppercase text-white">{title}</h3>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Leaderboard({ records, local }: { records: ResultRecord[]; local?: boolean }) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between text-[10px] font-black uppercase text-zinc-600">
-        <span>{local ? "Local board" : "Global preview"}</span>
-        <span>WPM</span>
-      </div>
-      {records.slice(0, 6).map((record, index) => (
-        <div key={`${record.id}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black",
-              index === 0 ? "bg-amber-300 text-black" : "bg-white/[0.06] text-zinc-400"
-            )}>
-              {index + 1}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase text-white truncate">{record.theme} / {record.mode === "endless" ? "Flow" : `${record.mode}s`}</p>
-              <p className="text-[10px] font-bold text-zinc-600">{record.accuracy}% acc • {record.consistency}% rhythm</p>
+
+            <div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-xs font-bold text-amber-300">
+              <Flame size={13} className="text-amber-400" />
+              <span>{streak.streak} Day Streak</span>
             </div>
           </div>
-          <p className="text-lg font-black text-cyan-200">{record.wpm}</p>
-        </div>
-      ))}
+
+          {/* Quick Streak Booster Button */}
+          <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-3.5">
+            <div className="space-y-0.5">
+              <p className="text-xs font-bold text-white">Daily Challenge Drill</p>
+              <p className="text-[10px] text-zinc-400">Complete today&apos;s focused paragraph to maintain your streak</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleThemeChange("daily")}
+              className="rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 px-3.5 py-1.5 text-xs font-bold text-black shadow-md hover:scale-105 transition-all"
+            >
+              Start Today&apos;s Drill
+            </button>
+          </div>
+
+          {/* Local Scoreboard */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-400 px-1">
+              <span>Recent Best Runs</span>
+              <span>Speed / Acc</span>
+            </div>
+
+            <div className="space-y-1.5">
+              {(leaderboard.length > 0 ? leaderboard.slice(0, 4) : GLOBAL_LEADERBOARD).map((rec, idx) => (
+                <div
+                  key={`${rec.id}-${idx}`}
+                  className="flex items-center justify-between rounded-xl border border-white/5 bg-black/40 px-3.5 py-2 text-xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={cn(
+                      "flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-black",
+                      idx === 0 ? "bg-amber-400 text-black" : "bg-white/10 text-zinc-300"
+                    )}>
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <p className="font-bold text-white capitalize">{rec.theme} ({rec.mode === "endless" ? "Flow" : `${rec.mode}s`})</p>
+                      <p className="text-[9px] text-zinc-500">{rec.date}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="font-mono text-sm font-black text-emerald-400">{rec.wpm} WPM</span>
+                    <span className="block text-[9px] text-zinc-500">{rec.accuracy}% acc</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 }

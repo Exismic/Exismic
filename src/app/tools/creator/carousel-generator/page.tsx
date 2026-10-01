@@ -12,8 +12,8 @@ export default function CarouselGeneratorPage() {
     <ToolPageShell
       toolId="carousel-generator"
       categoryId="creator"
-      customTitle="AI Social Carousel & Slide Deck Generator"
-      customDescription="Design multi-slide PDF carousels for LinkedIn and Instagram with custom themes, fonts, and instant ZIP export."
+      customTitle="AI Social Carousel Generator"
+      customDescription="Create multi-slide swipeable carousels for LinkedIn and Instagram with custom themes, clean typography, and instant PDF or ZIP export."
     >
       <CarouselGenerator />
     </ToolPageShell>

@@ -26,6 +26,7 @@ import type { Session } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 
 const FILTER_TABS = [
   { id: "all", label: "All Tools", icon: LayoutGrid, color: "text-purple-400" },
@@ -44,7 +45,36 @@ export default function ToolsLibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState(catParam || "all");
   const [session, setSession] = useState<Session | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const supabase = createClient();
+
+  useEffect(() => {
+    try {
+      const guest = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+      if (Array.isArray(guest) && guest.length > 0) {
+        setFavorites((prev) => Array.from(new Set([...prev, ...guest])));
+      }
+    } catch {}
+
+    const fetchFavorites = async () => {
+      try {
+        const response = await fetch('/api/user/favorites', { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.authenticated && Array.isArray(data.favorites)) {
+          setFavorites(data.favorites);
+        }
+      } catch {}
+    };
+    void fetchFavorites();
+
+    const handleFavoritesChanged = (event: Event) => {
+      const nextFavorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(nextFavorites)) setFavorites(nextFavorites);
+    };
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+  }, []);
 
   useEffect(() => {
     const cat = searchParams.get("cat");
@@ -322,7 +352,7 @@ export default function ToolsLibraryPage() {
           {filteredTools.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
               {filteredTools.map((tool, i) => (
-                <ToolCard key={tool.id} {...tool} index={i} />
+                <ToolCard key={tool.id} {...tool} index={i} initialFavorited={favorites.includes(tool.id)} />
               ))}
             </div>
           ) : (

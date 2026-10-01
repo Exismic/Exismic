@@ -1,3 +1,5 @@
+import { PRICING_CONFIG, isExismic17PromoActive } from "@/config/pricing";
+
 export type BillingPlanId = "free" | "starter" | "creator" | "pro" | "pro_yearly" | "ultimate";
 export type BillingMarket = "IN" | "GLOBAL";
 export type BillingGateway = "none" | "razorpay" | "paypal";
@@ -98,12 +100,38 @@ export function getBillingPlan(planId?: string | null) {
 export function getPlanPrice(planId: BillingPlanId, market: BillingMarket) {
   const plan = BILLING_PLANS[planId];
   const price = plan.prices[market];
+  let amount = price.amount;
+
+  if (isExismic17PromoActive()) {
+    if (planId === "pro") {
+      amount = market === "IN" 
+        ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR 
+        : PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD;
+    } else if (planId === "starter" || planId === "creator" || planId === "ultimate") {
+      const pack = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS[planId as keyof typeof PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS];
+      if (pack) {
+        amount = market === "IN" ? pack.INR : pack.USD;
+      }
+    }
+    // Pro Yearly planId === "pro_yearly": explicitly no discount added
+  }
+
+  const isDiscounted = amount < price.amount;
+
   return {
     plan,
     market,
-    ...price,
-    amountMinor: Math.round(price.amount * 100),
-    display: price.currency === "INR" ? `₹${price.amount}` : `$${price.amount}`,
+    currency: price.currency,
+    symbol: price.symbol,
+    gateway: price.gateway,
+    amount,
+    amountMinor: Math.round(amount * 100),
+    regularAmount: price.amount,
+    regularAmountMinor: Math.round(price.amount * 100),
+    isDiscounted,
+    discountPercent: isDiscounted ? 20 : 0,
+    display: price.currency === "INR" ? `₹${amount}` : `$${amount}`,
+    regularDisplay: price.currency === "INR" ? `₹${price.amount}` : `$${price.amount}`,
   };
 }
 

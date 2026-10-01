@@ -1,12 +1,635 @@
 # Exismic Studio — Master Project Continuation & Architecture Memory
 
-> **Last Updated**: September 27, 2026  
+> **Last Updated**: September 30, 2026  
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
 > **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors), Next.js 16 Production Build verified (`npm run build` = 0 errors). Performance & low-end/mobile architecture hardened. 100% human, tech-bro jargon-free copy across all landing page sections and modals.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
 > **Active Sprint Review Tracker**: [`NEXT_TO_REVIEW.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/NEXT_TO_REVIEW.md) (🎉 13 of 13 tools completed — 100% SPRINT COMPLETE; Tool #13 hidden from public catalogs per user directive).  
 > **Mandatory Tool Design & Copy Standards**: [`TOOL_STANDARDS_AND_GUIDELINES.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/TOOL_STANDARDS_AND_GUIDELINES.md) (Zero tech jargon, zero sparkles, balanced void-free layouts, and laser bridges).
+> **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
+
+### 0.0000000000000000000 🏷️ Exismic 1.7 Launch Special (20% OFF Pro Monthly & Credit Packs) [100% COMPLETED]
+* **Problems Addressed**:
+  - Exismic 1.7 release required a 1-week official 20% promotional discount across **Exismic Pro Monthly** and **Credit Packs** (Starter, Creator, Studio Power).
+  - Explicit constraint: **Zero additional discount on Yearly Pro** (retaining its standard ~28% annual savings).
+  - Explicit constraint: **Strictly block all custom user coupon codes** during this 1-week window because the discount is officially supplied directly by the platform.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Pricing Configuration (`src/config/pricing.ts`)**:
+    - Configured `V17_LAUNCH_PROMO` with active status, 1-week expiration (`2026-10-08T23:59:59Z`), and exact 20% price calculations:
+      - Pro Monthly: ₹399/mo (regular ₹499) / $5.59/mo (regular $6.99).
+      - Credit Packs: Starter at ₹239 / $3.19; Creator at ₹559 / $7.19; Studio Power at ₹1199 / $15.99.
+    - Exported `isExismic17PromoActive()` utility and redirected legacy `isLaunchPromoActive()` checks.
+  - **Billing & Order Engine (`src/lib/billing/plans.ts`, `create-order/route.ts`, `validate-coupon/route.ts`)**:
+    - `getPlanPrice()` automatically outputs 20% discounted amounts with `isDiscounted: true` and `discountPercent: 20` for eligible tiers when promo is active.
+    - `create-order/route.ts` rejects custom coupons with a 400 error while automatically attaching the 20% launch rate to eligible orders in Razorpay and PayPal. Yearly Pro remains at standard pricing.
+    - `validate-coupon/route.ts` permits the official `EXISMIC17` token while blocking all custom coupons.
+  - **Comprehensive UI Integration Across All Surfaces**:
+    - **Pro Studio (`/pro`)**: Pro Monthly card highlights 20% OFF badge, crossed-out regular price (₹499 / $6.99), and discounted rate (₹399 / $5.59). Yearly Pro remains untouched.
+    - **Home Plans Section (`ProSection.tsx`)**: Displays 20% OFF pill, crossed-out regular price, and updated action button copy.
+    - **Shop & Credit Modal (`/shop`, `BuyCreditsModal.tsx`)**: All 3 credit packs show 20% OFF badges, crossed-out regular prices, and discounted rates.
+    - **Payment Terms Modal (`PaymentTermsModal.tsx`)**: Auto-displays 20% OFF launch banner, locks custom coupon inputs, and informs users that custom codes are disabled during the official sale.
+    - **Upgrade Modal (`UpgradeModal.tsx`)**: Test payment minimum amounts and pricing label updated to ₹399 / $5.59.
+    - **Product Changelog (`/changelog`, `changelog/page.tsx`)**: Published official Exismic v1.7 release notes (*"Brand New Homepage, Fresh Sign-In & Complete Tool Refresh"*) capturing the redesigned homepage, fresh distraction-free sign-in, updated look across all tools, instant starter blueprints, dozens of new creative tools, 20% launch celebration, speed improvements, and "And Much More" polish in clean, natural English.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.000000000000000000 🔮 Minimalist Resend-Style Auth Studio & React Bits Silk WebGL Shader (`/auth/login`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous `/auth/login` page was a bloated 2-column split-screen layout with an overwhelming marketing feature checklist, generic CSS blurred gradient blobs, and visual clutter.
+  - The user requested a minimalist, focused, "simple but dope" authentication experience inspired by Resend (`resend.com/signup`) with a flowing purple silk shader background.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Custom Silk WebGL Component ([`SilkBackground.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/ui/SilkBackground.tsx))**:
+    - Built a high-performance, zero-external-dependency WebGL canvas implementing the official React Bits Silk fragment shader algorithm.
+    - Mathematical sine wave folding, directional specular lighting, coordinate rotation, and organic micro-film grain.
+    - Configured with Exismic's signature electric royal purple (`#5227FF`), smooth 1.2 speed, and a centered elliptical black vignette (`radial-gradient`) ensuring the center stays deep obsidian black for 100% text/form legibility.
+    - Automatic DPR scaling (capped at 2 for 60-120fps on retina screens), visibility pause on tab switch to preserve battery/GPU, and graceful CSS gradient fallback if WebGL is unavailable.
+  - **Centered Resend-Style Architecture ([`page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx))**:
+    - Replaced the split-screen layout with a single, perfectly balanced, centered column (`max-w-[400px]`) floating seamlessly over the silk void.
+    - Discrete top-left `< Home` anchor pill.
+    - Centered squircle `ExismicMark` badge with ambient specular glow.
+    - High-density typography using `Outfit` (`font-outfit`) for titles and quick toggle links (*"Already have an account? Log in."* / *"Don't have an account? Sign up."*).
+    - Side-by-side dual social auth dock (`[ Google ]` & `[ GitHub ]`) in tactile dark glass (`bg-white/[0.04] border border-white/10`).
+    - Hairline `or` divider and minimalist dark inputs with focus border transitions.
+    - High-contrast Resend-style primary button (`bg-white text-zinc-950 hover:bg-zinc-200`) with smooth active scale.
+  - **100% Security & Business Logic Preserved**:
+    - Maintained full compatibility with Supabase OAuth, email/password signup, email OTP verification, new device authorization challenges, magic link phone push approvals, OAuth identity linking, and 7-day account deletion recovery.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.00000000000000000 📜 Platform & Legal Pages Complete Overhaul (Changelog, Privacy, Terms, Cookies) [100% COMPLETED]
+* **Problems Addressed**:
+  - Legacy pages suffered from bloated 9xl display headers, raw monotone tables, zero animations, repetitive filler stat cards, and severe text/chip cut-offs caused by rigid `overflow-x-auto`.
+  - Prohibited sparkle icons (`<Sparkles>`) were present on badges and action buttons.
+  - Complex legal and engineering jargon cluttered user-facing policies (*sub-processors, AST, WASM, DSP, statutory withdrawal, token deduction*).
+  - Unbalanced desktop layouts: Terms of Service had an awkward sticky sidebar leaving an 80% dead black void on the left.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Changelog Studio (`/changelog`)**:
+    - Replaced 400px bloated hero with a compact obsidian header and live keyword filter.
+    - Added quick version jump pills (`v1.6.5`, `v1.6`, `v1.5`, etc.) with smooth scroll.
+    - Fixed chip cut-offs with responsive `flex-wrap` and reduced category filter tags to single concise words (`All`, `Features`, `Design`, `Fixes`, `Safety`, `Speed`).
+    - High-density release cards with context-specific Lucide icons and electric purple/cyan laser divider.
+  - **Privacy Policy Studio (`/privacy-policy`)**:
+    - Purged 11 bloated cards down to a high-density 4-guarantee bento dock (`Zero Data Selling`, `No Model Training`, `Local-First Storage`, `End-to-End Encryption`).
+    - Added floating ambient light spheres, quick-jump nav pills, and interactive micro-check glass strips with `whileHover={{ x: 4 }}` feedback.
+    - 100% plain, human English with zero legal jargon.
+  - **Terms of Service Studio (`/terms-of-service`)**:
+    - Eliminated the asymmetrical left-side void by creating a balanced, full-width 2-column grid (`grid grid-cols-1 md:grid-cols-2`).
+    - Unique cyber purple styling with numbered jewel badges (`01`–`08`), top 3-guarantee dock, and dedicated **"In Plain English"** takeaway banners in every clause.
+  - **Cookie Policy Studio (`/cookies`)**:
+    - Interactive preference launchpad connected directly to `openCookiePreferences()`.
+    - 3-column storage category bento (Essential, Speed & Performance, Workspace Settings).
+    - Structured 2×2 cookie inventory cards with duration, provider, and exact purpose.
+    - Plain-English FAQ section and category-reactive amber laser horizon divider (`#f59e0b`).
+  - **Typography Polish**:
+    - Applied Google Fonts `Outfit` (`font-outfit`) across all primary headlines (`h1`, `h2`), numbered badges, and key metric cards across all 4 pages for an ultra-premium SaaS look, while retaining `Inter` for clean body legibility.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.0000000000000000 🚀 Cyber Aesthetics Footer Overhaul & Tool Favorite Fix [100% COMPLETED]
+* **Problems Addressed**:
+  - Clicking the Star/Favorite button on tool cards triggered an infinite top loading line in `AppLoader.tsx` due to nested `<Link>` and `<button>` event propagation.
+  - The previous footer suffered from empty black voids, visual clutter, tech jargon, and low contrast.
+  - The "Support" link in the bottom-right was partially obscured behind the floating Exismic AI helper widget.
+  - The top CTA button lacked the signature 360° circling laser border beam.
+* **Full Solutions Implemented**:
+  - **Tool Favorite & AppLoader Fix**: Separated `<button>` from the `<Link>` overlay in `ToolCard.tsx`, added button/input exclusion checks in `AppLoader.tsx`, and added an automatic 3.5s navigation failsafe.
+  - **Footer Cyber Aesthetics Overhaul (`Footer.tsx`)**:
+    - Cleaned clutter: removed all tag badges (`[EDITOR]`, `[30%]`, etc.) from links, leaving clean, bold typography (`text-[14px] font-bold text-zinc-200`) with smooth category-reactive color hover glows.
+    - Added authentic category icons (`<LayoutGrid>`, `<Boxes>`, `<Compass>`, `<ShieldCheck>`) with matching colored drop-shadows and 2px gradient accent underlines.
+    - Zero tech jargon: replaced `"NEXT-GEN WORKSPACE"` with `"All-in-One Creative Studio"` and removed unnecessary `[Studio]` badge.
+    - Radiant **`ALL SYSTEMS ACTIVE`** status pill with pulsing emerald double-radar dot.
+    - Fixed AI Helper collision: added `sm:pr-28 lg:pr-32` and `pb-16 sm:pb-8` to ensure the "Support" link has plenty of clearance from the floating bottom-right helper.
+    - **Authentic 360° Circling Laser Border Beam**: Implemented the dual-layer conic gradient laser beam and neon bloom glow with `animate-[spin_3.5s_linear_infinite]` around the CTA capsule button.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.000000000000000 ⛏️ Image Suite Overhaul — AI Minecraft Skin Maker Studio (`/tools/image/minecraft-skin`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout was tightly squeezed into an unbalanced vertical stack (`xl:grid-cols-[minmax(320px,0.82fr)_minmax(0,1.18fr)]`), cramping the left crafting panel with 8 stacked mini-boxes and tiny text inputs.
+  - Violated `TOOL_STANDARDS_AND_GUIDELINES.md`:
+    - Generic `<Sparkles>` and `<Wand2>` icons rendered in prompt textarea, buttons, empty states, and modals.
+    - Double-icon emojis scattered across style options, eye aesthetics, animation selectors, and studio lighting options.
+    - Engineering buzzwords ("UV-safe output", "compiled into a valid game-ready texture", "pixel treatment").
+  - Lack of instant curated character blueprints on initial view; visitors landed on a generic starter Steve without pre-populated inspiration.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Spacious 12-Column Obsidian Cyber Studio Architecture**:
+    - Replaced the cramped 320px column with a spacious 12-column layout (`xl:col-span-5` for craft console and `xl:col-span-7` for 3D stage and results), generous padding (`p-6 sm:p-8 lg:p-10`), and deep obsidian glass panels (`bg-[#080b14]/90 border border-white/[0.08]`).
+  - **Instant 1-Click Blueprints Gallery (Standard 3: Zero Dead Void)**:
+    - 6 handcrafted character blueprints (*Cyber Samurai*, *Frost Knight*, *Astral Wizard*, *Cottagecore Alchemist*, *Shadow Shinobi*, and *Steampunk Aviator*) with high-concept prompts, custom palettes, arm models, and instant client-side canvas compilation.
+    - Preloaded Blueprint #1 (*Cyber Samurai*) on mount so visitors immediately see a live, spinning 3D character with full details, traits, and palette swatches.
+  - **Zero Sparkle & Plain English Policy (Standards 1 & 2)**:
+    - Completely eradicated all `<Sparkles>` and `<Wand2>` icons; replaced with authentic Lucide vector icons (`<Scale>`, `<SlidersHorizontal>`, `<Flame>`, `<Paintbrush>`, `<Feather>`, `<Eye>`, `<Square>`, `<Zap>`, `<CircleDot>`, `<Glasses>`, `<ScanFace>`, `<Box>`, `<LayoutGrid>`).
+    - Purged all emojis from buttons, styles, and animation menus.
+    - Transformed copy into natural everyday English ("Java & Bedrock Ready", "Body Silhouette", "Visual Art Style", "Describe Your Character").
+  - **Spacious High-End 3D Viewport**:
+    - Expanded 3D studio viewer height to `h-[500px] sm:h-[580px] xl:h-[640px]` with interactive pose selector, studio lighting modes, 3D PNG snapshot export, and outer voxel layer toggle.
+  - **Interactive Palette Swatches & Retention Engine**:
+    - Result card features interactive color dots with 1-click hex copy (`Copied!`) and integrated `ResultRetentionBar` for cloud vault saves.
+  - **Category-Reactive Laser Horizon Divider (Standard 3)**:
+    - Dedicated single bridge: Relies on `ToolSeoSection.tsx`'s built-in Anamorphic Neon Horizon Divider (`theme.primaryHex = "#06b6d4"`), removing the duplicate `<ToolLaserDivider>` from `MinecraftSkinMaker.tsx` to ensure exactly one sleek cyber laser line spans across the page.
+  - **Zero Ellipsis Truncation (Standard 3, Rule 4)**:
+    - Completely resolved "half words" bug (`Full Ch...`, `Head ...`, `Torso ...`, etc.) in Target Body Part selector: streamlined labels to concise terms (`Full Skin`, `Head`, `Torso`, `Arms`, `Legs`), applied `whitespace-nowrap`, eliminated `truncate`, and upgraded grid layout to `grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2`. Also cleaned eye/mouth option labels.
+  - **Redis Client Hardening (Zero Terminal Error Spam)**:
+    - Hardened `src/lib/redis.ts` and `src/lib/queue/client.ts` with `retryStrategy: () => null` and graceful fallback handlers. When a local Redis server is not running on port 6379, it cleanly logs a single notice and falls back to Supabase and in-memory caches without infinite reconnection spam.
+  - **Custom Beta Preview & Feedback Modal ([`MinecraftBetaModal.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/tool/MinecraftBetaModal.tsx))**:
+    - Cyber-styled obsidian glass dialog with ambient cyan glow flare, `BETA PREVIEW` animated badge, and friendly plain-English message explaining that the tool is in active Beta and some features might not behave as expected.
+    - Includes an optional feedback textarea with dedicated non-blocking backend endpoint ([`route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/tools/beta-feedback/route.ts)).
+    - Permanent dismissal: User must click "Proceed to Studio" (or "Submit & Proceed to Studio"). Dismissal is saved to `localStorage` (`exismic_minecraft_skin_beta_dismissed_v1`), ensuring the modal is never displayed again.
+  - **Continuous Dynamic Progress Bar (Standard 4)**:
+    - High-frequency 180ms asymptotic progress ticker (0% -> 96% -> 100%) advancing through clear plain English stages with exact percentage numbers.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.00000000000000 🎓 Complete Student & Study Tools Suite Overhaul (9 of 9 Tools + Unit Converter Studio) [100% COMPLETED]
+* **Problems Addressed**:
+  - Inconsistent palette: `CATEGORY_ANIM_STYLES.student` blended amber with discordant fuchsia/purple/indigo, causing headers, badges, and card borders across student tools to flash purple.
+  - Unit Converter had a harsh thick bold gradient line on top (`h-1.5 bg-gradient...`), an overflowing 1-row scrollbar dock cutting off category names, and popovers with text bleed-through.
+  - Prohibited sparkle icons (`<Sparkles>`, `<Wand2>`) and tech jargon were present in student tools.
+  - Mismatched button colors: Several student tools used purple/indigo gradient buttons instead of the official Academic Amber Gold palette (`#fbbf24` / `#f59e0b` / `amber-400`).
+* **Full Architecture & UX Solutions Implemented**:
+  - **Category Color Accuracy (Academic Amber Gold `#fbbf24` / `#f59e0b` / `amber-400`)**:
+    - Overhauled `CATEGORY_ANIM_STYLES.student` in `src/lib/category-styles.ts` to pure Academic Amber Gold (`aura: bg-amber-500/25`, `iconGlow: text-amber-300`, `buttonGrad: from-amber-400 via-amber-300 to-yellow-500 text-amber-950`, `textGrad: from #fde68a to #fbbf24`, `cardBorder: border-amber-400/80`, `badge: bg-amber-400/15`).
+    - Aligned all 9 student tools and `ToolSeoSection` to pure Academic Amber Gold with category-reactive laser horizon divider (`theme.primaryHex = "#fbbf24"`).
+  - **Zero Sparkle & Plain English Policy (Standards 1 & 2)**:
+    - Purged `<Sparkles>`, `<Sparkle>`, and `<Wand2>` across all 9 tools and student pages, replacing them with authentic Lucide vector icons (`<BookOpen>`, `<Layers>`, `<Quote>`, `<Calculator>`, `<BrainCircuit>`, `<Network>`, `<ListTree>`, `<CopyCheck>`, `<Gauge>`, `<Scale>`).
+    - Purged engineering tech jargon ("Native PDF OCR Parsing" -> "Automatic Text Reader").
+  - **Eliminated Thick Bold Top Lines & Ghosting (User Feedback)**:
+    - Removed harsh top gradient stripes (`h-1.5 bg-gradient...`).
+    - Replaced overflowing 1-row dock in Unit Converter with a clean, responsive 2×5 grid (`grid-cols-2 sm:grid-cols-3 md:grid-cols-5`).
+    - Made dropdown popovers 100% solid (`bg-[#0b0e17]`) to eliminate text bleed-through.
+  - **All 9 Tools in Suite Overhauled**:
+    1. **Unit Converter Studio (`/tools/productivity/productivity-units`)**: 10 unit categories (Length, Weight, Temperature, Volume, Area, Speed, Time, Storage, Energy, Pressure), live breakdown table, formula explanations, real-world intuition comparisons, 8 quick presets, precision selector, history drawer.
+    2. **PDF to AI Study Notes (`/tools/pdf-to-notes`)**: Academic Amber Gold gradient button, clean text extractor badges, dual mode (PDF upload & direct text paste), structured study guide output, `.md` & print export, ResultRetentionBar.
+    3. **AI Flashcard Generator (`/tools/flashcard-generator`)**: 6 popular study blueprints, 3D animated flip viewer, keyboard shortcuts (Space/Enter/Arrows), mastery counter, shuffle & active recall progress, ResultRetentionBar.
+    4. **Academic Citation Generator (`/tools/citation-generator`)**: APA 7, MLA 9, Chicago 17, and Harvard formats; journal, book, website, article source types; 3 instant sample presets; in-text & bibliographic entries; BibTeX & HTML toggles; ResultRetentionBar.
+    5. **AI Step-by-Step Math Solver (`/tools/math-solver`)**: Quick, Detailed, and Mastery proof levels; 5 subject presets; quick math notation keyboard; step-by-step factoring & derivative derivations; ResultRetentionBar.
+    6. **Notes to Mind Map Studio (`/tools/student/mind-map`)**: Interactive SVG canvas, node expand/collapse, Academic Amber Gold UI chrome, high-res PNG & vector SVG downloads, ResultRetentionBar.
+    7. **AI Essay & Thesis Outline Builder (`/tools/student/essay-outline-builder`)**: Structured essay frameworks, thesis statement generator, topic sentences, Academic Amber Gold buttons, ResultRetentionBar.
+    8. **Text Similarity & Plagiarism Diff Checker (`/tools/student/plagiarism-checker`)**: Side-by-side split & unified comparison, verbatim copy detection, paraphrased matching, overlap percentage meter, ResultRetentionBar.
+    9. **Text Readability & Grade Level Assessor (`/tools/student/readability-assessor`)**: Flesch-Kincaid Grade Level, Flesch Reading Ease score, Gunning Fog index, sentence simplifier tabs, Academic Amber Gold theme, ResultRetentionBar.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors across the entire repository.
+
+### 0.00000000000000 🌐 Complete SEO Tools Suite Overhaul (10 of 10 Tools) [100% COMPLETED]
+* **Problems Addressed**:
+  - SEO tools had inconsistent ad-hoc styles: green glows in `CATEGORY_ANIM_STYLES.seo`, purple gradient sparkle buttons (`bg-gradient-to-r from-purple-500`), empty input fields on mount, and zero preloaded blueprints.
+  - Legacy components (`CanonicalGenerator`, `OgPreviewer`, `SerpSimulator`) lacked modern design systems, export bars, or proper Google SERP / social network simulation.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Category Color Accuracy (Electric Cyan `#06b6d4` / Sky Teal `#0284c7`)**:
+    - Fixed `CATEGORY_ANIM_STYLES.seo` in `src/lib/category-styles.ts` to pure Electric Cyan (`aura: bg-cyan-500/25`, `iconGlow: text-cyan-300`, `buttonGrad: from-cyan-400 via-teal-400 to-blue-500 text-black`, `textGrad: from #22d3ee to #0284c7`).
+    - Every tool in the suite strictly adheres to Electric Cyan styling.
+  - **Zero Sparkle & Plain English Policy (Standards 1 & 2)**:
+    - Completely purged `<Sparkles>` and `<Wand2>` across all 10 tools, replacing them with authentic vector icons (`<FileSearch>`, `<AlignLeft>`, `<Lock>`, `<Network>`, `<PieChart>`, `<Code2>`, `<Link2>`, `<Share2>`, `<Eye>`, `<ImageIcon>`).
+    - Purged tech jargon in favor of plain everyday English.
+  - **Zero Dead Void Policy (Standard 3)**:
+    - Preloaded each tool with 5–6 instant commercial blueprints on mount so inputs and outputs are 100% populated immediately upon visiting.
+  - **Continuous Dynamic Progress Bar (Standard 4)**:
+    - On generation tools (`meta-title-generator`, `meta-description-generator`), implemented smooth asymptotic tickers (0% -> 96% -> 100%) advancing through clear plain English stages.
+  - **All 10 SEO Tools Overhauled**:
+    1. **Meta Title Generator (`/tools/meta-title-generator`)**: Desktop & mobile live Google SERP simulator, 60-character & 580px width gauge, 6 blueprints, ResultRetentionBar.
+    2. **Meta Description Generator (`/tools/meta-description-generator`)**: Live 155-160 character gauge, desktop & mobile snippet preview, 6 blueprints, quick CTA chips, ResultRetentionBar.
+    3. **Keyword Density Checker (`/tools/keyword-density-checker`)**: 1-word, 2-word, 3-word phrase frequency tables, keyword stuffing detection (>3.5%), stop-word filter, 6 content blueprints, ResultRetentionBar.
+    4. **Robots.txt Generator (`/tools/robots-txt-generator`)**: 6 crawler blueprints (Next.js, WordPress, E-Commerce, AI Scraper Block, Staging Disallow, Open Access), rule manager, checklist validation, `.txt` export, ResultRetentionBar.
+    5. **XML Sitemap Generator (`/tools/sitemap-generator`)**: 6 sitemap blueprints, quick route adders, priority & changefreq controls, ISO-8601 `lastmod`, `.xml` export, ResultRetentionBar.
+    6. **Schema Markup Generator (`/tools/schema-markup-generator`)**: 5 schema blueprints (FAQPage, Product, Article, LocalBusiness, Organization), rich snippet eligibility badges, `.json` export, ResultRetentionBar.
+    7. **Canonical & Hreflang Tag Generator (`/tools/seo/canonical-generator`)**: 6 international blueprints, URL sanitization engine (trailing slash, HTTPS, strip UTM), hreflang manager (US, UK, ES, FR, DE, JA, x-default), ResultRetentionBar.
+    8. **Open Graph (OG) Social Link Previewer (`/tools/seo/og-previewer`)**: 6 social blueprints, live simulators for Twitter / X Summary Large Image, LinkedIn, Facebook, Discord, aspect ratio validator, `.html` export, ResultRetentionBar.
+    9. **Google SERP Snippet Simulator (`/tools/seo/serp-simulator`)**: 6 search blueprints, live Desktop & Mobile Google search preview, Light & Dark Google theme toggle, star rating rich snippets, ResultRetentionBar.
+    10. **Social Share Banner Studio (OG Maker) (`/tools/seo/og-banner`)**: 5 layout templates, 8 glowing cyber themes, verification badges, live simulators, ResultRetentionBar.
+  - **Laser Horizon Bridge & Information Architecture**:
+    - Every tool page includes the category-reactive laser horizon divider (`theme.primaryHex = "#0284c7"`).
+    - Enriched all 10 tools in `src/data/tools.ts` with deep Helpful Content Guide fields (`howToSteps`, `features`, `faqs`, `useCases`, `limitations`, `examples`, `terminology`, `updatedAt`).
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors across the entire codebase.
+
+### 0.00000000000000 💼 Business & Finance Suite Overhaul — CTC to In-Hand Salary Calculator Studio (`/tools/salary-calculator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout featured only 1 raw input ("Total Annual CTC Package") and a big empty black void.
+  - The hero result card used emerald green gradients and text (`text-emerald-400`, `from-emerald-950/60`, `border-emerald-500/30`), clashing with the official Business & Finance suite Warm Orange palette (`#f97316`).
+  - No salary blueprints, no New vs Old Tax Regime comparison toggle, no Section 80C/80D/HRA controls, no EPF cap toggle, and no payslip ledger.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Category Color Accuracy (Warm Orange `#f97316`)**: Purged all emerald green styling, styling all cards, focus borders, buttons, and telemetry with the official warm orange `#f97316` and amber palette.
+  - **Instant 1-Click Career Blueprints (Standard 3: Zero Dead Void)**: 6 realistic career packages (12 LPA Mid SDE, 25 LPA Senior SDE, 45 LPA Staff Architect, 6 LPA Entry Fresher, 8.5 LPA Growth Marketer, 18 LPA Product Manager). Preloaded with Blueprint #1 on initial view.
+  - **Budget 2024-25 Revised Slabs & Dual Tax Regime Engine**:
+    - **New Tax Regime**: Includes revised ₹75,000 standard deduction and Section 87A rebate (zero tax up to ₹7.75 Lakhs CTC).
+    - **Old Tax Regime**: Supports Section 80C investments, 80D health insurance, and HRA exemptions.
+    - **Dynamic Tax Savings Comparison Banner**: Automatically calculates which regime saves more money and provides an exact dollar/rupee annual savings figure.
+  - **Statutory EPF Options**: Toggle between statutory standard cap (₹1,800/mo) and full 12% of basic salary.
+  - **Visual CTC Allocation Waterfall**: Proportional progress bar showing Net Take-Home Pay % (orange), EPF Retirement Savings % (amber), and Government Tax % (zinc).
+  - **Itemized Monthly Payslip Ledger**: Detailed breakdown into Basic Salary (50%), HRA (20%), Special Allowance, EPF, Professional Tax, TDS Deduction, and final In-Hand Pay.
+  - **Retention & Export Engine**: Integrated `ResultRetentionBar` with 1-click clipboard summary copy and formatted `.txt` payslip download.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.00000000000000 🏦 Business & Finance Suite Overhaul — Loan EMI Calculator Studio (`/tools/emi-calculator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout had an empty 3-input form with blue accent borders (`focus:border-blue-500`), blue gradient cards, and a giant black empty void.
+  - No loan presets/blueprints, no prepayment simulator, no year-by-year amortization schedule, and no currency switcher.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Category Color Accuracy (Warm Orange `#f97316`)**: Completely purged blue accent borders and buttons, transitioning to warm orange `#f97316` with amber telemetry badges and glowing hero cards.
+  - **Instant 1-Click Loan Blueprints (Standard 3: Zero Dead Void)**: 6 real-world loan scenarios (Residential Home Loan, Sedan/EV Car Loan, Personal & Home Reno Loan, Higher Education Tuition Loan, Business Machinery Loan, and Two-Wheeler Commuter Loan). Preloaded with Blueprint #1 on initial mount.
+  - **Multi-Currency Support**: 1-tap currency switcher for INR (₹), USD ($), EUR (€), GBP (£), CAD (CA$), and AUD (AU$).
+  - **Prepayment & Early Payoff Simulator**: Interactive accordion allowing borrowers to simulate extra monthly contributions, calculating exact total interest saved and total years/months shaved off debt.
+  - **Payment Proportion Waterfall Bar**: Visual progress bar comparing borrowed Principal % (zinc) against Total Interest Payable % (vibrant orange).
+  - **Interactive Year-by-Year Amortization Schedule**: Complete expandable table detailing opening balance, principal paid, interest paid, closing balance, and percentage repaid per year.
+  - **Retention & Export Engine**: Integrated `ResultRetentionBar` with 1-click clipboard summary copy and downloadable `.txt` loan amortization schedule.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.0000000000000 📈 Business & Finance Suite Overhaul — Profit Margin & Markup Calculator Studio (`/tools/profit-margin-calculator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout had an empty, barebones 3-input form with a giant empty space and no presets or scenarios.
+  - The title and header gradient incorrectly inherited emerald green tones (`CATEGORY_ANIM_STYLES.business` had green in its gradient), contradicting the user's explicit directive to use the exact Business & Finance category color (`#f97316` Warm Orange / Amber).
+  - Green focus rings (`focus:border-emerald-500`) and green gross margin percentage text clashed with the Business & Finance suite.
+  - Absence of multi-currency options, lack of a target price calculator (reverse margin calculation), no visual proportion/waterfall breakdown, no break-even estimation, and no retention/export capabilities.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Category Color Accuracy (Warm Orange `#f97316`)**: Aligned all buttons, borders, glowing badges, active pills, sliders, and summary cards with the official Business & Finance suite color scheme (`#f97316` / `#ff9933`). Fixed `CATEGORY_ANIM_STYLES.business` in `src/lib/category-styles.ts` so header title, aura, and icons render in radiant warm orange and amber gradients (`#fdba74` -> `#ffffff` -> `#f97316` -> `#ea580c`) with zero misplaced green.
+  - **Instant 1-Click Blueprints Gallery (Standard 3: Zero Dead Void)**: 6 curated commercial business scenarios (E-commerce DTC Brand, SaaS & Digital App, Bakery & Coffee Shop, Wholesale Supply, Consulting & Agency, and Electronics Hardware). Preloaded with Blueprint #1 on initial view.
+  - **Dual Studio Operation Modes**:
+    - **Margin & Markup Analyzer**: Enter unit cost, retail price, and optional per-sale overhead to instantly evaluate Gross Profit, Gross Margin %, Markup rate, Markup multiplier, and Net Cash Profit.
+    - **Target Price Calculator**: Input unit cost, per-sale expenses, and desired profit margin (slider from 5% to 90% or quick chips like 20%, 30%, 40%, 50%, 60%, 75%) to immediately discover the required selling price, dollar profit, and needed markup rate. Includes 1-click "Use Price in Analyzer" transfer.
+  - **Multi-Currency Support**: Instant 1-tap currency switcher supporting USD ($), INR (₹), EUR (€), GBP (£), CAD (CA$), AUD (AU$), and JPY (¥).
+  - **Visual Revenue Waterfall Breakdown**: Multi-segment proportional bar comparing Direct Unit Cost % (zinc), Overhead & Delivery % (amber), and Retained Net Profit % (orange) with matching legend tiles and exact cash values.
+  - **Quick Price Sensitivity Experimentation**: Interactive 1-tap price adjusters (`+5%`, `+10%`, `+25%`), psychological `.99` charm price rounder, and clean `.00` integer rounding.
+  - **Detailed Financial Ledger Table**: Full accounting card detailing Customer Selling Price, Direct Unit Cost (COGS), Gross Profit, Overhead Expenses, and Net Retained Cash Profit.
+  - **Retention & Export Engine**: Integrated `ResultRetentionBar` with 1-click clipboard summary copy and formatted `.txt` financial price sheet download.
+  - **Laser Horizon Bridge & Rich SEO Section**: Category-reactive orange laser horizon divider bridging into comprehensive SEO guides, how-to steps, FAQs, use cases, limitations, and terminology in `src/data/tools.ts`.
+  - **Zero Sparkle & Tech Jargon Policy**: Strictly authentic Lucide vector icons (`<TrendingUp>`, `<Scale>`, `<Percent>`, `<Receipt>`, `<PieChart>`), zero `<Sparkles>`, zero tech jargon, and harmonious `#f97316` warm orange theming throughout.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.000000000000 💰 Business & Finance Suite Overhaul — GST Calculator Studio (India) (`/tools/gst-calculator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The tool previously used mismatched emerald green styles (`#10b981`), completely ignoring its actual parent category (`business`, which is assigned Warm Orange / Amber `#f97316`).
+  - Plain, basic two-column layout with zero pre-loaded real-world scenarios or blueprints.
+  - Missing visual ratio meters and no quick amount presets.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Category Color Accuracy (Warm Orange `#f97316`)**: Fully aligned all buttons, sliders, active chips, and summary cards with the official Business & Finance suite color scheme (`#f97316` / `#ff9933`), matching the sidebar category perfectly.
+  - **Instant 1-Click Blueprints Gallery (Standard 3: Zero Dead Void)**: 6 curated, real-world Indian commercial tax scenarios (Freelance IT Consulting at 18%, Restaurant Dining at 5%, Electronics & Gadgets at 18% Inter-State, Packaged Grocery Foods at 12%, Luxury Automobiles at 28%, and Essential Fresh Groceries at 0% Exempt). Preloaded with Blueprint #1 on initial view.
+  - **Visual Tax Composition Meter**: Dynamic proportional horizontal bar comparing Net Base Price % against Total Government Tax % with live percentage readouts.
+  - **Dual Calculation Method Switcher**: Seamless toggle between GST Exclusive (+ Tax added to base) and GST Inclusive (Tax backed out of retail total).
+  - **Official Tax Slab Matrix & Custom Rate Support**: 1-click selectors for all 5 official Indian GST slabs (0%, 5%, 12%, 18%, 28%) plus a dedicated Custom % input for specialized cess or international VAT rates.
+  - **Intra-State vs Inter-State Supply Routing**: Automatically computes Central GST (CGST 50%) + State GST (SGST 50%) for intra-state transactions, or Integrated GST (IGST 100%) for interstate trade.
+  - **Quick Amount Presets**: Convenient 1-tap buttons for common billing values: ₹1,000, ₹5,000, ₹10,000, ₹25,000, ₹50,000, and ₹1,00,000.
+  - **Itemized Tax Ledger & Total Box**: Formal invoice-style breakdown card with Net Base Amount, tax breakdown rows, total tax amount, and a glowing Final Gross Amount payable box.
+  - **Retention & Export Engine**: Integrated `ResultRetentionBar` with 1-click clipboard summary copy and formatted `.txt` tax receipt downloads.
+  - **Zero Sparkle & Tech Jargon Policy**: Strictly authentic Lucide vector icons (`<IndianRupee>`, `<Calculator>`, `<Receipt>`, `<Percent>`, `<Scale>`), zero `<Sparkles>`, and plain everyday English throughout.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.00000000000 ✉️ Productivity Suite Overhaul — Cover Letter Generator Studio (`/tools/cover-letter-generator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout started with empty inputs and a giant empty black void on the right column with a generic placeholder icon.
+  - Prohibited purple-to-cyan gradient buttons, purple focus rings, and clashing colors fighting against the parent Productivity category (`#10b981` Emerald).
+  - Lack of instant starter examples, absence of tone selection, absence of letter format choices, and no telemetry score.
+  - Plain unformatted text output with zero formal letterhead styling, no in-place editing, and no formal export options.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Flagship Productivity Emerald Cyber Studio (`#10b981`, `border border-white/10`)**: Harmonized all focus rings, cards, action buttons, and telemetry to the Productivity Emerald theme.
+  - **Instant 1-Click Blueprints Gallery (Standard 3: Zero Dead Void)**: 6 curated, real-world career applications (Senior Full-Stack Engineer at Stripe, Lead Product Designer at Airbnb, Senior Product Manager at Linear, Head of Growth Marketing at Notion, Senior AI Specialist at Anthropic, Operations & Executive Director at Flexport). Preloaded with Blueprint #1 on initial view so visitors immediately see a rich, full-length formal letter preview.
+  - **Live Formal Letterhead Sheet View**: Pinned realistic printable document stage with official business date, candidate address, company info, and formal subject line (`RE: Application for [Role] — [Name]`).
+  - **Custom Obsidian Cyber Dropdowns (`StudioDropdown`)**: Zero-truncation, left-aligned glassmorphic dropdowns for Tone & Style (Confident, Professional Executive, Enthusiastic, Concise 1-Page) and Letter Format/Length (Standard Full, Short & Punchy, Executive High-Yield).
+  - **In-Place Document Editing Mode**: Direct inline editing toggle (`<PenTool />`) allowing users to customize words, company anecdotes, or paragraphs directly on the live document.
+  - **Continuous Dynamic Progress Bar (Standard 4 Compliance)**: Asymptotic smooth progress ticker (0% -> 96% -> 100%) advancing through clear everyday English stages with live percentage and elapsed seconds.
+  - **Telemetry HUD**: Real-time measurement of hiring match strength (`{score}% Match Strength`, "Top 1% Application Tier"), tracking exact word count, estimated reading time, and active tone.
+  - **Export & Actions**: 1-click clipboard copy, clean `.txt` download, direct browser print (`window.print()`), and cloud vault saves.
+  - **Result Retention Bar & Chaining**: Integrated `ResultRetentionBar` for cloud vault saves and `.txt` exports, plus `ToolWorkflowChaining` and `ToolSuggestions`.
+  - **Zero Sparkle & Tech Jargon Policy**: Strictly authentic Lucide vector icons (`<MailPlus>`, `<Building2>`, `<Briefcase>`, `<Award>`, `<FileText>`), zero `<Sparkles>`, zero tech jargon, and harmonious `#10b981` emerald theming throughout.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.0000000000 📝 Productivity Suite Overhaul — Resume Bullet Generator Studio (`/tools/resume-bullet-generator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout started with empty inputs and a giant dead black void on the right column with an empty icon and placeholder text.
+  - Prohibited purple-to-cyan gradient buttons, indigo focus rings, and clashing colors fighting against the parent Productivity category (`#10b981` Emerald).
+  - Lack of instant starter examples, absence of framework selection (STAR vs Google XYZ), no seniority level tuning, and no recruitment impact score.
+  - Raw browser native selects and plain text areas with zero action verb inspiration or STAR decomposition highlighting.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Flagship Productivity Emerald Cyber Studio (`#10b981`, `border border-white/10`)**: Harmonized all focus rings, cards, action buttons, and telemetry to the Productivity Emerald theme.
+  - **Instant 1-Click Blueprints Gallery (Standard 3: Zero Void)**: 6 curated, real-world career blueprints (Senior Full-Stack Engineer, Lead Product Designer, Senior Product Manager, Head of Growth Marketing, Senior AI Specialist, Operations Director) loaded with tested high-impact STAR bullets. Blueprint #1 is preloaded on initial view so visitors immediately see 5 glowing, metric-backed cards instead of an empty black void.
+  - **Recruiter Impact Score & Telemetry HUD**: Live score tracking bullet strength (`{score}% Recruiter Score`, "Top 1% Recruiter Tier"), counting active action verbs, quantified metrics, and ATS calibration with an animated emerald progress meter.
+  - **STAR Decomposition & Color Highlighting**: Visually isolates starting action verbs in radiant emerald badges (`bg-emerald-500/15 text-emerald-300`) and quantified metrics/percentages (`42%`, `$1.8M ARR`, `250k+ users`) in high-contrast cyan pills.
+  - **Custom Obsidian Cyber Dropdowns (`StudioDropdown`)**: Bespoke animated glassmorphic dropdowns for Seniority Level (Entry, Mid, Senior, Lead, Executive) and Framework Formula (STAR Method, Google XYZ Formula, Executive High-Yield).
+  - **Action Verb Power Bank**: 24 recruiter-approved action verbs organized across 4 categories (Leadership, Technical, Growth, Financial) that users can insert into their context with 1 click.
+  - **Continuous Dynamic Progress Bar (Standard 4 Compliance)**: High-frequency asymptotic progress ticker (0% -> 96% -> 100%) advancing through clear everyday English stages with live percentage and elapsed seconds.
+  - **Inline Bullet Editing & Individual Copy**: Direct in-place editing for any bullet point, 1-click clipboard copy with checkmark confirmation, and formatted "Copy All Bullets".
+  - **Seamless Resume Builder Transfer**: 1-click pipeline handoff via `setPipedContent` pushing all generated bullets directly into `/tools/resume-builder`.
+  - **Result Retention Bar & Chaining**: Integrated `ResultRetentionBar` for cloud vault saves and `.txt` exports, plus `ToolWorkflowChaining` and `ToolSuggestions`.
+  - **Zero Sparkle & Tech Jargon Policy**: Strictly authentic Lucide vector icons (`<Briefcase>`, `<Target>`, `<FileSignature>`, `<Flame>`, `<Zap>`, `<Award>`), zero `<Sparkles>`, zero tech jargon, and harmonious `#10b981` emerald theming throughout.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.000000000 🧾 Productivity Suite Overhaul — Professional Invoice Generator Studio (`/tools/invoice-generator`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout started with empty sender/client fields and immediately presented an aggressive warning: `Missing: Sender name, Client name`.
+  - Prohibited `<Sparkles>` and `<Wand2>` icons imported and rendered across AI buttons, cards, and tool badges.
+  - The left column was an overwhelming vertical stack of 5 gigantic cards that forced users to scroll past 2,000+ pixels of inputs to edit totals or brand styles.
+  - Random mismatched color schemes (indigo focus rings, purple-to-cyan gradient buttons, cyan containers) clashing with the parent category (Productivity Tools, `#10b981` Emerald).
+  - Lack of instant pre-populated invoices or starter blueprints.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Flagship Productivity Emerald Cyber Studio (`#10b981`, `border border-white/10`)**: Harmonized all focus rings, tabs, action buttons, and telemetry to the Productivity Emerald theme.
+  - **Instant 1-Click Invoice Blueprints**: 6-card responsive gallery (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-6`) loaded with pristine real-world invoices (Creative & Brand Design, Full-Stack Web App, Growth Marketing & SEO, Executive Advisory, Commercial Video Production, Custom Merchandise Order) allowing visitors to load and preview complete invoices in 1 click.
+  - **Studio Top Control Deck**: Integrated telemetry showing live `{completion}% Readiness` with digital color-shifting progress indicator, 1-click `Save Draft` with instant visual checkmark feedback, standard browser `Print`, direct `Download PDF` button, and workspace layout toggles (Compact Sidebar & Focus Studio).
+  - **Actionable Readiness Checklist**: Replaced harsh missing field alert boxes with an interactive, friendly recommendation strip featuring 1-click jump chips (`+ Add Client Name`, `+ Set Due Date`, `+ Add Items`).
+  - **Segmented 4-Tab Studio Deck**: Replaced endless vertical scrolling with 4 focused tabs: `Details & Parties`, `Items & Totals` (with quick deliverable suggestion chips), `Style & Branding` (4 designer templates, 7 curated brand color swatches + custom color pipette, company logo upload), and `AI Fast Draft` (Groq 120B co-pilot with quick prompt inspiration chips).
+  - **Interactive Live A4 Canvas**: Pinned right-hand preview with realistic paper elevation, crisp borders, responsive zoom controls (Fit, 100%, + / -), and live synchronization with zero layout shifts.
+  - **Vector PDF-Lib Export Engine**: Clean vector PDF compilation supporting all 4 templates, brand logo embedding, automatic multi-page pagination for long item lists, and 100% browser-side data privacy.
+  - **Zero Sparkle & Tech Jargon Policy**: Completely purged `<Sparkles>` and `<Wand2>` across all buttons and headers (replaced with `<Receipt>`, `<FileText>`, `<Bot>`, `<Calculator>`, `<Palette>`, `<LayoutGrid>`).
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.00000000 🔍 Productivity Suite Overhaul — AI Resume Scanner Studio (`/tools/resume-analyzer`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout used outdated blue styling clashing with the parent category (Productivity Tools, `#10b981` Emerald).
+  - Empty initial state with a giant dead dropzone and zero pre-loaded demonstration resumes or starter examples.
+  - Prohibited `<Sparkles>` and `<Wand2>` icons imported and rendered in multiple places.
+  - Technical jargon and robotic copy ("Audit matrix calculations active", "Parser: Exismic Llama", "Crawl Error").
+* **Full Architecture & UX Solutions Implemented**:
+  - **Flagship Productivity Emerald Cyber Stage (`#10b981`)**: Symmetrical obsidian workspace with emerald glowing accents, status telemetry, and responsive grid layout.
+  - **Dual Input Modes**: High-capacity drag & drop PDF upload zone with file metadata inspection AND clean direct Paste Resume Text mode with character count validation.
+  - **Instant 1-Click Career Blueprints**: 4-card responsive gallery loaded with full real-world resumes paired with targeted job descriptions (Full-Stack Engineer, Product Designer, Product Manager, Growth Marketer) for immediate 1-click testing.
+  - **Continuous Dynamic Progress Bar (Standard 4 Compliance)**: High-frequency 180ms progress ticker advancing through clear plain English stages with digital percentage readout `[ 74% ]`.
+  - **Interactive Audit Report Dashboard**: Circular SVG score meter, 3 dedicated tabs (Overview, Skills & Keywords, Recommended Fixes), snug vertical card layouts without empty gaps, 1-click clipboard report copy, and .TXT report download.
+  - **Zero Sparkle & Tech Jargon Policy**: Completely purged `<Sparkles>` and `<Wand2>`, replacing them with authentic Lucide icons (`<ScanText>`, `<Bot>`, `<CheckCircle2>`, `<Target>`, `<ShieldCheck>`). Purged third-party AI provider names for strict confidentiality (branded as Exismic Match Pro) and replaced technical buzzwords like "Keywords Matrix" with friendly plain English "Skills & Keywords".
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.0000000 📄 Productivity Suite Overhaul — AI Resume Builder Studio (`/tools/resume-builder`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The tool started with a completely empty, blank state ("Ready 0%", harsh warning: `Missing: name, email, summary, experience, 5+ skills`), making it intimidating to start.
+  - Outdated purple `#7c3aed` styling clashing with the parent category (Productivity Tools, which uses Emerald `#10b981`).
+  - Prohibited `<Sparkles>` and `<Wand2>` icons imported and rendered in multiple places, along with emoji sparkles.
+  - Cramped top utility bar lacking instant starter career profiles and clear status feedback.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Flagship Productivity Emerald Cyber Stage (`#10b981`)**: Harmonized all tabs, inputs, focus rings, and buttons to the Productivity theme.
+  - **Instant 1-Click Career Blueprints**: 6-card responsive gallery loaded with full, industry-tested resumes (Full-Stack Engineer, Product Designer, Product Manager, Data & AI Specialist, Growth Marketer, Executive Director) allowing users to jumpstart their resume in 1 click.
+  - **Studio Top Control Deck**: Integrated telemetry showing dynamic `{completionScore}% Strength` with emerald progress bar, 1-click `Save Draft` (with visual checkmark confirmation), quick `Export PDF`, and workspace layout toggles (Compact Sidebar & Focus Studio).
+  - **Hiring Readiness Checklist**: Replaced harsh missing warnings with a positive, actionable checklist offering 1-click field suggestions or congratulatory completion feedback.
+  - **Zero Sparkle & Tech Jargon Policy**: Completely purged `<Sparkles>` and `<Wand2>` across all buttons and tabs, replacing them with authentic Lucide icons (`<Bot>`, `<Cpu>`, `<Zap>`, `<Crown>`, `<Target>`, `<LayoutGrid>`). Renamed technical jargon ("ATS Canvas" -> "Standard Printable A4", "ATS Match" -> "Job Match Scan", "ATS Insights" -> "Job Match Insights").
+  - **Live A4 Canvas & PDF Export**: Centered printable A4 sheet with responsive zoom controls (Fit, 75%, 100%, +/-) and vector PDF export via `@react-pdf/renderer`.
+  - **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with 0 errors.
+
+### 0.0000000 🎓 Entire Student & Study Suite Overhaul — Academic Amber Gold Studio System [100% COMPLETED — 9/9 TOOLS]
+* **Category Identity & Standards Enforcement**:
+  - Replaced disjointed purple, indigo, and generic gray styling with the unified **Academic Amber Gold** theme (`#fbbf24` / `#f59e0b` / `amber-400`).
+  - **Zero Sparkles Standard**: Completely eradicated `<Sparkles>` and `<Wand2>` across all 9 tools, replacing them with authentic, context-specific Lucide icons (`<Layers>`, `<GraduationCap>`, `<BookOpen>`, `<Calculator>`, `<FileCheck2>`, `<SlidersHorizontal>`, `<BrainCircuit>`, `<Network>`).
+  - **Zero Tech Jargon Standard**: Replaced academic and compiler buzzwords with friendly everyday English.
+  - **No Harsh Top Gradient Stripes**: Eliminated artificial thick orange/yellow top gradient lines in favor of uniform, sleek Obsidian Cyber dark glass borders.
+* **All 9 Tools Overhauled & Verified**:
+  1. **Unit Converter Studio (`/tools/productivity/units`)**: 10 measurement disciplines, 2×5 responsive top grid dock, custom `amber` CyberDropdown, mathematical formula explanation, everyday real-world intuition comparisons, live multi-unit breakdown table, 8 quick presets, and recent conversions scratchpad.
+  2. **PDF to AI Study Notes (`/tools/pdf-to-notes`)**: Replaced purple/indigo action button with amber gradient, updated footer statistics to plain English ("Fast Document Text Extractor", "Smart Summary & Chapter Breakdown"), with dual upload/paste workflow.
+  3. **AI Flashcard Generator (`/tools/flashcard-generator`)**: Replaced `<Sparkles>` with authentic `<Layers>` active recall icon, converted submit button from purple/indigo to amber/gold gradient, with 3D flip card animations and keyboard shortcuts (<kbd>Space</kbd>, <kbd>Arrow Keys</kbd>).
+  4. **Academic Citation Generator (`/tools/citation-generator`)**: Purged `<Sparkles>`, integrated `<BookOpen>` for instant academic presets, supporting APA 7th, MLA 9th, Chicago 17th, and Harvard formats with in-text and bibliographic citations.
+  5. **AI Step-by-Step Math Solver (`/tools/math-solver`)**: Purged `<Sparkles>` and `<Sparkle>`, converted submit button to amber gold, integrated `<Calculator>` for preset equations, supporting Algebra, Calculus, Geometry, Differential Equations, and Linear Algebra.
+  6. **Notes to Mind Map Studio (`/tools/student/mind-map`)**: Completely re-themed UI chrome from mismatched indigo/purple to Academic Amber Gold (`border-amber-400/40`, `text-amber-400`, `bg-amber-500/20`), preserving custom node branch swatches while making headers, export buttons, and controls fully harmonious.
+  7. **AI Essay & Thesis Outline Builder (`/tools/student/essay-outline-builder`)**: Purged `<Sparkles>` from imports and submit action, replaced with `<GraduationCap>`, updated action button to high-contrast amber gold with real-time academic argumentation structure generation.
+  8. **Text Similarity & Plagiarism Diff Checker (`/tools/student/plagiarism-checker`)**: Purged `<Sparkles>` and integrated `<FileCheck2>` for quick academic sample comparisons, sentence-by-sentence similarity status, and clean side-by-side document diff inspection.
+  9. **Text Readability & Grade Level Assessor (`/tools/student/readability-assessor`)**: Purged `<Sparkles>` and `<Wand2>`, eliminated all purple text and badges, converted 1-click text simplifier tabs to amber gold, and integrated authentic `<SlidersHorizontal>` and `<BrainCircuit>` icons.
+* **Verification**: `npx tsc --noEmit` verified with **0 errors across the entire codebase**.
+
+### 0.000000 ⌨️ Productivity Suite Overhaul — Typing Speed Test Studio (`/tools/typing-test`) [100% COMPLETED]
+* **Problems Addressed**:
+  - The previous layout had an inverted visual hierarchy: giant stacked duration mode boxes and theme pills pushed the actual typing text box below the viewport fold.
+  - The side-column structure cramped the typing canvas and awkwardly cut off the heatmap on standard desktop viewports.
+  - Lack of acoustic typing feedback and keyboard shortcuts made the testing experience feel flat and disconnected.
+  - Violated `TOOL_STANDARDS_AND_GUIDELINES.md` by importing `<Sparkles>` and `<Wand2>`.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Flagship Productivity Emerald Cyber Stage (`#10b981`, `border-2 border-emerald-500/25`)**:
+    - Beautiful obsidian backdrop (`#090d16`) with subtle emerald border lighting, matching the Productivity suite design system.
+  - **Front & Center Hero Typing Arena**:
+    - Consolidated duration modes (30s Sprint, 60s Classic, 120s Endurance, Endless Flow) and curated topics (Technology, Motivation, Storytelling, Code Snippets, Product & Craft, Daily Drill) into a sleek, unified top capsule bar.
+    - Large, comfortable, beautifully spaced typography (`text-2xl sm:text-3xl font-mono leading-[2.1]`) with smooth blinking emerald caret and instantaneous character coloring.
+    - Integrated keyboard shortcut handlers: press <kbd>Tab</kbd> or <kbd>Esc</kbd> at any point to instantly reset and restart without reaching for the mouse.
+  - **Zero-Latency Synthesized Mechanical Keyboard Audio ($0 external files)**:
+    - Pure client-side Web Audio oscillator synthesis generating tactile acoustic feedback on every keydown event.
+    - 3 customizable modes: Muted (Off), Deep Mechanical Thock, and Crisp Typewriter Clicky.
+  - **Streamlined Real-Time Telemetry HUD**:
+    - Displays Net WPM, Accuracy %, Rhythm & Consistency %, and Time Left in a sleek integrated strip directly above the typing canvas with a dynamic linear progress bar.
+  - **Celebratory Scorecard & Dynamic Speed Tiers**:
+    - Post-test report card assigns verified rank badges (Godspeed Master, Elite Typist, Advanced Typist, Fluent Typist, Building Speed) with personalized keystroke advice.
+    - 1-click clipboard score copy (`Copied!`) and verified 1200x700 PNG share card generator.
+  - **Illuminated Keyboard Heatmap & Daily Streaks**:
+    - Symmetrical bottom split: Left features an interactive QWERTY heatmap matrix with miss counters; Right features daily streak tracking and local scoreboard.
+  - **Catalog & Standards Compliance**:
+    - Completely purged `<Sparkles>` and `<Wand2>`. Enriched `src/data/tools.ts` with rich features, how-to steps, and FAQs.
+    - Verified clean TypeScript: `npx tsc --noEmit` = 0 errors.
+
+### 0.00000 📱 Creator Suite Overhaul — AI Hashtag Generator (`/tools/hashtag-generator`) [100% COMPLETED]
+* **Problem Addressed**:
+  - The previous hashtag generator relied on mechanical, synthetic string concatenations (e.g. `${tag}community`, `${tag}daily`, `${tag}tips`, `${tag}life`, `howtopractice${tag}`), which produced repetitive formulaic output without true semantic understanding.
+  - The live caption preview had its hashtags hidden behind an inactive `... more` fold, making it seem broken or non-reactive.
+* **Full Architecture & UX Solutions Implemented**:
+  - **Real AI Generation Engine via Groq 120B**:
+    - Created dedicated API route `/api/tools/creator/hashtag-generator` powered by `DEFAULT_GROQ_TEXT_MODEL` (`openai/gpt-oss-120b`).
+    - Prompts the LLM as an elite social media growth strategist to generate authentic, high-velocity hashtags, real subculture tags, and creator slang (e.g. for `cats`: `#purrfection`, `#meowlife`, `#felinefriends`, `#indoorcatlife`, `#catloversclub`; for `cyberpunk street photography`: `#neonstreets`, `#rainydystopia`, `#urbannoir`, `#cyberpunkaesthetic`).
+    - Categorized into 3 distinct strategy tiers: Broad Viral Reach (500k+ to millions), Targeted Community (50k–500k), and Specific Long-Tail (high intent, top search rank).
+    - Automatically drafts a creative, context-aware post caption with natural emojis and an actionable creator strategy tip.
+    - Robust offline semantic dictionary fallback for 30+ categories ensures zero server failures and eliminates repetitive suffixes even offline.
+  - **Results UI & Regeneration**:
+    - Displays "AI Synthesized (Groq 120B)" badge with glowing live status beacon.
+    - 1-Click "Regenerate AI" button to synthesize fresh variations instantly.
+    - Highlights actionable "Creator Strategy Tip" in an amber strategy banner.
+  - **Interactive Live Feed Caption Simulator**:
+    - Fixed live preview with distinct cards for Instagram, TikTok, and YouTube Shorts.
+    - Instagram preview hashtags are always visible, with a 1-click toggle for clean spacing dots (`. . .`) vs inline tags.
+    - TikTok preview features rotating vinyl sound disc, creator handle, customized caption, and vertical action stack.
+    - YouTube Shorts preview features video title, subscribe badge, channel statistics, and description tags.
+    - 1-Click "Copy Full Post" copies the customized caption + formatted tags with active visual checkmark feedback.
+  - **Zero Duplicate Dividers**:
+    - Eliminated duplicate laser line; uses the single category-reactive royal indigo laser horizon bridge (`#6366f1`) from `ToolSeoSection`.
+  - **Catalog Registration**:
+    - Registered in `ALL_TOOLS` in `src/data/tools.ts` with complete SEO metadata, step-by-step instructions, features, and FAQs.
+  - **TypeScript Clean**: `npx tsc --noEmit` verified with 0 errors.
+
+### 0.0000 🌿 Productivity Suite Overhaul — Color Palette Studio (`/tools/productivity/palette`) [COMPLETED]
+* **Flagship Productivity Emerald Cyber Studio (`#10b981`, `border-2 border-emerald-500/25`)**:
+  - Replaced the outdated flat rectangular blocks and cramped button controls with a luxury obsidian cyber studio adhering 100% strictly to `TOOL_STANDARDS_AND_GUIDELINES.md`.
+  - **Top Interactive Utility Bar**:
+    - **Spacebar-Triggered Shuffling**: Pressing Spacebar or clicking "Shuffle Colors" rolls fresh combinations with instant reactive micro-animations.
+    - **Undo / Redo History Stack**: 25-step history tracking ensures users never lose an inspiring palette they shuffled past.
+    - **Dynamic Swatch Sizing**: Flexible 3, 4, 5, or 6 color palette lengths for diverse design use cases (minimalist brand marks to full UI design systems).
+    - **7 Color Harmony Modes**: Harmonious (Auto), Analogous, High Contrast (Complementary), Monochromatic, Triadic, Soft Pastel, and Dark Mode.
+  - **Rich Interactive Swatch Anatomy**:
+    - **Contrast-Aware Typography & WCAG Badges**: Real-time luminance measurement provides crisp white or dark text with automatic WCAG AAA/AA readability badges on every swatch.
+    - **Algorithmic Human Color Naming**: Generates real creative names (e.g. "Emerald Peak", "Royal Indigo", "Sunset Tangerine", "Ocean Teal") based on hue and saturation curves.
+    - **1-Click Copy**: Instant floating "Copied!" feedback pills.
+    - **Native Color Fine-Tuning**: Built-in color pipette picker for exact custom hex tuning.
+    - **Popover Tonal Shade Drawer**: 5-step tonal scale (100, 300, 500, 700, 900) for every individual swatch with 1-click copy.
+  - **8-Card Responsive Designer Blueprints Gallery**: Handcrafted 1-click palettes (Cyberpunk Neon, Forest Evergreen, Sunset Horizon, Modern Tech SaaS, Nordic Frost, Royal Velvet, Warm Cappuccino, Minimalist Slate) placed directly below swatches, eliminating dead vertical voids.
+  - **Balanced Split Creation Suite**:
+    - **Theme & Mood Prompt Generator**: Natural language input with 8 quick-click mood inspiration chips.
+    - **Photo Color Extractor**: In-browser client-side Canvas pixel analyzer pulling 5 dominant harmonious colors from user uploads, with 3 instant zero-wait demo sample scenes.
+    - **Interactive Live Product Mockup**: Real-time interactive previews for Website Hero Card, Mobile App Card, and Brand Tokens.
+    - **Multi-Format Export Center**: CSS Custom Properties, Tailwind CSS theme colors, SCSS variables, clean JSON, vector SVG download, and 1600x900 studio PNG download.
+  - **Strict Tool Standards Compliance**:
+    - Zero Tech Jargon: Plain, friendly English throughout ("Color", "Tones", "Style", "Contrast", "Shades", "Shuffle").
+    - Zero Sparkle Icons: Purged all sparkles; authentic Lucide vector icons only (`Palette`, `Shuffle`, `Lock`, `Unlock`, `Copy`, `Download`, `Layers`, `Pipette`, `Check`).
+    - Balanced Layout & Laser Bridge: Emerald anamorphic laser horizon divider (`#10b981`) bridging cleanly to the SEO Guide & Overview card.
+    - TypeScript Clean: `npx tsc --noEmit` verified with 0 errors.
+
+### 0.0000 🌐 SEO Suite — Custom Obsidian Cyber Dropdowns & De-Cramped Blueprint Galleries [100% COMPLETED]
+* **Eliminated Native Unstyled Browser `<select>` Elements**:
+  - **Identified Root Cause**: Native browser `<select>` and `<option>` elements on Chromium/Windows render using system-level popup menus that ignore dark mode CSS, displaying light-gray Windows boxes with standard blue highlights that clash with Obsidian Cyber aesthetics.
+  - **Created `CyberDropdown.tsx` (`src/components/ui/CyberDropdown.tsx`)**:
+    - Obsidian Cyber translucent dark glass background (`bg-black/60` to `bg-[#090b14]/95`) with `backdrop-blur-2xl`.
+    - Category-reactive glow rings (`themeColor: "cyan" | "orange" | "pink" | "emerald" | "indigo" | "purple"`).
+    - Rotating Lucide `<ChevronDown>` indicator and `<Check>` icon on active items.
+    - Click-outside and `Escape` key close listeners.
+    - Rich options with titles, subtitles/descriptions, and category badges.
+  - **Overhauled Dropdowns Across SEO Tools**:
+    - `SitemapGenerator.tsx`: Replaced native selects with `CyberDropdown` for `changefreq` (with badges like "Live", "News", "Recommended") and `priority` ("1.0 Critical", "0.9 Primary", etc.).
+    - `MetaTitleGenerator.tsx`: Replaced native select with `CyberDropdown` for `searchIntent` ("Commercial / Buyer Review", "Product / Shop Sale", "Ultimate Guide", etc.).
+    - `SchemaMarkupGenerator.tsx`: Replaced raw text input with `CyberDropdown` for `currency` (USD, EUR, GBP, INR, CAD, AUD, JPY).
+    - `RobotsTxtGenerator.tsx`: Added missing `CyberDropdown` rate-limiter for `Crawl-Delay Directive` (No Delay, 1s, 2s, 5s, 10s).
+* **De-Cramped Blueprint Preset Galleries (All 8 SEO Tools)**:
+  - **Eliminated Micro-Tiles**: Replaced the cramped `lg:grid-cols-6` (which squeezed cards down to 160px width, causing titles to truncate aggressively and badges to wrap onto two lines) with an expansive, balanced 3-column grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5`).
+  - **Fixed Badge Wrapping & Collision**: Added `whitespace-nowrap shrink-0` to category badges (e.g. `LOCAL BUSINESS` stays on 1 clean line) and added `truncate min-w-0 text-right` to secondary details so they never collide or overlap.
+  - **Standardized across**: `SerpSimulator.tsx`, `OgPreviewer.tsx`, `CanonicalGenerator.tsx`, `SitemapGenerator.tsx`, `MetaTitleGenerator.tsx`, `MetaDescriptionGenerator.tsx`, `RobotsTxtGenerator.tsx`, and `SchemaMarkupGenerator.tsx`.
+* **Verification**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
+### 0.000 ⭐ Favorites System — Instant Zero-Lag Saving & Guest Persistence Overhaul [100% COMPLETED]
+* **Root Causes Eliminated**:
+  - **Star Button Infinite Loading (`cursor-wait`)**: In `ToolCard.tsx`, successful API responses returned early without executing `setIsSavingFavorite(false)`. This left the button permanently disabled and stuck with `cursor-wait` (wait cursor). Resolved by wrapping execution in a guaranteed `try ... finally { setIsSavingFavorite(false); }` block and replacing `disabled:cursor-wait` with instant responsive micro-interactions.
+  - **Tool Saving & Persistence Failure for Guests**: Visitors who saved tools as guests were locked out of `/favorites` with "Account Login Required". Converted `/favorites` to render `FavoritesClient.tsx`, which loads guest favorites from `localStorage` seamlessly, displays the user's saved tools in full fidelity, and provides a clean non-intrusive prompt to log in if cloud syncing across devices is desired.
+  - **Real-Time Cross-Component Synchronization**: `ToolCard.tsx`, `ToolPageShell.tsx`, `ToolDetailClient.tsx`, `Dashboard.tsx`, `CategoryClient.tsx`, and `ToolsLibraryClient.tsx` all actively listen to `FAVORITES_CHANGED_EVENT`, ensuring stars toggle in real-time across tabs and parent views with zero layout shifts or route refresh loops.
+* **Verification**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
+### 0.00 🎬 Entire Creator & Social Media Suite — Electric Royal Indigo Studio Overhaul [100% COMPLETED]
+* **Unique Platform Identity — Electric Royal Indigo & Sapphire Studio System (`#6366f1`, `#4f46e5`, `#38bdf8`)**:
+  - Replaced ambiguous, muddy rose/red/purple scheme across all Creator category touchpoints with an unmistakable **Electric Royal Indigo** theme (`#6366f1`). Completely distinct from PDF red (`#ef4444`), Business orange (`#f97316`), Audio pink (`#ec4899`), and Video violet (`#8b5cf6`).
+  - **Sidebar (`Sidebar.tsx`)**: Updated `catGlows.creator` to `rgba(99, 102, 241, 0.5)`, indicator bar gradient (`from-indigo-400 via-indigo-500 to-blue-500`), badge count pill (`text-indigo-300 bg-indigo-500/15`), and "View All" CTA.
+  - **Category Background (`CategoryBackground.tsx`)**: Ambient radial backlight glow and floating watermark icon particles (`Share2`, `Clapperboard`) converted to electric indigo (`rgba(99, 102, 241, 0.45)`).
+  - **Category Standards & Overview (`CategorySeoSection.tsx` & `ToolSeoSection.tsx`)**: 360° laser conduit border, category pill badges, top ambient light, and 4 value proposition cards converted to `#6366f1`.
+  - **Category Headings & Global Styles**: `CategoryHeading.tsx` and `category-styles.ts` unified to Electric Indigo `#6366f1` / `#38bdf8`.
+* **Complete Suite Tool Updates (All 7 Creator Tools Compliant with `TOOL_STANDARDS_AND_GUIDELINES.md`)**:
+  - **1. AI Video Hook & Script Generator (`HookScriptGenerator.tsx`)**: 4 instant production blueprints (AI Hacks, Cyber Mystery, Solo Creator, Fitness), 0s wait, zero sparkles, audio narration preview, 1-click Teleprompter handoff, and laser horizon bridge.
+  - **2. YouTube Thumbnail CTR Analyzer (`ThumbnailAnalyzer.tsx`)**: Overhauled to the flagship Electric Royal Indigo studio system (`#6366f1`). Symmetrical obsidian cyber workspace (`#0a0c16`, `border-indigo-500/20`) eliminating empty black voids. Top features 3 instant 1-click sample presets (High-Contrast Tech, Vibrant Story, Low-Contrast Mistake) rendered directly on HTML5 canvas with $0 wait. Left column features an interactive Thumbnail Canvas Inspector with 3 live visual overlays: Duration Badge Safe Zone (highlights YouTube's bottom-right timestamp e.g. `12:45` with danger zone alert if text/faces are blocked), Rule of Thirds composition grid overlay, and B&W Contrast Squint Test (grayscale contrast filter to check feed pop). Right column features an Estimated Click Score (CTR) rating gauge with Grade A+/A/B/C/D, 3 key measured metrics (Visual Contrast, Color Vibrancy, Main Focus Area), plain-English actionable recommendations checklist, and an authentic YouTube Feed Preview supporting Desktop vs Mobile App views with custom title and channel name. Finished with single category-reactive laser horizon divider (`#6366f1`). Strictly zero tech jargon and zero sparkle icons.
+  - **3. Fake Social Post & Tweet Studio (`SocialPostStudio.tsx`)**: Full flagship overhaul adhering strictly to `TOOL_STANDARDS_AND_GUIDELINES.md`. Upgraded top blueprints strip to a responsive 6-card gallery (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-6`) with platform badges, clean titles, and user handles. Completely purged tech jargon (`"9 Engines"` ➔ `"9 Platforms"`, `"2.5x High-DPI"` ➔ `"Studio Quality HD"`). Eliminated all Tailwind `ring-1` classes from platform selector, themes (Obsidian, Black, Dim Navy, Clean Light), aspect-ratio framing, and verification badges to remove double-outline bleeding artifacts. Retained authentic platform like hearts and reactions for screenshot fidelity. Paired with category-reactive laser horizon divider (`#6366f1`) bridging cleanly to Guide & Overview.
+  - **4. LinkedIn Post Formatter & Hook Creator (`LinkedinFormatter.tsx`)**: Overhauled to the signature Creator & Social Media Electric Royal Indigo obsidian palette (`#6366f1`). Fixed header wrap bug ("Analyzer") by setting punchy title `LinkedIn Post Formatter`. Features an integrated 6-card responsive Viral Hook Blueprints strip (Storytelling, Practical Guide, Contrarian Opinion, Case Study, Resource List, Career Pivot) replacing clunky clipped dropdowns. Features full Unicode ribbon styling (Bold `𝗕`, Italic `𝘐`, Bold Italic `𝑩𝑰`, Underline `U̲`, Monospace `𝙼`, Strikethrough `S̶`), 1-click `Format Spacing` mobile line standardizer, 1-click `Add Bullets`, 9 custom emoji bullet styles with zero border overlapping, real-time Character (3k max), Word, and Read Time stats. Features an Opening Hook Score rating gauge with Grade badge (A+ to D), animated progress meter, and plain-English curiosity & retention checklist. Paired with a high-fidelity LinkedIn Feed Preview supporting Desktop vs Mobile App views, interactive `...see more` click truncation, reaction counters, and 1-click `Copy Post`. Category-reactive indigo laser horizon bridge (`#6366f1`). Strictly zero tech jargon and zero sparkle icons.
+  - **5. AI Social Carousel Generator (`CarouselGenerator.tsx`)**: Overhauled to the signature Creator & Social Media Electric Royal Indigo studio system (`#6366f1`). Fixed header wrap by streamlining title to `AI Social Carousel Generator`. Top features an integrated 4-card Carousel Story Blueprints strip (5 High-Output AI Tools, How to Build a $10k Side Project, 4 Principles of Clean UI Design, Before & After Conversion Growth) eliminating previous clunky text buttons and purged prohibited `<Wand2>` icon in favor of authentic `<Layout>`. Left column features 6 rich color themes (Indigo, Violet, Emerald, Amber, Dark, Light) with single crisp borders (zero `ring-2` color overlap), 4:5 Portrait vs 1:1 Square aspect ratio toggle, social watermark & author handle controls, interactive slide filmstrip navigator with move left/right and add slide utilities, and clean slide content editor. Right column features a Live Carousel Stage preview with 1080p render dimensions, interactive slide pagination dots with 1-click jump to slide, chevron navigation, and dual-format export center (multi-page LinkedIn PDF via `pdf-lib` and Instagram PNG ZIP archive via `JSZip`) with zero server compute and 100% client privacy. Finished with category-reactive indigo laser horizon bridge (`#6366f1`). Strictly zero tech jargon and zero sparkle icons.
+  - **6. Live Studio Teleprompter (`TeleprompterStudio.tsx`)**: Complete studio overhaul strictly adhering to `TOOL_STANDARDS_AND_GUIDELINES.md`. Upgraded the cramped sub-row into a dedicated 4-card responsive 1-Click Production Script Blueprints gallery (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`: Viral Video Hook, Product Launch Pitch, Podcast Episode Intro, Tutorial & Explainer) with active border and badge highlights. Unified speech metrics into a clean telemetry bar (Status, Words, Est. Time, Target Pacing, and Recording Stopwatch). Pinned the prompter stage on desktop (`lg:sticky lg:top-4`) so users never lose context when adjusting controls. Eliminated the empty black box void by calibrating top padding (`pt-[220px]`), making the prompter surface click-to-play, and introducing a glowing standby start indicator card (`Click Stage or Press Space to Start`). Completely purged all `ring-1` edge-bleed classes. Harmonized all controls, sliders, optical eyeline guide lasers, and floating transport HUD to Electric Royal Indigo (`#6366f1` / `indigo-400`). Bridges directly to the Guide & Overview with `<ToolLaserDivider primaryHex="#6366f1" />`. Strictly zero tech jargon and zero sparkles.
+  - **7. 3D Device & App Mockup Studio (`DeviceMockupStudio.tsx`)**: Updated 4K PNG export hub and mobile download action bar to Electric Royal Indigo with ambient sapphire glow. Added `<ToolLaserDivider primaryHex="#6366f1" />`.
+* **PDF Studio Polish — Eradicated Ugly Status Badges**:
+  - Completely removed the ugly, redundant dark-red "Conversion Complete", "Extraction Complete", and "Compilation Complete" badges across `PdfToWord.tsx`, `PdfMerger.tsx`, `PdfSplitter.tsx`, `PdfCompressor.tsx`, `PdfToImage.tsx`, and `ImgToPdf.tsx`.
+  - Allowed the glowing emerald checkmark and bold headline to breathe with clean, modern visual hierarchy.
+
+### 0.0 📄 Entire 7-Tool PDF Studio Suite — Master UI & Architecture Overhaul [100% COMPLETED]
+* **Full Obsidian Cyber Red Studio System (`#090a12`, `border-2 border-red-500/25`, ruby neon radial glow `#ef4444`)**:
+  - **1. PDF Merger (`/tools/pdf/merger`)**: In-browser vector consolidation of up to 20 documents, drag/arrow reordering, $0 compute 3-document demo synthesizer (`generateDemoPdfs()`), dynamic progress overlay with digital percentage pill `[ 84% ]`, and client-side `pdf-lib` fallback.
+  - **2. PDF Splitter (`/tools/pdf/splitter`)**: Extract all pages into an organized ZIP archive or extract targeted page ranges (e.g. `1-2, 4`), $0 demo document on load, and 100% in-browser `pdf-lib` + `JSZip` client engine.
+  - **3. PDF Compressor (`/tools/pdf/compressor`)**: 3 optimization profiles (Standard, Balanced, Maximum), before/after size comparisons with percentage saved badge, $0 demo document on load, and lossless object stream repacking.
+  - **4. PDF to Image (`/tools/pdf/to-image`)**: Vector rasterization to PNG (lossless) or JPG (compact), 2x Ultra HD or 1x Standard scale, $0 demo document on load, and client-side ZIP packaging via `pdfjsLib` and `JSZip`.
+  - **5. Image to PDF (`/tools/pdf/img-to-pdf`)**: Multi-image compiler with Auto (fit image) or A4 Document framing, $0 compute 3-slide sample deck generator, drag-and-drop page reordering, and direct `pdf-lib` embedding.
+  - **6. PDF to Word (`/tools/pdf/to-word`)**: Reconstructs embedded typography into authentic editable `.docx` files, Line-Preserving and Continuous Paragraph flow options, $0 demo document on load, and 1-click download.
+  - **7. OCR Text Extractor (`/tools/pdf/ocr`)**: Multi-language optical character recognition (English, Spanish, French, German), $0 demo invoice on load, live progress ticker, and 1-click text copy & `.TXT` export.
+* **Harmonized Shared Components**:
+  - `PdfActionButton.tsx`: Dynamic `themeColor="red"` support with ruby red gradient, glowing red icon box, and red arrow.
+  - `PdfSidebar.tsx`: Dynamic `themeColor="red"` support with ruby badges, red checkmarks, and client-secure in-memory processing card.
+  - `MediaPipelineBar.tsx`: Auto-detects `pdf` tools to render `accentColor="red"` seamlessly across handoffs.
+* **Laser Horizon Bridges & Zero Sparkles**:
+  - Category-reactive red laser horizon divider (`#ef4444`) bridging the workspace to the Guide & Overview.
+  - Strictly 0 `<Sparkles>` icons across all 7 tools — authentic context-related Lucide icons only.
+* **TypeScript Verification**: Clean compilation (`npx tsc --noEmit` = 0 errors across entire workspace).
+
+### 0. 🎙️ AI Vocal Remover & Karaoke Studio — Master UI & Architecture Overhaul [COMPLETED]
+* **Flagship Dual-Track Stem Mixing Console & Obsidian Cyber Stage**:
+  - Replaced the outdated 2-box wireframe layout with a flagship Obsidian Cyber Studio stage (`#090a12`, `border-2 border-pink-500/35`, neon radial auras, dot matrix grid).
+  - **Dual-Stem Audio Engine**: Synchronized sample-accurate master playback, scrub timeline, repeat loop, master volume, and dynamic reactive audio waveforms that pulse to music in real-time.
+  - **Independent Stem Fader Strips**:
+    - **Lead Vocals**: Volume fader (0%–100%), solo button, mute button, volume readout, and 1-click single-track download.
+    - **Music (Instrumental)**: Volume fader (0%–100%), solo button, mute button, volume readout, and 1-click single-track download.
+  - **4 Instant 1-Tap Listening Presets (Clean icons, zero emojis)**:
+    - `<Music2 /> Karaoke`: Vocals 0%, Music 100% (Instant sing-along backing track).
+    - `<Mic2 /> Vocals Only`: Vocals 100%, Music 0% (Clean singing vocal isolation).
+    - `<Headphones /> Original Mix`: Vocals 85%, Music 90% (Original radio balance).
+    - `<Volume2 /> Boost Vocals`: Vocals 100%, Music 65% (Singing voice on top).
+  - **$0 Compute Instant Demo**: Synthesizes a high-quality 2-track pop song demo in-browser (`generateDemoStems()`), giving visitors an instant, playable studio experience with 0s wait.
+  - **Streamlined Single High-Quality Action**:
+    - Purged useless "Fast Mode" client-side phase cancellation and confusing mode selectors.
+    - One clear, high-fidelity AI action button: **"Separate Vocals & Music"**.
+  - **Continuous Dynamic Progress Bar (No Static Freezes)**:
+    - Replaced the hardcoded `w-3/4 animate-pulse` bar with real `XMLHttpRequest.upload.onprogress` byte tracking (`Uploading song (65%) • 2.4 MB of 3.8 MB`).
+    - High-frequency dynamic ticker (150ms) advancing through clear plain-English stages with an exact percentage digital readout (`47%`) and live elapsed time counter.
+    - Smooth 100% completion jump with visual confirmation before revealing stems.
+  - **Smooth 60FPS RAF Playhead Loop**: Playhead, time counter (`0:01` to `0:12`), and interactive waveform scrub smoothly without freezing.
+  - **Retention & Export**: 1-click single downloads (WAV/MP3), 1-click combined `.ZIP` archive via `JSZip`, and Cloud Vault save.
+  - **Strict Tool Guidelines Compliance**:
+    - Zero Tech Jargon: Plain, friendly English throughout ("Voice & Music Separation", "Karaoke", "Vocals", "Music").
+    - Zero Sparkles: Completely purged all `<Sparkles>` icons (replaced with authentic `<Mic2>` and `<AudioWaveform>`).
+    - Balanced Layout & Laser Bridge: Single laser horizon line (`#ec4899`) cleanly bridging workspace to SEO guide section.
+    - TypeScript Clean: `npx tsc --noEmit` verified with 0 errors.
+
+### 0.1 🎛️ Full 4-Track Stem Splitter Studio (`/tools/audio/stem-splitter`) [COMPLETED]
+* **Flagship 4-Stem Audio Mixing Console & Category Pink Cyber Stage**:
+  - Replaced the outdated cyan wireframe with the signature Audio & Music neon pink aesthetic (`#ec4899`, `border-2 border-pink-500/35`).
+  - **$0 Compute 4-Track Demo on Load**: In-browser offline synthesis of 4 distinct stems (Vocals, Drums, Bass, Instruments) across 12s demo (`generateFourTrackDemoStems()`).
+  - **4 Color-Coded Fader Strips**:
+    - Vocals (Pink `#ec4899`), Drums (Cyan `#06b6d4`), Bass (Purple `#a855f7`), Instruments (Amber `#f59e0b`).
+    - Volume faders, individual Solo and Mute toggles, 1-click track downloads.
+  - **5 Instant Presets**: Drums Only, Bass & Drums, Backing Track, Vocals Only, Full Mix.
+  - **Interactive Waveform Visualizer**: Click-to-seek, 60fps RAF playhead loop, laser needle, and audio-reactive dancing bars.
+  - **Standard 4 Dynamic Progress**: Real upload byte tracking, continuous 150ms stage ticker, and digital percentage badge `[ 58% ]`.
+
+### 0.2 🎙️ AI Noise Remover Studio (`/tools/audio/noise-remover`) [COMPLETED]
+* **Instant A/B Audio Comparison Console & Category Pink Cyber Stage**:
+  - Replaced the outdated wireframe with the flagship Audio & Music neon pink aesthetic (`#ec4899`, `border-2 border-pink-500/35`).
+  - **$0 Compute Demo Voice on Load**: Synthesizes 10s voice clip comparing noisy audio (realistic AC hum + room hiss) vs studio-clean audio (`generateNoiseDemoAudio()`).
+  - **Instant A/B Audio Switch**: Toggle between `Clean Audio (Noise Removed)` and `Original Audio (Noisy)` in 1 click with synchronized playback.
+  - **4 Targeted Cleaning Profiles**: Voice & Speech, Fan & AC Hum, Mic Hiss & Buzz, Max Silence.
+  - **Interactive Waveform Visualizer**: Click-to-seek, 60fps RAF loop, laser needle, and audio-reactive speech bars.
+  - **Standard 4 Dynamic Progress**: Real upload byte tracking via `XMLHttpRequest`, continuous 150ms stage ticker, and digital percentage readout `[ 56% ]`.
+  - **1-Click Clean Audio Download**: Direct MP3 export of cleaned studio voice.
+
+### 0.3 🗣️ Text to Speech Studio (`/tools/audio/tts`) [COMPLETED & REFINED]
+* **Real Spoken Voice Engine & Random Tones Purge**:
+  - **Identified Root Cause of "Random Music / Tones"**: 3 of the 6 ElevenLabs voice IDs (`21m00Tcm4TlvDq8ikWAM`, `TxGEqnHWrfWFTfGW9XjX`, `AZnzlk1XvdvUeBnXmlld`) were legacy library voices returning HTTP 402 ("Free users cannot use library voices via the API"). The previous client-side catch block invoked `generateSyntheticSpeechWav`, which generated raw sawtooth synthesizer wave frequencies and formants (musical beeps/chimes) instead of human speech.
+  - **100% Free-Tier Verified Voice Personas (`VOICE_PERSONAS`)**:
+    - Replaced blocked voice IDs with 6 verified default premade voices that return HTTP 200 on standard accounts:
+      - `JBFqnCBsd6RMkjVDRZzb` (Exismic Narrator — Warm & Deep male narration)
+      - `XrExE9yKIg1WjnnlVkGX` (Matilda — Gentle, soothing, expressive female storytelling)
+      - `onwK4e9ZLuTAKqWW03F9` (Daniel — Resonant, cinematic deep male)
+      - `EXAVITQu4vr4xnSDxMaL` (Sarah — Energetic, modern creator female)
+      - `ErXwobaYiN019PkySvjV` (Antoni — Articulated, confident educator male)
+      - `TX3LPaxmHKxFdv7VOQHJ` (Liam — Punchy, dynamic podcast host male)
+  - **Two-Tier Fail-Safe Spoken Voice Architecture (`/api/tools/audio/tts/route.ts`)**:
+    - **Tier 1 (ElevenLabs AI)**: Ultra high-fidelity studio voiceover generation.
+    - **Tier 2 (Natural Spoken Voice Engine Fallback)**: If ElevenLabs API key is missing, rate-limited, or blocked, the server automatically synthesizes natural spoken human speech MP3 audio via Google Speech synthesis with sentence-boundary chunking, returning 100% valid `audio/mpeg` speech.
+  - **Purged Fake Sawtooth Oscillator**: Completely removed `generateSyntheticSpeechWav` so the tool never plays electronic music or buzzing tones under any circumstance.
+  - **Live Verification**: Verified all 6 personas and simulated failure fallback in Next.js dev server with HTTP 200 and valid MP3 audio streams.
+
+### 0.4 🎙️ Speech to Text Studio (`/tools/audio/stt`) [COMPLETED]
+* **Flagship Obsidian Cyber Pink Stage & Smart Transcript Studio**:
+  - **Replaced Outdated Wireframe**: Eliminated the generic cyan-bordered 2-column layout in favor of the signature Audio & Music Obsidian Cyber pink stage (`#ec4899`, `border-2 border-pink-500/35`, neon radial auras).
+  - **4 Instant 1-Click Audio Blueprints**: Pre-loaded real-world demonstration blueprints ($0 compute, 0s wait) for Podcast Conversation, Quick Voice Memo, Team Standup, and University Lecture so users can test transcripts instantly.
+  - **Dual Input Methods**:
+    - High-capacity drag & drop upload (MP3, WAV, M4A, OGG, FLAC up to 25MB) with real byte upload tracking via `XMLHttpRequest.upload.onprogress`.
+    - Integrated Live Microphone Recording mode with `MediaRecorder`, animated recording audio visualizer, elapsed recording timer, and 1-tap "Stop & Transcribe".
+  - **Interactive Waveform Player**: 54-bar animated audio visualizer with click-to-seek, laser playhead needle, time readouts, restart, and speed multiplier (0.85x, 1.0x, 1.25x, 1.5x).
+  - **Smart Transcript Console**:
+    - Real-time search/filter input with live highlight rendering and matching counter.
+    - Dual viewing modes: Paragraphs (clean prose) vs Clickable Timestamps (each segment has a time chip that seeks the player to that exact second).
+    - In-place Edit Mode allowing creators to fix names and punctuation directly.
+    - Live reading time and word count statistics.
+    - Export options: 1-click Copy All, Clean .TXT download, Video Subtitles (.SRT) export with standard sequence timecodes, and Save to Cloud Vault.
+  - **Single Consolidated SEO & Step Guide**: Removed redundant internal guide in `SpeechToTextStudio.tsx` to let the global `ToolSeoSection` render exclusively (with the 01/02/03 step cards and laser conduit). Updated `audio-stt` in `src/data/tools.ts` with dedicated Speech-to-Text `howToSteps`, `features`, and `faqs` so the cards display accurate, polished copy instead of generic stem splitter text.
+
+### 0.5 🎙️ Voice Changer Studio (`/tools/audio/voice-changer`) [COMPLETED]
+* **Flagship Obsidian Cyber Pink Stage & Real-Time Voice Transformation**:
+  - **Replaced Outdated Wireframe**: Upgraded from the generic wireframe box to the signature Audio & Music Obsidian Cyber pink stage (`#090a12`, `border-2 border-pink-500/35`, neon radial glows, dot matrix grid).
+  - **8 Distinct Character Voice Personas**: Deep Announcer (resonant movie voice), Cyber Robot (metallic ring modulation synthesizer), Studio Radio Host (vintage broadcast warmth), Helium High (energetic animated character), Space Alien (cosmic phaser), Walkie-Talkie (analog phone bandwidth), Cave Echo (cathedral reverb), and Dark Entity (sub-octave cinematic villain).
+  - **4 Plain-English Fine-Tuning Modifiers**: Voice Pitch (-12 to +12 semitones with live deep/high badges), Robotic Modulation (0% to 100%), Chest Warmth & Bass (0% to 100%), and Spatial Echo & Reverb (0% to 100%).
+  - **Dual Input Modes**: High-capacity drag & drop file upload (MP3, WAV, M4A, FLAC, OGG up to 50MB) and built-in live microphone recorder with animated pulsing ring and timer.
+  - **Instant A/B Audio Listening Switch**: Seamlessly toggles between Transformed Voice and Original Audio with zero playback stutter and synchronized timeline.
+  - **54-Bar Interactive Audio Waveform**: Real-time frequency bars, click-to-seek, smooth 60fps RAF playhead loop, loop toggle, and speed multiplier (0.85x to 1.5x).
+  - **$0 Compute Demo on Load**: Synthesizes and transforms a natural 10s voice recording on mount (`generateVoiceChangerDemo`), giving users an immediate playable preview with 0s wait.
+  - **Standard 4 Dynamic Progress Bar**: Continuous 150ms dynamic ticker tracking vocal formants, pitch modulation, and acoustic resonance with live percentage and elapsed time.
+  - **Clean SEO & Guide Integration**: Dedicated `howToSteps`, `features`, and `faqs` in `src/data/tools.ts` seamlessly powering the global `ToolSeoSection`.
+
+### 0.6 🔊 AI Sound Effects Studio (`/tools/sfx-generator`) [COMPLETED]
+* **Flagship Obsidian Cyber Pink Stage & Procedural Foley Engine**:
+  - **Replaced Outdated Wireframe**: Eliminated the mismatched cyan layout, removed the misplaced `PdfSidebar`, and transformed the interface into the signature Audio & Music Obsidian Cyber pink stage (`#090a12`, `border-2 border-pink-500/35`).
+  - **4 Instant 1-Click Blueprints**: 8-Bit Coin & Jump (arcade double-jump and reward chime), Sci-Fi Laser Blast (plasma blaster with energy dissipation), Heavy Metal Sword Clash (ringing parry and steel harmonics), and Thunder & Rain (low sub-bass storm rumble and gentle raindrops) pre-rendered for $0 compute, 0s wait testing.
+  - **20 Curated Sound Inspirations**: Categorized pills across Gaming & Sci-Fi, Cinematic & Action, Nature & Ambient, and UI & Transitions.
+  - **Everyday Plain-English Controls**: Sound duration slider (0.5s to 12.0s with impact/standard/extended badges), acoustic environment selector (Studio Clean, Open Air, Echo Hall), and prompt adherence slider.
+  - **54-Bar Interactive Waveform Monitor**: Dynamic frequency visualizer, click-to-seek, smooth 60fps RAF playhead loop, seamless Loop toggle (essential for looping rain/engine ambient textures), and speed controls (0.85x to 1.5x).
+  - **Dual Foley Generation Architecture**: Connects to ElevenLabs text-to-foley generation with an automatic in-browser Web Audio procedural DSP synthesizer fallback (`generateProceduralSfx`), guaranteeing visitors ALWAYS get clean, crisp WAV sound effects even if the external API is offline or rate-limited.
+  - **Standard 4 Dynamic Progress Bar**: Continuous 150ms dynamic ticker tracking acoustic analysis, waveform synthesis, spatial reflections, and stereo mastering with live percentage readout.
+  - **Single Consolidated SEO & Step Guide**: Dedicated `howToSteps`, `features`, and `faqs` in `src/data/tools.ts` powering the global `ToolSeoSection` below the workspace.
+
+### 0.7 🎧 Cinematic Ambient Mixer Studio (`/tools/ambient-mixer`) [COMPLETED]
+* **Flagship Obsidian Cyber Pink Stage & Procedural Soundscape Engine**:
+  - **Eliminated 128px Empty Black Void & Misplaced PDF Sidebar**: Replaced the previous broken layout with the signature Audio & Music Obsidian Cyber pink stage (`#090a12`, `border-2 border-pink-500/35`).
+  - **6 Curated 1-Click Soundscape Presets**: Rainy Coffee Shop, Midnight Rainstorm, Forest Campfire, Cozy Mountain Cabin, Coastal Serenity, and Deep Zen Focus pre-balanced for instant relaxation.
+  - **6 Independent Procedural Ambient Channels**: Heavy Rain, Cozy Fireplace, Coffee Shop, Pine Forest, Midnight Stars, and Ocean Waves with volume sliders, Mute, Solo, and color-coded level indicators running entirely in-browser with $0 server cost and zero external CORS failures.
+  - **Master Mixing Console & 54-Bar Waveform**: Master Play/Pause with pulsing live indicator, master volume fader, and an animated 54-bar interactive real-time waveform visualizer running at 60 FPS via Web Audio `AnalyserNode` frequency analysis and fluid organic wave harmonics (direct DOM manipulation for zero React re-render lag, interactive click-to-play/pause, responsive amplitude scaling with master/channel volumes, and smooth resting return on pause).
+  - **Integrated Focus & Sleep Timer**: 15m, 25m Pomodoro, 45m, and 60m focus timers with a gentle 3-second audio fade-out on completion.
+  - **Seamless WAV Soundscape Export**: 1-Click "Download Mixed Soundscape (.WAV)" generating a 25-second studio-quality seamless loop.
+  - **Single Consolidated SEO & Step Guide**: Dedicated `howToSteps`, `features`, and `faqs` in `src/data/tools.ts` powering the global `ToolSeoSection` below the workspace.
 
 ### 0. 🏛️ Exismic Public Landing Page — Human Copy Polish & Tech Jargon Purge [COMPLETED]
 * **Zero Tech Jargon & 100% Preserved UI**:
@@ -2041,11 +2664,32 @@
     * **AI Content Detector Studio Overhaul (`/tools/ai-detector`)**: Replaced dated cyan/purple styling with signature Obsidian Gold / Solaris Amber AI category aesthetics (`#f59e0b` / `amber-400`). Rebuilt into a symmetrical dual-pane workspace eliminating the giant empty black void: Left pane features clipboard paste, 4 instant demonstration blueprints ($0 previews for AI Essay, Human Story, Hybrid Memo, Academic Paper), and a 100% Free instant scan button. Right pane features an interactive Authenticity Studio with primary AI Likelihood gauge, Human Flow score, AI clichés counter with detected buzzword pills, dual-mode sentence breakdown (`Sentence Highlights` with inline indicators and `Sentence Breakdown List` with individual sentence scores & friendly explanations), 1-click text copy, and seamless 1-click "Humanize This Text" piping directly into AI Humanizer. Purged all tech jargon ("perplexity", "burstiness", "heuristics") and all sparkle icons. TypeScript compilation clean with 0 errors.
     * **Grammar & Style Checker Studio Overhaul (`/tools/grammar-checker`)**: Rebuilt the component with Nordic Emerald Productivity suite aesthetics (`#10b981` / `emerald-400` / `emerald-500`). Symmetrical dual-pane studio completely eliminates the empty black void: Left pane features clipboard paste, word & character counters, 4 editing tone styles (Standard Polish, Professional Business, Casual & Friendly, Academic), 4 instant demonstration blueprints ($0 client-side previews for Messy Client Email, Weak Resume Summary, Rambling Product Pitch, Academic Literature Draft), and 100% Free instant check button. Right pane features a Proofreading Report studio with writing quality gauge (98%), corrections counter, word economy tracker, triple-mode interactive results viewer (`Clean Polished Text` with 1-click copy, `Before vs After Diff` with strikethrough error comparisons, and `Fix Details Breakdown` with plain-English reasons), and 1-click direct workflow chaining into AI Humanizer. Purged all tech jargon and sparkle icons. TypeScript compilation verified with 0 errors.
     * **Email Reply Generator Studio Overhaul (`/tools/email-reply-generator`)**: Rebuilt the component with Nordic Emerald Productivity suite aesthetics (`#10b981` / `emerald-400` / `emerald-500`). Symmetrical dual-pane studio completely eliminates the empty black void: Left pane features clipboard paste, word & character counters, 5 response intents (Accept & Proceed, Decline Politely, Gentle Follow-Up, Negotiate Offer, Provide Details), 5 tone presets (Professional, Friendly & Warm, Direct & Crisp, Firm & Confident, Formal & Courteous), key details notes input, 4 instant demonstration blueprints ($0 client-side previews for Polite Meeting Decline, Salary Negotiation, Gentle Follow-Up, and Project Kickoff Confirmation), and 100% Free instant draft button. Right pane features an interactive Email Compose Simulator mimicking a real inbox compose card (To:, Subject:, formatted email body, signature box), subject-only copy, body-only copy, full email copy, direct 1-click `mailto:` launch into desktop mail client, and 1-click pipeline chaining to AI Humanizer. Purged all sparkle icons and tech jargon. TypeScript compilation clean with 0 errors.
+    * **Text to Speech Studio Overhaul (`/tools/audio/tts`)**: Completely overhauled the legacy 2-column wireframe box to the signature Audio & Music category neon pink obsidian theme (`#ec4899` / `text-pink-400`, `border-2 border-pink-500/35`). Symmetrical dual-pane workspace eliminating empty voids: Left pane features 4 instant 1-click script blueprints (YouTube Intro, Podcast Opener, Product Promo, Documentary Narration), ergonomic script textarea with live character counter (up to 5,000 chars), word count, and estimated speaking duration, clipboard copy and clear utilities, and bold "Generate Voiceover" action button. Right pane features 6 rich voice personas (Exismic Narrator, Rachel, Josh, Bella, Antoni, Domi) with 1-click in-browser voice sample previews (`window.speechSynthesis`) so creators can audition voices before generating. Completely purged tech jargon (no "stability", "similarity boost", "variable", "AST", "DSP") in favor of everyday plain English controls: Voice Consistency, Voice Clarity & Warmth, Expressiveness, and Speaking Pace (0.85x to 1.25x). Built with Standard 4 continuous dynamic progress feedback tracking multi-stage synthesis with live percentage and elapsed time. Results section features interactive 54-bar audio visualizer with click-to-seek, smooth 60fps RAF playhead loop, time counter, loop toggle, 1-click MP3 download, and Save to Cloud Vault. Equipped with an in-browser Web Audio speech synthesizer fallback guaranteeing zero broken state or error popups. Finished with single category-reactive laser horizon divider (`#ec4899`) bridging into a plain-English 3-step creator guide with punctuation tips. Verified clean TypeScript build with 0 errors.
 
 
 
 
 
+
+    * **Developer Category Suite Obsidian Cyber Overhaul [COMPLETED - ALL 11 TOOLS]**:
+      - **Flagship Aesthetic Standard**: Replaced generic wireframes, misaligned purple switches, and dated stubs with the signature Developer Obsidian Cyber Matrix Neon Lime design standard (`#84cc16`, `lime-400`, `border-lime-500/30`, `bg-lime-500/10`).
+      - **Zero Tech Jargon & Zero Sparkles Enforced**: Purged prohibited geeky buzzwords ("ENTROPY LENGTH", "RANDOM BITS OF SECURITY", "DSP", "WASM", etc.) and purged all instances of `<Sparkles>` across the developer suite in strict compliance with `TOOL_STANDARDS_AND_GUIDELINES.md`.
+      - **Spacious 3-Column Blueprints (`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5`)**: All tools feature 6 curated 1-click test blueprints with non-wrapping badges (`whitespace-nowrap shrink-0`) and zero blank void on mount.
+      - **Laser Horizon Bridge & Result Retention**: Every tool now integrates `<ToolLaserDivider primaryHex="#84cc16" />`, `<ResultRetentionBar />`, `<ToolSuggestions />`, and `<ToolWorkflowChaining />`.
+      - **Overhauled Tools Summary**:
+        1. **Password Generator (`/tools/productivity/passgen`)**: Purged purple accents, eliminated "ENTROPY LENGTH", added 6 blueprints, bulk generation mode (1, 5, 10x), lookalike character exclusion, and plain-English crack resistance breakdown.
+        2. **Base64 Encoder / Decoder (`/tools/base64-encoder`)**: Replaced 99-line stub with full studio, 6 blueprints, UTF-8 safe bidirectional text & code conversion, URL-safe toggle, file-to-Base64 drag-and-drop with HTML `<img>`, CSS `url()`, and Data URI copies.
+        3. **Hash Generator (`/tools/hash-generator`)**: Integrated RFC 1321 pure in-browser MD5, SHA-256, SHA-512, SHA-384, SHA-1, HMAC key field, file checksum verification tab with 0s server upload, and 6 blueprints.
+        4. **Regex Tester & Debugger (`/tools/regex-tester`)**: 6 blueprints, live inline visual regex match highlighting with glowing lime pills directly on sample text, capture groups breakdown, regex flag toggles (`g`, `i`, `m`, `s`), and live substitution/replace preview.
+        5. **UUID & GUID Generator (`/tools/uuid-generator`)**: 6 blueprints, quick quantity selectors (1 to 100), output format modes (line-by-line, JSON array, SQL insert), custom entity prefix field, individual 1-click copies, and `.txt`/`.json` file export.
+        6. **Lorem Ipsum Generator (`/tools/lorem-ipsum-generator`)**: 6 blueprints in 3 columns, plain text / HTML / Markdown / JSON formats, live word, character, and reading time counters, classic opening toggle, and file download.
+        7. **JSON Formatter & Validator (`/tools/productivity/json`)**: Purged purple accents, preloaded Blueprint #1 on load (no blank void), 6 blueprints, auto-fix syntax (single quotes, trailing commas, unquoted keys), key sorting (A-Z), and 2-space/4-space/tab/minify spacing.
+        8. **Cron Expression Generator (`/tools/developer/cron-generator`)**: Purged emojis, 6 blueprints in 3 columns, 5 visual segment inputs with helper pills, plain-English human translation, simulated next 5 executions timeline, and crontab command helper.
+        9. **JSON to TypeScript & Zod (`/tools/developer/json-to-types`)**: Purged prohibited Sparkles icon, 6 blueprints in 3 columns, TypeScript interface, Type alias, Zod schema, and JSON Schema modes with recursive sub-interface generation, optional and readonly toggles.
+        10. **Visual SQL Query Builder (`/tools/sql-builder`)**: Purged prohibited Sparkles icon, 6 blueprints in 3 columns, SELECT, INSERT, UPDATE, DELETE query operations, dialect selector (PostgreSQL, MySQL, SQLite), and plain-English query breakdown.
+        11. **SVG Optimizer (`/tools/developer/svg-optimizer`)**: Purged prohibited Sparkles icon, 6 blueprints in 3 columns, live vector canvas render preview vs markup tabs, byte savings meter, Data URI copy, and granular SVGO cleaning rules.
+      - **Effective Category Binding (`ToolDetailClient.tsx`)**: Fixed category identification so developer tools mounted at legacy URLs (such as `/tools/productivity/passgen` and `/tools/productivity/json`) correctly display the authentic **Electric Lime (`#84cc16`)** workspace header, breathing aura, and guide section.
+      - **Compilation Quality**: `npx tsc --noEmit` verified with **0 errors**. Verified HTTP 200 clean SSR render on localhost:3000.
 
 ---
 
@@ -2066,3 +2710,11 @@
   - `credits-updated`, `quests-updated`
   - `avatar-frame-updated`, `name-gradient-updated`
   - `insignia-updated`, `canopy-updated`
+
+
+### September 29, 2026 — Local SEO remediation (not deployed)
+- Implemented the approved forensic-audit fixes; see `SEO_FIXES_2026-09-29.md` for scope, evidence, and release boundaries.
+- Production build and TypeScript passed. `node scripts/seo-regression.cjs http://127.0.0.1:3000` passed all 133 sitemap pages plus aliases/private-route checks.
+- Public delivery-policy/DMCA/brand access restored; priority tool copy, metadata, guide fields, sitemap and headings corrected. Blog author lookup failure now preserves article SSR.
+- Existing audio work was preserved; only the inner Text-to-Speech studio heading was adjusted in its untracked file. Review mixed working-tree changes before any release.
+- No commit, push, deployment or GSC indexing submission was performed. Google indexing is not guaranteed by technical eligibility.

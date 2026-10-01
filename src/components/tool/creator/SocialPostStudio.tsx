@@ -27,10 +27,10 @@ import {
   Award,
   Globe,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
+import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // TYPES & PLATFORMS
@@ -224,7 +224,7 @@ interface QuickPreset {
 const QUICK_PRESETS: QuickPreset[] = [
   {
     id: "viral-take",
-    label: "🔥 Viral Advice",
+    label: "Viral Advice",
     platform: "twitter",
     name: "Alex Rivera",
     handle: "ariverabuilds",
@@ -238,7 +238,7 @@ const QUICK_PRESETS: QuickPreset[] = [
   },
   {
     id: "linkedin-growth",
-    label: "💼 Career Insight",
+    label: "Career Insight",
     platform: "linkedin",
     name: "Elena Rostova",
     handle: "elena-rostova",
@@ -253,7 +253,7 @@ const QUICK_PRESETS: QuickPreset[] = [
   },
   {
     id: "milestone-threads",
-    label: "🚀 Milestone",
+    label: "Milestone Story",
     platform: "threads",
     name: "Exismic Studio",
     handle: "exismic",
@@ -267,7 +267,7 @@ const QUICK_PRESETS: QuickPreset[] = [
   },
   {
     id: "reddit-discussion",
-    label: "👾 Tech Thread",
+    label: "Tech Discussion",
     platform: "reddit",
     name: "Alex Rivera",
     handle: "ariverabuilds",
@@ -283,12 +283,12 @@ const QUICK_PRESETS: QuickPreset[] = [
   },
   {
     id: "youtube-community",
-    label: "🎬 Channel Drop",
+    label: "Channel Update",
     platform: "youtube",
     name: "Exismic Creative",
     handle: "exismic",
     badge: "youtube_verified",
-    text: "New studio drop! The entire suite of 13 creative engines is now live on the site.\n\nZero paywalls, zero cloud queues, completely free forever. Check it out and let me know your favorite tool in the comments!",
+    text: "New studio drop! The entire suite of creative tools is now live on the site.\n\nZero paywalls, zero cloud queues, completely free forever. Check it out and let me know your favorite tool in the comments!",
     views: "95K",
     reposts: "110",
     likes: "12.4K",
@@ -297,7 +297,7 @@ const QUICK_PRESETS: QuickPreset[] = [
   },
   {
     id: "shower-thought",
-    label: "💡 Relatable Take",
+    label: "Relatable Take",
     platform: "twitter",
     name: "Sam Chen",
     handle: "samchendev",
@@ -905,31 +905,63 @@ export default function SocialPostStudio() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-4 space-y-5">
-      {/* Top Banner / Quick Blueprint Presets */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl bg-[#0b0f19]/90 border border-white/[0.08] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-rose-400 shrink-0" />
-          <span className="text-xs font-semibold text-zinc-200">Content Blueprints:</span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-rose-500/15 text-rose-300 border border-rose-500/25">
-            Presets
+      {/* 1-Click Viral Post Blueprints Gallery */}
+      <div className="rounded-3xl border border-indigo-500/20 bg-[#0a0c16]/90 p-4 sm:p-5 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(99,102,241,0.06)] space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <Layers className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-white">
+                Viral Post Blueprints
+              </span>
+              <p className="text-[11px] text-zinc-400 font-medium">
+                Click any proven structure to instantly load verified copy, handles, and metrics
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400/90 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20 self-start sm:self-auto">
+            {QUICK_PRESETS.length} Formats Available
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto py-1 max-w-full">
-          {QUICK_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => handleApplyPreset(preset)}
-              className={cn(
-                "px-2.5 py-1 text-xs rounded-lg border transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap",
-                selectedPresetId === preset.id
-                  ? "bg-rose-500/20 text-rose-200 border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.2)] font-medium"
-                  : "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.06] text-zinc-300 hover:text-white"
-              )}
-            >
-              <PlatformLogo platform={preset.platform} />
-              <span>{preset.label}</span>
-            </button>
-          ))}
+
+        {/* 6 Responsive Blueprint Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {QUICK_PRESETS.map((preset) => {
+            const isSelected = selectedPresetId === preset.id;
+            const platformConfig = PLATFORM_CONFIGS.find((p) => p.id === preset.platform);
+            const platformName = platformConfig?.shortName || preset.platform;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleApplyPreset(preset)}
+                className={cn(
+                  "relative flex flex-col items-start justify-between text-left p-3 rounded-2xl transition-all duration-200 border cursor-pointer min-h-[92px]",
+                  isSelected
+                    ? "bg-indigo-600/20 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.25)] text-white"
+                    : "bg-[#0c0e18] border-white/10 text-zinc-300 hover:border-indigo-500/40 hover:bg-white/[0.04] hover:text-white"
+                )}
+              >
+                <div className="w-full flex items-center justify-between gap-1 mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <PlatformLogo platform={preset.platform} />
+                    <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide">
+                      {platformName}
+                    </span>
+                  </div>
+                  {isSelected && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-[0_0_6px_#6366f1]" />
+                  )}
+                </div>
+                <div className="w-full space-y-0.5">
+                  <p className="text-xs font-bold leading-snug line-clamp-1">{preset.label}</p>
+                  <p className="text-[10px] text-zinc-500 line-clamp-1">@{preset.handle}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -940,11 +972,11 @@ export default function SocialPostStudio() {
           className={cn(
             "flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all",
             mobileTab === "editor"
-              ? "bg-gradient-to-r from-rose-500/20 to-pink-500/20 text-white border border-rose-500/40 shadow-sm"
+              ? "bg-gradient-to-r from-indigo-500/20 to-blue-500/20 text-white border border-indigo-500/40 shadow-sm"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Edit3 className="w-3.5 h-3.5 text-rose-400" />
+          <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
           <span>Editor Controls</span>
         </button>
         <button
@@ -952,7 +984,7 @@ export default function SocialPostStudio() {
           className={cn(
             "flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all",
             mobileTab === "preview"
-              ? "bg-gradient-to-r from-rose-500/20 to-pink-500/20 text-white border border-rose-500/40 shadow-sm"
+              ? "bg-gradient-to-r from-indigo-500/20 to-blue-500/20 text-white border border-indigo-500/40 shadow-sm"
               : "text-zinc-400 hover:text-white"
           )}
         >
@@ -976,13 +1008,13 @@ export default function SocialPostStudio() {
           <div className="p-4 sm:p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 shrink-0">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold border border-indigo-500/30 shrink-0">
                   1
                 </span>
                 <span>Select Social Platform</span>
               </label>
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
-                9 Engines
+                9 Platforms
               </span>
             </div>
 
@@ -996,8 +1028,8 @@ export default function SocialPostStudio() {
                     className={cn(
                       "py-2.5 px-2 rounded-xl text-xs font-medium border flex flex-col items-center gap-1.5 transition-all active:scale-95 text-center",
                       isActive
-                        ? "bg-rose-500/20 text-rose-200 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.2)] ring-1 ring-rose-500/30 font-semibold"
-                        : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white"
+                        ? "bg-indigo-500/20 text-indigo-100 border-indigo-400 shadow-[0_0_16px_rgba(99,102,241,0.25)] font-semibold"
+                        : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white hover:border-white/20"
                     )}
                   >
                     <PlatformLogo platform={cfg.id} />
@@ -1011,7 +1043,7 @@ export default function SocialPostStudio() {
           {/* STEP 2: CANVAS & THEME OPTIONS */}
           <div className="p-4 sm:p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <label className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 shrink-0">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold border border-indigo-500/30 shrink-0">
                 2
               </span>
               <span>Theme & Presentation Frame</span>
@@ -1024,8 +1056,8 @@ export default function SocialPostStudio() {
                 className={cn(
                   "py-2 px-2.5 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all active:scale-95",
                   theme === "obsidian"
-                    ? "bg-purple-500/20 text-purple-200 border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.2)] ring-1 ring-purple-500/30"
-                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06]"
+                    ? "bg-purple-500/20 text-purple-200 border-purple-400 shadow-[0_0_14px_rgba(168,85,247,0.25)] font-semibold"
+                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0 shadow-[0_0_6px_rgba(168,85,247,0.8)]" />
@@ -1036,8 +1068,8 @@ export default function SocialPostStudio() {
                 className={cn(
                   "py-2 px-2.5 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all active:scale-95",
                   theme === "dark"
-                    ? "bg-zinc-800 text-white border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.1)] ring-1 ring-zinc-400/30"
-                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06]"
+                    ? "bg-zinc-800 text-white border-zinc-400 shadow-[0_0_14px_rgba(255,255,255,0.15)] font-semibold"
+                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 <span className="w-2.5 h-2.5 rounded-full bg-black border border-white/40 shrink-0" />
@@ -1048,8 +1080,8 @@ export default function SocialPostStudio() {
                 className={cn(
                   "py-2 px-2.5 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all active:scale-95",
                   theme === "dim"
-                    ? "bg-sky-900/40 text-sky-200 border-sky-500/40 shadow-[0_0_12px_rgba(56,189,248,0.2)] ring-1 ring-sky-500/30"
-                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06]"
+                    ? "bg-sky-900/40 text-sky-200 border-sky-400 shadow-[0_0_14px_rgba(56,189,248,0.25)] font-semibold"
+                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 <span className="w-2.5 h-2.5 rounded-full bg-[#15202b] border border-sky-400/50 shrink-0" />
@@ -1061,7 +1093,7 @@ export default function SocialPostStudio() {
                   "py-2 px-2.5 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all active:scale-95",
                   theme === "light"
                     ? "bg-white text-zinc-900 border-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06]"
+                    : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 <span className="w-2.5 h-2.5 rounded-full bg-white border border-black/30 shrink-0" />
@@ -1078,8 +1110,8 @@ export default function SocialPostStudio() {
                   className={cn(
                     "py-1.5 px-2 rounded-lg text-xs font-medium border transition-all text-center",
                     canvasFormat === "fitted"
-                      ? "bg-rose-500/20 text-rose-200 border-rose-500/40"
-                      : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:text-white"
+                      ? "bg-indigo-500/20 text-indigo-200 border-indigo-400 font-semibold shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                      : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:text-white hover:border-white/20"
                   )}
                 >
                   Snug Card
@@ -1089,8 +1121,8 @@ export default function SocialPostStudio() {
                   className={cn(
                     "py-1.5 px-2 rounded-lg text-xs font-medium border transition-all text-center",
                     canvasFormat === "square"
-                      ? "bg-rose-500/20 text-rose-200 border-rose-500/40"
-                      : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:text-white"
+                      ? "bg-indigo-500/20 text-indigo-200 border-indigo-400 font-semibold shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                      : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:text-white hover:border-white/20"
                   )}
                 >
                   1:1 Studio Frame
@@ -1100,8 +1132,8 @@ export default function SocialPostStudio() {
                   className={cn(
                     "py-1.5 px-2 rounded-lg text-xs font-medium border transition-all text-center",
                     canvasFormat === "portrait"
-                      ? "bg-rose-500/20 text-rose-200 border-rose-500/40"
-                      : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:text-white"
+                      ? "bg-indigo-500/20 text-indigo-200 border-indigo-400 font-semibold shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                      : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:text-white hover:border-white/20"
                   )}
                 >
                   9:16 Story Frame
@@ -1113,10 +1145,10 @@ export default function SocialPostStudio() {
           {/* STEP 3: CREATOR IDENTITY & PLATFORM-AUTHENTIC BADGES */}
           <div className="p-4 sm:p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 shrink-0">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold border border-indigo-500/30 shrink-0">
                 3
               </span>
-              <AtSign className="w-3.5 h-3.5 text-rose-400" />
+              <AtSign className="w-3.5 h-3.5 text-indigo-400" />
               <span>Creator Identity & Badges</span>
             </h3>
 
@@ -1130,7 +1162,7 @@ export default function SocialPostStudio() {
                       setCustomAvatar(null);
                       setAvatarUri(PRESET_AVATARS[0].svgDataUri);
                     }}
-                    className="text-[11px] text-rose-400 hover:text-rose-300 transition-colors"
+                    className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
                   >
                     Reset Preset
                   </button>
@@ -1143,7 +1175,7 @@ export default function SocialPostStudio() {
                     className={cn(
                       "relative w-10 h-10 rounded-full overflow-hidden border-2 transition-all active:scale-95",
                       avatarUri === customAvatar
-                        ? "border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]"
+                        ? "border-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.4)]"
                         : "border-white/20 hover:border-white/50"
                     )}
                   >
@@ -1159,7 +1191,7 @@ export default function SocialPostStudio() {
                     className={cn(
                       "relative w-9 h-9 rounded-full overflow-hidden border-2 transition-all active:scale-95",
                       avatarUri === av.svgDataUri && !customAvatar
-                        ? "border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]"
+                        ? "border-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.4)]"
                         : "border-white/10 hover:border-white/40"
                     )}
                   >
@@ -1177,9 +1209,9 @@ export default function SocialPostStudio() {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-2 rounded-xl border border-dashed border-white/20 hover:border-rose-400 text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-2 rounded-xl border border-dashed border-white/20 hover:border-indigo-400 text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
                 >
-                  <ImageIcon className="w-3.5 h-3.5 text-rose-400" />
+                  <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Upload Photo</span>
                 </button>
               </div>
@@ -1194,7 +1226,7 @@ export default function SocialPostStudio() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. Alex Rivera"
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
               <div>
@@ -1210,7 +1242,7 @@ export default function SocialPostStudio() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="ariverabuilds"
-                    className="w-full pl-7 pr-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                    className="w-full pl-7 pr-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -1225,7 +1257,7 @@ export default function SocialPostStudio() {
                   value={headline}
                   onChange={(e) => setHeadline(e.target.value)}
                   placeholder="Founder @ Exismic | Forbes 30 Under 30"
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
             )}
@@ -1239,7 +1271,7 @@ export default function SocialPostStudio() {
                     value={subreddit}
                     onChange={(e) => setSubreddit(e.target.value)}
                     placeholder="r/technology"
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -1249,7 +1281,7 @@ export default function SocialPostStudio() {
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
                     placeholder="Discussion Title"
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -1264,7 +1296,7 @@ export default function SocialPostStudio() {
                     value={locationTag}
                     onChange={(e) => setLocationTag(e.target.value)}
                     placeholder="San Francisco, California"
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div className="pt-4">
@@ -1273,7 +1305,7 @@ export default function SocialPostStudio() {
                       type="checkbox"
                       checked={hasStoryRing}
                       onChange={(e) => setHasStoryRing(e.target.checked)}
-                      className="rounded border-white/20 bg-white/5 text-rose-500 focus:ring-rose-400"
+                      className="rounded border-white/20 bg-white/5 text-indigo-500 accent-indigo-500 focus:ring-0"
                     />
                     <span>Active Story Gradient Ring</span>
                   </label>
@@ -1295,8 +1327,8 @@ export default function SocialPostStudio() {
                     className={cn(
                       "py-2 px-3 rounded-xl text-xs font-medium border flex items-center gap-1.5 transition-all active:scale-95 whitespace-nowrap",
                       badge === b.id
-                        ? "bg-rose-500/20 text-rose-200 border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.25)] ring-1 ring-rose-500/30 font-semibold"
-                        : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white"
+                        ? "bg-indigo-500/20 text-indigo-200 border-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.25)] font-semibold"
+                        : "bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white hover:border-white/20"
                     )}
                   >
                     <VerifiedBadgeIcon type={b.id} />
@@ -1311,10 +1343,10 @@ export default function SocialPostStudio() {
           <div className="p-4 sm:p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 shrink-0">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold border border-indigo-500/30 shrink-0">
                   4
                 </span>
-                <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+                <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Post Text & Media</span>
               </h3>
               <span className="text-[11px] font-mono text-zinc-500">
@@ -1327,7 +1359,7 @@ export default function SocialPostStudio() {
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
               placeholder="What's happening?"
-              className="w-full px-3.5 py-3 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400 leading-relaxed resize-y"
+              className="w-full px-3.5 py-3 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500 leading-relaxed resize-y"
             />
 
             {/* Quick Token Pills */}
@@ -1381,7 +1413,7 @@ export default function SocialPostStudio() {
                   </div>
                   <button
                     onClick={() => setAttachedImage(null)}
-                    className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs transition-colors"
+                    className="p-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 text-xs transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -1397,9 +1429,9 @@ export default function SocialPostStudio() {
                   />
                   <button
                     onClick={() => mediaInputRef.current?.click()}
-                    className="w-full py-3 rounded-xl border border-dashed border-white/[0.12] hover:border-rose-400/40 bg-white/[0.02] hover:bg-white/[0.04] text-xs font-medium text-zinc-400 hover:text-white flex items-center justify-center gap-2 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"
+                    className="w-full py-3 rounded-xl border border-dashed border-white/[0.12] hover:border-indigo-400/40 bg-white/[0.02] hover:bg-white/[0.04] text-xs font-medium text-zinc-400 hover:text-white flex items-center justify-center gap-2 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"
                   >
-                    <ImageIcon className="w-4 h-4 text-rose-400" />
+                    <ImageIcon className="w-4 h-4 text-indigo-400" />
                     Attach a Photo or Screenshot to Post
                   </button>
                 </div>
@@ -1411,15 +1443,15 @@ export default function SocialPostStudio() {
           <div className="p-4 sm:p-5 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl space-y-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 shrink-0">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold border border-indigo-500/30 shrink-0">
                   5
                 </span>
-                <Sliders className="w-3.5 h-3.5 text-rose-400" />
+                <Sliders className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Timestamp & Metrics</span>
               </h3>
               <button
                 onClick={handleSetToNow}
-                className="text-xs text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 transition-all active:scale-95"
+                className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 transition-all active:scale-95"
               >
                 <Clock className="w-3 h-3" />
                 Set to Right Now
@@ -1435,7 +1467,7 @@ export default function SocialPostStudio() {
                     value={timeString}
                     onChange={(e) => setTimeString(e.target.value)}
                     placeholder="10:42 AM"
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -1445,7 +1477,7 @@ export default function SocialPostStudio() {
                     value={dateString}
                     onChange={(e) => setDateString(e.target.value)}
                     placeholder="Sep 20, 2026"
-                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -1457,7 +1489,7 @@ export default function SocialPostStudio() {
                   value={commentTimeAgo}
                   onChange={(e) => setCommentTimeAgo(e.target.value)}
                   placeholder="2h, 1d, or 3 days ago"
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-rose-400"
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
             )}
@@ -1547,8 +1579,8 @@ export default function SocialPostStudio() {
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
                 Live Post Preview
               </span>
-              <span className="hidden sm:inline-flex px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 bg-white/[0.04] border border-white/[0.06]">
-                2.5x High-DPI
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded text-[10px] font-semibold text-zinc-300 bg-white/[0.04] border border-white/[0.08]">
+                Studio Quality HD
               </span>
             </div>
 
@@ -1584,9 +1616,9 @@ export default function SocialPostStudio() {
                 disabled={isDownloading}
                 className={cn(
                   "relative group overflow-hidden px-4 py-2 rounded-xl text-xs font-semibold text-white",
-                  "bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 hover:from-rose-400 hover:via-pink-500 hover:to-purple-500",
+                  "bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-400 hover:via-indigo-500 hover:to-blue-500",
                   "border border-white/25 hover:border-white/40",
-                  "shadow-[0_0_25px_rgba(244,63,94,0.35),inset_0_1px_0_rgba(255,255,255,0.35),0_4px_16px_rgba(0,0,0,0.5)]",
+                  "shadow-[0_0_25px_rgba(99,102,241,0.35),inset_0_1px_0_rgba(255,255,255,0.35),0_4px_16px_rgba(0,0,0,0.5)]",
                   "flex items-center gap-2 transition-all duration-200 active:scale-95"
                 )}
               >
@@ -1603,7 +1635,7 @@ export default function SocialPostStudio() {
           {/* REALISTIC STUDIO STAGE VIEWPORT (Mobile Fluid Max-Width) */}
           <div className="relative p-3 sm:p-6 md:p-8 rounded-3xl bg-[#06070d] border border-white/[0.08] flex items-center justify-center min-h-[420px] overflow-x-hidden overflow-y-auto shadow-2xl">
             {/* Ambient Backlight Glow */}
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(244,63,94,0.07)_0%,transparent_70%)]" />
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.12)_0%,transparent_70%)]" />
             {/* Fine Studio Grid Texture */}
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:24px_24px]" />
 
@@ -2282,7 +2314,7 @@ export default function SocialPostStudio() {
             onClick={() => setMobileTab("editor")}
             className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.08] hover:bg-white/[0.12] text-white border border-white/10 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
           >
-            <Edit3 className="w-4 h-4 text-rose-400" />
+            <Edit3 className="w-4 h-4 text-indigo-400" />
             <span>Edit Post Settings</span>
           </button>
         )}
@@ -2290,12 +2322,15 @@ export default function SocialPostStudio() {
         <button
           onClick={handleDownloadPng}
           disabled={isDownloading}
-          className="relative group overflow-hidden px-4 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 hover:from-rose-400 hover:via-pink-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0"
+          className="relative group overflow-hidden px-4 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-400 hover:via-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0"
         >
           <Download className="w-4 h-4" />
           <span>{isDownloading ? "Rendering..." : "Download"}</span>
         </button>
       </div>
+
+      {/* Category Reactive Laser Horizon Divider */}
+      <ToolLaserDivider primaryHex="#6366f1" />
     </div>
   );
 }

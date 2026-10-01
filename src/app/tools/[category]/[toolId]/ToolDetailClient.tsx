@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
-import { Tool, Category, ICON_MAP } from "@/data/tools";
+import { Tool, Category, ICON_MAP, CATEGORIES } from "@/data/tools";
 import { ToolCard } from "@/components/ui/ToolCard";
 import { useToolProcessor } from "@/hooks/useToolProcessor";
 import { ImageGeneratorTool } from "@/components/tool/ImageGeneratorTool";
@@ -42,7 +42,7 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Crown, 
-  Sparkles, 
+  Wand2, 
   Download,
   Clock
 } from "lucide-react";
@@ -75,6 +75,10 @@ interface ToolDetailClientProps {
 }
 
 export function ToolDetailClient({ tool, category, relatedTools, categoryId, toolId }: ToolDetailClientProps) {
+  const effectiveCategoryId = tool.category || categoryId;
+  const effectiveCategory = CATEGORIES.find(c => c.id === effectiveCategoryId) || category;
+  const effectiveCategoryName = effectiveCategory.name;
+
   const endpoint = `/api/tools/${categoryId}/${toolId.replace('img-', '').replace('vid-', '').replace('pdf-', '')}`;
   const { processFile, isProcessing, progress, error, result, reset, authRequired, creditsRequired } = useToolProcessor(endpoint);
   
@@ -111,6 +115,15 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
       }
     };
     fetchFavorites();
+
+    const handleFavoritesChanged = (event: Event) => {
+      const favorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(favorites)) {
+        setIsFavorited(favorites.includes(tool.id));
+      }
+    };
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
   }, [tool.id]);
 
   const handleShare = () => {
@@ -124,25 +137,8 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   const handleFavorite = async () => {
     const nextState = !isFavorited;
     setIsFavorited(nextState);
-    
-    try {
-      const response = await axios.post('/api/user/favorites', {
-        toolId: tool.id,
-        action: nextState ? 'add' : 'remove'
-      }, { validateStatus: () => true });
 
-      if (response.status === 200 && response.data?.success) {
-        setIsFavorited(response.data.isFavorited === true);
-        window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
-          detail: { favorites: response.data.favorites },
-        }));
-        return;
-      }
-    } catch (err) {
-      console.warn("Server favorite save bypass:", err);
-    }
-
-    // Guest / local fallback if unauthenticated or offline
+    // Instant optimistic update for local storage & cross-tab sync
     if (typeof window !== "undefined") {
       try {
         const currentFavs: string[] = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
@@ -157,9 +153,25 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
         console.error("Local storage favorite error:", e);
       }
     }
+    
+    try {
+      const response = await axios.post('/api/user/favorites', {
+        toolId: tool.id,
+        action: nextState ? 'add' : 'remove'
+      }, { validateStatus: () => true });
+
+      if (response.status === 200 && response.data?.success) {
+        setIsFavorited(response.data.isFavorited === true);
+        window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
+          detail: { favorites: response.data.favorites },
+        }));
+      }
+    } catch (err) {
+      console.warn("Server favorite save bypass:", err);
+    }
   };
 
-  const Icon = ICON_MAP[tool.icon] || Sparkles;
+  const Icon = ICON_MAP[tool.icon] || Wand2;
   const unavailable = isToolUnavailable(tool.id);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +209,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
           <div className={cn(isSpecialTool ? "xl:col-span-3" : "xl:col-span-2", "min-w-0 space-y-5 md:space-y-7")}>
              {unavailable ? (() => {
                 const isGold = tool.pro || tool.isProTool;
-                const animStyle = CATEGORY_ANIM_STYLES[categoryId] || CATEGORY_ANIM_STYLES.pdf;
+                const animStyle = CATEGORY_ANIM_STYLES[effectiveCategoryId] || CATEGORY_ANIM_STYLES.pdf;
 
                 return (
                 <div className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-[#0b0c12] p-10 sm:p-16 lg:p-24 flex flex-col items-center justify-center text-center shadow-2xl group">
@@ -350,7 +362,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
                                        />
                                        <div className="static mt-4 sm:absolute sm:bottom-8 sm:right-8">
                                          <button onClick={handleGenerate} className="premium-gradient flex min-h-12 w-full items-center justify-center gap-2 rounded-md px-6 text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98] sm:w-auto">
-                                           <Sparkles size={18} /> Generate
+                                           <Wand2 size={18} /> Generate
                                          </button>
                                        </div>
                                      </div>
@@ -481,8 +493,8 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
         <ToolWorkspaceHeader
           name={tool.name}
           description={tool.description}
-          categoryName={category.name}
-          categoryId={categoryId}
+          categoryName={effectiveCategoryName}
+          categoryId={effectiveCategoryId}
           toolId={tool.id}
           icon={Icon}
           isPro={Boolean(tool.pro)}
@@ -509,8 +521,8 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
        <ToolSeoSection
          toolName={tool.name}
          toolDescription={tool.seoDescription || tool.description}
-         categoryName={category.name}
-         categoryId={category.id}
+         categoryName={effectiveCategoryName}
+         categoryId={effectiveCategoryId}
          toolSlug={tool.href}
          features={tool.features}
          howToSteps={tool.howToSteps}

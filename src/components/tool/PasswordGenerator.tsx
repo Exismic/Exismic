@@ -1,260 +1,685 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
+  KeyRound, 
   Copy, 
   RefreshCw, 
   Check, 
-  ShieldCheck,
-  Zap,
+  ShieldCheck, 
+  Sliders, 
+  Tag, 
+  Layers, 
+  ListFilter,
+  CheckCircle2,
+  Lock,
+  Unlock,
+  Eye,
+  EyeOff,
+  RotateCcw
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
-type PasswordOptions = {
+// ============================================================================
+// TYPES & BLUEPRINTS (Zero Tech Jargon, 100% Everyday English)
+// ============================================================================
+
+export interface PasswordBlueprint {
+  id: string;
+  title: string;
+  category: string;
+  length: number;
   upper: boolean;
   lower: boolean;
   number: boolean;
   symbol: boolean;
-};
-
-const DEFAULT_OPTIONS: PasswordOptions = {
-  upper: true,
-  lower: true,
-  number: true,
-  symbol: true,
-};
-
-function createPassword(length: number, options: PasswordOptions) {
-  const charset = {
-    upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    lower: "abcdefghijklmnopqrstuvwxyz",
-    number: "0123456789",
-    symbol: "!@#$%^&*()_+~`|}{[]:;?><,./-=",
-  };
-  const selected = (Object.keys(options) as Array<keyof PasswordOptions>)
-    .filter((key) => options[key])
-    .map((key) => charset[key]);
-
-  if (selected.length === 0) return "SELECT OPTION";
-
-  const fullCharset = selected.join("");
-  const values = new Uint32Array(length);
-  globalThis.crypto.getRandomValues(values);
-
-  // Guarantee every selected character group appears at least once.
-  const required = selected.map((characters, index) =>
-    characters[values[index] % characters.length],
-  );
-  const remaining = Array.from(values.slice(required.length), (value) =>
-    fullCharset[value % fullCharset.length],
-  );
-  const password = [...required, ...remaining];
-
-  for (let index = password.length - 1; index > 0; index -= 1) {
-    const swapIndex = values[index] % (index + 1);
-    [password[index], password[swapIndex]] = [password[swapIndex], password[index]];
-  }
-
-  return password.join("");
+  excludeAmbiguous?: boolean;
+  description: string;
 }
 
-function OptionToggle({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "flex min-h-14 items-center justify-between rounded-2xl border p-5 transition-all duration-300",
-        active ? "bg-accent-purple/10 border-accent-purple/40 text-white" : "bg-zinc-900/40 border-white/5 text-zinc-500 hover:border-white/10",
-      )}
-    >
-      <span className="text-xs font-black uppercase tracking-widest">{label}</span>
-      <div className={cn("relative h-5 w-10 rounded-full transition-colors duration-300", active ? "bg-accent-purple" : "bg-zinc-800")}>
-        <motion.div animate={{ x: active ? 20 : 4 }} className="absolute top-1 h-3 w-3 rounded-full bg-white shadow-sm" />
-      </div>
-    </button>
-  );
+export const PASSWORD_BLUEPRINTS: PasswordBlueprint[] = [
+  {
+    id: "balanced-standard",
+    title: "Balanced Account Security",
+    category: "Standard",
+    length: 16,
+    upper: true,
+    lower: true,
+    number: true,
+    symbol: true,
+    excludeAmbiguous: false,
+    description: "16-character balanced mix recommended for everyday websites, emails, and apps."
+  },
+  {
+    id: "fortress-vault",
+    title: "Maximum Vault Fortress",
+    category: "Ultra Secure",
+    length: 32,
+    upper: true,
+    lower: true,
+    number: true,
+    symbol: true,
+    excludeAmbiguous: false,
+    description: "32-character maximum defense for password managers, crypto wallets, and root logins."
+  },
+  {
+    id: "numeric-pin",
+    title: "Quick PIN Passcode",
+    category: "Digits Only",
+    length: 6,
+    upper: false,
+    lower: false,
+    number: true,
+    symbol: false,
+    excludeAmbiguous: false,
+    description: "6-digit passcode for phone lock screens, debit cards, and two-factor authentication."
+  },
+  {
+    id: "easy-to-read",
+    title: "Easy to Read & Type",
+    category: "No Confusion",
+    length: 14,
+    upper: true,
+    lower: true,
+    number: true,
+    symbol: false,
+    excludeAmbiguous: true,
+    description: "Omits lookalike characters like 0/O, 1/l/I so you can easily type it on phones or paper."
+  },
+  {
+    id: "api-secret-key",
+    title: "API Token & Webhook Key",
+    category: "Developer Key",
+    length: 32,
+    upper: true,
+    lower: true,
+    number: true,
+    symbol: false,
+    excludeAmbiguous: false,
+    description: "Clean alphanumeric secret key designed for environment variables and webhooks."
+  },
+  {
+    id: "wifi-passphrase",
+    title: "Wi-Fi & Shared Device",
+    category: "Memorable",
+    length: 20,
+    upper: true,
+    lower: true,
+    number: true,
+    symbol: true,
+    excludeAmbiguous: true,
+    description: "20-character high-security phrase suitable for home routers and shared family devices."
+  }
+];
+
+// Helper to generate cryptographic password in-browser
+function generateSecurePassword(
+  length: number,
+  options: {
+    upper: boolean;
+    lower: boolean;
+    number: boolean;
+    symbol: boolean;
+    excludeAmbiguous?: boolean;
+  }
+): string {
+  let upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let lowerChars = "abcdefghijklmnopqrstuvwxyz";
+  let numChars = "0123456789";
+  let symChars = "!@#$%^&*()_+~|}{[]:;?><,./-=";
+
+  if (options.excludeAmbiguous) {
+    upperChars = upperChars.replace(/[O]/g, "");
+    lowerChars = lowerChars.replace(/[l|i]/g, "");
+    numChars = numChars.replace(/[0|1]/g, "");
+    symChars = symChars.replace(/[|]/g, "");
+  }
+
+  const charGroups: string[] = [];
+  if (options.upper) charGroups.push(upperChars);
+  if (options.lower) charGroups.push(lowerChars);
+  if (options.number) charGroups.push(numChars);
+  if (options.symbol) charGroups.push(symChars);
+
+  if (charGroups.length === 0) return "Choose at least 1 option";
+
+  const allChars = charGroups.join("");
+  const passwordArray: string[] = [];
+  const randomBytes = new Uint32Array(length);
+  globalThis.crypto.getRandomValues(randomBytes);
+
+  // Guarantee at least 1 character from each chosen group
+  charGroups.forEach((group, idx) => {
+    passwordArray.push(group[randomBytes[idx] % group.length]);
+  });
+
+  // Fill remainder
+  for (let i = passwordArray.length; i < length; i++) {
+    passwordArray.push(allChars[randomBytes[i] % allChars.length]);
+  }
+
+  // Fisher-Yates shuffle with crypto values
+  for (let i = passwordArray.length - 1; i > 0; i--) {
+    const j = randomBytes[i] % (i + 1);
+    [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
+  }
+
+  return passwordArray.join("");
 }
 
 export function PasswordGenerator() {
-  const [length, setLength] = useState(16);
-  const [options, setOptions] = useState<PasswordOptions>(DEFAULT_OPTIONS);
-  const [password, setPassword] = useState("GENERATING...");
-  const [isCopied, setIsCopied] = useState(false);
+  const [selectedBlueprintId, setSelectedBlueprintId] = useState<string>("balanced-standard");
+  const [length, setLength] = useState<number>(16);
+  const [upper, setUpper] = useState<boolean>(true);
+  const [lower, setLower] = useState<boolean>(true);
+  const [number, setNumber] = useState<boolean>(true);
+  const [symbol, setSymbol] = useState<boolean>(true);
+  const [excludeAmbiguous, setExcludeAmbiguous] = useState<boolean>(false);
+
+  const [password, setPassword] = useState<string>("");
+  const [copied, setCopied] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(true);
+
+  // Bulk Generator State
+  const [bulkCount, setBulkCount] = useState<number>(1);
+  const [bulkPasswords, setBulkPasswords] = useState<string[]>([]);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  // Generate Current Password
+  const handleGenerate = useCallback(() => {
+    const opts = { upper, lower, number, symbol, excludeAmbiguous };
+    const main = generateSecurePassword(length, opts);
+    setPassword(main);
+
+    if (bulkCount > 1) {
+      const list: string[] = [];
+      for (let i = 0; i < bulkCount; i++) {
+        list.push(generateSecurePassword(length, opts));
+      }
+      setBulkPasswords(list);
+    } else {
+      setBulkPasswords([]);
+    }
+  }, [length, upper, lower, number, symbol, excludeAmbiguous, bulkCount]);
+
+  // Initial load
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setPassword(createPassword(16, DEFAULT_OPTIONS));
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-  const strength = useMemo(() => {
-    let score = 0;
-    if (password.length >= 10) score += 1;
-    if (password.length >= 16) score += 1;
-    if (password.length >= 24) score += 1;
-    if (options.upper && options.lower) score += 1;
-    if (options.number && options.symbol) score += 1;
+    handleGenerate();
+  }, [handleGenerate]);
 
-    const data = [
-      { label: "WEAK", color: "bg-red-500", glow: "shadow-[0_0_20px_rgba(239,68,68,0.2)]" },
-      { label: "MEDIUM", color: "bg-orange-500", glow: "shadow-[0_0_20px_rgba(249,115,22,0.2)]" },
-      { label: "STRONG", color: "bg-yellow-500", glow: "shadow-[0_0_20px_rgba(234,179,8,0.2)]" },
-      { label: "VERY STRONG", color: "bg-emerald-500", glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]" },
-      { label: "ULTRA SECURE", color: "bg-accent-purple", glow: "shadow-[0_0_30px_rgba(124,58,237,0.4)]" }
-    ];
-
-    const index = Math.min(score, data.length - 1);
-    return { score: index, ...data[index] };
-  }, [password, options]);
-
-  const generatePassword = () => setPassword(createPassword(length, options));
-
-  const updateLength = (nextLength: number) => {
-    setLength(nextLength);
-    setPassword(createPassword(nextLength, options));
+  // Select Blueprint
+  const handleSelectBlueprint = (bp: PasswordBlueprint) => {
+    setSelectedBlueprintId(bp.id);
+    setLength(bp.length);
+    setUpper(bp.upper);
+    setLower(bp.lower);
+    setNumber(bp.number);
+    setSymbol(bp.symbol);
+    setExcludeAmbiguous(bp.excludeAmbiguous ?? false);
   };
 
-  const toggleOption = (key: keyof PasswordOptions) => {
-    const nextOptions = { ...options, [key]: !options[key] };
-    setOptions(nextOptions);
-    setPassword(createPassword(length, nextOptions));
+  // Reset to Baseline
+  const handleReset = () => {
+    handleSelectBlueprint(PASSWORD_BLUEPRINTS[0]);
   };
 
-  const copyToClipboard = () => {
-    if (password === "SELECT OPTION" || password === "GENERATING...") return;
+  // Copy Main Password
+  const handleCopyMain = () => {
+    if (!password || password.includes("Choose at least")) return;
     navigator.clipboard.writeText(password);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
+
+  // Copy Bulk Item
+  const handleCopyBulkItem = (pass: string, idx: number) => {
+    navigator.clipboard.writeText(pass);
+    setCopiedIndex(idx);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  // Plain-English Security Rating & Strength Analysis
+  const securityAnalysis = useMemo(() => {
+    let score = 0;
+    if (length >= 10) score += 1;
+    if (length >= 16) score += 1;
+    if (length >= 24) score += 1;
+    if (upper && lower) score += 1;
+    if (number && symbol) score += 1;
+
+    if (score <= 1) {
+      return {
+        level: "Basic / Weak",
+        colorText: "text-amber-400",
+        colorBg: "bg-amber-400",
+        bars: 1,
+        timeToCrack: "Under a few hours",
+        advice: "Increase length to at least 16 characters for online accounts."
+      };
+    }
+    if (score === 2) {
+      return {
+        level: "Medium Protection",
+        colorText: "text-yellow-400",
+        colorBg: "bg-yellow-400",
+        bars: 2,
+        timeToCrack: "Several months",
+        advice: "Good for low-risk utilities. Add symbols for financial logins."
+      };
+    }
+    if (score === 3 || score === 4) {
+      return {
+        level: "Strong Defense",
+        colorText: "text-lime-400",
+        colorBg: "bg-lime-400",
+        bars: 4,
+        timeToCrack: "Decades",
+        advice: "Safe against modern automated brute-force attacks."
+      };
+    }
+    return {
+      level: "Maximum Fortress",
+      colorText: "text-emerald-400",
+      colorBg: "bg-emerald-400",
+      bars: 5,
+      timeToCrack: "Centuries on modern GPU clusters",
+      advice: "Recommended for master passwords, crypto keys, and root servers."
+    };
+  }, [length, upper, lower, number, symbol]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      {/* SECTION 1: THE DISPLAY (Result) */}
-      <div className="relative group">
-        <div className={cn(
-          "w-full p-10 md:p-16 rounded-[4rem] glass-dark border-2 transition-all duration-700 flex flex-col items-center justify-center min-h-[220px] relative overflow-hidden",
-          password !== "SELECT OPTION" ? "border-white/5" : "border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)]"
-        )}>
-          {/* Strength Background Glow */}
-          <div className={cn("absolute inset-0 opacity-20 transition-all duration-1000 blur-[100px]", strength.color)} />
-
-          <motion.span 
-            key={password}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={cn(
-              "text-3xl md:text-5xl font-mono font-black tracking-tight text-center break-all relative z-10 selection:bg-accent-purple selection:text-white px-4",
-              password === "SELECT OPTION" ? "text-red-500/50" : "text-white"
-            )}
-          >
-            {password}
-          </motion.span>
-          
-          <div className="absolute top-8 right-10 flex gap-3 z-20">
-             <button 
-               onClick={generatePassword}
-               aria-label="Generate a new password"
-               className="p-4 rounded-2xl bg-zinc-800/80 backdrop-blur-md text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all active:rotate-180 duration-500 border border-white/5"
-             >
-                <RefreshCw size={20} />
-             </button>
-             <button 
-               onClick={copyToClipboard}
-               className={cn(
-                 "px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 backdrop-blur-md border",
-                 isCopied ? "bg-emerald-500 border-emerald-400 text-white" : "bg-white border-white text-black hover:bg-zinc-200"
-               )}
-             >
-                {isCopied ? <Check size={16} /> : <Copy size={16} />}
-                {isCopied ? "COPIED!" : "COPY"}
-             </button>
+    <div className="w-full space-y-8">
+      {/* Top Banner / Quick Controls Bar */}
+      <div className="rounded-3xl border border-lime-500/20 bg-gradient-to-b from-lime-500/5 to-transparent p-5 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400 shrink-0">
+              <KeyRound size={20} />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white flex items-center gap-2">
+                <span>Secure Password Generator</span>
+                <span className="text-[10px] font-mono font-bold text-lime-400 bg-lime-500/10 border border-lime-500/20 px-2 py-0.5 rounded-full">
+                  100% In-Browser Privacy
+                </span>
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Created directly in your device memory with zero server uploads
+              </p>
+            </div>
           </div>
 
-          {/* Strength & Metrics */}
-          <div className="absolute bottom-10 inset-x-12 md:inset-x-20 space-y-4 z-10">
-             <div className="flex justify-between items-end">
-                <div className="space-y-1">
-                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Security Rating</p>
-                   <p className={cn("text-xs font-black uppercase tracking-widest", strength.score >= 3 ? "text-emerald-400" : "text-zinc-300")}>
-                      {strength.label}
-                   </p>
-                </div>
-                <div className="text-right">
-                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Key Length</p>
-                   <p className="text-xs font-black text-white">{length} Characters</p>
-                </div>
-             </div>
-             <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-1.5">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <motion.div 
-                    key={i} 
-                    initial={false}
-                    animate={{ 
-                      backgroundColor: i <= strength.score ? (i === 4 ? '#A855F7' : (i === 3 ? '#10B981' : (i === 2 ? '#EAB308' : (i === 1 ? '#F97316' : '#EF4444')))) : 'rgba(255,255,255,0.05)'
-                    }}
-                    className={cn(
-                      "flex-1 rounded-full",
-                      i <= strength.score && strength.glow
-                    )} 
-                  />
-                ))}
-             </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer"
+              title="Reset to default settings"
+            >
+              <RotateCcw size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              className="px-4 py-2 rounded-2xl bg-lime-500/20 hover:bg-lime-500/30 border border-lime-500/40 text-xs font-bold text-lime-300 transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-lime-500/10"
+            >
+              <RefreshCw size={14} className="text-lime-400" />
+              <span>Generate New</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* SECTION 2: CONFIGURATION (Controls) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-         {/* Length Slider */}
-         <div className="md:col-span-12 lg:col-span-5 p-10 rounded-[3rem] glass-dark border border-white/5 space-y-8 relative overflow-hidden group">
-            <div className="flex justify-between items-center">
-               <div className="space-y-1">
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                     <Zap size={16} className="text-accent-purple" />
-                     Entropy Length
-                  </h3>
-                  <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest">Random bits of security</p>
-               </div>
-               <span className="text-4xl font-black text-accent-purple">{length}</span>
-            </div>
-            
-            <div className="relative py-4">
-               <input 
-                 type="range" 
-                 min="8" 
-                 max="32" 
-                 value={length}
-                 onChange={(e) => updateLength(Number.parseInt(e.target.value, 10))}
-                 className="w-full accent-accent-purple bg-zinc-800 rounded-full h-2 cursor-pointer appearance-none transition-all hover:h-3"
-               />
-            </div>
-            
-            <div className="flex justify-between text-[10px] font-black text-zinc-600 uppercase tracking-widest px-1">
-               <span>Basic (8)</span>
-               <span>Master (32)</span>
-            </div>
-         </div>
+      {/* 6 Curated Production Blueprints (Spacious 3-Column Grid) */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <Tag size={13} className="text-lime-400" />
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-300">
+              1-Click Security Presets
+            </span>
+          </div>
+          <span className="text-[11px] font-medium text-zinc-500">
+            Pick a tested preset matching your exact security needs
+          </span>
+        </div>
 
-         {/* Character Options */}
-         <div className="md:col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <OptionToggle active={options.upper} label="Uppercase (A-Z)" onClick={() => toggleOption("upper")} />
-            <OptionToggle active={options.lower} label="Lowercase (a-z)" onClick={() => toggleOption("lower")} />
-            <OptionToggle active={options.number} label="Numbers (0-9)" onClick={() => toggleOption("number")} />
-            <OptionToggle active={options.symbol} label="Symbols (!@#$%*)" onClick={() => toggleOption("symbol")} />
-         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {PASSWORD_BLUEPRINTS.map((bp) => {
+            const isSelected = selectedBlueprintId === bp.id;
+            return (
+              <button
+                key={bp.id}
+                type="button"
+                onClick={() => handleSelectBlueprint(bp)}
+                className={cn(
+                  "p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between group",
+                  isSelected
+                    ? "bg-lime-500/15 border-lime-500/50 shadow-[0_0_20px_rgba(132,204,22,0.15)] ring-1 ring-lime-500/40"
+                    : "bg-white/[0.02] border-white/10 hover:border-lime-500/30 hover:bg-white/[0.04]"
+                )}
+              >
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-lime-500/10 text-lime-300 border border-lime-500/20 whitespace-nowrap shrink-0">
+                    {bp.category}
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-500 truncate text-right">
+                    {bp.length} characters
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-white group-hover:text-lime-300 transition-colors line-clamp-1">
+                    {bp.title}
+                  </p>
+                  <p className="text-xs text-zinc-400 line-clamp-1">
+                    {bp.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Footer / Tip */}
-      <div className="flex flex-col md:flex-row items-center gap-6 p-8 rounded-[2.5rem] bg-linear-to-r from-accent-purple/5 to-transparent border border-white/5">
-         <div className="w-14 h-14 rounded-2xl bg-accent-purple/10 flex items-center justify-center text-accent-purple shrink-0">
-            <ShieldCheck size={28} />
-         </div>
-         <p className="text-zinc-500 text-sm leading-relaxed font-medium">
-            <strong className="text-zinc-300">Why it matters:</strong> Passwords with at least 16 characters are exponentially harder to crack. Combining character groups creates a stronger credential against modern brute-force hardware.
-         </p>
+      {/* Main Studio Interactive Workspace (2-Column Grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Password Display & Generator Hero (6 Cols) */}
+        <div className="lg:col-span-6 space-y-6">
+          {/* Main Password Output Stage */}
+          <div className="rounded-3xl border border-lime-500/30 bg-black/60 p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+            {/* Subtle Matrix Ambient Glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="space-y-3 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                  <Lock size={13} className="text-lime-400" />
+                  <span>Generated Secure Password</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    title={showPassword ? "Hide password" : "Reveal password"}
+                  >
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    title="Generate new password"
+                  >
+                    <RefreshCw size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Password Text Display */}
+              <div className="p-4 rounded-2xl bg-black/80 border border-white/10 min-h-[90px] flex items-center justify-center break-all">
+                <p className="text-xl sm:text-2xl md:text-3xl font-mono font-bold tracking-tight text-white text-center select-all">
+                  {showPassword ? (
+                    password
+                  ) : (
+                    "•".repeat(Math.min(password.length, 32))
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Strength Meter & Quick Copy */}
+            <div className="space-y-4 pt-4 relative z-10 border-t border-white/10">
+              {/* Strength Readout */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-400 font-medium">Protection Level:</span>
+                  <span className={cn("font-bold uppercase tracking-wider", securityAnalysis.colorText)}>
+                    {securityAnalysis.level}
+                  </span>
+                </div>
+                {/* 5-Segment Strength Bar */}
+                <div className="grid grid-cols-5 gap-1.5 h-2 w-full rounded-full overflow-hidden bg-white/5">
+                  {[1, 2, 3, 4, 5].map((barIndex) => (
+                    <div
+                      key={barIndex}
+                      className={cn(
+                        "h-full rounded-full transition-all duration-300",
+                        barIndex <= securityAnalysis.bars
+                          ? cn(securityAnalysis.colorBg, "shadow-[0_0_10px_rgba(132,204,22,0.4)]")
+                          : "bg-white/10"
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Primary Copy Action Button */}
+              <button
+                type="button"
+                onClick={handleCopyMain}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-lime-400 via-emerald-400 to-teal-500 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-lime-500/20 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                <span>{copied ? "Password Copied to Clipboard!" : "Copy Password"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Plain-English Security Advice Card */}
+          <div className="p-4 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-md flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400 shrink-0 mt-0.5">
+              <ShieldCheck size={16} />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-white">Estimated Brute-Force Resistance</h4>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Crack resistance: <strong className="text-zinc-200">{securityAnalysis.timeToCrack}</strong>. {securityAnalysis.advice}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Customization Controls (6 Cols) */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md shadow-xl space-y-5">
+            {/* Length Slider */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
+                  Password Length ({length} Characters)
+                </label>
+                <span className="text-[11px] font-mono text-lime-400 font-bold px-2 py-0.5 rounded bg-lime-500/10 border border-lime-500/20">
+                  {length} Chars
+                </span>
+              </div>
+              <input
+                type="range"
+                min="4"
+                max="64"
+                value={length}
+                onChange={(e) => {
+                  setLength(parseInt(e.target.value, 10));
+                  setSelectedBlueprintId("");
+                }}
+                className="w-full h-2 rounded-lg bg-zinc-800 accent-lime-400 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] font-mono text-zinc-500 px-1">
+                <span>4 Min</span>
+                <span>16 Recommended</span>
+                <span>32 Fortress</span>
+                <span>64 Max</span>
+              </div>
+            </div>
+
+            {/* Character Composition Toggles */}
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <label className="text-xs font-black uppercase tracking-wider text-zinc-300 block">
+                Character Sets Included
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {[
+                  {
+                    id: "upper",
+                    label: "Uppercase Letters (A-Z)",
+                    sample: "A B C D",
+                    checked: upper,
+                    toggle: () => { setUpper(!upper); setSelectedBlueprintId(""); }
+                  },
+                  {
+                    id: "lower",
+                    label: "Lowercase Letters (a-z)",
+                    sample: "a b c d",
+                    checked: lower,
+                    toggle: () => { setLower(!lower); setSelectedBlueprintId(""); }
+                  },
+                  {
+                    id: "number",
+                    label: "Numbers (0-9)",
+                    sample: "1 2 3 4",
+                    checked: number,
+                    toggle: () => { setNumber(!number); setSelectedBlueprintId(""); }
+                  },
+                  {
+                    id: "symbol",
+                    label: "Symbols (!@#$%)",
+                    sample: "! @ # $ %",
+                    checked: symbol,
+                    toggle: () => { setSymbol(!symbol); setSelectedBlueprintId(""); }
+                  }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={item.toggle}
+                    className={cn(
+                      "p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer",
+                      item.checked
+                        ? "bg-lime-500/10 border-lime-500/40 text-white"
+                        : "bg-black/40 border-white/10 text-zinc-400 hover:border-white/20"
+                    )}
+                  >
+                    <div>
+                      <p className="text-xs font-bold leading-tight">{item.label}</p>
+                      <p className="text-[10px] font-mono text-zinc-500 mt-0.5">{item.sample}</p>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all",
+                      item.checked
+                        ? "bg-lime-400 border-lime-300 text-black font-black"
+                        : "border-zinc-700 bg-zinc-900"
+                    )}>
+                      {item.checked && <Check size={12} strokeWidth={3} />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Exclude Lookalike Characters Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setExcludeAmbiguous(!excludeAmbiguous);
+                  setSelectedBlueprintId("");
+                }}
+                className={cn(
+                  "w-full p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer mt-2",
+                  excludeAmbiguous
+                    ? "bg-lime-500/10 border-lime-500/40 text-white"
+                    : "bg-black/40 border-white/10 text-zinc-400 hover:border-white/20"
+                )}
+              >
+                <div>
+                  <p className="text-xs font-bold leading-tight">Exclude Ambiguous Characters</p>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">Removes lookalike characters like 0/O, 1/l/I for effortless typing</p>
+                </div>
+                <div className={cn(
+                  "w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 transition-all",
+                  excludeAmbiguous
+                    ? "bg-lime-400 border-lime-300 text-black font-black"
+                    : "border-zinc-700 bg-zinc-900"
+                )}>
+                  {excludeAmbiguous && <Check size={12} strokeWidth={3} />}
+                </div>
+              </button>
+            </div>
+
+            {/* Bulk Quantity Mode */}
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
+                  Bulk Generation Quantity
+                </label>
+                <div className="flex gap-1.5">
+                  {[1, 5, 10].map((qty) => (
+                    <button
+                      key={qty}
+                      type="button"
+                      onClick={() => setBulkCount(qty)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-lg text-xs font-mono font-bold border cursor-pointer transition-all",
+                        bulkCount === qty
+                          ? "bg-lime-500 text-black border-lime-400"
+                          : "bg-white/5 border-white/10 text-zinc-400 hover:text-white"
+                      )}
+                    >
+                      {qty === 1 ? "Single" : `${qty}x`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bulk Passwords List */}
+              {bulkCount > 1 && bulkPasswords.length > 0 && (
+                <div className="space-y-2 pt-2 max-h-[160px] overflow-y-auto pr-1">
+                  {bulkPasswords.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-black/60 border border-white/10 group hover:border-lime-500/30 transition-all"
+                    >
+                      <span className="font-mono text-xs text-lime-300 truncate mr-2 select-all">
+                        {item}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyBulkItem(item, idx)}
+                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-lime-500/20 text-zinc-300 hover:text-lime-300 text-[10px] font-bold border border-white/10 transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                      >
+                        {copiedIndex === idx ? <Check size={11} className="text-lime-400" /> : <Copy size={11} />}
+                        <span>{copiedIndex === idx ? "Copied" : "Copy"}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Laser Divider Horizon Bridge */}
+      <ToolLaserDivider primaryHex="#84cc16" />
+
+      {/* Result Retention & History */}
+      <ResultRetentionBar
+        toolType="developer"
+        toolName="Password Generator"
+        title="Generated Secure Password"
+        content={password}
+        onCopy={handleCopyMain}
+      />
+
+      {/* Tool Suggestions */}
+      <ToolSuggestions currentToolId="productivity-passgen" />
+
+      {/* Tool Workflow Chaining */}
+      <ToolWorkflowChaining currentToolId="productivity-passgen" />
     </div>
   );
 }
+export default PasswordGenerator;

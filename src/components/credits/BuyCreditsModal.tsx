@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
@@ -465,7 +465,25 @@ export function BuyCreditsModal({
                   <div className="space-y-4">
                     {CREDIT_PACK_OPTIONS.map((pack) => {
                       const Icon = pack.style.icon;
-                      const priceLabel = isIndia ? `₹${pack.inrPrice}` : `$${pack.usdPrice}`;
+                      const promoActive = isExismic17PromoActive();
+
+                      let actualInrPrice = pack.inrPrice;
+                      let actualUsdPrice = pack.usdPrice;
+                      if (promoActive) {
+                        if (pack.id === "starter") {
+                          actualInrPrice = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.starter.INR;
+                          actualUsdPrice = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.starter.USD;
+                        } else if (pack.id === "creator") {
+                          actualInrPrice = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.creator.INR;
+                          actualUsdPrice = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.creator.USD;
+                        } else if (pack.id === "ultimate") {
+                          actualInrPrice = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.ultimate.INR;
+                          actualUsdPrice = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.ultimate.USD;
+                        }
+                      }
+
+                      const priceLabel = isIndia ? `₹${actualInrPrice}` : `$${actualUsdPrice}`;
+                      const regularPriceLabel = isIndia ? `₹${pack.inrPrice}` : `$${pack.usdPrice}`;
 
                       return (
                         <motion.div
@@ -492,6 +510,11 @@ export function BuyCreditsModal({
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{pack.label}</p>
+                                  {promoActive && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-400/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]">
+                                      20% OFF
+                                    </span>
+                                  )}
                                   {pack.bonusCredits !== undefined && pack.bonusCredits > 0 && (
                                     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]">
                                       <Flame size={11} className="text-emerald-300 fill-emerald-400/30" /> +{pack.bonusCredits.toLocaleString()} Bonus
@@ -521,7 +544,7 @@ export function BuyCreditsModal({
                             <div className="flex shrink-0 items-center justify-end sm:min-w-[260px]">
                               <motion.button
                                 type="button"
-                                onClick={() => handleOpenCheckoutOptions(pack.id, pack.label, pack.credits, pack.inrPrice, pack.usdPrice, "credits")}
+                                onClick={() => handleOpenCheckoutOptions(pack.id, pack.label, pack.credits, actualInrPrice, actualUsdPrice, "credits")}
                                 disabled={loadingId !== null}
                                 whileHover={{ y: -2, scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -537,9 +560,16 @@ export function BuyCreditsModal({
                                   <div className="flex items-center gap-3">
                                     <ExismicMark size={36} letter="C" theme={pack.style.markTheme} animated={true} />
                                     <div className="text-left">
-                                      <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
-                                        GET {pack.displayCredits} • {priceLabel}
-                                      </span>
+                                      <div className="flex items-center gap-1.5">
+                                        {promoActive && (
+                                          <span className="text-[10px] text-zinc-400 line-through">
+                                            {regularPriceLabel}
+                                          </span>
+                                        )}
+                                        <span className="block text-xs font-black uppercase tracking-[0.16em] text-white">
+                                          GET {pack.displayCredits} • {priceLabel}
+                                        </span>
+                                      </div>
                                       <span className={cn("block text-[9px] font-bold uppercase tracking-[0.14em]", pack.style.subtitleColor)}>
                                         {isIndia ? "Card, UPI & Instant Checkout" : "Cards, PayPal & Instant Checkout"}
                                       </span>
@@ -577,15 +607,29 @@ export function BuyCreditsModal({
                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Monthly Unlimited</p>
                               </div>
                             </div>
-                            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-0.5 text-[9.5px] font-black uppercase tracking-wider text-zinc-300">
-                              Flexible
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {isExismic17PromoActive() && (
+                                <span className="rounded-full border border-amber-400/50 bg-amber-400/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]">
+                                  20% OFF
+                                </span>
+                              )}
+                              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-0.5 text-[9.5px] font-black uppercase tracking-wider text-zinc-300">
+                                Flexible
+                              </span>
+                            </div>
                           </div>
 
                           <div className="mt-5">
                             <div className="flex items-baseline gap-2">
+                              {isExismic17PromoActive() && (
+                                <span className="text-2xl sm:text-3xl font-bold text-zinc-500 line-through">
+                                  {isIndia ? "₹499" : "$6.99"}
+                                </span>
+                              )}
                               <span className="text-4xl sm:text-5xl font-black bg-[linear-gradient(110deg,#fff_15%,#a5f3fc_50%,#38bdf8_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
-                                {isIndia ? "₹499" : "$6.99"}
+                                {isExismic17PromoActive()
+                                  ? (isIndia ? `₹${PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR}` : `$${PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD}`)
+                                  : (isIndia ? "₹499" : "$6.99")}
                               </span>
                               <span className="text-xs font-black uppercase tracking-widest text-cyan-300/80">/month</span>
                             </div>
@@ -624,7 +668,14 @@ export function BuyCreditsModal({
                         <div className="mt-6">
                           <motion.button
                             type="button"
-                            onClick={() => handleOpenCheckoutOptions("pro", "1-Month Pro Pass", 15000, PRICING_CONFIG.PRO_PLAN.INR, PRICING_CONFIG.PRO_PLAN.USD, "pro")}
+                            onClick={() => handleOpenCheckoutOptions(
+                              "pro",
+                              "1-Month Pro Pass",
+                              15000,
+                              isExismic17PromoActive() ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR : PRICING_CONFIG.PRO_PLAN.INR,
+                              isExismic17PromoActive() ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD : PRICING_CONFIG.PRO_PLAN.USD,
+                              "pro"
+                            )}
                             disabled={loadingId !== null}
                             whileHover={{ y: -2, scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -640,9 +691,16 @@ export function BuyCreditsModal({
                               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                                 <ExismicMark size={32} letter="P" theme="blue" animated={true} />
                                 <div className="text-left min-w-0">
-                                  <span className="block text-[11px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.16em] text-white truncate">
-                                    UPGRADE 1-MONTH • {isIndia ? "₹499" : "$6.99"}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    {isExismic17PromoActive() && (
+                                      <span className="text-[10px] text-zinc-400 line-through">
+                                        {isIndia ? "₹499" : "$6.99"}
+                                      </span>
+                                    )}
+                                    <span className="block text-[11px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.16em] text-white truncate">
+                                      UPGRADE 1-MONTH • {isExismic17PromoActive() ? (isIndia ? `₹${PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR}` : `$${PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD}`) : (isIndia ? "₹499" : "$6.99")}
+                                    </span>
+                                  </div>
                                   <span className="block text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-cyan-300/90 truncate">
                                     {isIndia ? "Card, UPI & Instant Activation" : "Cards, PayPal & Instant Activation"}
                                   </span>

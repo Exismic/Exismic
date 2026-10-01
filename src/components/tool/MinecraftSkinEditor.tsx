@@ -15,7 +15,6 @@ import {
   Redo2,
   Save,
   ShieldCheck,
-  Sparkles,
   Sun,
   Undo2,
 } from "lucide-react";
@@ -789,7 +788,7 @@ export function MinecraftSkinEditor({
               disabled={isAiEditing || aiCommand.trim().length < 3}
               className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-violet-300/20 bg-violet-400/10 text-xs font-bold text-violet-100 transition hover:bg-violet-400/15 disabled:opacity-40"
             >
-              {isAiEditing ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              {isAiEditing ? <Loader2 className="size-4 animate-spin" /> : <Paintbrush className="size-4" />}
               Apply AI edit
             </button>
           </div>

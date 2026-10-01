@@ -133,23 +133,42 @@ function buildAtsPrompt(resumeText: string, jobDescription: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const action = formData.get("action") as string | null;
-    const rawJobDescription = formData.get("jobDescription") as string | null;
+    let file: File | null = null;
+    let action: string | null = null;
+    let rawJobDescription: string | null = null;
+    let rawResumeText: string | null = null;
 
-    if (!file || file.size === 0) {
-      return NextResponse.json({ error: "Please upload a valid PDF resume file." }, { status: 400 });
+    const contentType = req.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const json = await req.json();
+      action = json.action || null;
+      rawJobDescription = json.jobDescription || null;
+      rawResumeText = json.resumeText || null;
+    } else {
+      const formData = await req.formData();
+      file = formData.get("file") as File | null;
+      action = formData.get("action") as string | null;
+      rawJobDescription = formData.get("jobDescription") as string | null;
+      rawResumeText = formData.get("resumeText") as string | null;
     }
 
-    // Parse the PDF buffer using pdf-parse
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const pdfData = await pdf(buffer).catch((err: any) => {
-      console.error("PDF Parsing Error:", err);
-      throw new Error("Could not parse the PDF file. Please ensure it is a valid, unencrypted PDF.");
-    });
+    let resumeText = sanitizeText(rawResumeText || "", "", 10000);
 
-    const resumeText = sanitizeText(pdfData.text, "", 10000);
+    if (!resumeText) {
+      if (!file || file.size === 0) {
+        return NextResponse.json({ error: "Please upload a valid PDF resume file or paste your resume text." }, { status: 400 });
+      }
+
+      // Parse the PDF buffer using pdf-parse
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const pdfData = await pdf(buffer).catch((err: any) => {
+        console.error("PDF Parsing Error:", err);
+        throw new Error("Could not parse the PDF file. Please ensure it is a valid, unencrypted PDF.");
+      });
+
+      resumeText = sanitizeText(pdfData.text, "", 10000);
+    }
+
     if (!resumeText.trim()) {
       return NextResponse.json({ error: "Your resume does not contain any readable text. Please ensure it is not scanned/image-only." }, { status: 400 });
     }

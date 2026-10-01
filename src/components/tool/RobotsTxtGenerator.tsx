@@ -8,66 +8,214 @@ import {
   Download, 
   Plus, 
   Trash2, 
-  ShieldCheck,
-  Globe
+  ShieldCheck, 
+  Globe, 
+  RotateCcw, 
+  Tag, 
+  Lock, 
+  Check, 
+  AlertTriangle,
+  Bot,
+  Layers,
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { CyberDropdown, type DropdownOption } from "@/components/ui/CyberDropdown";
+
+const CRAWL_DELAY_OPTIONS: DropdownOption[] = [
+  { value: "", label: "No Delay (Standard)", description: "Allow crawlers to index at natural server speed", badge: "Default" },
+  { value: "1", label: "1 Second Delay", description: "Conservative rate limit for light traffic hosts", badge: "1s" },
+  { value: "2", label: "2 Seconds Delay", description: "Recommended for shared hosting or small VPS", badge: "2s" },
+  { value: "5", label: "5 Seconds Delay", description: "Moderate protection against heavy crawler load", badge: "5s" },
+  { value: "10", label: "10 Seconds Delay", description: "Strict throttle for resource-constrained servers", badge: "10s" },
+];
+
+// 6 Curated Robots.txt Blueprints (Standard: Preloaded Blueprint #1, Zero Empty Voids)
+export interface RobotsBlueprint {
+  id: string;
+  title: string;
+  category: string;
+  userAgent: string;
+  disallow: string[];
+  allow: string[];
+  crawlDelay?: string;
+  sitemap: string;
+  description: string;
+}
+
+export const ROBOTS_BLUEPRINTS: RobotsBlueprint[] = [
+  {
+    id: "nextjs-app",
+    title: "Next.js & Modern App",
+    category: "Modern Stack",
+    userAgent: "*",
+    disallow: ["/admin/", "/api/", "/_next/", "/private/", "/*.json$"],
+    allow: ["/api/og", "/public/"],
+    sitemap: "https://yourdomain.com/sitemap.xml",
+    description: "Standard production rules for Next.js, React, and server-rendered web applications."
+  },
+  {
+    id: "wordpress-cms",
+    title: "WordPress Blog & CMS",
+    category: "Publishing",
+    userAgent: "*",
+    disallow: ["/wp-admin/", "/wp-includes/", "/trackback/", "/xmlrpc.php"],
+    allow: ["/wp-admin/admin-ajax.php", "/wp-content/uploads/"],
+    sitemap: "https://yourdomain.com/sitemap_index.xml",
+    description: "Official WordPress search crawler directives protecting administrative scripts."
+  },
+  {
+    id: "ecommerce-store",
+    title: "E-Commerce & Retail",
+    category: "Online Store",
+    userAgent: "*",
+    disallow: ["/cart", "/checkout", "/orders/", "/account/", "/search", "/*?*sort="],
+    allow: ["/products/", "/collections/"],
+    sitemap: "https://yourdomain.com/sitemap_products.xml",
+    description: "Prevents search engines from indexing dynamic shopping carts and duplicate filter URLs."
+  },
+  {
+    id: "block-ai-bots",
+    title: "Block AI Scrapers",
+    category: "AI Protection",
+    userAgent: "GPTBot\nUser-agent: CCBot\nUser-agent: ClaudeBot\nUser-agent: Bytespider",
+    disallow: ["/"],
+    allow: [],
+    sitemap: "https://yourdomain.com/sitemap.xml",
+    description: "Blocks AI training crawlers from scraping your content while allowing Googlebot."
+  },
+  {
+    id: "staging-private",
+    title: "Staging / Disallow All",
+    category: "Security",
+    userAgent: "*",
+    disallow: ["/"],
+    allow: [],
+    sitemap: "",
+    description: "Complete lockdown for test environments, internal previews, and pre-launch domains."
+  },
+  {
+    id: "allow-everything",
+    title: "Open Access (Allow All)",
+    category: "Public Portal",
+    userAgent: "*",
+    disallow: [],
+    allow: ["/"],
+    sitemap: "https://yourdomain.com/sitemap.xml",
+    description: "Maximum crawler discovery for documentation portals, wikis, and open blogs."
+  }
+];
 
 export default function RobotsTxtGenerator() {
-  const [userAgent, setUserAgent] = useState("*");
-  const [disallowPaths, setDisallowPaths] = useState<string[]>([
-    "/admin/",
-    "/api/",
-    "/private/",
-    "/*.json$"
-  ]);
-  const [allowPaths, setAllowPaths] = useState<string[]>([
-    "/public/",
-    "/api/og"
-  ]);
-  const [sitemapUrl, setSitemapUrl] = useState("https://yourdomain.com/sitemap.xml");
-  const [newDisallow, setNewDisallow] = useState("");
-  const [newAllow, setNewAllow] = useState("");
-  const [copied, setCopied] = useState(false);
+  // Selected Blueprint
+  const [selectedBlueprintId, setSelectedBlueprintId] = useState<string>("nextjs-app");
 
+  // Form Inputs
+  const [userAgent, setUserAgent] = useState<string>(ROBOTS_BLUEPRINTS[0].userAgent);
+  const [disallowPaths, setDisallowPaths] = useState<string[]>(ROBOTS_BLUEPRINTS[0].disallow);
+  const [allowPaths, setAllowPaths] = useState<string[]>(ROBOTS_BLUEPRINTS[0].allow);
+  const [crawlDelay, setCrawlDelay] = useState<string>("");
+  const [sitemapUrl, setSitemapUrl] = useState<string>(ROBOTS_BLUEPRINTS[0].sitemap);
+
+  // New item inputs
+  const [newDisallow, setNewDisallow] = useState<string>("");
+  const [newAllow, setNewAllow] = useState<string>("");
+
+  const [copied, setCopied] = useState<boolean>(false);
+
+  // Compiled robots.txt content
   const robotsContent = useMemo(() => {
-    let output = `# robots.txt generated by Exismic AI Studio\n`;
-    output += `User-agent: ${userAgent}\n`;
+    let output = `# ========================================================\n`;
+    output += `# robots.txt generated by Exismic SEO Webmaster Studio\n`;
+    output += `# https://exismic.com/tools/robots-txt-generator\n`;
+    output += `# Generated on: ${new Date().toISOString().split("T")[0]}\n`;
+    output += `# ========================================================\n\n`;
 
-    disallowPaths.forEach((path) => {
-      if (path.trim()) output += `Disallow: ${path.trim()}\n`;
+    const agents = userAgent.split("\n").filter((a) => a.trim().length > 0);
+    agents.forEach((ag) => {
+      const clean = ag.startsWith("User-agent:") ? ag : `User-agent: ${ag.trim()}`;
+      output += `${clean}\n`;
     });
 
-    allowPaths.forEach((path) => {
-      if (path.trim()) output += `Allow: ${path.trim()}\n`;
-    });
+    if (crawlDelay.trim()) {
+      output += `Crawl-delay: ${crawlDelay.trim()}\n`;
+    }
+
+    if (disallowPaths.length > 0) {
+      disallowPaths.forEach((path) => {
+        if (path.trim()) output += `Disallow: ${path.trim()}\n`;
+      });
+    } else {
+      output += `Disallow:\n`;
+    }
+
+    if (allowPaths.length > 0) {
+      allowPaths.forEach((path) => {
+        if (path.trim()) output += `Allow: ${path.trim()}\n`;
+      });
+    }
 
     if (sitemapUrl.trim()) {
-      output += `\nSitemap: ${sitemapUrl.trim()}\n`;
+      output += `\n# XML Sitemap Index\nSitemap: ${sitemapUrl.trim()}\n`;
     }
 
     return output;
-  }, [userAgent, disallowPaths, allowPaths, sitemapUrl]);
+  }, [userAgent, crawlDelay, disallowPaths, allowPaths, sitemapUrl]);
 
+  // Load a Blueprint
+  const handleSelectBlueprint = (bp: RobotsBlueprint) => {
+    setSelectedBlueprintId(bp.id);
+    setUserAgent(bp.userAgent);
+    setDisallowPaths(bp.disallow);
+    setAllowPaths(bp.allow);
+    setCrawlDelay(bp.crawlDelay || "");
+    setSitemapUrl(bp.sitemap);
+  };
+
+  // Reset to Baseline
+  const handleReset = () => {
+    setSelectedBlueprintId("");
+    setUserAgent("*");
+    setDisallowPaths(["/admin/", "/api/"]);
+    setAllowPaths(["/public/"]);
+    setCrawlDelay("");
+    setSitemapUrl("https://yourdomain.com/sitemap.xml");
+  };
+
+  // Add Disallow Path
   const addDisallow = () => {
     if (!newDisallow.trim()) return;
-    setDisallowPaths([...disallowPaths, newDisallow.trim()]);
+    const formatted = newDisallow.trim().startsWith("/") ? newDisallow.trim() : `/${newDisallow.trim()}`;
+    if (!disallowPaths.includes(formatted)) {
+      setDisallowPaths([...disallowPaths, formatted]);
+    }
     setNewDisallow("");
+    setSelectedBlueprintId("");
   };
 
+  // Add Allow Path
   const addAllow = () => {
     if (!newAllow.trim()) return;
-    setAllowPaths([...allowPaths, newAllow.trim()]);
+    const formatted = newAllow.trim().startsWith("/") ? newAllow.trim() : `/${newAllow.trim()}`;
+    if (!allowPaths.includes(formatted)) {
+      setAllowPaths([...allowPaths, formatted]);
+    }
     setNewAllow("");
+    setSelectedBlueprintId("");
   };
 
+  // Copy Content
   const handleCopy = () => {
     navigator.clipboard.writeText(robotsContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
+  // Download robots.txt
+  const handleDownloadTxt = () => {
     const blob = new Blob([robotsContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -77,100 +225,402 @@ export default function RobotsTxtGenerator() {
     URL.revokeObjectURL(url);
   };
 
+  // Validation Checks
+  const isBlockingAll = disallowPaths.includes("/");
+  const hasSitemap = Boolean(sitemapUrl.trim());
+
   return (
-    <div className="space-y-8">
-      {/* Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Rules Form */}
-        <div className="space-y-6 rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md">
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
-              User-Agent Bot Target
-            </label>
-            <input
-              type="text"
-              value={userAgent}
-              onChange={(e) => setUserAgent(e.target.value)}
-              placeholder="e.g. * or Googlebot"
-              className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-zinc-200 focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
-              Disallow Paths (Block Crawling)
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newDisallow}
-                onChange={(e) => setNewDisallow(e.target.value)}
-                placeholder="/path-to-block/"
-                className="flex-1 rounded-xl border border-white/10 bg-black/50 px-4 py-2.5 text-xs text-zinc-200 focus:border-cyan-500 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={addDisallow}
-                className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-bold uppercase tracking-wider border border-cyan-500/40 cursor-pointer"
-              >
-                Add
-              </button>
+    <div className="space-y-6">
+      {/* Top Deck: Telemetry HUD & Studio Actions */}
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-5 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.4)]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Left: Category Badge & Studio Telemetry */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-black uppercase tracking-wider shadow-[0_0_12px_rgba(6,182,212,0.15)]">
+              <ShieldCheck size={13} className="text-cyan-400" />
+              <span>SEO Webmaster Studio</span>
             </div>
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {disallowPaths.map((p, i) => (
-                <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-mono">
-                  {p}
-                  <button type="button" onClick={() => setDisallowPaths(disallowPaths.filter((_, idx) => idx !== i))} className="hover:text-white cursor-pointer">×</button>
-                </span>
-              ))}
+
+            {/* Target Bot Pill */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-black/60 border border-white/10">
+              <Bot size={14} className="text-cyan-400" />
+              <span className="text-xs font-bold text-zinc-300">Target Bot:</span>
+              <span className="text-sm font-black text-cyan-400">
+                {userAgent.includes("\n") ? "Multiple AI Crawlers" : userAgent}
+              </span>
+            </div>
+
+            {/* Blocked Paths Pill */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-black/60 border border-white/10">
+              <span className="text-xs font-bold text-zinc-300">Blocked Routes:</span>
+              <span className="text-sm font-black text-white">
+                {disallowPaths.length} Disallow Rules
+              </span>
+            </div>
+
+            {/* Status Pill */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-black/60 border border-white/10">
+              <span className="text-xs font-bold text-zinc-300">Crawl Status:</span>
+              <span className={cn(
+                "text-xs font-black px-2 py-0.5 rounded-full border",
+                isBlockingAll
+                  ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                  : "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+              )}>
+                {isBlockingAll ? "⚠️ Site-Wide Block (/)" : "✓ Public Indexing Allowed"}
+              </span>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
-              Sitemap Directive URL
-            </label>
-            <input
-              type="text"
-              value={sitemapUrl}
-              onChange={(e) => setSitemapUrl(e.target.value)}
-              placeholder="https://yourdomain.com/sitemap.xml"
-              className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-zinc-200 focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Generated Output */}
-        <div className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md flex flex-col justify-between">
-          <label className="text-xs font-black uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-            <FileCode2 size={15} className="text-cyan-400" />
-            Generated robots.txt File
-          </label>
-
-          <pre className="w-full flex-1 min-h-[260px] rounded-2xl border border-white/10 bg-black/80 p-4 text-xs font-mono text-cyan-300 overflow-y-auto leading-relaxed">
-            {robotsContent}
-          </pre>
-
-          <div className="flex gap-3">
+          {/* Right: Quick Reset & Download */}
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={handleCopy}
-              className="flex-1 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+              onClick={handleReset}
+              className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer"
+              title="Reset fields to baseline"
             >
-              {copied ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}
-              <span>{copied ? "Copied!" : "Copy Code"}</span>
+              <RotateCcw size={16} />
             </button>
+
             <button
               type="button"
-              onClick={handleDownload}
-              className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+              onClick={handleDownloadTxt}
+              className="px-3.5 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-zinc-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <Download size={16} />
-              <span>Download file</span>
+              <Download size={14} className="text-cyan-400" />
+              <span className="hidden sm:inline">Download robots.txt</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Blueprint Selector Bar (Standard: 6 Blueprints, Preloaded Blueprint #1) */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <Tag size={13} className="text-cyan-400" />
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-300">
+              Production Robots.txt Blueprints
+            </span>
+          </div>
+          <span className="text-[11px] font-medium text-zinc-500">
+            Click any blueprint to pre-fill tested crawler directives
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {ROBOTS_BLUEPRINTS.map((bp) => {
+            const isSelected = selectedBlueprintId === bp.id;
+            return (
+              <button
+                key={bp.id}
+                type="button"
+                onClick={() => handleSelectBlueprint(bp)}
+                className={cn(
+                  "p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between group",
+                  isSelected
+                    ? "bg-cyan-500/15 border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/40"
+                    : "bg-white/[0.02] border-white/10 hover:border-cyan-500/30 hover:bg-white/[0.04]"
+                )}
+              >
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 whitespace-nowrap shrink-0">
+                    {bp.category}
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-500 truncate text-right">
+                    {bp.disallow.length} blocked routes
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                    {bp.title}
+                  </p>
+                  <p className="text-xs text-zinc-400 line-clamp-1">
+                    {bp.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Studio Interactive Workspace (2-Column Grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column (Directives Builder): 6 Cols */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md shadow-xl space-y-5">
+            {/* User-Agent Target */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
+                User-Agent Bot Target
+              </label>
+              <textarea
+                rows={2}
+                value={userAgent}
+                onChange={(e) => {
+                  setUserAgent(e.target.value);
+                  setSelectedBlueprintId("");
+                }}
+                placeholder="* or Googlebot"
+                className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-xs font-mono text-cyan-300 focus:border-cyan-500 focus:outline-none transition-all resize-none"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "All Crawlers (*)", val: "*" },
+                  { label: "Googlebot", val: "Googlebot" },
+                  { label: "Bingbot", val: "Bingbot" },
+                  { label: "Block GPTBot", val: "GPTBot" },
+                  { label: "Block CCBot", val: "CCBot" }
+                ].map((chip) => (
+                  <button
+                    key={chip.val}
+                    type="button"
+                    onClick={() => {
+                      setUserAgent(chip.val);
+                      setSelectedBlueprintId("");
+                    }}
+                    className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-[10px] font-bold text-zinc-300 hover:text-cyan-300 transition-all cursor-pointer"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Disallow Paths Manager */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
+                  Disallowed Routes (Blocked From Crawling)
+                </label>
+                <span className="text-[11px] text-zinc-500">{disallowPaths.length} paths</span>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newDisallow}
+                  onChange={(e) => setNewDisallow(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addDisallow()}
+                  placeholder="/admin/ or /private/"
+                  className="flex-1 rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none font-mono placeholder:text-zinc-600"
+                />
+                <button
+                  type="button"
+                  onClick={addDisallow}
+                  className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-bold uppercase tracking-wider border border-cyan-500/40 transition-all cursor-pointer"
+                >
+                  Add Rule
+                </button>
+              </div>
+
+              {/* Quick Preset Disallow Chips */}
+              <div className="flex flex-wrap gap-1 pt-1">
+                {["/admin/", "/api/", "/checkout", "/private/", "/*.json$"].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => {
+                      if (!disallowPaths.includes(preset)) {
+                        setDisallowPaths([...disallowPaths, preset]);
+                      }
+                    }}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/5 hover:bg-cyan-500/20 text-zinc-400 hover:text-cyan-300 border border-white/10 cursor-pointer"
+                  >
+                    + {preset}
+                  </button>
+                ))}
+              </div>
+
+              {/* Active Disallow Chips */}
+              <div className="flex flex-wrap gap-1.5 pt-2 max-h-[140px] overflow-y-auto">
+                {disallowPaths.map((p, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-mono"
+                  >
+                    {p}
+                    <button
+                      type="button"
+                      onClick={() => setDisallowPaths(disallowPaths.filter((_, i) => i !== idx))}
+                      className="hover:text-white cursor-pointer font-bold ml-1"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Allow Paths Manager */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
+                Explicitly Allowed Routes (Sub-Paths)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newAllow}
+                  onChange={(e) => setNewAllow(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addAllow()}
+                  placeholder="/public/ or /api/og"
+                  className="flex-1 rounded-xl border border-white/10 bg-black/60 px-4 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none font-mono placeholder:text-zinc-600"
+                />
+                <button
+                  type="button"
+                  onClick={addAllow}
+                  className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-bold uppercase tracking-wider border border-cyan-500/40 transition-all cursor-pointer"
+                >
+                  Allow
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {allowPaths.map((p, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono"
+                  >
+                    {p}
+                    <button
+                      type="button"
+                      onClick={() => setAllowPaths(allowPaths.filter((_, i) => i !== idx))}
+                      className="hover:text-white cursor-pointer font-bold ml-1"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Sitemap & Crawl-Delay Directives */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase tracking-wider text-zinc-300">
+                  Sitemap Directive URL
+                </label>
+                <input
+                  type="text"
+                  value={sitemapUrl}
+                  onChange={(e) => {
+                    setSitemapUrl(e.target.value);
+                    setSelectedBlueprintId("");
+                  }}
+                  placeholder="https://yourdomain.com/sitemap.xml"
+                  className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-xs font-mono text-cyan-300 focus:border-cyan-500 focus:outline-none placeholder:text-zinc-600"
+                />
+              </div>
+
+              <CyberDropdown
+                label="Crawl-Delay Directive"
+                value={crawlDelay}
+                onChange={(val) => {
+                  setCrawlDelay(val);
+                  setSelectedBlueprintId("");
+                }}
+                options={CRAWL_DELAY_OPTIONS}
+                themeColor="cyan"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column (Code Output & Verification): 6 Cols */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md shadow-xl space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <span className="text-xs font-black uppercase tracking-wider text-zinc-300 flex items-center gap-2">
+                  <FileCode2 size={15} className="text-cyan-400" />
+                  <span>Compiled robots.txt File</span>
+                </span>
+                <span className="text-[11px] font-mono text-cyan-400">root level (/robots.txt)</span>
+              </div>
+
+              {/* Code Display */}
+              <pre className="w-full min-h-[340px] max-h-[420px] rounded-2xl border border-white/10 bg-black/80 p-4 text-xs font-mono text-cyan-300 overflow-y-auto leading-relaxed select-all">
+                {robotsContent}
+              </pre>
+
+              {/* Validation Checklist Strip */}
+              <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2 text-xs">
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <CheckCircle2 size={14} className="text-cyan-400" />
+                  <span>Valid User-agent target declared</span>
+                </div>
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <CheckCircle2 size={14} className="text-cyan-400" />
+                  <span>{disallowPaths.length} private path boundaries configured</span>
+                </div>
+                {hasSitemap && (
+                  <div className="flex items-center gap-2 text-cyan-300">
+                    <CheckCircle2 size={14} className="text-cyan-400" />
+                    <span>XML Sitemap indexed for Google Search Console</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="flex-1 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle2 size={16} className="text-cyan-400" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="text-zinc-300" />
+                    <span>Copy robots.txt</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadTxt}
+                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black text-xs font-black uppercase tracking-wider shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+              >
+                <Download size={16} className="text-black" />
+                <span>Download File</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Result Retention Bar */}
+      <ResultRetentionBar
+        toolType="robots-txt-generator"
+        toolName="Robots.txt Generator"
+        title="Valid robots.txt File Directives"
+        content={robotsContent}
+        downloadLabel="Download robots.txt"
+        downloadAction={handleDownloadTxt}
+        onCopy={handleCopy}
+      />
+
+      {/* Chained Companion Tools in SEO */}
+      <ToolWorkflowChaining
+        currentToolId="robots-txt-generator"
+        categoryId="seo"
+        outputContent={robotsContent}
+      />
+
+      {/* Suggested Tools */}
+      <ToolSuggestions
+        currentToolId="robots-txt-generator"
+        categoryId="seo"
+        outputContent={robotsContent}
+      />
     </div>
   );
 }

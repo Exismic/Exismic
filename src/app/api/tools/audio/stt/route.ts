@@ -98,6 +98,10 @@ export async function POST(req: NextRequest) {
         result && typeof result === "object" && "duration" in result
           ? result.duration
           : null,
+      segments:
+        result && typeof result === "object" && Array.isArray((result as { segments?: unknown[] }).segments)
+          ? (result as { segments: Array<{ id: number; start: number; end: number; text: string }> }).segments
+          : [],
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Transcription failed.";

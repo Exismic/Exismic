@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
-import { prisma } from "@/lib/prisma";
+import { getBlogAuthor } from "@/lib/blog-author";
 import { BlogPostClient } from "./BlogPostClient";
 import { getPostBySlug } from "@/lib/blog-data";
 import { notFound } from "next/navigation";
@@ -34,23 +34,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  // Fetch the actual user profile for Syed Rayan
-  const realAuthor = await prisma.user.findFirst({
-    where: {
-      email: {
-        equals: 'syedrayangames@Gmail.com',
-        mode: 'insensitive'
-      }
-    }
-  });
-
-  if (realAuthor) {
-    post.author = {
+  const realAuthor = await getBlogAuthor();
+  const resolvedPost = realAuthor ? {
+    ...post,
+    author: {
       name: realAuthor.name || realAuthor.username || "Syed Rayan",
       avatar: realAuthor.customAvatarUrl || realAuthor.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(realAuthor.name || 'SR')}`,
-      ...( { username: realAuthor.username || realAuthor.id } as any )
-    };
-  }
+      username: realAuthor.username || realAuthor.id,
+    },
+  } : post;
 
-  return <BlogPostClient post={post} />;
+  return <BlogPostClient post={resolvedPost} />;
 }

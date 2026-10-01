@@ -1,5 +1,7 @@
-import { AudioProcessingTool } from "@/components/tool/AudioProcessingTool";
+"use client";
+
+import { NoiseRemoverStudio } from "@/components/tool/audio/NoiseRemoverStudio";
 
 export function NoiseRemover() {
-  return <AudioProcessingTool mode="noise-remover" />;
+  return <NoiseRemoverStudio />;
 }

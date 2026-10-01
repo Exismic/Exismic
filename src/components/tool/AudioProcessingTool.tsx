@@ -15,10 +15,10 @@ import {
   Mic2,
   Music2,
   RefreshCw,
-  Sparkles,
+  AudioWaveform,
   Split,
   Upload,
-  WandSparkles,
+  Wand2,
   X,
   Play,
   Pause,
@@ -95,7 +95,7 @@ const TOOL_CONFIG = {
     description:
       "Convert spoken audio into a polished studio voice while keeping its timing and delivery.",
     output: "One converted voice",
-    icon: WandSparkles,
+    icon: Wand2,
     accent: "from-amber-300 via-fuchsia-500 to-violet-500",
   },
 } as const;
@@ -742,7 +742,7 @@ export function AudioProcessingTool({ mode }: { mode: AudioToolMode }) {
                 className="flex h-full min-h-[300px] flex-col justify-between"
               >
                 <div>
-                  <Sparkles className="size-7 text-violet-300" />
+                  <AudioWaveform className="size-7 text-cyan-300" />
                   <h3 className="mt-6 text-2xl font-black tracking-tight text-white">
                     {file ? "Listen once, then process" : "Built for real output"}
                   </h3>

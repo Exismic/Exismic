@@ -307,41 +307,8 @@ const CATEGORY_THEMES: Record<string, CategoryThemeConfig> = {
     viewAllBtn: "text-lime-300 bg-lime-500/10 hover:bg-lime-500/20 border-lime-400/30 hover:shadow-[0_0_15px_rgba(132,204,22,0.25)]",
   },
   creator: {
-    primaryHex: "#f43f5e",
-    laserGradient: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 270deg, rgba(244,63,94,0.1) 295deg, #f43f5e 325deg, #fb7185 348deg, #fecdd3 356deg, transparent 360deg)",
-    laserBloom: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 280deg, #f43f5e 325deg, #fb7185 348deg, transparent 360deg)",
-    textAccent: "text-rose-300",
-    headingGradient: "from-white via-slate-100 to-rose-200",
-    badgeBorder: "border-rose-400/40",
-    badgeBg: "bg-rose-500/10",
-    badgeDot: "bg-rose-400",
-    badgeText: "text-rose-300",
-    ambientLight1: "bg-rose-500/15",
-    ambientLight2: "bg-pink-600/10",
-    cardBorderHover: "hover:border-rose-400/50",
-    cardShadowHover: "hover:shadow-[0_12px_30px_rgba(244,63,94,0.18)]",
-    cardSpotlight: "rgba(244, 63, 94, 0.16)",
-    heroSpotlight: "rgba(244, 63, 94, 0.08)",
-    iconContainer: "border-rose-400/30 bg-rose-500/15 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]",
-    conduitGradient: "from-rose-500/30 via-rose-400/50 to-rose-500/30",
-    conduitShimmer: "via-rose-300",
-    stepNumberGradients: ["from-rose-600 to-pink-600", "from-rose-500 to-orange-600", "from-pink-500 to-rose-500"],
-    stepBadgeText: "text-rose-300",
-    whyChooseIconBg: "bg-rose-500/15",
-    whyChooseIconBorder: "border-rose-400/30",
-    whyChooseIconText: "text-rose-400",
-    whyChooseCardHover: "hover:border-rose-400/50 hover:bg-rose-500/[0.04] hover:shadow-[0_10px_30px_rgba(244,63,94,0.15)]",
-    faqOpenBorder: "border-rose-400/50 bg-rose-500/[0.04] shadow-[0_0_25px_rgba(244,63,94,0.12)]",
-    faqBadgeOpen: "bg-rose-400/20 border-rose-400 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.3)]",
-    faqTextOpen: "text-rose-100",
-    faqChevronOpen: "text-rose-300",
-    suggestionsCardHover: "hover:border-rose-400/50 hover:shadow-[0_15px_35px_rgba(244,63,94,0.18)]",
-    suggestionsActionText: "text-rose-400 group-hover:text-rose-300",
-    viewAllBtn: "text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border-rose-400/30 hover:shadow-[0_0_15px_rgba(244,63,94,0.25)]",
-  },
-  student: {
     primaryHex: "#6366f1",
-    laserGradient: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 270deg, rgba(99,102,241,0.1) 295deg, #6366f1 325deg, #818cf8 348deg, #c7d2fe 356deg, transparent 360deg)",
+    laserGradient: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 270deg, rgba(99,102,241,0.1) 295deg, #6366f1 325deg, #818cf8 348deg, #38bdf8 356deg, transparent 360deg)",
     laserBloom: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 280deg, #6366f1 325deg, #818cf8 348deg, transparent 360deg)",
     textAccent: "text-indigo-300",
     headingGradient: "from-white via-slate-100 to-indigo-200",
@@ -350,7 +317,7 @@ const CATEGORY_THEMES: Record<string, CategoryThemeConfig> = {
     badgeDot: "bg-indigo-400",
     badgeText: "text-indigo-300",
     ambientLight1: "bg-indigo-500/15",
-    ambientLight2: "bg-purple-600/10",
+    ambientLight2: "bg-blue-600/10",
     cardBorderHover: "hover:border-indigo-400/50",
     cardShadowHover: "hover:shadow-[0_12px_30px_rgba(99,102,241,0.18)]",
     cardSpotlight: "rgba(99, 102, 241, 0.16)",
@@ -358,7 +325,7 @@ const CATEGORY_THEMES: Record<string, CategoryThemeConfig> = {
     iconContainer: "border-indigo-400/30 bg-indigo-500/15 text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.2)]",
     conduitGradient: "from-indigo-500/30 via-indigo-400/50 to-indigo-500/30",
     conduitShimmer: "via-indigo-300",
-    stepNumberGradients: ["from-indigo-600 to-blue-600", "from-indigo-500 to-violet-600", "from-blue-500 to-indigo-500"],
+    stepNumberGradients: ["from-indigo-600 to-blue-600", "from-indigo-500 to-sky-600", "from-blue-500 to-indigo-500"],
     stepBadgeText: "text-indigo-300",
     whyChooseIconBg: "bg-indigo-500/15",
     whyChooseIconBorder: "border-indigo-400/30",
@@ -371,6 +338,39 @@ const CATEGORY_THEMES: Record<string, CategoryThemeConfig> = {
     suggestionsCardHover: "hover:border-indigo-400/50 hover:shadow-[0_15px_35px_rgba(99,102,241,0.18)]",
     suggestionsActionText: "text-indigo-400 group-hover:text-indigo-300",
     viewAllBtn: "text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)]",
+  },
+  student: {
+    primaryHex: "#fbbf24",
+    laserGradient: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 270deg, rgba(251,191,36,0.1) 295deg, #fbbf24 325deg, #fde68a 348deg, #fef3c7 356deg, transparent 360deg)",
+    laserBloom: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 280deg, #fbbf24 325deg, #fde68a 348deg, transparent 360deg)",
+    textAccent: "text-amber-300",
+    headingGradient: "from-white via-slate-100 to-amber-200",
+    badgeBorder: "border-amber-400/40",
+    badgeBg: "bg-amber-500/10",
+    badgeDot: "bg-amber-400",
+    badgeText: "text-amber-300",
+    ambientLight1: "bg-amber-500/15",
+    ambientLight2: "bg-yellow-600/10",
+    cardBorderHover: "hover:border-amber-400/50",
+    cardShadowHover: "hover:shadow-[0_12px_30px_rgba(251,191,36,0.18)]",
+    cardSpotlight: "rgba(251, 191, 36, 0.16)",
+    heroSpotlight: "rgba(251, 191, 36, 0.08)",
+    iconContainer: "border-amber-400/30 bg-amber-500/15 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.2)]",
+    conduitGradient: "from-amber-500/30 via-amber-400/50 to-amber-500/30",
+    conduitShimmer: "via-amber-300",
+    stepNumberGradients: ["from-amber-600 to-yellow-600", "from-amber-500 to-orange-500", "from-yellow-500 to-amber-500"],
+    stepBadgeText: "text-amber-300",
+    whyChooseIconBg: "bg-amber-500/15",
+    whyChooseIconBorder: "border-amber-400/30",
+    whyChooseIconText: "text-amber-400",
+    whyChooseCardHover: "hover:border-amber-400/50 hover:bg-amber-500/[0.04] hover:shadow-[0_10px_30px_rgba(251,191,36,0.15)]",
+    faqOpenBorder: "border-amber-400/50 bg-amber-500/[0.04] shadow-[0_0_25px_rgba(251,191,36,0.12)]",
+    faqBadgeOpen: "bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]",
+    faqTextOpen: "text-amber-100",
+    faqChevronOpen: "text-amber-300",
+    suggestionsCardHover: "hover:border-amber-400/50 hover:shadow-[0_15px_35px_rgba(251,191,36,0.18)]",
+    suggestionsActionText: "text-amber-400 group-hover:text-amber-300",
+    viewAllBtn: "text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/30 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)]",
   },
   business: {
     primaryHex: "#f97316",
@@ -779,7 +779,21 @@ export function ToolSeoSection({
   const defaultFeatures = features || currentTool?.features || catDefaults.features;
   const defaultHowToSteps = howToSteps || currentTool?.howToSteps || catDefaults.howToSteps;
   const defaultFaqs = faqs || currentTool?.faqs || catDefaults.faqs;
-  const defaultCards = catDefaults.valueProps;
+  const toolFeatures = features || currentTool?.features;
+  const defaultCards = toolFeatures?.length
+    ? toolFeatures.slice(0, 4).map((feature, index) => {
+        const separator = feature.indexOf(":");
+        return {
+          title: separator > 0 ? feature.slice(0, separator) : `Feature ${index + 1}`,
+          desc: separator > 0 ? feature.slice(separator + 1).trim() : feature,
+          badge: "Tool feature",
+          icon: CheckCircle2,
+        };
+      })
+    : catDefaults.valueProps;
+  const effectiveLimitations = limitations || currentTool?.limitations;
+  const effectiveExamples = examples || currentTool?.examples;
+  const effectiveTerminology = terminology || currentTool?.terminology;
   const effectiveSeoIntro = seoIntro || currentTool?.seoIntro;
   const effectiveUseCases = useCases || currentTool?.useCases;
 
@@ -921,7 +935,7 @@ export function ToolSeoSection({
                   </div>
                   <div className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", theme.badgeBorder, theme.badgeBg, theme.badgeText)}>
                     <Check size={11} className={theme.textAccent} />
-                    <span>100% Free • No Sign-Up</span>
+                    <span>Instructions & tips</span>
                   </div>
                 </div>
 
@@ -1003,7 +1017,7 @@ export function ToolSeoSection({
             </div>
             <div>
               <h3 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
-                How to Use {toolName} in 3 Simple Steps
+                How to Use {toolName}
               </h3>
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
                 Fast and easy from start to finish
@@ -1021,7 +1035,7 @@ export function ToolSeoSection({
             {defaultHowToSteps.map((stepDesc, idx) => {
               const stepIcons = [Upload, Sliders, Download];
               const StepIcon = stepIcons[idx] || Check;
-              const stepBadges = ["Step 01 • Upload", "Step 02 • Adjust", "Step 03 • Download"];
+              const stepBadges = defaultHowToSteps.map((_, index) => `Step ${index + 1}`);
 
               return (
                 <div
@@ -1052,7 +1066,7 @@ export function ToolSeoSection({
 
                     <div>
                       <h4 className="text-base font-bold text-white group-hover:text-zinc-100 transition-colors">
-                        {idx === 0 ? "Upload or Input" : idx === 1 ? "Configure & Process" : "Export & Download"}
+                        {`Step ${idx + 1}`}
                       </h4>
                       <p className="text-xs font-medium leading-relaxed text-zinc-300 mt-2">
                         {stepDesc}
@@ -1078,7 +1092,7 @@ export function ToolSeoSection({
                 Why Choose Exismic {toolName}?
               </h3>
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
-                Simple, reliable, and completely free to use
+                What you can do with this tool
               </p>
             </div>
           </div>
@@ -1104,6 +1118,22 @@ export function ToolSeoSection({
         {/* =========================================================
             3B. PRACTICAL USE CASES (IF AVAILABLE)
         ========================================================== */}
+        {[{ title: "Examples to try", items: effectiveExamples }, { title: "Things to know", items: effectiveLimitations }].map(({ title, items }) => items?.length ? (
+          <div key={title} className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6">
+            <h3 className="text-xl font-bold text-white">{title}</h3>
+            <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-300">
+              {items.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        ) : null)}
+        {effectiveTerminology?.length ? (
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6">
+            <h3 className="text-xl font-bold text-white">Useful terms</h3>
+            <dl className="space-y-3 text-sm text-zinc-300">
+              {effectiveTerminology.map(({ term, definition }) => <div key={term}><dt className="font-semibold text-white">{term}</dt><dd className="mt-1 leading-relaxed">{definition}</dd></div>)}
+            </dl>
+          </div>
+        ) : null}
         {effectiveUseCases && effectiveUseCases.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">

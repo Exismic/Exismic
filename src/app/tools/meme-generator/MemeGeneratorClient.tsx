@@ -604,9 +604,9 @@ export default function MemeGenerator() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
+                <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">
                   Meme Studio
-                </h1>
+                </h2>
                 <span className="rounded-md bg-purple-500/20 border border-purple-500/30 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-purple-300">
                   Watermark Free
                 </span>

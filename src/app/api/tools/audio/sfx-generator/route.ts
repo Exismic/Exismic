@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
     const audioBuffer = await response.arrayBuffer();
 
-    return new NextResponse(audioBuffer, {
+    return new NextResponse(new Uint8Array(audioBuffer), {
       headers: {
         "Content-Type": "audio/mpeg",
         "Content-Length": audioBuffer.byteLength.toString(),

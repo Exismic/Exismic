@@ -66,8 +66,8 @@ const CATEGORY_LABEL_STYLES: Record<string, { label: string; text: string; iconS
   },
   creator: { 
     label: "Creator & Social Media Tools", 
-    text: "text-rose-300", 
-    iconStyle: "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]" 
+    text: "text-indigo-300", 
+    iconStyle: "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" 
   },
 };
 

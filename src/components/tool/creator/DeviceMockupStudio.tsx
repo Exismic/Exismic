@@ -26,6 +26,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { consumePipelineItem } from "@/lib/pipeline";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
+import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ==========================================
 // PRESET TYPES & OPTIONS
@@ -1331,7 +1332,7 @@ export default function DeviceMockupStudio() {
           <button
             onClick={handleDownload}
             disabled={isExporting}
-            className="flex-1 sm:flex-initial px-8 py-4 rounded-2xl font-black text-sm bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-[0_0_30px_rgba(6,182,212,0.35)] hover:shadow-[0_0_45px_rgba(6,182,212,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+            className="flex-1 sm:flex-initial px-8 py-4 rounded-2xl font-black text-sm bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-400 hover:to-blue-500 text-white shadow-[0_0_30px_rgba(99,102,241,0.35)] hover:shadow-[0_0_45px_rgba(99,102,241,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
           >
             {isExporting ? (
               <>
@@ -1416,7 +1417,7 @@ export default function DeviceMockupStudio() {
           <button
             onClick={handleDownload}
             disabled={isExporting}
-            className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-500 to-indigo-600 text-white flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.4)] active:scale-95 transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 text-white flex items-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.4)] active:scale-95 transition-all cursor-pointer"
           >
             {isExporting ? <RefreshCw size={13} className="animate-spin" /> : <Download size={13} />}
             <span>{isExporting ? "Rendering..." : "Download"}</span>
@@ -1436,6 +1437,9 @@ export default function DeviceMockupStudio() {
           />
         </div>
       )}
+
+      {/* Category Reactive Laser Horizon Divider */}
+      <ToolLaserDivider primaryHex="#6366f1" />
     </div>
   );
 }

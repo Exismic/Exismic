@@ -5,32 +5,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Mail, 
   Lock, 
-  Eye,
-  EyeOff,
+  Eye, 
+  EyeOff, 
   ArrowRight, 
   Loader2, 
-  AlertCircle,
-  ChevronRight,
-  ShieldCheck,
-  CheckCircle2,
-  KeyRound,
-  ArrowLeft,
-  Smartphone,
-  Radio,
-  Link2,
-  X,
-  Sparkles,
-  Zap,
-  Check,
-  Star,
-  Layers,
-  LogIn,
-  UserPlus,
-  Image as ImageIcon,
-  Music,
-  Code2,
-  Clock,
-  RotateCcw
+  AlertCircle, 
+  ChevronRight, 
+  ShieldCheck, 
+  CheckCircle2, 
+  ArrowLeft, 
+  Smartphone, 
+  X, 
+  Check, 
+  RotateCcw,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -51,10 +39,11 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { getClientSiteUrl } from "@/lib/site-url";
+import { SilkBackground } from "@/components/ui/SilkBackground";
 
-// --- Premium Custom Brand Icons ---
+// --- Minimalist Brand Icons ---
 const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
@@ -63,14 +52,8 @@ const GoogleIcon = () => (
 );
 
 const GitHubIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-  </svg>
-);
-
-const DiscordIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.094 13.094 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z" />
   </svg>
 );
 
@@ -98,14 +81,6 @@ function providerLabel(provider: OAuthLinkProvider | null) {
   return 'social login';
 }
 
-function ProviderIcon({ provider }: { provider: OAuthLinkProvider | null }) {
-  if (provider === 'google') return <GoogleIcon />;
-  if (provider === 'github') return <GitHubIcon />;
-  if (provider === 'discord') return <DiscordIcon />;
-  return <Link2 size={20} />;
-}
-
-// Password strength calculator
 function calculatePasswordStrength(pass: string) {
   let score = 0;
   if (!pass) return { score: 0, label: "Empty", color: "bg-zinc-700" };
@@ -136,7 +111,6 @@ export default function AuthPage() {
   const [trustedChallengeId, setTrustedChallengeId] = useState("");
   const [trustedBrowserToken, setTrustedBrowserToken] = useState("");
   const [trustedDeviceName, setTrustedDeviceName] = useState("");
-  const [trustedExpiresAt, setTrustedExpiresAt] = useState("");
   
   // Unrecognized Device OTP verification state
   const [deviceChallengeId, setDeviceChallengeId] = useState("");
@@ -209,8 +183,8 @@ export default function AuthPage() {
         deletionRecoveryRequested: true,
       });
       setSuccess("Your recovery request has been sent! Our team will review and reactivate your account shortly.");
-    } catch (err: any) {
-      setError(err.message || "Failed to submit recovery request.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to submit recovery request.");
     } finally {
       setIsRecovering(false);
     }
@@ -251,9 +225,7 @@ export default function AuthPage() {
     if (errorParam === 'suspended') {
       setError("This account has been suspended due to violations of Exismic terms of service.");
       const supabase = createClient();
-      supabase.auth.signOut().then(() => {
-        // Clear local credentials cache
-      });
+      supabase.auth.signOut();
     }
   }, [errorParam]);
 
@@ -360,7 +332,6 @@ export default function AuthPage() {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Auto-focus next input
     if (value && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
@@ -676,7 +647,6 @@ export default function AuthPage() {
       setTrustedBrowserToken(browserToken);
       setTrustedChallengeId(result.challengeId);
       setTrustedDeviceName(result.deviceName || "your registered phone");
-      setTrustedExpiresAt(result.expiresAt || "");
       setSuccess(result.message || "Approval sent to your registered phone.");
     } catch (requestError) {
       const message =
@@ -692,1178 +662,780 @@ export default function AuthPage() {
   const passStrength = calculatePasswordStrength(signupPassword);
 
   return (
-    <div className="min-h-screen bg-[#020204] text-white flex flex-col lg:flex-row overflow-hidden relative font-sans selection:bg-purple-500/30">
+    <div className="min-h-screen bg-[#030305] text-white flex flex-col justify-between relative overflow-hidden font-sans selection:bg-purple-500/30">
       
-      {/* GLOBAL BACKGROUND EFFECTS & AMBIENCE */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Animated glowing mesh gradient blobs */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.15, 1],
-            x: [0, 30, 0],
-            y: [0, -30, 0]
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-[15%] -left-[10%] w-[55vw] h-[55vw] max-w-[700px] max-h-[700px] bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.16)_0%,rgba(99,102,241,0.08)_50%,transparent_70%)] blur-3xl" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1.1, 1, 1.1],
-            x: [0, -40, 0],
-            y: [0, 40, 0]
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -bottom-[15%] -right-[10%] w-[55vw] h-[55vw] max-w-[700px] max-h-[700px] bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12)_0%,rgba(168,85,247,0.06)_50%,transparent_70%)] blur-3xl" 
-        />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-600/[0.04] blur-[140px] rounded-full" />
-        
-        {/* Luxury subtle dot grid pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [bg-size:32px_32px] [mask-image:radial-gradient(ellipse_75%_75%_at_50%_50%,#000_50%,transparent_100%)] opacity-80" />
+      {/* ------------------------------------------------------------- */}
+      {/* BACKGROUND: React Bits Silk WebGL Shader with Resend Vignette */}
+      {/* ------------------------------------------------------------- */}
+      <SilkBackground
+        color="#4c1d95"
+        speed={0.9}
+        scale={0.95}
+        noiseIntensity={0.8}
+        rotation={0.15}
+        lightMode={true}
+        showVignette={true}
+      />
+
+      {/* Discrete Top-Left Home Escape Link */}
+      <div className="absolute top-5 left-5 sm:top-7 sm:left-7 z-30">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-xs font-semibold text-zinc-400 hover:text-white border border-white/10 backdrop-blur-md transition-all group shadow-sm"
+        >
+          <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
+          <span>Home</span>
+        </Link>
       </div>
 
-      {/* ======================================================================== */}
-      {/* LEFT PANEL: SaaS Visual Showcase & Hero Experience (Desktop Only)       */}
-      {/* ======================================================================== */}
-      <div className="hidden lg:flex lg:w-[52%] relative flex-col justify-between p-12 xl:p-16 z-10 border-r border-white/[0.06] bg-[#040407]/70 backdrop-blur-2xl">
+      {/* ------------------------------------------------------------- */}
+      {/* CENTER STAGE: Resend-Style Minimalist Floating Auth Container */}
+      {/* ------------------------------------------------------------- */}
+      <main className="w-full max-w-[360px] sm:max-w-[380px] mx-auto px-4 pt-6 pb-14 sm:pt-8 sm:pb-18 relative z-10 flex flex-col justify-center flex-1 -translate-y-6 sm:-translate-y-7">
         
-        {/* Top Header / Logo */}
-        <div className="flex items-center justify-between">
-          <Link href="/" className="group flex items-center gap-3.5">
-            <div className="relative">
-              <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 via-violet-500 to-cyan-400 rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
-              <ExismicMark size={44} className="relative z-10 transform group-hover:scale-105 transition-transform duration-300" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1 font-mono">
-                EXISMIC<span className="text-purple-400 font-sans">.</span>
-              </span>
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400">
-                Online Creative Studio
-              </span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Middle Feature Showcase */}
-        <div className="my-auto py-10 max-w-xl space-y-8">
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="space-y-4"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/25 bg-purple-500/10 text-purple-300 text-[11px] font-bold tracking-wider">
-              <Layers size={12} className="text-purple-400" />
-              <span>Everything In One Place</span>
-            </div>
-
-            <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-white leading-[1.14]">
-              Everything you need to <br />
-              <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(168,85,247,0.35)]">
-                create and get things done.
-              </span>
-            </h1>
-
-            <p className="text-zinc-400 text-sm sm:text-base leading-relaxed font-normal max-w-lg">
-              Images, audio, video, documents, writing, and developer tools — all in one simple place.
-            </p>
-          </motion.div>
-
-          {/* Feature Highlights Grid */}
-          <div className="space-y-3.5">
-            <motion.div 
-              initial={{ opacity: 0, x: -15 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-purple-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(147,51,234,0.25)] hover:-translate-y-0.5"
-            >
-              <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-purple-400/20 to-transparent" />
-              <div className="w-12 h-12 rounded-xl border border-purple-500/30 bg-purple-500/15 text-purple-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-300 shadow-md">
-                <ImageIcon size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Images & Photos</h3>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-purple-500/20 bg-purple-500/10 text-purple-300">50+ Tools</span>
-                </div>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Remove backgrounds, enhance photos, and make new images in high quality.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, x: -15 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-cyan-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(6,182,212,0.25)] hover:-translate-y-0.5"
-            >
-              <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
-              <div className="w-12 h-12 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-300 shadow-md">
-                <Music size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Audio & Music</h3>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">High-Res</span>
-                </div>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Separate vocals and instruments, clean up audio, and convert tracks.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, x: -15 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="group relative overflow-hidden flex items-start gap-4 p-4.5 rounded-2xl border border-white/[0.08] hover:border-emerald-500/30 bg-[#090a14]/60 hover:bg-[#0d0e1c]/90 backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-[0_12px_30px_-10px_rgba(168,85,247,0.25)] hover:-translate-y-0.5"
-            >
-              <div className="pointer-events-none absolute top-0 inset-x-6 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
-              <div className="w-12 h-12 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-md">
-                <Code2 size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Documents & Code</h3>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">Instant</span>
-                </div>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-normal">
-                  Format files, extract text from images, convert data, and simplify your work.
-                </p>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Value / Trust Highlights */}
-          <div className="flex items-center gap-6 pt-5 border-t border-white/[0.08] text-xs text-zinc-400">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span><strong className="text-white font-semibold">50 Free Credits</strong> every day</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-400" />
-              <span><strong className="text-white font-semibold">No Card</strong> required</span>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Footer / Copyright */}
-        <div className="flex items-center justify-between text-xs text-zinc-500 font-medium">
-          <p>© {new Date().getFullYear()} Exismic. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-zinc-400">
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
-            <span>•</span>
-            <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms</Link>
-          </div>
-        </div>
-
-      </div>
-
-      {/* ======================================================================== */}
-      {/* RIGHT PANEL: Sleek Glassmorphic Form Container                           */}
-      {/* ======================================================================== */}
-      <div className="w-full lg:w-[48%] flex flex-col justify-center items-center p-4 sm:p-8 md:p-12 z-10 relative">
-
         {/* Redirecting Overlay Screen */}
         {isRedirecting ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-[420px] flex flex-col items-center justify-center space-y-6 py-16"
+            className="w-full flex flex-col items-center justify-center space-y-6 py-12"
           >
-            <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative shadow-[0_0_50px_rgba(16,185,129,0.2)]">
-              <CheckCircle2 size={42} className="text-emerald-400" />
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+              <CheckCircle2 size={36} className="text-emerald-400" />
               <motion.div 
-                className="absolute inset-0 rounded-3xl border border-emerald-500/40"
+                className="absolute inset-0 rounded-2xl border border-emerald-500/40"
                 animate={{ scale: [1, 1.25, 1], opacity: [0.7, 0, 0.7] }}
                 transition={{ repeat: Infinity, duration: 2 }}
               />
             </div>
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">Signed in successfully</h2>
-              <p className="text-zinc-400 text-sm flex items-center justify-center gap-2 font-medium">
-                <Loader2 className="animate-spin text-purple-400" size={16} /> 
+            <div className="text-center space-y-1.5">
+              <h2 className="text-xl font-bold font-outfit text-white tracking-tight">Signed in successfully</h2>
+              <p className="text-zinc-400 text-xs flex items-center justify-center gap-2 font-medium">
+                <Loader2 className="animate-spin text-purple-400" size={14} /> 
                 Redirecting to your account...
               </p>
             </div>
           </motion.div>
         ) : (
 
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[440px]"
-        >
-          {/* Mobile Only Header Logo */}
-          <div className="flex lg:hidden flex-col items-center mb-8">
-            <Link href="/" className="flex flex-col items-center group">
-              <ExismicMark size={56} className="mb-3 transform group-hover:scale-105 transition-transform" />
-              <h1 className="text-2xl font-black tracking-tight text-white">
-                EXISMIC<span className="text-purple-400">.</span>
-              </h1>
-            </Link>
-          </div>
-
-          {/* Account Suspended Notice */}
-          {errorParam === "suspended" && (
-            <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-200 text-xs space-y-2 backdrop-blur-md">
-              <div className="flex items-center gap-2 text-rose-400 font-bold uppercase tracking-wider text-[11px]">
-                <AlertCircle size={15} /> Account Suspended
+        <div className="w-full flex flex-col items-center">
+          
+          {/* Exismic Logo (~10% larger at ~48px visual size with balanced breathing room) */}
+          <Link href="/" className="group mb-5 block focus:outline-none" aria-label="Exismic Home">
+            <div className="relative">
+              <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-purple-600/30 to-indigo-600/30 blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+              <div className="relative w-12 h-12 rounded-2xl bg-[#090a12]/90 border border-white/10 group-hover:border-purple-500/50 flex items-center justify-center backdrop-blur-md shadow-[0_0_24px_rgba(109,40,217,0.3)] group-hover:scale-105 transition-all">
+                <ExismicMark size={29} />
               </div>
-              <p className="leading-relaxed text-zinc-300">
-                This account has been suspended due to violations of Exismic terms of service.
-              </p>
-              <p className="text-zinc-400 text-[11px] leading-relaxed">
-                If you believe this is a mistake, you can <Link href="/appeal" className="text-purple-400 hover:underline font-bold">submit an appeal</Link>.
-              </p>
             </div>
-          )}
+          </Link>
 
-          {/* Account Scheduled for Deletion Notice */}
-          {deletedParam === "true" && (
-            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs space-y-2 backdrop-blur-md">
-              <div className="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider text-[11px]">
-                <Clock size={15} /> Account Scheduled for Deletion
-              </div>
-              <p className="leading-relaxed text-zinc-300">
-                Your account is scheduled to be erased in 7 days. You have been logged out. If you change your mind within 7 days, sign in below to ask for recovery.
-              </p>
-            </div>
-          )}
-
-          {/* Main Auth Glass Card */}
-          <div className="relative">
-            {/* Subtle glowing ambient border */}
-            <div className="absolute -inset-[1px] rounded-[2.3rem] bg-gradient-to-b from-purple-500/30 via-white/[0.08] to-cyan-500/25 pointer-events-none blur-[1px]" />
-            
-            <div className="bg-[#090a14]/95 backdrop-blur-3xl rounded-[2.2rem] border border-white/[0.1] p-7 sm:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_40px_rgba(147,51,234,0.12)] overflow-hidden relative">
-              {/* Top Hairline Sheen */}
-              <div className="pointer-events-none absolute top-0 inset-x-12 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-              
-              {/* Ambient radial glows */}
-              <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-purple-500/15 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
-            
-              {/* Floating Toast Notification */}
-              <AnimatePresence>
-                {(success || error) && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -16, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -12, scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="mb-6"
+          {/* Floating Toast Notification */}
+          <AnimatePresence>
+            {(success || error) && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="w-full mb-4"
+              >
+                <div className={`flex items-start gap-2.5 p-3 rounded-xl border backdrop-blur-xl ${
+                  success
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+                    : "bg-rose-500/10 border-rose-500/30 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.1)]"
+                }`}>
+                  <div className="mt-0.5 shrink-0">
+                    {success ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
+                  </div>
+                  <div className="flex-1 text-xs leading-relaxed font-normal">
+                    {success || error}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSuccess(null); setError(null); }}
+                    className="shrink-0 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Dismiss message"
                   >
-                    <div className={`relative overflow-hidden rounded-2xl border p-[1px] shadow-2xl ${
-                      success 
-                        ? "border-emerald-500/30 bg-gradient-to-r from-emerald-500/20 via-cyan-500/10 to-transparent"
-                        : "border-rose-500/30 bg-gradient-to-r from-rose-500/20 via-amber-500/10 to-transparent"
-                    }`}>
-                      <div className="flex items-start gap-3 rounded-[15px] bg-[#0a0a12]/95 p-3.5 backdrop-blur-xl">
-                        <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${
-                          success
-                            ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
-                            : "border-rose-400/30 bg-rose-500/15 text-rose-300"
-                        }`}>
-                          {success ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-                        </div>
-                        <div className="min-w-0 flex-1 pt-0.5">
-                          <p className={`text-[10px] font-black uppercase tracking-wider ${
-                            success ? "text-emerald-300" : "text-rose-300"
-                          }`}>
-                            {success ? "Success" : "Attention Required"}
-                          </p>
-                          <p className="mt-0.5 text-xs font-medium leading-relaxed text-zinc-200">
-                            {success || error}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          aria-label="Dismiss message"
-                          onClick={() => { setSuccess(null); setError(null); }}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <X size={13} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              {/* Dynamic State Machine Screens */}
-              <AnimatePresence mode="wait">
-                
-                {/* ------------------------------------------------------------- */}
-                {/* STATE: PENDING DELETION RECOVERY SCREEN                       */}
-                {/* ------------------------------------------------------------- */}
-                {state === 'pendingDeletion' ? (
-                  <motion.div
-                    key="pending-deletion-screen"
-                    initial={{ opacity: 0, x: 15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
-                  >
-                    <button 
-                      type="button" 
-                      onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
-                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
+          {/* Dynamic State Machine Screens */}
+          <AnimatePresence mode="wait">
+
+            {/* ------------------------------------------------------------- */}
+            {/* STATE: PENDING DELETION RECOVERY SCREEN                       */}
+            {/* ------------------------------------------------------------- */}
+            {state === 'pendingDeletion' ? (
+              <motion.div
+                key="pending-deletion-screen"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="w-full space-y-4"
+              >
+                <button 
+                  type="button" 
+                  onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
+                  className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer mb-2"
+                >
+                  <ArrowLeft size={13} /> Back to Sign In
+                </button>
+
+                <div className="text-center mb-2">
+                  <h1 className="text-xl sm:text-2xl font-bold font-outfit tracking-tight text-white">
+                    Account Pending Deletion
+                  </h1>
+                </div>
+
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-2">
+                  <div className="inline-flex items-center gap-1.5 text-amber-400 font-bold">
+                    <Clock size={13} /> 7-Day Safety Period Active
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed font-normal">
+                    This account is scheduled to be erased in{" "}
+                    <strong className="text-amber-300">
+                      {getRemainingDays(pendingDeletionInfo?.scheduledDeletionAt ?? null)}
+                    </strong>. Sign in below or send a request to cancel the deletion.
+                  </p>
+                </div>
+
+                {pendingDeletionInfo?.deletionRecoveryRequested ? (
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-200 text-xs">
+                    Recovery request received. Our team will restore your account shortly.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={recoveryReason}
+                      onChange={(e) => setRecoveryReason(e.target.value)}
+                      placeholder="Reason for account recovery (optional)"
+                      className="w-full bg-[#07080e]/80 border border-white/10 hover:border-white/20 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-zinc-500 hover:placeholder:text-zinc-400 focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/20 transition-all"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleRequestRecovery}
+                      disabled={isRecovering}
+                      className="w-full h-10 rounded-xl bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                     >
-                      <ArrowLeft size={14} /> Back to Sign In
+                      {isRecovering ? (
+                        <>
+                          <Loader2 className="animate-spin text-zinc-950" size={14} />
+                          <span>Sending Request...</span>
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw size={14} />
+                          <span>Cancel Deletion &amp; Keep Account</span>
+                        </>
+                      )}
                     </button>
+                  </div>
+                )}
+              </motion.div>
 
-                    <div className="space-y-2">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-300 text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(251,191,36,0.15)]">
-                        <Clock size={13} className="text-amber-400" /> 7-Day Safety Period Active
-                      </div>
-                      <h2 className="text-2xl font-black tracking-tight text-white">Account Scheduled for Deletion</h2>
-                      <p className="text-zinc-300 text-xs leading-relaxed font-normal">
-                        This account is scheduled to be permanently erased on{" "}
-                        <span className="font-semibold text-white">
-                          {pendingDeletionInfo?.scheduledDeletionAt
-                            ? new Date(pendingDeletionInfo.scheduledDeletionAt).toLocaleDateString(undefined, {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            : "in 7 days"}
-                        </span>{" "}
-                        <span className="text-amber-400 font-bold">
-                          ({getRemainingDays(pendingDeletionInfo?.scheduledDeletionAt ?? null)} left)
-                        </span>.
-                      </p>
+            ) : state === 'link' ? (
+              <motion.div
+                key="link-screen"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="w-full space-y-4"
+              >
+                <div className="text-center mb-2">
+                  <h1 className="text-xl sm:text-2xl font-bold font-outfit tracking-tight text-white">
+                    Connect Account
+                  </h1>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-zinc-300 leading-relaxed">
+                  An Exismic account already exists for <strong className="text-white">{linkEmail}</strong>. Enter your password to connect {providerLabel(linkProvider)}.
+                </div>
+
+                <form onSubmit={handleLinkSubmit} className="space-y-3.5">
+                  <div className="space-y-1.5">
+                    <label htmlFor="link-password" className="text-xs font-medium text-zinc-300">Password</label>
+                    <div className="group relative flex items-center bg-[#07080e]/80 border border-white/10 hover:border-white/20 focus-within:border-purple-500/70 focus-within:ring-2 focus-within:ring-purple-500/20 rounded-xl transition-all">
+                      <Lock size={15} className="text-zinc-500 group-focus-within:text-purple-400 transition-colors ml-3.5 shrink-0" aria-hidden="true" />
+                      <input
+                        id="link-password"
+                        name="password"
+                        type="password"
+                        required
+                        placeholder="Account password"
+                        className="w-full bg-transparent text-white px-3 py-2.5 text-xs transition-all outline-none placeholder:text-zinc-500 hover:placeholder:text-zinc-400"
+                      />
                     </div>
+                  </div>
 
-                    {pendingDeletionInfo?.deletionRecoveryRequested ? (
-                      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-200 text-xs space-y-2">
-                        <div className="flex items-center gap-2 font-black text-emerald-300 text-[11px] uppercase tracking-wider">
-                          <CheckCircle2 size={16} /> Recovery Request Received
-                        </div>
-                        <p className="text-zinc-300 leading-relaxed font-normal">
-                          We received your request to restore your account. An administrator will review and reactivate your account shortly.
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-10 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isLoading ? <Loader2 size={14} className="animate-spin" /> : "Approve connection →"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCancelLink}
+                    className="w-full text-center text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer pt-1"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              </motion.div>
+
+            ) : state === 'magic' ? (
+              <motion.div
+                key="magic-screen"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="w-full space-y-4"
+              >
+                <button 
+                  onClick={() => setState('signin')} 
+                  className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer mb-1"
+                >
+                  <ArrowLeft size={13} /> Back to Sign In
+                </button>
+
+                <div className="text-center mb-2">
+                  <h1 className="text-xl sm:text-2xl font-bold font-outfit tracking-tight text-white">
+                    Phone Approval
+                  </h1>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Send an instant sign-in prompt to your device.
+                  </p>
+                </div>
+
+                {trustedChallengeId ? (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center gap-3">
+                      <Smartphone size={20} className="text-cyan-400 shrink-0" />
+                      <div className="text-xs">
+                        <h3 className="font-bold text-white">Approval Request Sent</h3>
+                        <p className="text-zinc-400 text-[11px] mt-0.5">
+                          Notification sent to <strong className="text-cyan-200">{trustedDeviceName}</strong>. Tap &ldquo;Approve&rdquo; on your phone screen.
                         </p>
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-xs space-y-1.5">
-                          <p className="text-white font-bold text-sm">Did you change your mind?</p>
-                          <p className="text-zinc-400 font-normal leading-relaxed text-[11px]">
-                            If you made a mistake or want to keep your creations, projects, and credits, you can ask our team to cancel the deletion now.
-                          </p>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                            Note for our team (Optional)
-                          </label>
-                          <input
-                            type="text"
-                            value={recoveryReason}
-                            onChange={(e) => setRecoveryReason(e.target.value)}
-                            placeholder="e.g. I changed my mind and want my account back"
-                            className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-3.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20 transition-all"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleRequestRecovery}
-                          disabled={isRecovering}
-                          className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-black font-black text-xs uppercase tracking-wider hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(251,191,36,0.3)] cursor-pointer"
-                        >
-                          {isRecovering ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <Loader2 className="animate-spin text-black" size={16} />
-                              <span>Sending Request...</span>
-                            </div>
-                          ) : (
-                            <>
-                              <RotateCcw size={15} />
-                              <span>Ask to Recover My Account</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="pt-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setState('signin');
-                          setError(null);
-                          setSuccess(null);
-                        }}
-                        className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                      >
-                        Sign in with a different account
-                      </button>
-                    </div>
-                  </motion.div>
-                ) : state === 'link' ? (
-                  <motion.div
-                    key="link-offer"
-                    initial={{ opacity: 0, x: 15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-                          <ProviderIcon provider={linkProvider} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-wider text-cyan-400">Identity Linking</p>
-                          <h2 className="text-xl font-bold text-white">Connect {providerLabel(linkProvider)}?</h2>
-                        </div>
-                      </div>
-                      <Link2 size={18} className="text-purple-400" />
                     </div>
 
-                    <div className="border-y border-white/10 py-5 space-y-2">
-                      <p className="text-xs text-zinc-300 leading-relaxed">
-                        An account already exists for <span className="font-semibold text-white">{linkEmail}</span>.
-                      </p>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed font-normal">
-                        Linking {providerLabel(linkProvider)} will enable quick one-click login in the future without affecting your saved data or credits.
-                      </p>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <button
-                        type="button"
-                        onClick={() => setState('linkVerify')}
-                        className="py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-                      >
-                        Approve & Connect
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void handleCancelLink()}
-                        className="py-3.5 rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer"
-                      >
-                        Not Now
-                      </button>
-                    </div>
-                  </motion.div>
-
-                ) : state === 'linkVerify' ? (
-                  
-                  /* ------------------------------------------------------------- */
-                  /* STATE: LINK VERIFY (CONFIRM EXISTING PASSWORD)               */
-                  /* ------------------------------------------------------------- */
-                  <motion.div
-                    key="link-verify"
-                    initial={{ opacity: 0, x: 15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
-                  >
-                    <button 
-                      type="button" 
-                      onClick={() => setState('link')} 
-                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTrustedChallengeId("");
+                        setTrustedBrowserToken("");
+                        setSuccess(null);
+                      }}
+                      className="w-full h-10 rounded-xl border border-white/10 bg-white/[0.03] text-xs font-semibold text-zinc-300 hover:bg-white/[0.07] transition-all cursor-pointer"
                     >
-                      <ArrowLeft size={14} /> Back
+                      Cancel Request
                     </button>
-
-                    <div className="space-y-1">
-                      <h2 className="text-xl font-bold text-white">Confirm Account Password</h2>
-                      <p className="text-zinc-400 text-xs leading-relaxed font-normal">
-                        Enter the password for <span className="font-semibold text-white">{linkEmail}</span> to complete linking.
-                      </p>
-                    </div>
-
-                    <form onSubmit={handleLinkSubmit} className="space-y-4">
-                      <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" size={16} />
+                  </div>
+                ) : (
+                  <form action={handleMagicLinkSubmit} className="space-y-3.5">
+                    <div className="space-y-1.5">
+                      <label htmlFor="magic-email" className="text-xs font-medium text-zinc-300">Registered Email</label>
+                      <div className="group relative flex items-center bg-[#07080e]/80 border border-white/10 hover:border-white/20 focus-within:border-cyan-400/60 focus-within:ring-2 focus-within:ring-cyan-400/20 rounded-xl transition-all">
+                        <Mail size={15} className="text-zinc-500 group-focus-within:text-cyan-400 transition-colors ml-3.5 shrink-0" aria-hidden="true" />
                         <input
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          required
-                          autoComplete="current-password"
-                          placeholder="Current account password"
-                          className="w-full bg-black/50 border border-white/10 rounded-xl py-3.5 pl-11 pr-11 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
-                      >
-                        {isLoading ? <Loader2 size={16} className="animate-spin text-white" /> : null}
-                        Verify & Finish Linking
-                      </button>
-                    </form>
-                  </motion.div>
-
-                ) : state === 'magic' ? (
-
-                  /* ------------------------------------------------------------- */
-                  /* STATE: ONE-TAP PHONE APPROVAL (TRUSTED DEVICE AUTH)          */
-                  /* ------------------------------------------------------------- */
-                  <motion.div
-                    key="magic-link-screen"
-                    initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
-                  >
-                    <button 
-                      type="button" 
-                      onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
-                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
-                    >
-                      <ArrowLeft size={14} /> Back to Password Sign In
-                    </button>
-
-                    <div className="space-y-1">
-                      <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 text-[10px] font-black uppercase tracking-wider">
-                        <Radio size={12} className="animate-pulse text-cyan-400" /> One-Tap Mobile Security
-                      </div>
-                      <h2 className="text-2xl font-black tracking-tight text-white">Approve From Phone</h2>
-                      <p className="text-zinc-400 text-xs leading-relaxed font-normal">
-                        Approve sign-in requests directly from your trusted phone app without typing passwords.
-                      </p>
-                    </div>
-
-                    {trustedChallengeId ? (
-                      <div className="space-y-4">
-                        <div className="relative overflow-hidden rounded-2xl border border-cyan-400/30 bg-cyan-400/[0.05] p-6 text-center shadow-[0_0_30px_rgba(6,182,212,0.1)]">
-                          <div className="relative z-10 space-y-4">
-                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/40 bg-black/50 text-cyan-300 relative shadow-md">
-                              <Smartphone size={28} />
-                              <motion.span
-                                className="absolute inset-[-6px] rounded-2xl border border-cyan-400/40"
-                                animate={{ scale: [1, 1.2], opacity: [0.8, 0] }}
-                                transition={{ repeat: Infinity, duration: 1.8 }}
-                              />
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-bold text-white">Approval Request Sent</h3>
-                              <p className="mt-1 text-xs text-zinc-400 leading-relaxed font-normal">
-                                Notification sent to <span className="font-semibold text-cyan-200">{trustedDeviceName}</span>. Tap &ldquo;Approve&rdquo; on your phone screen.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTrustedChallengeId("");
-                            setTrustedBrowserToken("");
-                            setSuccess(null);
-                          }}
-                          className="w-full py-3.5 rounded-xl border border-white/10 bg-white/[0.03] text-xs font-bold uppercase tracking-wider text-zinc-300 hover:bg-white/10 transition-all cursor-pointer"
-                        >
-                          Cancel Request
-                        </button>
-                      </div>
-                    ) : (
-                      <form action={handleMagicLinkSubmit} className="space-y-4">
-                        <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
-                          <input
-                            name="email"
-                            type="email"
-                            required
-                            defaultValue={email}
-                            placeholder="Registered email address"
-                            className="w-full bg-black/50 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-black text-xs uppercase tracking-wider hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
-                        >
-                          {isLoading ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <Loader2 className="animate-spin text-white" size={16} />
-                              <span>Sending Request...</span>
-                            </div>
-                          ) : (
-                            <>Send Approval Request <ArrowRight size={15} /></>
-                          )}
-                        </button>
-                      </form>
-                    )}
-                  </motion.div>
-
-                ) : state === 'forgot' ? (
-
-                  /* ------------------------------------------------------------- */
-                  /* STATE: FORGOT PASSWORD                                         */
-                  /* ------------------------------------------------------------- */
-                  <motion.div 
-                    key="forgot-screen"
-                    initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
-                  >
-                    <button onClick={() => setState('signin')} className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                      <ArrowLeft size={14} /> Back to Sign In
-                    </button>
-
-                    <div className="space-y-1">
-                      <h2 className="text-2xl font-black tracking-tight text-white">Reset Password</h2>
-                      <p className="text-zinc-400 text-xs font-normal">Enter your email address to receive a secure recovery link.</p>
-                    </div>
-
-                    <form action={async (formData) => {
-                      setIsLoading(true);
-                      setError(null);
-                      const email = formData.get("email") as string;
-                      const res = await forgotPasswordAction(email);
-                      if (res?.error) {
-                        setError(res.error);
-                      } else {
-                        setSuccess("Recovery link sent to your email!");
-                      }
-                      setIsLoading(false);
-                    }} className="space-y-4">
-                      <div className="relative group">
-                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" />
-                        <input 
+                          id="magic-email"
                           name="email"
                           type="email"
-                          placeholder="Your account email"
-                          className="w-full bg-black/50 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 transition-all"
                           required
+                          defaultValue={email}
+                          placeholder="you@example.com"
+                          className="w-full bg-transparent text-white px-3 py-2.5 text-xs sm:text-sm transition-all outline-none placeholder:text-zinc-500 hover:placeholder:text-zinc-400"
                         />
                       </div>
-
-                      <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-zinc-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <Loader2 className="animate-spin text-black" size={16} />
-                            <span>Sending Link...</span>
-                          </div>
-                        ) : (
-                          <>Send Recovery Link <ChevronRight size={16} /></>
-                        )}
-                      </button>
-                    </form>
-                  </motion.div>
-
-                ) : state === 'verify' ? (
-
-                  /* ------------------------------------------------------------- */
-                  /* STATE: VERIFY OTP                                              */
-                  /* ------------------------------------------------------------- */
-                  <motion.div 
-                    key="verify-screen"
-                    initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
-                  >
-                    <button onClick={() => setState('signup')} className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                      <ArrowLeft size={14} /> Back
-                    </button>
-
-                    <div className="space-y-1">
-                      <h2 className="text-2xl font-black tracking-tight text-white">Verify Email Address</h2>
-                      <p className="text-zinc-400 text-xs leading-relaxed font-normal">
-                        Enter the 6-digit code sent to <span className="text-white font-semibold">{email}</span>
-                      </p>
                     </div>
 
-                    <div className="flex justify-between gap-2 py-2">
-                      {otp.map((digit, i) => (
-                        <input
-                          key={i}
-                          id={`otp-${i}`}
-                          type="text"
-                          inputMode="numeric"
-                          value={digit}
-                          onChange={(e) => handleOtpChange(i, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                          className="w-11 h-14 bg-black/60 border border-white/10 rounded-xl text-center text-xl font-bold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all font-mono"
-                        />
-                      ))}
-                    </div>
-
-                    <button 
-                      onClick={handleVerifyOtp}
+                    <button
+                      type="submit"
                       disabled={isLoading}
-                      className="w-full py-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-zinc-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                      className="w-full h-10 rounded-xl bg-gradient-to-r from-cyan-400 via-teal-400 to-cyan-500 text-zinc-950 font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                     >
                       {isLoading ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <Loader2 className="animate-spin text-black" size={16} />
-                          <span>Verifying Code...</span>
-                        </div>
+                        <>
+                          <Loader2 className="animate-spin text-zinc-950" size={14} />
+                          <span>Sending Request...</span>
+                        </>
                       ) : (
-                        <>Complete Verification <ChevronRight size={16} /></>
+                        <>Send Phone Approval <ArrowRight size={14} /></>
                       )}
                     </button>
+                  </form>
+                )}
+              </motion.div>
 
-                    <p className="text-center text-zinc-500 text-xs font-medium">
-                      Didn&apos;t receive the code?{" "}
-                      <button
-                        type="button"
-                        disabled={isLoading}
-                        onClick={async () => {
-                          setIsLoading(true);
-                          try {
-                            const result = await resendOtpAction(email);
-                            if (result?.error) {
-                              setError(result.error);
-                              setSuccess(null);
-                              return;
-                            }
-                            setSuccess("New verification code sent!");
-                            setError(null);
-                          } catch {
-                            setError("Failed to resend code.");
-                          } finally {
-                            setIsLoading(false);
-                          }
-                        }}
-                        className="text-purple-400 font-bold hover:underline disabled:opacity-50 cursor-pointer"
-                      >
-                        Resend Code
-                      </button>
+            ) : state === 'forgot' ? (
+              <motion.div 
+                key="forgot-screen"
+                initial={{ opacity: 0, y: 8 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -8 }}
+                className="w-full space-y-4"
+              >
+                <button 
+                  onClick={() => setState('signin')} 
+                  className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer mb-1"
+                >
+                  <ArrowLeft size={13} /> Back to Sign In
+                </button>
+
+                <div className="text-center mb-2">
+                  <h1 className="text-2xl font-bold font-outfit tracking-tight text-white">
+                    Reset your password.
+                  </h1>
+                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    Enter your email address to receive a secure reset link.
+                  </p>
+                </div>
+
+                <form action={async (formData) => {
+                  setIsLoading(true);
+                  setError(null);
+                  const emailInput = formData.get("email") as string;
+                  const res = await forgotPasswordAction(emailInput);
+                  if (res?.error) {
+                    setError(res.error);
+                  } else {
+                    setSuccess("If an account exists, a reset link has been sent.");
+                  }
+                  setIsLoading(false);
+                }} className="space-y-3.5">
+                  <div className="space-y-1.5">
+                    <label htmlFor="forgot-email" className="text-xs font-medium text-zinc-300">Email Address</label>
+                    <div className="group relative flex items-center bg-[#07080e]/80 border border-white/10 hover:border-white/20 focus-within:border-purple-500/70 focus-within:ring-2 focus-within:ring-purple-500/20 rounded-xl transition-all">
+                      <Mail size={15} className="text-zinc-500 group-focus-within:text-purple-400 transition-colors ml-3.5 shrink-0" aria-hidden="true" />
+                      <input 
+                        id="forgot-email"
+                        name="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        className="w-full bg-transparent text-white px-3 py-2.5 text-xs sm:text-sm transition-all outline-none placeholder:text-zinc-500 hover:placeholder:text-zinc-400"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-10 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin text-zinc-950" size={14} />
+                        <span>Sending Link...</span>
+                      </>
+                    ) : (
+                      <>Send reset link <ChevronRight size={14} /></>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+
+            ) : state === 'verify' ? (
+              <motion.div 
+                key="verify-screen"
+                initial={{ opacity: 0, y: 8 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -8 }}
+                className="w-full space-y-4"
+              >
+                <button 
+                  onClick={() => setState('signup')} 
+                  className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer mb-1"
+                >
+                  <ArrowLeft size={13} /> Back
+                </button>
+
+                <div className="text-center mb-2">
+                  <h1 className="text-2xl font-bold font-outfit tracking-tight text-white">
+                    Verify your email.
+                  </h1>
+                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    Enter the 6-digit code sent to <strong className="text-white">{email}</strong>
+                  </p>
+                </div>
+
+                <div className="flex justify-between gap-2 py-2">
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      id={`otp-${i}`}
+                      type="text"
+                      inputMode="numeric"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      className="w-11 h-13 bg-[#07080e]/80 border border-white/10 hover:border-white/20 rounded-xl text-center text-lg font-bold focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all font-mono"
+                    />
+                  ))}
+                </div>
+
+                <button 
+                  onClick={handleVerifyOtp}
+                  disabled={isLoading}
+                  className="w-full h-10 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="animate-spin text-zinc-950" size={14} />
+                      <span>Verifying Code...</span>
+                    </>
+                  ) : (
+                    <>Complete verification <ChevronRight size={14} /></>
+                  )}
+                </button>
+
+                <p className="text-center text-zinc-500 text-xs font-medium pt-1">
+                  Didn&apos;t receive the code?{" "}
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={async () => {
+                      setIsLoading(true);
+                      try {
+                        const result = await resendOtpAction(email);
+                        if (result?.error) {
+                          setError(result.error);
+                          setSuccess(null);
+                          return;
+                        }
+                        setSuccess("New verification code sent!");
+                        setError(null);
+                      } catch {
+                        setError("Failed to resend code.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    className="text-purple-400 font-bold hover:underline disabled:opacity-50 cursor-pointer"
+                  >
+                    Resend
+                  </button>
+                </p>
+              </motion.div>
+
+            ) : state === 'verifyDeviceOtp' ? (
+              <motion.div 
+                key="verify-device-screen"
+                initial={{ opacity: 0, y: 8 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -8 }}
+                className="w-full space-y-4"
+              >
+                <div className="text-center mb-2">
+                  <h1 className="text-2xl font-bold font-outfit tracking-tight text-white">
+                    Device Authorization
+                  </h1>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/25 text-xs text-zinc-300 leading-relaxed">
+                  Signing in from a new device: <strong className="text-cyan-300">{deviceUnrecognizedName}</strong>. Enter the 6-digit security code sent to <strong className="text-white">{email}</strong>.
+                </div>
+
+                <div className="flex justify-between gap-2 py-2">
+                  {deviceOtp.map((digit, i) => (
+                    <input
+                      key={i}
+                      id={`device-otp-${i}`}
+                      type="text"
+                      inputMode="numeric"
+                      value={digit}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 1);
+                        const next = [...deviceOtp];
+                        next[i] = val;
+                        setDeviceOtp(next);
+                        if (val && i < 5) {
+                          document.getElementById(`device-otp-${i + 1}`)?.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Backspace' && !deviceOtp[i] && i > 0) {
+                          document.getElementById(`device-otp-${i - 1}`)?.focus();
+                        }
+                      }}
+                      className="w-11 h-13 bg-[#07080e]/80 border border-white/10 hover:border-white/20 rounded-xl text-center text-lg font-bold focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 transition-all font-mono"
+                    />
+                  ))}
+                </div>
+
+                <button 
+                  onClick={handleVerifyDeviceOtp}
+                  disabled={isLoading}
+                  className="w-full h-10 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="animate-spin text-zinc-950" size={14} />
+                      <span>Authorizing Device...</span>
+                    </>
+                  ) : (
+                    <>Authorize &amp; continue <ArrowRight size={14} /></>
+                  )}
+                </button>
+
+                <p className="text-center text-zinc-500 text-xs font-medium pt-1">
+                  Didn&apos;t receive the code?{" "}
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={handleResendDeviceOtp}
+                    className="text-cyan-400 font-bold hover:underline disabled:opacity-50 cursor-pointer"
+                  >
+                    Resend
+                  </button>
+                </p>
+              </motion.div>
+
+            ) : (
+              <motion.div 
+                key="main-auth-screen"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full space-y-4"
+              >
+                {/* Heading & Supporting Line */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={state}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="text-center pb-1"
+                  >
+                    <h1 className="text-2xl sm:text-[26px] font-bold font-outfit tracking-tight text-white">
+                      {state === 'signup' ? "Create your account." : "Welcome back."}
+                    </h1>
+                    <p className="text-xs sm:text-[13px] text-zinc-400 mt-1 font-normal">
+                      {state === 'signup' ? "Get started with Exismic." : "Sign in to continue."}
                     </p>
                   </motion.div>
+                </AnimatePresence>
 
-                ) : state === 'verifyDeviceOtp' ? (
-
-                  /* ------------------------------------------------------------- */
-                  /* STATE: VERIFY DEVICE OTP (NEW DEVICE AUTHORIZATION)           */
-                  /* ------------------------------------------------------------- */
-                  <motion.div 
-                    key="verify-device-screen"
-                    initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
-                    className="space-y-6"
+                {/* Social Login Options (Side-by-side, equal width, elevated hover) */}
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <button 
+                    type="button"
+                    onClick={() => handleSocialLogin('google')}
+                    disabled={!!socialLoading}
+                    className="flex items-center justify-center gap-2.5 h-10 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/25 hover:shadow-[0_0_16px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.4)] text-xs font-medium text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.985] group"
+                    aria-label="Continue with Google"
                   >
-                    <button 
-                      type="button" 
-                      onClick={() => { setState('signin'); setError(null); setSuccess(null); }} 
-                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
-                    >
-                      <ArrowLeft size={14} /> Back to Sign In
-                    </button>
-
-                    <div className="space-y-2">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-400/30 bg-purple-400/10 text-purple-300 text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-                        <ShieldCheck size={13} className="text-purple-400" /> New Device Security Check
-                      </div>
-                      <h2 className="text-2xl font-black tracking-tight text-white">Authorize New Device</h2>
-                      <p className="text-zinc-400 text-xs leading-relaxed font-normal">
-                        We sent a 6-digit verification code to <span className="text-white font-semibold">{email}</span> to authorize <span className="text-cyan-300 font-semibold">{deviceUnrecognizedName}</span>.
-                      </p>
+                    <div className="shrink-0 transition-transform group-hover:scale-105 duration-200">
+                      {socialLoading === 'google' ? <Loader2 size={14} className="animate-spin text-purple-400" /> : <GoogleIcon />}
                     </div>
+                    <span className="truncate">{socialLoading === 'google' ? 'Connecting...' : 'Google'}</span>
+                  </button>
 
-                    <div className="flex justify-between gap-2 py-2">
-                      {deviceOtp.map((digit, i) => (
-                        <input
-                          key={i}
-                          id={`device-otp-${i}`}
-                          type="text"
-                          inputMode="numeric"
-                          value={digit}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '').slice(0, 1);
-                            const newOtp = [...deviceOtp];
-                            newOtp[i] = val;
-                            setDeviceOtp(newOtp);
-                            if (val && i < 5) {
-                              document.getElementById(`device-otp-${i + 1}`)?.focus();
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Backspace' && !deviceOtp[i] && i > 0) {
-                              document.getElementById(`device-otp-${i - 1}`)?.focus();
-                            }
-                          }}
-                          className="w-11 h-14 bg-black/60 border border-white/10 rounded-xl text-center text-xl font-bold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all font-mono"
-                        />
-                      ))}
-                    </div>
-
-                    <button 
-                      onClick={handleVerifyDeviceOtp}
-                      disabled={isLoading}
-                      className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-black text-xs uppercase tracking-wider hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <Loader2 className="animate-spin text-white" size={16} />
-                          <span>Verifying Device...</span>
-                        </div>
-                      ) : (
-                        <>Verify Device & Sign In <ShieldCheck size={16} /></>
-                      )}
-                    </button>
-
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <button 
-                        type="button" 
-                        onClick={handleResendDeviceOtp}
-                        disabled={isLoading}
-                        className="text-purple-400 hover:text-purple-300 font-bold transition-colors cursor-pointer"
-                      >
-                        Resend code
-                      </button>
-                      <span className="text-zinc-500 font-normal">Code expires in 10 minutes</span>
-                    </div>
-                  </motion.div>
-
-                ) : (
-
-                  /* ------------------------------------------------------------- */
-                  /* MAIN AUTH FORM: SIGN IN / SIGN UP TABS                         */
-                  /* ------------------------------------------------------------- */
-                  <motion.div 
-                    layout
-                    key="main-auth-form"
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="space-y-5"
+                  <button 
+                    type="button"
+                    onClick={() => handleSocialLogin('github')}
+                    disabled={!!socialLoading}
+                    className="flex items-center justify-center gap-2.5 h-10 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/25 hover:shadow-[0_0_16px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.4)] text-xs font-medium text-zinc-300 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.985] group"
+                    aria-label="Continue with GitHub"
                   >
-                    {/* Welcome Header */}
-                    <div className="text-center mb-5">
-                      <h2 className="text-2xl font-black tracking-tight text-white">
-                        {state === 'signup' ? 'Create Your Account' : 'Welcome to Exismic'}
-                      </h2>
-                      <p className="text-xs text-zinc-400 mt-1 font-normal">
-                        {state === 'signup' 
-                          ? 'Start creating with 50 free credits refreshed daily.' 
-                          : 'Sign in to continue to your account.'}
+                    <div className="shrink-0 transition-transform group-hover:scale-105 duration-200">
+                      {socialLoading === 'github' ? <Loader2 size={14} className="animate-spin text-purple-400" /> : <GitHubIcon />}
+                    </div>
+                    <span className="truncate">{socialLoading === 'github' ? 'Connecting...' : 'GitHub'}</span>
+                  </button>
+                </div>
+
+                {/* Balanced OR Divider */}
+                <div className="flex items-center gap-3 w-full py-1">
+                  <div className="h-[1px] flex-1 bg-white/[0.08]" />
+                  <span className="text-[11px] text-zinc-500 font-semibold tracking-wider uppercase">or</span>
+                  <div className="h-[1px] flex-1 bg-white/[0.08]" />
+                </div>
+
+                {/* Email / Password Form */}
+                <form onSubmit={handleSubmit} className="space-y-3.5 w-full">
+                  
+                  {/* Email Field with Rich Hover & Focus */}
+                  <div className="space-y-1.5 w-full">
+                    <label htmlFor="auth-email" className="block text-xs font-medium text-zinc-300">
+                      Email
+                    </label>
+                    <div className={`group relative flex items-center bg-[#07080e]/80 border rounded-xl transition-all duration-200 ${
+                      fieldErrors.email 
+                        ? "border-rose-500/70 focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-500/20" 
+                        : "border-white/[0.08] hover:border-white/25 hover:bg-[#07080e]/95 focus-within:border-purple-400/80 focus-within:ring-2 focus-within:ring-purple-500/20 focus-within:shadow-[0_0_20px_rgba(147,51,234,0.15)]"
+                    }`}>
+                      <Mail size={15} className="text-zinc-500 group-hover:text-zinc-400 group-focus-within:text-purple-400 transition-colors ml-3.5 shrink-0" aria-hidden="true" />
+                      <input 
+                        id="auth-email"
+                        name="email"
+                        type="email" 
+                        required
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        defaultValue={email}
+                        onChange={() => {
+                          if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                        }}
+                        className="w-full bg-transparent text-white px-3 py-2.5 text-xs sm:text-sm placeholder:text-zinc-500/70 hover:placeholder:text-zinc-400/90 transition-colors outline-none"
+                      />
+                    </div>
+                    {fieldErrors.email && (
+                      <p className="text-[11px] text-rose-400 font-normal pl-0.5 flex items-center gap-1">
+                        <AlertCircle size={12} className="shrink-0" />
+                        <span>{fieldErrors.email}</span>
                       </p>
-                    </div>
+                    )}
+                  </div>
 
-                    {/* Segmented Tab Switcher */}
-                    <div className="grid grid-cols-2 p-1.5 bg-black/60 border border-white/[0.09] rounded-2xl relative shadow-inner">
-                      <button 
-                        type="button"
-                        onClick={() => { setState('signin'); setError(null); setFieldErrors({}); }}
-                        className={`py-2.5 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2 select-none ${
-                          state === 'signin' ? "text-white" : "text-zinc-400 hover:text-zinc-200"
-                        }`}
-                      >
-                        {state === 'signin' && (
-                          <motion.div 
-                            layoutId="activeAuthTab"
-                            className="absolute inset-0 bg-[#161826] rounded-xl border border-white/[0.14] shadow-sm -z-10"
-                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                          />
-                        )}
-                        <KeyRound size={13.5} className={state === 'signin' ? "text-purple-400" : "text-zinc-500"} />
-                        <span>Sign In</span>
-                      </button>
-
-                      <button 
-                        type="button"
-                        onClick={() => { setState('signup'); setError(null); setFieldErrors({}); }}
-                        className={`py-2.5 text-xs font-bold uppercase tracking-wider relative z-10 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2 select-none ${
-                          state === 'signup' ? "text-white" : "text-zinc-400 hover:text-zinc-200"
-                        }`}
-                      >
-                        {state === 'signup' && (
-                          <motion.div 
-                            layoutId="activeAuthTab"
-                            className="absolute inset-0 bg-[#161826] rounded-xl border border-white/[0.14] shadow-sm -z-10"
-                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                          />
-                        )}
-                        <UserPlus size={13.5} className={state === 'signup' ? "text-cyan-400" : "text-zinc-500"} />
-                        <span>Sign Up</span>
-                      </button>
-                    </div>
-
-                    {/* Social OAuth Buttons */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <button 
-                        type="button"
-                        onClick={() => handleSocialLogin('google')}
-                        disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl sm:rounded-2xl bg-white/[0.035] border border-white/[0.09] hover:border-white/20 hover:bg-white/[0.07] text-xs font-semibold text-zinc-200 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-[0.98] group"
-                      >
-                        {socialLoading === 'google' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <GoogleIcon />}
-                        <span className="font-medium">{socialLoading === 'google' ? 'Connecting...' : 'Google'}</span>
-                      </button>
-
-                      <button 
-                        type="button"
-                        onClick={() => handleSocialLogin('github')}
-                        disabled={!!socialLoading}
-                        className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl sm:rounded-2xl bg-white/[0.035] border border-white/[0.09] hover:border-white/20 hover:bg-white/[0.07] text-xs font-semibold text-zinc-200 hover:text-white transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-sm active:scale-[0.98] group"
-                      >
-                        {socialLoading === 'github' ? <Loader2 size={15} className="animate-spin text-purple-400" /> : <GitHubIcon />}
-                        <span className="font-medium">{socialLoading === 'github' ? 'Connecting...' : 'GitHub'}</span>
-                      </button>
-                    </div>
-
-                    {/* Mobile Security Approval Tile (Sign In Only with smooth slide) */}
-                    <AnimatePresence initial={false}>
+                  {/* Password Field with Rich Hover & Focus */}
+                  <div className="space-y-1.5 w-full">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="auth-password" className="text-xs font-medium text-zinc-300">
+                        Password
+                      </label>
                       {state === 'signin' && (
-                        <motion.div
-                          key="mobile-security-tile"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                          className="overflow-hidden"
+                        <button 
+                          type="button" 
+                          onClick={() => { setState('forgot'); setError(null); setSuccess(null); }}
+                          className="text-xs text-zinc-400 hover:text-purple-300 transition-colors cursor-pointer"
                         >
-                          <button
-                            type="button"
-                            onClick={() => { setState('magic'); setError(null); setSuccess(null); }}
-                            className="w-full group relative overflow-hidden rounded-2xl border border-cyan-500/25 bg-gradient-to-r from-cyan-500/[0.08] via-cyan-500/[0.03] to-purple-500/[0.05] p-3 sm:p-3.5 transition-all duration-200 hover:border-cyan-400/50 hover:bg-cyan-500/[0.12] cursor-pointer shadow-[0_4px_20px_rgba(6,182,212,0.1),inset_0_1px_0_rgba(255,255,255,0.08)]"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-black/50 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.25)]">
-                                <Smartphone size={16} />
-                              </div>
-                              <div className="min-w-0 flex-1 text-left">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-bold text-white truncate">One-Tap Phone Sign-In</span>
-                                  <span className="shrink-0 whitespace-nowrap rounded-md border border-cyan-400/30 bg-cyan-400/15 px-1.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-cyan-300 shadow-sm">
-                                    FAST
-                                  </span>
-                                </div>
-                                <div className="text-[11px] text-zinc-400 truncate font-normal mt-0.5">Approve instantly from your registered phone</div>
-                              </div>
-                              <ChevronRight size={15} className="text-cyan-300 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
-                            </div>
-                          </button>
-                        </motion.div>
+                          Forgot password?
+                        </button>
                       )}
-                    </AnimatePresence>
-
-                    {/* Divider */}
-                    <div className="relative flex items-center gap-3 py-1">
-                      <div className="h-[1px] flex-1 bg-white/[0.08]" />
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">or continue with email</span>
-                      <div className="h-[1px] flex-1 bg-white/[0.08]" />
+                    </div>
+                    
+                    <div className={`group relative flex items-center bg-[#07080e]/80 border rounded-xl transition-all duration-200 ${
+                      fieldErrors.password 
+                        ? "border-rose-500/70 focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-500/20" 
+                        : "border-white/[0.08] hover:border-white/25 hover:bg-[#07080e]/95 focus-within:border-purple-400/80 focus-within:ring-2 focus-within:ring-purple-500/20 focus-within:shadow-[0_0_20px_rgba(147,51,234,0.15)]"
+                    }`}>
+                      <Lock size={15} className="text-zinc-500 group-hover:text-zinc-400 group-focus-within:text-purple-400 transition-colors ml-3.5 shrink-0" aria-hidden="true" />
+                      <input 
+                        id="auth-password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        autoComplete={state === 'signup' ? 'new-password' : 'current-password'}
+                        placeholder="••••••••••••"
+                        onChange={(e) => {
+                          if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+                          if (state === 'signup') setSignupPassword(e.target.value);
+                        }}
+                        className="w-full bg-transparent text-white px-3 py-2.5 pr-2 text-xs sm:text-sm placeholder:text-zinc-500/70 hover:placeholder:text-zinc-400/90 transition-colors outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="p-2.5 mr-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
                     </div>
 
-                    {/* Main Email Form */}
-                    <motion.form layout onSubmit={handleSubmit} className="space-y-3.5">
-                      
-                      {/* Email Input */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between px-1">
-                          <label className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-focus-within:text-purple-300 transition-colors flex items-center gap-1.5">
-                            <span className="h-1 w-1 rounded-full bg-purple-400/80 group-focus-within:bg-purple-300 transition-colors" />
-                            Email Address
-                          </label>
-                          <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
-                            Personal or Work
+                    {fieldErrors.password && (
+                      <p className="text-[11px] text-rose-400 font-normal pl-0.5 flex items-center gap-1">
+                        <AlertCircle size={12} className="shrink-0" />
+                        <span>{fieldErrors.password}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Password Strength Meter (Sign Up Only) */}
+                  <AnimatePresence initial={false}>
+                    {state === 'signup' && signupPassword.length > 0 && (
+                      <motion.div
+                        key="password-strength-box"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="overflow-hidden space-y-1 pt-0.5"
+                      >
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-zinc-400">Password strength</span>
+                          <span className={`font-semibold ${
+                            passStrength.score >= 3 ? "text-emerald-400" : passStrength.score === 2 ? "text-amber-400" : "text-rose-400"
+                          }`}>
+                            {passStrength.label}
                           </span>
                         </div>
-
-                        <div className={`group relative rounded-2xl p-[1px] transition-all duration-300 ${
-                          fieldErrors.email 
-                            ? "bg-gradient-to-b from-rose-500/70 via-rose-500/30 to-rose-500/10 shadow-[0_0_20px_rgba(244,63,94,0.18)]" 
-                            : "bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-white/[0.01] hover:from-white/25 hover:via-white/[0.08] hover:to-white/[0.02] focus-within:from-purple-500/80 focus-within:via-indigo-500/50 focus-within:to-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)]"
-                        }`}>
-                          <div className="relative flex items-center rounded-[15px] bg-[#090b12]/90 backdrop-blur-xl px-2.5 py-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] transition-all duration-200">
-                            {/* Top Hairline Sheen */}
-                            <div className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                            
-                            {/* Micro-Icon Pod */}
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.07] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] group-focus-within:border-purple-500/40 group-focus-within:bg-purple-500/10 group-focus-within:text-purple-300 group-hover:text-zinc-300 transition-all duration-200">
-                              <Mail size={14.5} />
-                            </div>
-
-                            <input 
-                              name="email"
-                              type="email" 
-                              required
-                              autoComplete="email"
-                              placeholder="Email address"
-                              defaultValue={email}
-                              onChange={() => {
-                                if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
-                              }}
-                              className="w-full bg-transparent py-2.5 px-3 text-xs sm:text-[13px] text-white placeholder:text-zinc-500 font-medium focus:outline-none tracking-normal selection:bg-purple-500/30"
-                            />
-                          </div>
+                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden flex gap-1">
+                          <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 1 ? passStrength.color : "bg-transparent"}`} />
+                          <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 2 ? passStrength.color : "bg-transparent"}`} />
+                          <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 3 ? passStrength.color : "bg-transparent"}`} />
+                          <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 4 ? passStrength.color : "bg-transparent"}`} />
                         </div>
-                        {fieldErrors.email && (
-                          <p className="flex items-center gap-1.5 text-[11px] text-rose-400 pl-1 font-medium pt-0.5">
-                            <AlertCircle size={12} className="shrink-0" />
-                            <span>{fieldErrors.email}</span>
-                          </p>
-                        )}
-                      </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                      {/* Password Input */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between px-1">
-                          <label className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-focus-within:text-purple-300 transition-colors flex items-center gap-1.5">
-                            <span className="h-1 w-1 rounded-full bg-indigo-400/80 group-focus-within:bg-indigo-300 transition-colors" />
-                            {state === 'signup' ? 'Create Password' : 'Password'}
+                  {/* Confirm Password (Sign Up Only) */}
+                  <AnimatePresence initial={false}>
+                    {state === 'signup' && (
+                      <motion.div
+                        key="confirm-password-field"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-1.5 pt-1">
+                          <label htmlFor="auth-confirm-password" className="block text-xs font-medium text-zinc-300">
+                            Confirm password
                           </label>
-                          {state === 'signin' ? (
-                            <button 
-                              type="button" 
-                              onClick={() => setState('forgot')}
-                              className="text-[11px] font-medium text-zinc-400 hover:text-purple-300 hover:underline transition-colors cursor-pointer"
-                            >
-                              Forgot password?
-                            </button>
-                          ) : (
-                            <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
-                              Min. 8 Chars
-                            </span>
-                          )}
-                        </div>
-
-                        <div className={`group relative rounded-2xl p-[1px] transition-all duration-300 ${
-                          fieldErrors.password 
-                            ? "bg-gradient-to-b from-rose-500/70 via-rose-500/30 to-rose-500/10 shadow-[0_0_20px_rgba(244,63,94,0.18)]" 
-                            : "bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-white/[0.01] hover:from-white/25 hover:via-white/[0.08] hover:to-white/[0.02] focus-within:from-purple-500/80 focus-within:via-indigo-500/50 focus-within:to-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)]"
-                        }`}>
-                          <div className="relative flex items-center rounded-[15px] bg-[#090b12]/90 backdrop-blur-xl px-2.5 py-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] transition-all duration-200">
-                            {/* Top Hairline Sheen */}
-                            <div className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                            
-                            {/* Micro-Icon Pod */}
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.07] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] group-focus-within:border-purple-500/40 group-focus-within:bg-purple-500/10 group-focus-within:text-purple-300 group-hover:text-zinc-300 transition-all duration-200">
-                              <Lock size={14.5} />
-                            </div>
-
+                          <div className="group relative flex items-center bg-[#07080e]/80 border border-white/[0.08] hover:border-white/25 hover:bg-[#07080e]/95 focus-within:border-purple-400/80 focus-within:ring-2 focus-within:ring-purple-500/20 focus-within:shadow-[0_0_20px_rgba(147,51,234,0.15)] rounded-xl transition-all duration-200">
+                            <Lock size={15} className="text-zinc-500 group-hover:text-zinc-400 group-focus-within:text-purple-400 transition-colors ml-3.5 shrink-0" aria-hidden="true" />
                             <input 
-                              name="password"
-                              type={showPassword ? "text" : "password"}
+                              id="auth-confirm-password"
+                              name="confirmPassword"
+                              type={showConfirmPassword ? "text" : "password"}
                               required
-                              autoComplete={state === 'signup' ? 'new-password' : 'current-password'}
-                              placeholder="Password"
-                              onChange={(e) => {
-                                if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
-                                if (state === 'signup') setSignupPassword(e.target.value);
-                              }}
-                              className="w-full bg-transparent py-2.5 px-3 text-xs sm:text-[13px] text-white placeholder:text-zinc-500 font-medium focus:outline-none tracking-normal selection:bg-purple-500/30"
+                              autoComplete="new-password"
+                              placeholder="••••••••••••"
+                              className="w-full bg-transparent text-white px-3 py-2.5 pr-2 text-xs sm:text-sm placeholder:text-zinc-500/70 hover:placeholder:text-zinc-400/90 transition-colors outline-none"
                             />
-
                             <button
                               type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.07] active:scale-95 transition-all cursor-pointer"
-                              title={showPassword ? "Hide password" : "Show password"}
-                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="p-2.5 mr-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                             >
-                              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                              {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                             </button>
                           </div>
                         </div>
-                        {fieldErrors.password && (
-                          <p className="flex items-center gap-1.5 text-[11px] text-rose-400 pl-1 font-medium pt-0.5">
-                            <AlertCircle size={12} className="shrink-0" />
-                            <span>{fieldErrors.password}</span>
-                          </p>
-                        )}
-                      </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                      {/* Password Strength Indicator (Sign Up Only) */}
-                      {state === 'signup' && signupPassword.length > 0 && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="space-y-1.5 pt-0.5 px-0.5"
-                        >
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-zinc-400 font-medium">Password strength</span>
-                            <span className={`font-bold ${
-                              passStrength.score >= 3 ? "text-emerald-400" : passStrength.score === 2 ? "text-amber-400" : "text-rose-400"
-                            }`}>
-                              {passStrength.label}
-                            </span>
-                          </div>
-                          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden flex gap-1">
-                            <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 1 ? passStrength.color : "bg-transparent"}`} />
-                            <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 2 ? passStrength.color : "bg-transparent"}`} />
-                            <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 3 ? passStrength.color : "bg-transparent"}`} />
-                            <div className={`h-full flex-1 transition-all duration-300 ${passStrength.score >= 4 ? passStrength.color : "bg-transparent"}`} />
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* Confirm Password Field (Sign Up Only) */}
-                      <AnimatePresence initial={false}>
-                        {state === 'signup' && (
-                          <motion.div
-                            key="confirm-password-field"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                            className="overflow-hidden space-y-1.5"
-                          >
-                            <div className="flex items-center justify-between px-1">
-                              <label className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 group-focus-within:text-purple-300 transition-colors flex items-center gap-1.5">
-                                <span className="h-1 w-1 rounded-full bg-emerald-400/80 group-focus-within:bg-emerald-300 transition-colors" />
-                                Confirm Password
-                              </label>
-                              <span className="text-[9.5px] font-semibold tracking-wider text-zinc-500 uppercase">
-                                Match Password
-                              </span>
-                            </div>
-
-                            <div className="group relative rounded-2xl p-[1px] transition-all duration-300 bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-white/[0.01] hover:from-white/25 hover:via-white/[0.08] hover:to-white/[0.02] focus-within:from-purple-500/80 focus-within:via-indigo-500/50 focus-within:to-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)]">
-                              <div className="relative flex items-center rounded-[15px] bg-[#090b12]/90 backdrop-blur-xl px-2.5 py-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] transition-all duration-200">
-                                {/* Top Hairline Sheen */}
-                                <div className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                                {/* Micro-Icon Pod */}
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] border border-white/[0.07] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] group-focus-within:border-purple-500/40 group-focus-within:bg-purple-500/10 group-focus-within:text-purple-300 group-hover:text-zinc-300 transition-all duration-200">
-                                  <ShieldCheck size={14.5} />
-                                </div>
-
-                                <input 
-                                  name="confirmPassword"
-                                  type={showConfirmPassword ? "text" : "password"}
-                                  required
-                                  autoComplete="new-password"
-                                  placeholder="Confirm Password"
-                                  className="w-full bg-transparent py-2.5 px-3 text-xs sm:text-[13px] text-white placeholder:text-zinc-500 font-medium focus:outline-none tracking-normal selection:bg-purple-500/30"
-                                />
-
-                                <button
-                                  type="button"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.07] active:scale-95 transition-all cursor-pointer"
-                                  title={showConfirmPassword ? "Hide password" : "Show password"}
-                                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                                >
-                                  {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                                </button>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-
-                      {/* 13+ Age Confirmation Checkbox (COPPA & Account Safety) */}
-                      {state === 'signup' && (
+                  {/* 13+ Age Confirmation Checkbox (Sign Up Only) */}
+                  <AnimatePresence initial={false}>
+                    {state === 'signup' && (
+                      <motion.div
+                        key="age-consent-field"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
                         <label 
                           htmlFor="ageConsent"
-                          className={`group relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 cursor-pointer select-none ${
-                            ageConsent 
-                              ? "bg-purple-950/25 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.18)]" 
-                              : "bg-[#090b12]/80 border-white/[0.09] hover:border-white/20 hover:bg-white/[0.03]"
-                          }`}
+                          className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/[0.08] hover:border-white/15 bg-white/[0.02] cursor-pointer select-none mt-1 transition-colors"
                         >
                           <input
                             type="checkbox"
@@ -1875,98 +1447,119 @@ export default function AuthPage() {
                             className="sr-only"
                           />
                           
-                          {/* Custom Obsidian Checkbox Box */}
-                          <div className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
+                          <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all ${
                             ageConsent
-                              ? "bg-gradient-to-br from-purple-500 via-indigo-600 to-cyan-500 border-purple-400 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)] scale-105"
-                              : "bg-white/[0.04] border-white/20 group-hover:border-purple-400/50 group-hover:bg-purple-500/10 text-transparent"
+                              ? "bg-purple-600 border-purple-400 text-white shadow-[0_0_10px_rgba(147,51,234,0.4)]"
+                              : "bg-white/[0.04] border-white/20 text-transparent"
                           }`}>
-                            <Check size={12} strokeWidth={3.5} className={`transition-transform duration-150 ${ageConsent ? "scale-100 opacity-100" : "scale-50 opacity-0"}`} />
+                            <Check size={11} strokeWidth={3} className={ageConsent ? "opacity-100" : "opacity-0"} />
                           </div>
 
-                          <div className="flex-1 text-left min-w-0">
-                            <div className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors">
-                              I confirm that I am <span className="text-white font-bold">13 years of age or older</span>
-                            </div>
-                            <div className="text-[10px] text-zinc-500 font-normal">
-                              Required for account safety & age verification
-                            </div>
-                          </div>
-
-                          <div className="shrink-0 text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                            <ShieldCheck size={16} className={ageConsent ? "text-purple-400" : ""} />
-                          </div>
+                          <span className="text-[11px] text-zinc-300 font-normal">
+                            I confirm that I am at least 13 years of age.
+                          </span>
                         </label>
-                      )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                      {/* Clean Balanced CTA Button */}
-                      <div className="pt-2">
-                        <button 
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full h-13 sm:h-14 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:via-indigo-500 hover:to-cyan-500 text-white font-black uppercase tracking-[0.18em] text-xs flex items-center justify-center gap-2.5 cursor-pointer shadow-[0_8px_25px_-5px_rgba(147,51,234,0.35),inset_0_1px_1px_rgba(255,255,255,0.3)] transition-all duration-300 hover:shadow-[0_12px_30px_-5px_rgba(147,51,234,0.5)] active:scale-[0.985] relative overflow-hidden disabled:opacity-60 group/btn"
+                  {/* Primary Action CTA (Full width, strong contrast, clean) */}
+                  <div className="pt-2 w-full">
+                    <button 
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full h-10 px-4 rounded-xl text-xs sm:text-sm font-semibold font-outfit text-zinc-950 bg-white hover:bg-zinc-200 active:bg-zinc-300 transition-colors duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="animate-spin text-zinc-950" size={15} />
+                          <span>{state === 'signin' ? 'Signing in...' : 'Creating account...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>{state === 'signin' ? 'Sign in' : 'Create account'}</span>
+                          <ArrowRight size={14} />
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Secondary Phone Approval Link (Sign In Only) */}
+                  {state === 'signin' && (
+                    <div className="pt-1 text-center w-full">
+                      <button
+                        type="button"
+                        onClick={() => { setState('magic'); setError(null); setSuccess(null); }}
+                        className="inline-flex items-center justify-center gap-1.5 py-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                      >
+                        <Smartphone size={13} className="text-zinc-500" />
+                        <span>Use phone approval instead</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Footer Terms & Privacy Notice (Sign Up Only) */}
+                  {state === 'signup' && (
+                    <p className="text-[11px] text-center text-zinc-500 font-normal leading-relaxed pt-1">
+                      By creating an account, you agree to our{" "}
+                      <Link href="/terms-of-service" className="text-zinc-300 underline hover:text-white transition-colors">
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link href="/privacy-policy" className="text-zinc-300 underline hover:text-white transition-colors">
+                        Privacy Policy
+                      </Link>.
+                    </p>
+                  )}
+                </form>
+
+                {/* Bottom Sign In / Sign Up Switcher */}
+                <div className="pt-2 text-center w-full">
+                  <p className="text-xs text-zinc-400 font-normal">
+                    {state === 'signup' ? (
+                      <>
+                        Already have an account?{" "}
+                        <button
+                          type="button"
+                          onClick={() => { setState('signin'); setError(null); setFieldErrors({}); }}
+                          className="text-white font-semibold hover:text-purple-300 hover:underline cursor-pointer transition-colors"
                         >
-                          {/* Subtle Metallic Light Sweep on hover */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
-                          
-                          <AnimatePresence mode="wait" initial={false}>
-                            <motion.div
-                              key={isLoading ? 'loading' : state}
-                              initial={{ opacity: 0, y: 4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -4 }}
-                              transition={{ duration: 0.18, ease: "easeOut" }}
-                              className="flex items-center justify-center gap-2 relative z-10"
-                            >
-                              {isLoading ? (
-                                <>
-                                  <Loader2 className="animate-spin text-white" size={16} />
-                                  <span>{state === 'signin' ? 'Signing In...' : 'Creating Account...'}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>{state === 'signin' ? 'Sign In' : 'Create Account'}</span>
-                                  <ArrowRight size={15} className="group-hover/btn:translate-x-1 transition-transform" />
-                                </>
-                              )}
-                            </motion.div>
-                          </AnimatePresence>
+                          Sign in
                         </button>
-                      </div>
+                      </>
+                    ) : (
+                      <>
+                        Don&apos;t have an account?{" "}
+                        <button
+                          type="button"
+                          onClick={() => { setState('signup'); setError(null); setFieldErrors({}); }}
+                          className="text-white font-semibold hover:text-purple-300 hover:underline cursor-pointer transition-colors"
+                        >
+                          Sign up for free
+                        </button>
+                      </>
+                    )}
+                  </p>
+                </div>
 
-                      {/* Explicit Legal Form Consent (GDPR, FTC & Consumer Compliance) */}
-                      {state === 'signup' && (
-                        <p className="text-[11px] text-center text-zinc-400 font-normal leading-relaxed pt-1">
-                          By creating an account, you agree to our{" "}
-                          <Link href="/terms-of-service" className="text-zinc-200 underline hover:text-cyan-300 font-medium transition-colors">
-                            Terms of Service
-                          </Link>{" "}
-                          and acknowledge our{" "}
-                          <Link href="/privacy-policy" className="text-zinc-200 underline hover:text-cyan-300 font-medium transition-colors">
-                            Privacy Policy
-                          </Link>.
-                        </p>
-                      )}
-                    </motion.form>
+              </motion.div>
+            )}
 
-                  </motion.div>
-                )}
+          </AnimatePresence>
 
-              </AnimatePresence>
-
-            </div>
-          </div>
-
-          {/* Footer Security Badge */}
-          <div className="mt-8 text-center flex items-center justify-center gap-2 text-zinc-500 text-xs font-medium">
-            <ShieldCheck size={14} className="text-emerald-400" />
-            <span>Secure account protection · 50 free credits included daily</span>
-          </div>
-
-        </motion.div>
+        </div>
         )}
 
-      </div>
+      </main>
+
+      {/* Discrete Bottom Footer Links (Pure, minimal links without security badge) */}
+      <footer className="w-full max-w-lg mx-auto py-5 px-4 text-center relative z-20 flex items-center justify-center gap-3 text-zinc-500 text-[11px] font-normal">
+        <Link href="/terms-of-service" className="hover:text-zinc-300 transition-colors">Terms</Link>
+        <span>•</span>
+        <Link href="/privacy-policy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
+        <span>•</span>
+        <Link href="/cookies" className="hover:text-zinc-300 transition-colors">Cookies</Link>
+      </footer>
 
     </div>
   );

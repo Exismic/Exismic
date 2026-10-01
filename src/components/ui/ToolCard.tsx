@@ -5,9 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ICON_MAP, type IconName } from "@/data/tools";
 import { ArrowRight, Star, Flame } from "lucide-react";
-import { toggleFavorite } from "@/app/actions/favorites";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { FAVORITES_CHANGED_EVENT } from "@/lib/favorites";
 import { ToolReliabilityBadge } from "@/components/tool/ToolReliability";
 import { CATEGORY_ANIM_STYLES } from "@/lib/category-styles";
@@ -49,33 +47,84 @@ export function ToolCard({ id, name, description, icon, href, popular, category,
   const style = CATEGORY_ANIM_STYLES[category] || CATEGORY_ANIM_STYLES.pdf;
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [isSavingFavorite, setIsSavingFavorite] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
+    if (initialFavorited) {
+      setIsFavorited(true);
+      return;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const guestFavs: string[] = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+        if (guestFavs.includes(id)) {
+          setIsFavorited(true);
+          return;
+        }
+      } catch {}
+    }
     setIsFavorited(initialFavorited);
-  }, [initialFavorited]);
+  }, [id, initialFavorited]);
+
+  // Sync state whenever favorites are updated anywhere in the workspace
+  useEffect(() => {
+    const handleFavoritesChanged = (event: Event) => {
+      const favorites = (event as CustomEvent<{ favorites?: string[] }>).detail?.favorites;
+      if (Array.isArray(favorites)) {
+        setIsFavorited(favorites.includes(id));
+      }
+    };
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handleFavoritesChanged);
+  }, [id]);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isSavingFavorite) return;
     const previousState = isFavorited;
-    setIsFavorited(!previousState);
+    const nextState = !previousState;
+    setIsFavorited(nextState);
     setIsSavingFavorite(true);
 
-    try {
-      const result = await toggleFavorite(id);
-      if (result.error) throw new Error(result.error);
+    // Instant optimistic update in local storage & broadcast to all listeners
+    if (typeof window !== "undefined") {
+      try {
+        const guestFavs: string[] = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+        const updated = nextState
+          ? Array.from(new Set([...guestFavs, id]))
+          : guestFavs.filter((toolId) => toolId !== id);
+        localStorage.setItem("exismic_guest_favorites", JSON.stringify(updated));
+        window.dispatchEvent(
+          new CustomEvent(FAVORITES_CHANGED_EVENT, {
+            detail: { favorites: updated },
+          })
+        );
+      } catch (err) {
+        console.error("Local favorite save error:", err);
+      }
+    }
 
-      setIsFavorited(result.isFavorited === true);
-      window.dispatchEvent(new CustomEvent(FAVORITES_CHANGED_EVENT, {
-        detail: { favorites: result.favorites },
-      }));
-      router.refresh();
-    } catch (error) {
-      setIsFavorited(previousState);
-      alert(error instanceof Error ? error.message : "Could not update favorites.");
+    try {
+      const response = await fetch("/api/user/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toolId: id, action: nextState ? "add" : "remove" }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.success && Array.isArray(data.favorites)) {
+          setIsFavorited(data.isFavorited === true);
+          window.dispatchEvent(
+            new CustomEvent(FAVORITES_CHANGED_EVENT, {
+              detail: { favorites: data.favorites },
+            })
+          );
+        }
+      }
+    } catch {
+      // Offline / guest fallback handled optimistically
     } finally {
       setIsSavingFavorite(false);
     }
@@ -89,152 +138,160 @@ export function ToolCard({ id, name, description, icon, href, popular, category,
       transition={{ duration: 0.5, delay: index * 0.05 }}
       className={cn("group relative h-full min-w-0 z-0 hover:z-20 overflow-visible", className)}
     >
-      <Link href={href} prefetch={true} className="block h-full rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303] sm:rounded-[2.5rem] md:rounded-[3rem]">
-        <div className={cn(
-          "relative h-full min-h-[280px] flex flex-col p-5 sm:p-6 md:p-7 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation",
-          unavailable && "opacity-85",
-          category === "ai"
-            ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90"
-            : "bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90",
-          "transition-all duration-500 border-2",
-          style.cardBorder,
-          "md:group-hover:scale-[1.03] active:scale-[0.99]"
-        )}>
-          {/* Shine Animation Layer */}
-          <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden pointer-events-none z-10">
-            <div className={cn(
-              "absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/10 to-transparent",
-              category === "ai" && "via-amber-400/25"
-            )} />
+      <div className={cn(
+        "relative h-full min-h-[280px] flex flex-col p-5 sm:p-6 md:p-7 backdrop-blur-3xl transition-all duration-500 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden touch-manipulation cursor-pointer",
+        unavailable && "opacity-85",
+        category === "ai"
+          ? "bg-gradient-to-b from-[#181106]/90 via-[#0e0a03]/95 to-[#080501]/90"
+          : "bg-gradient-to-b from-[#0e0f17]/90 via-[#0a0a10]/85 to-[#06060a]/90",
+        "transition-all duration-500 border-2",
+        style.cardBorder,
+        "md:group-hover:scale-[1.03] active:scale-[0.99]"
+      )}>
+        {/* Full-card accessible link overlay */}
+        <Link 
+          href={href} 
+          prefetch={true} 
+          aria-label={`Open ${name}`}
+          className="absolute inset-0 z-10 rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303]" 
+        />
+
+        {/* Shine Animation Layer */}
+        <div className="absolute inset-0 rounded-[1.75rem] sm:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden pointer-events-none z-10">
+          <div className={cn(
+            "absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/10 to-transparent",
+            category === "ai" && "via-amber-400/25"
+          )} />
+        </div>
+
+        {/* Category-Themed Ambient Background Visuals */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
+          {/* Top-Left Category Glowing Mesh Aura */}
+          <div className={cn(
+            "absolute -top-12 -left-12 w-64 h-64 rounded-full blur-[70px] transition-all duration-700 opacity-30 group-hover:opacity-60 group-hover:scale-125",
+            style.aura
+          )} />
+
+          {/* Bottom-Right Category Soft Secondary Glow */}
+          <div className={cn(
+            "absolute -bottom-16 -right-16 w-56 h-56 rounded-full blur-[80px] transition-all duration-700 opacity-20 group-hover:opacity-40",
+            style.aura
+          )} />
+
+          {/* Micro Dot Matrix Watermark Pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.04] group-hover:opacity-[0.09] transition-opacity duration-500" />
+
+          {/* Giant Background Watermark Category Icon */}
+          <div className="absolute -top-6 -right-6 opacity-[0.04] group-hover:opacity-[0.09] transition-all duration-700 group-hover:scale-110 group-hover:-rotate-6 pointer-events-none">
+            <Icon size={160} strokeWidth={1} className={cn("transition-colors duration-500", style.iconGlow)} />
           </div>
+        </div>
 
-          {/* Category-Themed Ambient Background Visuals */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
-            {/* Top-Left Category Glowing Mesh Aura */}
-            <div className={cn(
-              "absolute -top-12 -left-12 w-64 h-64 rounded-full blur-[70px] transition-all duration-700 opacity-30 group-hover:opacity-60 group-hover:scale-125",
-              style.aura
-            )} />
-
-            {/* Bottom-Right Category Soft Secondary Glow */}
-            <div className={cn(
-              "absolute -bottom-16 -right-16 w-56 h-56 rounded-full blur-[80px] transition-all duration-700 opacity-20 group-hover:opacity-40",
-              style.aura
-            )} />
-
-            {/* Micro Dot Matrix Watermark Pattern */}
-            <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.04] group-hover:opacity-[0.09] transition-opacity duration-500" />
-
-            {/* Giant Background Watermark Category Icon */}
-            <div className="absolute -top-6 -right-6 opacity-[0.04] group-hover:opacity-[0.09] transition-all duration-700 group-hover:scale-110 group-hover:-rotate-6 pointer-events-none">
-              <Icon size={160} strokeWidth={1} className={cn("transition-colors duration-500", style.iconGlow)} />
-            </div>
-          </div>
-
-          {/* Top Row: Icon on left, Favorite Star on right */}
-          <div className="relative z-10 flex items-start justify-between gap-3 mb-4">
-            <div className={cn(
-              "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl shrink-0",
-              "bg-[#0b0c12] border border-white/5",
-            )}>
-              <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", style.aura)} />
-              <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500", style.spinIdle, style.spinHover)} />
-              <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
-                <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", category === "ai" && "from-amber-500/15")} />
-                <div
-                  className={cn(
-                    "absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg] animate-[cardShine_3.5s_ease-in-out_infinite] pointer-events-none",
-                    category === "ai"
-                      ? "bg-gradient-to-r from-transparent via-amber-200/25 to-transparent"
-                      : "bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                  )}
-                />
-              </div>
-              <Icon className={cn(
-                "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
-                "group-hover:scale-110",
-                style.iconGlow
-              )} />
-            </div>
-
-            <button 
-              onClick={handleFavoriteClick}
-              disabled={isSavingFavorite}
-              aria-label={isFavorited ? "Remove from favorites" : "Save to favorites"}
-              className={cn(
-                "relative overflow-hidden w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all duration-500 touch-manipulation backdrop-blur-md shadow-lg border group/star shrink-0",
-                isFavorited 
-                  ? "bg-amber-500/10 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:bg-amber-500/20 hover:border-amber-400/60" 
-                  : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.06] hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]",
-                "active:scale-90 disabled:cursor-wait disabled:opacity-60"
-              )}
-            >
-              {!isFavorited && (
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/star:opacity-100 transition-opacity duration-500" />
-              )}
-              {isFavorited && (
-                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(245,158,11,0.2)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
-              )}
-              <Star 
-                size={16} 
-                fill={isFavorited ? "currentColor" : "none"} 
-                strokeWidth={isFavorited ? 1.5 : 2}
+        {/* Top Row: Icon on left, Favorite Star on right */}
+        <div className="relative z-20 flex items-start justify-between gap-3 mb-4 pointer-events-none">
+          <div className={cn(
+            "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center relative overflow-hidden md:group-hover:rotate-6 md:group-hover:scale-110 transition-all duration-500 shadow-2xl shrink-0 pointer-events-none",
+            "bg-[#0b0c12] border border-white/5",
+          )}>
+            <div className={cn("absolute inset-0 blur-xl animate-pulse transition-colors duration-500", style.aura)} />
+            <div className={cn("absolute inset-[-100%] animate-[spin_3s_linear_infinite] mobile-pause-idle-spin transition-colors duration-500", style.spinIdle, style.spinHover)} />
+            <div className="absolute inset-[1.5px] rounded-[calc(1rem-1.5px)] md:rounded-[calc(2rem-1.5px)] bg-[#0b0c12] z-0 overflow-hidden">
+              <div className={cn("absolute inset-0 bg-gradient-to-br from-white/5 to-transparent", category === "ai" && "from-amber-500/15")} />
+              <div
                 className={cn(
-                  "relative z-10 transition-all duration-700 ease-out",
-                  isFavorited ? "scale-110 rotate-[72deg] drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" : "group-hover/star:scale-125"
-                )} 
+                  "absolute top-0 left-[-100%] h-full w-[50%] skew-x-[-20deg] animate-[cardShine_3.5s_ease-in-out_infinite] pointer-events-none",
+                  category === "ai"
+                    ? "bg-gradient-to-r from-transparent via-amber-200/25 to-transparent"
+                    : "bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                )}
               />
-            </button>
-          </div>
-
-          {/* Badges Section: Always present with consistent min-h to preserve uniform vertical rhythm across cards */}
-          <div className="relative z-10 flex flex-wrap items-center gap-1.5 mb-3 sm:mb-3.5 min-h-[22px]">
-            {popular ? (
-              <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/40 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
-                <Flame size={10} className="text-amber-400 fill-amber-400 animate-pulse shrink-0" />
-                <span className="relative z-10">Popular</span>
-              </div>
-            ) : (
-              <div className={cn(
-                "relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full backdrop-blur-md border text-[9px] font-black uppercase tracking-[0.14em]",
-                style.badge
-              )}>
-                <span className="relative z-10">{CATEGORY_LABELS[category] || "Free Tool"}</span>
-              </div>
-            )}
-            <ToolReliabilityBadge toolId={id} />
-          </div>
-
-          {/* Content Section: Unified typography block with tight, cohesive title-to-description rhythm */}
-          <div className="flex-1 min-w-0 flex flex-col justify-between relative z-10">
-            <div>
-              <h3 className={cn(
-                "text-lg sm:text-xl font-black tracking-tight leading-snug transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
-                style.textGrad
-              )}>
-                {name}
-              </h3>
-              <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-4 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words">
-                {description}
-              </p>
             </div>
+            <Icon className={cn(
+              "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-700 z-10",
+              "group-hover:scale-110",
+              style.iconGlow
+            )} />
+          </div>
 
-            {/* Premium Button CTA: Uniformly anchored with tight bottom breathing room */}
-            <div className="mt-4 sm:mt-5 pt-1">
-              <div className={cn(
-                "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu group-hover:scale-[1.02]",
-                style.buttonGrad
-              )}>
-                <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] opacity-0 group-hover:opacity-100 group-hover:animate-[shine_2.5s_linear_infinite] transition-opacity duration-300" />
-                <span className="relative z-10 flex items-center gap-2 sm:gap-3">
-                  {unavailable ? "View status" : "Launch Tool"}
-                  <ArrowRight size={15} className="transition-transform group-hover:translate-x-1.5" />
-                </span>
-              </div>
+          <button 
+            type="button"
+            data-no-nav-loader="true"
+            onClick={handleFavoriteClick}
+            disabled={isSavingFavorite}
+            aria-label={isFavorited ? "Remove from favorites" : "Save to favorites"}
+            className={cn(
+              "relative overflow-hidden w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all duration-500 touch-manipulation backdrop-blur-md shadow-lg border group/star shrink-0 pointer-events-auto",
+              isFavorited 
+                ? "bg-amber-500/10 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:bg-amber-500/20 hover:border-amber-400/60" 
+                : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.06] hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]",
+              "active:scale-90 cursor-pointer"
+            )}
+          >
+            {!isFavorited && (
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/star:opacity-100 transition-opacity duration-500" />
+            )}
+            {isFavorited && (
+              <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(245,158,11,0.2)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shine_3s_linear_infinite]" />
+            )}
+            <Star 
+              size={16} 
+              fill={isFavorited ? "currentColor" : "none"} 
+              strokeWidth={isFavorited ? 1.5 : 2}
+              className={cn(
+                "relative z-10 transition-all duration-700 ease-out",
+                isFavorited ? "scale-110 rotate-[72deg] drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" : "group-hover/star:scale-125"
+              )} 
+            />
+          </button>
+        </div>
+
+        {/* Badges Section: Always present with consistent min-h to preserve uniform vertical rhythm across cards */}
+        <div className="relative z-10 pointer-events-none flex flex-wrap items-center gap-1.5 mb-3 sm:mb-3.5 min-h-[22px]">
+          {popular ? (
+            <div className="relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/20 backdrop-blur-md border border-amber-400/40 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+              <Flame size={10} className="text-amber-400 fill-amber-400 animate-pulse shrink-0" />
+              <span className="relative z-10">Popular</span>
+            </div>
+          ) : (
+            <div className={cn(
+              "relative overflow-hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-full backdrop-blur-md border text-[9px] font-black uppercase tracking-[0.14em]",
+              style.badge
+            )}>
+              <span className="relative z-10">{CATEGORY_LABELS[category] || "Free Tool"}</span>
+            </div>
+          )}
+          <ToolReliabilityBadge toolId={id} />
+        </div>
+
+        {/* Content Section: Unified typography block with tight, cohesive title-to-description rhythm */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between relative z-10 pointer-events-none">
+          <div>
+            <h3 className={cn(
+              "text-lg sm:text-xl font-black tracking-tight leading-snug transition-colors break-words text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
+              style.textGrad
+            )}>
+              {name}
+            </h3>
+            <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 line-clamp-4 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors break-words">
+              {description}
+            </p>
+          </div>
+
+          {/* Premium Button CTA: Uniformly anchored with tight bottom breathing room */}
+          <div className="mt-4 sm:mt-5 pt-1">
+            <div className={cn(
+              "w-full min-h-12 py-3.5 sm:py-4 px-4 sm:px-6 rounded-full flex items-center justify-center gap-2 sm:gap-3 font-black uppercase tracking-[0.18em] text-[10px] sm:text-[11px] transition-all duration-500 relative overflow-hidden isolate transform-gpu group-hover:scale-[1.02]",
+              style.buttonGrad
+            )}>
+              <div className="absolute inset-0 rounded-[inherit] pointer-events-none bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.35)_50%,transparent_75%)] bg-[length:200%_100%] opacity-0 group-hover:opacity-100 group-hover:animate-[shine_2.5s_linear_infinite] transition-opacity duration-300" />
+              <span className="relative z-10 flex items-center gap-2 sm:gap-3">
+                {unavailable ? "View status" : "Launch Tool"}
+                <ArrowRight size={15} className="transition-transform group-hover:translate-x-1.5" />
+              </span>
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </motion.div>
   );
 }

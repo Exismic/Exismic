@@ -6,7 +6,6 @@ import {
   Copy, 
   CheckCircle2, 
   BookOpen, 
-  Sparkles,
   Layers,
   Globe,
   Book,
@@ -188,7 +187,7 @@ export default function CitationGenerator() {
 
         <div className="flex items-center gap-2 overflow-x-auto text-xs">
           <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
-            <Sparkles size={12} className="text-amber-400" /> Samples:
+            <BookOpen size={12} className="text-amber-400" /> Samples:
           </span>
           {PRESETS.map((preset) => (
             <button

@@ -12,8 +12,8 @@ export default function LinkedinFormatterPage() {
     <ToolPageShell
       toolId="linkedin-formatter"
       categoryId="creator"
-      customTitle="LinkedIn Post Formatter & Hook Analyzer"
-      customDescription="Format text with unicode styling, custom bullet icons, readable spacing, and live hook strength ratings."
+      customTitle="LinkedIn Post Formatter"
+      customDescription="Format your posts with clean line breaks, bold headlines, bullet points, and get an instant score on your opening hook."
     >
       <LinkedinFormatter />
     </ToolPageShell>

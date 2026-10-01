@@ -23,7 +23,7 @@ import confetti from "canvas-confetti";
 import { createClient } from "@/utils/supabase/client";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -40,7 +40,10 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const [error, setError] = useState("");
   const supabase = createClient();
 
-  const minimumMonthly = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const promoActive = isExismic17PromoActive();
+  const minimumMonthly = promoActive
+    ? (isIndia ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR : PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD)
+    : (isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD);
   const minimumYearly = isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR : PRICING_CONFIG.PRO_YEARLY_PLAN.USD;
   const minimumAmount = billingCycle === "yearly" ? minimumYearly : minimumMonthly;
   const currencyLabel = isIndia ? "INR" : "USD";
@@ -180,8 +183,13 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                             </div>
 
                             {/* Plan Pricing Label */}
-                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs font-black uppercase text-center text-zinc-300">
-                              Monthly Subscription ({currencyPrefix}{minimumMonthly}/mo)
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs font-black uppercase text-center text-zinc-300 flex items-center justify-center gap-2">
+                              <span>Monthly Subscription ({currencyPrefix}{minimumMonthly}/mo)</span>
+                              {promoActive && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                                  20% OFF
+                                </span>
+                              )}
                             </div>
 
                             <form onSubmit={handleTestPayment} className="space-y-6">

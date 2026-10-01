@@ -59,7 +59,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requestedVoiceId = input.get("voiceId")?.toString();
     const voiceId =
+      requestedVoiceId ||
       process.env.ELEVENLABS_VOICE_CHANGER_VOICE_ID ||
       "JBFqnCBsd6RMkjVDRZzb";
     const body = new FormData();

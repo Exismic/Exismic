@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import { Lock, CheckCircle2, Zap, Rocket, LayoutGrid } from "lucide-react";
 import { LuxuryButton } from "@/components/ui/LuxuryButton";
 
@@ -8,27 +9,57 @@ export function FinalCta() {
   return (
     <section id="final-cta" className="pt-2 pb-8 sm:pt-3 sm:pb-12 px-4 sm:px-6 max-w-5xl mx-auto w-full relative scroll-mt-24">
       
-      {/* Grand Container with 2.5px Multi-Category Gradient Border Mix */}
-      <div className="group relative p-[2.5px] rounded-3xl sm:rounded-[2.5rem] bg-gradient-to-br from-amber-400 via-cyan-400 via-purple-500 to-emerald-400 shadow-[0_0_50px_rgba(245,158,11,0.22),0_0_50px_rgba(6,182,212,0.22)] hover:shadow-[0_0_75px_rgba(245,158,11,0.32),0_0_75px_rgba(6,182,212,0.32)] transition-all duration-700">
+      {/* Grand Container with 2.5px Multi-Category Living Border Beam & Glow */}
+      <div className="group relative p-[2px] sm:p-[2.5px] rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.22),0_0_50px_rgba(6,182,212,0.22)] hover:shadow-[0_0_80px_rgba(245,158,11,0.35),0_0_80px_rgba(6,182,212,0.35)] transition-all duration-700">
         
-        {/* Inner Dark Shell */}
-        <div className="relative h-full w-full p-8 sm:p-12 md:p-14 rounded-[calc(2.5rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden text-center space-y-6 sm:space-y-8">
+        {/* 1. Base Multi-Category Perimeter Border (100% continuous 360° coverage, zero dead spots) */}
+        <div 
+          className="absolute -inset-[150%] pointer-events-none opacity-85 group-hover:opacity-100 transition-opacity duration-700"
+          style={{
+            background: "conic-gradient(from 0deg, #f59e0b 0deg, #06b6d4 90deg, #a855f7 180deg, #10b981 270deg, #f59e0b 360deg)"
+          }}
+        />
+
+        {/* 2. Active Rotating Laser Border Beam Animation on Hover */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute -inset-[160%] pointer-events-none opacity-60 group-hover:opacity-100 transition-opacity duration-500 mix-blend-screen"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+          style={{
+            background: "conic-gradient(from 0deg, #f59e0b, #06b6d4 25%, #a855f7 50%, #10b981 75%, #f59e0b 100%)"
+          }}
+        />
+
+        {/* 3. Halo Diffusion Glow Layer */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute -inset-[120%] pointer-events-none blur-md opacity-40 group-hover:opacity-80 transition-opacity duration-500 mix-blend-screen"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+          style={{
+            background: "conic-gradient(from 0deg, #f59e0b, #06b6d4 25%, #a855f7 50%, #10b981 75%, #f59e0b 100%)"
+          }}
+        />
+
+        {/* Inner Dark Shell — concentric radii & balanced padding */}
+        <div className="relative z-10 h-full w-full p-6 sm:p-10 md:py-12 md:px-14 rounded-[calc(1.5rem-2px)] sm:rounded-[calc(2.5rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden text-center space-y-6 sm:space-y-7">
           
-          {/* Continuous Hover Shine Sweep — elevated z-30 pointer-events-none so it sweeps over the entire card from top to bottom, including over the bottom buttons and badges */}
+          {/* Continuous Hover Shine Sweep across entire card surface */}
           <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none z-30">
-            <div className="absolute inset-0 -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]" />
+            <div className="absolute inset-0 -translate-x-[160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]" />
           </div>
 
           {/* 4 Corner Ambient Mesh Glow Auras */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
             {/* Top-Left: Amber */}
-            <div className="absolute -top-16 -left-16 w-80 h-80 rounded-full blur-[90px] bg-amber-500/25 opacity-40 group-hover:opacity-60 transition-opacity duration-700" />
+            <div className="absolute -top-16 -left-16 w-80 h-80 rounded-full blur-[90px] bg-amber-500/25 opacity-40 group-hover:opacity-65 transition-opacity duration-700" />
             {/* Top-Right: Cyan */}
-            <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full blur-[90px] bg-cyan-500/25 opacity-40 group-hover:opacity-60 transition-opacity duration-700" />
+            <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full blur-[90px] bg-cyan-500/25 opacity-40 group-hover:opacity-65 transition-opacity duration-700" />
             {/* Bottom-Left: Emerald */}
-            <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full blur-[90px] bg-emerald-500/20 opacity-35 group-hover:opacity-55 transition-opacity duration-700" />
+            <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full blur-[90px] bg-emerald-500/20 opacity-35 group-hover:opacity-60 transition-opacity duration-700" />
             {/* Bottom-Right: Purple */}
-            <div className="absolute -bottom-16 -right-16 w-80 h-80 rounded-full blur-[90px] bg-purple-500/25 opacity-35 group-hover:opacity-55 transition-opacity duration-700" />
+            <div className="absolute -bottom-16 -right-16 w-80 h-80 rounded-full blur-[90px] bg-purple-500/25 opacity-35 group-hover:opacity-60 transition-opacity duration-700" />
           </div>
 
           {/* Header */}
@@ -69,7 +100,7 @@ export function FinalCta() {
           </div>
 
           {/* Bottom Trust Row in Jewel Badges */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-mono relative z-10">
+          <div className="pt-1 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-mono relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-zinc-300 shadow-sm">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span>No credit card required</span>

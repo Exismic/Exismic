@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { 
   Crown, 
   Zap, 
@@ -9,7 +10,7 @@ import {
 } from "lucide-react";
 import { LuxuryButton } from "@/components/ui/LuxuryButton";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
 
 const FREE_FEATURES = [
   { title: "50 Daily Free Credits", desc: "Refreshed every 24 hours so you can make what you need." },
@@ -54,22 +55,58 @@ export function ProSection() {
     };
   }, []);
 
-  const proPriceVal = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const promoActive = isExismic17PromoActive();
+  const regularProPriceVal = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const regularProPrice = isIndia ? `₹${regularProPriceVal}` : `$${regularProPriceVal}`;
+  
+  const proPriceVal = promoActive
+    ? (isIndia ? PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.INR : PRICING_CONFIG.V17_LAUNCH_PROMO.PRO_MONTHLY.USD)
+    : regularProPriceVal;
   const proPrice = isIndia ? `₹${proPriceVal}` : `$${proPriceVal}`;
   const freePrice = isIndia ? "₹0" : "$0";
 
   return (
     <section id="pro" className="pt-6 pb-6 sm:pt-8 sm:pb-8 px-4 sm:px-6 max-w-7xl mx-auto w-full scroll-mt-20">
       
-      {/* Outer Grand Container with 2.5px Multi-Category Gradient Border Mix */}
-      <div className="group relative p-[2.5px] rounded-3xl sm:rounded-[2.5rem] bg-gradient-to-br from-emerald-400 via-cyan-400 via-purple-500 to-amber-400 shadow-[0_0_45px_rgba(16,185,129,0.18),0_0_45px_rgba(168,85,247,0.22)] hover:shadow-[0_0_70px_rgba(16,185,129,0.25),0_0_70px_rgba(168,85,247,0.3)] transition-all duration-700">
+      {/* Outer Grand Container with 2.5px Multi-Category Living Border Beam & Glow */}
+      <div className="group relative p-[2px] sm:p-[2.5px] rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-[0_0_45px_rgba(16,185,129,0.18),0_0_45px_rgba(168,85,247,0.22)] hover:shadow-[0_0_75px_rgba(16,185,129,0.28),0_0_75px_rgba(168,85,247,0.32)] transition-all duration-700">
         
+        {/* 1. Base Multi-Category Perimeter Border (100% continuous 360° coverage, zero dead spots) */}
+        <div 
+          className="absolute -inset-[150%] pointer-events-none opacity-85 group-hover:opacity-100 transition-opacity duration-700"
+          style={{
+            background: "conic-gradient(from 0deg, #10b981 0deg, #06b6d4 90deg, #a855f7 180deg, #f59e0b 270deg, #10b981 360deg)"
+          }}
+        />
+
+        {/* 2. Active Rotating Laser Border Beam Animation on Hover */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute -inset-[160%] pointer-events-none opacity-60 group-hover:opacity-100 transition-opacity duration-500 mix-blend-screen"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+          style={{
+            background: "conic-gradient(from 0deg, #10b981, #06b6d4 25%, #a855f7 50%, #f59e0b 75%, #10b981 100%)"
+          }}
+        />
+
+        {/* 3. Halo Diffusion Glow Layer */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute -inset-[120%] pointer-events-none blur-md opacity-40 group-hover:opacity-80 transition-opacity duration-500 mix-blend-screen"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+          style={{
+            background: "conic-gradient(from 0deg, #10b981, #06b6d4 25%, #a855f7 50%, #f59e0b 75%, #10b981 100%)"
+          }}
+        />
+
         {/* Inner Dark Shell */}
-        <div className="relative h-full w-full p-6 sm:p-10 md:p-12 rounded-[calc(2.5rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden">
+        <div className="relative z-10 h-full w-full p-6 sm:p-10 md:p-12 rounded-[calc(1.5rem-2px)] sm:rounded-[calc(2.5rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden">
           
           {/* Continuous Hover Shine Sweep — elevated z-30 pointer-events-none */}
           <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none z-30">
-            <div className="absolute inset-0 -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]" />
+            <div className="absolute inset-0 -translate-x-[160%] group-hover:translate-x-[160%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]" />
           </div>
 
           {/* 4 Corner Ambient Mesh Glow Auras (Emerald & Cyan on left, Purple & Amber on right) */}
@@ -243,9 +280,16 @@ export function ProSection() {
                     <Crown className="w-6 h-6 text-amber-400 relative z-10" strokeWidth={2} />
                   </div>
 
-                  <div className="px-3 py-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-400/15 via-purple-400/15 to-pink-400/15 text-amber-300 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-                    <Flame className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
-                    <span>Power Users</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {promoActive && (
+                      <div className="px-2.5 py-1 rounded-full border border-amber-400/50 bg-amber-400/15 text-amber-300 font-mono text-[10px] font-bold uppercase tracking-wider shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                        20% OFF
+                      </div>
+                    )}
+                    <div className="px-3 py-1 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-400/15 via-purple-400/15 to-pink-400/15 text-amber-300 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+                      <Flame className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
+                      <span>Power Users</span>
+                    </div>
                   </div>
                 </div>
 
@@ -254,7 +298,12 @@ export function ProSection() {
                   <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                     Exismic Pro
                   </h3>
-                  <div className="flex items-baseline gap-1.5 mt-2">
+                  <div className="flex items-baseline gap-2 mt-2">
+                    {promoActive && (
+                      <span className="text-xl sm:text-2xl font-bold text-zinc-500 line-through">
+                        {regularProPrice}
+                      </span>
+                    )}
                     <span 
                       className="text-3xl sm:text-4xl font-black text-white tracking-tight"
                       suppressHydrationWarning
@@ -266,7 +315,9 @@ export function ProSection() {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 mt-1 font-mono">
-                    Simple monthly subscription • Cancel anytime in 1 click
+                    {promoActive
+                      ? "Exismic 1.7 Special • Limited 1-week launch pricing"
+                      : "Simple monthly subscription • Cancel anytime in 1 click"}
                   </p>
                 </div>
 
@@ -295,7 +346,7 @@ export function ProSection() {
                 <LuxuryButton
                   href={isIndia ? "/pro?market=IN" : "/pro?market=GLOBAL"}
                   title="Get Exismic Pro"
-                  subtitle="500 daily credits • All bundles"
+                  subtitle={promoActive ? "20% OFF launch deal • 500 daily credits" : "500 daily credits • All bundles"}
                   theme="purple"
                   icon={<ExismicMark size={22} letter="P" theme="purple" animated={true} />}
                   size="sm"

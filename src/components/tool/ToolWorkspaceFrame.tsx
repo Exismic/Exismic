@@ -138,6 +138,8 @@ export function ToolWorkspaceHeader({
 
           {/* Ultra-Premium Cyber-Glass Share Button */}
           <motion.button
+            type="button"
+            data-no-nav-loader="true"
             whileHover={{ scale: 1.06, y: -1 }}
             whileTap={{ scale: 0.94 }}
             onClick={onShare}
@@ -163,6 +165,8 @@ export function ToolWorkspaceHeader({
 
           {/* Ultra-Premium Golden Solar Star / Favorite Button */}
           <motion.button
+            type="button"
+            data-no-nav-loader="true"
             whileHover={{ scale: 1.06, y: -1 }}
             whileTap={{ scale: 0.94 }}
             onClick={onFavorite}

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { BlogIndexClient } from "./BlogIndexClient";
 import { BLOG_POSTS } from "@/lib/blog-data";
-import { prisma } from "@/lib/prisma";
+import { getBlogAuthor } from "@/lib/blog-author";
 
 export const metadata: Metadata = constructMetadata({
   title: "Exismic Blog - AI Tools Tips & Tutorials",
@@ -11,10 +11,7 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default async function BlogPage() {
-  const realAuthor = await prisma.user.findFirst({
-    where: { email: { equals: 'syedrayangames@Gmail.com', mode: 'insensitive' } },
-    select: { id: true, name: true, username: true, image: true, customAvatarUrl: true, plan: true, avatarFrame: true, nameGradient: true }
-  });
+  const realAuthor = await getBlogAuthor();
 
   const posts = BLOG_POSTS.map(post => {
     if (realAuthor) {

@@ -11,12 +11,15 @@ const LEGAL_UPDATE_DATE = new Date("2026-09-01T00:00:00.000Z");
 const PRO_UPDATE_DATE = new Date("2026-09-19T00:00:00.000Z");
 const CONTENT_UPDATE_DATE = new Date("2026-09-15T00:00:00.000Z");
 const COMMERCE_UPDATE_DATE = new Date("2026-09-18T00:00:00.000Z");
+// Update only when the shared guide content changes, never at request/build time.
+const TOOL_GUIDE_UPDATE_DATE = new Date("2026-09-29T00:00:00.000Z");
+const HOME_UPDATE_DATE = new Date("2026-09-27T00:00:00.000Z");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${SITE_URL}`,
-      lastModified: PLATFORM_UPDATE_DATE,
+      lastModified: HOME_UPDATE_DATE,
       changeFrequency: "daily",
       priority: 1,
     },
@@ -69,12 +72,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/pricing`,
-      lastModified: COMMERCE_UPDATE_DATE,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
       url: `${SITE_URL}/privacy-policy`,
       lastModified: LEGAL_UPDATE_DATE,
       changeFrequency: "yearly",
@@ -94,7 +91,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/refund-policy`,
-      lastModified: PLATFORM_UPDATE_DATE,
+      lastModified: new Date("2026-09-22T00:00:00.000Z"),
       changeFrequency: "yearly",
       priority: 0.3,
     },
@@ -130,7 +127,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/developer/docs`,
-      lastModified: PLATFORM_UPDATE_DATE,
+      lastModified: new Date("2026-09-29T00:00:00.000Z"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
@@ -142,7 +139,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/giveaway`,
-      lastModified: CONTENT_UPDATE_DATE,
+      lastModified: new Date("2026-09-29T00:00:00.000Z"),
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -156,10 +153,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   const toolPages: MetadataRoute.Sitemap = TOOLS
-    .filter((tool) => tool.indexable !== false && tool.href.startsWith("/tools/"))
+    .filter((tool) => !tool.hidden && tool.indexable !== false && tool.href.startsWith("/tools/"))
     .map((tool) => ({
       url: `${SITE_URL}${tool.href}`,
-      lastModified: tool.updatedAt ? new Date(tool.updatedAt) : PLATFORM_UPDATE_DATE,
+      lastModified: new Date(Math.max(
+        TOOL_GUIDE_UPDATE_DATE.getTime(),
+        tool.updatedAt ? new Date(tool.updatedAt).getTime() : PLATFORM_UPDATE_DATE.getTime(),
+      )),
       changeFrequency: "monthly",
       priority: 0.7,
     }));

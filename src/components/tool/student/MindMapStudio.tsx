@@ -1386,7 +1386,7 @@ ${nodesMarkup}  </g>
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 border border-white/[0.08] rounded-2xl p-4 sm:p-6 backdrop-blur-xl">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
             <Network className="w-6 h-6" />
           </div>
           <div>
@@ -1394,7 +1394,7 @@ ${nodesMarkup}  </g>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                 Notes to Mind Map Studio
               </h2>
-              <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 100% Client Private
               </span>
             </div>
@@ -1413,9 +1413,9 @@ ${nodesMarkup}  </g>
             title="Copy high-res image directly to system clipboard"
           >
             {isCopyingImage ? (
-              <RotateCcw className="w-4 h-4 animate-spin text-indigo-400" />
+              <RotateCcw className="w-4 h-4 animate-spin text-amber-400" />
             ) : (
-              <Copy className="w-4 h-4 text-indigo-400" />
+              <Copy className="w-4 h-4 text-amber-400" />
             )}
             <span>Copy Picture</span>
           </button>
@@ -1423,7 +1423,7 @@ ${nodesMarkup}  </g>
           <button
             onClick={handleDownloadPng}
             disabled={isDownloadingPng}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 border border-indigo-400/40 shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all active:scale-95"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-110 text-black border border-amber-400/40 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all active:scale-95"
           >
             {isDownloadingPng ? (
               <RotateCcw className="w-4 h-4 animate-spin" />
@@ -1439,7 +1439,7 @@ ${nodesMarkup}  </g>
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/[0.18] transition-all active:scale-95"
             title="Download Scalable Vector Graphics for Figma, Illustrator, or high-res printing"
           >
-            <FileCode className="w-4 h-4 text-purple-400" />
+            <FileCode className="w-4 h-4 text-amber-400" />
             <span className="hidden sm:inline">Vector SVG</span>
           </button>
         </div>
@@ -1452,7 +1452,7 @@ ${nodesMarkup}  </g>
           className={cn(
             "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
             mobileTab === "map"
-              ? "bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 shadow-sm"
+              ? "bg-amber-600/30 text-amber-300 border border-amber-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1464,7 +1464,7 @@ ${nodesMarkup}  </g>
           className={cn(
             "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
             mobileTab === "outline"
-              ? "bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 shadow-sm"
+              ? "bg-amber-600/30 text-amber-300 border border-amber-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1476,7 +1476,7 @@ ${nodesMarkup}  </g>
           className={cn(
             "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
             mobileTab === "style"
-              ? "bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 shadow-sm"
+              ? "bg-amber-600/30 text-amber-300 border border-amber-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1488,7 +1488,7 @@ ${nodesMarkup}  </g>
           className={cn(
             "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
             mobileTab === "presets"
-              ? "bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 shadow-sm"
+              ? "bg-amber-600/30 text-amber-300 border border-amber-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1515,7 +1515,7 @@ ${nodesMarkup}  </g>
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlignLeft className="w-4 h-4 text-indigo-400" />
+                <AlignLeft className="w-4 h-4 text-amber-400" />
                 <h3 className="text-sm font-semibold text-white">Notes & Outline</h3>
               </div>
               <button
@@ -1536,7 +1536,7 @@ ${nodesMarkup}  </g>
                 value={outlineText}
                 onChange={(e) => handleOutlineChange(e.target.value)}
                 rows={12}
-                className="w-full font-mono text-xs sm:text-sm bg-black/40 border border-white/[0.08] rounded-xl p-3 text-slate-200 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 resize-y transition-all leading-relaxed"
+                className="w-full font-mono text-xs sm:text-sm bg-black/40 border border-white/[0.08] rounded-xl p-3 text-slate-200 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 resize-y transition-all leading-relaxed"
                 placeholder="# Main Topic&#10;- Branch 1&#10;  - Subtopic A&#10;  - Subtopic B&#10;- Branch 2"
               />
             </div>
@@ -1555,7 +1555,7 @@ ${nodesMarkup}  </g>
             )}
           >
             <div className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-indigo-400" />
+              <Palette className="w-4 h-4 text-amber-400" />
               <h3 className="text-sm font-semibold text-white">Layout & Appearance</h3>
             </div>
 
@@ -1568,11 +1568,11 @@ ${nodesMarkup}  </g>
                   className={cn(
                     "flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-medium transition-all",
                     layoutMode === "radial"
-                      ? "bg-indigo-600/20 border-indigo-500/50 text-white shadow-[0_0_12px_rgba(99,102,241,0.2)]"
+                      ? "bg-amber-600/20 border-amber-500/50 text-white shadow-[0_0_12px_rgba(245,158,11,0.2)]"
                       : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                   )}
                 >
-                  <Network className="w-4 h-4 text-indigo-400" />
+                  <Network className="w-4 h-4 text-amber-400" />
                   <span>Central Map</span>
                 </button>
                 <button
@@ -1580,7 +1580,7 @@ ${nodesMarkup}  </g>
                   className={cn(
                     "flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-medium transition-all",
                     layoutMode === "horizontal"
-                      ? "bg-indigo-600/20 border-indigo-500/50 text-white shadow-[0_0_12px_rgba(99,102,241,0.2)]"
+                      ? "bg-amber-600/20 border-amber-500/50 text-white shadow-[0_0_12px_rgba(245,158,11,0.2)]"
                       : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                   )}
                 >
@@ -1592,7 +1592,7 @@ ${nodesMarkup}  </g>
                   className={cn(
                     "flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-medium transition-all",
                     layoutMode === "vertical"
-                      ? "bg-indigo-600/20 border-indigo-500/50 text-white shadow-[0_0_12px_rgba(99,102,241,0.2)]"
+                      ? "bg-amber-600/20 border-amber-500/50 text-white shadow-[0_0_12px_rgba(245,158,11,0.2)]"
                       : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                   )}
                 >
@@ -1611,7 +1611,7 @@ ${nodesMarkup}  </g>
                   className={cn(
                     "py-2 px-3 rounded-lg border text-xs font-medium transition-all text-center",
                     lineStyle === "curve"
-                      ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-300"
+                      ? "bg-amber-600/20 border-amber-500/50 text-amber-300"
                       : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                   )}
                 >
@@ -1622,7 +1622,7 @@ ${nodesMarkup}  </g>
                   className={cn(
                     "py-2 px-3 rounded-lg border text-xs font-medium transition-all text-center",
                     lineStyle === "step"
-                      ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-300"
+                      ? "bg-amber-600/20 border-amber-500/50 text-amber-300"
                       : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                   )}
                 >
@@ -1633,7 +1633,7 @@ ${nodesMarkup}  </g>
                   className={cn(
                     "py-2 px-3 rounded-lg border text-xs font-medium transition-all text-center",
                     lineStyle === "straight"
-                      ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-300"
+                      ? "bg-amber-600/20 border-amber-500/50 text-amber-300"
                       : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                   )}
                 >
@@ -1656,7 +1656,7 @@ ${nodesMarkup}  </g>
                       className={cn(
                         "flex items-center gap-2 p-2.5 rounded-xl border text-xs font-medium text-left transition-all",
                         isSelected
-                          ? "bg-white/[0.08] border-indigo-500/60 text-white shadow-sm"
+                          ? "bg-white/[0.08] border-amber-500/60 text-white shadow-sm"
                           : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
                       )}
                     >
@@ -1683,7 +1683,7 @@ ${nodesMarkup}  </g>
             )}
           >
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-indigo-400" />
+              <BookOpen className="w-4 h-4 text-amber-400" />
               <h3 className="text-sm font-semibold text-white">Example Templates</h3>
             </div>
             <p className="text-xs text-slate-400">
@@ -1695,13 +1695,13 @@ ${nodesMarkup}  </g>
                 <button
                   key={preset.id}
                   onClick={() => handleLoadPreset(preset)}
-                  className="group flex flex-col p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-indigo-500/40 text-left transition-all"
+                  className="group flex flex-col p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-amber-500/40 text-left transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-white">
                       {preset.name}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider font-semibold text-indigo-400 px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-amber-400 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
                       {preset.category}
                     </span>
                   </div>
@@ -1821,7 +1821,7 @@ ${nodesMarkup}  </g>
                         ? "font-bold text-base shadow-2xl"
                         : "font-medium text-xs sm:text-sm",
                       isSelected
-                        ? "ring-2 ring-indigo-400/80 shadow-[0_0_20px_rgba(99,102,241,0.4)] z-30"
+                        ? "ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.4)] z-30"
                         : "hover:scale-[1.02] z-10"
                     )}
                     style={{
@@ -1855,7 +1855,7 @@ ${nodesMarkup}  </g>
                             if (e.key === "Escape") setEditingNodeId(null);
                           }}
                           onBlur={handleCommitEdit}
-                          className="w-full bg-black/60 text-white px-2 py-0.5 rounded text-xs focus:outline-none border border-indigo-400"
+                          className="w-full bg-black/60 text-white px-2 py-0.5 rounded text-xs focus:outline-none border border-amber-400"
                         />
                       ) : (
                         <span className="block text-left text-xs sm:text-[13px] font-semibold leading-snug line-clamp-2 break-words select-none">
@@ -1871,7 +1871,7 @@ ${nodesMarkup}  </g>
                         className={cn(
                           "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-transform flex-shrink-0",
                           node.isCollapsed
-                            ? "bg-indigo-500 text-white hover:bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+                            ? "bg-indigo-500 text-white hover:bg-indigo-400 shadow-[0_0_8px_rgba(245,158,11,0.6)]"
                             : "bg-white/[0.1] text-slate-300 hover:bg-white/[0.2]"
                         )}
                         title={node.isCollapsed ? `Expand ${node.childrenCount} subtopics` : "Collapse branch"}
@@ -1889,7 +1889,7 @@ ${nodesMarkup}  </g>
                         {/* Add Child */}
                         <button
                           onClick={(e) => handleAddChild(node.id, e)}
-                          className="p-1 rounded hover:bg-indigo-500/20 text-slate-300 hover:text-indigo-300 transition-colors"
+                          className="p-1 rounded hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 transition-colors"
                           title="Add subtopic"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -1899,7 +1899,7 @@ ${nodesMarkup}  </g>
                         {!isRoot && (
                           <button
                             onClick={(e) => handleAddSibling(node.id, e)}
-                            className="p-1 rounded hover:bg-indigo-500/20 text-slate-300 hover:text-indigo-300 transition-colors text-[11px] font-semibold px-1"
+                            className="p-1 rounded hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 transition-colors text-[11px] font-semibold px-1"
                             title="Add sibling topic"
                           >
                             +Sib
@@ -1960,7 +1960,7 @@ ${nodesMarkup}  </g>
 
               <button
                 onClick={() => setZoom(1)}
-                className="px-2 py-0.5 text-[11px] font-mono font-semibold text-indigo-300 hover:text-white min-w-[50px] text-center rounded-lg hover:bg-white/[0.08] transition-colors"
+                className="px-2 py-0.5 text-[11px] font-mono font-semibold text-amber-300 hover:text-white min-w-[50px] text-center rounded-lg hover:bg-white/[0.08] transition-colors"
                 title="Click to reset to 100%"
               >
                 {Math.round(zoom * 100)}%
@@ -1978,7 +1978,7 @@ ${nodesMarkup}  </g>
 
               <button
                 onClick={handleFitToScreen}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-xs font-semibold text-indigo-200 transition-all active:scale-95"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-xs font-semibold text-amber-200 transition-all active:scale-95"
                 title="Fit entire mind map to screen"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
@@ -1988,7 +1988,7 @@ ${nodesMarkup}  </g>
 
             {/* FLOATING QUICK HINT (Top Left) */}
             <div className="absolute top-4 left-4 pointer-events-none hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/70 border border-white/[0.06] backdrop-blur-md text-[11px] text-slate-400">
-              <Move className="w-3 h-3 text-indigo-400" />
+              <Move className="w-3 h-3 text-amber-400" />
               <span>Drag canvas to pan &bull; Scroll to zoom &bull; Double click node to edit</span>
             </div>
           </div>

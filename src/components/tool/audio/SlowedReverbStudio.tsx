@@ -234,7 +234,7 @@ interface DspSliderProps {
   step: number;
   displayValue: string;
   badgeText?: string;
-  accent: "cyan" | "indigo" | "amber" | "emerald";
+  accent: "pink" | "purple" | "rose" | "indigo" | "amber" | "emerald" | "cyan";
   shortcuts: { label: string; value: number }[];
   onChange: (val: number) => void;
 }
@@ -253,6 +253,30 @@ function DspSlider({
   onChange,
 }: DspSliderProps) {
   const accentConfig = {
+    pink: {
+      hex: "#ec4899",
+      iconColor: "text-pink-400",
+      badgeColor: "text-pink-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-pink-400 [&::-moz-range-thumb]:border-pink-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(236,72,153,0.85)]",
+      activeChip: "bg-pink-500/20 text-pink-300 border-pink-400/50 shadow-[0_0_8px_rgba(236,72,153,0.25)] font-bold",
+    },
+    purple: {
+      hex: "#a855f7",
+      iconColor: "text-purple-400",
+      badgeColor: "text-purple-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-purple-400 [&::-moz-range-thumb]:border-purple-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(168,85,247,0.85)]",
+      activeChip: "bg-purple-500/20 text-purple-300 border-purple-400/50 shadow-[0_0_8px_rgba(168,85,247,0.25)] font-bold",
+    },
+    rose: {
+      hex: "#f43f5e",
+      iconColor: "text-rose-400",
+      badgeColor: "text-rose-300",
+      thumbBorder: "[&::-webkit-slider-thumb]:border-rose-400 [&::-moz-range-thumb]:border-rose-400",
+      thumbShadow: "[&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(244,63,94,0.85)]",
+      activeChip: "bg-rose-500/20 text-rose-300 border-rose-400/50 shadow-[0_0_8px_rgba(244,63,94,0.25)] font-bold",
+    },
     cyan: {
       hex: "#06b6d4",
       iconColor: "text-cyan-400",
@@ -813,9 +837,9 @@ export default function SlowedReverbStudio() {
           const barHeight = Math.max(4, percent * displayHeight * 0.85);
 
           const gradient = ctx.createLinearGradient(0, displayHeight, 0, displayHeight - barHeight);
-          gradient.addColorStop(0, "rgba(99, 102, 241, 0.2)");
-          gradient.addColorStop(0.6, "rgba(99, 102, 241, 0.85)");
-          gradient.addColorStop(1, "rgba(6, 182, 212, 1)");
+          gradient.addColorStop(0, "rgba(236, 72, 153, 0.25)");
+          gradient.addColorStop(0.5, "rgba(236, 72, 153, 0.85)");
+          gradient.addColorStop(1, "rgba(244, 63, 94, 1)");
 
           ctx.fillStyle = gradient;
           ctx.beginPath();
@@ -824,7 +848,7 @@ export default function SlowedReverbStudio() {
 
           if (val > 20) {
             ctx.fillStyle = "#ffffff";
-            ctx.shadowColor = "rgba(6, 182, 212, 0.9)";
+            ctx.shadowColor = "rgba(236, 72, 153, 0.95)";
             ctx.shadowBlur = 6;
             ctx.fillRect(x, displayHeight - barHeight - 2, barWidth, 2);
             ctx.shadowBlur = 0;
@@ -836,9 +860,9 @@ export default function SlowedReverbStudio() {
         // Idle State: Breathing Organic Sinusoidal Wave
         ctx.lineWidth = 2;
         const waveGradient = ctx.createLinearGradient(0, 0, displayWidth, 0);
-        waveGradient.addColorStop(0, "rgba(6, 182, 212, 0.2)");
-        waveGradient.addColorStop(0.5, "rgba(99, 102, 241, 0.8)");
-        waveGradient.addColorStop(1, "rgba(168, 85, 247, 0.2)");
+        waveGradient.addColorStop(0, "rgba(236, 72, 153, 0.25)");
+        waveGradient.addColorStop(0.5, "rgba(168, 85, 247, 0.85)");
+        waveGradient.addColorStop(1, "rgba(244, 63, 94, 0.25)");
 
         ctx.strokeStyle = waveGradient;
         ctx.beginPath();
@@ -851,7 +875,7 @@ export default function SlowedReverbStudio() {
         }
         ctx.stroke();
 
-        ctx.fillStyle = "rgba(6, 182, 212, 0.12)";
+        ctx.fillStyle = "rgba(236, 72, 153, 0.15)";
         ctx.fillRect(0, midY - 1, displayWidth, 2);
       }
 
@@ -931,17 +955,21 @@ export default function SlowedReverbStudio() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-20 sm:pb-24 lg:pb-0">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 space-y-5 pb-20 sm:pb-24 lg:pb-0 relative">
+      {/* Ambient Neon Pink & Purple Radial Glows */}
+      <div className="absolute -top-32 -right-32 size-96 rounded-full bg-pink-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 size-96 rounded-full bg-purple-600/10 blur-[120px] pointer-events-none" />
+
       {/* Top Header Strip */}
-      <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#090c16]/90 border border-white/[0.08] backdrop-blur-xl shadow-xl">
+      <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_25px_rgba(236,72,153,0.06)] relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 shrink-0 shadow-[0_0_15px_rgba(236,72,153,0.15)]">
             <Radio className="w-4 h-4" />
           </div>
           <div>
             <div className="text-xs font-bold text-white flex items-center gap-2">
               <span>Slowed & Reverb Studio</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-pink-500/15 text-pink-300 border border-pink-500/30 shadow-[0_0_8px_rgba(236,72,153,0.2)]">
                 Instant Preview
               </span>
             </div>
@@ -951,17 +979,17 @@ export default function SlowedReverbStudio() {
       </div>
 
       {/* Mobile Segmented Navigation Tabs */}
-      <div className="lg:hidden grid grid-cols-3 p-1 rounded-xl bg-[#090b14] border border-white/[0.08] gap-1 shadow-lg">
+      <div className="lg:hidden grid grid-cols-3 p-1 rounded-xl bg-[#090a12] border border-white/[0.08] gap-1 shadow-lg relative z-10">
         <button
           onClick={() => setActiveTab("player")}
           className={cn(
             "py-2 px-1 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
             activeTab === "player"
-              ? "bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 text-white border border-cyan-500/40 shadow-xs font-bold"
+              ? "bg-gradient-to-r from-pink-500/25 to-purple-500/25 text-white border border-pink-500/40 shadow-xs font-bold"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Disc3 className="w-3.5 h-3.5 text-cyan-400" />
+          <Disc3 className="w-3.5 h-3.5 text-pink-400" />
           <span>Player</span>
         </button>
         <button
@@ -969,11 +997,11 @@ export default function SlowedReverbStudio() {
           className={cn(
             "py-2 px-1 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
             activeTab === "effects"
-              ? "bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 text-white border border-cyan-500/40 shadow-xs font-bold"
+              ? "bg-gradient-to-r from-pink-500/25 to-purple-500/25 text-white border border-pink-500/40 shadow-xs font-bold"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+          <Sliders className="w-3.5 h-3.5 text-pink-400" />
           <span>Adjust Sound</span>
         </button>
         <button
@@ -981,17 +1009,17 @@ export default function SlowedReverbStudio() {
           className={cn(
             "py-2 px-1 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
             activeTab === "presets"
-              ? "bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 text-white border border-cyan-500/40 shadow-xs font-bold"
+              ? "bg-gradient-to-r from-pink-500/25 to-purple-500/25 text-white border border-pink-500/40 shadow-xs font-bold"
               : "text-zinc-400 hover:text-white"
           )}
         >
-          <Waves className="w-3.5 h-3.5 text-cyan-400" />
+          <Waves className="w-3.5 h-3.5 text-pink-400" />
           <span>Quick Styles</span>
         </button>
       </div>
 
       {/* Main Studio Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start relative z-10">
         {/* ================================================================= */}
         {/* LEFT COLUMN: AUDIO PLAYER & QUICK SOUND PRESETS */}
         {/* ================================================================= */}
@@ -1003,14 +1031,14 @@ export default function SlowedReverbStudio() {
         >
           <div
             className={cn(
-              "p-5 sm:p-6 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-2xl space-y-4",
+              "p-5 sm:p-6 rounded-3xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_40px_rgba(236,72,153,0.08)] space-y-4",
               activeTab !== "player" ? "hidden lg:block" : "block"
             )}
           >
             {/* Top Track Header */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/35 flex items-center justify-center text-pink-400 shrink-0 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
                   <Disc3 className={cn("w-5 h-5", isPlaying && "animate-spin")} />
                 </div>
                 <div className="min-w-0">
@@ -1018,7 +1046,7 @@ export default function SlowedReverbStudio() {
                   <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
                     <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
                     <span className="text-zinc-600">•</span>
-                    <span className="text-cyan-400 font-semibold">{speed.toFixed(2)}x Speed</span>
+                    <span className="text-pink-400 font-semibold">{speed.toFixed(2)}x Speed</span>
                   </div>
                 </div>
               </div>
@@ -1034,9 +1062,9 @@ export default function SlowedReverbStudio() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0 cursor-pointer shadow-xs"
+                className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-pink-500/10 border border-white/[0.1] hover:border-pink-500/30 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0 cursor-pointer shadow-xs"
               >
-                <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                <Upload className="w-3.5 h-3.5 text-pink-400" />
                 <span>Upload Song</span>
               </button>
             </div>
@@ -1056,7 +1084,7 @@ export default function SlowedReverbStudio() {
               }}
               className={cn(
                 "h-44 sm:h-52 w-full rounded-2xl bg-[#04060d] border transition-all flex flex-col items-center justify-center relative overflow-hidden p-2 shadow-inner",
-                isDragging ? "border-cyan-400 bg-cyan-950/20" : "border-white/[0.08]"
+                isDragging ? "border-pink-400 bg-pink-950/20 shadow-[0_0_25px_rgba(236,72,153,0.3)]" : "border-white/[0.08]"
               )}
             >
               <canvas
@@ -1064,10 +1092,9 @@ export default function SlowedReverbStudio() {
                 className="w-full h-full block"
               />
 
-
               {/* Drag overlay prompt */}
               {isDragging && (
-                <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-cyan-300 text-xs font-bold gap-1 z-10 pointer-events-none">
+                <div className="absolute inset-0 bg-pink-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-pink-300 text-xs font-bold gap-1 z-10 pointer-events-none">
                   <Upload className="w-6 h-6 animate-bounce" />
                   <span>Drop your song to load</span>
                 </div>
@@ -1076,20 +1103,20 @@ export default function SlowedReverbStudio() {
               {/* Real-Time Stereo Channel Peak Meters (VU Meter) */}
               <div className="absolute bottom-2 inset-x-3 flex items-center justify-between gap-3 px-3 py-1 rounded-xl bg-black/60 border border-white/[0.06] backdrop-blur-md">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-[9px] font-mono font-bold text-zinc-400">L</span>
+                  <span className="text-[9px] font-mono font-bold text-pink-400">L</span>
                   <div className="h-1.5 flex-1 bg-white/[0.08] rounded-full overflow-hidden relative">
                     <div
                       style={{ width: `${meterL}%` }}
-                      className="h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-rose-400 rounded-full transition-all duration-75"
+                      className="h-full bg-gradient-to-r from-emerald-500 via-pink-400 to-rose-500 rounded-full transition-all duration-75"
                     />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-[9px] font-mono font-bold text-zinc-400">R</span>
+                  <span className="text-[9px] font-mono font-bold text-pink-400">R</span>
                   <div className="h-1.5 flex-1 bg-white/[0.08] rounded-full overflow-hidden relative">
                     <div
                       style={{ width: `${meterR}%` }}
-                      className="h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-rose-400 rounded-full transition-all duration-75"
+                      className="h-full bg-gradient-to-r from-emerald-500 via-pink-400 to-rose-500 rounded-full transition-all duration-75"
                     />
                   </div>
                 </div>
@@ -1106,9 +1133,9 @@ export default function SlowedReverbStudio() {
                   style={{
                     width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
                   }}
-                  className="h-full bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-500 rounded-full relative"
+                  className="h-full bg-gradient-to-r from-pink-500 via-rose-400 to-purple-500 rounded-full relative"
                 >
-                  <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
+                  <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white rounded-full shadow-[0_0_10px_rgba(236,72,153,0.9)]" />
                 </div>
               </div>
 
@@ -1158,7 +1185,7 @@ export default function SlowedReverbStudio() {
                   className={cn(
                     "p-2.5 rounded-xl border transition-all active:scale-95 cursor-pointer flex items-center gap-1",
                     isLooping
-                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/40 shadow-xs"
+                      ? "bg-pink-500/20 text-pink-300 border-pink-400/40 shadow-[0_0_12px_rgba(236,72,153,0.25)]"
                       : "bg-white/[0.04] text-zinc-400 border-white/[0.08] hover:text-white"
                   )}
                 >
@@ -1170,7 +1197,7 @@ export default function SlowedReverbStudio() {
               <button
                 type="button"
                 onClick={handleTogglePlay}
-                className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-indigo-600 hover:from-cyan-300 hover:to-indigo-500 text-white flex items-center justify-center shadow-[0_0_28px_rgba(6,182,212,0.45),inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/25 transition-all active:scale-95 cursor-pointer"
+                className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:via-rose-400 hover:to-purple-500 text-white flex items-center justify-center shadow-[0_0_28px_rgba(236,72,153,0.55),inset_0_1px_0_rgba(255,255,255,0.35)] border border-pink-400/40 transition-all active:scale-95 cursor-pointer"
               >
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
               </button>
@@ -1180,7 +1207,7 @@ export default function SlowedReverbStudio() {
                 type="button"
                 onClick={handleDownloadWav}
                 disabled={isExporting}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-[0_0_20px_rgba(99,102,241,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] border border-indigo-400/30 bg-no-repeat bg-clip-padding overflow-hidden flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-bold text-xs shadow-[0_0_20px_rgba(236,72,153,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] border border-pink-400/30 bg-no-repeat bg-clip-padding overflow-hidden flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
               >
                 <Download className="w-4 h-4" />
                 <span>{isExporting ? `Saving ${exportProgress}%...` : "Download Song (WAV)"}</span>
@@ -1191,13 +1218,13 @@ export default function SlowedReverbStudio() {
           {/* Section: Instant Sound Styles (Directly Below Player) */}
           <div
             className={cn(
-              "p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3",
+              "p-5 rounded-3xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_40px_rgba(236,72,153,0.08)] space-y-3",
               activeTab !== "presets" ? "hidden lg:block" : "block"
             )}
           >
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                <Waves className="w-3.5 h-3.5 text-indigo-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-pink-400 flex items-center gap-2">
+                <Waves className="w-3.5 h-3.5 text-pink-400" />
                 <span>Instant Sound Styles</span>
               </h3>
               <span className="text-[10px] font-mono text-zinc-400">6 Popular Styles</span>
@@ -1215,8 +1242,8 @@ export default function SlowedReverbStudio() {
                     className={cn(
                       "group relative p-3 rounded-2xl border text-left transition-all duration-150 active:scale-[0.98] cursor-pointer flex flex-col justify-between gap-2.5",
                       isSelected
-                        ? "bg-gradient-to-br from-cyan-500/15 via-indigo-500/10 to-transparent border-cyan-400/60 shadow-[0_0_18px_rgba(6,182,212,0.18)]"
-                        : "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.07] hover:border-white/[0.12]"
+                        ? "bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-transparent border-pink-400/60 shadow-[0_0_18px_rgba(236,72,153,0.2)]"
+                        : "bg-white/[0.03] hover:bg-pink-500/5 border-white/[0.07] hover:border-pink-500/20"
                     )}
                   >
                     {/* Header: Icon + Title + Badge */}
@@ -1226,8 +1253,8 @@ export default function SlowedReverbStudio() {
                           className={cn(
                             "w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border transition-colors",
                             isSelected
-                              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-xs"
-                              : "bg-white/[0.04] text-zinc-400 border-white/[0.08] group-hover:text-zinc-200"
+                              ? "bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-xs"
+                              : "bg-white/[0.04] text-zinc-400 border-white/[0.08] group-hover:text-pink-200"
                           )}
                         >
                           <Icon size={14} />
@@ -1243,7 +1270,7 @@ export default function SlowedReverbStudio() {
                       </div>
 
                       {isSelected && (
-                        <span className="w-5 h-5 rounded-full bg-cyan-400/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5 shadow-[0_0_8px_rgba(6,182,212,0.4)]">
+                        <span className="w-5 h-5 rounded-full bg-pink-400/20 border border-pink-400/50 flex items-center justify-center text-pink-300 shrink-0 mt-0.5 shadow-[0_0_8px_rgba(236,72,153,0.4)]">
                           <Check size={11} className="stroke-[3]" />
                         </span>
                       )}
@@ -1251,13 +1278,13 @@ export default function SlowedReverbStudio() {
 
                     {/* Clean Specs Bar (Proportional columns, zero truncation) */}
                     <div className="grid grid-cols-[1fr_1.35fr_1fr] gap-1.5 pt-0.5 text-[10px] sm:text-[11px] font-mono text-zinc-400">
-                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap", isSelected && "text-cyan-300 border-cyan-500/30")}>
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap", isSelected && "text-pink-300 border-pink-500/30")}>
                         {preset.speed.toFixed(2)}x
                       </span>
-                      <span className={cn("py-0.5 px-1.5 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap font-medium", isSelected && "text-indigo-300 border-indigo-500/30")}>
+                      <span className={cn("py-0.5 px-1.5 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap font-medium", isSelected && "text-purple-300 border-purple-500/30")}>
                         {Math.round(preset.reverb * 100)}% Echo
                       </span>
-                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap", isSelected && "text-amber-300 border-amber-500/30")}>
+                      <span className={cn("py-0.5 px-1 rounded bg-black/40 border border-white/[0.05] text-center whitespace-nowrap", isSelected && "text-rose-300 border-rose-500/30")}>
                         +{preset.bass.toFixed(1)}dB
                       </span>
                     </div>
@@ -1278,10 +1305,10 @@ export default function SlowedReverbStudio() {
           )}
         >
           {/* Sound Customizer Card */}
-          <div className="p-5 rounded-3xl bg-[#090c16]/90 border border-white/[0.1] backdrop-blur-xl shadow-xl space-y-3.5">
+          <div className="p-5 rounded-3xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_40px_rgba(236,72,153,0.08)] space-y-3.5">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
-                <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-pink-400 flex items-center gap-2">
+                <Sliders className="w-3.5 h-3.5 text-pink-400" />
                 <span>Customize Sound</span>
               </h3>
               <button
@@ -1291,7 +1318,7 @@ export default function SlowedReverbStudio() {
                   setReverb(0);
                   setBass(0);
                 }}
-                className="text-[11px] text-zinc-500 hover:text-cyan-300 transition-colors cursor-pointer font-medium"
+                className="text-[11px] text-zinc-500 hover:text-pink-300 transition-colors cursor-pointer font-medium"
               >
                 Reset All
               </button>
@@ -1307,7 +1334,7 @@ export default function SlowedReverbStudio() {
               step={0.01}
               displayValue={`${speed.toFixed(2)}x`}
               badgeText={speed < 1.0 ? "Slowed" : speed > 1.0 ? "Sped Up" : "Normal"}
-              accent="cyan"
+              accent="pink"
               shortcuts={[
                 { label: "0.75x Slow", value: 0.75 },
                 { label: "0.85x Slowed", value: 0.85 },
@@ -1327,7 +1354,7 @@ export default function SlowedReverbStudio() {
               step={0.01}
               displayValue={`${Math.round(reverb * 100)}%`}
               badgeText={reverb > 0.7 ? "Dreamy" : reverb > 0.3 ? "Concert" : "Off"}
-              accent="indigo"
+              accent="purple"
               shortcuts={[
                 { label: "0% Off", value: 0 },
                 { label: "35% Light", value: 0.35 },
@@ -1347,7 +1374,7 @@ export default function SlowedReverbStudio() {
               step={0.5}
               displayValue={`+${bass.toFixed(1)} dB`}
               badgeText={bass >= 8 ? "Heavy Bass" : bass >= 4 ? "Punchy" : "Normal"}
-              accent="amber"
+              accent="rose"
               shortcuts={[
                 { label: "0 dB Off", value: 0 },
                 { label: "+4.5 dB Punchy", value: 4.5 },
@@ -1366,7 +1393,7 @@ export default function SlowedReverbStudio() {
               max={1}
               step={0.01}
               displayValue={isMuted ? "MUTED" : `${Math.round(volume * 100)}%`}
-              accent="emerald"
+              accent="pink"
               shortcuts={[
                 { label: "Mute", value: 0 },
                 { label: "50% Medium", value: 0.50 },
@@ -1384,12 +1411,12 @@ export default function SlowedReverbStudio() {
       </div>
 
       {/* MOBILE BOTTOM FLOATING ACTION BAR */}
-      <div className="lg:hidden fixed bottom-3 inset-x-3 z-40 p-2.5 rounded-2xl bg-[#090b14]/95 border border-white/15 backdrop-blur-2xl shadow-2xl flex items-center justify-between gap-2.5">
+      <div className="lg:hidden fixed bottom-3 inset-x-3 z-40 p-2.5 rounded-2xl bg-[#090a12]/95 border border-pink-500/30 backdrop-blur-2xl shadow-[0_0_25px_rgba(236,72,153,0.2)] flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <button
             type="button"
             onClick={handleTogglePlay}
-            className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 shadow-md cursor-pointer"
+            className="w-10 h-10 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 text-white flex items-center justify-center shrink-0 active:scale-95 shadow-md cursor-pointer"
           >
             {isPlaying ? <Pause size={16} className="fill-current" /> : <Play size={16} className="fill-current ml-0.5" />}
           </button>
@@ -1405,7 +1432,7 @@ export default function SlowedReverbStudio() {
           type="button"
           onClick={handleDownloadWav}
           disabled={isExporting}
-          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 active:scale-95 shadow-md border border-indigo-400/30 bg-no-repeat bg-clip-padding overflow-hidden cursor-pointer disabled:opacity-50"
+          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 active:scale-95 shadow-md border border-pink-400/30 bg-no-repeat bg-clip-padding overflow-hidden cursor-pointer disabled:opacity-50"
         >
           <Download size={13} />
           <span>{isExporting ? `${exportProgress}%` : "WAV"}</span>

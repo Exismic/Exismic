@@ -1,5 +1,19 @@
 import { TOOLS, Tool } from "@/data/tools";
 
+// Small, explicit next steps for real workflows; keep the existing four-link limit.
+const COMPANION_PATHS: Record<string, string[]> = {
+  "/tools/ai/img-gen": ["/tools/ai/prompt-builder", "/tools/image/minecraft-skin"],
+  "/tools/ai/prompt-builder": ["/tools/ai/img-gen"],
+  "/tools/image/minecraft-skin": ["/tools/ai/prompt-builder"],
+  "/tools/audio/tts": ["/tools/audio/audiogram", "/tools/creator/teleprompter"],
+  "/tools/audio/audiogram": ["/tools/audio/tts"],
+  "/tools/image/resizer": ["/tools/image/redact-blur"],
+  "/tools/video/trimmer": ["/tools/video/to-gif"],
+  "/tools/pdf/merger": ["/tools/pdf/to-word"],
+  "/tools/seo/og-previewer": ["/tools/seo/canonical-generator"],
+  "/tools/sfx-generator": ["/tools/ambient-mixer"],
+};
+
 const STOP_WORDS = new Set([
   "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it",
   "its", "of", "on", "that", "the", "to", "was", "were", "will", "with", "your", "you", "our",
@@ -180,6 +194,10 @@ export function getRelatedTools(currentTool: Tool, minCount = 2, maxCount = 4): 
 
   const scored = candidates.map((candidate) => {
     let score = 0;
+
+    if (COMPANION_PATHS[currentTool.href]?.includes(candidate.href)) {
+      score += 100;
+    }
 
     // 1. Semantic workflow cluster match (highest affinity: shared user workflow)
     for (const cluster of matchedClusters) {

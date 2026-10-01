@@ -65,8 +65,8 @@ const ALL_CATEGORY_PARTICLES = [
   { icon: SearchCode, color: "rgba(34, 211, 238, 0.4)" },
   { icon: BrainCircuit, color: "rgba(245, 158, 11, 0.4)" },
   { icon: Palette, color: "rgba(6, 182, 212, 0.4)" },
-  { icon: Share2, color: "rgba(244, 63, 94, 0.4)" },
-  { icon: Clapperboard, color: "rgba(244, 63, 94, 0.4)" },
+  { icon: Share2, color: "rgba(99, 102, 241, 0.4)" },
+  { icon: Clapperboard, color: "rgba(99, 102, 241, 0.4)" },
 ];
 
 const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: string }> = {
@@ -112,7 +112,7 @@ const CATEGORY_PARTICLES: Record<string, { icons: React.ElementType[]; color: st
   },
   creator: {
     icons: [Share2, Video, Clapperboard, MessageSquare, Compass, Film, Layers],
-    color: "rgba(244, 63, 94, 0.4)",
+    color: "rgba(99, 102, 241, 0.45)",
   },
 };
 

@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   GraduationCap,
-  Sparkles,
   Copy,
   Check,
   BookOpen,
@@ -325,16 +324,16 @@ export default function EssayOutlineBuilder() {
           <button
             onClick={handleGenerate}
             disabled={!topic.trim() || isGenerating}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs tracking-widest uppercase shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2.5 cursor-pointer group"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-110 text-black font-black text-xs tracking-widest uppercase shadow-lg hover:shadow-amber-500/35 transition-all disabled:opacity-50 flex items-center justify-center gap-2.5 cursor-pointer group"
           >
             {isGenerating ? (
               <>
-                <RefreshCw className="w-4.5 h-4.5 animate-spin text-white" />
+                <RefreshCw className="w-4.5 h-4.5 animate-spin text-black" />
                 <span>Building Academic Outline...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-4.5 h-4.5 group-hover:scale-110 transition-transform text-amber-300" />
+                <GraduationCap className="w-4.5 h-4.5 group-hover:scale-110 transition-transform text-black" />
                 <span>Generate Essay Outline</span>
               </>
             )}

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
 import { cn } from "@/lib/utils";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
@@ -124,6 +124,8 @@ const packStyles: Record<string, {
 
 type CreditPack = (typeof PRICING_CONFIG.CREDIT_PACKAGES)[number] & {
   priceLabel: string;
+  regularPriceLabel?: string;
+  promoActive?: boolean;
   style: (typeof packStyles)[keyof typeof packStyles];
 };
 
@@ -233,11 +235,34 @@ export default function ShopPage() {
   const dailyLimit = isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50;
   const dailyPercent = Math.min(100, Math.round((dailyCredits / dailyLimit) * 100));
 
-  const formattedPacks = useMemo<CreditPack[]>(() => PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => ({
-    ...pack,
-    priceLabel: isIndia ? `₹${pack.priceINR}` : `$${pack.priceUSD}`,
-    style: packStyles[pack.color as keyof typeof packStyles] || packStyles.blue,
-  })), [isIndia]);
+  const formattedPacks = useMemo<CreditPack[]>(() => {
+    const promoActive = isExismic17PromoActive();
+    return PRICING_CONFIG.CREDIT_PACKAGES.map((pack) => {
+      let effectiveInr = pack.priceINR;
+      let effectiveUsd = pack.priceUSD;
+      if (promoActive) {
+        if (pack.id === "tier_1" || pack.billingPlanId === "starter") {
+          effectiveInr = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.starter.INR;
+          effectiveUsd = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.starter.USD;
+        } else if (pack.id === "tier_2" || pack.billingPlanId === "creator") {
+          effectiveInr = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.creator.INR;
+          effectiveUsd = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.creator.USD;
+        } else if (pack.id === "tier_3" || pack.billingPlanId === "ultimate") {
+          effectiveInr = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.ultimate.INR;
+          effectiveUsd = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS.ultimate.USD;
+        }
+      }
+      return {
+        ...pack,
+        priceINR: effectiveInr,
+        priceUSD: effectiveUsd,
+        regularPriceLabel: isIndia ? `₹${pack.priceINR}` : `$${pack.priceUSD}`,
+        priceLabel: isIndia ? `₹${effectiveInr}` : `$${effectiveUsd}`,
+        promoActive,
+        style: packStyles[pack.color as keyof typeof packStyles] || packStyles.blue,
+      };
+    });
+  }, [isIndia]);
 
   async function handleClaimDailyReward() {
     if (!user) {
@@ -592,6 +617,11 @@ export default function ShopPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{pack.label}</p>
+                            {pack.promoActive && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-400/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]">
+                                20% OFF
+                              </span>
+                            )}
                             {pack.bonusCredits > 0 && (
                               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]">
                                 <Flame size={11} className="text-emerald-300 fill-emerald-400/30" /> +{pack.bonusCredits.toLocaleString()} Bonus
@@ -679,9 +709,16 @@ export default function ShopPage() {
                                 />
 
                                 <span className="min-w-0 flex-1 text-left relative z-10">
-                                  <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
-                                    BUY • {pack.priceLabel}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    {pack.promoActive && (
+                                      <span className="text-[9px] text-zinc-400 line-through">
+                                        {pack.regularPriceLabel}
+                                      </span>
+                                    )}
+                                    <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                                      BUY • {pack.priceLabel}
+                                    </span>
+                                  </div>
                                   <span className={cn(
                                     "mt-0.5 block text-[8px] font-bold uppercase tracking-[0.16em] transition-colors duration-500",
                                     pack.style.subtitleColor

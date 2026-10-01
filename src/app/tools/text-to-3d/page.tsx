@@ -1,10 +1,16 @@
-import { getToolMetadata } from "@/lib/seo";
+import { constructMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import TextTo3D from "@/components/tool/TextTo3D";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getToolMetadata("text-to-3d", "ai");
+  // This unlisted preview is not part of the published tool catalog.
+  return constructMetadata({
+    title: "Text-to-3D Preview | Exismic",
+    description: "Preview the Exismic text-to-3D workspace and its concept-to-model workflow.",
+    canonicalUrl: "/tools/text-to-3d",
+    noIndex: true,
+  });
 }
 
 export default function TextTo3DPage() {

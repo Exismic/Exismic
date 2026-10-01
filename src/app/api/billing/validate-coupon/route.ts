@@ -36,47 +36,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, error: "Please select a valid item before applying a coupon." }, { status: 400 });
     }
 
-    // 0. Special Handling: v1.6 Launch Special One-Time Discount
-    if (cleanCode === PRICING_CONFIG.V16_LAUNCH_PROMO.CODE) {
-      if (plan.id !== "pro") {
+    // 0. Exismic 1.7 Launch Special (Official 20% Discount) & Custom Coupon Blocking
+    if (PRICING_CONFIG.V17_LAUNCH_PROMO.ACTIVE) {
+      if (cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE) {
+        if (plan.id === "pro_yearly") {
+          return NextResponse.json({
+            valid: false,
+            error: "Yearly Pro is not eligible for the 20% launch discount as it already features built-in annual savings.",
+          }, { status: 400 });
+        }
+
+        const allowMarketOverride = process.env.NODE_ENV !== "production";
+        const marketInfo = resolveMarket(req, allowMarketOverride ? marketOverride : null);
+        const market = marketInfo.market as BillingMarket;
+        const basePrice = getPlanPrice(plan.id, market);
+        const isIndia = market === "IN";
+
         return NextResponse.json({
-          valid: false,
-          error: "The v1.6 Launch Special is valid exclusively for Pro Monthly memberships.",
-        }, { status: 400 });
+          valid: true,
+          code: cleanCode,
+          discountType: "launch_special",
+          discountLabel: "20% OFF",
+          discountMinor: basePrice.regularAmountMinor - basePrice.amountMinor,
+          originalAmountMinor: basePrice.regularAmountMinor,
+          finalAmountMinor: basePrice.amountMinor,
+          currency: basePrice.currency,
+          displayDiscount: "20%",
+          displayFinal: basePrice.display,
+          note: plan.id === "pro"
+            ? `Exismic 1.7 Special: First month for ${basePrice.display} (20% OFF). Auto-renews at standard ${basePrice.regularDisplay}/mo. Cancel anytime.`
+            : `Exismic 1.7 Special: 20% discount applied to ${plan.name}.`,
+        });
       }
 
-      const eligibility = await checkUserLaunchDiscountEligibility(user.id);
-      if (!eligibility.eligible) {
-        return NextResponse.json({
-          valid: false,
-          error: eligibility.reason || "You have already redeemed your one-time v1.6 Launch Special discount.",
-        }, { status: 400 });
-      }
-
-      const allowMarketOverride = process.env.NODE_ENV !== "production";
-      const marketInfo = resolveMarket(req, allowMarketOverride ? marketOverride : null);
-      const market = marketInfo.market as BillingMarket;
-      const basePrice = getPlanPrice(plan.id, market);
-      const isIndia = market === "IN";
-
-      const finalAmountMinor = isIndia
-        ? PRICING_CONFIG.V16_LAUNCH_PROMO.DISCOUNTED_PRICE_INR * 100
-        : Math.round(PRICING_CONFIG.V16_LAUNCH_PROMO.DISCOUNTED_PRICE_USD * 100);
-      const discountMinor = Math.max(0, basePrice.amountMinor - finalAmountMinor);
-
+      // Block all custom coupons during the 1-week official launch sale
       return NextResponse.json({
-        valid: true,
-        code: cleanCode,
-        discountType: "launch_special",
-        discountLabel: isIndia ? "₹200 OFF (v1.6 Launch Special)" : "$3.00 OFF (v1.6 Launch Special)",
-        discountMinor,
-        originalAmountMinor: basePrice.amountMinor,
-        finalAmountMinor,
-        currency: basePrice.currency,
-        displayDiscount: isIndia ? "₹200" : "$3.00",
-        displayFinal: isIndia ? `₹${(finalAmountMinor / 100).toFixed(0)}` : `$${(finalAmountMinor / 100).toFixed(2)}`,
-        note: "v1.6 Launch Special: First month for " + (isIndia ? "₹299" : "$3.99") + ". Auto-renews at standard " + (isIndia ? "₹499" : "$6.99") + "/mo. Cancel anytime.",
-      });
+        valid: false,
+        error: "Custom coupons cannot be used during the Exismic 1.7 Launch Sale (official 20% discount is already active from us).",
+      }, { status: 400 });
     }
 
     // 1. Fetch promo code from DB

@@ -18,14 +18,25 @@ Whenever adding a new tool or updating an existing tool in Exismic Studio:
 Exismic is built for creators, students, professionals, and everyday users — not audio engineers, DSP researchers, or compiler developers. Technical jargon alienates users and makes tools feel intimidating and overly complex.
 
 ### Writing Rules:
-- **Write for human intent**: Describe what the feature *does for the user*, not the underlying algorithms or protocols it uses.
-- **Eliminate audio/video/tech acronyms** like `DSP`, `WASM`, `EQ`, `Convolution`, `AST`, `16-bit PCM`, `Lossy`, `Biquad`, etc. from visible UI labels, buttons, and headers.
-- **Action-first terminology**: Use words like *Speed*, *Echo*, *Bass*, *Quality*, *Download*, *Preview*, *Slow Down*, *Trim*, *Convert*.
+- **Write for human intent**: Describe what the feature *does for the user*, not the underlying algorithms, neural networks, or protocols it uses.
+- **Eliminate audio/video/tech acronyms & engineering jargon**: Outlaw words like `DSP`, `WASM`, `EQ`, `Convolution`, `AST`, `16-bit PCM`, `Lossy`, `Biquad`, `Engine`, `Stems`, `Neural Separation`, `Fidelity`, `Stereo Panning`, `Faders`, `$0 compute`, `$0 wait`, etc. from visible UI labels, buttons, and headers.
+- **Zero Tech Buzzwords**: Never say "Engine" when you mean "Studio", "Quality", or "Mode". Never say "Stems" when you mean "Tracks" or "Vocals & Music". Never say "Deep Neural Separation" when you mean "Studio Quality".
+- **Zero Double-Icon Emojis**: Never place emojis inside button labels when authentic Lucide vector icons are already rendered. Keep labels clean, modern, and uncluttered.
+- **Action-first everyday terminology**: Use plain, friendly everyday words like *Speed*, *Echo*, *Bass*, *Quality*, *Download*, *Preview*, *Slow Down*, *Trim*, *Convert*, *Singing*, *Karaoke*, *Music*, *Tracks*.
 
 ### Jargon Translation Dictionary:
 
 | ❌ Prohibited Tech Jargon | ✅ Required Plain Everyday English |
 | :--- | :--- |
+| *Audio & Music Engine* / *Separation Engine* | **Audio & Music Studio** / **Separation Quality** (or **How to Separate**) |
+| *Deep neural separation for highest karaoke clarity* | **Studio Quality — Cleanest removal of singing vocals** |
+| *Preserving full instrumental fidelity and stereo panning* | **Keeps the background music crisp, clear, and natural** |
+| *Vocals + Karaoke Stems* / *Stems* | **Vocals + Karaoke Tracks** (or **Voice & Music**) |
+| *Stem Faders* / *Faders* | **Volume Sliders** (or **Sound Controls**) |
+| *Pure Acapella* (isolated) | **Vocals Only (Singing)** |
+| *Clean Karaoke* (with emojis like `♪ 🎤 Clean Karaoke`) | **Clean Karaoke** (clean text with authentic Lucide vector icon) |
+| *Ultra-fast 2s separation in your browser with $0 wait* | **Fast Mode — Quick 2-second preview on your device** |
+| *$0 compute* / *$0 wait* | **Instant** / **Free** / **No wait time** |
 | *Studio DSP Console* | **Slowed & Reverb Studio** (or *Audio Effects Studio*) |
 | *DSP Faders* | **Adjust Sound** (or *Sound Controls*) |
 | *Real-Time Web Audio* | **Instant Preview** (or *Live Playback*) |
@@ -106,6 +117,21 @@ The generic `<Sparkles>` icon has been overused across web apps as a lazy placeh
 
 ---
 
+## ⚡ Standard 4: Continuous Dynamic Progress Feedback
+
+1. **Never Hardcode Static Progress Widths**:
+   - Never use static mock widths (like `w-3/4` or `w-[80%]` with `animate-pulse`) that sit frozen in one spot while processing.
+   - Users interpret frozen progress bars as stalled or broken operations.
+2. **Track Real Upload Progress**:
+   - For file uploads, use `XMLHttpRequest.upload.onprogress` to display real byte progress (`Uploading song (65%) • 2.4 MB of 3.8 MB`).
+3. **Continuous Smooth Processing Ticker**:
+   - Transition into a continuous, high-frequency progress ticker (e.g. every 150ms) that smoothly advances the progress bar using asymptotic easing (e.g. 35% -> 99%) so it is **always moving**.
+   - Accompany the progress bar with an exact numerical percentage badge (`47%`), an elapsed time counter, and clear, informative plain-English stages (`Scanning audio frequencies...`, `Separating vocals...`).
+4. **Instant Completion Jump**:
+   - When the backend response finishes, smoothly snap to 100% (`Separation complete!`), hold briefly for visual confirmation, and then reveal the workspace.
+
+---
+
 ## ✅ Pre-Release Review Checklist
 
 Before marking any new or modified tool as complete, verify:
@@ -113,4 +139,5 @@ Before marking any new or modified tool as complete, verify:
 - [ ] **No Sparkle Icons**: `<Sparkles>` is not used as an icon for the tool, its tabs, buttons, or presets.
 - [ ] **No Dead Void**: The gap between the tool and Guide & Overview is bridged with the category-colored laser horizon divider.
 - [ ] **No Text Truncation**: All pills, chips, and labels display their full text cleanly across all viewports.
+- [ ] **Continuous Dynamic Progress**: Processing bars track real bytes and animate dynamically with exact percentage numbers instead of freezing in one spot.
 - [ ] **TypeScript Clean**: `npx tsc --noEmit` passes with 0 errors.

@@ -83,11 +83,37 @@ export function AppLoader({ children }: { children: React.ReactNode }) {
     };
   }, [router]);
 
+  // Safety timeout: Auto-dismiss navigation laser bar if navigation takes too long or was intercepted/prevented
+  useEffect(() => {
+    if (!isNavigating) return;
+    const timer = setTimeout(() => {
+      setIsNavigating(false);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [isNavigating]);
+
   // Global link click listener: detects internal navigation clicks instantly
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement)?.closest('a');
+      const clickedEl = e.target as HTMLElement | null;
+      if (!clickedEl) return;
+
+      // Ignore clicks on buttons, interactive controls, or elements opting out of nav loader
+      if (
+        clickedEl.closest(
+          'button, [role="button"], input, select, textarea, [data-no-nav-loader="true"]'
+        )
+      ) {
+        return;
+      }
+
+      // If the event was already defaultPrevented, do not trigger navigation loader
+      if (e.defaultPrevented) return;
+
+      const target = clickedEl.closest('a');
       if (!target) return;
+
+      if (target.getAttribute('data-no-nav-loader') === 'true') return;
 
       const href = target.getAttribute('href');
       const targetAttr = target.getAttribute('target');

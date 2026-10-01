@@ -10,7 +10,7 @@ import {
   FileType, 
   ArrowRight, 
   Loader2, 
-  Sparkles,
+  Workflow,
   type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,51 @@ const ACTION_CONFIGS: Record<PipelineActionKey, ActionConfig> = {
   },
 };
 
+const ACCENT_STYLES = {
+  red: {
+    badge: "bg-red-500/15 text-red-400 border-red-500/30 shadow-[0_0_12px_rgba(239,68,68,0.2)]",
+    icon: "text-red-400",
+    gradient: "from-red-200 via-rose-100 to-amber-200",
+    handoffPill: "text-red-400/80 border-red-500/20",
+  },
+  pink: {
+    badge: "bg-pink-500/15 text-pink-400 border-pink-500/30 shadow-[0_0_12px_rgba(236,72,153,0.2)]",
+    icon: "text-pink-400",
+    gradient: "from-pink-200 via-rose-100 to-fuchsia-300",
+    handoffPill: "text-pink-400/80 border-pink-500/20",
+  },
+  cyan: {
+    badge: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]",
+    icon: "text-cyan-400",
+    gradient: "from-cyan-200 via-sky-100 to-indigo-300",
+    handoffPill: "text-cyan-400/80 border-cyan-500/20",
+  },
+  purple: {
+    badge: "bg-purple-500/15 text-purple-300 border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]",
+    icon: "text-purple-400",
+    gradient: "from-purple-200 via-violet-100 to-indigo-300",
+    handoffPill: "text-purple-400/80 border-purple-500/20",
+  },
+  amber: {
+    badge: "bg-amber-500/15 text-amber-300 border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.2)]",
+    icon: "text-amber-400",
+    gradient: "from-amber-200 via-orange-100 to-yellow-300",
+    handoffPill: "text-amber-400/80 border-amber-500/20",
+  },
+  indigo: {
+    badge: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.2)]",
+    icon: "text-indigo-400",
+    gradient: "from-indigo-200 via-sky-100 to-blue-300",
+    handoffPill: "text-indigo-400/80 border-indigo-500/20",
+  },
+  neutral: {
+    badge: "bg-white/10 text-zinc-300 border-white/15",
+    icon: "text-zinc-300",
+    gradient: "from-zinc-100 via-zinc-200 to-zinc-400",
+    handoffPill: "text-zinc-500 border-white/5",
+  },
+};
+
 interface MediaPipelineBarProps {
   imageUrl: string;
   imageName?: string;
@@ -85,6 +130,7 @@ interface MediaPipelineBarProps {
   className?: string;
   title?: string;
   subtitle?: string;
+  accentColor?: "red" | "pink" | "cyan" | "purple" | "amber" | "indigo" | "neutral";
 }
 
 export function MediaPipelineBar({
@@ -96,8 +142,18 @@ export function MediaPipelineBar({
   className = "",
   title = "Next Action Pipeline",
   subtitle = "Carry this image directly into companion tools with zero re-uploading",
+  accentColor,
 }: MediaPipelineBarProps) {
   const [navigatingTo, setNavigatingTo] = useState<PipelineActionKey | null>(null);
+
+  const resolvedAccent = accentColor || (
+    sourceToolId.includes("pdf") ? "red" :
+    sourceToolId.includes("audio") || sourceToolId === "audiogram" ? "pink" :
+    sourceToolId.includes("code") || sourceToolId.includes("favicon") ? "cyan" :
+    sourceToolId.includes("creator") || sourceToolId.includes("hook") || sourceToolId.includes("social") ? "indigo" :
+    "neutral"
+  );
+  const theme = ACCENT_STYLES[resolvedAccent] || ACCENT_STYLES.neutral;
 
   const handleAction = async (actionKey: PipelineActionKey) => {
     if (navigatingTo) return;
@@ -136,10 +192,10 @@ export function MediaPipelineBar({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-white/5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
-              <Sparkles size={12} className="text-cyan-400" />
+            <span className={cn("flex h-5 w-5 items-center justify-center rounded-lg border", theme.badge)}>
+              <Workflow size={12} className={theme.icon} />
             </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r from-cyan-200 via-sky-100 to-indigo-300 bg-clip-text text-transparent">
+            <span className={cn("text-[10px] font-black uppercase tracking-[0.2em] bg-gradient-to-r bg-clip-text text-transparent", theme.gradient)}>
               {title}
             </span>
           </div>
@@ -147,7 +203,7 @@ export function MediaPipelineBar({
             {subtitle}
           </p>
         </div>
-        <span className="text-[9px] font-mono uppercase tracking-widest text-zinc-500 self-start sm:self-center">
+        <span className={cn("text-[9px] font-mono uppercase tracking-widest self-start sm:self-center px-2 py-0.5 rounded-full border bg-white/[0.03]", theme.handoffPill)}>
           1-Click Handoff
         </span>
       </div>

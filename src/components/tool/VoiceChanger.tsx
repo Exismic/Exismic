@@ -1,5 +1,6 @@
-import { AudioProcessingTool } from "@/components/tool/AudioProcessingTool";
+import { VoiceChangerStudio } from "@/components/tool/audio/VoiceChangerStudio";
 
 export function VoiceChanger() {
-  return <AudioProcessingTool mode="voice-changer" />;
+  return <VoiceChangerStudio />;
 }
+

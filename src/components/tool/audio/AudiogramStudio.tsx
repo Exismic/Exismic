@@ -55,14 +55,14 @@ export interface ColorTheme {
 const COLOR_THEMES: ColorTheme[] = [
   {
     id: "obsidian-cyber",
-    name: "Obsidian Cyan",
+    name: "Obsidian Cyber Pink",
     badge: "SIGNATURE",
-    bgGrad: ["#070914", "#04050b", "#020306"],
-    waveColors: ["#06b6d4", "#8b5cf6"], // Cyan to Purple
-    cardBg: "rgba(12, 18, 36, 0.88)",
-    cardBorder: "rgba(99, 102, 241, 0.45)",
+    bgGrad: ["#140710", "#0b040a", "#050204"],
+    waveColors: ["#ec4899", "#a855f7"], // Pink to Purple
+    cardBg: "rgba(30, 10, 24, 0.88)",
+    cardBorder: "rgba(236, 72, 153, 0.45)",
     textPrimary: "#ffffff",
-    textSecondary: "#94a3b8",
+    textSecondary: "#f472b6",
   },
   {
     id: "sunset-blaze",
@@ -1244,22 +1244,26 @@ export default function AudiogramStudio() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-80px)] flex flex-col gap-5 p-3 sm:p-5 md:p-6 lg:p-8 max-w-[1720px] mx-auto text-slate-100 pb-28 md:pb-10 select-none sm:select-auto">
+    <div className="w-full min-h-[calc(100vh-80px)] flex flex-col gap-5 p-3 sm:p-5 md:p-6 lg:p-8 max-w-[1720px] mx-auto text-slate-100 pb-28 md:pb-10 select-none sm:select-auto relative">
+      {/* Ambient Neon Pink & Purple Radial Glows */}
+      <div className="absolute top-0 right-1/4 w-96 h-40 bg-pink-500/10 blur-[100px] pointer-events-none rounded-full" />
+      <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600/10 blur-[120px] pointer-events-none rounded-full" />
+
       {/* Toast Notification (Safely below navbar) */}
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#0a0f1d]/95 border border-cyan-500/40 text-cyan-200 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] animate-in fade-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#090a12]/95 border border-pink-500/40 text-pink-200 backdrop-blur-2xl shadow-[0_10px_35px_rgba(236,72,153,0.3)] animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-pink-400 flex-shrink-0" />
           <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{toastMessage}</span>
         </div>
       )}
 
       {/* TOP COMMAND HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0a0d1a]/80 border border-white/[0.08] rounded-2xl p-4 sm:p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#090a12]/95 border border-pink-500/25 rounded-2xl p-4 sm:p-6 backdrop-blur-xl shadow-[0_0_35px_rgba(236,72,153,0.08)] relative overflow-hidden">
         {/* Glow accent */}
-        <div className="absolute top-0 right-1/4 w-96 h-32 bg-cyan-500/10 blur-[90px] pointer-events-none rounded-full" />
+        <div className="absolute top-0 right-1/4 w-96 h-32 bg-pink-500/10 blur-[90px] pointer-events-none rounded-full" />
 
         <div className="flex items-center gap-4 relative z-10">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_24px_rgba(6,182,212,0.25)] flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/10 to-transparent border border-pink-500/35 flex items-center justify-center text-pink-400 shadow-[0_0_24px_rgba(236,72,153,0.25)] flex-shrink-0">
             <AudioWaveform className="w-6 h-6" />
           </div>
           <div>
@@ -1281,17 +1285,17 @@ export default function AudiogramStudio() {
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 relative z-10">
           <button
             onClick={handleDownloadSnapshot}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.18] transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-white/[0.04] hover:bg-pink-500/10 border border-white/[0.08] hover:border-pink-500/30 transition-all active:scale-95 cursor-pointer"
             title="Download still cover card as high-res PNG"
           >
-            <Camera className="w-4 h-4 text-cyan-400" />
+            <Camera className="w-4 h-4 text-pink-400" />
             <span>Save Cover PNG</span>
           </button>
 
           <button
             onClick={handleExportVideo}
             disabled={isRecording}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 border border-cyan-400/40 shadow-[0_0_25px_rgba(6,182,212,0.3)] transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:via-rose-400 hover:to-purple-500 border border-pink-400/40 shadow-[0_0_25px_rgba(236,72,153,0.4)] transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             {isRecording ? (
               <>
@@ -1309,13 +1313,13 @@ export default function AudiogramStudio() {
       </div>
 
       {/* MOBILE SEGMENTED TABS (Strict 320px - 430px Friendly) */}
-      <div className="flex lg:hidden items-center p-1 rounded-xl bg-[#090c17] border border-white/[0.08]">
+      <div className="flex lg:hidden items-center p-1 rounded-xl bg-[#090a12] border border-white/[0.08]">
         <button
           onClick={() => setMobileTab("stage")}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
             mobileTab === "stage"
-              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              ? "bg-pink-600/30 text-pink-300 border border-pink-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1325,9 +1329,9 @@ export default function AudiogramStudio() {
         <button
           onClick={() => setMobileTab("style")}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
             mobileTab === "style"
-              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              ? "bg-pink-600/30 text-pink-300 border border-pink-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1337,9 +1341,9 @@ export default function AudiogramStudio() {
         <button
           onClick={() => setMobileTab("audio")}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
             mobileTab === "audio"
-              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              ? "bg-pink-600/30 text-pink-300 border border-pink-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1349,9 +1353,9 @@ export default function AudiogramStudio() {
         <button
           onClick={() => setMobileTab("titles")}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
+            "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
             mobileTab === "titles"
-              ? "bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 shadow-sm"
+              ? "bg-pink-600/30 text-pink-300 border border-pink-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200"
           )}
         >
@@ -1372,12 +1376,12 @@ export default function AudiogramStudio() {
           {/* Panel 1: Video Format & Waveform Style */}
           <div
             className={cn(
-              "flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#0a0d1a]/85 border border-white/[0.08] backdrop-blur-xl shadow-xl",
+              "flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_35px_rgba(236,72,153,0.06)]",
               mobileTab !== "style" && mobileTab !== "stage" ? "hidden lg:flex" : "flex"
             )}
           >
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-cyan-400" />
+              <Sliders className="w-4 h-4 text-pink-400" />
               <h3 className="text-sm font-semibold text-white">Video Shape & Waveform</h3>
             </div>
 
@@ -1388,10 +1392,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setAspectRatio("vertical")}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all",
+                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
                     aspectRatio === "vertical"
-                      ? "bg-cyan-600/20 border-cyan-500/50 text-white shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/20 border-pink-500/50 text-white shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   <div className="w-3.5 h-5 border-2 border-current rounded-sm" />
@@ -1400,10 +1404,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setAspectRatio("square")}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all",
+                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
                     aspectRatio === "square"
-                      ? "bg-cyan-600/20 border-cyan-500/50 text-white shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/20 border-pink-500/50 text-white shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   <div className="w-4 h-4 border-2 border-current rounded-sm" />
@@ -1412,10 +1416,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setAspectRatio("portrait")}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all",
+                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
                     aspectRatio === "portrait"
-                      ? "bg-cyan-600/20 border-cyan-500/50 text-white shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/20 border-pink-500/50 text-white shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   <div className="w-3.5 h-4.5 border-2 border-current rounded-sm" />
@@ -1424,10 +1428,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setAspectRatio("landscape")}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all",
+                    "flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
                     aspectRatio === "landscape"
-                      ? "bg-cyan-600/20 border-cyan-500/50 text-white shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/20 border-pink-500/50 text-white shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   <div className="w-5 h-3.5 border-2 border-current rounded-sm" />
@@ -1443,10 +1447,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setWaveformStyle("bars")}
                   className={cn(
-                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center",
+                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer",
                     waveformStyle === "bars"
-                      ? "bg-cyan-600/25 border-cyan-500/50 text-cyan-300 shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/25 border-pink-500/50 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   Bouncing Bars
@@ -1454,10 +1458,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setWaveformStyle("radial")}
                   className={cn(
-                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center",
+                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer",
                     waveformStyle === "radial"
-                      ? "bg-cyan-600/25 border-cyan-500/50 text-cyan-300 shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/25 border-pink-500/50 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   Circular Aura
@@ -1465,10 +1469,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setWaveformStyle("wave")}
                   className={cn(
-                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center",
+                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer",
                     waveformStyle === "wave"
-                      ? "bg-cyan-600/25 border-cyan-500/50 text-cyan-300 shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/25 border-pink-500/50 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   Flowing Wave
@@ -1476,10 +1480,10 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setWaveformStyle("dots")}
                   className={cn(
-                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center",
+                    "py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer",
                     waveformStyle === "dots"
-                      ? "bg-cyan-600/25 border-cyan-500/50 text-cyan-300 shadow-sm"
-                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                      ? "bg-pink-600/25 border-pink-500/50 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.2)]"
+                      : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                   )}
                 >
                   Rhythm Dots
@@ -1491,7 +1495,7 @@ export default function AudiogramStudio() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs text-slate-300">
                 <span>Waveform Amplitude</span>
-                <span className="font-mono text-cyan-400">{waveHeightMultiplier.toFixed(1)}x</span>
+                <span className="font-mono text-pink-400">{waveHeightMultiplier.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -1500,7 +1504,7 @@ export default function AudiogramStudio() {
                 step={0.1}
                 value={waveHeightMultiplier}
                 onChange={(e) => setWaveHeightMultiplier(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-pink-500"
               />
             </div>
 
@@ -1515,10 +1519,10 @@ export default function AudiogramStudio() {
                       key={theme.id}
                       onClick={() => setThemeId(theme.id)}
                       className={cn(
-                        "flex items-center gap-2 p-2 rounded-xl border text-xs font-medium text-left transition-all",
+                        "flex items-center gap-2 p-2 rounded-xl border text-xs font-medium text-left transition-all cursor-pointer",
                         isSelected
-                          ? "bg-white/[0.08] border-cyan-500/60 text-white shadow-sm"
-                          : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200"
+                          ? "bg-white/[0.08] border-pink-500/60 text-white shadow-[0_0_10px_rgba(236,72,153,0.25)]"
+                          : "bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-pink-500/20"
                       )}
                     >
                       <div
@@ -1538,13 +1542,13 @@ export default function AudiogramStudio() {
           {/* Panel 2: Audio File & Artwork Controls */}
           <div
             className={cn(
-              "flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#0a0d1a]/85 border border-white/[0.08] backdrop-blur-xl shadow-xl",
+              "flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_35px_rgba(236,72,153,0.06)]",
               mobileTab !== "audio" && mobileTab !== "stage" ? "hidden lg:flex" : "flex"
             )}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Music className="w-4 h-4 text-cyan-400" />
+                <Music className="w-4 h-4 text-pink-400" />
                 <h3 className="text-sm font-semibold text-white">Audio & Cover Artwork</h3>
               </div>
               <span className="text-xs text-slate-400 font-mono truncate max-w-[170px]">
@@ -1555,8 +1559,8 @@ export default function AudiogramStudio() {
             {/* Audio & Image Upload Tiles */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {/* Audio Upload */}
-              <label className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] hover:border-cyan-500/40 cursor-pointer transition-all text-center group">
-                <Upload className="w-4 h-4 text-cyan-400 mb-1 group-hover:scale-110 transition-transform" />
+              <label className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-white/[0.02] hover:bg-pink-500/10 border border-white/[0.08] hover:border-pink-500/40 cursor-pointer transition-all text-center group">
+                <Upload className="w-4 h-4 text-pink-400 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-slate-200">Load Audio Track</span>
                 <span className="text-[10px] text-slate-500 mt-0.5">MP3, WAV, AAC, M4A</span>
                 <input
@@ -1568,7 +1572,7 @@ export default function AudiogramStudio() {
               </label>
 
               {/* Cover Artwork Upload */}
-              <label className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] hover:border-purple-500/40 cursor-pointer transition-all text-center group">
+              <label className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-white/[0.02] hover:bg-purple-500/10 border border-white/[0.08] hover:border-purple-500/40 cursor-pointer transition-all text-center group">
                 <ImageIcon className="w-4 h-4 text-purple-400 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-slate-200">
                   {coverImageUrl ? "Change Cover" : "Upload Artwork"}
@@ -1588,10 +1592,10 @@ export default function AudiogramStudio() {
               {/* Shape: Squircle vs Vinyl */}
               <button
                 onClick={() => setCoverShape(coverShape === "squircle" ? "vinyl" : "squircle")}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs font-medium text-slate-300 hover:text-white transition-all"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs font-medium text-slate-300 hover:text-white transition-all cursor-pointer"
               >
                 <span>Artwork Shape</span>
-                <span className="font-semibold text-cyan-400 capitalize">
+                <span className="font-semibold text-pink-400 capitalize">
                   {coverShape === "squircle" ? "Card" : "Vinyl"}
                 </span>
               </button>
@@ -1599,7 +1603,7 @@ export default function AudiogramStudio() {
               {/* Blurred Cover Backdrop Toggle */}
               <button
                 onClick={() => setUseBlurredBackdrop(!useBlurredBackdrop)}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs font-medium text-slate-300 hover:text-white transition-all"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs font-medium text-slate-300 hover:text-white transition-all cursor-pointer"
               >
                 <span>Blurred Backdrop</span>
                 <span className={cn("font-semibold", useBlurredBackdrop ? "text-emerald-400" : "text-slate-500")}>
@@ -1612,21 +1616,21 @@ export default function AudiogramStudio() {
           {/* Panel 3: Titles, Captions & Typography */}
           <div
             className={cn(
-              "flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#0a0d1a]/85 border border-white/[0.08] backdrop-blur-xl shadow-xl",
+              "flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_35px_rgba(236,72,153,0.06)]",
               mobileTab !== "titles" && mobileTab !== "stage" ? "hidden lg:flex" : "flex"
             )}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Type className="w-4 h-4 text-cyan-400" />
+                <Type className="w-4 h-4 text-pink-400" />
                 <h3 className="text-sm font-semibold text-white">Titles & Typography</h3>
               </div>
               <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/[0.06]">
                 <button
                   onClick={() => setFontStyle("sans")}
                   className={cn(
-                    "px-2 py-0.5 rounded text-[11px] font-medium transition-all",
-                    fontStyle === "sans" ? "bg-white/[0.1] text-white" : "text-slate-400 hover:text-slate-200"
+                    "px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer",
+                    fontStyle === "sans" ? "bg-pink-500/20 text-pink-200 border border-pink-500/40" : "text-slate-400 hover:text-slate-200"
                   )}
                 >
                   Sans
@@ -1634,8 +1638,8 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setFontStyle("display")}
                   className={cn(
-                    "px-2 py-0.5 rounded text-[11px] font-medium transition-all font-serif",
-                    fontStyle === "display" ? "bg-white/[0.1] text-white" : "text-slate-400 hover:text-slate-200"
+                    "px-2 py-0.5 rounded text-[11px] font-medium transition-all font-serif cursor-pointer",
+                    fontStyle === "display" ? "bg-pink-500/20 text-pink-200 border border-pink-500/40" : "text-slate-400 hover:text-slate-200"
                   )}
                 >
                   Serif
@@ -1643,8 +1647,8 @@ export default function AudiogramStudio() {
                 <button
                   onClick={() => setFontStyle("mono")}
                   className={cn(
-                    "px-2 py-0.5 rounded text-[11px] font-medium transition-all font-mono",
-                    fontStyle === "mono" ? "bg-white/[0.1] text-white" : "text-slate-400 hover:text-slate-200"
+                    "px-2 py-0.5 rounded text-[11px] font-medium transition-all font-mono cursor-pointer",
+                    fontStyle === "mono" ? "bg-pink-500/20 text-pink-200 border border-pink-500/40" : "text-slate-400 hover:text-slate-200"
                   )}
                 >
                   Mono
@@ -1659,7 +1663,7 @@ export default function AudiogramStudio() {
                 value={episodeTitle}
                 onChange={(e) => setEpisodeTitle(e.target.value)}
                 placeholder="Catchy question or viral hook..."
-                className="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                className="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-pink-500/50"
               />
             </div>
 
@@ -1670,7 +1674,7 @@ export default function AudiogramStudio() {
                 value={speakerName}
                 onChange={(e) => setSpeakerName(e.target.value)}
                 placeholder="Speaker Name • Podcast Title"
-                className="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                className="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-pink-500/50"
               />
             </div>
           </div>
@@ -1678,12 +1682,12 @@ export default function AudiogramStudio() {
           {/* Panel 4: Quick Blueprints & Presets */}
           <div
             className={cn(
-              "flex-col gap-3 p-4 sm:p-5 rounded-2xl bg-[#0a0d1a]/85 border border-white/[0.08] backdrop-blur-xl shadow-xl",
+              "flex-col gap-3 p-4 sm:p-5 rounded-2xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_35px_rgba(236,72,153,0.06)]",
               mobileTab !== "titles" && mobileTab !== "stage" ? "hidden lg:flex" : "flex"
             )}
           >
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <BookOpen className="w-4 h-4 text-pink-400" />
               <h3 className="text-sm font-semibold text-white">Instant Presets</h3>
             </div>
 
@@ -1692,12 +1696,12 @@ export default function AudiogramStudio() {
                 <button
                   key={tpl.id}
                   onClick={() => handleLoadPreset(tpl)}
-                  className="flex flex-col p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-cyan-500/40 text-left transition-all group"
+                  className="flex flex-col p-2.5 rounded-xl bg-white/[0.02] hover:bg-pink-500/10 border border-white/[0.06] hover:border-pink-500/40 text-left transition-all group cursor-pointer"
                 >
                   <span className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
                     {tpl.title}
                   </span>
-                  <span className="text-[10px] text-cyan-400 mt-0.5 font-medium">
+                  <span className="text-[10px] text-pink-400 mt-0.5 font-medium">
                     {tpl.category}
                   </span>
                 </button>
@@ -1714,7 +1718,7 @@ export default function AudiogramStudio() {
           )}
         >
           {/* Main Video Canvas Showcase Frame */}
-          <div className="relative w-full flex items-center justify-center p-3 sm:p-6 rounded-2xl bg-black/90 border border-white/[0.08] overflow-hidden shadow-2xl">
+          <div className="relative w-full flex items-center justify-center p-3 sm:p-6 rounded-2xl bg-black/90 border border-pink-500/25 overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.1)]">
             {/* Ambient Reactive Backlight */}
             <div
               className="absolute inset-0 pointer-events-none opacity-25 blur-3xl transition-colors duration-500"
@@ -1739,7 +1743,7 @@ export default function AudiogramStudio() {
             {isRecording && (
               <div className="absolute inset-0 bg-black/92 backdrop-blur-md flex flex-col items-center justify-center gap-4 z-50 animate-in fade-in duration-200">
                 <div className="relative flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full border-4 border-cyan-500/30 border-t-cyan-400 animate-spin" />
+                  <div className="w-20 h-20 rounded-full border-4 border-pink-500/30 border-t-pink-400 animate-spin" />
                   <span className="absolute font-bold text-lg text-white">
                     {recordingProgress}%
                   </span>
@@ -1755,7 +1759,7 @@ export default function AudiogramStudio() {
           </div>
 
           {/* AUDIO PLAYER & TRANSPORT CONSOLE */}
-          <div className="w-full flex flex-col gap-3 p-4 rounded-2xl bg-[#0a0d1a]/85 border border-white/[0.08] backdrop-blur-xl shadow-xl">
+          <div className="w-full flex flex-col gap-3 p-4 rounded-2xl bg-[#090a12]/95 border border-pink-500/25 backdrop-blur-xl shadow-[0_0_35px_rgba(236,72,153,0.06)]">
             {/* Scrubber Seekbar */}
             <div className="flex items-center gap-3">
               <span className="text-xs font-mono text-slate-400 w-12 text-right">
@@ -1768,7 +1772,7 @@ export default function AudiogramStudio() {
                 step={0.05}
                 value={currentTime}
                 onChange={(e) => handleSeek(parseFloat(e.target.value))}
-                className="flex-1 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                className="flex-1 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-pink-500"
               />
               <span className="text-xs font-mono text-slate-400 w-12">
                 {formatTime(duration)}
@@ -1781,16 +1785,16 @@ export default function AudiogramStudio() {
                 {/* Play / Pause */}
                 <button
                   onClick={isPlaying ? handlePause : () => handlePlay()}
-                  className="w-10 h-10 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold flex items-center justify-center transition-transform active:scale-95 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                  className="w-10 h-10 rounded-xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:via-rose-400 hover:to-purple-500 text-white font-bold flex items-center justify-center transition-transform active:scale-95 shadow-[0_0_20px_rgba(236,72,153,0.45)] cursor-pointer"
                   title={isPlaying ? "Pause" : "Play preview"}
                 >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                 </button>
 
                 {/* Reset to Start */}
                 <button
                   onClick={handleReset}
-                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors"
+                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors cursor-pointer"
                   title="Reset to beginning"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -1799,7 +1803,7 @@ export default function AudiogramStudio() {
                 {/* Mute Toggle */}
                 <button
                   onClick={toggleMute}
-                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors"
+                  className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors cursor-pointer"
                   title={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
@@ -1817,7 +1821,7 @@ export default function AudiogramStudio() {
                     ? "1080 × 1080 (1:1)"
                     : "1920 × 1080 (16:9)"}
                 </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] text-cyan-300 font-sans uppercase font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-300 font-sans uppercase font-medium">
                   {waveformStyle}
                 </span>
               </div>
@@ -1834,19 +1838,20 @@ export default function AudiogramStudio() {
               actions={["compressor", "resizer", "converter", "meme"]}
               title="Next Action Pipeline"
               subtitle="Pass your video artwork or snapshot directly into companion tools"
+              accentColor="pink"
             />
           </div>
         </div>
       </div>
 
       {/* MOBILE FLOATING ACTION HUD (Fixed to bottom on small screens) */}
-      <div className="lg:hidden fixed bottom-3 left-3 right-3 z-50 flex items-center justify-between p-2 rounded-2xl bg-[#070a14]/95 border border-white/[0.12] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.8)]">
+      <div className="lg:hidden fixed bottom-3 left-3 right-3 z-50 flex items-center justify-between p-2 rounded-2xl bg-[#090a12]/95 border border-pink-500/30 backdrop-blur-2xl shadow-[0_12px_40px_rgba(236,72,153,0.25)]">
         <div className="flex items-center gap-2 pl-2">
           <button
             onClick={isPlaying ? handlePause : () => handlePlay()}
-            className="w-9 h-9 rounded-xl bg-cyan-500 text-slate-950 flex items-center justify-center font-bold active:scale-95 transition-transform"
+            className="w-9 h-9 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 text-white flex items-center justify-center font-bold active:scale-95 transition-transform cursor-pointer"
           >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
           </button>
           <span className="text-xs font-mono font-medium text-white">
             {formatTime(currentTime)} / {formatTime(duration)}
@@ -1856,16 +1861,16 @@ export default function AudiogramStudio() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleDownloadSnapshot}
-            className="p-2 rounded-xl bg-white/[0.06] text-slate-200 border border-white/[0.08] active:scale-95 transition-all"
+            className="p-2 rounded-xl bg-white/[0.06] text-slate-200 border border-white/[0.08] hover:border-pink-500/30 active:scale-95 transition-all cursor-pointer"
             title="Save PNG Cover"
           >
-            <Camera className="w-4 h-4 text-cyan-400" />
+            <Camera className="w-4 h-4 text-pink-400" />
           </button>
 
           <button
             onClick={handleExportVideo}
             disabled={isRecording}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold text-xs border border-cyan-400/40 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 text-white font-semibold text-xs border border-pink-400/40 active:scale-95 transition-all shadow-sm disabled:opacity-50 cursor-pointer"
           >
             <Film className="w-3.5 h-3.5" />
             <span>{isRecording ? `${recordingProgress}%` : "Export"}</span>

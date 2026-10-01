@@ -339,7 +339,7 @@ export const CATEGORIES: Category[] = [
   { id: 'seo', name: 'SEO Tools', description: 'Boost search rankings, optimize headlines, preview social links, and grow traffic.', icon: 'SearchCode' as IconName, color: 'text-cyan-400', glow: 'rgba(34, 211, 238, 0.5)' },
   { id: 'developer', name: 'Developer Tools', description: 'Handy utilities to format data, test matching rules, create IDs, and clean graphics.', icon: 'Terminal' as IconName, color: 'text-lime-400', glow: 'rgba(163, 230, 53, 0.5)' },
   { id: 'student', name: 'Student & Study Tools', description: 'Turn lectures into study guides, create flip flashcards, solve math, and cite sources.', icon: 'GraduationCap' as IconName, color: 'text-amber-400', glow: 'rgba(251, 191, 36, 0.5)' },
-  { id: 'creator', name: 'Creator & Social Media', description: 'Write viral video hooks, design swipeable carousels, analyze thumbnails, and format posts.', icon: 'Share2' as IconName, color: 'text-rose-400', glow: 'rgba(244, 63, 94, 0.5)' },
+  { id: 'creator', name: 'Creator & Social Media', description: 'Write viral video hooks, design swipeable carousels, analyze thumbnails, and format posts.', icon: 'Share2' as IconName, color: 'text-indigo-400', glow: 'rgba(99, 102, 241, 0.5)' },
 ];
 
 export const ALL_TOOLS: Tool[] = [
@@ -356,31 +356,47 @@ export const ALL_TOOLS: Tool[] = [
     proPowerPack: true,
     requiresFileUpload: true, 
     acceptedFileTypes: ['image/*'],
-    seoTitle: "Free Magic Eraser Online - Remove Objects & People from Photos Instantly",
-    seoDescription: "The best free background remover online. Use our AI magic eraser to remove unwanted objects, people, or backgrounds from any photo in seconds.",
+    seoTitle: "Background Remover Online - Create Transparent PNG Cutouts | Exismic",
+    seoDescription: "Remove photo backgrounds, preview your cutout, and download a transparent PNG for product listings, portraits, and designs.",
     seoKeywords: ["background remover","remove background free","ai bg eraser","transparent background","photo background remover","Exismic"],
-    seoIntro: "Remove distracting backgrounds and isolate subjects automatically with fine-edge detection for hair, fur, and delicate contours. Download transparent PNG cutouts with zero watermarks.",
+    seoIntro: "Separate a photo subject from its background and preview the result before downloading a transparent PNG. This tool removes backgrounds; it does not erase individual objects inside your subject.",
     howToSteps: [
       "Upload your photo or drag and drop your image directly onto the workspace above.",
       "Let the AI detect and isolate your foreground subject automatically in real time.",
       "Preview your cutout against light or dark grids and download your clean, transparent PNG."
     ],
     features: [
-      "Sub-Pixel Edge Detection: Cleanly separates wispy hair, delicate fabric, and transparent glass.",
-      "Instant In-Browser Processing: Fast segmentation with zero wait queues or slow upload delays.",
-      "Lossless Transparent PNG: Exports high-resolution cutouts ready for e-commerce, logos, and collages.",
-      "100% Watermark-Free: All exported images are completely unbranded and ready for commercial use."
-    ],
+  "Transparent PNG: Download your cutout with a transparent background.",
+  "Cutout preview: Inspect the subject and edges before saving.",
+  "Photo backgrounds: Isolate portraits or products for a new design.",
+  "Reusable images: Place the cutout in a thumbnail, collage, or product listing."
+],
     faqs: [
-      { question: "Does the background remover handle complex textures like hair and fur?", answer: "Yes, our neural segmentation network cleanly detects fine strands of hair, animal fur, and semi-transparent objects." },
-      { question: "What export format do I receive?", answer: "Cutouts are exported as lossless, high-resolution transparent PNG files that integrate into any design software." },
-      { question: "Are my uploaded photos stored on Exismic servers?", answer: "No. Your uploaded pictures are processed securely in temporary memory and are never saved or used for AI training." }
-    ],
+  {
+    "question": "Can this erase an object inside my photo?",
+    "answer": "This tool separates the main subject from its background. It is not an object-removal brush."
+  },
+  {
+    "question": "What file do I download?",
+    "answer": "The cutout is downloaded as a PNG with a transparent background."
+  },
+  {
+    "question": "Will every edge be perfect?",
+    "answer": "Fine hair, transparent objects, shadows, and low contrast can produce imperfect edges. Inspect the preview before using the image."
+  }
+],
     useCases: [
       "Creating white or transparent backgrounds for e-commerce product listings",
       "Isolating headshots for professional resumes, portfolios, and avatars",
       "Extracting subjects for YouTube thumbnails, marketing flyers, and graphic collages"
-    ]
+    ],
+    limitations: [
+  "Fine hair, glass, and subjects that blend into the background can need additional editing."
+],
+    examples: [
+  "Try a product photographed against a plain wall, then use the transparent PNG in a listing."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   { 
     id: 'image-compressor', 
@@ -436,7 +452,41 @@ export const ALL_TOOLS: Tool[] = [
     seoKeywords: ["collage maker","photo grid creator","make photo collage online","instagram collage maker","Exismic"] },
   { id: 'image-minecraft-skin', name: 'AI Minecraft Skin Maker', description: "Create unique custom Minecraft character skins just by describing what you want. Spin and inspect your new look in 3D before taking it straight into your game.", category: 'image', icon: 'Minecraft' as IconName, href: '/tools/image/minecraft-skin',
     suggestions: ["Help me write a prompt for a futuristic knight","How do I fix issues with the arms/legs?","Can I upload a reference image?"], popular: true, proPowerPack: true, seoTitle: "AI Minecraft Skin Maker - Create Game-Ready 64x64 Skins", seoDescription: "Create original Minecraft-compatible skins from a prompt or reference image. Preview in 3D, regenerate body parts, and download a valid 64x64 PNG.",
-    seoKeywords: ["minecraft skin maker","ai minecraft skin generator","create 64x64 minecraft skin","custom minecraft skin 3d","Exismic"] },
+    seoKeywords: ["minecraft skin maker","ai minecraft skin generator","create 64x64 minecraft skin","custom minecraft skin 3d","Exismic"],
+    seoIntro: "Describe a Minecraft character, choose the available appearance settings, and generate a skin. Rotate the 3D preview to inspect the front, back, and sides before downloading the skin image.",
+    features: [
+  "Character prompts: Describe clothing, colors, and the look you want.",
+  "Appearance controls: Choose the arm model and available face or style options.",
+  "3D preview: Rotate the character to check how the skin wraps around the body.",
+  "Skin download: Save the skin image for use with Minecraft."
+],
+    howToSteps: [
+  "Describe your character and choose its arm model and appearance settings.",
+  "Generate the skin, then rotate the preview to inspect every side.",
+  "Refine the result if needed and download the skin image."
+],
+    faqs: [
+  {
+    "question": "Is generation entirely on my device?",
+    "answer": "No. Generation and enhancement send the prompt and any supplied reference image to Exismic server endpoints for processing."
+  },
+  {
+    "question": "Is this a general photo editor?",
+    "answer": "No. It creates Minecraft character skins rather than ordinary high-resolution photo edits."
+  },
+  {
+    "question": "Why should I inspect the 3D preview?",
+    "answer": "A flat skin wraps around the character. Check seams, the back, and the arms before downloading."
+  }
+],
+    limitations: [
+  "Generation requires available credits and an internet connection.",
+  "Details can change during generation. Check seams and both sides of the character."
+],
+    examples: [
+  "Try a blue explorer jacket with brown boots, then inspect the sleeves in the 3D preview."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z" },
   { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: "Design punchy, high-click video thumbnails that stand out in crowded feeds. Add bold titles, glowing outlines, and sticker accents that grab instant attention.", category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail',
     suggestions: ["What makes a high-converting thumbnail?","Which fonts are best for readability on mobile?","How do I add a glow effect around my subject?"], popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design High-CTR Thumbnails Fast",
     seoDescription: "Free YouTube Thumbnail Maker. Create high-CTR thumbnails with custom typography, glows, and templates.",
@@ -489,7 +539,7 @@ export const ALL_TOOLS: Tool[] = [
     seoKeywords: ["vocal remover","extract vocals from song","acapella maker","karaoke maker online","isolate vocals","Exismic"]
   },
   { id: 'audio-stem-splitter', name: 'Full Stem Splitter', description: "Separate full songs into individual tracks for drums, bass, vocals, and instruments. Perfect for remixing, sampling, or practicing your instrument.", category: 'audio', icon: 'Sliders' as IconName, href: '/tools/audio/stem-splitter',
-    suggestions: ["How cleanly does it separate the bass from the drums?","Can I mute specific instruments?","What is the difference between 2-stem and 4-stem split?"], pro: true, isProTool: true, requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Stem Splitter Online - Split Songs into Vocals, Drums & Bass",
+    suggestions: ["How cleanly does it separate the bass from the drums?","Can I mute specific instruments?","What is the difference between 2-stem and 4-stem split?"], pro: true, requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Stem Splitter Online - Split Songs into Vocals, Drums & Bass",
     seoDescription: "Split audio tracks into separate stems: vocals, drums, bass, instruments, and melody using AI music separation.",
     seoKeywords: ["audio stem splitter","separate music stems","isolate drums bass vocals","ai music stem extractor","Exismic"] },
   { id: 'audio-noise-remover', name: 'Noise Remover', description: "Silence air conditioning hums, microphone hiss, wind rumble, and room echo from your voice recordings so you sound clean and professional.", category: 'audio', icon: 'VolumeX' as IconName, href: '/tools/audio/noise-remover',
@@ -499,15 +549,130 @@ export const ALL_TOOLS: Tool[] = [
   { id: 'audio-tts', name: 'Text to Speech', description: "Turn typed scripts and articles into expressive, natural voiceovers for YouTube videos, podcasts, and presentations without needing a microphone.", category: 'audio', icon: 'Type' as IconName, href: '/tools/audio/tts',
     suggestions: ["Which voice sounds the most natural?","How do I add pauses or emphasis?","Can it speak in different accents?"], requiresFileUpload: false, placeholderPrompt: 'Type what you want the voice to say here...', seoTitle: "Free Text to Speech Online - Realistic AI Voice Generator",
     seoDescription: "Generate natural text-to-speech AI voices online. Convert written text to realistic MP3 audio speech.",
-    seoKeywords: ["text to speech ai","ai voice generator","tts online free","realistic voice generator","Exismic"] },
+    seoKeywords: ["text to speech ai","ai voice generator","tts online free","realistic voice generator","Exismic"],
+    seoIntro: "Turn a written script into a spoken voiceover. Choose a voice, adjust the available voice settings, generate the audio, and listen before downloading.",
+    features: [
+  "Text input: Paste or type the script you want read aloud.",
+  "Voice choice: Preview the available voices before generating.",
+  "Voice settings: Adjust the available speed and voice controls for your script.",
+  "Audio preview: Listen to the generated voiceover before downloading."
+],
+    howToSteps: [
+  "Type or paste your script in the text box.",
+  "Choose a voice, review the available settings, and select Generate Voiceover.",
+  "Listen to the result, revise difficult words if needed, and download the audio."
+],
+    faqs: [
+  {
+    "question": "Do I need to upload a recording?",
+    "answer": "No. Text-to-Speech starts with written text. Use Speech-to-Text if you want to transcribe an existing recording."
+  },
+  {
+    "question": "Can I preview voices?",
+    "answer": "Use the voice preview controls to compare the available voices before generating your script."
+  },
+  {
+    "question": "How do I improve pronunciation?",
+    "answer": "Try clearer punctuation, shorter sentences, or spelling out abbreviations. Listen to the full result before publishing."
+  }
+],
+    useCases: [
+  "Narration for a short tutorial",
+  "A spoken draft of a presentation",
+  "Voiceovers for product walkthroughs"
+],
+    limitations: [
+  "Pronunciation and voice availability can vary. Check names, abbreviations, and numbers in the preview.",
+  "Generation uses an online service; avoid submitting confidential scripts."
+],
+    examples: [
+  "Paste a three-sentence introduction, choose a voice, and compare the result after changing punctuation."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z" },
   { id: 'audio-stt', name: 'Speech to Text', description: "Turn spoken interviews, podcasts, voice memos, and meetings into clean, readable text transcripts you can search, copy, and edit effortlessly.", category: 'audio', icon: 'FileAudio' as IconName, href: '/tools/audio/stt',
     suggestions: ["How accurate is it with heavy accents?","Does it automatically add punctuation?","Can it differentiate between multiple speakers?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "Speech to Text Converter Online - Transcribe Audio to Text Free",
     seoDescription: "Convert audio and voice recordings to accurate text transcripts using automatic speech recognition AI.",
-    seoKeywords: ["speech to text online","audio transcription ai","convert voice to text","free audio transcriber","Exismic"] },
+    seoKeywords: ["speech to text online","audio transcription ai","convert voice to text","free audio transcriber","Exismic"],
+    howToSteps: [
+      "Drop your audio recording or tap Live Mic to capture speech directly in your browser.",
+      "Select Transcribe Speech to Text to automatically detect speech, words, and pacing.",
+      "Review with the interactive waveform, edit text in place, and download your clean TXT or SRT subtitles."
+    ],
+    features: [
+      "High-Accuracy Voice Recognition: Transcribes spoken speech clearly with natural sentence punctuation and phrasing.",
+      "Interactive Audio Waveform: Click any timestamp to jump directly to that exact moment in the recording.",
+      "Multi-Format Exports: Download clean text files (.TXT) or timed subtitle tracks (.SRT) for video editors.",
+      "Live In-Browser Recording: Speak directly into your microphone for instant voice memos and lecture notes."
+    ],
+    faqs: [
+      {
+        question: "Can I record directly from my microphone?",
+        answer: "Yes. Switch to the Live Mic tab, click Start Recording, and speak directly into your browser. Your recording loads into the transcriber automatically when you stop."
+      },
+      {
+        question: "What formats can I export my transcript into?",
+        answer: "You can download plain text (.TXT) files for notes and documents, or subtitle files (.SRT) with synchronized timecodes for Premiere, Final Cut, and CapCut."
+      },
+      {
+        question: "Does it support background noise reduction?",
+        answer: "The speech recognition model automatically isolates spoken voice frequencies from moderate ambient room noise."
+      },
+      {
+        question: "Are my audio recordings kept private?",
+        answer: "Yes. Your audio recordings are processed securely in your active session and are never permanently stored or shared."
+      }
+    ],
+    useCases: [
+      "Transcribing podcast episodes and video interviews for show notes",
+      "Converting lecture recordings and voice memos into study notes",
+      "Generating synchronized SRT captions for social media videos and reels"
+    ],
+    examples: [
+      "Drop a 2-minute voice recording to test transcription accuracy and export synchronized subtitles."
+    ],
+    updatedAt: "2026-09-29T00:00:00.000Z" },
   { id: 'audio-voice-changer', name: 'Voice Changer', description: "Alter your voice to sound like different characters, deep announcers, or robotic effects while keeping your natural tone and speech rhythm intact.", category: 'audio', icon: 'Speech' as IconName, href: '/tools/audio/voice-changer',
     suggestions: ["How do I make my voice sound like a robot?","Will it preserve my original emotion and pitch?","Does it work in real-time?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Voice Changer Online - Change Your Voice Instantly Free",
     seoDescription: "Change and modulate voice audio recordings with AI voice filters. Transform pitch, speed, and character tone.",
-    seoKeywords: ["voice changer online","ai voice filter","voice tone modulator","change voice pitch","Exismic"] },
+    seoKeywords: ["voice changer online","ai voice filter","voice tone modulator","change voice pitch","Exismic"],
+    howToSteps: [
+      "Drop your audio file or record your voice live using the studio microphone.",
+      "Select a character voice like Deep Announcer or Cyber Robot, and fine-tune pitch or warmth.",
+      "Listen with the real-time A/B comparison switch and download your transformed voice."
+    ],
+    features: [
+      "8 Character Voice Personas: Switch instantly between deep cinematic narrators, sci-fi robots, cartoon helium, and walkie-talkies.",
+      "Real-Time A/B Listening Switch: Compare transformed voice vs original audio with synchronized playback.",
+      "Fine-Tuning Controls: Adjust vocal pitch (-12 to +12 semitones), robotic ring modulation, chest bass, and room echo.",
+      "Live In-Browser Recording: Record directly from your microphone for instant voice transformation."
+    ],
+    faqs: [
+      {
+        question: "Does the voice changer preserve my speech pacing and emotion?",
+        answer: "Yes. The voice transformation engine keeps your original rhythm, pauses, and cadence completely natural while altering pitch and resonance."
+      },
+      {
+        question: "Can I record directly from my microphone?",
+        answer: "Yes. Switch to the Live Mic tab, tap Start Recording, and speak directly into your browser. Your recording loads into the studio automatically."
+      },
+      {
+        question: "Can I use transformed voices for commercial projects and videos?",
+        answer: "Yes, 100%. All transformed audio is royalty-free and ready for YouTube, podcasts, gaming streams, and character voiceovers."
+      },
+      {
+        question: "Are my voice recordings kept private?",
+        answer: "Yes. All audio processing runs securely during your active session and files are never stored or shared."
+      }
+    ],
+    useCases: [
+      "Creating dramatic movie trailer narrations and podcast intros",
+      "Adding robotic or character voiceovers to gaming videos and streams",
+      "Protecting personal identity and voice privacy in voice notes and calls"
+    ],
+    examples: [
+      "Upload a voice clip, apply Deep Announcer, and increase chest warmth for a resonant podcast intro."
+    ],
+    updatedAt: "2026-09-29T00:00:00.000Z" },
   {
     id: 'sfx-generator',
     name: 'AI Sound Effects',
@@ -530,7 +695,46 @@ export const ALL_TOOLS: Tool[] = [
       "foley sound effect maker online",
       "free sound effects creator",
       "elevenlabs sound effects generator"
-    ]
+    ],
+    howToSteps: [
+      "Type what you want to hear (e.g. 'retro 8-bit game jump', 'laser beam blast', or 'heavy metal sword clash').",
+      "Choose a sound duration from 0.5s to 12.0s and pick an acoustic environment (Studio, Open Air, or Echo Hall).",
+      "Click Generate to synthesize your custom sound effect, listen to the waveform, and download clean WAV audio."
+    ],
+    features: [
+      "Text-to-Foley Generation: Describe any sound effect, weapon clash, or atmospheric environment in plain English.",
+      "Interactive Waveform Monitor: 54-bar frequency visualizer with click-to-seek, smooth playhead, and seamless loop toggle.",
+      "Custom Acoustic Spaces: Tailor effects to Studio Clean, Open Air, or Cathedral Echo Hall.",
+      "100% Royalty-Free Assets: Export studio-quality 16-bit 44.1kHz stereo WAV files ready for games, YouTube, and podcasts."
+    ],
+    faqs: [
+      {
+        question: "Can I use generated sound effects in commercial games and monetized YouTube videos?",
+        answer: "Yes, 100%. All generated sound effects are completely royalty-free with zero watermarks or licensing fees."
+      },
+      {
+        question: "How do I make looping sound effects like rain or campfire?",
+        answer: "Turn on the Loop button in the player to listen to seamless continuous playback before downloading your audio."
+      },
+      {
+        question: "What audio format is downloaded?",
+        answer: "You get a pristine, uncompressed 16-bit 44.1kHz stereo WAV audio file that opens directly in any video or game editor."
+      },
+      {
+        question: "How long can each sound effect be?",
+        answer: "You can adjust duration from 0.5 seconds (quick button click or impact) up to 12.0 seconds (extended atmospheric ambience)."
+      }
+    ],
+    useCases: [
+      "Creating custom game sound effects for indie video games in Unity, Unreal, or Godot",
+      "Adding cinematic whooshes, impacts, and laser blasts to YouTube videos and TikTok reels",
+      "Designing podcast sound transitions, intro stingers, and ambient background textures"
+    ],
+    examples: [
+      "Type 'laser blaster with echoing power tail', set duration to 2.2s, and click Generate for a sci-fi game weapon effect."
+    ],
+    updatedAt: "2026-09-29T00:00:00.000Z"
+
   },
 
   // PDF Tools
@@ -748,7 +952,46 @@ export const ALL_TOOLS: Tool[] = [
       "ai music generator",
       "custom ambient noise machine",
       "ambient soundboard mixer"
-    ]
+    ],
+    howToSteps: [
+      "Choose an atmosphere preset like Rainy Coffee Shop, Forest Campfire, or Coastal Serenity.",
+      "Fine-tune individual volume faders for Rain, Fireplace, Cafe, Forest, Night, and Ocean Waves.",
+      "Set an optional focus or sleep timer, and download your 25-second seamless soundscape loop as a WAV asset."
+    ],
+    features: [
+      "6 Infinite Organic Ambient Layers: Blend heavy rain, cozy fireplace, Parisian cafe, pine forest, night stars, and rolling ocean surf.",
+      "Procedural In-Browser Synthesis: 100% reliable, infinite audio playback running locally on your device with zero server latency.",
+      "Focus & Sleep Timer: Built-in 15m, 25m Pomodoro, 45m, and 60m focus timers with gentle fade-out.",
+      "WAV Soundscape Export: Download your custom ambient mix as a seamless 16-bit 44.1kHz stereo WAV loop ready for study or videos."
+    ],
+    faqs: [
+      {
+        question: "Can I use downloaded soundscapes in YouTube videos and podcasts?",
+        answer: "Yes, 100%. All soundscapes generated in Exismic are completely royalty-free and safe for commercial use and content creation."
+      },
+      {
+        question: "Does the soundscape stop when my computer screen sleeps?",
+        answer: "The in-browser Web Audio engine keeps playing continuously in your active browser tab until you pause or the timer finishes."
+      },
+      {
+        question: "Can I adjust individual sound levels?",
+        answer: "Yes! Every layer (Rain, Fire, Cafe, Forest, Night, Ocean) has its own independent fader, Mute, and Solo buttons."
+      },
+      {
+        question: "How does the focus timer work?",
+        answer: "Select your desired focus duration (e.g. 25-minute Pomodoro). When the timer counts down to zero, the audio gently fades out to signal your break."
+      }
+    ],
+    useCases: [
+      "Deep work, coding, and writing sessions without distracting spoken lyrics",
+      "Fall-asleep soundscapes with rain and crackling fireplace on a timed fade-out",
+      "Background atmosphere tracks for video games, tabletop RPGs, and relaxing YouTube streams"
+    ],
+    examples: [
+      "Load Rainy Coffee Shop, boost Rain to 85%, and set a 25-minute focus timer for a productive study session."
+    ],
+    updatedAt: "2026-09-29T00:00:00.000Z"
+
   },
 
   // Productivity Tools
@@ -804,7 +1047,7 @@ export const ALL_TOOLS: Tool[] = [
       "Static Destination: Because data is encoded directly into the pattern, you cannot change the destination URL after printing without reprinting.",
       "Contrast Requirements: Always keep sufficient contrast between code pixels and the background to guarantee fast smartphone detection."
     ] },
-  { id: 'productivity-passgen', name: 'Password Generator', description: "Generate unhackable, super-strong passwords with random letters, numbers, and symbols to keep all your creative and business accounts safe.", category: 'developer', icon: 'KeyRound' as IconName, href: '/tools/productivity/passgen',
+  { id: 'productivity-passgen', name: 'Password Generator', description: "Generate random passwords with your chosen length, letters, numbers, and symbols for your accounts.", category: 'developer', icon: 'KeyRound' as IconName, href: '/tools/productivity/passgen',
     suggestions: ["What makes a password truly secure?","How many characters should I use?","Can I exclude ambiguous characters like I and l?"], requiresFileUpload: false, seoTitle: "Secure Password Generator - Create Strong & Unique Passwords Free",
     seoDescription: "Generate strong, cryptographically secure passwords online with customizable length and symbol parameters.",
     seoKeywords: ["password generator","strong password maker","secure password generator","random password tool","Exismic"],
@@ -829,7 +1072,14 @@ export const ALL_TOOLS: Tool[] = [
       "Creating strong master passwords for password managers",
       "Securing database credentials, SSH keys, and cloud API tokens",
       "Generating unique, unguessable passwords for social and business accounts"
-    ]
+    ],
+    limitations: [
+  "No password is unhackable. Use a different password for each account and save it in a password manager."
+],
+    examples: [
+  "Generate a long password with letters, numbers, and symbols for a new account; do not reuse it elsewhere."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   { id: 'productivity-units', name: 'Unit Converter', description: "Easily convert between inches, meters, kilograms, cups, Fahrenheit, and dozens of everyday measurements with instant, error-free results.", category: 'student', icon: 'Ruler' as IconName, href: '/tools/productivity/units',
     suggestions: ["How do I convert complex derived units?","Does it support metric to imperial conversions?","Can I save my most used conversions?"], requiresFileUpload: false, seoTitle: "Online Unit Converter - Convert Length, Weight, Temp & More Free",
@@ -856,20 +1106,55 @@ export const ALL_TOOLS: Tool[] = [
       "Converting international cooking recipes between grams, ounces, and cups",
       "Switching engineering drawings between inches and millimeters",
       "Converting international travel weather forecasts between Celsius and Fahrenheit"
-    ]
+    ],
+    limitations: [
+  "Check the selected units and rounding before using a result in precision work."
+],
+    examples: [
+  "Convert 10 inches to centimeters, then reverse the units to check the conversion."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
-  { id: 'productivity-palette', name: 'Palette Generator', description: "Discover beautiful color combinations and harmonious themes for your next design, brand identity, or website mockup with one-click hex copies.", category: 'productivity', icon: 'Palette' as IconName, href: '/tools/productivity/palette',
+  { id: 'productivity-palette', name: 'Color Palette Studio', description: "Discover beautiful color combinations and harmonious themes for your next design, brand identity, or website mockup with one-click hex copies.", category: 'productivity', icon: 'Palette' as IconName, href: '/tools/productivity/palette',
     suggestions: ["Help me generate a cyberpunk color scheme","What are the rules of color harmony?","How do I export this palette to Tailwind?"], requiresFileUpload: false, seoTitle: "AI Color Palette Generator - Create Beautiful Color Schemes Online",
     seoDescription: "Generate harmonious color palettes, extract dominant colors from images, and export HEX/RGB color codes.",
-    seoKeywords: ["color palette generator","hex color picker","color scheme creator","palette from image","Exismic"] },
+    seoKeywords: ["color palette generator","hex color picker","color scheme creator","palette from image","Exismic"],
+    popular: true,
+    seoIntro: "Create balanced, accessible color schemes for digital products, brand identities, slide decks, and creative art. Roll random harmonious combinations with the spacebar, lock your favorite tones, extract color palettes directly from uploaded photos, and export clean CSS, Tailwind config, vector SVG, or studio-ready 1600x900 PNG graphics.",
+    howToSteps: [
+      "Roll new palettes: click 'Shuffle Colors' or press your keyboard Spacebar to instantly explore fresh, balanced color combinations.",
+      "Lock your favorite colors: tap the Lock icon on any swatch to keep that tone frozen while continuing to roll complementary colors around it.",
+      "Fine-tune your shades: click the color pipette to pick an exact custom tone, or open 'Shades' to view 5 lighter and darker tonal steps.",
+      "Preview in real interfaces: switch between Website, Mobile App, and Brand Kit preview tabs to see how your colors perform together in practical layouts.",
+      "Export code or assets: copy CSS custom properties, Tailwind theme configs, or download high-resolution PNG cards and vector SVGs ready for production."
+    ],
+    features: [
+      "Instant Spacebar Shuffling: Fast, fluid keyboard-driven palette exploration with undo and redo history support.",
+      "Smart Color Harmony Modes: Switch between Balanced, Analogous, High Contrast, Monochrome, Triadic, Soft Pastel, and Dark Mode themes.",
+      "Automatic Accessibility Ratings: Built-in WCAG contrast calculations show whether white or dark text offers AAA readability on every swatch.",
+      "Photo Palette Extractor: Drag and drop any image or design screenshot to pull its 5 most prominent colors in-browser with zero server wait.",
+      "Live Product Mockups: Interactive website hero card, mobile notification widget, and brand token previews show real-world application."
+    ],
+    faqs: [
+      { question: "How do I lock a color while shuffling the rest?", answer: "Click the 'Lock' button at the top of any color swatch. Once locked, that color stays fixed in place while the other swatches continue to shuffle when you click Shuffle or press Spacebar." },
+      { question: "Can I extract a palette from a photo or logo?", answer: "Yes! Drag and drop any PNG, JPG, or WebP photo into the 'Extract Palette from Image' dropzone. The tool analyzes the image pixels directly in your browser and extracts 5 dominant colors instantly." },
+      { question: "How do I export this palette to my code?", answer: "Choose your preferred format in the Export section: CSS Custom Properties, Tailwind CSS theme colors, SCSS variables, or clean JSON. You can copy the code snippet with one click." },
+      { question: "Are these color combinations accessible for reading?", answer: "Every color swatch includes an automatic contrast indicator that measures brightness and tells you whether dark or white text passes standard readability guidelines (such as AAA or AA standards)." },
+      { question: "Can I share my palette with a teammate or client?", answer: "Yes. Click 'Share Link' in the top bar to copy a direct URL containing your exact color codes. Anyone who opens the link will see your exact palette loaded in the studio." }
+    ],
+    useCases: [
+      "Web & Mobile App Design: Generate accessible background, text, primary CTA, and accent colors for responsive interfaces.",
+      "Brand Identity & Logo Styling: Establish cohesive 5-color brand identity guidelines with primary, secondary, and neutral swatches.",
+      "Marketing Graphics & Social Media: Pick eye-catching, high-contrast color pairs for YouTube thumbnails, Instagram carousels, and presentation decks.",
+      "Interior & Event Moodboards: Extract real-world colors from photos and moodboard images for physical and digital creative projects."
+    ],
+    updatedAt: "2026-09-29T00:00:00.000Z"
+  },
   { id: 'productivity-json', name: 'JSON Formatter', description: "Clean up jumbled, one-line data feeds into tidy, colorful, well-spaced layouts that are effortless to read, inspect, and copy into your projects.", category: 'developer', icon: 'Braces' as IconName, href: '/tools/productivity/json',
     suggestions: ["How do I fix a trailing comma error?","Can it minify the JSON instead of formatting it?","Does it support sorting the keys alphabetically?"], requiresFileUpload: false, seoTitle: "Online JSON Formatter & Validator - Pretty Print JSON Free",
     seoDescription: "Validate, format, prettify, and minify JSON data online with syntax error highlighting.",
     seoKeywords: ["json formatter","prettify json","json validator","json minifier","Exismic"] },
-  { id: 'hashtag-generator', name: 'Hashtag Generator', description: "Find trending and high-reach hashtags for your niche so your Instagram reels, TikToks, and tweets get discovered by the right audience.", category: 'productivity', icon: 'Hash' as IconName, href: '/tools/hashtag-generator',
-    suggestions: ["What is the ideal number of hashtags for Instagram?","How do I mix broad and niche tags?","Can it generate hashtags based on an image?"], popular: true, seoTitle: "Free Hashtag Generator - Find Trending Hashtags for Social Media",
-    seoDescription: "Generate viral, high-reach hashtags for Instagram, TikTok, YouTube, and X. AI-powered hashtag recommendation engine free online.",
-    seoKeywords: ["hashtag generator","instagram hashtags","tiktok hashtags","viral hashtags","Exismic"] },
+
   {
     id: 'typing-test',
     name: 'Typing Speed Tester',
@@ -879,10 +1164,54 @@ export const ALL_TOOLS: Tool[] = [
     href: '/tools/typing-test',
     suggestions: ["What is considered a good WPM score?","How can I improve my accuracy?","Should I focus on speed or avoiding mistakes?"],
     popular: true,
+    proPowerPack: true,
     requiresFileUpload: false,
-    seoTitle: "Typing Speed Tester - Premium WPM, Accuracy & Typing Heatmap",
-    seoDescription: "Test typing speed with real-time WPM, accuracy, consistency, themed AI-style paragraphs, ghost mode, heatmaps, daily challenges, and leaderboards.",
-    seoKeywords: ["typing speed test","wpm test online","typing accuracy trainer","Exismic"]
+    seoTitle: "Free Typing Speed Test - WPM, Accuracy & Keystroke Heatmap | Exismic",
+    seoDescription: "Test your typing speed (WPM), accuracy, and consistency online for free. Real-time feedback, mechanical keyboard sounds, ghost pace, and mistake heatmap.",
+    seoKeywords: ["typing speed test", "wpm test online", "typing accuracy trainer", "keyboard speed test", "typing test 60 seconds", "typing heatmap", "Exismic"],
+    seoIntro: "Measure your real-world typing velocity, accuracy, and typing cadence with interactive text prompts across technology, coding, storytelling, and motivation. Includes optional mechanical keyboard sound feedback and an illuminated keystroke mistake heatmap.",
+    howToSteps: [
+      "Select your preferred test duration (30s Sprint, 60s Classic, 120s Endurance, or Endless Flow) and topic.",
+      "Click into the text arena or immediately start typing the text in front of you.",
+      "Monitor your live words per minute (WPM), accuracy, and rhythm in the real-time telemetry HUD.",
+      "Review your celebratory scorecard, keystroke heatmap, and download your verified share card."
+    ],
+    features: [
+      "Real-Time Telemetry HUD: Instant live measurement of net WPM, accuracy %, typing rhythm %, and remaining time.",
+      "Synthesized Mechanical Switch Audio: Optional tactile click and thock sound effects with zero latency ($0 audio files).",
+      "Interactive Keystroke Mistake Heatmap: Visual QWERTY keyboard matrix highlighting keys with frequent mistypes.",
+      "Ghost Pace Challenge: Race against a simulated 125 WPM top typist to push your speed limits.",
+      "Daily Practice Drills & Streak Counter: Daily challenges to build permanent keyboard muscle memory.",
+      "1-Click Verification Card Export: Download high-resolution 1200x700 PNG share cards with your verified test results."
+    ],
+    faqs: [
+      {
+        question: "What is considered a good typing speed (WPM)?",
+        answer: "The average global typing speed is around 40 WPM. Speeds between 50 to 70 WPM are considered fast and productive for office work. Speeds above 80 to 100+ WPM place you in the top 5% of elite typists worldwide."
+      },
+      {
+        question: "How is net WPM calculated?",
+        answer: "Net WPM is calculated using the standard formula: (Total Correct Characters / 5) / Elapsed Minutes. Only accurately typed characters count toward your net speed."
+      },
+      {
+        question: "Should I focus on typing speed or accuracy first?",
+        answer: "Always focus on maintaining 96%+ accuracy first. When you minimize backspacing and hesitation, your speed naturally accelerates through smooth muscle memory."
+      }
+    ],
+    useCases: [
+      "Professional Productivity: Increase email, document, and report drafting speed.",
+      "Software Development: Practice fluid symbol and coding syntax transitions.",
+      "Student Exam Prep: Build speed for timed essays and academic assignments.",
+      "Keyboard Enthusiasts: Test different switches and keycap profiles with tactile audio feedback."
+    ],
+    limitations: [
+      "WPM scores on mobile devices or tablets with touch screens will differ from physical desktop keyboards."
+    ],
+    examples: [
+      "30-Second Sprint: High-intensity burst to measure maximum raw velocity.",
+      "60-Second Classic: Standard benchmark for balanced speed and endurance.",
+      "Coding Snippets: Practice real programming statements with brackets and operators."
+    ]
   },
   {
     id: 'resume-builder',
@@ -923,7 +1252,44 @@ export const ALL_TOOLS: Tool[] = [
       "free resume scanner",
       "ats resume analyzer",
       "job match resume checker"
-    ]
+    ],
+    seoIntro: "Benchmark your resume against target job postings. Exismic AI checks your document formatting, scans for critical role keywords, and scores your experience alignment so you stand out to hiring managers.",
+    features: [
+      "Dual Input: Upload PDF resumes or paste resume text directly",
+      "Instant 1-Click Career Blueprints for Engineering, Design, Product, and Marketing",
+      "Comprehensive Match Scoring: Format Readability, Measurable Impact, and Skill Alignment",
+      "Skills & Keywords: See matched role terms and recommended missing skills",
+      "Direct Bridge to AI Resume Builder to apply fixes in one click",
+      "Private and Secure: In-memory analysis with 0% data retention"
+    ],
+    howToSteps: [
+      "Upload your PDF resume or paste your resume text into the editor.",
+      "Paste the job description of the position you want to apply for, or click 'Auto-Draft With AI'.",
+      "Click 'Run Job Match Scan' to receive an instant compatibility breakdown, missing keywords, and actionable recommendations."
+    ],
+    faqs: [
+      {
+        question: "How does the AI Resume Scanner evaluate my resume?",
+        answer: "The scanner compares your resume text against the requirements in the job description. It analyzes whether you have the necessary keywords, evaluates whether your work experience bullets contain measurable outcomes, and checks standard layout readability."
+      },
+      {
+        question: "Can I use the scanner without uploading a PDF file?",
+        answer: "Yes! You can toggle to 'Paste Text' to paste raw resume text directly, or click any of the 4 instant career blueprints to test the scan immediately."
+      },
+      {
+        question: "Is my resume kept private and secure?",
+        answer: "Yes. All resumes and job postings are processed securely in memory and are never saved to public databases or shared with third parties."
+      },
+      {
+        question: "How can I fix the missing keywords identified in the report?",
+        answer: "You can click 'Fix in Builder' to immediately open our AI Resume Builder where you can add missing skills, rewrite experience bullets, and export a polished A4 PDF."
+      }
+    ],
+    useCases: [
+      "Job Seekers: Tailor resumes for specific company openings to increase interview callbacks.",
+      "Career Switchers: Identify transferable skill gaps when moving into a new industry or role.",
+      "College Grads: Verify that student resumes meet industry standards and corporate hiring criteria."
+    ],
   },
   { 
     id: 'invoice-generator', 
@@ -936,7 +1302,46 @@ export const ALL_TOOLS: Tool[] = [
     popular: true,
     seoTitle: "Free Professional Invoice Generator - Create & Download Invoices Online",
     seoDescription: "The best free invoice generator for freelancers and small businesses. Create professional, branded invoices with tax calculations and custom templates.",
-    seoKeywords: ["invoice generator free","online invoice maker","pdf invoice generator","Exismic"]
+    seoKeywords: ["invoice generator free","online invoice maker","pdf invoice generator","freelance billing template","Exismic"],
+    seoIntro: "Draft, calculate, and download professional client invoices in seconds. Includes multi-currency support, custom tax rates, discount deductions, brand logo uploads, and 1-click A4 PDF export with zero server delays.",
+    features: [
+      "6 Instant 1-Click Blueprints for Design, Web Development, Marketing, Consulting, Video, and E-Commerce",
+      "Multi-Currency Support: USD ($), EUR (€), GBP (£), INR (₹), JPY (¥), AUD (A$), and CAD (C$)",
+      "Accurate Line-Item Math: Auto-calculated item quantities, prices, subtotals, taxes, and discounts",
+      "4 Designer Templates: Modern Minimalist, Executive Enterprise, Studio Bold, and Clean Compact",
+      "Custom Brand Identity: Upload company logos and customize invoice accent colors with 1-click presets",
+      "AI Fast Draft: Describe project deliverables in plain English to auto-populate invoices instantly",
+      "100% Client-Side Privacy: Invoice calculations and PDF rendering happen locally in your browser"
+    ],
+    howToSteps: [
+      "Select an instant invoice blueprint or enter your company and client billing information.",
+      "Add your deliverables, quantities, and rates. Configure sales tax, payment terms, or discounts if needed.",
+      "Upload your brand logo, choose an invoice template, and pick an accent color matching your brand.",
+      "Preview your invoice in real-time, then click 'Download PDF' to export an official print-ready A4 invoice."
+    ],
+    faqs: [
+      {
+        question: "Are the generated invoices free to download?",
+        answer: "Yes! Creating, editing, and exporting high-resolution PDF invoices is 100% free with no watermarks."
+      },
+      {
+        question: "Is my business and financial data kept secure?",
+        answer: "Yes. All invoice calculations and PDF compilations are performed directly inside your web browser. Your client data, prices, and tax numbers are never sold or stored on public servers."
+      },
+      {
+        question: "Can I customize the payment terms and currency?",
+        answer: "Absolutely. You can select from 7 major international currencies (USD, EUR, GBP, INR, JPY, AUD, CAD) and specify payment terms such as Net 14, Net 30, Due on Receipt, or custom milestones."
+      },
+      {
+        question: "How do I save my invoice to edit later?",
+        answer: "Click 'Save Draft' at the top of the studio. Your invoice draft is saved securely to your device so you can return and make adjustments anytime."
+      }
+    ],
+    useCases: [
+      "Freelancers & Contractors: Bill clients for hourly consulting, creative design sprints, or dev milestones with zero hassle.",
+      "Agencies & Studios: Issue branded, multi-item invoices with custom tax rates, payment terms, and direct bank transfer instructions.",
+      "Small Businesses & Merchants: Generate instant receipts and itemized invoices for physical merchandise or service packages."
+    ]
   },
   {
     id: 'social-caption-generator',
@@ -1022,7 +1427,14 @@ export const ALL_TOOLS: Tool[] = [
       "Verifying student essays and assignments for authentic human authorship",
       "Screening freelance articles and client deliverables for originality",
       "Checking your own drafts before submission to avoid false-positive AI flags"
-    ]
+    ],
+    limitations: [
+  "Detection is an estimate and can misclassify both human and AI writing. Do not use the result alone to accuse someone of misconduct."
+],
+    examples: [
+  "Compare a short draft with a revised version and treat the score as one signal, not proof of authorship."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   {
     id: 'grammar-checker',
@@ -1043,10 +1455,59 @@ export const ALL_TOOLS: Tool[] = [
     category: 'productivity',
     icon: 'ListPlus' as IconName,
     href: '/tools/resume-bullet-generator',
+    popular: true,
     suggestions: ["Create resume bullets for a Senior Software Engineer", "Write metric-driven bullets for a Marketing Manager", "Turn simple tasks into high-impact STAR achievements"],
-    seoTitle: "Free AI Resume Bullet Point Generator - Action-Oriented Resume Bullets",
-    seoDescription: "Generate metric-driven, ATS-optimized resume bullet points using the STAR method for any job title.",
-    seoKeywords: ["resume bullet point generator","action verbs for resume","ai resume points maker","Exismic"]
+    seoTitle: "Free AI Resume Bullet Point Generator - Action-Oriented Resume Bullets | Exismic",
+    seoDescription: "Generate metric-driven, ATS-optimized resume bullet points using the STAR method for any job title. Transform everyday tasks into high-impact career achievements.",
+    seoKeywords: ["resume bullet point generator", "action verbs for resume", "ai resume points maker", "star method resume bullets", "quantified resume achievements", "Exismic"],
+    seoIntro: "Craft impactful, achievement-driven resume bullet points that grab hiring managers' attention. Transform routine responsibilities into quantified accomplishments using proven frameworks like the STAR method and the Google XYZ formula.",
+    howToSteps: [
+      "Select an instant career blueprint or enter your target job title and seniority level.",
+      "Add your core skills, tools, and a brief description of the project or responsibility you handled.",
+      "Choose your preferred formula (STAR Method, Google XYZ Formula, or Executive High-Yield).",
+      "Click Generate to synthesize 5 high-impact, metric-driven accomplishment bullet points.",
+      "Review the highlighted action verbs and quantified metrics, edit in-place, and copy or transfer directly to your resume."
+    ],
+    features: [
+      "STAR Framework Structure: Automatically organizes achievements into clear Situation, Task, Action, and Result components.",
+      "Action Verb Highlighting: Identifies and elevates passive wording into persuasive, high-impact career power verbs.",
+      "Quantified Metrics Detection: Ensures every bullet point features measurable numbers, percentages, or saved resources.",
+      "1-Click Role Blueprints: Instant access to pre-tested career profiles across engineering, design, marketing, and management.",
+      "Resume Builder Transfer: Seamlessly pipe generated accomplishments directly into the Exismic Resume Builder with one click."
+    ],
+    faqs: [
+      {
+        question: "What is the STAR method for resume bullet points?",
+        answer: "STAR stands for Situation, Task, Action, and Result. It is the gold standard framework used by recruiters to understand the context of your work, what you personally executed, and the measurable outcome you produced for your team or organization."
+      },
+      {
+        question: "What is the Google XYZ formula for resume writing?",
+        answer: "Developed by Google recruiters, the formula follows: 'Accomplished [X] as measured by [Y], by doing [Z]'. It forces you to lead with your achievement and immediately back it up with quantifiable proof."
+      },
+      {
+        question: "How many bullet points should I put under each job on my resume?",
+        answer: "Aim for 3 to 5 concise bullet points for your most recent or relevant roles, and 2 to 3 bullet points for earlier positions. Each bullet should be 1 to 2 lines long and showcase a distinct achievement."
+      },
+      {
+        question: "Can I transfer these bullets directly to my resume?",
+        answer: "Yes. You can copy individual bullets, copy the complete set formatted with standard resume dots, or click 'Transfer to Resume Builder' to open your bullet points inside our free resume studio."
+      }
+    ],
+    useCases: [
+      "Job Applications & Career Pivots: Tailor your accomplishments to match exact keywords in target job descriptions.",
+      "Annual Performance Reviews: Document your key wins, project milestones, and quantifiable business contributions.",
+      "LinkedIn Experience Updates: Refresh your profile headline and job descriptions with punchy, metric-backed summary points.",
+      "Executive & Freelance Portfolios: Present high-level deliverables and client revenue impacts in a clean, professional format."
+    ],
+    limitations: [
+      "The tool generates realistic metric estimates based on your input; always ensure the final numbers accurately reflect your true achievements."
+    ],
+    examples: [
+      "Engineering: 'Architected high-throughput Next.js and Node.js microservices, decreasing API latency by 42% and supporting 250,000 daily active users.'",
+      "Product Design: 'Revamped onboarding user flow across mobile and web platforms, lifting free-to-paid conversion rates by 28% in 60 days.'",
+      "Marketing & Growth: 'Spearheaded paid acquisition and organic SEO campaigns, generating $1.2M in annual recurring revenue at a 35% lower cost-per-lead.'"
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'email-reply-generator',
@@ -1069,9 +1530,57 @@ export const ALL_TOOLS: Tool[] = [
     href: '/tools/cover-letter-generator',
     popular: true,
     suggestions: ["Write a cover letter for Product Manager role", "Tailor cover letter to tech startup company", "Highlight 5 years of leadership experience"],
-    seoTitle: "Free AI Cover Letter Generator - Tailored Job Applications",
-    seoDescription: "Create personalized, professional cover letters tailored to any job opening in minutes with AI.",
-    seoKeywords: ["cover letter generator","ai cover letter writer","job application letter maker","Exismic"]
+    seoTitle: "Free AI Cover Letter Generator - Tailored Job Applications | Exismic",
+    seoDescription: "Create personalized, professional cover letters tailored to any job opening in minutes with AI. Pick your tone, highlight key accomplishments, and impress hiring teams.",
+    seoKeywords: ["cover letter generator", "ai cover letter writer", "job application letter maker", "custom cover letter", "tailored cover letter tool", "Exismic"],
+    seoIntro: "Generate customized, persuasive cover letters that connect your authentic career background directly to a company's specific job requirements. Choose your desired tone, highlight quantifiable wins, and preview a clean, formal letterhead ready to copy or download.",
+    howToSteps: [
+      "Select an instant role blueprint or enter your target job title, target company, and applicant name.",
+      "Paste the job description or key responsibilities from the target listing.",
+      "Summarize your relevant career experience, key accomplishments, or core technical skills.",
+      "Select your preferred tone (Confident, Professional Executive, Enthusiastic, or Concise) and format length.",
+      "Click Generate to synthesize your tailored cover letter, edit directly on the live document preview, and download or copy with 1 click."
+    ],
+    features: [
+      "Targeted Company Alignment: Seamlessly weaves the company's specific mission, product challenges, and values into your narrative.",
+      "Tone & Voice Customization: Choose between Confident, Professional Executive, Enthusiastic, and Concise fast-read styles.",
+      "Live Formal Letterhead View: Previews your letter with standard business date, candidate address, company info, and formal salutation.",
+      "In-Place Document Editing: Refine phrases, add personal touches, or customize paragraphs directly on the live document.",
+      "1-Click Blueprint Gallery: Instant access to pre-tested cover letters for engineering, design, product, marketing, AI, and operations."
+    ],
+    faqs: [
+      {
+        question: "Do employers still read cover letters in 2026?",
+        answer: "Yes. While automated applicant tracking systems scan resumes for keywords, hiring managers and team leads frequently read cover letters to evaluate communication skills, authentic enthusiasm, and culture alignment when deciding between top finalists."
+      },
+      {
+        question: "How long should a standard cover letter be?",
+        answer: "A standard cover letter should be between 250 and 400 words (3 to 4 paragraphs) and easily fit onto a single page. It should be concise enough to be read in under 90 seconds."
+      },
+      {
+        question: "Can I customize the generated letter before sending?",
+        answer: "Absolutely. You can toggle inline edit mode to modify any sentence, adjust specific company anecdotes, or tweak your sign-off details directly on the live letterhead before copying or downloading."
+      },
+      {
+        question: "How can I export or print my cover letter?",
+        answer: "You can copy the formatted text to your clipboard with 1 click, download a clean .txt file for your records, or use the Print button to print or save a formal PDF directly from your browser."
+      }
+    ],
+    useCases: [
+      "Job Applications & Career Transitions: Bridge your past experience to a new industry or more senior leadership role.",
+      "Cold Outreach to Founders & Recruiters: Draft punchy, high-impact introductory notes expressing interest in unlisted opportunities.",
+      "Internal Company Promotions: Articulate your track record of business impact when applying for senior lateral or upward roles.",
+      "Freelance & Consulting Proposals: Present a formal, persuasive pitch highlighting your past client deliverables and methodologies."
+    ],
+    limitations: [
+      "Always verify that company names, job titles, and specific factual dates accurately represent your real career history before submitting."
+    ],
+    examples: [
+      "Engineering: Tailored letter for Senior Full-Stack Engineer applying to Stripe, highlighting API latency reductions and CI/CD pipelines.",
+      "Product Design: Persuasive letter for Lead Product Designer applying to Airbnb, emphasizing human-centered research and design system velocity.",
+      "Growth Marketing: Data-driven letter for Head of Growth applying to Notion, spotlighting ARR expansion and programmatic SEO."
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   // 💼 Business & Finance
   {
@@ -1083,9 +1592,57 @@ export const ALL_TOOLS: Tool[] = [
     href: '/tools/gst-calculator',
     popular: true,
     suggestions: ["Calculate 18% GST inclusive on ₹10,000", "Find CGST and SGST for inter-state sale", "Exclusive 12% GST calculation for services"],
-    seoTitle: "Free Indian GST Calculator Online - Inclusive & Exclusive Tax Calculator",
-    seoDescription: "Calculate GST amount, CGST, SGST, and IGST instantly for all standard tax slabs in India.",
-    seoKeywords: ["gst calculator india","inclusive gst calculator","exclusive gst tool","Exismic"]
+    seoTitle: "Free Indian GST Calculator Online - Inclusive & Exclusive Tax Calculator | Exismic",
+    seoDescription: "Calculate GST amount, CGST, SGST, and IGST instantly for all standard tax slabs in India (0%, 5%, 12%, 18%, 28%). Calculate both tax-inclusive and tax-exclusive amounts with detailed ledger breakdowns.",
+    seoKeywords: ["gst calculator india", "inclusive gst calculator", "exclusive gst calculator", "cgst sgst igst calculator", "gst tax rate slabs", "free gst tool", "Exismic"],
+    seoIntro: "Calculate accurate Goods and Services Tax (GST) for products and services across India. Easily toggle between tax-exclusive (tax added to price) and tax-inclusive (tax already inside total price) modes, with automatic split into Central GST (CGST), State GST (SGST), and Integrated GST (IGST).",
+    howToSteps: [
+      "Select whether your transaction is GST Exclusive (adding tax to price) or GST Inclusive (removing tax from price).",
+      "Enter your bill amount in Rupees (₹) or click one of the quick preset amounts.",
+      "Choose your applicable GST tax slab (0%, 5%, 12%, 18%, 28%, or enter a custom percentage).",
+      "Select your transaction supply type: Intra-State (within same state) or Inter-State (across state borders).",
+      "Inspect the real-time tax ledger breakdown and copy the calculation summary or export for your invoice."
+    ],
+    features: [
+      "Dual Calculation Modes: Instantly compute GST Exclusive (+ Tax added) or GST Inclusive (- Tax backed out).",
+      "State Supply Auto-Split: Automatically calculates CGST (50%) + SGST (50%) for intra-state sales, or IGST (100%) for inter-state sales.",
+      "Official Indian Tax Slabs: 1-click selectors for all official slabs (0%, 5%, 12%, 18%, 28%) plus custom rate support.",
+      "Visual Tax Ratio Meter: Real-time visual comparison showing base product price versus total government tax share.",
+      "1-Click Blueprint Presets: Realistic pre-configured templates for IT consulting, electronics, dining, and luxury items."
+    ],
+    faqs: [
+      {
+        question: "What is the difference between GST Inclusive and GST Exclusive?",
+        answer: "GST Exclusive means the tax is added on top of your base price (e.g. ₹1,000 base + 18% GST = ₹1,180 final total). GST Inclusive means the listed retail price already includes the tax (e.g. ₹1,180 total contains ₹1,000 base price and ₹180 GST)."
+      },
+      {
+        question: "When is CGST + SGST applied versus IGST?",
+        answer: "When buyer and seller are located in the same Indian state (Intra-State), the GST is split equally into Central GST (CGST) and State GST (SGST). When goods or services cross state boundaries (Inter-State), Integrated GST (IGST) is collected by the Central Government."
+      },
+      {
+        question: "Which GST slab applies to freelance and IT services in India?",
+        answer: "Most professional consulting, software development, SaaS, and freelance creative services in India fall under the standard 18% GST slab."
+      },
+      {
+        question: "How is GST calculated mathematically?",
+        answer: "For exclusive GST: Tax = (Base Amount × Rate) / 100. For inclusive GST: Base Amount = (Total Amount × 100) / (100 + Rate), and Tax = Total Amount - Base Amount."
+      }
+    ],
+    useCases: [
+      "E-Commerce & Retail Sellers: Determine product list prices with tax included to display transparent pricing on Amazon, Flipkart, or Shopify.",
+      "Freelancers & Agencies: Generate client invoices with exact CGST/SGST or IGST breakdowns for compliance with Indian tax regulations.",
+      "B2B Procurement Teams: Verify vendor tax invoices and calculate eligible Input Tax Credit (ITC) amounts.",
+      "Consumers & Shoppers: Check the true base cost of products and dining bills before tax was added."
+    ],
+    limitations: [
+      "Certain exempt goods, special composition schemes, or additional compensation cess (e.g., on luxury tobacco or cars) may require custom percentage adjustments."
+    ],
+    examples: [
+      "Tech Freelance Services: ₹50,000 billing at 18% Intra-State = ₹4,500 CGST (9%) + ₹4,500 SGST (9%), Total ₹59,000.",
+      "Electronics Purchase: ₹34,999 inclusive at 18% Inter-State = Base ₹29,660.17 + IGST ₹5,338.83.",
+      "Restaurant Bill: ₹2,400 exclusive at 5% Intra-State = ₹60 CGST (2.5%) + ₹60 SGST (2.5%), Total ₹2,520."
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'profit-margin-calculator',
@@ -1094,36 +1651,261 @@ export const ALL_TOOLS: Tool[] = [
     category: 'business',
     icon: 'TrendingUp' as IconName,
     href: '/tools/profit-margin-calculator',
-    suggestions: ["Calculate gross margin given cost ₹400 and price ₹650", "Find required markup to achieve 35% margin", "Estimate breakeven sales volume"],
-    seoTitle: "Free Profit Margin & Markup Calculator - Business Financial Tool",
-    seoDescription: "Calculate gross profit margin, net profit percentage, and markup for products and services with real-time breakdown.",
-    seoKeywords: ["profit margin calculator","gross margin calculator","net profit calculator","Exismic"]
+    popular: true,
+    suggestions: [
+      "Calculate gross margin given cost $25 and retail price $68",
+      "Find required markup to achieve 45% target margin",
+      "Calculate SaaS gross margin with $8 hosting and $49 monthly fee",
+      "Evaluate physical retail profit after shipping and payment fees"
+    ],
+    seoTitle: "Free Profit Margin & Markup Calculator - Business Financial Tool | Exismic",
+    seoDescription: "Calculate gross profit margin, net profit percentage, and markup for products and services with real-time breakdown and target pricing.",
+    seoKeywords: [
+      "profit margin calculator",
+      "gross margin calculator",
+      "markup calculator",
+      "net profit calculator",
+      "selling price calculator",
+      "break even calculator",
+      "business financial tools",
+      "Exismic"
+    ],
+    seoIntro: "Evaluate commercial pricing profitability, calculate gross and net margins, find exact markups, and discover what price to charge to achieve your target return.",
+    howToSteps: [
+      "Choose a preloaded commercial blueprint or select your preferred currency (USD, INR, EUR, GBP, CAD, AUD, JPY).",
+      "Enter your direct item unit cost (materials, manufacturing, or wholesale buy price).",
+      "Enter your retail customer selling price to instantly see your Gross Margin, Markup percentage, and Net Profit cash.",
+      "Switch to the Target Price Calculator tab to input your dream profit margin and let the tool calculate your required selling price."
+    ],
+    features: [
+      "Dual Financial Modes: Analyze existing prices or reverse-calculate target pricing for desired margins.",
+      "Visual Revenue Waterfall: Interactive multi-segment progress bar showing direct costs, overhead expenses, and retained net profit.",
+      "6 Commercial Blueprints: Pre-configured scenarios for E-commerce DTC, SaaS subscriptions, bakeries, wholesale supply, consulting agencies, and consumer electronics.",
+      "Quick Price Adjustments: Rapidly experiment with +5%, +10%, +25% price bumps, charm pricing (.99), and round numbers.",
+      "Export & Retention: Download structured financial price sheets (.txt) and copy formatted executive summaries with one click."
+    ],
+    faqs: [
+      {
+        question: "What is the key difference between Profit Margin and Markup?",
+        answer: "Profit Margin is profit divided by the selling price (the percentage of sales revenue you keep as profit). Markup is profit divided by the original cost (the percentage you add onto your cost to determine the price). A product bought for $50 and sold for $100 has a 50% profit margin and a 100% markup."
+      },
+      {
+        question: "What is considered a healthy profit margin?",
+        answer: "In physical retail and e-commerce, gross margins typically range from 30% to 55%. In software and digital services, gross margins often exceed 70% to 85%. Wholesale and hardware distribution usually operates on leaner margins between 15% and 30%."
+      },
+      {
+        question: "How does the Target Price Calculator work?",
+        answer: "It uses the formula: Required Price = Total Unit Cost / (1 - Desired Margin %). For instance, if an item costs $60 total and you want a 40% margin, your selling price must be $60 / 0.60 = $100."
+      },
+      {
+        question: "Can I include shipping and payment processing fees?",
+        answer: "Yes, enter them into the Operating & Overhead Expenses field. The calculator automatically separates direct gross profit from final net retained profit."
+      }
+    ],
+    useCases: [
+      "E-commerce merchants setting catalog prices to cover ad acquisition costs and shipping.",
+      "Freelancers and agencies quoting client projects with healthy target margins.",
+      "Retail shop owners and restaurants pricing menu items and physical goods.",
+      "Wholesale manufacturers calculating distributor tiers and volume discounts."
+    ],
+    limitations: [
+      "Does not automatically account for regional corporate income tax deductions or tax depreciation.",
+      "Fixed overhead breakeven assumes uniform sales mix across all products."
+    ],
+    examples: [
+      "E-commerce DTC Apparel: Cost $25, Price $68, Expenses $14 = 63.2% Gross Margin, 172% Markup, $29 Net Profit (42.6% Net Margin).",
+      "SaaS Digital Subscription: Cost $8, Price $49, Expenses $12 = 83.7% Gross Margin, 512.5% Markup, $29 Net Profit (59.2% Net Margin).",
+      "Retail Food Item: Cost $3.50, Price $9.00, Expenses $2.00 = 61.1% Gross Margin, 157.1% Markup, $3.50 Net Profit (38.9% Net Margin)."
+    ],
+    terminology: [
+      {
+        term: "Gross Profit",
+        definition: "The money left over after subtracting direct unit production costs from total selling price."
+      },
+      {
+        term: "Gross Margin",
+        definition: "The percentage of selling price that remains as profit after paying direct production costs."
+      },
+      {
+        term: "Markup Rate",
+        definition: "The percentage added to direct cost to arrive at the customer selling price."
+      },
+      {
+        term: "Net Profit",
+        definition: "The actual cash retained after paying both direct production costs and operating delivery overhead."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'emi-calculator',
-    name: 'EMI Calculator',
-    description: "Plan your monthly loan payments for cars, homes, or personal expenses with a clear month-by-month view of what goes toward principal versus interest.",
+    name: 'Loan EMI Calculator',
+    description: "Calculate monthly EMI payments, total interest costs, and full year-by-year amortization schedules for home, car, personal, and business loans.",
     category: 'business',
     icon: 'Calculator' as IconName,
     href: '/tools/emi-calculator',
     popular: true,
-    suggestions: ["Calculate EMI for ₹50 Lakh home loan at 8.5% for 20 years", "Personal loan EMI for ₹5 Lakhs at 12%", "Car loan monthly payment schedule"],
-    seoTitle: "Free Loan EMI Calculator - Home, Car & Personal Loan Calculator",
-    seoDescription: "Calculate monthly EMI, total interest payable, and detailed loan amortization schedule online.",
-    seoKeywords: ["emi calculator","loan emi calculator","home loan emi calculator","car loan emi calculator","Exismic"]
+    suggestions: [
+      "Calculate EMI for ₹30 Lakh home loan at 8.5% for 20 years",
+      "Car loan EMI for ₹12 Lakhs at 9.0% for 5 years",
+      "Personal loan repayment for ₹5 Lakhs at 12.5% for 3 years",
+      "See how extra ₹5,000 monthly prepayment saves loan interest"
+    ],
+    seoTitle: "Free Loan EMI Calculator - Home, Car, Personal & Business Loan Calculator | Exismic",
+    seoDescription: "Calculate monthly EMI, total interest payable, prepayment savings, and detailed loan amortization schedules with real-time visual breakdown.",
+    seoKeywords: [
+      "emi calculator",
+      "loan emi calculator",
+      "home loan emi calculator",
+      "car loan emi calculator",
+      "personal loan emi calculator",
+      "loan amortization schedule",
+      "prepayment calculator",
+      "Exismic"
+    ],
+    seoIntro: "Plan and optimize loan borrowings with real-time monthly EMI calculations, interest-to-principal proportions, prepayment savings simulations, and full year-by-year amortization tables.",
+    howToSteps: [
+      "Select a pre-configured loan blueprint (Home Loan, Car Loan, Personal Loan, Education, Business Equipment) or choose your preferred currency.",
+      "Enter your total loan principal borrowing amount or tap the quick select chips.",
+      "Adjust the annual interest rate (% p.a.) using the high-precision slider or quick rate buttons.",
+      "Select your loan tenure in years or months to instantly review your fixed monthly EMI and total repayment cost.",
+      "Expand the Prepayment Simulator to see how extra monthly contributions save interest and close your loan years earlier."
+    ],
+    features: [
+      "6 Real-World Loan Blueprints: Pre-configured rates and tenures for home mortgages, EV/sedan cars, personal financing, education, business machinery, and two-wheelers.",
+      "Prepayment & Early Payoff Simulator: Test extra monthly contributions and discover exact interest savings and shortened tenure.",
+      "Year-by-Year Amortization Schedule: Detailed table showing annual opening balance, principal paid, interest paid, closing balance, and percentage repaid.",
+      "Visual Payment Proportion Split: Proportional progress bar comparing borrowed principal against cumulative interest payable.",
+      "Multi-Currency Support: Seamlessly switch between INR (₹), USD ($), EUR (€), GBP (£), CAD (CA$), and AUD (AU$)."
+    ],
+    faqs: [
+      {
+        question: "How is Equated Monthly Installment (EMI) calculated?",
+        answer: "EMI is computed using the standard reducing balance formula: EMI = [P x r x (1 + r)^n] / [(1 + r)^n - 1], where P is principal loan amount, r is monthly interest rate (annual rate / 12 / 100), and n is total tenure in months."
+      },
+      {
+        question: "Does prepayment reduce EMI or tenure?",
+        answer: "Most banks allow you to choose: you can keep your monthly EMI the same and shorten your total loan tenure (which maximizes your total interest savings), or reduce your monthly EMI while keeping the original tenure."
+      },
+      {
+        question: "Why is the interest portion higher in early loan years?",
+        answer: "Because the interest is computed on the outstanding principal balance. In early years, the principal is at its maximum, so most of your monthly EMI goes toward servicing interest. As principal reduces over time, a larger portion of each EMI repays principal."
+      }
+    ],
+    useCases: [
+      "Prospective home buyers planning mortgage affordability before applying to banks.",
+      "Car and motorcycle shoppers comparing dealership financing offers against bank personal loans.",
+      "Borrowers evaluating early loan foreclosure or prepayment strategies to save interest."
+    ],
+    limitations: [
+      "Does not automatically include one-time bank processing fees, stamp duty, or mandatory property insurance premiums.",
+      "Assumes a fixed interest rate throughout the selected loan tenure."
+    ],
+    examples: [
+      "Home Loan: ₹30,00,000 at 8.5% for 20 years = Monthly EMI ₹26,035, Total Interest ₹32,48,327, Total Payable ₹62,48,327.",
+      "Car Loan: ₹12,00,000 at 9.0% for 5 years = Monthly EMI ₹24,910, Total Interest ₹2,94,603, Total Payable ₹14,94,603.",
+      "Personal Loan: ₹5,00,000 at 12.5% for 3 years = Monthly EMI ₹16,727, Total Interest ₹1,02,166, Total Payable ₹6,02,166."
+    ],
+    terminology: [
+      {
+        term: "EMI (Equated Monthly Installment)",
+        definition: "A fixed payment amount made by a borrower to a lender at a specified date each calendar month."
+      },
+      {
+        term: "Principal",
+        definition: "The original sum of money borrowed in a loan before interest is applied."
+      },
+      {
+        term: "Amortization",
+        definition: "The gradual reduction of a debt through regular monthly payments of principal and interest over time."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'salary-calculator',
     name: 'Salary & Take-Home Calculator',
-    description: "See your actual monthly take-home pay after taxes and deductions, so you know exactly how much cash lands in your bank account from your salary package.",
+    description: "Calculate your net monthly in-hand take-home salary from total annual CTC package with New vs Old Tax Regime comparison and EPF breakdown.",
     category: 'business',
     icon: 'Wallet' as IconName,
     href: '/tools/salary-calculator',
     popular: true,
-    suggestions: ["Calculate in-hand monthly salary for 12 LPA CTC", "Compare New Tax Regime vs Old Tax Regime for 15 LPA", "Check EPF and Professional Tax deductions"],
-    seoTitle: "Free CTC to In-Hand Salary Calculator India - New vs Old Tax Regime",
-    seoDescription: "Calculate your net monthly take-home salary from total CTC package with tax regime comparison and deduction breakdown.",
-    seoKeywords: ["salary calculator","take home pay calculator","net salary calculator","Exismic"]
+    suggestions: [
+      "Calculate in-hand monthly salary for 12 LPA CTC under Budget 2024 New Regime",
+      "Compare New Tax Regime vs Old Tax Regime savings for 18 LPA",
+      "Check take-home pay for 25 LPA Senior SDE after EPF and TDS",
+      "Evaluate Section 87A tax rebate for 6 LPA entry-level salary"
+    ],
+    seoTitle: "Free CTC to In-Hand Salary Calculator India - Budget 2024 New vs Old Tax Regime | Exismic",
+    seoDescription: "Calculate your actual monthly take-home salary from annual CTC package with revised Budget 2024 New Tax Regime slabs, ₹75,000 standard deduction, and EPF deductions.",
+    seoKeywords: [
+      "salary calculator",
+      "ctc to in hand calculator",
+      "take home pay calculator",
+      "in hand salary calculator india",
+      "new tax regime salary calculator",
+      "budget 2024 salary calculator",
+      "net salary calculator",
+      "Exismic"
+    ],
+    seoIntro: "Decode your official corporate CTC offer letter and see your true monthly cash-in-bank take-home salary, accounting for revised Budget 2024-25 tax slabs, ₹75,000 standard deduction, and EPF.",
+    howToSteps: [
+      "Select a career compensation blueprint (6 LPA to 45 LPA) or type your exact annual CTC package.",
+      "Toggle between the New Tax Regime (Budget 2024 revised slabs with ₹75,000 standard deduction) and the Old Tax Regime.",
+      "If comparing the Old Regime, enter your annual Section 80C investments, 80D health insurance, and HRA exemption.",
+      "Choose your Employee Provident Fund (EPF) preference: statutory standard cap (₹1,800/mo) or full 12% of basic.",
+      "Inspect your itemized Monthly Payslip Ledger showing Basic, HRA, Special Allowance, EPF, Professional Tax, TDS, and final In-Hand Take-Home."
+    ],
+    features: [
+      "Budget 2024-25 Revised Slabs: Fully updated with ₹75,000 standard deduction and Section 87A rebate (zero tax up to ₹7.75 Lakhs CTC).",
+      "New vs Old Tax Regime Comparison: Automatic dynamic banner comparing annual tax savings between both regimes.",
+      "6 Real-World Career Blueprints: Pre-configured packages for 6 LPA Freshers, 8.5 LPA Marketers, 12 LPA Mid SDEs, 18 LPA PMs, 25 LPA Senior SDEs, and 45 LPA Tech Execs.",
+      "Standard Indian Payslip Ledger: Detailed breakdown into Basic Salary (50%), HRA (20%), Special Allowance, EPF (12%), Professional Tax, and Income Tax TDS.",
+      "Visual CTC Allocation Waterfall: Multi-segment proportion bar dividing CTC into In-Hand Pay, EPF Retirement Savings, and Government Taxes."
+    ],
+    faqs: [
+      {
+        question: "What is the difference between CTC and In-Hand Salary?",
+        answer: "Cost to Company (CTC) is the total annual expense a company spends on an employee, including basic salary, allowances, employer's PF contribution, gratuity, and insurance. In-Hand Salary is the actual net cash deposited into your bank account after subtracting statutory employee deductions like EPF, Professional Tax, and Income Tax (TDS)."
+      },
+      {
+        question: "Is income up to ₹7.75 Lakhs completely tax-free under the New Tax Regime?",
+        answer: "Yes! In Budget 2024, the standard deduction for salaried individuals was raised to ₹75,000. Under the New Tax Regime, taxable income up to ₹7,00,000 receives a full tax rebate under Section 87A. Therefore, a salaried employee earning up to ₹7,75,000 pays ₹0 income tax."
+      },
+      {
+        question: "How is Employee Provident Fund (EPF) deducted?",
+        answer: "By default under the EPFO rules, the employee contribution is 12% of Basic Salary. Many companies cap the statutory monthly EPF deduction at ₹1,800 per month (12% of statutory minimum basic ₹15,000), while other companies deduct 12% of actual basic salary."
+      }
+    ],
+    useCases: [
+      "Job seekers evaluating new corporate offer letters to determine real monthly disposable income.",
+      "Salaried professionals choosing between the New Tax Regime and Old Tax Regime for annual tax filing.",
+      "HR managers and founders structuring competitive, transparent employee compensation packages."
+    ],
+    limitations: [
+      "Does not automatically account for variable performance bonuses paid on an irregular quarterly or annual basis.",
+      "Professional Tax rates can vary slightly across individual Indian states (e.g. Maharashtra vs Karnataka)."
+    ],
+    examples: [
+      "12 LPA CTC (New Regime): Monthly Gross ₹1,00,000 -> Monthly EPF ₹1,800, PT ₹200, TDS ₹5,889 = Net Monthly In-Hand ₹92,111.",
+      "25 LPA CTC (New Regime): Monthly Gross ₹2,08,333 -> Monthly EPF ₹1,800, PT ₹200, TDS ₹29,883 = Net Monthly In-Hand ₹1,76,450.",
+      "6 LPA CTC (New Regime): Monthly Gross ₹50,000 -> Monthly EPF ₹1,800, PT ₹200, TDS ₹0 = Net Monthly In-Hand ₹48,000 (100% Tax-Free!)."
+    ],
+    terminology: [
+      {
+        term: "CTC (Cost to Company)",
+        definition: "The total annual gross amount an employer spends on an employee before any deductions."
+      },
+      {
+        term: "Standard Deduction",
+        definition: "A flat deduction allowed from gross salary before computing taxable income (₹75,000 in Budget 2024 New Regime)."
+      },
+      {
+        term: "TDS (Tax Deducted at Source)",
+        definition: "The estimated monthly income tax deducted by your employer and remitted directly to the government on your behalf."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   // 🌐 SEO & Webmaster Suite
   {
@@ -1137,7 +1919,62 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Generate SEO titles for e-commerce shoe store", "Create catchy title tag for tech blog post", "Optimize meta title under 60 characters"],
     seoTitle: "Free AI Meta Title Generator - SEO Title Tag Optimizer",
     seoDescription: "Generate click-worthy, SEO-optimized title tags under 60 characters with live Google SERP preview.",
-    seoKeywords: ["meta title generator","seo title tag generator","high ctr title maker","Exismic"]
+    seoKeywords: ["meta title generator","seo title tag generator","high ctr title maker","Exismic"],
+    seoIntro: "Generate click-worthy, search-optimized meta title tags that fit Google's 60-character and 580-pixel SERP display limits to boost click-through rates without getting cut off.",
+    howToSteps: [
+      "Enter your target primary keyword and optional page topic or audience context into the generator.",
+      "Pick your search intent (commercial, informational, or transactional) and brand suffix.",
+      "Preview generated headline variations in real time against the live Google desktop and mobile SERP simulator.",
+      "Copy your favorite title or download the full title tag list with character counts in one click."
+    ],
+    features: [
+      "Live Google SERP Simulator: Test both desktop and mobile snippet appearance before publishing.",
+      "Pixel & Character Width Meter: Accurately monitor the 60-character and 580px truncation limit.",
+      "Instant SEO Blueprints: Preloaded with SaaS, DTC e-commerce, local agency, and tutorial templates.",
+      "Intent Alignment: Generate titles tailored to commercial shopping, informational guides, and B2B services."
+    ],
+    faqs: [
+      {
+        question: "What is the optimal length for an SEO meta title?",
+        answer: "Google typically displays the first 50 to 60 characters (or roughly 580 pixels) of a title tag. Keeping your titles under 60 characters ensures they won't be truncated with an ellipsis (...)."
+      },
+      {
+        question: "Does Google always use my meta title in search results?",
+        answer: "Google uses your title tag in roughly 70-80% of searches. If Google determines that a different heading (such as your H1) is more relevant to a user's query, it may rewrite the title tag in results."
+      },
+      {
+        question: "Where should I place my primary keyword in the title?",
+        answer: "Place your primary keyword as close to the beginning of the title tag as possible to maximize relevance signals and catch searchers' eyes immediately."
+      }
+    ],
+    useCases: [
+      "SaaS Landing Pages: Optimize software homepage and pricing headlines for high-conversion searches.",
+      "E-Commerce Products: Craft high-CTR titles featuring product brand, model, and key benefits.",
+      "Blog & Content Articles: Generate compelling editorial headlines that stand out in crowded search results."
+    ],
+    limitations: [
+      "Title length limits are based on pixel width rather than a rigid character count; wide capital letters take up more room.",
+      "Title optimization alone does not guarantee a top ranking without quality content and crawlable site structure."
+    ],
+    examples: [
+      "Primary Keyword: 'Wireless Headphones' -> Output: 'Best Wireless Headphones of 2026 - Tested & Ranked | AudioNova' (58 chars)",
+      "Primary Keyword: 'AI Video Editor' -> Output: 'AI Video Editor: Create Viral Shorts in 60 Seconds | ClipCraft' (59 chars)"
+    ],
+    terminology: [
+      {
+        term: "SERP",
+        definition: "Search Engine Results Page — the list of web links, snippets, and ads returned by Google for a search query."
+      },
+      {
+        term: "Truncation",
+        definition: "The cut-off effect when a title exceeds Google's display width, showing three dots (...) at the end."
+      },
+      {
+        term: "CTR (Click-Through Rate)",
+        definition: "The percentage of searchers who see your snippet in Google results and click on it."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'meta-description-generator',
@@ -1150,7 +1987,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Write meta description for digital marketing agency", "Create meta description with CTA for SaaS landing page", "Optimize page summary under 155 characters"],
     seoTitle: "Free AI Meta Description Generator - SERP Description Tool",
     seoDescription: "Create high-converting, keyword-optimized meta descriptions under 160 characters for maximum search clicks.",
-    seoKeywords: ["meta description generator","seo description generator","meta tag creator","Exismic"]
+    seoKeywords: ["meta description generator","seo description generator","meta tag creator","Exismic"],
+    seoIntro: "Craft punchy, high-converting meta descriptions under 160 characters that summarize your content and encourage higher click-through rates from search engines.",
+    howToSteps: [
+      "Enter your target keyword, key benefits, and brand name in the generator.",
+      "Select your preferred tone of voice and action-oriented call to action (e.g. Try Free, Shop Now, Learn More).",
+      "Check character counts against the live 155-160 character limit meter.",
+      "Copy the HTML meta description tag or export all generated variations."
+    ],
+    features: [
+      "Live Character Meter: Stays within Google's 155–160 desktop and 120 mobile character limits.",
+      "SERP Snippet Preview: See your description beneath your title tag and URL.",
+      "Action-Oriented CTAs: Injects high-performing verbs to motivate searchers to click.",
+      "Instant Blueprints: Includes preloaded DTC, B2B, tutorial, and local business snippets."
+    ],
+    faqs: [
+      {
+        question: "Do meta descriptions directly impact Google search rankings?",
+        answer: "Meta descriptions are not a direct Google ranking factor, but they heavily influence click-through rate (CTR), which drives traffic and user engagement signals."
+      },
+      {
+        question: "How long should a meta description be?",
+        answer: "Between 140 and 160 characters. Descriptions longer than 160 characters are usually truncated by Google on desktop, and mobile displays may cut off around 120 characters."
+      }
+    ],
+    useCases: [
+      "Service Pages: Drive consultations with clear value propositions and contact calls to action.",
+      "Product Pages: Highlight pricing, free shipping, and top features to drive qualified buyers."
+    ],
+    limitations: [
+      "Google may occasionally generate its own snippet from on-page text if it feels it answers the searcher's query better."
+    ],
+    examples: [
+      "Input: 'AudioNova wireless headphones' -> Output: 'Discover AudioNova wireless headphones with active noise cancellation and 40h battery. Shop now for free fast shipping and 30-day trials.' (158 chars)"
+    ],
+    terminology: [
+      {
+        term: "Call to Action (CTA)",
+        definition: "A clear phrase prompting the user to take a specific step (e.g. 'Explore now', 'Shop today')."
+      },
+      {
+        term: "Snippet",
+        definition: "The short description text displayed under a blue link in search results."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'robots-txt-generator',
@@ -1162,7 +2043,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Block web crawlers from /admin and /private routes", "Add Sitemap URL directive to robots.txt", "Generate standard WordPress robots.txt"],
     seoTitle: "Free Robots.txt Generator - Create Search Engine Robot Instructions",
     seoDescription: "Generate valid robots.txt files for Googlebot, Bingbot, and web crawlers with Disallow rules and Sitemap integration.",
-    seoKeywords: ["robots txt generator","make robots txt online","seo robots txt creator","Exismic"]
+    seoKeywords: ["robots txt generator","make robots txt online","seo robots txt creator","Exismic"],
+    seoIntro: "Create and validate instructions for web crawlers like Googlebot and Bingbot to guide search engine indexing and keep private folders secure.",
+    howToSteps: [
+      "Choose a preloaded blueprint (WordPress, Next.js, E-Commerce, or Block AI Scrapers) or start fresh.",
+      "Specify User-agent directives (e.g., Googlebot, Bingbot, or * for all bots).",
+      "Add Allow and Disallow paths to control which folders should be crawled.",
+      "Link your XML Sitemap URL and download the validated robots.txt file to place in your website root."
+    ],
+    features: [
+      "Instant Blueprints: One-click setup for Next.js, WordPress, Shopify, and AI scraper blocks.",
+      "AI Crawler Controls: Easily disallow GPTBot, CCBot, and ClaudeBot if desired.",
+      "Sitemap Directive: Automatically link your XML sitemap URL for fast bot discovery.",
+      "Syntax Validation: Prevents syntax errors that could accidentally de-index your entire site."
+    ],
+    faqs: [
+      {
+        question: "Where do I upload the robots.txt file?",
+        answer: "Place robots.txt in the root directory of your domain (e.g., https://example.com/robots.txt). Search engine bots check this exact location first."
+      },
+      {
+        question: "Does Disallow in robots.txt hide pages from Google completely?",
+        answer: "Disallow stops search engine bots from crawling a page, but if external sites link to it, Google may still index the URL. To prevent indexing entirely, use a noindex meta tag."
+      }
+    ],
+    useCases: [
+      "Staging Environments: Block all bots from crawling work-in-progress websites.",
+      "E-Commerce: Disallow internal search query URLs, checkout pages, and shopping cart sessions."
+    ],
+    limitations: [
+      "robots.txt is a polite guideline; malicious bots and scrapers may ignore it unless blocked at the firewall or server level."
+    ],
+    examples: [
+      "Standard WordPress: User-agent: * Disallow: /wp-admin/ Allow: /wp-admin/admin-ajax.php Sitemap: https://example.com/sitemap.xml"
+    ],
+    terminology: [
+      {
+        term: "User-agent",
+        definition: "The name of the automated crawler or search engine bot (e.g., Googlebot)."
+      },
+      {
+        term: "Disallow",
+        definition: "A directive telling the crawler not to visit a specific folder or URL path."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'sitemap-generator',
@@ -1174,7 +2099,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Generate XML sitemap for 10 website pages", "Set priority 1.0 for homepage and 0.8 for category pages", "Format valid sitemap.xml for Google Search Console"],
     seoTitle: "Free XML Sitemap Generator - Build Search Engine Sitemaps Online",
     seoDescription: "Create valid XML sitemaps for Google Search Console and search engines with customizable update frequency and page priority.",
-    seoKeywords: ["sitemap generator","xml sitemap generator","generate sitemap xml online","Exismic"]
+    seoKeywords: ["sitemap generator","xml sitemap generator","generate sitemap xml online","Exismic"],
+    seoIntro: "Generate a Google-compliant XML sitemap listing your website URLs with update frequency and priority metadata for fast discovery.",
+    howToSteps: [
+      "Add your domain URL and customize primary navigation routes (e.g. /, /about, /pricing, /blog).",
+      "Set change frequency (e.g. daily, weekly, monthly) and priority weighting for key landing pages.",
+      "Validate the XML syntax and schema compliance.",
+      "Download your sitemap.xml file and submit the URL to Google Search Console."
+    ],
+    features: [
+      "Quick Route Adders: One-click shortcuts for standard web pages.",
+      "Automated lastmod Timestamps: Formats dates into standard ISO-8601 format.",
+      "XML Syntax Highlighting: Clean, error-free Google-compliant XML structure.",
+      "Instant Blueprints: Pre-configured sitemaps for SaaS, blogs, DTC shops, and portfolios."
+    ],
+    faqs: [
+      {
+        question: "Why is an XML sitemap important for SEO?",
+        answer: "An XML sitemap acts as a roadmap for search engines, helping Google find all your important pages quickly—especially on new websites or sites with complex navigation."
+      },
+      {
+        question: "How do I submit my sitemap to Google?",
+        answer: "Open Google Search Console, navigate to the 'Sitemaps' tab under Indexing, enter sitemap.xml, and click Submit."
+      }
+    ],
+    useCases: [
+      "New Websites: Speed up first-time indexing of all domain pages on Google and Bing.",
+      "Content Sites: Ensure new articles and updated pages are crawled within hours of publishing."
+    ],
+    limitations: [
+      "A single sitemap file is limited to 50,000 URLs and 50MB uncompressed by Google standards; larger sites require a sitemap index file."
+    ],
+    examples: [
+      "<url><loc>https://example.com/</loc><lastmod>2026-09-30</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>"
+    ],
+    terminology: [
+      {
+        term: "XML (Extensible Markup Language)",
+        definition: "The standard structured data format required by search engines for sitemaps."
+      },
+      {
+        term: "Priority",
+        definition: "A score from 0.0 to 1.0 indicating the relative importance of a page compared to other pages on your site."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'keyword-density-checker',
@@ -1187,7 +2156,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Check keyword density of blog post draft", "Scan for keyword stuffing over 3%", "Find top 2-word and 3-word key phrases"],
     seoTitle: "Free Keyword Density Checker - Analyze Text Keyword Frequency",
     seoDescription: "Analyze text content for keyword frequency percentages, phrase density, and stop-word filtered metrics to optimize search rankings.",
-    seoKeywords: ["keyword density checker","seo keyword analyzer","word frequency analyzer","Exismic"]
+    seoKeywords: ["keyword density checker","seo keyword analyzer","word frequency analyzer","Exismic"],
+    seoIntro: "Analyze word and phrase frequency in your articles and landing pages to ensure optimal keyword coverage while preventing keyword stuffing penalties.",
+    howToSteps: [
+      "Paste your draft text, blog post, or article content into the editor.",
+      "Review the 1-word, 2-word, and 3-word phrase density tables.",
+      "Check the density alert: maintain target keywords between 1.0% and 2.5% for natural reading flow.",
+      "Filter out common stop words to focus purely on topic-relevant keywords."
+    ],
+    features: [
+      "Multi-Word Phrase Analysis: Detects recurring 2-word and 3-word phrases in addition to single words.",
+      "Keyword Stuffing Warning: Flags any phrase exceeding 3.5% density that could trigger search penalties.",
+      "Stop Word Filter: Automatically excludes common filler words (the, is, and, of) for clear analysis.",
+      "Live Reading Time & Metrics: Displays total word count, unique words, and estimated reading time."
+    ],
+    faqs: [
+      {
+        question: "What is an ideal keyword density for SEO?",
+        answer: "A keyword density between 1% and 2.5% is widely considered optimal. It signals the topic clearly to search engines without feeling repetitive or unnatural to human readers."
+      },
+      {
+        question: "What is keyword stuffing?",
+        answer: "Keyword stuffing is the practice of loading a webpage with keywords in an attempt to manipulate rankings. Google actively penalizes stuffed content under Helpful Content updates."
+      }
+    ],
+    useCases: [
+      "Blog Editorial: Audit article drafts before publishing to ensure primary topics are covered naturally.",
+      "Competitor Copy Audit: Paste high-ranking competitor articles to see what phrases they emphasize."
+    ],
+    limitations: [
+      "Modern search engines use semantic understanding and entity recognition; exact keyword counts should always take a backseat to reader clarity."
+    ],
+    examples: [
+      "A 1,000-word article mentioning 'coffee beans' 15 times has a 1.5% keyword density (optimal range)."
+    ],
+    terminology: [
+      {
+        term: "Keyword Density",
+        definition: "The percentage of times a keyword or phrase appears compared to the total word count of the text."
+      },
+      {
+        term: "Stop Words",
+        definition: "Frequently used words (like 'in', 'at', 'that') that search engines usually ignore when analyzing core topics."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'schema-markup-generator',
@@ -1200,7 +2213,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Generate FAQ Page schema markup JSON-LD", "Create Article schema for blog post", "Generate Product review schema for e-commerce"],
     seoTitle: "Free Schema Markup Generator - JSON-LD Structured Data Builder",
     seoDescription: "Generate Google-compliant JSON-LD schema markup for Articles, FAQs, Products, Local Businesses, and How-To guides.",
-    seoKeywords: ["schema markup generator","json ld generator","structured data maker","Exismic"]
+    seoKeywords: ["schema markup generator","json ld generator","structured data maker","Exismic"],
+    seoIntro: "Generate Google-compliant JSON-LD structured data markup for Articles, FAQs, Products, and Local Businesses to unlock rich snippets in search results.",
+    howToSteps: [
+      "Select your schema type: FAQ Page, Product, Article, Local Business, or Organization.",
+      "Fill in the required properties (e.g. questions & answers, product price, star rating, author name).",
+      "Review the live JSON-LD code block and check Google Rich Result eligibility badges.",
+      "Copy the script tag code and paste it into your page head or body."
+    ],
+    features: [
+      "Interactive FAQ Builder: Add multiple question and answer pairs with instant schema generation.",
+      "E-Commerce Product Markup: Includes price, currency, availability, and rating properties.",
+      "Google Compliance Checks: Verifies all mandatory Schema.org properties are present.",
+      "One-Click Copy & Export: Download validated JSON-LD or copy ready-to-use HTML script tags."
+    ],
+    faqs: [
+      {
+        question: "What is JSON-LD schema markup?",
+        answer: "JSON-LD (JavaScript Object Notation for Linked Data) is a structured format that helps search engines understand the exact meaning of your page content, enabling rich search features."
+      },
+      {
+        question: "Do rich snippets improve SEO rankings?",
+        answer: "While schema markup itself is not a direct ranking factor, rich snippets (like star ratings and FAQ accordions) dramatically increase click-through rates (CTR)."
+      }
+    ],
+    useCases: [
+      "FAQ Accordions: Display expandable questions directly under your search result snippet.",
+      "Product Catalog: Show stock status, price, and customer review stars on Google Search."
+    ],
+    limitations: [
+      "Adding schema markup makes your page eligible for rich snippets, but Google decides whether to display them based on page quality and relevance."
+    ],
+    examples: [
+      "FAQ Schema: {\"@context\": \"https://schema.org\", \"@type\": \"FAQPage\", \"mainEntity\": [{\"@type\": \"Question\", \"name\": \"What is Exismic?\", ...}]}"
+    ],
+    terminology: [
+      {
+        term: "JSON-LD",
+        definition: "The recommended structured data format by Google for implementing Schema.org tags."
+      },
+      {
+        term: "Rich Snippet",
+        definition: "Enhanced search result displaying stars, prices, FAQ accordions, or cooking times."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   // 💻 Developer Suite
   {
@@ -1325,7 +2382,14 @@ export const ALL_TOOLS: Tool[] = [
       "Building bibliography and works-cited pages for term papers and dissertations",
       "Formatting parenthetical citations for research proposals and essays",
       "Organizing source references for academic literature reviews"
-    ]
+    ],
+    limitations: [
+  "Check names, dates, titles, and the required citation style against the original source before submitting."
+],
+    examples: [
+  "Enter a book title, author, and publication year, then verify the formatted reference against your course style guide."
+],
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   {
     id: 'math-solver',
@@ -1456,7 +2520,52 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Preview Google search snippet for Exismic AI tools", "Check pixel width limit for 60-character title", "Test mobile Google SERP snippet preview"],
     seoTitle: "Free Google SERP Snippet Simulator - Live Title & Meta Preview",
     seoDescription: "Preview title tags and meta descriptions in real-time desktop and mobile Google SERP simulators with pixel width verification.",
-    seoKeywords: ["google serp simulator","serp snippet previewer","google search result preview","Exismic"]
+    seoKeywords: ["google serp simulator","serp snippet previewer","google search result preview","Exismic"],
+    seoIntro: "Preview your website's search title, meta description, and URL breadcrumbs in realistic desktop and mobile Google search mockups with real-time character and pixel width meters.",
+    howToSteps: [
+      "Type your page title, meta description, and target web address into the simulator.",
+      "Toggle between Desktop and Mobile preview modes to check responsiveness.",
+      "Switch between Google Dark Mode and Light Mode to test visual contrast.",
+      "Optionally add rich snippet star ratings and publication date stamps.",
+      "Copy the generated HTML title and meta description tags."
+    ],
+    features: [
+      "Pixel-Accurate Google Preview: Authentic desktop (580px) and mobile search snippet cards.",
+      "Dual Theme Simulator: Test appearance against both Google Dark and Light themes.",
+      "Rich Snippet Add-Ons: Add star ratings, review counts, and publication date markers.",
+      "Truncation Alerter: Flags text exceeding 60 characters or 580px with immediate feedback."
+    ],
+    faqs: [
+      {
+        question: "Why does Google truncate search titles?",
+        answer: "Google sets a maximum pixel width (~580px on desktop) for title tags. If your title exceeds this threshold, Google replaces the excess words with an ellipsis (...)."
+      },
+      {
+        question: "Does desktop SERP differ from mobile SERP?",
+        answer: "Yes. Mobile Google searches feature narrower width constraints, distinct favicon placements, and often render slightly shorter descriptions."
+      }
+    ],
+    useCases: [
+      "Pre-Launch Testing: Verify headline visibility before publishing new landing pages.",
+      "Client Pitching: Export realistic Google SERP mockups for marketing client presentations."
+    ],
+    limitations: [
+      "Google dynamically adjusts snippet formats and may bold search query terms matching user intent."
+    ],
+    examples: [
+      "Page Title: 'Exismic Studio' -> Desktop SERP: 'Exismic - All-in-One AI Studio for Audio, Video & Photo Editing' (Under 60 chars)"
+    ],
+    terminology: [
+      {
+        term: "SERP Simulator",
+        definition: "An interactive visual tool that mirrors Google's exact search results layout."
+      },
+      {
+        term: "Pixel Width",
+        definition: "The physical horizontal space a font occupies on the search engine results screen."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'og-previewer',
@@ -1468,7 +2577,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Preview Open Graph social card for blog post", "Check Twitter Summary Large Image card tags", "Validate og:image dimensions and description"],
     seoTitle: "Free Open Graph (OG) Social Card Previewer & Meta Tag Validator",
     seoDescription: "Preview social media card embeds for Twitter, LinkedIn, Facebook, and Discord before publishing your link.",
-    seoKeywords: ["open graph previewer","og tag checker","social card previewer","Exismic"]
+    seoKeywords: ["open graph previewer","og tag checker","social card previewer","Exismic"],
+    seoIntro: "Preview how your links appear across Twitter/X, LinkedIn, Facebook, and Discord with accurate aspect ratio checks and 1-click HTML meta tag generation.",
+    howToSteps: [
+      "Input your link title, description, banner image URL, and target webpage link.",
+      "Switch between Twitter, LinkedIn, Facebook, and Discord preview tabs.",
+      "Verify image dimensions follow the optimal 1200x630 (1.91:1) standard.",
+      "Copy the complete OpenGraph and Twitter Card meta tag block directly into your HTML head."
+    ],
+    features: [
+      "Multi-Network Emulation: Real-time cards for Twitter Summary Large Image, LinkedIn, Facebook, and Discord.",
+      "Image Aspect Ratio Validation: Ensures banners won't be awkwardly cropped or letterboxed.",
+      "Instant Blueprints: Includes preloaded templates for SaaS launches, dev tools, and articles.",
+      "Comprehensive Tag Generator: Produces both standard OpenGraph and Twitter-specific meta tags."
+    ],
+    faqs: [
+      {
+        question: "What size should an Open Graph (OG) image be?",
+        answer: "The standard recommended size is 1200 x 630 pixels, which corresponds to a 1.91:1 aspect ratio. This ensures sharp display on high-DPI smartphone and desktop screens."
+      },
+      {
+        question: "Why aren't my social cards updating on Twitter or Facebook?",
+        answer: "Social networks cache link previews for days or weeks. Use the platform's official debugger (e.g. Facebook Sharing Debugger) to force a cache refresh."
+      }
+    ],
+    useCases: [
+      "Product Launches: Test social media link cards before announcing on Twitter or LinkedIn.",
+      "Blog Promotion: Ensure featured images and headlines look engaging in chat app shares."
+    ],
+    limitations: [
+      "The preview simulates standard platform rendering; dark and light mode appearances on user devices may vary."
+    ],
+    examples: [
+      "og:title: 'Exismic Studio' + og:image: 1200x630 -> Twitter Summary Large Image Card"
+    ],
+    terminology: [
+      {
+        term: "Open Graph (OG)",
+        definition: "A protocol introduced by Facebook that allows web pages to become rich objects in social networks."
+      },
+      {
+        term: "Twitter Card",
+        definition: "Twitter's proprietary metadata standard for rich tweets with media summaries."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'canonical-generator',
@@ -1480,7 +2633,52 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Generate canonical tag for https://www.exismic.xyz", "Create multi-language hreflang tags for EN, ES, and FR", "Format self-referential link tags"],
     seoTitle: "Free Canonical & Hreflang Tag Generator for International SEO",
     seoDescription: "Generate valid canonical and hreflang HTML tags to prevent duplicate content penalties and target international search audiences.",
-    seoKeywords: ["canonical tag generator","hreflang tag generator","seo canonical url creator","Exismic"]
+    seoKeywords: ["canonical tag generator","hreflang tag generator","seo canonical url creator","Exismic"],
+    seoIntro: "Generate canonical master link tags and multi-language hreflang HTML meta directives to prevent duplicate content indexing penalties and guide international searchers.",
+    howToSteps: [
+      "Enter your authoritative master URL into the canonical input field.",
+      "Toggle formatting rules: force HTTPS, trailing slash enforcement, or strip tracking parameters.",
+      "Add regional and translated language variations using quick presets or custom language codes.",
+      "Copy the generated HTML canonical and hreflang tags."
+    ],
+    features: [
+      "Instant Sanitization: Automatically strips UTM tracking tags and standardizes protocol.",
+      "Hreflang Manager: Quick-add buttons for US, UK, Spanish, French, German, Japanese, and x-default.",
+      "Duplicate Prevention: Prevents search engines from penalizing identical content across multiple URLs.",
+      "Compliance Checklist: Verifies self-referential links, HTTPS completeness, and fallback defaults."
+    ],
+    faqs: [
+      {
+        question: "What happens if I don't use a canonical tag?",
+        answer: "Without a canonical tag, search engines may treat URL variations (like http://, https://, www., non-www, trailing slashes, or query strings) as separate duplicate pages, splitting your ranking power."
+      },
+      {
+        question: "What is the purpose of the x-default hreflang tag?",
+        answer: "The x-default directive tells search engines which page to show visitors when their language or region doesn't match any of your specified translated pages."
+      }
+    ],
+    useCases: [
+      "E-Commerce Filter Pages: Point sorted product lists (e.g. ?sort=price) back to the clean master category URL.",
+      "Multi-Language Portals: Direct Spanish speakers to /es and English speakers to /en seamlessly."
+    ],
+    limitations: [
+      "Canonical tags are a strong hint rather than an absolute directive; Google will evaluate whether the canonical URL truly represents the content."
+    ],
+    examples: [
+      "<link rel=\"canonical\" href=\"https://cloudspark.io/pricing\" />",
+      "<link rel=\"alternate\" hreflang=\"es-ES\" href=\"https://cloudspark.io/es/pricing\" />"
+    ],
+    terminology: [
+      {
+        term: "Canonical URL",
+        definition: "The single primary, authoritative web address chosen by a webmaster for a page."
+      },
+      {
+        term: "Hreflang",
+        definition: "An HTML attribute specifying the language and geographical targeting of a webpage."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
 
   // Option 3: Developer & Data Suite
@@ -1601,7 +2799,51 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["Design a 1200x630 Open Graph banner for a blog article", "Create a GitHub repository social preview card", "Make a high-converting product launch social banner"],
     seoTitle: "Free Open Graph (OG) Banner Studio - Create 1200x630 Social Share Images",
     seoDescription: "Design custom Open Graph (OG) social share banner images (1200x630) for Twitter, Discord, LinkedIn, and Facebook. Customize titles, branding, and gradients with 1-click download.",
-    seoKeywords: ["og image generator", "social share banner maker", "open graph image creator", "twitter card banner maker", "1200x630 banner generator", "social preview generator", "Exismic"]
+    seoKeywords: ["og image generator", "social share banner maker", "open graph image creator", "twitter card banner maker", "1200x630 banner generator", "social preview generator", "Exismic"],
+    seoIntro: "Design custom 1200x630 social preview banners, Open Graph cards, and blog hero graphics in real time with customizable glowing themes and 1-click PNG export.",
+    howToSteps: [
+      "Choose from 5 responsive banner layouts (SaaS Launch, Tech Blog, GitHub Repo, Minimalist, Split Showcase).",
+      "Select a radiant cyber color theme (Obsidian, Cyber, Sunset, Emerald, Carbon, Solaris).",
+      "Customize your headline, subtitle, author name, domain, and verified badge.",
+      "Preview on Twitter, Discord, and LinkedIn, then download a high-resolution 1200x630 PNG."
+    ],
+    features: [
+      "5 Production Layouts: Tailored for SaaS launches, developer repos, and editorial blog posts.",
+      "Radiant Cyber Themes: Premium obsidian, cyber cyan, and emerald glowing gradients.",
+      "Real-Time Canvas: High-DPI export powered by client-side rendering with zero watermarks.",
+      "Social Simulator Previews: See how the banner looks inside Twitter, Discord, and LinkedIn feeds."
+    ],
+    faqs: [
+      {
+        question: "What resolution are the downloaded OG banners?",
+        answer: "Banners are exported at exactly 1200 x 630 pixels at 2x retina clarity, conforming perfectly to Facebook, Twitter, and LinkedIn image standards."
+      },
+      {
+        question: "Can I use custom avatars or logos?",
+        answer: "Yes, you can upload your own PNG or SVG logo or choose from high-end geometric monogram presets."
+      }
+    ],
+    useCases: [
+      "Product Hunt & Launch Day: Create eye-catching teaser cards for social media announcements.",
+      "Technical Blog Headers: Standardize editorial post previews across engineering publications."
+    ],
+    limitations: [
+      "Downloaded images should be hosted on a public CDN or website server so social crawlers can fetch them via og:image."
+    ],
+    examples: [
+      "Headline: 'Exismic Studio' -> Layout: SaaS Launch -> Theme: Cyber -> Export 1200x630 PNG"
+    ],
+    terminology: [
+      {
+        term: "Social Share Banner",
+        definition: "The rich banner image that unfurls automatically when a URL is shared online."
+      },
+      {
+        term: "Retina Scaling",
+        definition: "Rendering at double pixel density so graphics appear crisp on high-DPI displays."
+      }
+    ],
+    updatedAt: "2026-09-30T00:00:00.000Z"
   },
   {
     id: 'slowed-reverb',
@@ -1735,6 +2977,71 @@ export const ALL_TOOLS: Tool[] = [
     seoTitle: "Free Text Readability & Flesch-Kincaid Grade Level Assessor",
     seoDescription: "Assess text readability scores including Flesch-Kincaid Grade Level, Flesch Reading Ease, and Gunning Fog index.",
     seoKeywords: ["readability checker","flesch kincaid score calculator","grade level text assessor","Exismic"]
+  },
+  {
+    id: 'hashtag-generator',
+    name: 'AI Hashtag Generator',
+    description: "Build balanced, platform-aware hashtag sets for Instagram, TikTok, YouTube Shorts, and X. Uses real AI to balance broad viral reach with engaged community tags.",
+    category: 'creator',
+    icon: 'Hash' as IconName,
+    href: '/tools/hashtag-generator',
+    popular: true,
+    proPowerPack: true,
+    suggestions: ["Generate Instagram Reels hashtags for coffee lovers", "Create TikTok FYP tags for streetwear fits", "Find YouTube Shorts tags for indie game dev"],
+    seoTitle: "Free AI Hashtag Generator - Instagram, TikTok & YouTube Tags | Exismic",
+    seoDescription: "Generate authentic, high-reach hashtag sets for Instagram, TikTok, YouTube Shorts, and X. Balanced viral reach, community tags, and long-tail search tags.",
+    seoKeywords: ["hashtag generator", "instagram hashtags", "tiktok hashtags", "viral hashtags", "free hashtag tool", "youtube shorts tags", "Exismic"],
+    seoIntro: "Generate tailored hashtag sets using artificial intelligence that balances broad viral discoverability, engaged subculture tags, and high-converting search keywords. Includes a live post caption simulator for Instagram, TikTok, and YouTube.",
+    howToSteps: [
+      "Select an instant niche blueprint or type your custom topics and keywords.",
+      "Choose your target platform (Instagram, TikTok, YouTube, or X) and customize your tag count.",
+      "Click Generate to synthesize your 3-tiered hashtag set and AI-crafted post caption.",
+      "Preview the post in the live platform feed simulator and copy with 1 click."
+    ],
+    features: [
+      "3-Tier Strategy Buckets: Balances broad viral reach, medium-volume community tags, and specific long-tail tags.",
+      "Live Feed Caption Simulator: Preview your caption and tags inside realistic Instagram, TikTok, and YouTube Shorts UI.",
+      "1-Click Multi-Format Export: Copy as inline tags, clean Instagram spacing dots, or YouTube comma lists.",
+      "AI Post Caption Generation: Generates an engaging hook and caption tailored to your exact niche."
+    ],
+    faqs: [
+      {
+        question: "How many hashtags should I use on Instagram in 2026?",
+        answer: "Instagram's official recommendation is between 3 to 5 hyper-relevant niche hashtags in your main caption rather than dumping 30 generic tags. This helps the AI categorization model accurately index your post."
+      },
+      {
+        question: "How are the 3 hashtag tiers determined?",
+        answer: "Broad Viral Reach tags have 500k+ to millions of posts for wide discovery. Targeted Community tags have 50k to 500k posts for engaged followers. Specific Long-Tail tags have high search intent for top ranking."
+      },
+      {
+        question: "Does this tool work for TikTok and YouTube Shorts?",
+        answer: "Yes, you can toggle between Instagram, TikTok, YouTube, and X / Twitter to generate platform-specific tags formatted for each platform's recommendation."
+      },
+      {
+        question: "How do I format hashtags so they don't clutter my Instagram caption?",
+        answer: "Use the 'Instagram Clean Dots' export format. It adds clean line-breaks with dots (. . .) above your hashtags, hiding them behind the '...more' button so your caption remains clean and readable."
+      },
+      {
+        question: "Are these hashtags free to copy and use?",
+        answer: "Yes. All hashtag generation, blueprints, and multi-format exports run in-browser and are 100% free with zero limits."
+      }
+    ],
+    useCases: [
+      "Instagram Reels & Carousels: Boost discoverability on the Explore page and feed recommendations.",
+      "TikTok For You Page (FYP): Help TikTok's search insights and recommendation algorithm classify your video content.",
+      "YouTube Shorts: Target specific search queries and appear on official YouTube hashtag shelf pages.",
+      "X / Twitter Conversations: Engage in trending tech, business, and community discussions."
+    ],
+    limitations: [
+      "Hashtags alone do not guarantee viral reach without engaging content, watch time, and retention.",
+      "Banned or restricted hashtags by platforms should always be avoided."
+    ],
+    examples: [
+      "Fitness & Gym: #fitnessmotivation #gymlife #progressiveoverload #pushdayworkout",
+      "Travel & Nomad: #travelgram #wanderlust #slowtravel #bucketlistadventures",
+      "Food & Recipes: #foodiegram #delicious #fromscratch #quickdinnerideas",
+      "Cyberpunk Street Photography: #streetphotography #cyberpunk #neonstreets #rainydystopia"
+    ]
   }
 ];
 

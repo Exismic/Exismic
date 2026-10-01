@@ -344,7 +344,7 @@ export async function sendProWelcomeEmail(email: string, details: {
                   <td class="pro-hero" style="padding:46px 42px 34px; text-align:center; background-image:radial-gradient(circle at 50% 0%, rgba(124,58,237,0.28), transparent 52%), linear-gradient(135deg, rgba(124,58,237,0.10), rgba(6,182,212,0.05));">
                     <div style="display:inline-block; margin-bottom:22px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,0.36); background:rgba(124,58,237,0.16); color:#c4b5fd; font-size:11px; line-height:1; font-weight:800; letter-spacing:1.7px; text-transform:uppercase;">Membership Activated</div>
                     <h1 class="pro-title" style="margin:0; color:#ffffff; font-size:44px; line-height:1.02; letter-spacing:-2.2px; font-weight:900;">Welcome to <span style="background:linear-gradient(90deg,#c4b5fd,#67e8f9,#ffffff); -webkit-background-clip:text; background-clip:text; color:#a78bfa;">Exismic Pro</span></h1>
-                    <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">Your membership is live. Premium credits, faster generation, advanced AI models, and studio-grade tools are now unlocked for your account.</p>
+                    <p style="max-width:520px; margin:20px auto 0; color:#a7b0c2; font-size:16px; line-height:1.7; font-weight:500;">Your membership is live. Daily credits, priority speed, full studio tool access, and commercial rights are now unlocked for your account.</p>
                   </td>
                 </tr>
                 <tr>
@@ -369,14 +369,17 @@ export async function sendProWelcomeEmail(email: string, details: {
                     <div style="margin:0 0 16px; color:#ffffff; font-size:16px; font-weight:850;">Key benefits unlocked</div>
                     <table class="pro-benefits" role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td width="50%" style="padding:0 8px 12px 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(124,58,237,0.28);">&#10022;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">${PRO_DAILY_CREDITS_LABEL} daily credits</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Premium generation capacity every day.</div></div></td>
+                        <td width="50%" style="padding:0 8px 12px 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#8b5cf6,#22d3ee); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(124,58,237,0.28);">&#9670;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">${PRO_DAILY_CREDITS_LABEL} daily credits</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Premium generation capacity every day.</div></div></td>
                         <td width="50%" style="padding:0 0 12px 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(6,182,212,0.24);">&#9889;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Priority speed</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Faster processing for creative workflows.</div></div></td>
                       </tr>
                       <tr>
-                        <td width="50%" style="padding:0 8px 0 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#a855f7,#ec4899); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(236,72,153,0.22);">&#9673;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Elite AI models</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Access GPT-4o and Claude 3.5 Sonnet.</div></div></td>
-                        <td width="50%" style="padding:0 0 0 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#f59e0b,#8b5cf6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(245,158,11,0.20);">&#9733;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Commercial license</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Use generated assets in real projects.</div></div></td>
+                        <td width="50%" style="padding:0 8px 0 0;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#a855f7,#ec4899); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(236,72,153,0.22);">&#9673;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Full studio access</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Unlimited access to all creative tools and suites.</div></div></td>
+                        <td width="50%" style="padding:0 0 0 8px;"><div style="min-height:104px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.035); padding:18px;"><div style="width:34px; height:34px; border-radius:13px; background:linear-gradient(135deg,#f59e0b,#8b5cf6); color:#ffffff; text-align:center; line-height:34px; font-size:16px; font-weight:900; box-shadow:0 0 28px rgba(245,158,11,0.20);">&#10003;</div><div style="margin-top:14px; color:#ffffff; font-size:14px; font-weight:850;">Commercial license</div><div style="margin-top:6px; color:#8792a8; font-size:12px; line-height:1.5;">Use generated assets in real projects.</div></div></td>
                       </tr>
                     </table>
+                    <div style="margin-top:20px; text-align:center;">
+                      <a href="${SITE_URL}/pricing" style="display:inline-block; color:#c4b5fd; font-size:13px; font-weight:800; text-decoration:none; padding:10px 22px; border-radius:14px; border:1px solid rgba(167,139,250,0.3); background:rgba(124,58,237,0.12);">View all Pro benefits &amp; perks &rarr;</a>
+                    </div>
                   </td>
                 </tr>
                 <tr>
@@ -461,16 +464,19 @@ async function sendProWelcomeEmailLegacy(email: string, details: {
         <div style="margin-bottom: 32px;">
             <p style="font-weight: 600; color: #ffffff; margin-bottom: 16px;">Key benefits unlocked:</p>
             <div class="benefit-item">
-                <span class="benefit-icon">✦</span> ${PRO_DAILY_CREDITS_LABEL} Daily Premium Credits
+                <span class="benefit-icon">•</span> ${PRO_DAILY_CREDITS_LABEL} Daily Premium Credits
             </div>
             <div class="benefit-item">
-                <span class="benefit-icon">✦</span> Ultra-fast Generation Speed
+                <span class="benefit-icon">•</span> Priority Processing Speed
             </div>
             <div class="benefit-item">
-                <span class="benefit-icon">✦</span> Access to GPT-4o & Claude 3.5 Sonnet
+                <span class="benefit-icon">•</span> Full Access to All Pro Tools &amp; Features
             </div>
             <div class="benefit-item">
-                <span class="benefit-icon">✦</span> Commercial Usage License
+                <span class="benefit-icon">•</span> Commercial Usage License
+            </div>
+            <div style="margin-top:16px;">
+                <a href="${SITE_URL}/pricing" style="color:#a78bfa; font-size:13px; font-weight:700; text-decoration:none;">View all Pro benefits &amp; perks &rarr;</a>
             </div>
         </div>
         
@@ -1129,8 +1135,8 @@ async function sendWelcomeEmailLegacy(email: string) {
                 <p style="font-size: 14px; margin-bottom: 0;">Enhance, trim, or generate subtitles for your videos with studio-grade precision.</p>
             </div>
             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px;">
-                <h3 style="color: #ffffff; margin-top: 0; font-size: 16px;">🤖 Chat with Genius Models</h3>
-                <p style="font-size: 14px; margin-bottom: 0;">Access GPT-4o and Claude 3.5 Sonnet to solve complex problems.</p>
+                <h3 style="color: #ffffff; margin-top: 0; font-size: 16px;">🤖 Intelligent AI Assistants</h3>
+                <p style="font-size: 14px; margin-bottom: 0;">Access high-performance AI engines and smart tools to solve complex creative challenges.</p>
             </div>
         </div>
 
@@ -1229,13 +1235,16 @@ export async function sendGiftCardApprovedEmail(
 
     const innerContent = isPro ? `
       <div style="max-width:440px; margin:0 auto 20px; border-radius:22px; border:1px solid rgba(167,139,250,0.3); background:linear-gradient(135deg, rgba(167,139,250,0.12), rgba(56,189,248,0.05)); padding:20px; text-align:left;">
-        <p style="margin:0 0 10px; color:#ffffff; font-size:15px; font-weight:900;">Exismic Pro Membership Active!</p>
-        <ul style="margin:0; padding-left:18px; color:#cbd5e1; font-size:12px; line-height:1.7;">
-          <li>✦ <strong>${PRO_DAILY_CREDITS_LABEL} Daily Credits</strong> (restores every 24 hours)</li>
-          <li>✦ <strong>Priority GPU Queue</strong> & Maximum Generation Speed</li>
-          <li>✦ <strong>GPT-4o & Claude 3.5 Sonnet Access</strong></li>
-          <li>✦ <strong>Commercial Usage License</strong></li>
+        <p style="margin:0 0 12px; color:#ffffff; font-size:15px; font-weight:900;">Exismic Pro Membership Active!</p>
+        <ul style="margin:0; padding-left:18px; color:#cbd5e1; font-size:13px; line-height:1.8;">
+          <li>• <strong>${PRO_DAILY_CREDITS_LABEL} Daily Credits</strong> (restores every 24 hours)</li>
+          <li>• <strong>Priority Speed</strong> &amp; Fast-Track Generation</li>
+          <li>• <strong>Full Studio Tool Access</strong> across all creative suites</li>
+          <li>• <strong>Commercial Usage License</strong> for real projects</li>
         </ul>
+        <div style="margin-top:14px; text-align:left;">
+          <a href="${SITE_URL}/pricing" style="display:inline-block; color:#a78bfa; font-size:12px; font-weight:800; text-decoration:none;">View all Pro benefits &amp; perks &rarr;</a>
+        </div>
       </div>
       <a href="${SITE_URL}/pro" style="display:block; width:100%; max-width:420px; border-radius:20px; background:linear-gradient(90deg,#8b5cf6,#06b6d4,#22d3ee); color:#ffffff; text-decoration:none; text-align:center; padding:18px 0; font-size:15px; font-weight:950; margin:0 auto; box-shadow:0 18px 52px rgba(139,92,246,0.34);">Start Using Exismic Pro</a>
     ` : `

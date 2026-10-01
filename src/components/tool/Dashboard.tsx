@@ -151,15 +151,26 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
   }, []);
 
   useEffect(() => {
-    const fetchFavorites = async () => {
-      if (dbUser) {
-        import('@/app/actions/favorites').then(async ({ getFavorites }) => {
-          const favs = await getFavorites();
-          if (favs) setFavorites(favs);
-        });
+    // Check localStorage immediately for guest favorites
+    try {
+      const guest = JSON.parse(localStorage.getItem("exismic_guest_favorites") || "[]");
+      if (Array.isArray(guest) && guest.length > 0) {
+        setFavorites((prev) => Array.from(new Set([...prev, ...guest])));
       }
+    } catch {}
+
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch("/api/user/favorites", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && Array.isArray(data.favorites)) {
+            setFavorites(data.favorites);
+          }
+        }
+      } catch {}
     };
-    fetchFavorites();
+    void fetchFavorites();
   }, [dbUser]);
 
   useEffect(() => {

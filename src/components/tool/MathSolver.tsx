@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import { 
   BrainCircuit, 
-  Sparkles, 
   Copy, 
   CheckCircle2, 
   RefreshCw,
@@ -12,8 +11,7 @@ import {
   Calculator,
   Compass,
   Check,
-  GraduationCap,
-  Sparkle
+  GraduationCap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -185,7 +183,7 @@ e^(2x) / 8 · (4x³ - 6x² + 6x - 3) + C`;
 
         <div className="flex items-center gap-2 overflow-x-auto text-xs">
           <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
-            <Sparkles size={12} className="text-amber-400" /> Presets:
+            <Calculator size={12} className="text-amber-400" /> Presets:
           </span>
           {MATH_PRESETS.map((preset) => (
             <button
@@ -290,16 +288,16 @@ e^(2x) / 8 · (4x³ - 6x² + 6x - 3) + C`;
               type="button"
               onClick={() => handleSolve()}
               disabled={!problem.trim() || isSolving}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 cursor-pointer group"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-amber-500/35 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 cursor-pointer group"
             >
               {isSolving ? (
                 <>
-                  <RefreshCw size={18} className="animate-spin text-white" />
+                  <RefreshCw size={18} className="animate-spin" />
                   <span>Computing Mathematical Proof...</span>
                 </>
               ) : (
                 <>
-                  <BrainCircuit size={18} className="group-hover:scale-110 transition-transform text-amber-300" />
+                  <BrainCircuit size={18} className="group-hover:scale-110 transition-transform" />
                   <span>Solve Math Problem ({depth.toUpperCase()})</span>
                 </>
               )}

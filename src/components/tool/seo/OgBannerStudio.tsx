@@ -33,7 +33,6 @@ import {
   GitBranch,
   Maximize2,
   Clock,
-  Sparkles,
   ChevronRight,
   MessageSquare,
   Repeat,
@@ -46,6 +45,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
+import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
+import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
+import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 
 // ============================================================================
 // TYPES & THEMES (Obsidian Cyber Design Standard)
@@ -1257,9 +1259,9 @@ export default function OgBannerStudio() {
                         </div>
                       </div>
 
-                      <h1 className="text-base sm:text-2xl md:text-[28px] font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md line-clamp-2">
+                      <div className="text-base sm:text-2xl md:text-[28px] font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md line-clamp-2">
                         {headline}
-                      </h1>
+                      </div>
 
                       <p className="text-[10px] sm:text-xs md:text-[13px] line-clamp-2 text-zinc-300 leading-relaxed font-normal max-w-[95%]">
                         {subtitle}
@@ -1317,9 +1319,9 @@ export default function OgBannerStudio() {
                     </div>
 
                     <div className="relative z-10 my-auto space-y-1.5 sm:space-y-2.5">
-                      <h1 className="text-lg sm:text-3xl md:text-[32px] font-extrabold tracking-tight leading-[1.18] text-white drop-shadow-md line-clamp-2">
+                      <div className="text-lg sm:text-3xl md:text-[32px] font-extrabold tracking-tight leading-[1.18] text-white drop-shadow-md line-clamp-2">
                         {headline}
-                      </h1>
+                      </div>
                       <p className="text-[10px] sm:text-xs md:text-[13px] line-clamp-2 text-zinc-300 leading-relaxed font-normal max-w-[95%]">
                         {subtitle}
                       </p>
@@ -1365,9 +1367,9 @@ export default function OgBannerStudio() {
                     </div>
 
                     <div className="relative z-10 my-auto space-y-1.5 sm:space-y-2">
-                      <h1 className="text-base sm:text-2xl md:text-[26px] font-bold font-mono tracking-tight text-white line-clamp-1">
+                      <div className="text-base sm:text-2xl md:text-[26px] font-bold font-mono tracking-tight text-white line-clamp-1">
                         {headline}
-                      </h1>
+                      </div>
                       <p className="text-[10px] sm:text-xs md:text-[13px] line-clamp-2 text-zinc-300 leading-relaxed font-mono max-w-[95%]">
                         {subtitle}
                       </p>
@@ -1403,9 +1405,9 @@ export default function OgBannerStudio() {
                     </div>
 
                     <div className="my-auto space-y-2 max-w-[92%]">
-                      <h1 className="text-lg sm:text-3xl md:text-[32px] font-extrabold tracking-tight leading-[1.18] text-white drop-shadow-md line-clamp-2">
+                      <div className="text-lg sm:text-3xl md:text-[32px] font-extrabold tracking-tight leading-[1.18] text-white drop-shadow-md line-clamp-2">
                         {headline}
-                      </h1>
+                      </div>
                       <p className="text-[10px] sm:text-xs md:text-[13px] line-clamp-2 text-zinc-300 leading-relaxed font-normal">
                         {subtitle}
                       </p>
@@ -1432,9 +1434,9 @@ export default function OgBannerStudio() {
                       </div>
 
                       <div className="my-auto space-y-1.5 sm:space-y-2">
-                        <h1 className="text-base sm:text-2xl md:text-[26px] font-extrabold tracking-tight leading-[1.18] text-white drop-shadow-md line-clamp-2">
+                        <div className="text-base sm:text-2xl md:text-[26px] font-extrabold tracking-tight leading-[1.18] text-white drop-shadow-md line-clamp-2">
                           {headline}
-                        </h1>
+                        </div>
                         <p className="text-[10px] sm:text-xs md:text-[13px] line-clamp-2 text-zinc-300 leading-relaxed font-normal">
                           {subtitle}
                         </p>
@@ -1695,6 +1697,31 @@ export default function OgBannerStudio() {
           <span>{isDownloading ? "..." : "PNG"}</span>
         </button>
       </div>
+
+      {/* Result Retention Bar */}
+      <ResultRetentionBar
+        toolType="og-banner"
+        toolName="Social Share Banner Studio (OG Maker)"
+        title={`Social Share Banner: "${headline}"`}
+        content={`Social Share Banner Details:\nHeadline: ${headline}\nSubtitle: ${subtitle}\nAuthor: ${authorName}\nDomain: ${domainName}\nLayout: ${layout}\nTheme: ${theme}`}
+        downloadLabel="Download Banner (PNG)"
+        downloadAction={handleDownloadPng}
+        onCopy={handleCopyPicture}
+      />
+
+      {/* Chained Companion Tools in SEO */}
+      <ToolWorkflowChaining
+        currentToolId="og-banner"
+        categoryId="seo"
+        outputContent={`Banner Headline: "${headline}", Theme: ${theme}, Layout: ${layout}`}
+      />
+
+      {/* Suggested Tools */}
+      <ToolSuggestions
+        currentToolId="og-banner"
+        categoryId="seo"
+        outputContent={`Banner Headline: "${headline}", Theme: ${theme}, Layout: ${layout}`}
+      />
     </div>
   );
 }

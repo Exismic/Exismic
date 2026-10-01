@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   Layers,
   Plus,
@@ -8,20 +8,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Sparkles,
   FileText,
   Palette,
   Layout,
-  ArrowUp,
-  ArrowDown,
-  Wand2,
+  ArrowLeft,
+  ArrowRight,
   Check,
-  Share2,
+  Eye,
+  SlidersHorizontal,
   Image as ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
+import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 interface Slide {
   id: string;
@@ -31,45 +31,64 @@ interface Slide {
 }
 
 // Preset Topics for Instant AI Generation
-const AI_PRESETS = [
+const CAROUSEL_BLUEPRINTS = [
   {
     topic: "5 AI Tools for High Output",
+    category: "Tech & AI List",
+    tagline: "5 curated creator tools",
     slides: [
-      { id: "1", tag: "SWIPE LEFT 👉", title: "5 AI Tools Every Creator Needs in 2026", body: "Save 20+ hours a week with these studio-grade utilities." },
-      { id: "2", tag: "TOOL #1", title: "1. Automated Research & Briefs", body: "Extract insights from 50-page PDFs and YouTube transcripts in seconds." },
-      { id: "3", tag: "TOOL #2", title: "2. Real-Time Vision Auditing", body: "Analyze thumbnail contrast & hook strength before publishing." },
-      { id: "4", tag: "TOOL #3", title: "3. Smart Voice & SFX Isolation", body: "Separate vocals and ambient noise directly in your browser." },
-      { id: "5", tag: "CONCLUSION", title: "Save & Share This Deck", body: "Follow @exismicai for daily tech & AI productivity breakdowns!" }
+      { id: "1", tag: "SWIPE LEFT 👉", title: "5 AI Tools Every Creator Needs in 2026", body: "Save 20+ hours a week with these studio-grade utilities built for high-output builders." },
+      { id: "2", tag: "TOOL #1", title: "1. Automated Research & Summaries", body: "Extract core actionable insights from 50-page PDFs and YouTube videos in seconds." },
+      { id: "3", tag: "TOOL #2", title: "2. Real-Time Thumbnail Auditing", body: "Test color contrast, face focal points, and duration badge overlap before publishing." },
+      { id: "4", tag: "TOOL #3", title: "3. Voice & Background Audio Isolation", body: "Clean vocals, separate instruments, and remove fan hiss directly in your browser." },
+      { id: "5", tag: "CONCLUSION", title: "Save & Share This Deck", body: "Follow @exismicai for daily creative tools, tech frameworks, and workflow breakdowns!" }
     ]
   },
   {
-    topic: "How to Build a $10k Side Business",
+    topic: "How to Build a $10k Side Project",
+    category: "Actionable Guide",
+    tagline: "From zero to revenue",
     slides: [
-      { id: "1", tag: "BLUEPRINT 💡", title: "How to Build a $10k/mo Side Business", body: "Without quitting your 9-to-5 or burning out." },
-      { id: "2", tag: "STEP 1", title: "1. Solve One Painful Problem", body: "Focus on a hyper-specific audience willing to pay $100+ for a solution." },
-      { id: "3", tag: "STEP 2", title: "2. Build an MVP in 48 Hours", body: "Use no-code tools and AI scripts. Don't over-engineer." },
-      { id: "4", tag: "STEP 3", title: "3. Pre-Sell to 10 Early Customers", body: "Validate demand before writing custom backend infrastructure." },
-      { id: "5", tag: "SUMMARY", title: "Execution > Ideas", body: "Bookmark this slide for your next weekend build sprint." }
+      { id: "1", tag: "BLUEPRINT 💡", title: "How to Build a $10k/mo Side Project", body: "A step-by-step framework to launch while working a 9-to-5 without burning out." },
+      { id: "2", tag: "STEP 1", title: "1. Solve One Painful Problem", body: "Focus on a hyper-specific audience willing to pay $100+ for an immediate solution." },
+      { id: "3", tag: "STEP 2", title: "2. Build an MVP in 48 Hours", body: "Use no-code tools and AI scripts. Don't over-engineer custom infrastructure." },
+      { id: "4", tag: "STEP 3", title: "3. Pre-Sell to 10 Early Customers", body: "Validate real payment intent before writing custom backend production code." },
+      { id: "5", tag: "SUMMARY", title: "Execution > Ideas", body: "Bookmark this slide deck for your next weekend build sprint." }
     ]
   },
   {
     topic: "4 Principles of Clean UI Design",
+    category: "Design & UX",
+    tagline: "Visual hierarchy guide",
     slides: [
-      { id: "1", tag: "DESIGN SYSTEM 🎨", title: "4 Principles of Clean UI Design", body: "Transform amateur layouts into premium user experiences." },
-      { id: "2", tag: "PRINCIPLE 1", title: "1. Generous Whitespace", body: "Give elements room to breathe. Clutter destroys visual hierarchy." },
-      { id: "3", tag: "PRINCIPLE 2", title: "2. Limited Color Palette", body: "Use 1 dominant background, 1 neutral, and 1 vibrant accent color." },
-      { id: "4", tag: "PRINCIPLE 3", title: "3. Strong Typographic Hierarchy", body: "Make titles bold and readable at a glance on mobile screens." },
-      { id: "5", tag: "FINISH", title: "Level Up Your UI", body: "Repost this guide if you found it helpful!" }
+      { id: "1", tag: "DESIGN SYSTEM 🎨", title: "4 Principles of Clean UI Design", body: "Transform amateur product layouts into premium, high-converting digital experiences." },
+      { id: "2", tag: "PRINCIPLE 1", title: "1. Generous Breathable Whitespace", body: "Give interface elements room to breathe. Clutter destroys visual hierarchy every time." },
+      { id: "3", tag: "PRINCIPLE 2", title: "2. Disciplined Color Palette", body: "Use 1 dominant background, 1 neutral surface, and 1 vibrant interactive accent color." },
+      { id: "4", tag: "PRINCIPLE 3", title: "3. Strong Typographic Scale", body: "Make headline weights bold and effortlessly readable at a glance on mobile feeds." },
+      { id: "5", tag: "FINISH", title: "Level Up Your UI", body: "Repost this guide if you found these design principles actionable!" }
+    ]
+  },
+  {
+    topic: "Before & After Conversion Growth",
+    category: "Case Study",
+    tagline: "1.8% to 8.4% landing page",
+    slides: [
+      { id: "1", tag: "CASE STUDY 📈", title: "How We Quadrupled Landing Page Conversions", body: "From 1.8% to 8.4% without changing our core product pricing or ad spend." },
+      { id: "2", tag: "CHANGE 1", title: "1. Eradicated Technical Jargon", body: "Replaced engineering buzzwords with plain-English benefits everyday users understand." },
+      { id: "3", tag: "CHANGE 2", title: "2. Social Proof Above the Fold", body: "Placed verifiable customer metrics and video demos in the immediate hero viewport." },
+      { id: "4", tag: "CHANGE 3", title: "3. Single Unambiguous Call to Action", body: "Removed distracting secondary links so visitors had exactly one clear path forward." },
+      { id: "5", tag: "TAKEAWAY", title: "Simplicity Converts", body: "Save this deck for your next product launch or website redesign." }
     ]
   }
 ];
 
 export default function CarouselGenerator() {
-  const [slides, setSlides] = useState<Slide[]>(AI_PRESETS[0].slides);
+  const [slides, setSlides] = useState<Slide[]>(CAROUSEL_BLUEPRINTS[0].slides);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [selectedBlueprint, setSelectedBlueprint] = useState<string>(CAROUSEL_BLUEPRINTS[0].topic);
 
   // Design Customization State
-  const [theme, setTheme] = useState<"rose" | "violet" | "emerald" | "amber" | "dark" | "light">("rose");
+  const [theme, setTheme] = useState<"indigo" | "violet" | "emerald" | "amber" | "dark" | "light">("indigo");
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "4:5">("4:5");
   const [brandingText, setBrandingText] = useState("@exismicai");
   const [authorName, setAuthorName] = useState("Exismic AI");
@@ -112,8 +131,8 @@ export default function CarouselGenerator() {
     setActiveSlideIndex(to);
   };
 
-  // Canvas Drawing Engine for High-DPI Image Generation
-  const drawSlideToCanvas = (
+  // Canvas Drawing Engine for High-Resolution Vector Export
+  const drawSlideToCanvas = useCallback((
     slide: Slide,
     index: number,
     total: number
@@ -129,22 +148,22 @@ export default function CarouselGenerator() {
 
     // 1. Background Theme Gradient
     const grad = ctx.createLinearGradient(0, 0, width, height);
-    if (theme === "rose") {
-      grad.addColorStop(0, "#1a0612");
-      grad.addColorStop(0.6, "#0d0d12");
-      grad.addColorStop(1, "#150520");
+    if (theme === "indigo") {
+      grad.addColorStop(0, "#070a18");
+      grad.addColorStop(0.6, "#0c102b");
+      grad.addColorStop(1, "#1e1b4b");
     } else if (theme === "violet") {
-      grad.addColorStop(0, "#100624");
-      grad.addColorStop(0.6, "#0d0d12");
-      grad.addColorStop(1, "#180833");
+      grad.addColorStop(0, "#0f051d");
+      grad.addColorStop(0.6, "#1a0933");
+      grad.addColorStop(1, "#3b0764");
     } else if (theme === "emerald") {
-      grad.addColorStop(0, "#041a12");
-      grad.addColorStop(0.6, "#080d0a");
-      grad.addColorStop(1, "#07241a");
+      grad.addColorStop(0, "#03140e");
+      grad.addColorStop(0.6, "#06281c");
+      grad.addColorStop(1, "#064e3b");
     } else if (theme === "amber") {
-      grad.addColorStop(0, "#241404");
-      grad.addColorStop(0.6, "#0d0b08");
-      grad.addColorStop(1, "#1f1003");
+      grad.addColorStop(0, "#170c03");
+      grad.addColorStop(0.6, "#2a1705");
+      grad.addColorStop(1, "#78350f");
     } else if (theme === "light") {
       grad.addColorStop(0, "#ffffff");
       grad.addColorStop(1, "#f1f5f9");
@@ -157,17 +176,17 @@ export default function CarouselGenerator() {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Decorative Accent Glow Circle
+    // Decorative Ambient Radial Flare
     const glowGrad = ctx.createRadialGradient(width * 0.85, height * 0.15, 50, width * 0.85, height * 0.15, 450);
     const accentHex =
-      theme === "rose"
-        ? "rgba(244, 63, 94, 0.15)"
+      theme === "indigo"
+        ? "rgba(99, 102, 241, 0.25)"
         : theme === "violet"
-        ? "rgba(139, 92, 246, 0.15)"
+        ? "rgba(139, 92, 246, 0.2)"
         : theme === "emerald"
-        ? "rgba(16, 185, 129, 0.15)"
+        ? "rgba(16, 185, 129, 0.2)"
         : theme === "amber"
-        ? "rgba(245, 158, 11, 0.15)"
+        ? "rgba(245, 158, 11, 0.2)"
         : theme === "light"
         ? "rgba(59, 130, 246, 0.08)"
         : "rgba(255, 255, 255, 0.08)";
@@ -180,8 +199,8 @@ export default function CarouselGenerator() {
     const textColor = isLight ? "#0f172a" : "#ffffff";
     const bodyColor = isLight ? "#475569" : "#cbd5e1";
     const borderAccent =
-      theme === "rose"
-        ? "#f43f5e"
+      theme === "indigo"
+        ? "#6366f1"
         : theme === "violet"
         ? "#8b5cf6"
         : theme === "emerald"
@@ -271,9 +290,9 @@ export default function CarouselGenerator() {
     ctx.textAlign = "left";
 
     return canvas;
-  };
+  }, [aspectRatio, theme, brandingText]);
 
-  // Export LinkedIn PDF Document
+  // Export LinkedIn Multi-Page PDF Document
   const exportAsPdf = async () => {
     setIsExportingPdf(true);
     setExportSuccessMsg(null);
@@ -301,7 +320,7 @@ export default function CarouselGenerator() {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `carousel-deck-${Date.now()}.pdf`;
+      a.download = `linkedin-carousel-${Date.now()}.pdf`;
       a.click();
 
       setExportSuccessMsg("Successfully downloaded multi-page LinkedIn Carousel PDF!");
@@ -313,7 +332,7 @@ export default function CarouselGenerator() {
     }
   };
 
-  // Export Instagram PNG Zip Archive
+  // Export Instagram Image ZIP Archive
   const exportAsZip = async () => {
     setIsExportingZip(true);
     setExportSuccessMsg(null);
@@ -348,86 +367,144 @@ export default function CarouselGenerator() {
   const currentSlide = slides[activeSlideIndex] || slides[0];
 
   const themeStyles = {
-    rose: "from-rose-950/90 via-neutral-900 to-purple-950/90 border-rose-500/30 text-rose-300",
-    violet: "from-violet-950/90 via-neutral-900 to-indigo-950/90 border-violet-500/30 text-violet-300",
-    emerald: "from-emerald-950/90 via-neutral-900 to-teal-950/90 border-emerald-500/30 text-emerald-300",
-    amber: "from-amber-950/90 via-neutral-900 to-yellow-950/90 border-amber-500/30 text-amber-300",
+    indigo: "from-[#070a18] via-[#0c102b] to-[#1e1b4b] border-indigo-500/40 text-indigo-200",
+    violet: "from-[#0f051d] via-[#1a0933] to-[#3b0764] border-violet-500/40 text-violet-200",
+    emerald: "from-[#03140e] via-[#06281c] to-[#064e3b] border-emerald-500/40 text-emerald-200",
+    amber: "from-[#170c03] via-[#2a1705] to-[#78350f] border-amber-500/40 text-amber-200",
     light: "from-white via-slate-50 to-slate-100 border-slate-300 text-slate-900",
     dark: "from-neutral-900 via-neutral-950 to-neutral-900 border-neutral-800 text-neutral-300"
   };
 
   return (
-    <div className="w-full space-y-8">
-      {/* Quick AI Presets Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-        <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
-          <Wand2 size={13} className="text-rose-400" /> Deck Outlines:
-        </span>
-        {AI_PRESETS.map((preset) => (
-          <button
-            key={preset.topic}
-            type="button"
-            onClick={() => {
-              setSlides(preset.slides);
-              setActiveSlideIndex(0);
-            }}
-            className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-rose-500/10 hover:border-rose-500/40 text-zinc-300 hover:text-rose-300 font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
-          >
-            <span>✨ {preset.topic}</span>
-          </button>
-        ))}
+    <div className="w-full space-y-7 text-zinc-100">
+      {/* 1-Click Carousel Story Blueprints Strip */}
+      <div className="rounded-3xl border border-indigo-500/20 bg-[#0a0c16]/90 p-5 sm:p-6 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(99,102,241,0.06)] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <Layout className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-white">
+                Carousel Story Blueprints
+              </span>
+              <p className="text-[11px] text-zinc-400 font-medium">
+                1-click proven slide structures for LinkedIn and Instagram swipe decks
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400/90 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20 self-start sm:self-auto">
+            {CAROUSEL_BLUEPRINTS.length} Ready Blueprints
+          </span>
+        </div>
+
+        {/* Blueprint Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {CAROUSEL_BLUEPRINTS.map((bp) => {
+            const isSelected = selectedBlueprint === bp.topic;
+            return (
+              <button
+                key={bp.topic}
+                type="button"
+                onClick={() => {
+                  setSlides(bp.slides);
+                  setActiveSlideIndex(0);
+                  setSelectedBlueprint(bp.topic);
+                }}
+                className={cn(
+                  "flex flex-col items-start justify-between text-left p-3.5 rounded-2xl transition-all duration-200 border cursor-pointer min-h-[92px]",
+                  isSelected
+                    ? "bg-indigo-600/25 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.25)] text-white"
+                    : "bg-[#0c0e18] border-white/10 text-zinc-300 hover:border-indigo-500/40 hover:bg-white/[0.04] hover:text-white"
+                )}
+              >
+                <div className="w-full flex items-center justify-between gap-1 mb-1.5">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                    {bp.category}
+                  </span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-indigo-300 shrink-0" />}
+                </div>
+                <span className="text-xs font-bold text-white line-clamp-1">{bp.topic}</span>
+                <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1">
+                  {bp.tagline}
+                </p>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Main Controls Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Options Column */}
-        <div className="lg:col-span-6 space-y-5 p-6 rounded-3xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-xl shadow-xl">
-          {/* Design Themes & Aspect Ratio */}
-          <div className="grid grid-cols-2 gap-4 border-b border-neutral-800 pb-4">
+      {/* Main Studio Grid: Editor vs Live Slide Canvas */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+        {/* Left Column: Slide Content Editor & Styling Controls */}
+        <div className="lg:col-span-6 space-y-5 rounded-3xl border border-indigo-500/20 bg-[#0a0c16]/90 p-5 sm:p-7 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65),0_0_25px_rgba(99,102,241,0.06)]">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+                <SlidersHorizontal className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-black uppercase tracking-wider text-zinc-200">
+                Slide Styling & Content
+              </span>
+            </div>
+
+            <span className="text-xs text-indigo-400 font-bold bg-indigo-500/10 px-2.5 py-1 rounded-xl border border-indigo-500/20">
+              Slide {activeSlideIndex + 1} of {slides.length}
+            </span>
+          </div>
+
+          {/* Theme Palette & Aspect Ratio Switcher */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-white/10 pb-5">
             <div>
-              <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
+              <label className="block text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">
                 Color Theme
               </label>
               <div className="flex items-center gap-2 flex-wrap">
-                {(["rose", "violet", "emerald", "amber", "light", "dark"] as const).map((t) => (
+                {(["indigo", "violet", "emerald", "amber", "light", "dark"] as const).map((t) => (
                   <button
                     key={t}
+                    type="button"
                     onClick={() => setTheme(t)}
                     className={cn(
-                      "w-7 h-7 rounded-full border-2 capitalize transition-all active:scale-95",
-                      t === "rose" && "bg-rose-500 border-rose-300",
-                      t === "violet" && "bg-violet-500 border-violet-300",
-                      t === "emerald" && "bg-emerald-500 border-emerald-300",
-                      t === "amber" && "bg-amber-500 border-amber-300",
-                      t === "light" && "bg-slate-100 border-slate-400",
-                      t === "dark" && "bg-neutral-800 border-neutral-500",
-                      theme === t && "ring-2 ring-white scale-110 shadow-lg"
+                      "w-7 h-7 rounded-full border-2 transition-all active:scale-95 cursor-pointer",
+                      t === "indigo" && "bg-indigo-600 border-indigo-400",
+                      t === "violet" && "bg-purple-600 border-purple-400",
+                      t === "emerald" && "bg-emerald-600 border-emerald-400",
+                      t === "amber" && "bg-amber-600 border-amber-400",
+                      t === "light" && "bg-slate-100 border-slate-300",
+                      t === "dark" && "bg-neutral-800 border-neutral-600",
+                      theme === t
+                        ? "border-white shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-110"
+                        : "opacity-80 hover:opacity-100"
                     )}
-                    title={`Theme ${t}`}
+                    title={`Theme: ${t}`}
                   />
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
+              <label className="block text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">
                 Aspect Ratio
               </label>
-              <div className="flex items-center gap-2 bg-neutral-950 p-1 rounded-xl border border-neutral-800">
+              <div className="flex items-center gap-1.5 bg-black/60 p-1 rounded-xl border border-white/10">
                 <button
+                  type="button"
                   onClick={() => setAspectRatio("4:5")}
                   className={cn(
-                    "flex-1 py-1 text-xs font-bold rounded-lg transition-all",
-                    aspectRatio === "4:5" ? "bg-rose-600 text-white" : "text-neutral-400"
+                    "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer",
+                    aspectRatio === "4:5" ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-400 hover:text-white"
                   )}
                 >
                   4:5 (Portrait)
                 </button>
                 <button
+                  type="button"
                   onClick={() => setAspectRatio("1:1")}
                   className={cn(
-                    "flex-1 py-1 text-xs font-bold rounded-lg transition-all",
-                    aspectRatio === "1:1" ? "bg-rose-600 text-white" : "text-neutral-400"
+                    "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer",
+                    aspectRatio === "1:1" ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-400 hover:text-white"
                   )}
                 >
                   1:1 (Square)
@@ -436,22 +513,22 @@ export default function CarouselGenerator() {
             </div>
           </div>
 
-          {/* Branding Handles */}
-          <div className="grid grid-cols-2 gap-3 border-b border-neutral-800 pb-4">
+          {/* Social Branding Inputs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-white/10 pb-5">
             <div>
-              <label className="block text-xs font-bold text-neutral-400 uppercase mb-1">
-                Handle / Watermark
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Social Handle
               </label>
               <input
                 type="text"
                 value={brandingText}
                 onChange={(e) => setBrandingText(e.target.value)}
                 placeholder="@yourhandle"
-                className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-xs font-mono focus:outline-none focus:border-rose-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-indigo-500/80 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-neutral-400 uppercase mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
                 Author Name
               </label>
               <input
@@ -459,144 +536,168 @@ export default function CarouselGenerator() {
                 value={authorName}
                 onChange={(e) => setAuthorName(e.target.value)}
                 placeholder="Exismic AI"
-                className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-xs font-bold focus:outline-none focus:border-rose-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-bold focus:outline-none focus:border-indigo-500/80 transition-colors"
               />
             </div>
           </div>
 
-          {/* Slide Tab Selector & Actions */}
+          {/* Slide Filmstrip Manager */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-neutral-300 uppercase tracking-wider">
-                Slides ({slides.length})
-              </label>
-              <div className="flex items-center gap-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
+                Slide Navigator ({slides.length})
+              </span>
+              <div className="flex items-center gap-1.5">
                 <button
+                  type="button"
                   onClick={() => moveSlide(activeSlideIndex, activeSlideIndex - 1)}
                   disabled={activeSlideIndex === 0}
-                  className="p-1 rounded bg-neutral-800 text-neutral-300 disabled:opacity-30 hover:bg-neutral-700"
-                  title="Move Left"
+                  className="p-1.5 rounded-lg bg-black/60 border border-white/10 text-zinc-300 disabled:opacity-30 hover:border-indigo-400 hover:text-white cursor-pointer"
+                  title="Move Slide Left"
                 >
-                  <ArrowUp className="w-3.5 h-3.5 -rotate-90" />
+                  <ArrowLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => moveSlide(activeSlideIndex, activeSlideIndex + 1)}
                   disabled={activeSlideIndex === slides.length - 1}
-                  className="p-1 rounded bg-neutral-800 text-neutral-300 disabled:opacity-30 hover:bg-neutral-700"
-                  title="Move Right"
+                  className="p-1.5 rounded-lg bg-black/60 border border-white/10 text-zinc-300 disabled:opacity-30 hover:border-indigo-400 hover:text-white cursor-pointer"
+                  title="Move Slide Right"
                 >
-                  <ArrowDown className="w-3.5 h-3.5 -rotate-90" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10">
               {slides.map((s, idx) => (
                 <button
                   key={s.id}
+                  type="button"
                   onClick={() => setActiveSlideIndex(idx)}
                   className={cn(
-                    "px-3.5 py-1.5 rounded-xl border text-xs font-bold shrink-0 transition-all flex items-center gap-1.5",
+                    "px-3.5 py-2 rounded-xl border text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer",
                     activeSlideIndex === idx
-                      ? "bg-rose-500/20 border-rose-500 text-white shadow-lg"
-                      : "bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700"
+                      ? "bg-indigo-600/30 border-indigo-400 text-white shadow-md shadow-indigo-600/20"
+                      : "bg-black/50 border-white/10 text-zinc-400 hover:border-white/20 hover:text-white"
                   )}
                 >
-                  Slide {idx + 1}
+                  <span>Slide {idx + 1}</span>
                 </button>
               ))}
+
               <button
+                type="button"
                 onClick={addSlide}
-                className="p-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold transition-all flex items-center gap-1 shrink-0"
+                className="px-3 py-2 rounded-xl bg-black/60 hover:bg-white/10 border border-white/10 hover:border-indigo-400 text-white text-xs font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                title="Add New Slide"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Add</span>
               </button>
             </div>
           </div>
 
-          {/* Active Slide Form Editor */}
-          <div className="space-y-4 pt-3 border-t border-neutral-800">
+          {/* Active Slide Form Fields */}
+          <div className="space-y-4 pt-3 border-t border-white/10">
             <div>
-              <label className="block text-xs font-bold text-neutral-400 uppercase mb-1">
-                Slide Tag / Subtitle
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Top Tag / Category Badge
               </label>
               <input
                 type="text"
                 value={currentSlide.tag}
                 onChange={(e) => updateSlide(activeSlideIndex, "tag", e.target.value)}
-                className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-xs font-mono focus:outline-none focus:border-rose-500"
+                placeholder="e.g. SWIPE LEFT 👉"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-indigo-500/80 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-neutral-400 uppercase mb-1">
-                Headline Title
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Slide Headline
               </label>
               <input
                 type="text"
                 value={currentSlide.title}
                 onChange={(e) => updateSlide(activeSlideIndex, "title", e.target.value)}
-                className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm font-bold focus:outline-none focus:border-rose-500"
+                placeholder="Main takeaway headline..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-sm font-bold focus:outline-none focus:border-indigo-500/80 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-neutral-400 uppercase mb-1">
-                Body Takeaway Content
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Slide Description & Insights
               </label>
               <textarea
                 value={currentSlide.body}
                 onChange={(e) => updateSlide(activeSlideIndex, "body", e.target.value)}
                 rows={4}
-                className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-white text-sm focus:outline-none focus:border-rose-500 resize-none leading-relaxed"
+                placeholder="Add 2-3 concise sentences with actionable insights..."
+                className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500/80 transition-colors resize-none leading-relaxed"
               />
             </div>
 
             {slides.length > 1 && (
               <button
+                type="button"
                 onClick={() => removeSlide(activeSlideIndex)}
-                className="w-full py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Delete Slide {activeSlideIndex + 1}
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Slide {activeSlideIndex + 1}</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Right Preview & Export Column */}
-        <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
-          <div className="p-6 rounded-3xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-xl shadow-xl flex-1 flex flex-col justify-between space-y-6">
-            <div className="flex items-center justify-between border-b border-neutral-800/80 pb-3">
-              <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">
-                Live Canvas (Slide {activeSlideIndex + 1} of {slides.length})
+        {/* Right Column: Live Slide Canvas & Export Center */}
+        <div className="lg:col-span-6 space-y-6 flex flex-col justify-between">
+          <div className="rounded-3xl border border-indigo-500/20 bg-[#0a0c16]/90 p-5 sm:p-7 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65),0_0_25px_rgba(99,102,241,0.06)] flex-1 flex flex-col justify-between space-y-6">
+            {/* Live Canvas Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-zinc-200">
+                    Live Carousel Stage
+                  </span>
+                  <p className="text-[11px] text-zinc-400 font-medium">Slide {activeSlideIndex + 1} of {slides.length}</p>
+                </div>
+              </div>
+
+              <span className="text-[10px] font-mono text-zinc-400 bg-black/50 px-2.5 py-1 rounded-lg border border-white/10">
+                {aspectRatio === "4:5" ? "1080 x 1350" : "1080 x 1080"}
               </span>
-              <span className="text-xs text-neutral-500 font-mono">1080p Render</span>
             </div>
 
             {/* Slide Live Canvas Preview */}
-            <div className="w-full max-w-[380px] mx-auto flex items-center justify-center">
+            <div className="w-full max-w-[390px] mx-auto flex items-center justify-center">
               <div
                 className={cn(
-                  "w-full p-8 rounded-3xl bg-gradient-to-br border shadow-2xl flex flex-col justify-between transition-all duration-300 relative overflow-hidden",
+                  "w-full p-7 sm:p-8 rounded-3xl bg-gradient-to-br border shadow-2xl flex flex-col justify-between transition-all duration-300 relative overflow-hidden",
                   aspectRatio === "4:5" ? "aspect-[4/5]" : "aspect-square",
                   themeStyles[theme]
                 )}
               >
-                {/* Glow accent */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+                {/* Decorative radial flare */}
+                <div className="absolute top-0 right-0 w-44 h-44 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Header Tag & Branding */}
+                {/* Top Tag & Social Handle */}
                 <div className="flex items-center justify-between z-10">
                   <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-white/10 border border-white/20">
                     {currentSlide.tag || `SLIDE ${activeSlideIndex + 1}`}
                   </span>
-                  <span className="text-xs font-bold opacity-70 truncate max-w-[120px]">
+                  <span className="text-xs font-bold opacity-75 truncate max-w-[130px]">
                     {brandingText || "@yourhandle"}
                   </span>
                 </div>
 
-                {/* Main Headline & Body */}
-                <div className="space-y-3 my-auto z-10">
+                {/* Headline & Body */}
+                <div className="space-y-3.5 my-auto z-10 py-4">
                   <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">
                     {currentSlide.title}
                   </h3>
@@ -605,66 +706,95 @@ export default function CarouselGenerator() {
                   </p>
                 </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-white/10 text-[10px] opacity-60 font-mono z-10">
-                  <span>SLIDE {activeSlideIndex + 1}/{slides.length}</span>
+                {/* Footer Tracker */}
+                <div className="flex items-center justify-between pt-4 border-t border-white/10 text-[10px] opacity-70 font-mono z-10">
+                  <span>SLIDE {activeSlideIndex + 1} OF {slides.length}</span>
                   <span>{activeSlideIndex === slides.length - 1 ? "FINISH 🏁" : "SWIPE 👉"}</span>
                 </div>
               </div>
             </div>
 
-            {/* Navigation Arrows */}
-            <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
-                disabled={activeSlideIndex === 0}
-                className="p-3 rounded-2xl bg-neutral-950 border border-neutral-800 text-white disabled:opacity-30 hover:border-rose-500 transition-all cursor-pointer"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <span className="text-xs font-bold text-neutral-400">
-                {activeSlideIndex + 1} / {slides.length}
-              </span>
-              <button
-                onClick={() => setActiveSlideIndex(Math.min(slides.length - 1, activeSlideIndex + 1))}
-                disabled={activeSlideIndex === slides.length - 1}
-                className="p-3 rounded-2xl bg-neutral-950 border border-neutral-800 text-white disabled:opacity-30 hover:border-rose-500 transition-all cursor-pointer"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+            {/* Pagination Dots & Navigation Controls */}
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
+                  disabled={activeSlideIndex === 0}
+                  className="p-2.5 rounded-xl bg-black/60 border border-white/10 text-white disabled:opacity-30 hover:border-indigo-400 transition-all cursor-pointer"
+                  title="Previous Slide"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {/* Clickable Pagination Dots */}
+                <div className="flex items-center gap-1.5">
+                  {slides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveSlideIndex(idx)}
+                      className={cn(
+                        "h-2 rounded-full transition-all cursor-pointer",
+                        activeSlideIndex === idx
+                          ? "w-6 bg-indigo-500 shadow-sm shadow-indigo-500/40"
+                          : "w-2 bg-white/20 hover:bg-white/40"
+                      )}
+                      title={`Jump to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveSlideIndex(Math.min(slides.length - 1, activeSlideIndex + 1))}
+                  disabled={activeSlideIndex === slides.length - 1}
+                  className="p-2.5 rounded-xl bg-black/60 border border-white/10 text-white disabled:opacity-30 hover:border-indigo-400 transition-all cursor-pointer"
+                  title="Next Slide"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Export Buttons */}
-            <div className="space-y-3 pt-4 border-t border-neutral-800/80">
+            {/* Export Actions Hub */}
+            <div className="space-y-3 pt-4 border-t border-white/10">
               {exportSuccessMsg && (
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
-                  <Check className="w-4 h-4 shrink-0" />
+                <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                  <Check className="w-4 h-4 shrink-0 text-emerald-400" />
                   <span>{exportSuccessMsg}</span>
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
+                  type="button"
                   onClick={exportAsPdf}
                   disabled={isExportingPdf}
-                  className="py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-rose-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="py-3 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 active:scale-95 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" />
-                  {isExportingPdf ? "Generating PDF..." : "Export LinkedIn PDF"}
+                  <FileText className="w-4 h-4" />
+                  <span>{isExportingPdf ? "Generating PDF..." : "Download LinkedIn PDF"}</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={exportAsZip}
                   disabled={isExportingZip}
-                  className="py-3 px-4 rounded-2xl bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="py-3 px-4 rounded-2xl bg-black/60 hover:bg-white/10 border border-white/10 hover:border-indigo-400 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <ImageIcon className="w-4 h-4 text-rose-400" />
-                  {isExportingZip ? "Zipping Images..." : "Export Instagram PNGs"}
+                  <ImageIcon className="w-4 h-4 text-indigo-400" />
+                  <span>{isExportingZip ? "Zipping Images..." : "Download ZIP Images"}</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Category Reactive Laser Horizon Divider */}
+      <div className="pt-4 pb-2">
+        <ToolLaserDivider primaryHex="#6366f1" />
       </div>
     </div>
   );

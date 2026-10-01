@@ -49,7 +49,7 @@ import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
 
 const OUTCOMES = [
   { value: "10x", label: "daily credit capacity", icon: Gauge, tone: "text-fuchsia-300", wash: "from-fuchsia-500/[0.10]" },
@@ -606,10 +606,10 @@ export function ProClient() {
                               </div>
                             </div>
 
-                            {launchDiscount?.eligible ? (
+                            {launchDiscount?.eligible || isExismic17PromoActive() ? (
                               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-3 py-1 text-[9.5px] font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)] self-start sm:self-auto shrink-0">
                                 <BadgePercent size={12} className="text-emerald-400" />
-                                v1.6 Launch Special
+                                Exismic 1.7 Special (20% OFF)
                               </span>
                             ) : (
                               <span className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-300 self-start sm:self-auto shrink-0">
@@ -620,11 +620,11 @@ export function ProClient() {
 
                           {/* Price Block */}
                           <div className="mt-6">
-                            {launchDiscount?.eligible ? (
+                            {launchDiscount?.eligible || isExismic17PromoActive() ? (
                               <div>
                                 <div className="flex items-baseline gap-2.5">
                                   <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#6ee7b7_50%,#34d399_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(52,211,153,0.35)]">
-                                    {isIndia ? "₹299" : "$3.99"}
+                                    {isIndia ? "₹399" : "$5.59"}
                                   </span>
                                   <div className="flex flex-col">
                                     <span className="text-xs font-black uppercase tracking-widest text-emerald-400">/ 1st month</span>
@@ -637,7 +637,7 @@ export function ProClient() {
                                 <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs font-bold">
                                   <span className="rounded-full bg-emerald-400/15 border border-emerald-400/40 px-2.5 py-0.5 text-[9px] font-black text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.25)] flex items-center gap-1">
                                     <BadgePercent size={11} className="text-emerald-400" />
-                                    Save {isIndia ? "₹200 (40% OFF)" : "$3.00 (43% OFF)"}
+                                    Save {isIndia ? "₹100 (20% OFF)" : "$1.40 (20% OFF)"}
                                   </span>
                                   <span className="text-zinc-400 text-[11px] font-medium flex items-center gap-1">
                                     <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
@@ -774,13 +774,13 @@ export function ProClient() {
                                 <ExismicMark size={34} letter="P" theme={launchDiscount?.eligible ? "purple" : "blue"} animated={true} />
                                 <div className="text-left min-w-0">
                                   <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white truncate">
-                                    GET MONTHLY • {launchDiscount?.eligible ? (isIndia ? "₹299" : "$3.99") : (isIndia ? "₹499" : "$6.99")}
+                                    GET MONTHLY • {(launchDiscount?.eligible || isExismic17PromoActive()) ? (isIndia ? "₹399" : "$5.59") : (isIndia ? "₹499" : "$6.99")}
                                   </span>
                                   <span className={cn(
                                     "block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] truncate",
-                                    launchDiscount?.eligible ? "text-emerald-300/90" : "text-cyan-300/90"
+                                    (launchDiscount?.eligible || isExismic17PromoActive()) ? "text-emerald-300/90" : "text-cyan-300/90"
                                   )}>
-                                    {launchDiscount?.eligible ? "v1.6 Launch Special • 1st Month" : "Standard Pro Access"}
+                                    {(launchDiscount?.eligible || isExismic17PromoActive()) ? "Exismic 1.7 Special • 20% OFF" : "Standard Pro Access"}
                                   </span>
                                 </div>
                               </div>

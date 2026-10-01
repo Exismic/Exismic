@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Palette,
-  Sparkles,
   Sliders,
   Layers,
   Download,
@@ -1220,7 +1219,7 @@ ${glassCardSvg}
                     {glassCardSample === "blank" && (
                       <div className="py-4 text-center space-y-1.5">
                         <div className="w-9 h-9 mx-auto rounded-full bg-white/15 border border-white/25 flex items-center justify-center text-cyan-300">
-                          <Sparkles className="w-4 h-4" />
+                          <PenTool className="w-4 h-4" />
                         </div>
                         <h4 className="text-sm sm:text-base font-bold text-white drop-shadow">
                           Pure Frosted Canvas

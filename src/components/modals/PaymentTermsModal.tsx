@@ -24,6 +24,7 @@ import {
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Portal } from "@/components/ui/Portal";
+import { PRICING_CONFIG, isExismic17PromoActive } from "@/config/pricing";
 
 /* Custom crisp SVG Brand Icons */
 function MinecoinsIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -239,36 +240,36 @@ export function PaymentTermsModal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      if (planId === "pro") {
-        setCheckingLaunchEligibility(true);
-        fetch("/api/billing/launch-discount-status")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.eligible) {
-              setIsLaunchDiscountEligible(true);
-              const isIndia = gateway === "razorpay";
-              const discountLabel = isIndia ? "₹200 OFF" : "$3.00 OFF";
-              const displayDiscount = isIndia ? "₹200" : "$3.00";
-              const displayFinal = isIndia ? "₹299" : "$3.99";
-              setAppliedCoupon({
-                code: "V16LAUNCH",
-                discountLabel,
-                displayDiscount,
-                displayFinal,
-                note: `v1.6 Launch Special: First month for ${displayFinal}, renews at standard ${price || (isIndia ? "₹499" : "$6.99")}/mo. Cancel anytime.`,
-              });
-              setCouponInput("V16LAUNCH");
-            } else {
-              setIsLaunchDiscountEligible(false);
-            }
-          })
-          .catch((err) => {
-            console.error("Failed checking launch discount:", err);
-            setIsLaunchDiscountEligible(false);
-          })
-          .finally(() => {
-            setCheckingLaunchEligibility(false);
+      if (isExismic17PromoActive()) {
+        const isIndia = gateway === "razorpay";
+        if (planId === "pro") {
+          setIsLaunchDiscountEligible(true);
+          const displayDiscount = isIndia ? "₹100" : "$1.40";
+          const displayFinal = isIndia ? "₹399" : "$5.59";
+          setAppliedCoupon({
+            code: "EXISMIC17",
+            discountLabel: "20% OFF",
+            displayDiscount,
+            displayFinal,
+            note: `Exismic 1.7 Special: First month for ${displayFinal} (20% OFF), renews at standard ${isIndia ? "₹499" : "$6.99"}/mo. Cancel anytime.`,
           });
+          setCouponInput("EXISMIC17");
+        } else if (planId === "starter" || planId === "creator" || planId === "ultimate") {
+          setIsLaunchDiscountEligible(true);
+          const pack = PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS[planId as keyof typeof PRICING_CONFIG.V17_LAUNCH_PROMO.CREDIT_PACKS];
+          const displayFinal = isIndia ? `₹${pack.INR}` : `$${pack.USD}`;
+          const displayDiscount = isIndia ? `₹${pack.regularINR - pack.INR}` : `$${(pack.regularUSD - pack.USD).toFixed(2)}`;
+          setAppliedCoupon({
+            code: "EXISMIC17",
+            discountLabel: "20% OFF",
+            displayDiscount,
+            displayFinal,
+            note: `Exismic 1.7 Special: 20% discount applied to ${packName || "credit pack"}.`,
+          });
+          setCouponInput("EXISMIC17");
+        } else {
+          setIsLaunchDiscountEligible(false);
+        }
       }
     } else {
       document.body.style.overflow = "";
@@ -567,12 +568,12 @@ export function PaymentTermsModal({
                   </div>
 
                   {/* Luxury Coupon & Voucher Code Field */}
-                  {planId === "pro" && isLaunchDiscountEligible ? (
+                  {isLaunchDiscountEligible ? (
                     <div className="rounded-2xl border border-emerald-400/35 bg-gradient-to-b from-emerald-950/30 via-emerald-950/10 to-transparent p-4 text-left shadow-[0_0_25px_rgba(52,211,153,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] relative overflow-hidden">
                       <div className="flex items-center justify-between gap-2 mb-2.5">
                         <label className="text-[10.5px] font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
                           <BadgePercent size={14} className="text-emerald-400" />
-                          <span>v1.6 Launch Special (One-Time)</span>
+                          <span>Exismic 1.7 Launch Special (20% OFF)</span>
                         </label>
                         <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 font-mono bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]">
                           Auto-Applied
@@ -586,26 +587,33 @@ export function PaymentTermsModal({
                           </div>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-white tracking-wide truncate">
-                              Code: <span className="font-mono text-emerald-300 font-black">V16LAUNCH</span>
+                              Code: <span className="font-mono text-emerald-300 font-black">EXISMIC17</span>
                             </p>
                             <p className="text-[11px] text-zinc-300 leading-tight">
-                              First month for <span className="font-bold text-emerald-300">{appliedCoupon?.displayFinal || (gateway === "razorpay" ? "₹299" : "$3.99")}</span> (regular {price || (gateway === "razorpay" ? "₹499" : "$6.99")})
+                              Special price: <span className="font-bold text-emerald-300">{appliedCoupon?.displayFinal}</span>
                             </p>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <span className="block text-xs font-black text-emerald-400 font-mono">
-                            Save {appliedCoupon?.displayDiscount || (gateway === "razorpay" ? "₹200" : "$3.00")}
+                            Save {appliedCoupon?.displayDiscount}
                           </span>
-                          <span className="text-[9px] text-zinc-400 font-semibold uppercase">1st Month</span>
+                          <span className="text-[9px] text-zinc-400 font-semibold uppercase">20% OFF</span>
                         </div>
                       </div>
 
                       <div className="mt-2.5 flex items-center gap-2 text-[11px] text-zinc-300 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2">
                         <Lock size={13} className="text-amber-400 shrink-0" />
                         <span className="leading-snug">
-                          Promo codes are locked — launch discount is active from our side. Renewals from month 2 charge standard rates.
+                          Custom coupons are blocked — official 20% launch discount is active from us for 1 week.
                         </span>
+                      </div>
+                    </div>
+                  ) : isExismic17PromoActive() ? (
+                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-left">
+                      <div className="flex items-center gap-2 text-xs text-zinc-400">
+                        <Lock size={14} className="text-zinc-500 shrink-0" />
+                        <span>Custom coupon codes cannot be used during the Exismic 1.7 launch period.</span>
                       </div>
                     </div>
                   ) : (

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { 
   BookMarked, 
-  Sparkles, 
   RefreshCw, 
   ChevronLeft, 
   ChevronRight, 
@@ -168,7 +167,7 @@ export default function FlashcardGenerator() {
       {cards.length > 0 && (
         <div className="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
           <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-            <Sparkles size={14} className="text-amber-400" /> Active Recall Progress
+            <Layers size={14} className="text-amber-400" /> Active Recall Progress
           </span>
           <div className="flex items-center gap-4">
             <span className="text-xs text-zinc-300 font-semibold">{cards.length} Cards in Deck</span>
@@ -234,7 +233,7 @@ export default function FlashcardGenerator() {
               type="button"
               onClick={() => handleGenerate()}
               disabled={!topic.trim() || isGenerating}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 cursor-pointer group"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-amber-500/35 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 cursor-pointer group"
             >
               {isGenerating ? (
                 <>

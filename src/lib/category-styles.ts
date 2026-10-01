@@ -21,7 +21,7 @@ export const CATEGORY_PRIMARY_HEX: Record<string, string> = {
   seo: "#0284c7",
   developer: "#84cc16",
   student: "#fbbf24",
-  creator: "#f43f5e",
+  creator: "#6366f1",
 };
 
 export const CATEGORY_ANIM_STYLES: Record<string, CategoryAnimStyle> = {
@@ -92,26 +92,26 @@ export const CATEGORY_ANIM_STYLES: Record<string, CategoryAnimStyle> = {
     badge: "bg-emerald-400/10 border-emerald-400/40 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.3)] fill-emerald-200 drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]"
   },
   business: {
-    aura: "bg-orange-500/25 group-hover:bg-emerald-500/45",
-    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(255,153,51,0.5)_25%,rgba(16,185,129,0.5)_50%,transparent_75%)]",
-    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(255,153,51,0.95)_25%,rgba(16,185,129,0.95)_50%,transparent_75%)]",
-    iconGlow: "text-orange-300 drop-shadow-[0_0_10px_rgba(255,153,51,0.7)] group-hover:text-emerald-200 group-hover:drop-shadow-[0_0_20px_rgba(16,185,129,0.95)]",
-    buttonGrad: "bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-500 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(245,158,11,0.35)] group-hover:shadow-[0_0_40px_rgba(16,185,129,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
-    textGrad: "bg-[linear-gradient(110deg,#ff9933_0%,#ffffff_45%,#138808_65%,#10b981_100%)] drop-shadow-[0_2px_18px_rgba(255,153,51,0.35)]",
-    cardBorder: "border-2 border-orange-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(255,153,51,0.2)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(245,158,11,0.45)]",
+    aura: "bg-orange-500/25 group-hover:bg-amber-500/45",
+    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(249,115,22,0.5)_25%,rgba(245,158,11,0.5)_50%,transparent_75%)]",
+    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(249,115,22,0.95)_25%,rgba(245,158,11,0.95)_50%,transparent_75%)]",
+    iconGlow: "text-orange-300 drop-shadow-[0_0_10px_rgba(249,115,22,0.7)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.95)]",
+    buttonGrad: "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(249,115,22,0.35)] group-hover:shadow-[0_0_40px_rgba(249,115,22,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
+    textGrad: "bg-[linear-gradient(110deg,#fdba74_0%,#ffffff_45%,#f97316_55%,#ea580c_100%)] drop-shadow-[0_2px_18px_rgba(249,115,22,0.35)]",
+    cardBorder: "border-2 border-orange-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(249,115,22,0.2)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(249,115,22,0.45)]",
     topBeam: "",
-    badge: "bg-gradient-to-r from-orange-500/20 to-emerald-500/20 border-emerald-400/40 text-orange-200 shadow-[0_0_15px_rgba(255,153,51,0.3)] fill-orange-200 drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]"
+    badge: "bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-orange-400/40 text-orange-200 shadow-[0_0_15px_rgba(249,115,22,0.3)] fill-orange-200 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]"
   },
   seo: {
-    aura: "bg-teal-500/25 group-hover:bg-cyan-500/45",
-    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(0,255,135,0.5)_25%,rgba(96,239,255,0.5)_50%,transparent_75%)]",
-    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(0,255,135,0.95)_25%,rgba(96,239,255,0.95)_50%,transparent_75%)]",
-    iconGlow: "text-emerald-300 drop-shadow-[0_0_10px_rgba(0,255,135,0.7)] group-hover:text-cyan-200 group-hover:drop-shadow-[0_0_20px_rgba(96,239,255,0.95)]",
-    buttonGrad: "bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(0,255,135,0.35)] group-hover:shadow-[0_0_40px_rgba(96,239,255,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
-    textGrad: "bg-[linear-gradient(110deg,#00ff87_0%,#ffffff_40%,#60efff_70%,#0061ff_100%)] drop-shadow-[0_2px_18px_rgba(0,255,135,0.35)]",
-    cardBorder: "border-2 border-teal-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(0,255,135,0.2)] hover:border-cyan-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(96,239,255,0.45)]",
+    aura: "bg-cyan-500/25 group-hover:bg-cyan-400/45",
+    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(6,182,212,0.5)_25%,rgba(34,211,238,0.5)_50%,transparent_75%)]",
+    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(6,182,212,0.95)_25%,rgba(34,211,238,0.95)_50%,transparent_75%)]",
+    iconGlow: "text-cyan-300 drop-shadow-[0_0_10px_rgba(6,182,212,0.7)] group-hover:text-cyan-100 group-hover:drop-shadow-[0_0_20px_rgba(34,211,238,0.95)]",
+    buttonGrad: "bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-500 text-black font-black tracking-[0.2em] shadow-[0_0_25px_rgba(6,182,212,0.35)] group-hover:shadow-[0_0_40px_rgba(34,211,238,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
+    textGrad: "bg-[linear-gradient(110deg,#22d3ee_0%,#ffffff_40%,#38bdf8_70%,#0284c7_100%)] drop-shadow-[0_2px_18px_rgba(6,182,212,0.35)]",
+    cardBorder: "border-2 border-cyan-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(6,182,212,0.2)] hover:border-cyan-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(34,211,238,0.45)]",
     topBeam: "",
-    badge: "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border-cyan-400/40 text-emerald-200 shadow-[0_0_15px_rgba(0,255,135,0.3)] fill-emerald-200 drop-shadow-[0_0_5px_rgba(96,239,255,0.8)]"
+    badge: "bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border-cyan-400/40 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)] fill-cyan-200 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]"
   },
   developer: {
     aura: "bg-lime-500/25 group-hover:bg-emerald-500/45",
@@ -125,25 +125,25 @@ export const CATEGORY_ANIM_STYLES: Record<string, CategoryAnimStyle> = {
     badge: "bg-gradient-to-r from-lime-500/20 to-emerald-500/20 border-lime-400/40 text-lime-200 shadow-[0_0_15px_rgba(163,230,53,0.3)] fill-lime-200 drop-shadow-[0_0_5px_rgba(0,255,135,0.8)]"
   },
   student: {
-    aura: "bg-amber-500/25 group-hover:bg-purple-500/45",
-    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(251,191,36,0.5)_25%,rgba(168,85,247,0.5)_50%,transparent_75%)]",
-    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(251,191,36,0.95)_25%,rgba(168,85,247,0.95)_50%,transparent_75%)]",
-    iconGlow: "text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.7)] group-hover:text-purple-200 group-hover:drop-shadow-[0_0_20px_rgba(168,85,247,0.95)]",
-    buttonGrad: "bg-gradient-to-r from-amber-400 via-fuchsia-500 to-indigo-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(251,191,36,0.35)] group-hover:shadow-[0_0_40px_rgba(217,70,239,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
-    textGrad: "bg-[linear-gradient(110deg,#fbbf24_0%,#ffffff_45%,#a855f7_70%,#6366f1_100%)] drop-shadow-[0_2px_18px_rgba(251,191,36,0.35)]",
-    cardBorder: "border-2 border-amber-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(251,191,36,0.2)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(245,158,11,0.45)]",
+    aura: "bg-amber-500/25 group-hover:bg-amber-400/50",
+    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(251,191,36,0.5)_25%,rgba(245,158,11,0.3)_50%,transparent_75%)]",
+    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(251,191,36,0.95)_25%,rgba(245,158,11,0.8)_50%,transparent_75%)]",
+    iconGlow: "text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.7)] group-hover:text-amber-200 group-hover:drop-shadow-[0_0_22px_rgba(251,191,36,0.95)]",
+    buttonGrad: "bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 font-black tracking-[0.2em] shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]",
+    textGrad: "bg-[linear-gradient(110deg,#fde68a_0%,#ffffff_45%,#fbbf24_55%,#ffffff_100%)] drop-shadow-[0_2px_15px_rgba(245,158,11,0.25)]",
+    cardBorder: "border-2 border-amber-400/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_12px_35px_rgba(0,0,0,0.7),0_0_30px_rgba(245,158,11,0.3)] hover:border-amber-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_20px_55px_rgba(0,0,0,0.9),0_0_55px_rgba(245,158,11,0.55)]",
     topBeam: "",
-    badge: "bg-gradient-to-r from-amber-500/20 to-purple-500/20 border-amber-400/40 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.3)] fill-amber-200 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]"
+    badge: "bg-amber-400/15 border-amber-400/50 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.3)] fill-amber-200 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"
   },
   creator: {
-    aura: "bg-rose-500/25 group-hover:bg-purple-500/45",
-    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(244,63,94,0.5)_25%,rgba(168,85,247,0.5)_50%,transparent_75%)]",
-    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(244,63,94,0.95)_25%,rgba(168,85,247,0.95)_50%,transparent_75%)]",
-    iconGlow: "text-rose-300 drop-shadow-[0_0_10px_rgba(244,63,94,0.7)] group-hover:text-purple-200 group-hover:drop-shadow-[0_0_20px_rgba(168,85,247,0.95)]",
-    buttonGrad: "bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(244,63,94,0.35)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
-    textGrad: "bg-[linear-gradient(110deg,#fb7185_0%,#ffffff_45%,#e879f9_70%,#c084fc_100%)] drop-shadow-[0_2px_18px_rgba(244,63,94,0.35)]",
-    cardBorder: "border-2 border-rose-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(244,63,94,0.2)] hover:border-pink-300 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(244,63,94,0.45)]",
+    aura: "bg-indigo-500/25 group-hover:bg-indigo-400/45",
+    spinIdle: "bg-[conic-gradient(from_0deg,transparent_0%,rgba(99,102,241,0.5)_25%,rgba(56,189,248,0.5)_50%,transparent_75%)]",
+    spinHover: "group-hover:bg-[conic-gradient(from_0deg,transparent_0%,rgba(99,102,241,0.95)_25%,rgba(56,189,248,0.95)_50%,transparent_75%)]",
+    iconGlow: "text-indigo-300 drop-shadow-[0_0_12px_rgba(99,102,241,0.7)] group-hover:text-indigo-200 group-hover:drop-shadow-[0_0_22px_rgba(99,102,241,0.95)]",
+    buttonGrad: "bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 text-white font-black tracking-[0.2em] shadow-[0_0_25px_rgba(99,102,241,0.35)] group-hover:shadow-[0_0_40px_rgba(99,102,241,0.65)] border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]",
+    textGrad: "bg-[linear-gradient(110deg,#a5b4fc_0%,#ffffff_45%,#6366f1_65%,#38bdf8_100%)] drop-shadow-[0_2px_18px_rgba(99,102,241,0.35)]",
+    cardBorder: "border-2 border-indigo-500/45 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(99,102,241,0.2)] hover:border-indigo-400 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_20px_50px_rgba(0,0,0,0.8),0_0_45px_rgba(99,102,241,0.45)]",
     topBeam: "",
-    badge: "bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-rose-400/40 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.3)] fill-rose-200 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]"
+    badge: "bg-indigo-500/15 border-indigo-400/40 text-indigo-200 shadow-[0_0_15px_rgba(99,102,241,0.3)] fill-indigo-200 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]"
   }
 };

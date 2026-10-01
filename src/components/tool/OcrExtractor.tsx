@@ -7,19 +7,26 @@ import { cn } from "@/lib/utils";
 import { 
   Download, 
   X, 
-  FileText,
-  ScanText,
-  CheckCircle2,
-  AlertCircle,
-  Zap,
-  Copy,
-  ClipboardCheck,
-  Search
+  FileText, 
+  ScanText, 
+  CheckCircle2, 
+  AlertCircle, 
+  Zap, 
+  Copy, 
+  ClipboardCheck, 
+  Search,
+  RotateCcw,
+  Upload,
+  Lock,
+  Layers,
+  Sparkles as SparklesProhibited,
+  Loader2
 } from "lucide-react";
 import { PdfSidebar } from "./pdf/PdfSidebar";
 import { PdfActionButton } from "./pdf/PdfActionButton";
-import type { LoggerMessage, Worker } from "tesseract.js";
+import { MediaPipelineBar } from "./MediaPipelineBar";
 import { detectOcrCapabilities, processOcrLocally } from "@/lib/client-ocr";
+import { generateDemoPdfs } from "@/lib/pdf-demo-generator";
 
 interface OcrPdfViewport {
   height: number;
@@ -48,15 +55,16 @@ interface OcrPdfJs {
 declare const pdfjsLib: OcrPdfJs;
 
 const OCR_STEPS = [
-  { title: "Upload Source", desc: "Select a PDF document or image file containing text you want to extract." },
-  { title: "Select Language", desc: "Choose the primary language for better recognition accuracy." },
-  { title: "Recognize Text", desc: "Tesseract OCR identifies characters using your selected language model." },
-  { title: "Copy & Export", desc: "Get your extracted text instantly ready for your clipboard." }
+  { title: "Upload Source", desc: "Select a PDF document or scanned image containing text you want to extract." },
+  { title: "Select Language", desc: "Choose the primary language model for optimal optical character recognition." },
+  { title: "Extract Characters", desc: "Exismic scans page layout and isolates all embedded words and numbers." },
+  { title: "Copy & Export", desc: "Copy extracted text to your clipboard with 1 click or download a clean .TXT file." }
 ];
 
 export default function OcrExtractor() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingSample, setIsLoadingSample] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [extractedText, setExtractedText] = useState("");
@@ -99,14 +107,37 @@ export default function OcrExtractor() {
     }
   }, [previewUrl]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open: openFileDialog } = useDropzone({
     onDrop,
     accept: { 
       "application/pdf": [".pdf"],
       "image/*": [".png", ".jpg", ".jpeg", ".webp"]
     },
     multiple: false,
+    noClick: false,
   });
+
+  const handleLoadSample = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsLoadingSample(true);
+    setError(null);
+
+    try {
+      const demoFiles = await generateDemoPdfs();
+      if (demoFiles[2]) {
+        // Client_Invoice_INV-8492.pdf
+        const sampleInvoice = demoFiles[2];
+        setFile(sampleInvoice);
+        setExtractedText("");
+        setPreviewUrl(null);
+      }
+    } catch (err) {
+      console.error("Failed to generate demo PDF:", err);
+      setError("Unable to load sample document. You can still upload your own file.");
+    } finally {
+      setIsLoadingSample(false);
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(extractedText);
@@ -129,17 +160,15 @@ export default function OcrExtractor() {
   const runOCR = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setProgress(0);
-    setStatus("Initializing OCR engine...");
+    setProgress(5);
+    setStatus("Initializing optical recognition engine...");
     setError(null);
 
     const isCapable = detectOcrCapabilities(file);
     let resultText: string | null = null;
 
-    // 1. Attempt fast client-side worker OCR if device & file capabilities pass
     if (isCapable) {
       try {
-        console.log("[OCR Tool] Device & file payload verified. Running client worker OCR...");
         resultText = await processOcrLocally(
           file,
           language,
@@ -147,20 +176,18 @@ export default function OcrExtractor() {
             setProgress(percent);
             setStatus(statusMsg);
           },
-          20000
+          25000
         );
       } catch (clientErr) {
-        console.warn("[OCR Tool] Client-side OCR failed or timed out. Falling back to cloud API:", clientErr);
+        console.warn("[OCR Tool] Local client worker OCR timed out, trying server endpoint:", clientErr);
         resultText = null;
       }
     }
 
-    // 2. Server API fallback if device is weak, file is large, or client worker failed/timed out
     if (!resultText) {
       try {
-        console.log("[OCR Tool] Processing text recognition via cloud OCR fallback API...");
-        setStatus("Processing text recognition...");
-        setProgress(30);
+        setStatus("Processing high-accuracy text recognition...");
+        setProgress(35);
 
         const formData = new FormData();
         formData.append("file", file);
@@ -180,13 +207,13 @@ export default function OcrExtractor() {
         setProgress(100);
       } catch (serverErr: unknown) {
         console.error("[OCR Tool] Cloud OCR fallback failed:", serverErr);
-        setError(serverErr instanceof Error ? serverErr.message : "Text recognition failed.");
+        setError(serverErr instanceof Error ? serverErr.message : "Text recognition failed. Ensure the document contains visible text.");
       }
     }
 
     if (resultText) {
       setExtractedText(resultText);
-      setStatus("Success!");
+      setStatus("Extraction Complete!");
       setProgress(100);
     }
 
@@ -195,230 +222,352 @@ export default function OcrExtractor() {
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-12">
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
         {/* Main Area */}
-        <div className="xl:col-span-8 space-y-10">
+        <div className="xl:col-span-8 space-y-8">
           <AnimatePresence mode="wait">
             {!file ? (
               <motion.div
                 key="empty"
                 {...(getRootProps() as unknown as import("framer-motion").HTMLMotionProps<"div">)}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                exit={{ opacity: 0, scale: 0.96 }}
                 className={cn(
-                  "relative h-[500px] rounded-[4rem] border-2 border-dashed border-white/5 bg-white/[0.01] flex flex-col items-center justify-center cursor-pointer transition-all duration-700 group overflow-hidden",
-                  isDragActive ? "border-accent-cyan bg-accent-cyan/5 scale-[0.99]" : "hover:bg-white/[0.02] hover:border-white/10"
+                  "relative min-h-[520px] rounded-[2.5rem] border-2 border-dashed border-red-500/25 bg-[#090a12]/90 backdrop-blur-2xl flex flex-col items-center justify-center p-8 sm:p-12 text-center transition-all duration-500 overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] cursor-pointer group",
+                  isDragActive
+                    ? "border-red-400 bg-red-500/10 scale-[0.99] shadow-[0_0_50px_rgba(239,68,68,0.35)]"
+                    : "hover:border-red-500/40 hover:bg-[#0b0c16]/95"
                 )}
               >
                 <input {...getInputProps()} />
-                
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.03)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                
-                <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-                  <div className="w-28 h-28 rounded-[2.5rem] bg-zinc-900 border border-white/5 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:-rotate-3 transition-all duration-700">
-                    <ScanText className={cn("w-10 h-10 transition-colors duration-500", isDragActive ? "text-accent-cyan" : "text-zinc-600 group-hover:text-white")} />
+
+                {/* Ambient Radial Glow */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(239,68,68,0.12)_0%,transparent_65%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:32px_32px]" />
+
+                <div className="relative z-10 flex flex-col items-center text-center max-w-xl space-y-7">
+                  {/* Glowing Ruby Squircle Icon */}
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-red-500/20 via-rose-500/10 to-red-950/40 border border-red-500/35 flex items-center justify-center shadow-[0_0_35px_rgba(239,68,68,0.25)] group-hover:scale-110 group-hover:rotate-2 transition-all duration-500">
+                    <ScanText className="w-10 h-10 text-red-400 group-hover:text-red-300 transition-colors" />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-4xl font-black text-white tracking-tighter uppercase italic">OCR Vision <span className="text-accent-cyan">Studio</span></h3>
-                    <p className="text-zinc-500 font-medium text-lg uppercase tracking-widest text-[10px]">Extract editable text from any document</p>
+
+                  <div className="space-y-2">
+                    <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase">
+                      OCR Text Extractor <span className="bg-gradient-to-r from-red-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">Studio</span>
+                    </h3>
+                    <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed max-w-md mx-auto">
+                      Scan invoices, books, receipts, and PDF documents to extract editable text in seconds
+                    </p>
                   </div>
-                  <div className="px-10 py-5 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl group-hover:scale-105 transition-transform">
-                    Select Document
+
+                  {/* Dual Action Buttons */}
+                  <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+                    <button
+                      type="button"
+                      onClick={openFileDialog}
+                      className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-500 hover:brightness-110 active:scale-95 text-white font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(239,68,68,0.35)] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4 text-white" />
+                      Select Document or Image
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleLoadSample}
+                      disabled={isLoadingSample}
+                      className="w-full sm:w-auto px-6 py-4 rounded-xl bg-white/[0.04] border border-red-500/30 hover:border-red-400 hover:bg-red-500/10 active:scale-95 text-zinc-200 hover:text-white font-black text-xs uppercase tracking-[0.16em] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-50"
+                    >
+                      {isLoadingSample ? (
+                        <>
+                          <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 text-red-400" />
+                          Load Sample Invoice
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* 4 Feature Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-white/5 w-full">
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      <span>100% In-Memory</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      <Layers className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      <span>PDF & Image OCR</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      <ScanText className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      <span>Multi-Language</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      <Zap className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      <span>1-Click Copy</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
             ) : (
               <motion.div 
                 key="interface"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-10"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-8"
               >
-                <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 md:p-12 backdrop-blur-3xl shadow-3xl relative min-h-[600px] overflow-hidden">
-                   {extractedText ? (
-                      <div className="space-y-10">
-                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="flex items-center gap-6">
-                               <div className="w-16 h-16 rounded-2xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center text-accent-cyan">
-                                  <CheckCircle2 size={32} />
-                               </div>
-                               <div>
-                                  <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter pr-4 px-4 -mx-4">TEXT EXTRACTED.</h4>
-                                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Recognition complete · Review important details before use</p>
-                               </div>
-                            </div>
-                            <div className="flex flex-col gap-3 sm:flex-row">
-                              <button
-                                onClick={handleDownload}
-                                className="flex min-h-12 items-center justify-center gap-3 rounded-lg border border-white/10 bg-white/[0.05] px-5 text-xs font-black uppercase tracking-widest text-white transition hover:bg-white/[0.09]"
-                              >
-                                <Download size={18} />
-                                Download TXT
-                              </button>
-                              <button
-                                onClick={handleCopy}
-                                className="flex min-h-12 items-center justify-center gap-3 rounded-lg bg-white px-6 text-xs font-black uppercase tracking-widest text-black shadow-2xl transition hover:bg-zinc-200"
-                              >
-                                {isCopied ? <ClipboardCheck size={18} /> : <Copy size={18} />}
-                                {isCopied ? "Copied!" : "Copy Output"}
-                              </button>
-                            </div>
-                         </div>
+                <div className="rounded-[2.5rem] border-2 border-red-500/25 bg-[#090a12]/90 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative min-h-[560px] overflow-hidden">
+                  <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 bg-red-600/10 rounded-full blur-3xl" />
+                  <div className="pointer-events-none absolute -bottom-40 -right-40 w-96 h-96 bg-rose-600/10 rounded-full blur-3xl" />
 
-                         <div className="relative group">
-                            <div className="absolute -inset-0.5 bg-linear-to-r from-accent-cyan to-accent-purple rounded-[2.5rem] opacity-20 blur-xl group-hover:opacity-40 transition-opacity" />
-                            <textarea 
-                              readOnly
-                              className="relative w-full min-h-[450px] bg-zinc-950/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-10 text-zinc-300 font-medium leading-relaxed outline-none focus:border-accent-cyan/30 transition-all resize-none shadow-inner custom-scrollbar"
-                              value={extractedText}
-                            />
-                         </div>
+                  {/* Result Success State: Extracted Text Editor */}
+                  {extractedText ? (
+                    <div className="space-y-6 relative z-10">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                        <div className="flex items-center gap-3">
+                          <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                            <CheckCircle2 className="w-5 h-5" />
+                          </span>
+                          <div>
+                            <h3 className="text-base sm:text-lg font-black text-white tracking-tight uppercase">
+                              Extracted Text Output
+                            </h3>
+                            <p className="text-[11px] font-medium text-zinc-400 mt-0.5">
+                              Ready to copy to your clipboard or download as text
+                            </p>
+                          </div>
+                        </div>
 
-                         <button 
-                           onClick={() => { setFile(null); setExtractedText(""); }}
-                           className="text-[10px] font-black text-zinc-600 uppercase tracking-widest hover:text-white transition-colors"
-                         >
-                           Start New Scan
-                         </button>
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={handleCopy}
+                            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-500 text-white font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                          >
+                            {isCopied ? <ClipboardCheck size={16} /> : <Copy size={16} />}
+                            {isCopied ? "Copied!" : "Copy Text"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-white/[0.08] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                          >
+                            <Download size={16} />
+                            Download .TXT
+                          </button>
+                        </div>
                       </div>
-                   ) : (
-                     <div className="space-y-12">
-                        <div className="flex items-center justify-between">
-                           <div className="space-y-1">
-                              <h3 className="text-2xl font-black uppercase tracking-tight italic flex items-center gap-4">
-                                 <div className="p-2 bg-accent-cyan/10 rounded-xl"><Search className="w-5 h-5 text-accent-cyan" /></div>
-                                 Pattern Analysis
-                              </h3>
-                              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-14">Local OCR workspace ready</p>
-                           </div>
-                           <button 
-                             onClick={() => setFile(null)}
-                             className="p-3 bg-white/5 border border-white/10 rounded-2xl text-zinc-500 hover:text-white transition-all"
-                           >
-                              <X className="w-5 h-5" />
-                           </button>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                           <div className="space-y-8">
-                              <div className="p-10 rounded-[3rem] bg-zinc-900/50 border border-white/5 space-y-6 group hover:bg-zinc-900 transition-all">
-                                 <div className="w-20 h-20 rounded-2xl bg-accent-cyan/10 flex items-center justify-center text-accent-cyan group-hover:scale-110 transition-transform">
-                                    <FileText size={40} />
-                                 </div>
-                                 <div>
-                                    <h4 className="text-xl font-black text-white truncate italic tracking-tighter pr-4 px-4 -mx-4">{file.name}</h4>
-                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
-                                       {file.type.toUpperCase() || "DOCUMENT"} • {(file.size / 1024 / 1024).toFixed(2)} MB
-                                    </p>
-                                 </div>
-                              </div>
+                      {/* Text Display Box */}
+                      <div className="relative rounded-2xl border border-red-500/30 bg-[#070508]/90 overflow-hidden shadow-inner">
+                        <textarea 
+                          readOnly
+                          className="w-full min-h-[420px] bg-transparent p-6 text-zinc-200 font-mono text-xs sm:text-sm leading-relaxed outline-none resize-none"
+                          value={extractedText}
+                        />
+                      </div>
 
-                              <div className="space-y-6">
-                                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Primary Language</label>
-                                 <div className="grid grid-cols-2 gap-4">
-                                    {[
-                                      { id: "eng", name: "English" },
-                                      { id: "spa", name: "Spanish" },
-                                      { id: "fra", name: "French" },
-                                      { id: "deu", name: "German" }
-                                    ].map((lang) => (
-                                      <button 
-                                        key={lang.id}
-                                        onClick={() => setLanguage(lang.id)}
-                                        className={cn(
-                                          "py-4 rounded-2xl border font-black uppercase tracking-widest text-[10px] transition-all",
-                                          language === lang.id ? "bg-accent-cyan/10 border-accent-cyan/30 text-accent-cyan shadow-lg" : "bg-white/5 border-white/5 text-zinc-600 hover:border-white/10"
-                                        )}
-                                      >
-                                         {lang.name}
-                                      </button>
-                                    ))}
-                                 </div>
-                              </div>
-                           </div>
-
-                           <div className="relative group rounded-[3rem] overflow-hidden bg-zinc-950 border border-white/5 aspect-square flex items-center justify-center shadow-3xl">
-                              {previewUrl ? (
-                                 <img src={previewUrl} className="w-full h-full object-contain p-8 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000" alt="Preview" />
-                              ) : (
-                                 <div className="flex flex-col items-center gap-6 opacity-20">
-                                    <ScanText size={80} className="text-white" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white">Visual Preview</span>
-                                 </div>
-                              )}
-                              <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent flex items-end p-10">
-                                 <div className="flex items-center gap-3">
-                                    <Zap size={16} className="text-accent-cyan animate-pulse" />
-                                    <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Ready to recognize text</span>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                   )}
-
-                   <AnimatePresence>
-                     {isProcessing && (
-                        <motion.div 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="absolute inset-0 z-50 bg-[#030303]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-12 text-center"
+                      <div className="flex items-center justify-between pt-2">
+                        <button 
+                          onClick={() => { setFile(null); setExtractedText(""); }}
+                          className="px-5 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-black text-zinc-300 hover:text-white uppercase tracking-widest hover:bg-white/[0.08] transition-all flex items-center gap-2 cursor-pointer"
                         >
-                          <div className="relative mb-12">
-                             <div className="w-24 h-24 border-2 border-accent-cyan/20 border-t-accent-cyan rounded-full animate-spin" />
-                             <ScanText className="absolute inset-0 m-auto w-8 h-8 text-accent-cyan animate-pulse" />
+                          <RotateCcw className="w-4 h-4" />
+                          Scan Another Document
+                        </button>
+
+                        <span className="text-[11px] text-zinc-500 font-mono">
+                          {extractedText.length} characters extracted
+                        </span>
+                      </div>
+
+                      {/* Pipeline Handoff */}
+                      <div className="w-full pt-6 mt-4 border-t border-white/5">
+                        <MediaPipelineBar
+                          imageUrl="/og-image.png"
+                          imageName="extracted-text.txt"
+                          sourceToolId="pdf-ocr"
+                          sourceToolName="OCR Text Extractor"
+                          actions={["compressor", "resizer", "converter", "meme"]}
+                          title="Next Action Pipeline"
+                          subtitle="Take your extracted documents into companion tools"
+                          accentColor="red"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-8 relative z-10">
+                      {/* Active File Header */}
+                      <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                        <div className="flex items-center gap-3">
+                          <span className="flex size-9 items-center justify-center rounded-xl bg-red-500/15 border border-red-500/30 text-red-400">
+                            <ScanText className="w-5 h-5" />
+                          </span>
+                          <div>
+                            <h3 className="text-base sm:text-lg font-black text-white tracking-tight uppercase">
+                              Active Document
+                            </h3>
+                            <p className="text-[11px] font-medium text-zinc-400 mt-0.5">
+                              Ready for optical character recognition
+                            </p>
                           </div>
-                          <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 pr-4 px-4 -mx-4">{status}</h4>
-                          <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
-                             <div 
-                               className="h-full bg-accent-cyan shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-300"
-                               style={{ width: `${progress}%` }}
-                             />
+                        </div>
+
+                        <button 
+                          onClick={() => setFile(null)}
+                          className="p-2.5 bg-white/[0.03] border border-white/10 hover:bg-red-500/10 hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-xl transition-all cursor-pointer"
+                          title="Change file"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Document Details Card */}
+                      <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-zinc-900/80 to-[#0e0a10]/80 border border-white/5">
+                        {previewUrl ? (
+                          <div className="w-24 h-32 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0">
+                            <img src={previewUrl} alt="Document" className="w-full h-full object-cover" />
                           </div>
-                          <p className="text-[10px] text-zinc-500 mt-6 font-black uppercase tracking-[0.4em]">OCR worker active</p>
-                        </motion.div>
-                     )}
-                   </AnimatePresence>
+                        ) : (
+                          <div className="w-24 h-32 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+                            <FileText size={38} />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0 text-center sm:text-left">
+                          <h4 className="text-lg font-bold text-white truncate">
+                            {file.name}
+                          </h4>
+                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
+                            <span className="px-2.5 py-0.5 rounded-md bg-white/5 text-[10px] font-mono font-bold text-zinc-300 border border-white/5">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                            <span className="flex items-center gap-1.5 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              Ready to Scan
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Recognition Language Selector */}
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
+                          Select Primary Document Language
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {[
+                            { id: "eng", name: "English" },
+                            { id: "spa", name: "Spanish" },
+                            { id: "fra", name: "French" },
+                            { id: "deu", name: "German" }
+                          ].map((lang) => (
+                            <button 
+                              key={lang.id}
+                              type="button"
+                              onClick={() => setLanguage(lang.id)}
+                              className={cn(
+                                "py-3.5 px-3 rounded-xl border font-black uppercase tracking-wider text-xs transition-all cursor-pointer",
+                                language === lang.id
+                                  ? "bg-red-500/15 border-red-500/40 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+                                  : "bg-white/[0.02] border-white/5 text-zinc-400 hover:border-white/10"
+                              )}
+                            >
+                              {lang.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dynamic Progress Overlay */}
+                  <AnimatePresence>
+                    {isProcessing && (
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 bg-[#070508]/96 backdrop-blur-3xl flex flex-col items-center justify-center p-8 text-center"
+                      >
+                        <div className="relative mb-8">
+                          <div className="absolute inset-0 rounded-full bg-red-600/20 blur-2xl animate-pulse" />
+                          <div className="w-24 h-24 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
+                          <ScanText className="absolute inset-0 m-auto w-8 h-8 text-red-400 animate-pulse" />
+                        </div>
+
+                        <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.25em] bg-red-500/15 border border-red-500/30 text-red-300 mb-3 font-mono">
+                          [ {progress}% ]
+                        </span>
+
+                        <h4 className="text-3xl font-black text-white uppercase tracking-tight mb-2">
+                          Recognizing Text...
+                        </h4>
+                        <p className="text-xs text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed">
+                          {status}
+                        </p>
+
+                        <div className="w-64 h-1.5 rounded-full bg-white/5 border border-white/10 mt-6 overflow-hidden">
+                          <motion.div 
+                            className="h-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-400"
+                            initial={{ width: "10%" }}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.15, ease: "easeOut" }}
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Laser Horizon Divider */}
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent my-10 shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
         </div>
 
         {/* Sidebar Controls */}
-        <div className="xl:col-span-4 space-y-8">
-           {!extractedText && (
-             <PdfActionButton
-               onClick={runOCR}
-               isLoading={isProcessing}
-               disabled={!file}
-               label={!file ? "Select Document" : "Recognize Text"}
-               subLabel={!file ? "Upload a file to begin" : `${language.toUpperCase()} model active`}
-               icon={ScanText}
-             />
-           )}
+        <div className="xl:col-span-4 space-y-6">
+          {!extractedText && (
+            <PdfActionButton
+              onClick={runOCR}
+              isLoading={isProcessing}
+              disabled={!file}
+              label={!file ? "Upload Document" : "Extract Text"}
+              subLabel={!file ? "Select a document to begin" : `${language.toUpperCase()} language model active`}
+              icon={ScanText}
+              themeColor="red"
+            />
+          )}
 
-           <PdfSidebar 
-             accentColor="text-accent-cyan"
-             steps={OCR_STEPS}
-             stats={file ? [
-               { label: "Engine", value: "Tesseract OCR" },
-               { label: "Language", value: language.toUpperCase() },
-               { label: "Confidence", value: "Adaptive" }
-             ] : []}
-           />
+          <PdfSidebar 
+            themeColor="red"
+            accentColor="text-red-400"
+            steps={OCR_STEPS}
+            stats={file ? [
+              { label: "Target Document", value: file.name.slice(0, 18) + (file.name.length > 18 ? "..." : "") },
+              { label: "Language", value: language.toUpperCase() },
+              { label: "Engine", value: "Tesseract OCR" }
+            ] : []}
+          />
 
-           {!extractedText && error && (
-             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[2rem] text-red-400 text-[10px] font-bold flex items-start gap-4">
-               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-50" />
-               <div className="space-y-1">
-                  <p className="uppercase tracking-[0.2em]">Vision Error</p>
-                  <p className="font-medium opacity-80 leading-relaxed italic">{error}</p>
-               </div>
-             </div>
-           )}
+          {!extractedText && error && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 text-xs font-bold flex items-start gap-3.5 backdrop-blur-md"
+            >
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400" />
+              <div className="space-y-1">
+                <p className="uppercase tracking-[0.14em] text-[10px] text-red-400 font-black">Notice</p>
+                <p className="font-medium text-zinc-300 leading-relaxed">{error}</p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

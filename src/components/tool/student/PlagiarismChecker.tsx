@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import {
   FileQuestion,
-  Sparkles,
   RefreshCw,
   ArrowRightLeft,
   Copy,
@@ -230,7 +229,7 @@ export default function PlagiarismChecker() {
       {/* Test Presets Quick Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
         <span className="text-zinc-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap flex items-center gap-1">
-          <Sparkles size={12} className="text-amber-400" /> Quick Samples:
+          <FileCheck2 size={12} className="text-amber-400" /> Quick Samples:
         </span>
         {TEST_PRESETS.map((preset) => (
           <button
