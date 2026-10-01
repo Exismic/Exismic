@@ -394,7 +394,7 @@ export function BlogPostClient({ post }: { post: BlogPostMetadata }) {
               Your past outputs are now organized and ready in the <Link href="/library" className="text-emerald-400 hover:text-emerald-300 font-bold underline underline-offset-4">Exismic Cloud Drive</Link>. Free members enjoy 50 MB of cloud storage with automatic image compression, while Pro members receive an expansive 5 GB vault.
             </p>
             <p className="text-lg text-zinc-300 leading-relaxed mb-6">
-              Even better, our new <strong className="text-white">Quick Action Pipelines</strong> eliminate the tedious cycle of downloading an image just to re-upload it to another tool. With a single click, you can pass an AI-generated artwork directly into the Background Remover, send a cutout to the Meme Studio, or compress a final graphic for web publishing.
+              Even better, our new <strong className="text-white">Quick Action Pipelines</strong> eliminate the tedious cycle of downloading an image just to re-upload it to another tool. With a single click, you can pass an <Link href="/tools/ai/img-gen" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-4">AI-generated artwork</Link> directly into the <Link href="/tools/image/eraser" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-4">Background Remover</Link>, send a cutout to the <Link href="/tools/meme-generator" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-4">Meme Studio</Link>, or <Link href="/tools/image/compressor" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-4">compress a final graphic</Link> for web publishing.
             </p>
 
             {/* Section 6: Sound Design & Bug Fixes */}
@@ -449,7 +449,7 @@ export function BlogPostClient({ post }: { post: BlogPostMetadata }) {
               We believe that using creative tools should be rewarding. With Exismic 1.5, we are introducing an all-new <strong className="text-white">Quests system</strong> designed to reward your everyday exploration across the studio.
             </p>
             <p className="text-lg text-zinc-300 leading-relaxed mb-8">
-              Whether you are generating new imagery, perfecting visual assets, or testing different tools, you can now complete rotating daily and weekly milestones to earn bonus credits. It provides an engaging and natural way to keep your creative momentum going without having to worry about running low on allowances.
+              Whether you are <Link href="/tools/ai/img-gen" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4">generating new imagery</Link>, perfecting visual assets, or testing different tools, you can now complete rotating daily and weekly milestones to earn bonus credits. It provides an engaging and natural way to keep your creative momentum going without having to worry about running low on allowances.
             </p>
 
             <blockquote className="relative my-16 overflow-hidden rounded-[2.5rem] border border-purple-400/20 bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.12),transparent_60%),rgba(255,255,255,0.02)] p-8 sm:p-12 shadow-2xl">

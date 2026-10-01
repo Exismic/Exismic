@@ -57,7 +57,7 @@ declare const window: Window & { pdfjsLib?: BrowserPdfJs };
 
 const TO_IMAGE_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to convert into high-resolution image files." },
-  { title: "Choose Format", desc: "Select PNG for lossless vector graphics or JPG for compact web sharing." },
+  { title: "Choose Format", desc: "Choose PNG page images or JPG for a more compact picture format." },
   { title: "Resolution", desc: "Render at crisp 2x Ultra HD or standard 1x resolution directly in your browser." },
   { title: "Download", desc: "Save individual image files or a clean ZIP folder with all pages included." }
 ];
@@ -288,7 +288,7 @@ export default function PdfToImage() {
                       PDF to Image <span className="bg-gradient-to-r from-red-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">Studio</span>
                     </h3>
                     <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed max-w-md mx-auto">
-                      Convert PDF pages into pixel-perfect PNG or JPG images at crystal-clear resolution
+                      Render complete PDF pages as PNG or JPG images with standard or high quality
                     </p>
                   </div>
 

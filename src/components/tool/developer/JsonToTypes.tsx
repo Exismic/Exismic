@@ -16,7 +16,6 @@ import {
   Code2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
@@ -540,9 +539,6 @@ export default function JsonToTypes() {
           </div>
         </div>
       </div>
-
-      {/* Laser Divider Horizon Bridge */}
-      <ToolLaserDivider primaryHex="#84cc16" />
 
       {/* Result Retention & History */}
       <ResultRetentionBar

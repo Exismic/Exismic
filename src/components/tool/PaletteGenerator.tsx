@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // COLOR MATH & ACCESSIBILITY UTILITIES

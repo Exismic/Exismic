@@ -56,8 +56,8 @@ declare const pdfjsLib: OcrPdfJs;
 
 const OCR_STEPS = [
   { title: "Upload Source", desc: "Select a PDF document or scanned image containing text you want to extract." },
-  { title: "Select Language", desc: "Choose the primary language model for optimal optical character recognition." },
-  { title: "Extract Characters", desc: "Exismic scans page layout and isolates all embedded words and numbers." },
+  { title: "Select Language", desc: "Choose the language of the text in your scan." },
+  { title: "Extract Characters", desc: "Recognize visible text in the scan, then review it for errors." },
   { title: "Copy & Export", desc: "Copy extracted text to your clipboard with 1 click or download a clean .TXT file." }
 ];
 

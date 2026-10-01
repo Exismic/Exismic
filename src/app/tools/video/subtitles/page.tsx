@@ -16,7 +16,7 @@ export default function Page() {
       toolId="video-subtitles"
       categoryId="video"
       customTitle="AI Subtitle Generator"
-      customDescription="Generate accurate subtitles and captions for your videos automatically. Export SRT or VTT files with precise timestamps."
+      customDescription="Generate timed subtitles from video speech, review the text, and download SRT or a captioned video when rendering succeeds."
     >
       <SubtitleGenerator />
     </ToolPageShell>

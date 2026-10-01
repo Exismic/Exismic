@@ -30,8 +30,8 @@ import { readDownloadResponse } from "@/lib/pdf-client";
 
 const COMPRESSOR_STEPS = [
   { title: "Upload PDF", desc: "Select the large document you want to optimize for web, email, or cloud storage." },
-  { title: "Compression Profile", desc: "Choose your balance between lossless vector sharpness and file size reduction." },
-  { title: "Stream Optimization", desc: "Exismic compacts font dictionaries and rebuilds object streams losslessly." },
+  { title: "Compression Profile", desc: "Choose low, medium, or high document cleanup." },
+  { title: "Stream Optimization", desc: "Rewrite PDF storage and apply the selected metadata cleanup." },
   { title: "Download", desc: "Save your optimized document with instant verification of space saved." }
 ];
 
@@ -136,7 +136,7 @@ export default function PdfCompressor() {
           return prev + 5;
         }
         if (prev < 92) {
-          setCompressStage("Verifying vector geometry & finalizing output...");
+          setCompressStage("Finalizing the optimized document...");
           return prev + 2;
         }
         return prev;
@@ -302,7 +302,7 @@ export default function PdfCompressor() {
                     </div>
                     <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       <Minimize2 className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                      <span>Up to -80% Size</span>
+                      <span>Compare File Sizes</span>
                     </div>
                     <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       <Zap className="w-3.5 h-3.5 text-red-400 shrink-0" />
@@ -369,7 +369,7 @@ export default function PdfCompressor() {
                         </h4>
                         <p className="text-zinc-400 text-xs sm:text-sm font-medium max-w-md mx-auto">
                           {result.optimized
-                            ? `Saved ${formatSize(result.oldSize - result.newSize)} while preserving crisp page vector quality.`
+                            ? `Saved ${formatSize(result.oldSize - result.newSize)} after document optimization.`
                             : "Your document is already maximally compact; re-compressing would not reduce file size further."}
                         </p>
                       </div>

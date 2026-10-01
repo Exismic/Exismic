@@ -19,7 +19,6 @@ import {
   RotateCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 interface RealAnalysisResult {
   score: number;
@@ -908,11 +907,6 @@ export default function ThumbnailAnalyzer() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Category-Reactive Laser Horizon Divider */}
-      <div className="pt-4 pb-2">
-        <ToolLaserDivider primaryHex="#6366f1" />
       </div>
     </div>
   );

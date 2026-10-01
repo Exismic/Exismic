@@ -1,3 +1,4 @@
+import { TOOL_GUIDES, TOOL_GUIDE_CONTENT_UPDATED_AT } from "./tool-guides";
 import { 
   Wand2, 
   Trash2, 
@@ -342,7 +343,7 @@ export const CATEGORIES: Category[] = [
   { id: 'creator', name: 'Creator & Social Media', description: 'Write viral video hooks, design swipeable carousels, analyze thumbnails, and format posts.', icon: 'Share2' as IconName, color: 'text-indigo-400', glow: 'rgba(99, 102, 241, 0.5)' },
 ];
 
-export const ALL_TOOLS: Tool[] = [
+const REGISTERED_TOOLS: Tool[] = [
   // Image Tools
   { 
     id: 'image-eraser', 
@@ -408,8 +409,8 @@ export const ALL_TOOLS: Tool[] = [
     suggestions: ["How do I compress without losing visible quality?","What is the best compression level for websites?","Can I batch compress a whole folder?"], 
     requiresFileUpload: true, 
     acceptedFileTypes: ['image/*'],
-    seoTitle: "Bulk Image Compressor Online - Reduce File Size without Quality Loss",
-    seoDescription: "Compress multiple images at once. Our AI-driven compressor reduces file sizes while maintaining professional image quality.",
+    seoTitle: "Bulk Image Compressor Online - Adjust Quality & Image Size",
+    seoDescription: "Compress multiple images with quality, format, dimension, and metadata controls. Preview results and download individual files or a ZIP.",
     seoKeywords: ["bulk image compressor","compress image online","reduce image file size","jpeg compressor","png compressor","Exismic"]
   },
   { id: 'image-resizer', name: 'Resizer & Cropper', description: "Crop, zoom, and reshape your photos to the perfect dimensions for Instagram, YouTube, Twitter, and website banners with zero stretching or blurry edges.", category: 'image', icon: 'Crop' as IconName, href: '/tools/image/resizer',
@@ -418,11 +419,11 @@ export const ALL_TOOLS: Tool[] = [
     seoKeywords: ["image resizer","crop photo online","resize photo free","social media photo resizer","Exismic"] },
   { id: 'image-converter', name: 'Format Converter', description: "Quickly change your photos between JPG, PNG, WEBP, and other formats in one simple click, keeping colors vibrant and file quality crystal clear.", category: 'image', icon: 'FileType' as IconName, href: '/tools/image/converter',
     suggestions: ["What is the difference between WEBP and PNG?","Which format is best for transparent images?","How do I convert a batch of images?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Online Image Format Converter - Convert JPG, PNG, WEBP & More",
-    seoDescription: "Convert images online between JPG, PNG, WEBP, and GIF formats instantly without quality loss.",
+    seoDescription: "Convert images to JPG, PNG, WebP, or GIF with quality controls. Process a batch online and download individual results or a ZIP.",
     seoKeywords: ["image converter","convert jpg to webp","convert png to jpg","online image format converter","Exismic"] },
   { id: 'watermark-remover', name: 'Watermark Remover', description: "Erase unwanted logos, timestamps, and watermarks from your pictures cleanly. Restore your photos to their original look with seamless blending.", category: 'image', icon: 'Stamp' as IconName, href: '/tools/image/watermark-remover',
     suggestions: ["Can it remove large transparent text?","Will the removed area look blurry?","How does it handle watermarks on complex backgrounds?"], proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Free Watermark Remover Online - Remove Text & Logos from Images",
-    seoDescription: "Remove watermarks, logos, and unwanted text from photos using AI inpainting algorithms.",
+    seoDescription: "Select a region to remove unwanted marks from pictures. Adjust removal strength, process online, and compare the repaired area with the original.",
     seoKeywords: ["watermark remover","remove logo from photo","remove text from image","free watermark remover","Exismic"] },
   {
     id: 'svg-vectorizer',
@@ -435,7 +436,7 @@ export const ALL_TOOLS: Tool[] = [
     requiresFileUpload: true,
     acceptedFileTypes: ['image/*'],
     seoTitle: "Free Image to Vector SVG Converter Online | Exismic",
-    seoDescription: "Instantly convert JPG, PNG, and WEBP images into editable, scalable vector graphics (SVG). Fast, free, and runs entirely in your browser session.",
+    seoDescription: "Trace simple pictures into SVG outlines. Adjust threshold, foreground color, and background, compare the trace, and download SVG; server fallback may be used.",
     seoKeywords: [
       "image to vector converter",
       "convert png to svg free",
@@ -488,12 +489,12 @@ export const ALL_TOOLS: Tool[] = [
 ],
     updatedAt: "2026-09-29T00:00:00.000Z" },
   { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: "Design punchy, high-click video thumbnails that stand out in crowded feeds. Add bold titles, glowing outlines, and sticker accents that grab instant attention.", category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail',
-    suggestions: ["What makes a high-converting thumbnail?","Which fonts are best for readability on mobile?","How do I add a glow effect around my subject?"], popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design High-CTR Thumbnails Fast",
-    seoDescription: "Free YouTube Thumbnail Maker. Create high-CTR thumbnails with custom typography, glows, and templates.",
+    suggestions: ["What makes a high-converting thumbnail?","Which fonts are best for readability on mobile?","How do I add a glow effect around my subject?"], popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design 1280x720 PNG Thumbnails",
+    seoDescription: "Design 1280x720 YouTube thumbnails with templates, editable text, colors, and image layers. Preview your design and download PNG.",
     seoKeywords: ["youtube thumbnail maker","thumbnail creator free","high ctr thumbnail design","youtube thumbnail generator","Exismic"] },
   { id: 'meme-generator', name: 'Meme Generator', description: "Turn funny ideas into viral social memes in seconds. Pick from classic meme templates or upload your own photos, add bold caption text, and share everywhere.", category: 'image', icon: 'Laugh' as IconName, href: '/tools/meme-generator',
-    suggestions: ["What are the trending meme formats right now?","How do I change the font to Impact?","Can I upload my own blank template?"], popular: true, seoTitle: "Online Meme Generator - Create Funny Memes with AI Instantly",
-    seoDescription: "Create funny memes online with AI meme generator. Choose popular templates or upload your own images watermark-free.",
+    suggestions: ["What are the trending meme formats right now?","How do I change the font to Impact?","Can I upload my own blank template?"], popular: true, seoTitle: "Online Meme Generator - Add Captions to Templates & Photos",
+    seoDescription: "Create memes from classic templates or your own pictures. Edit caption text, font, color, outline, and placement, then download PNG.",
     seoKeywords: ["meme generator","online meme maker","funny meme creator","meme templates","drake meme maker","Exismic"] },
 
   // Video Tools
@@ -510,8 +511,8 @@ export const ALL_TOOLS: Tool[] = [
     seoDescription: "Auto generate subtitles for videos using AI speech recognition. Download SRT files or burn captions into video.",
     seoKeywords: ["auto subtitle generator","video captions maker","ai srt generator","free video subtitles creator","Exismic"] },
   { id: 'video-enhancer', name: 'Video Enhancer', description: "Breathe new life into blurry or low-light clips. Sharpen soft details, smooth out visual grain, and make your videos look like they were shot on a pro camera.", category: 'video', icon: 'Tv2' as IconName, href: '/tools/video/enhancer',
-    suggestions: ["Can this upscale 720p to 4K?","Does it remove grain and noise?","How long does upscaling usually take?"], popular: true, proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "AI Video Enhancer Online - Upscale & Improve Video Quality Free",
-    seoDescription: "Upscale and enhance video quality online with AI vision processing. Improve contrast, resolution, and sharpness.",
+    suggestions: ["Can this upscale 720p to 4K?","Does it remove grain and noise?","How long does upscaling usually take?"], popular: true, proPowerPack: true, requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Video Enhancer - Sharpen, Reduce Noise & Adjust Color",
+    seoDescription: "Apply video sharpening, noise reduction, stabilization, and color filters online, then compare and download the processed MP4.",
     seoKeywords: ["video enhancer","ai video upscaler","enhance video quality","fix low res video","Exismic"] },
   { id: 'video-gif', name: 'Video to GIF', description: "Turn fun video reactions and highlights into smooth, looping animated GIFs ready to drop into Discord, Slack, tweets, and social group chats.", category: 'video', icon: 'Repeat' as IconName, href: '/tools/video/to-gif',
     suggestions: ["How do I make the GIF loop perfectly?","What frame rate is best for a smooth GIF?","How do I reduce the GIF file size?"], requiresFileUpload: true, acceptedFileTypes: ['video/*'], seoTitle: "Video to GIF Converter - Create Moving GIFS from Video Online",
@@ -540,7 +541,7 @@ export const ALL_TOOLS: Tool[] = [
   },
   { id: 'audio-stem-splitter', name: 'Full Stem Splitter', description: "Separate full songs into individual tracks for drums, bass, vocals, and instruments. Perfect for remixing, sampling, or practicing your instrument.", category: 'audio', icon: 'Sliders' as IconName, href: '/tools/audio/stem-splitter',
     suggestions: ["How cleanly does it separate the bass from the drums?","Can I mute specific instruments?","What is the difference between 2-stem and 4-stem split?"], pro: true, requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Stem Splitter Online - Split Songs into Vocals, Drums & Bass",
-    seoDescription: "Split audio tracks into separate stems: vocals, drums, bass, instruments, and melody using AI music separation.",
+    seoDescription: "Separate a song into vocals, drums, bass, and other instruments with online Pro stem separation. Preview the returned tracks and download them individually or in a ZIP.",
     seoKeywords: ["audio stem splitter","separate music stems","isolate drums bass vocals","ai music stem extractor","Exismic"] },
   { id: 'audio-noise-remover', name: 'Noise Remover', description: "Silence air conditioning hums, microphone hiss, wind rumble, and room echo from your voice recordings so you sound clean and professional.", category: 'audio', icon: 'VolumeX' as IconName, href: '/tools/audio/noise-remover',
     suggestions: ["Will it remove wind noise?","Does it affect the quality of the main voice?","How do I deal with echo or reverb?"], requiresFileUpload: true, acceptedFileTypes: ['audio/*'], seoTitle: "AI Noise Remover Online - Remove Background Noise from Audio Free",
@@ -752,15 +753,15 @@ export const ALL_TOOLS: Tool[] = [
     seoKeywords: ["pdf compressor","reduce pdf size online","compress pdf file","shrink pdf free","Exismic"] },
   { id: 'pdf-to-img', name: 'PDF to Image', description: "Save any page from your PDF document as high-resolution JPG or PNG pictures so you can easily post them on social media or insert into presentations.", category: 'pdf', icon: 'FileImage' as IconName, href: '/tools/pdf/to-img',
     suggestions: ["Should I choose JPG or PNG?","How do I increase the resolution of the output images?","Can I download all pages as a ZIP file?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "PDF to Image Converter - Convert PDF Pages to JPG/PNG Online",
-    seoDescription: "Convert PDF pages into high-resolution JPG or PNG images online. Extract embedded images from PDFs.",
+    seoDescription: "Render PDF pages as JPG or PNG images in your browser. Choose standard or high quality and download a single image or a multi-page ZIP.",
     seoKeywords: ["pdf to image converter","pdf to jpg","pdf to png free","convert pdf to image online","Exismic"] },
   { id: 'pdf-img-to-pdf', name: 'Image to PDF', description: "Bundle your receipts, scanned pages, and photo collections into a clean, easy-to-read PDF file that anyone can open on phone or desktop.", category: 'pdf', icon: 'FileUp' as IconName, href: '/tools/pdf/img-to-pdf',
     suggestions: ["How do I ensure the images fit the page properly?","Can I add a margin around the images?","Will it preserve the original image quality?"], requiresFileUpload: true, acceptedFileTypes: ['image/*'], seoTitle: "Image to PDF Converter - Convert Photos to PDF Online Free",
     seoDescription: "Convert images (JPG, PNG, WEBP) to PDF documents online. Combine multiple photos into a single PDF file.",
     seoKeywords: ["image to pdf converter","jpg to pdf","convert photo to pdf","images to single pdf","Exismic"] },
-  { id: 'pdf-to-word', name: 'PDF to Word', description: "Turn locked PDF documents back into editable documents so you can rewrite text, adjust tables, and make updates without starting from scratch.", category: 'pdf', icon: 'FileOutput' as IconName, href: '/tools/pdf/to-word',
+  { id: 'pdf-to-word', name: 'PDF to Word', description: "Extract selectable text from a PDF into an editable Word document. Choose paragraph grouping or preserved line breaks, then review the downloaded text.", category: 'pdf', icon: 'FileOutput' as IconName, href: '/tools/pdf/to-word',
     suggestions: ["Will it preserve complex tables and formatting?","Can I edit the text directly after converting?","How does it handle scanned documents?"], requiresFileUpload: true, acceptedFileTypes: ['application/pdf'], seoTitle: "PDF to Word Converter Online - Convert PDF to Editable Doc Free",
-    seoDescription: "Convert PDF documents into editable Word (DOCX) files online while maintaining formatting.",
+    seoDescription: "Extract PDF text into editable Word DOCX files. Choose paragraph grouping or preserved line breaks; original layouts and images are not reconstructed.",
     seoKeywords: ["pdf to word converter","convert pdf to docx","editable pdf to word","free pdf to docx","Exismic"] },
   { 
     id: 'pdf-ocr', 
@@ -796,8 +797,8 @@ export const ALL_TOOLS: Tool[] = [
     isProTool: true, 
     proPowerPack: true,
     requiresFileUpload: false,
-    seoTitle: "Free AI Image Generator - Create Stunning Art & Photos from Text",
-    seoDescription: "The most powerful free AI image generator. Create professional art, photos, and designs simply by typing what you want to see.",
+    seoTitle: "AI Image Generator - Create Art & Photos from Text",
+    seoDescription: "Create images from a text description with visual style and dimension controls. Generate online with Pro access and credits, then download a PNG.",
     seoKeywords: ["ai image generator","text to image ai","free ai art generator","flux Schnell image generator","Exismic"]
   },
   { id: 'ai-chat', name: 'AI Chat', description: "Brainstorm new project ideas, break down complicated topics into simple steps, and get instant answers from a friendly, knowledgeable creative partner.", category: 'ai', icon: 'MessagesSquare' as IconName, href: '/chat', indexable: false,
@@ -821,8 +822,8 @@ export const ALL_TOOLS: Tool[] = [
     seoKeywords: ["exismic support agent","ai customer support agent","help desk assistant","Exismic"]
   },
   { id: 'ai-logo', name: 'AI Logo Generator', description: "Create distinctive, modern logo concepts for your new brand, YouTube channel, or side project in seconds with customized colors and visual styles.", category: 'ai', icon: 'Stamp' as IconName, href: '/tools/ai/logo',
-    suggestions: ["What styles are best for a tech startup?","How do I ensure the logo is minimalist?","Can I specify exact brand colors?"], pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "Free AI Logo Generator - Create Professional Logos in Seconds",
-    seoDescription: "Design professional vector AI logos for your business or brand. Input prompts and generate icon styles fast.",
+    suggestions: ["What styles are best for a tech startup?","How do I ensure the logo is minimalist?","Can I specify exact brand colors?"], pro: true, isProTool: true, requiresFileUpload: false, seoTitle: "AI Logo Generator - Create Logo Concepts from a Brand Brief",
+    seoDescription: "Generate logo image concepts from your brand brief and visual settings. Export PNG or an SVG containing the generated image, without vector tracing.",
     seoKeywords: ["ai logo generator","logo design ai","make logo online free","brand logo creator","Exismic"] },
   {
     id: 'landing-page-generator',
@@ -900,7 +901,7 @@ export const ALL_TOOLS: Tool[] = [
     requiresFileUpload: false,
     placeholderPrompt: 'Describe the art style you want (e.g. medieval castle on a hill, oil painting)...',
     seoTitle: "Free Artistic AI QR Code Generator - Custom QR Art Online",
-    seoDescription: "Generate stunning scannable AI QR codes for free. Blend URLs with Stable Diffusion art using our free QR Code ControlNet generator.",
+    seoDescription: "Generate artistic QR images from a link and visual prompt. Adjust the art and scannability balance, download PNG, and test the code before sharing.",
     seoKeywords: [
       "artistic ai qr code",
       "ai qr code generator",
@@ -1083,7 +1084,7 @@ export const ALL_TOOLS: Tool[] = [
   },
   { id: 'productivity-units', name: 'Unit Converter', description: "Easily convert between inches, meters, kilograms, cups, Fahrenheit, and dozens of everyday measurements with instant, error-free results.", category: 'student', icon: 'Ruler' as IconName, href: '/tools/productivity/units',
     suggestions: ["How do I convert complex derived units?","Does it support metric to imperial conversions?","Can I save my most used conversions?"], requiresFileUpload: false, seoTitle: "Online Unit Converter - Convert Length, Weight, Temp & More Free",
-    seoDescription: "Convert length, weight, temperature, data speed, and currency units online instantly.",
+    seoDescription: "Convert length, mass, temperature, area, volume, and digital storage units with instant results and formula breakdowns.",
     seoKeywords: ["unit converter","convert measurement units","length converter","weight unit converter","Exismic"],
     seoIntro: "Convert length, mass, temperature, area, volume, and digital storage units accurately with real-time bidirectional calculations and exact formula breakdowns.",
     howToSteps: [
@@ -2288,7 +2289,7 @@ export const ALL_TOOLS: Tool[] = [
   {
     id: 'hash-generator',
     name: 'Hash Generator (MD5 / SHA-256)',
-    description: "Create one-way digital fingerprints for your text and files to verify integrity, compare checksums, or secure passwords with instant outputs.",
+    description: "Create digital fingerprints for text and files, copy hash values, and compare SHA-256 or SHA-512 file checksums with a trusted source.",
     category: 'developer',
     icon: 'Fingerprint' as IconName,
     href: '/tools/hash-generator',
@@ -2449,7 +2450,7 @@ export const ALL_TOOLS: Tool[] = [
     href: '/tools/creator/linkedin-formatter',
     popular: true,
     suggestions: ["Format a story about quitting 9-5 job into a viral LinkedIn post", "Add bold unicode highlights and clean line breaks", "Analyze hook strength for B2B marketing post"],
-    seoTitle: "Free LinkedIn Post Formatter & Viral Hook Score Analyzer",
+    seoTitle: "Free LinkedIn Post Formatter & Hook Score Analyzer",
     seoDescription: "Format LinkedIn posts with clean line breaks, custom typography, bullet points, and hook strength evaluation.",
     seoKeywords: ["linkedin post formatter","bold text for linkedin","linkedin hook creator","Exismic"]
   },
@@ -2463,8 +2464,8 @@ export const ALL_TOOLS: Tool[] = [
     requiresFileUpload: true,
     acceptedFileTypes: ['image/png', 'image/jpeg', 'image/webp'],
     suggestions: ["Analyze contrast and text legibility of my YouTube thumbnail", "Predict CTR score for tech review thumbnail", "Check mobile vs desktop thumbnail visibility"],
-    seoTitle: "Free YouTube Thumbnail CTR Analyzer & Visual Checker",
-    seoDescription: "Analyze YouTube thumbnail contrast, focal points, and text legibility to maximize click-through rate.",
+    seoTitle: "Free YouTube Thumbnail Visual Analyzer - Contrast & Feed Preview",
+    seoDescription: "Check thumbnail contrast, color, brightness, dimensions, and timestamp overlap. Inspect desktop and mobile feed previews with heuristic visual feedback.",
     seoKeywords: ["youtube thumbnail analyzer","thumbnail ctr analyzer","thumbnail contrast checker","Exismic"]
   },
   {
@@ -2475,7 +2476,7 @@ export const ALL_TOOLS: Tool[] = [
     icon: 'Presentation' as IconName,
     href: '/tools/creator/carousel-generator',
     suggestions: ["Create a 5-slide carousel on 10 AI tools every creator needs", "Generate a design carousel for startup advice", "Build a slide deck outline for LinkedIn"],
-    seoTitle: "Free AI Social Carousel Generator for LinkedIn & Instagram",
+    seoTitle: "Free Social Carousel Builder for LinkedIn & Instagram",
     seoDescription: "Build multi-slide image carousels and PDF decks for Instagram and LinkedIn with customizable visual themes.",
     seoKeywords: ["social carousel generator","instagram carousel maker","linkedin carousel pdf generator","Exismic"]
   },
@@ -2697,7 +2698,7 @@ export const ALL_TOOLS: Tool[] = [
   },
   {
     id: 'svg-optimizer',
-    name: 'SVG Optimizer & File Cleaner (SVGO)',
+    name: 'SVG Optimizer & File Cleaner',
     description: "Clean up messy graphic files by stripping hidden bloat and extra tags, cutting file size in half while keeping the visual quality 100% sharp.",
     category: 'developer',
     icon: 'FileCheck' as IconName,
@@ -2715,20 +2716,20 @@ export const ALL_TOOLS: Tool[] = [
     icon: 'Clock' as IconName,
     href: '/tools/developer/cron-generator',
     suggestions: ["Generate cron job for every 5 minutes on weekdays", "Translate cron expression 0 0 * * 0 to plain English", "Build cron schedule for daily midnight task"],
-    seoTitle: "Free Cron Expression Generator & Human Reader - Visual Cron Builder",
-    seoDescription: "Build, parse, and explain 5-part cron expressions visually with human-readable descriptions and next execution times.",
+    seoTitle: "Cron Expression Generator - Visual Five-Field Builder",
+    seoDescription: "Build five-field cron expressions and crontab command lines with visual controls. Copy the schedule and verify execution times in your own scheduler.",
     seoKeywords: ["cron generator","cron expression explainer","crontab generator online","Exismic"]
   },
   {
     id: 'sql-builder',
-    name: 'Visual SQL Query Builder & AI Assistant',
+    name: 'Visual SQL Query Builder',
     description: "Write database lookups just by explaining what records you want to find in plain English, or build queries visually without memorizing commands.",
     category: 'developer',
     icon: 'Database' as IconName,
     href: '/tools/sql-builder',
     suggestions: ["Build SQL query to find active users with > $100 spent", "Convert 'Show top 5 selling products this month' to SQL", "Generate PostgreSQL query with JOIN and GROUP BY"],
-    seoTitle: "Free Visual SQL Query Builder & Natural Language to SQL Assistant",
-    seoDescription: "Build complex SQL queries visually or convert plain text prompts into clean PostgreSQL, MySQL, and SQLite queries.",
+    seoTitle: "Visual SQL Query Builder - PostgreSQL, MySQL & SQLite",
+    seoDescription: "Build SQL text from table, column, filter, and query-type controls. Choose PostgreSQL, MySQL, or SQLite formatting, then copy or download the query.",
     seoKeywords: ["sql query builder","ai sql generator","visual sql query builder","Exismic"]
   },
   {
@@ -2883,8 +2884,8 @@ export const ALL_TOOLS: Tool[] = [
     popular: true,
     proPowerPack: true,
     suggestions: ["Record a smooth YouTube video with auto-scrolling script", "Use mirror mode on physical teleprompter glass", "Practice a presentation speech with camera preview"],
-    seoTitle: "Free Online Teleprompter Studio - Mirror Mode & Camera Preview",
-    seoDescription: "Free full-screen teleprompter for YouTubers, video creators, and presentations. Smooth auto-scroll, mirror mode for teleprompter glass, speed controls, and camera preview.",
+    seoTitle: "Free Online Teleprompter Studio - Auto-Scroll & Mirror Mode",
+    seoDescription: "Read scripts with full-screen auto-scroll, mirror mode, and adjustable speed, font size, spacing, and alignment. Includes an optional camera panel subject to site permissions.",
     seoKeywords: ["online teleprompter", "free teleprompter software", "teleprompter mirror mode", "video script prompter", "youtube teleprompter online", "Exismic"]
   },
   {
@@ -2963,7 +2964,7 @@ export const ALL_TOOLS: Tool[] = [
     href: '/tools/student/plagiarism-checker',
     suggestions: ["Compare original essay draft with revised version", "Check similarity percentage between two articles", "Highlight exact matching phrases in two documents"],
     seoTitle: "Free Text Similarity & Plagiarism Diff Checker - Side-by-Side Comparison",
-    seoDescription: "Compare two texts side-by-side with diff engine highlighting exact word matches, overlap percentage, and similarity metrics.",
+    seoDescription: "Compare a source text with a draft using online AI similarity estimates and sentence feedback. Reviews the two supplied texts rather than searching the web.",
     seoKeywords: ["text similarity checker","plagiarism diff checker","compare text differences","Exismic"]
   },
   {
@@ -2975,7 +2976,7 @@ export const ALL_TOOLS: Tool[] = [
     href: '/tools/student/readability-assessor',
     suggestions: ["Check reading grade level of blog post", "Calculate Flesch-Kincaid Reading Ease score for article", "Find long complex sentences to simplify"],
     seoTitle: "Free Text Readability & Flesch-Kincaid Grade Level Assessor",
-    seoDescription: "Assess text readability scores including Flesch-Kincaid Grade Level, Flesch Reading Ease, and Gunning Fog index.",
+    seoDescription: "Estimate reading ease, grade level, word count, and reading time. Request an optional online sentence audit and compare audience-specific rewrite suggestions.",
     seoKeywords: ["readability checker","flesch kincaid score calculator","grade level text assessor","Exismic"]
   },
   {
@@ -3044,5 +3045,15 @@ export const ALL_TOOLS: Tool[] = [
     ]
   }
 ];
+
+export const ALL_TOOLS: Tool[] = REGISTERED_TOOLS.map((tool) => {
+  const guide = TOOL_GUIDES[tool.id];
+  if (guide) return { ...tool, ...guide, updatedAt: TOOL_GUIDE_CONTENT_UPDATED_AT };
+  // Only pages affected by the corrected shared fallback or unit metadata get a new date.
+  const fallbackChanged = !tool.features || !tool.howToSteps || !tool.faqs;
+  return fallbackChanged || tool.id === "productivity-units"
+    ? { ...tool, updatedAt: TOOL_GUIDE_CONTENT_UPDATED_AT }
+    : tool;
+});
 
 export const TOOLS: Tool[] = ALL_TOOLS.filter((t) => !t.hidden);

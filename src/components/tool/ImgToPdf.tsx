@@ -38,7 +38,7 @@ const TO_PDF_STEPS = [
   { title: "Upload Images", desc: "Select the photos, slides, or graphics you want to compile into a PDF." },
   { title: "Arrange Order", desc: "Drag and drop or use the arrow controls to set your exact page sequence." },
   { title: "Select Layout", desc: "Choose between 'Auto' (matches image dimensions) or 'A4 Document'." },
-  { title: "Compile & Download", desc: "Exismic embeds each image into vector-sharp pages with zero quality loss." }
+  { title: "Compile & Download", desc: "Compile the selected images into PDF pages with the chosen page size." }
 ];
 
 export default function ImgToPdf() {

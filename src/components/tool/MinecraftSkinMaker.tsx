@@ -1017,9 +1017,9 @@ export function MinecraftSkinMaker() {
                     </span>
                   )}
                 </div>
-                <h1 className="text-2xl font-black text-white sm:text-3xl tracking-tight">
+                <h2 className="text-2xl font-black text-white sm:text-3xl tracking-tight">
                   Minecraft Skin Studio
-                </h1>
+                </h2>
                 <p className="mt-1 text-sm text-zinc-400 max-w-2xl leading-relaxed">
                   Craft authentic custom Minecraft character skins. Inspect in interactive 3D, customize poses, and export game-ready textures.
                 </p>

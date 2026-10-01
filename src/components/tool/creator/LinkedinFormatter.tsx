@@ -30,7 +30,6 @@ import {
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // Standardized Unicode Converters (Mathematical Alphanumeric Symbols)
 function toUnicodeBold(text: string): string {
@@ -925,11 +924,6 @@ export default function LinkedinFormatter() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Category-Reactive Laser Horizon Divider */}
-      <div className="pt-4 pb-2">
-        <ToolLaserDivider primaryHex="#6366f1" />
       </div>
     </div>
   );

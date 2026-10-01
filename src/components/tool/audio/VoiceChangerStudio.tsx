@@ -563,9 +563,9 @@ export function VoiceChangerStudio() {
               Audio & Music Studio
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             Voice Changer Studio
-          </h1>
+          </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
             Transform spoken audio into deep announcers, cyber robots, and character voices with natural delivery.
           </p>

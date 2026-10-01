@@ -19,16 +19,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   
   let seoTitle = `${name} - Professional Free AI Tools | Exismic`;
   let seoDesc = `Explore our suite of ${name.toLowerCase()}. ${category.description} Free, fast, and studio-grade results online.`;
-  let keywords = [name.toLowerCase(), `free ${name.toLowerCase()}`, `online ${name.toLowerCase()}`, "AI tools", "Exismic"];
+  const keywords = [name.toLowerCase(), `free ${name.toLowerCase()}`, `online ${name.toLowerCase()}`, "AI tools", "Exismic"];
 
   if (id === 'image') {
-    seoTitle = "Best Free AI Image Tools - Magic Eraser, Background Remover & Vectorizer";
-    seoDesc = "Transform and edit images with Exismic AI. Instantly remove backgrounds, upscale, compress, vectorize SVG, and restore old photos free online.";
+    seoTitle = "Image Tools - Background Removal, Resizing, Compression & Conversion";
+    seoDesc = "Remove image backgrounds, resize and compress pictures, convert formats, trace images to SVG, and create collages or Minecraft skins with Exismic image tools.";
     keywords.push("remove background free", "vectorize image", "photo restorer", "image compressor");
   } else if (id === 'video') {
-    seoTitle = "Pro AI Video Tools - Background Remover, Subtitle Gen, Trimmer & Enhancer";
-    seoDesc = "Edit, trim, compress videos, generate auto subtitles, and isolate backgrounds with Exismic's studio-grade AI video suite.";
-    keywords.push("video background remover", "auto subtitles generator", "video compressor", "trim video online");
+    seoTitle = "Online Video Tools - Trim, Compress, Merge, Subtitles, GIFs & Enhancement";
+    seoDesc = "Trim, compress, and merge video clips, generate subtitles, convert video to GIF, and apply enhancement filters with Exismic's online video tools.";
+    keywords.push("video to gif", "auto subtitles generator", "video compressor", "trim video online");
   } else if (id === 'ai') {
     seoTitle = "AI Magic Studio - Writing, Coding, Logo Generation & Smart Chat";
     seoDesc = "Unlock creativity with Exismic AI magic. Generate articles, write code, craft logos, and converse with high-intelligence AI models.";
@@ -42,11 +42,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     seoDesc = "Manage your document workflow easily. Merge, split, compress, extract text with OCR, and convert PDF files fast and securely.";
     keywords.push("merge PDF free", "compress PDF", "PDF OCR text extractor", "convert PDF to Word");
   } else if (id === 'productivity') {
-    seoTitle = "Productivity Utilities - QR Code, Passwords, Unit Converters & JSON Formatters";
-    seoDesc = "Boost your daily workflow with fast, secure productivity tools: QR code generator, password generator, unit converters, and JSON formatters.";
+    seoTitle = "Productivity Tools - QR Codes, Resumes, Invoices, Colors & Typing";
+    seoDesc = "Create QR codes, explore color palettes, test typing speed, build or review resumes, draft application text, and prepare invoices with Exismic productivity tools.";
   } else if (id === 'business') {
-    seoTitle = "Business & Finance Calculators - Invoices, GST, EMI & Profit Margins";
-    seoDesc = "Generate professional invoices, calculate GST, compute loan EMI, and analyze profit margins with Exismic's business utilities.";
+    seoTitle = "Business & Finance Calculators - GST, EMI, Salary & Profit Margins";
+    seoDesc = "Estimate GST, loan payments, profit margins, and take-home salary with Exismic business calculators. Review the inputs, formulas, and assumptions for your case.";
   } else if (id === 'seo') {
     seoTitle = "Free SEO Tools - Meta Tag Generators, Sitemaps, Robots.txt & Schema Markup";
     seoDesc = "Optimize your website search ranking with instant SERP previewers, canonical generator, meta description creator, sitemaps, and Schema.org markup.";
@@ -57,8 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     seoTitle = "Student & Academic AI Tools - Math Solver, Flashcards, Notes & Citations";
     seoDesc = "Ace your studies with AI step-by-step math solver, automatic PDF study note generator, flashcards maker, and APA/MLA citation builder.";
   } else if (id === 'creator') {
-    seoTitle = "Creator & Social Media Tools - YouTube Thumbnail Maker, Captions & Formatting";
-    seoDesc = "Grow your social audience with YouTube thumbnail creation, viral hashtag generators, video script writers, and LinkedIn post formatting.";
+    seoTitle = "Creator Tools - Scripts, Carousels, Thumbnail Analysis & Post Formatting";
+    seoDesc = "Draft video hooks, design carousels, inspect thumbnails, format LinkedIn posts, create social mockups, and read scripts with Exismic creator tools.";
   }
 
   return constructMetadata({
@@ -100,4 +100,3 @@ export default async function CategoryPage({ params }: PageProps) {
     </>
   );
 }
-

@@ -4,8 +4,8 @@ import { Metadata } from "next";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Online Meme Generator - Create Funny Memes with AI Instantly",
-  description: "Generate viral and funny memes in seconds using classic templates or your own images. Fast, free, and watermark-free online meme maker.",
+  title: "Online Meme Generator - Add Captions to Templates & Photos",
+  description: "Create memes from classic templates or your own pictures. Edit caption text, font, color, outline, and placement, then download PNG.",
   canonicalUrl: "/tools/meme-generator",
   keywords: ["meme generator","online meme maker","funny meme creator","meme templates","drake meme generator","Exismic"],
 });

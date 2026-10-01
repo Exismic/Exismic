@@ -3,12 +3,12 @@
 import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useGuideMotion } from "./useGuideMotion";
 import { 
   HelpCircle, 
   CheckCircle2, 
   Zap, 
   ArrowRight, 
-  ShieldCheck,
   Layers,
   Upload,
   Sliders,
@@ -16,11 +16,14 @@ import {
   BookOpen,
   ChevronDown,
   Check,
-  ImageIcon
+  ImageIcon,
+  Compass,
+  Info
 } from "lucide-react";
 import { TOOLS, ICON_MAP } from "@/data/tools";
 import { getRelatedTools } from "@/lib/related-tools";
 import { cn } from "@/lib/utils";
+import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 interface ToolSeoSectionProps {
   toolName: string;
@@ -458,315 +461,61 @@ export function ToolSeoSection({
   keywords,
   showRelatedTools = true,
 }: ToolSeoSectionProps) {
+  const { reveal, reducedMotion } = useGuideMotion();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const heroRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const heroBoundsRef = useRef<{ left: number; top: number } | null>(null);
 
   // Resolve active theme with fallback to Image (cyan) or AI (amber)
   const normCatId = (categoryId || "image").toLowerCase();
   const theme = CATEGORY_THEMES[normCatId] || CATEGORY_THEMES.image;
 
-  // Track mouse on hero container for interactive spotlight
-  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleHeroMouseEnter = () => {
     if (!heroRef.current) return;
     const rect = heroRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    heroBoundsRef.current = { left: rect.left, top: rect.top };
   };
 
-  // Category-specific human-friendly, zero-jargon content blueprints
-  const getCategoryDefaults = (catId: string, name: string) => {
-    switch (catId) {
-      case "video":
-        return {
-          valueProps: [
-            { title: "Smooth High-Def Quality", badge: "Up to 4K", desc: "Exports silky, crisp video without stutter, pixelation, or frame drops.", icon: Zap },
-            { title: "Universal Formats", badge: "MP4 • WebM • MOV", desc: "Native support for all major phone, camera, and screen recording formats.", icon: Layers },
-            { title: "Fast In-Browser Cuts", badge: "Instant Processing", desc: "Edit clips directly on your device with no queues, software installs, or waiting.", icon: Sliders },
-            { title: "Zero Watermarks", badge: "100% Clean Exports", desc: "Completely watermark-free. Ready for YouTube, TikTok, Instagram Reels, and ads.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Smooth High-Def Playback: Exports silky 1080p and 4K clips without stutter or frame drops.`,
-            `Universal Video Compatibility: Native support for MP4, MOV, WebM, and MKV files.`,
-            `Fast In-Browser Cuts: Trim, split, and edit video directly on your device with zero lag.`,
-            `Watermark-Free Rendering: Produce studio-ready clips for YouTube, TikTok, Reels, and ads.`
-          ],
-          howToSteps: [
-            `Select or drag your video file into the ${name} studio timeline.`,
-            `Fine-tune your cuts, captions, or resolution preset to get the exact clip you want.`,
-            `Click export and download your smooth, watermark-free video immediately.`
-          ],
-          faqs: [
-            { question: `What video resolutions and formats does ${name} support?`, answer: `${name} supports widescreen 16:9, vertical 9:16 reels/shorts, and 1:1 square feeds up to 4K resolution.` },
-            { question: `Will my video have a watermark after exporting?`, answer: `No! All videos rendered on Exismic are 100% clean and free of watermarks.` },
-            { question: `How fast does video processing take?`, answer: `Most clips process in just a few seconds directly in your browser with zero server waiting.` },
-            { question: `Are my private videos kept safe?`, answer: `Yes, your video files are processed safely and are never stored, saved, or shared.` }
-          ]
-        };
-      case "audio":
-        return {
-          valueProps: [
-            { title: "Studio Sound Quality", badge: "Crystal-Clear", desc: "Preserves deep sub-bass, warm vocals, and clean highs without metallic distortion.", icon: Zap },
-            { title: "Clean Vocal Isolation", badge: "Zero Bleed", desc: "Separates singing voices and instruments cleanly with natural acoustic balance.", icon: Layers },
-            { title: "Universal Audio Codecs", badge: "MP3 • WAV • FLAC", desc: "Handles all standard audio formats from voice notes to high-resolution master tracks.", icon: Upload },
-            { title: "Zero Watermarks", badge: "Commercial Ready", desc: "Export clean stems and audio files ready for Spotify, YouTube, and podcasts.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Studio Sound Quality: Clean audio preservation with deep bass, warm mids, and crisp highs.`,
-            `Clean Vocal Isolation: Separate singing voices from background music without harsh distortion.`,
-            `Universal Audio Formats: Complete support for MP3, WAV, FLAC, AAC, and M4A sound files.`,
-            `Live Waveform Monitor: Real-time interactive frequency playback to listen before exporting.`
-          ],
-          howToSteps: [
-            `Drop your audio track or voice recording into the ${name} player above.`,
-            `Choose your vocal mode, reverb fader, or noise reduction preset.`,
-            `Listen to the live preview and download your clean WAV or MP3 stem.`
-          ],
-          faqs: [
-            { question: `Does ${name} alter the stereo depth or sound fidelity?`, answer: `No. ${name} preserves full stereo depth and rich sound quality without robotic distortion.` },
-            { question: `What audio formats can I upload and export?`, answer: `You can upload and export across all major audio formats including MP3, WAV, FLAC, AAC, and M4A.` },
-            { question: `Can I use processed audio for commercial tracks or podcasts?`, answer: `Yes! Any audio you process is 100% royalty-free for personal, commercial, or client work.` },
-            { question: `Are my music tracks and voice recordings kept private?`, answer: `Yes. Your audio files are processed securely and are never stored or shared.` }
-          ]
-        };
-      case "pdf":
-        return {
-          valueProps: [
-            { title: "Keeps Layouts Intact", badge: "Pixel-Perfect", desc: "Preserves your original fonts, high-res pictures, and clickable links without shifting.", icon: Layers },
-            { title: "100% Private & Local", badge: "Zero Server Uploads", desc: "Your confidential agreements, invoices, and documents never leave your computer.", icon: ShieldCheck },
-            { title: "Compact File Sizes", badge: "Optimized Weight", desc: "Shrinks file size significantly while keeping text sharp and readable.", icon: Zap },
-            { title: "Simple Page Reordering", badge: "Visual Thumbnails", desc: "Drag and drop to rearrange, merge, or delete pages in seconds.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Keeps Layouts & Fonts Intact: Preserves original typography, graphics, and links perfectly.`,
-            `100% Private & Local: Your confidential documents stay safely on your computer.`,
-            `Compact File Sizes: Shrinks PDF weights while keeping text crisp and readable.`,
-            `Simple Page Reordering: Effortlessly merge, split, and rotate pages with visual thumbnails.`
-          ],
-          howToSteps: [
-            `Upload your PDF files or drag them straight onto the ${name} workspace.`,
-            `Reorder pages, select page ranges, or choose your target compression level.`,
-            `Click process and download your merged, compressed, or converted document.`
-          ],
-          faqs: [
-            { question: `Are my confidential contracts and documents safe?`, answer: `Yes. All processing happens privately on your computer. Your files are never uploaded or saved to any server.` },
-            { question: `Will compressing or converting disrupt the fonts or links?`, answer: `No. Your layouts, embedded fonts, and clickable links remain sharp and readable.` },
-            { question: `Can I use this tool on my phone or tablet?`, answer: `Yes! ${name} works smoothly in mobile Safari, Chrome, and desktop browsers on iOS, Android, and PC.` },
-            { question: `Is there a page limit for documents?`, answer: `You can process large documents with dozens of pages with fast, reliable performance.` }
-          ]
-        };
-      case "ai":
-        return {
-          valueProps: [
-            { title: "Creative Brainstorming", badge: "Instant Inspiration", desc: "Get sharp copy, fresh concepts, and creative visual assets in seconds.", icon: Zap },
-            { title: "Natural Human Flow", badge: "Engaging Tone", desc: "Well-structured writing and responses that sound authentic, relatable, and natural.", icon: Layers },
-            { title: "1-Click Customization", badge: "Tailored to You", desc: "Tune the tone, length, and style in seconds to match your exact personal voice.", icon: Sliders },
-            { title: "Zero Wait Queues", badge: "Instant Results", desc: "Generates your content immediately with no complicated setup or software to install.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Creative Brainstorming: Instant inspiration, sharp copy, and creative visual concepts.`,
-            `Natural Human Flow: Engaging, well-structured writing that sounds authentic and relatable.`,
-            `1-Click Customization: Tune the tone, length, and style in seconds to match your exact voice.`,
-            `Instant Results: Fast generation with zero waiting queues or complicated setups.`
-          ],
-          howToSteps: [
-            `Enter your prompt, text, or parameters into the ${name} workspace above.`,
-            `Choose your preferred style, format, or options.`,
-            `Review your generated output and copy or export your completed result in seconds.`
-          ],
-          faqs: [
-            { question: `Can I use the output from ${name} for commercial projects?`, answer: `Yes! Everything you generate is 100% yours to publish, sell, or use for client work.` },
-            { question: `How do I get the best results from ${name}?`, answer: `Be specific about your topic, audience, and preferred tone for optimal output.` },
-            { question: `Are my prompts and ideas kept private?`, answer: `Yes. We do not use your personal prompts or private text to train public models.` },
-            { question: `Do I need technical skills or coding knowledge to use this?`, answer: `Not at all. Every tool is designed with a simple, intuitive interface for creators.` }
-          ]
-        };
-      case "productivity":
-        return {
-          valueProps: [
-            { title: "Streamlined Workflows", badge: "Instant Output", desc: "Finish routine tasks in seconds without clutter, confusion, or busywork.", icon: Zap },
-            { title: "Clear Visual Formatting", badge: "Clean Layouts", desc: "Generate resumes, barcodes, and palettes with modern high-contrast styling.", icon: Layers },
-            { title: "Customizable Styles", badge: "Full Flexibility", desc: "Tweak colors, margins, fonts, and details to fit your personal or brand needs.", icon: Sliders },
-            { title: "1-Click Copy & Export", badge: "Fast Downloads", desc: "Save your results as PNG or PDF, or copy directly to your clipboard in 1 tap.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Streamlined Daily Workflows: Finish routine tasks in seconds without clutter or friction.`,
-            `Instant Visual Output: Generate barcodes, QR codes, palettes, and formatted outputs immediately.`,
-            `Customizable Styles: Tweak colors, fonts, margins, and options to fit your needs.`,
-            `Fast 1-Click Exports: Save your results as PDF, PNG, or copy directly to your clipboard.`
-          ],
-          howToSteps: [
-            `Enter your values, details, or preferences into the ${name} form above.`,
-            `Configure your layout, formatting, or parameters.`,
-            `Click copy or download to save and share your work immediately.`
-          ],
-          faqs: [
-            { question: `Is ${name} completely free to use?`, answer: `Yes, it is 100% free with no sign-up or credit card required.` },
-            { question: `Does it work well on mobile devices?`, answer: `Yes, the interface is fully responsive and works smoothly on smartphones and tablets.` },
-            { question: `Can I export or copy my results easily?`, answer: `Yes, you can copy outputs directly to your clipboard or download formatted files instantly.` },
-            { question: `Is my input data saved or tracked?`, answer: `No. Your inputs are used only during your active session and are never saved or sold.` }
-          ]
-        };
-      case "developer":
-        return {
-          valueProps: [
-            { title: "Runs In Your Browser", badge: "Zero Latency", desc: "Instant formatting and parsing with zero network round-trips or delays.", icon: Zap },
-            { title: "Clean Syntax Styling", badge: "Readable Code", desc: "Beautiful code formatting with color highlighting, line numbers, and indentation.", icon: Layers },
-            { title: "1-Click Clipboard Sync", badge: "Instant Copy", desc: "Fast copy buttons for JSON, regex, tokens, and styled snippets.", icon: Sliders },
-            { title: "100% Private & Secure", badge: "Zero Telemetry", desc: "Sensitive tokens, API keys, and schemas never leave your browser window.", icon: ShieldCheck },
-          ],
-          features: [
-            `Runs Entirely In Browser: Instant formatting and parsing with zero network round-trips.`,
-            `Clean Syntax Highlighting: Beautiful code formatting with color tags and line numbers.`,
-            `1-Click Clipboard Actions: Fast copy buttons for JSON, regex, tokens, and code snippets.`,
-            `Zero Data Storage: Sensitive tokens, keys, and schemas never leave your browser window.`
-          ],
-          howToSteps: [
-            `Enter your code, text, or parameters into the ${name} workspace above.`,
-            `Select your formatting, options, or conversion settings.`,
-            `Inspect the verified output and copy or download your clean result.`
-          ],
-          faqs: [
-            { question: `Is my proprietary source code or data transmitted to a server?`, answer: `No. Everything runs client-side in your browser. Your code never leaves your computer.` },
-            { question: `Can I use generated code in commercial software?`, answer: `Yes! All outputs are completely open for use in open-source and commercial applications.` },
-            { question: `Does ${name} require installing any packages or CLI tools?`, answer: `None at all. It runs directly inside your browser with zero installation.` },
-            { question: `Does it validate syntax errors automatically?`, answer: `Yes, it highlights formatting mistakes and syntax errors in real time as you type.` }
-          ]
-        };
-      case "creator":
-        return {
-          valueProps: [
-            { title: "Attention-Grabbing", badge: "Viral Formats", desc: "Designed to maximize audience retention, click-throughs, and social shares.", icon: Zap },
-            { title: "Platform Ready", badge: "Pixel-Perfect", desc: "Built to exact dimensions for Instagram, X/Twitter, LinkedIn, TikTok, and YouTube.", icon: Layers },
-            { title: "High-Res Exports", badge: "Crystal-Clear", desc: "Download sharp PNG graphics and scripts ready to post or broadcast right away.", icon: Sliders },
-            { title: "Zero Watermarks", badge: "100% Free Forever", desc: "Create and export clean content with zero branding or watermarks.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Attention-Grabbing Visuals: Designed to maximize click-throughs, likes, and shares.`,
-            `Pixel-Perfect Platform Sizes: Built for Instagram, Twitter/X, LinkedIn, TikTok, and YouTube.`,
-            `High-Resolution Exports: Crisp PNG and MP4 downloads ready to post immediately.`,
-            `Fast Studio Presets: Jumpstart your content with curated templates for any niche.`
-          ],
-          howToSteps: [
-            `Type your copy or choose a curated template from the ${name} library.`,
-            `Customize colors, avatar, typography, and layout accents.`,
-            `Export your clean graphic or script and share with your audience.`
-          ],
-          faqs: [
-            { question: `Are exports formatted for social media algorithms?`, answer: `Yes! Dimensions, contrast ratios, and typography are optimized for maximum engagement.` },
-            { question: `Will downloaded graphics have any watermarks?`, answer: `Never. All graphics and templates are 100% clean and watermark-free.` },
-            { question: `Can I customize brand colors and fonts?`, answer: `Yes, you can customize color schemes, fonts, and layout styles to match your personal brand.` },
-            { question: `Is this tool easy to use on a smartphone?`, answer: `Yes, the mobile layout includes quick touch tabs and simplified controls for on-the-go creators.` }
-          ]
-        };
-      case "student":
-        return {
-          valueProps: [
-            { title: "Bite-Sized Summaries", badge: "Clear Takeaways", desc: "Condenses dense textbooks and lecture notes into easy-to-digest study points.", icon: Zap },
-            { title: "Step-by-Step Solutions", badge: "Easy to Follow", desc: "Breaks down complex formulas, math problems, and science questions logically.", icon: Layers },
-            { title: "Structured References", badge: "Academic Formats", desc: "Generate organized study guides, summaries, and accurate references.", icon: Sliders },
-            { title: "Zero Cost for Students", badge: "100% Free", desc: "Study tools accessible to everyone with zero paywalls, limits, or accounts.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Clear Learning Summaries: Condenses dense textbooks and lecture notes into bite-sized key points.`,
-            `Accurate Step-by-Step Solutions: Breaks down complex math, equations, and science concepts.`,
-            `Structured Learning Support: Generates clear, well-formatted reference outputs and study guides.`,
-            `Interactive Study Aids: Flip flashcards and visual mind maps to master difficult topics.`
-          ],
-          howToSteps: [
-            `Enter your study material, problem, or text into ${name} above.`,
-            `Pick your study format, calculation mode, or options.`,
-            `Review the structured learning notes and download your revision sheet.`
-          ],
-          faqs: [
-            { question: `How does ${name} help improve study retention?`, answer: `By structuring complex topics into visual diagrams, key bullet points, and recall cards.` },
-            { question: `Can I export study notes to print or share?`, answer: `Yes, you can export your notes, flashcards, and diagrams as clean PDF or image files.` },
-            { question: `Does ${name} follow standard academic conventions?`, answer: `Yes, all outputs follow verified educational methodologies and standard formatting conventions.` },
-            { question: `Is this tool free for students?`, answer: `Yes! It is completely free with no subscription or account required.` }
-          ]
-        };
-      case "business":
-        return {
-          valueProps: [
-            { title: "Accurate Math & Rates", badge: "Precise Formulas", desc: "Accurate tax deductions, EMIs, salary take-homes, and profit margins.", icon: Zap },
-            { title: "Clear Breakdowns", badge: "Easy Tables", desc: "Simple visual charts showing every deduction, interest payment, and net revenue.", icon: Layers },
-            { title: "Client-Ready Documents", badge: "Clean Exports", desc: "Produce professional estimates, invoices, and summaries with clean branding.", icon: Sliders },
-            { title: "100% Private Data", badge: "Runs Locally", desc: "Your revenue, expenses, and salary numbers remain strictly on your device.", icon: ShieldCheck },
-          ],
-          features: [
-            `Accurate Financial Calculations: Precise profit margins, taxes, EMIs, and take-home salary projections.`,
-            `Clear Financial Breakdowns: Easy-to-read charts and tables showing every deduction and revenue stream.`,
-            `Client-Ready Documents: Generate professional invoices and estimates with clean branding.`,
-            `Private & Secure: Financial figures remain strictly on your local browser.`
-          ],
-          howToSteps: [
-            `Input your principal amount, rate, salary, or transaction values into ${name}.`,
-            `Adjust the sliders for tenure, tax rates, or margin goals.`,
-            `View your complete financial summary and export or print your sheet.`
-          ],
-          faqs: [
-            { question: `Are financial calculations accurate and up-to-date?`, answer: `Yes, calculations follow current standard tax formulas, banking compounding rules, and profit margin formulas.` },
-            { question: `Is my private financial information stored anywhere?`, answer: `Never. All numbers are calculated locally in your browser and are deleted when you leave.` },
-            { question: `Can I export or print the breakdown for client proposals?`, answer: `Yes, you can print or download the complete summary table in 1 click.` },
-            { question: `Can I use this on a mobile device during client meetings?`, answer: `Yes! The mobile interface is fully responsive and easy to read on any phone.` }
-          ]
-        };
-      case "seo":
-        return {
-          valueProps: [
-            { title: "Higher Google Clicks", badge: "SERP Optimized", desc: "Craft headlines and descriptions that stand out on Google search pages.", icon: Zap },
-            { title: "Social Share Cards", badge: "Open Graph Tags", desc: "Generates beautiful link preview cards for Twitter/X, LinkedIn, and Facebook.", icon: Layers },
-            { title: "Search Engine Validated", badge: "Clean Standards", desc: "Produces valid Schema.org tags, robots.txt directives, and XML sitemaps.", icon: Sliders },
-            { title: "Live Desktop & Mobile SERP", badge: "Instant Preview", desc: "See exactly how your search snippet looks before publishing your website.", icon: CheckCircle2 },
-          ],
-          features: [
-            `Higher Search Visibility: Formulate titles and descriptions that earn clicks on Google.`,
-            `Standard Meta Tags: Generate Open Graph tags for beautiful link cards on Twitter, LinkedIn, and Facebook.`,
-            `Search Engine Validated: Outputs valid XML sitemaps, robots.txt, and Schema.org structured data.`,
-            `Live SERP Previews: Inspect exactly how your links appear on desktop and mobile search screens.`
-          ],
-          howToSteps: [
-            `Enter your webpage URL, page title, or target search keyword into ${name}.`,
-            `Preview your real-time Google search snippet or social share preview card.`,
-            `Copy your validated meta tags and paste them directly into your website's <head>.`
-          ],
-          faqs: [
-            { question: `Why are meta tags and snippets important for SEO?`, answer: `They tell search engines what your page is about and determine how your links look when shared on social media.` },
-            { question: `Does this tool enforce character and pixel limits?`, answer: `Yes! It warns you if titles or descriptions exceed Google's recommended desktop and mobile cutoff points.` },
-            { question: `Can I preview how my link looks on Twitter and LinkedIn?`, answer: `Yes, the Open Graph previewer displays realistic mockups for all major social platforms.` },
-            { question: `Is any coding required to use these tags?`, answer: `Just copy the generated HTML tags and paste them into your website header or CMS.` }
-          ]
-        };
-      default: // image default
-        return {
-          valueProps: [
-            { title: "100% Private & Secure", badge: "On-Device Only", desc: "Everything runs directly on your device. Your files are never uploaded or shared.", icon: ShieldCheck },
-            { title: "Crisp High-Res Quality", badge: "Smooth Details", desc: "Clean, sharp output preserving full resolution and true vibrant colors.", icon: Layers },
-            { title: "Fast 1-Click Results", badge: "Instant Output", desc: "Completes your task automatically in seconds with no software to install.", icon: Zap },
-            { title: "Zero Watermarks", badge: "100% Free Forever", desc: "Completely free with no watermarks. Download studio-quality files ready for anything.", icon: CheckCircle2 },
-          ],
-          features: [
-            `High-Resolution Clarity: Keeps your images crisp and sharp with rich colors and clean transparency.`,
-            `Works with Common Formats: Easily handles PNG, JPG, JPEG, and WebP pictures from any device.`,
-            `Fast In-Browser Processing: Runs directly on your device with no waiting queues or slow loading.`,
-            `Watermark-Free Downloads: Save full-quality pictures ready for your store, social media, or personal projects.`
-          ],
-          howToSteps: [
-            `Select your file or drag and drop it directly onto the ${name} canvas above.`,
-            `Adjust the settings or options to get the exact look you want.`,
-            `Preview your result and download your high-resolution export instantly.`
-          ],
-          faqs: [
-            { question: `Does using ${name} reduce the quality of my original file?`, answer: `No. ${name} keeps your original sharpness, detail, and resolution intact while making your edits.` },
-            { question: `What file formats can I upload to ${name}?`, answer: `You can upload all standard image and media formats from your phone, tablet, or computer.` },
-            { question: `Can I use files processed with ${name} for commercial projects?`, answer: `Yes, 100%. Any file you process is yours to use for personal, commercial, or client work with zero watermarks.` },
-            { question: `How does Exismic protect my private files?`, answer: `Privacy is our top priority. Your files are processed privately on your device and are never stored, saved, or shared with anyone.` }
-          ]
-        };
+  // Track mouse on hero container for interactive spotlight with zero forced reflow
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!heroRef.current) return;
+    if (!heroBoundsRef.current) {
+      const rect = heroRef.current.getBoundingClientRect();
+      heroBoundsRef.current = { left: rect.left, top: rect.top };
     }
+    heroRef.current.style.setProperty("--hero-mouse-x", `${e.clientX - heroBoundsRef.current.left}px`);
+    heroRef.current.style.setProperty("--hero-mouse-y", `${e.clientY - heroBoundsRef.current.top}px`);
   };
+
+  const handleHeroMouseLeave = () => {
+    heroBoundsRef.current = null;
+  };
+
+  // A category cannot establish an individual tool's formats, privacy, pricing,
+  // or capabilities. Curated registry fields take precedence over this basic help.
+  const getDefaultGuide = (name: string) => ({
+    valueProps: [
+      { title: name, badge: "Purpose", desc: toolDescription, icon: Layers },
+      { title: "Tool workspace", badge: "Inputs", desc: "Use the input fields and controls provided by this tool above.", icon: Sliders },
+      { title: "Review the result", badge: "Check output", desc: "Check the result before using it in your project.", icon: CheckCircle2 },
+      { title: "Related tools", badge: "Explore", desc: "Find companion tools in the related-tools section below.", icon: ArrowRight },
+    ],
+    features: [
+      `Purpose: ${toolDescription}`,
+      "Workspace: Use the tool's own input fields and available controls.",
+      "Result review: Check the output against the task you need to complete.",
+      "Companion tools: Explore the related tools below for the next part of your task.",
+    ],
+    howToSteps: [
+      `Open the ${name} workspace above and provide the input it asks for.`,
+      "Choose the options available in this workspace and run the operation if a start button is provided.",
+      "Review the result and use the copy or download controls when offered.",
+    ],
+    faqs: [
+      { question: `Where do I start with ${name}?`, answer: "Use the workspace above. Its input labels and controls show the information needed for this tool." },
+      { question: "Do I need to install a desktop app?", answer: "This workspace opens in a web browser. Some operations require an internet connection, account access, or credits as shown in the tool." },
+    ],
+  });
 
   // Contextually relevant companion tools & tool-specific content resolution
   const currentTool = TOOLS.find(
@@ -775,7 +524,7 @@ export function ToolSeoSection({
       t.name.toLowerCase() === toolName.toLowerCase()
   );
 
-  const catDefaults = getCategoryDefaults(normCatId, toolName);
+  const catDefaults = getDefaultGuide(toolName);
 
   const defaultFeatures = features || currentTool?.features || catDefaults.features;
   const defaultHowToSteps = howToSteps || currentTool?.howToSteps || catDefaults.howToSteps;
@@ -846,44 +595,7 @@ export function ToolSeoSection({
       {/* =========================================================
           ANAMORPHIC NEON HORIZON DIVIDER (SECTION BRIDGE)
       ========================================================== */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 mb-6 sm:mb-8 pointer-events-none select-none">
-        <div className="relative flex items-center justify-center">
-          {/* Ambient Diffused Glow Flare */}
-          <div
-            className="absolute h-10 w-2/3 max-w-lg rounded-full blur-2xl opacity-40 will-change-transform animate-pulse-glow"
-            style={{
-              background: `radial-gradient(ellipse at center, ${theme.primaryHex}, transparent 70%)`
-            }}
-          />
-
-          {/* Primary Tapered Neon Laser Hairline */}
-          <div
-            className="relative w-full h-[1px]"
-            style={{
-              background: `linear-gradient(90deg, transparent 0%, ${theme.primaryHex}20 15%, ${theme.primaryHex} 50%, ${theme.primaryHex}20 85%, transparent 100%)`
-            }}
-          />
-
-          {/* Center Specular High-Intensity White Needle */}
-          <div
-            className="absolute w-44 sm:w-80 h-[1.5px] blur-[0.5px]"
-            style={{
-              background: `linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%)`
-            }}
-          />
-
-          {/* Center Glowing Cyber Core Jewel */}
-          <div className="absolute flex items-center justify-center">
-            <div
-              className="size-1.5 rounded-full"
-              style={{
-                background: "#ffffff",
-                boxShadow: `0 0 10px 2px ${theme.primaryHex}`
-              }}
-            />
-          </div>
-        </div>
-      </div>
+      <ToolLaserDivider primaryHex={theme.primaryHex} className="mb-6 sm:mb-8" />
 
       <div className="mx-auto max-w-6xl space-y-12 px-4 sm:px-6">
         
@@ -891,8 +603,7 @@ export function ToolSeoSection({
             1. HERO LIVING CONTAINER (360° LASER BORDER BEAM)
         ========================================================== */}
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          {...reveal(28)}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="relative p-[1.5px] overflow-hidden rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] group/beam"
@@ -911,8 +622,10 @@ export function ToolSeoSection({
           {/* Inner Card Content */}
           <div 
             ref={heroRef}
+            onMouseEnter={handleHeroMouseEnter}
             onMouseMove={handleHeroMouseMove}
-            className="group relative overflow-hidden rounded-[calc(1.5rem-1.5px)] border border-white/[0.06] bg-[#070914]/95 p-6 sm:p-7 lg:p-8 backdrop-blur-2xl transition-all"
+            onMouseLeave={handleHeroMouseLeave}
+            className="group relative overflow-hidden rounded-[calc(1.5rem-1.5px)] border border-white/[0.06] bg-[#070914]/95 p-6 sm:p-7 lg:p-8"
           >
             {/* Ambient Breathing Lighting */}
             <div className={cn("absolute -top-32 -left-32 w-80 h-80 rounded-full blur-[100px] pointer-events-none animate-pulse-glow", theme.ambientLight1)} />
@@ -922,7 +635,7 @@ export function ToolSeoSection({
             <div
               className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[calc(1.5rem-1.5px)]"
               style={{
-                background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, ${theme.heroSpotlight}, transparent 60%)`,
+                background: `radial-gradient(600px circle at var(--hero-mouse-x, -9999px) var(--hero-mouse-y, -9999px), ${theme.heroSpotlight}, transparent 60%)`,
               }}
             />
 
@@ -962,51 +675,53 @@ export function ToolSeoSection({
                   return (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, y: 18 }}
-                      whileInView={{ opacity: 1, y: 0 }}
+                      {...reveal(18)}
                       viewport={{ once: true, margin: "-20px" }}
-                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
                       transition={{ duration: 0.45, delay: 0.08 + idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                      className={cn(
-                        "group/card relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 backdrop-blur-xl transition-colors duration-300",
-                        theme.cardBorderHover,
-                        theme.cardShadowHover
-                      )}
+                      className="h-full"
                     >
-                      {/* Top Specular Rim Highlight */}
-                      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
-
-                      {/* Ambient Card Category Spotlight on Hover */}
                       <div
-                        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"
-                        style={{
-                          background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
-                        }}
-                      />
+                        className={cn(
+                          "group/card seo-card-lift relative h-full flex flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5",
+                          theme.cardBorderHover,
+                          theme.cardShadowHover
+                        )}
+                      >
+                        {/* Top Specular Rim Highlight */}
+                        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
 
-                      <div className="relative z-10 flex flex-col gap-3 sm:gap-3.5">
-                        <div className="flex items-center justify-between">
-                          {/* 3D Icon Container with Category Accent & Micro-Tilt */}
-                          <div className={cn("size-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-300 group-hover/card:scale-110 group-hover/card:-rotate-3", theme.iconContainer)}>
-                            <Icon className="w-4 h-4" />
+                        {/* Ambient Card Category Spotlight on Hover */}
+                        <div
+                          className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-300"
+                          style={{
+                            background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
+                          }}
+                        />
+
+                        <div className="relative z-10 flex flex-col gap-3 sm:gap-3.5">
+                          <div className="flex items-center justify-between">
+                            {/* 3D Icon Container with Category Accent & Micro-Tilt */}
+                            <div className={cn("size-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-200 ease-out group-hover/card:scale-110 group-hover/card:-rotate-3 will-change-transform motion-reduce:group-hover/card:scale-100 motion-reduce:group-hover/card:rotate-0", theme.iconContainer)}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+
+                            {/* Live Radar Beacon Badge */}
+                            <div className={cn("flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold", theme.badgeBorder, theme.badgeBg, theme.badgeText)}>
+                              <span className="relative flex h-1.5 w-1.5">
+                                <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", theme.badgeDot)} />
+                                <span className={cn("relative inline-flex rounded-full h-1.5 w-1.5", theme.badgeDot)} />
+                              </span>
+                              <span>{vp.badge}</span>
+                            </div>
                           </div>
 
-                          {/* Live Radar Beacon Badge */}
-                          <div className={cn("flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold", theme.badgeBorder, theme.badgeBg, theme.badgeText)}>
-                            <span className="relative flex h-1.5 w-1.5">
-                              <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", theme.badgeDot)} />
-                              <span className={cn("relative inline-flex rounded-full h-1.5 w-1.5", theme.badgeDot)} />
-                            </span>
-                            <span>{vp.badge}</span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="text-sm font-bold text-white group-hover/card:text-zinc-100 transition-colors">
-                            {vp.title}
-                          </div>
-                          <div className="text-xs text-zinc-400 leading-relaxed mt-1">
-                            {vp.desc}
+                          <div>
+                            <div className="text-sm font-bold text-white group-hover/card:text-zinc-100 transition-colors duration-200">
+                              {vp.title}
+                            </div>
+                            <div className="text-xs text-zinc-400 leading-relaxed mt-1">
+                              {vp.desc}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1023,8 +738,7 @@ export function ToolSeoSection({
             2. 3-STEP WORKFLOW (WITH CATEGORY LASER CONDUIT)
         ========================================================== */}
         <motion.div 
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          {...reveal(28)}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-6"
@@ -1058,42 +772,44 @@ export function ToolSeoSection({
               return (
                 <motion.div
                   key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  {...reveal(20)}
                   viewport={{ once: true, margin: "-20px" }}
-                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
                   transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn(
-                    "group relative z-10 flex flex-col justify-between rounded-2xl border border-white/[0.1] bg-[#070914]/90 p-6 backdrop-blur-xl transition-colors duration-300 shadow-xl",
-                    theme.cardBorderHover,
-                    theme.cardShadowHover
-                  )}
+                  className="h-full"
                 >
-                  {/* Specular Top Rim */}
-                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                  <div
+                    className={cn(
+                      "group seo-card-lift relative z-10 flex flex-col justify-between h-full rounded-2xl border border-white/[0.1] bg-[#070914]/90 p-6 shadow-xl",
+                      theme.cardBorderHover,
+                      theme.cardShadowHover
+                    )}
+                  >
+                    {/* Specular Top Rim */}
+                    <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className={cn("size-9 rounded-xl bg-gradient-to-br text-white font-black text-xs flex items-center justify-center shadow-lg border border-white/20", theme.stepNumberGradients[idx] || theme.stepNumberGradients[0])}>
-                          {`0${idx + 1}`}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className={cn("size-9 rounded-xl bg-gradient-to-br text-white font-black text-xs flex items-center justify-center shadow-lg border border-white/20", theme.stepNumberGradients[idx] || theme.stepNumberGradients[0])}>
+                            {`0${idx + 1}`}
+                          </div>
+                          <span className={cn("text-[11px] font-bold uppercase tracking-wider", theme.stepBadgeText)}>
+                            {stepBadges[idx]}
+                          </span>
                         </div>
-                        <span className={cn("text-[11px] font-bold uppercase tracking-wider", theme.stepBadgeText)}>
-                          {stepBadges[idx]}
-                        </span>
+                        <div className={cn("size-8 rounded-lg border flex items-center justify-center transition-transform duration-200 ease-out group-hover:scale-110", theme.iconContainer)}>
+                          <StepIcon size={15} />
+                        </div>
                       </div>
-                      <div className={cn("size-8 rounded-lg border flex items-center justify-center transition-transform group-hover:scale-110", theme.iconContainer)}>
-                        <StepIcon size={15} />
-                      </div>
-                    </div>
 
-                    <div>
-                      <h4 className="text-base font-bold text-white group-hover:text-zinc-100 transition-colors">
-                        {`Step ${idx + 1}`}
-                      </h4>
-                      <p className="text-xs font-medium leading-relaxed text-zinc-300 mt-2">
-                        {stepDesc}
-                      </p>
+                      <div>
+                        <h4 className="text-base font-bold text-white group-hover:text-zinc-100 transition-colors duration-200">
+                          {`Step ${idx + 1}`}
+                        </h4>
+                        <p className="text-xs font-medium leading-relaxed text-zinc-300 mt-2">
+                          {stepDesc}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -1106,8 +822,7 @@ export function ToolSeoSection({
             3. KEY FEATURES GRID (WHY CHOOSE)
         ========================================================== */}
         <motion.div 
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          {...reveal(28)}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-6"
@@ -1130,61 +845,215 @@ export function ToolSeoSection({
             {defaultFeatures.map((feat, idx) => (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                {...reveal(16)}
                 viewport={{ once: true, margin: "-20px" }}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
                 transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                className={cn(
-                  "flex items-start gap-4 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-6 backdrop-blur-md transition-colors duration-300",
-                  theme.whyChooseCardHover
-                )}
+                className="h-full"
               >
-                <div className={cn("size-8 rounded-xl border flex items-center justify-center shrink-0 shadow-md", theme.whyChooseIconBg, theme.whyChooseIconBorder, theme.whyChooseIconText)}>
-                  <CheckCircle2 size={18} />
+                <div
+                  className={cn(
+                    "seo-card-lift-sm flex items-start gap-4 rounded-2xl border border-white/[0.08] bg-[#070914]/85 p-6 h-full",
+                    theme.whyChooseCardHover
+                  )}
+                >
+                  <div className={cn("size-8 rounded-xl border flex items-center justify-center shrink-0 shadow-md", theme.whyChooseIconBg, theme.whyChooseIconBorder, theme.whyChooseIconText)}>
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed text-zinc-200">{feat}</p>
                 </div>
-                <p className="text-sm font-medium leading-relaxed text-zinc-200">{feat}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
 
         {/* =========================================================
-            3B. PRACTICAL USE CASES (IF AVAILABLE)
+            3B. EXAMPLES TO TRY (IF AVAILABLE)
         ========================================================== */}
-        {[{ title: "Examples to try", items: effectiveExamples }, { title: "Things to know", items: effectiveLimitations }].map(({ title, items }) => items?.length ? (
+        {effectiveExamples && effectiveExamples.length > 0 && (
           <motion.div 
-            key={title} 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            {...reveal(20)}
             viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6"
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-6"
           >
-            <h3 className="text-xl font-bold text-white">{title}</h3>
-            <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-300">
-              {items.map((item) => <li key={item}>{item}</li>)}
-            </ul>
+            <div className="flex items-center gap-3">
+              <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
+                <Compass size={18} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+                  Examples to Try
+                </h3>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
+                  Everyday walkthroughs and starter ideas for {toolName}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {effectiveExamples.map((example, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "seo-card-lift-sm group relative flex items-start gap-3.5 rounded-2xl border border-white/[0.08] bg-[#070914]/85 p-4 sm:p-5 overflow-hidden",
+                    theme.cardBorderHover,
+                    theme.cardShadowHover
+                  )}
+                >
+                  {/* Top Specular Rim */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+                  {/* Ambient Card Category Spotlight on Hover */}
+                  <div
+                    className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
+                    }}
+                  />
+
+                  <div className={cn(
+                    "size-7 rounded-lg border flex items-center justify-center shrink-0 text-xs font-mono font-bold mt-0.5",
+                    theme.badgeBorder,
+                    theme.badgeBg,
+                    theme.badgeText
+                  )}>
+                    {`0${idx + 1}`}
+                  </div>
+                  <p className="text-sm font-medium text-zinc-200 leading-relaxed pt-0.5">{example}</p>
+                </div>
+              ))}
+            </div>
           </motion.div>
-        ) : null)}
-        {effectiveTerminology?.length ? (
+        )}
+
+        {/* =========================================================
+            3C. THINGS TO KNOW (SPECIFICATIONS & LIMITATIONS)
+        ========================================================== */}
+        {effectiveLimitations && effectiveLimitations.length > 0 && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            {...reveal(20)}
             viewport={{ once: true, margin: "-30px" }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-3 rounded-2xl border border-white/10 bg-[#070914]/80 p-5 sm:p-6"
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-6"
           >
-            <h3 className="text-xl font-bold text-white">Useful terms</h3>
-            <dl className="space-y-3 text-sm text-zinc-300">
-              {effectiveTerminology.map(({ term, definition }) => <div key={term}><dt className="font-semibold text-white">{term}</dt><dd className="mt-1 leading-relaxed">{definition}</dd></div>)}
-            </dl>
+            <div className="flex items-center gap-3">
+              <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
+                <Info size={18} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+                  Things to Know
+                </h3>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
+                  File requirements, capabilities, and system limits
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {effectiveLimitations.map((limitation, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "seo-card-lift-sm group relative flex items-start gap-3.5 rounded-2xl border border-white/[0.08] bg-[#070914]/85 p-4 sm:p-5 overflow-hidden",
+                    theme.cardBorderHover,
+                    theme.cardShadowHover
+                  )}
+                >
+                  {/* Top Specular Rim */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+                  {/* Ambient Card Category Spotlight on Hover */}
+                  <div
+                    className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
+                    }}
+                  />
+
+                  <div className={cn(
+                    "size-7 rounded-lg border flex items-center justify-center shrink-0 mt-0.5",
+                    theme.badgeBorder,
+                    theme.badgeBg,
+                    theme.badgeText
+                  )}>
+                    <CheckCircle2 size={14} />
+                  </div>
+                  <p className="text-sm font-medium text-zinc-200 leading-relaxed pt-0.5">{limitation}</p>
+                </div>
+              ))}
+            </div>
           </motion.div>
-        ) : null}
+        )}
+
+        {/* =========================================================
+            3D. USEFUL TERMS (TERMINOLOGY)
+        ========================================================== */}
+        {effectiveTerminology && effectiveTerminology.length > 0 && (
+          <motion.div 
+            {...reveal(20)}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-6"
+          >
+            <div className="flex items-center gap-3">
+              <div className={cn("flex size-10 items-center justify-center rounded-2xl border shadow-lg", theme.iconContainer)}>
+                <Layers size={18} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+                  Key Concepts & Terminology
+                </h3>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-0.5">
+                  Helpful definitions of features and parameters
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {effectiveTerminology.map(({ term, definition }, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "seo-card-lift-sm group relative flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-[#070914]/85 p-5 overflow-hidden",
+                    theme.cardBorderHover,
+                    theme.cardShadowHover
+                  )}
+                >
+                  {/* Top Specular Rim */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+                  {/* Ambient Card Category Spotlight on Hover */}
+                  <div
+                    className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
+                    }}
+                  />
+
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold",
+                      theme.badgeBorder,
+                      theme.badgeBg,
+                      theme.badgeText
+                    )}>
+                      {term}
+                    </span>
+                  </div>
+                  <p className="text-sm font-normal text-zinc-300 leading-relaxed mt-1">{definition}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* =========================================================
+            3E. POPULAR REAL-WORLD USE CASES
+        ========================================================== */}
         {effectiveUseCases && effectiveUseCases.length > 0 && (
           <motion.div 
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            {...reveal(24)}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="space-y-6"
@@ -1206,9 +1075,27 @@ export function ToolSeoSection({
               {effectiveUseCases.map((useCase: string, idx: number) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-[#070914]/80 p-4 backdrop-blur-md"
+                  className={cn(
+                    "seo-card-lift-sm group relative flex items-start gap-3.5 rounded-2xl border border-white/[0.08] bg-[#070914]/85 p-4 sm:p-5 overflow-hidden",
+                    theme.cardBorderHover,
+                    theme.cardShadowHover
+                  )}
                 >
-                  <span className="size-2 rounded-full mt-1.5 bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
+                  {/* Top Specular Rim */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+                  {/* Ambient Card Category Spotlight on Hover */}
+                  <div
+                    className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: `radial-gradient(280px circle at top left, ${theme.cardSpotlight}, transparent 70%)`,
+                    }}
+                  />
+
+                  <span
+                    className={cn("size-2 rounded-full mt-1.5 shrink-0", theme.badgeDot)}
+                    style={{ boxShadow: `0 0 8px ${theme.primaryHex}` }}
+                  />
                   <p className="text-xs sm:text-sm font-medium text-zinc-300 leading-relaxed">{useCase}</p>
                 </div>
               ))}
@@ -1220,8 +1107,7 @@ export function ToolSeoSection({
             4. FREQUENTLY ASKED QUESTIONS (SILKY SMOOTH ACCORDION)
         ========================================================== */}
         <motion.div 
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          {...reveal(28)}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-6"
@@ -1309,8 +1195,7 @@ export function ToolSeoSection({
         ========================================================== */}
         {showRelatedTools && relatedTools.length > 0 && (
           <motion.div 
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            {...reveal(28)}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             className="relative overflow-hidden rounded-3xl border border-white/[0.1] bg-[#070914]/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6"
@@ -1349,17 +1234,15 @@ export function ToolSeoSection({
                 return (
                   <motion.div
                     key={relTool.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    {...reveal(16)}
                     viewport={{ once: true, margin: "-20px" }}
-                    whileHover={{ y: -5, transition: { duration: 0.2 } }}
                     transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
                     className="h-full"
                   >
                     <Link
                       href={relTool.href}
                       className={cn(
-                        "group relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-[#090d1f]/70 p-5 backdrop-blur-md transition-colors duration-300 hover:bg-[#0c1228]/90",
+                        "group seo-card-lift relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-[#090d1f]/70 p-5 hover:bg-[#0c1228]/90",
                         theme.suggestionsCardHover
                       )}
                     >

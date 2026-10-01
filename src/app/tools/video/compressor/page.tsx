@@ -5,7 +5,7 @@ import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
   title: "Free Online Video Compressor - Reduce Video File Size | Exismic",
-  description: "Compress MP4, MOV, and WebM videos without losing quality. Reduce file sizes for fast web streaming and social sharing.",
+  description: "Compress video online with selectable quality and MP4 or WebM output. Compare file sizes and preview the result before downloading.",
   canonicalUrl: "/tools/video/compressor",
   keywords: ["video compressor","compress mp4","reduce video size","video shrinker online","free video compressor","Exismic"],
 });
@@ -16,7 +16,7 @@ export default function Page() {
       toolId="video-compressor"
       categoryId="video"
       customTitle="Video Compressor"
-      customDescription="Shrink your video files by up to 90% without losing quality. Optimized for Discord, WhatsApp, and web sharing."
+      customDescription="Reduce video file size with quality controls and MP4 or WebM output. Preview the result and compare its size before downloading."
     >
       <VideoCompressor />
     </ToolPageShell>

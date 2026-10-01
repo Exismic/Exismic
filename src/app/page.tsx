@@ -7,9 +7,9 @@ import { HomeToolConcierge } from "@/components/tool/HomeToolConcierge";
 import { getCachedAuthUser } from "@/lib/server/cached-auth";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Exismic - All-in-One AI Tools | Free Background Remover, Image Generator & More",
+  title: "Exismic - AI & Creative Tools | Background Remover, Image Generator & More",
   canonicalUrl: `${SITE_URL}/`,
-  description: "Experience the elite AI-powered studio. Remove backgrounds, generate images, edit videos, restore photos, and create music — everything you need in one simple place.",
+  description: "Edit images, process video and audio, work with PDFs, and create AI drafts and visual concepts. Browse Exismic tools and their available features.",
 });
 
 const faqSchema = {
@@ -19,7 +19,7 @@ const faqSchema = {
       name: "Is Exismic free to use?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes, Exismic offers a generous free tier for all our tools, including our flagship background remover and AI image generator."
+        text: "Exismic offers free tools and daily credits, with Pro required for selected workflows such as AI image generation. Check the selected tool for access requirements."
       }
     },
     {

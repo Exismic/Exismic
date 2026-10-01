@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CATEGORY_GUIDES, CATEGORY_GUIDE_CONTENT_UPDATED_AT } from "@/data/category-guides";
 import { CATEGORIES, TOOLS } from "@/data/tools";
 import { BLOG_POSTS } from "@/lib/blog-data";
 import { SITE_URL } from "@/lib/seo";
@@ -13,7 +14,8 @@ const CONTENT_UPDATE_DATE = new Date("2026-09-15T00:00:00.000Z");
 const COMMERCE_UPDATE_DATE = new Date("2026-09-18T00:00:00.000Z");
 // Update only when the shared guide content changes, never at request/build time.
 const TOOL_GUIDE_UPDATE_DATE = new Date("2026-09-29T00:00:00.000Z");
-const HOME_UPDATE_DATE = new Date("2026-09-27T00:00:00.000Z");
+const HOME_UPDATE_DATE = new Date("2026-10-01T00:00:00.000Z");
+const V17_RELEASE_DATE = new Date("2026-10-01T00:00:00.000Z");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
@@ -25,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/pro`,
-      lastModified: PRO_UPDATE_DATE,
+      lastModified: V17_RELEASE_DATE,
       changeFrequency: "weekly",
       priority: 0.9,
     },
@@ -37,13 +39,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/tools`,
-      lastModified: PLATFORM_UPDATE_DATE,
+      lastModified: V17_RELEASE_DATE,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/about`,
-      lastModified: CONTENT_UPDATE_DATE,
+      lastModified: V17_RELEASE_DATE,
       changeFrequency: "monthly",
       priority: 0.6,
     },
@@ -67,7 +69,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/shop`,
-      lastModified: COMMERCE_UPDATE_DATE,
+      lastModified: V17_RELEASE_DATE,
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -133,7 +135,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/changelog`,
-      lastModified: PLATFORM_UPDATE_DATE,
+      lastModified: V17_RELEASE_DATE,
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -147,7 +149,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({
     url: `${SITE_URL}/category/${category.id}`,
-    lastModified: PLATFORM_UPDATE_DATE,
+    lastModified: CATEGORY_GUIDES[category.id]
+      ? new Date(CATEGORY_GUIDE_CONTENT_UPDATED_AT)
+      : PLATFORM_UPDATE_DATE,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
@@ -166,7 +170,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const blogPages: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt),
+    lastModified: new Date(post.updatedAt || post.publishedAt),
     changeFrequency: "monthly",
     priority: 0.65,
   }));

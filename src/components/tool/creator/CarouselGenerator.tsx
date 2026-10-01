@@ -21,7 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 interface Slide {
   id: string;
@@ -790,11 +789,6 @@ export default function CarouselGenerator() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Category Reactive Laser Horizon Divider */}
-      <div className="pt-4 pb-2">
-        <ToolLaserDivider primaryHex="#6366f1" />
       </div>
     </div>
   );

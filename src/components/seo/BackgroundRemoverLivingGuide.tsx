@@ -49,16 +49,27 @@ export function BackgroundRemoverLivingGuide({
 }: BackgroundRemoverLivingGuideProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const heroRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const heroBoundsRef = useRef<{ left: number; top: number } | null>(null);
 
-  // Track mouse on hero container for ambient spotlight
-  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleHeroMouseEnter = () => {
     if (!heroRef.current) return;
     const rect = heroRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    heroBoundsRef.current = { left: rect.left, top: rect.top };
+  };
+
+  // Track mouse on hero container for ambient spotlight with zero forced reflow
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!heroRef.current) return;
+    if (!heroBoundsRef.current) {
+      const rect = heroRef.current.getBoundingClientRect();
+      heroBoundsRef.current = { left: rect.left, top: rect.top };
+    }
+    heroRef.current.style.setProperty("--hero-mouse-x", `${e.clientX - heroBoundsRef.current.left}px`);
+    heroRef.current.style.setProperty("--hero-mouse-y", `${e.clientY - heroBoundsRef.current.top}px`);
+  };
+
+  const handleHeroMouseLeave = () => {
+    heroBoundsRef.current = null;
   };
 
   // 4 Living Value Cards styled strictly to Image Category (Cyan Palette)
@@ -142,8 +153,10 @@ export function BackgroundRemoverLivingGuide({
         {/* Inner Card Content */}
         <div 
           ref={heroRef}
+          onMouseEnter={handleHeroMouseEnter}
           onMouseMove={handleHeroMouseMove}
-          className="group relative overflow-hidden rounded-[calc(1.5rem-1.5px)] border border-white/[0.06] bg-[#070914]/95 p-6 sm:p-7 lg:p-8 backdrop-blur-2xl transition-all"
+          onMouseLeave={handleHeroMouseLeave}
+          className="group relative overflow-hidden rounded-[calc(1.5rem-1.5px)] border border-white/[0.06] bg-[#070914]/95 p-6 sm:p-7 lg:p-8"
         >
           {/* Ambient Breathing Lighting (Cyan category theme) */}
           <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-cyan-500/15 blur-[100px] pointer-events-none animate-pulse-glow" />
@@ -153,7 +166,7 @@ export function BackgroundRemoverLivingGuide({
           <div
             className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[calc(1.5rem-1.5px)]"
             style={{
-              background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(6, 182, 212, 0.08), transparent 60%)`,
+              background: `radial-gradient(600px circle at var(--hero-mouse-x, -9999px) var(--hero-mouse-y, -9999px), rgba(6, 182, 212, 0.08), transparent 60%)`,
             }}
           />
 
@@ -193,7 +206,7 @@ export function BackgroundRemoverLivingGuide({
                 return (
                   <div
                     key={idx}
-                    className="group/card relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:-translate-y-1.5 hover:shadow-[0_12px_30px_rgba(6,182,212,0.18)]"
+                    className="group/card seo-card-lift relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070914]/90 p-4 sm:p-5 hover:border-cyan-400/50 hover:shadow-[0_12px_30px_rgba(6,182,212,0.18)]"
                   >
                     {/* Top Specular Rim Highlight */}
                     <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent pointer-events-none" />

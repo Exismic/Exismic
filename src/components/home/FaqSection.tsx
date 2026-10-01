@@ -29,7 +29,7 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     question: "Is Exismic really free to use?",
-    answer: "Yes. Exismic offers free daily credits across all tools, including background removal, vocal separation, and AI image generation. No credit card or payment information is ever required to get started.",
+    answer: "Exismic offers free tools and daily credits, with Pro required for selected workflows such as AI image generation. Check the selected tool for access requirements. No payment information is needed to create a free account.",
     category: "Free Access",
     accentColor: "#10b981",
     borderActive: "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.25)]",
@@ -39,23 +39,23 @@ const FAQS: FaqItem[] = [
   },
   {
     question: "What kind of files can I download?",
-    answer: "You can download real, ready-to-use files directly to your device, including transparent PNGs, editable vector SVGs, brand kits (.ZIP), Next.js 15 starter projects (.ZIP), separated audio stems (.WAV / .MP3), and high-resolution QR codes (.PNG / .SVG).",
+    answer: "Downloads vary by tool: PNG pictures, GIF animations, PDF documents, text-based DOCX files, audio tracks, WebM waveform videos, and ZIP packages. SVG exports also vary: a traced image can contain vector paths, while logo export embeds the generated picture.",
     category: "Deliverables",
     accentColor: "#06b6d4",
     borderActive: "border-2 border-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.25)]",
     badgeStyle: "border-cyan-400/30 bg-cyan-400/10 text-cyan-300",
     icon: Download,
-    tags: [".PNG Cutouts", ".SVG Vectors", ".ZIP Kits", ".WAV Stems", "Next.js 15"],
+    tags: [".PNG Images", ".GIF Animations", ".PDF Documents", ".ZIP Packages"],
   },
   {
     question: "Are my files private and secure?",
-    answer: "Yes. Tools like image compression, video trimming, and QR code generation run locally in your browser. For cloud-processed tools, your files belong only to you, are never shared or sold, and are never used to train public AI models.",
+    answer: "Processing depends on the tool. Some utilities run in your browser; video processing and several PDF and audio workflows upload files to online services. Read the selected guide and the privacy policy before supplying sensitive content.",
     category: "Security",
     accentColor: "#38bdf8",
     borderActive: "border-2 border-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.25)]",
     badgeStyle: "border-sky-400/30 bg-sky-400/10 text-sky-300",
     icon: ShieldCheck,
-    tags: ["100% Local In-Browser", "Zero Public AI Training", "Private & Secure"],
+    tags: ["Processing Varies", "Tool-Specific Guides", "Privacy Policy"],
   },
   {
     question: "How does the Pro subscription work?",

@@ -152,6 +152,9 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="flex flex-col items-center justify-center pt-10 pb-20 space-y-10">
+           <p className="text-zinc-400 text-sm text-center">
+             Want to help build Exismic? Explore our <Link href="/careers" className="text-white underline underline-offset-4 hover:text-zinc-300">careers page</Link>.
+           </p>
            <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.5em] text-[10px] md:text-xs bg-white/5 px-6 py-3 rounded-full border border-white/10">
               Made with <Heart size={14} className="text-rose-500 fill-rose-500 animate-pulse" /> for the community
            </div>

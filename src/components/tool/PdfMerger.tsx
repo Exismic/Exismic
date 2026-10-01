@@ -39,8 +39,8 @@ interface PdfFile {
 const MERGER_STEPS = [
   { title: "Upload Documents", desc: "Select multiple PDF files you want to combine into one unified document." },
   { title: "Arrange Order", desc: "Drag and drop or use the arrow controls to set your exact page sequence." },
-  { title: "Merge Pages", desc: "Exismic preserves full vector resolution and consolidates every page cleanly." },
-  { title: "Download Master", desc: "Save your combined PDF instantly with zero server retention." }
+  { title: "Merge Pages", desc: "Combine the pages from each document in the selected file order." },
+  { title: "Download Master", desc: "Download the combined PDF after processing finishes." }
 ];
 
 export default function PdfMerger() {
@@ -153,7 +153,7 @@ export default function PdfMerger() {
     const progressInterval = setInterval(() => {
       setMergeProgress((prev) => {
         if (prev < 40) {
-          setMergeStage("Extracting high-resolution vector layers...");
+          setMergeStage("Preparing the document pages...");
           return prev + 6;
         }
         if (prev < 78) {
@@ -161,7 +161,7 @@ export default function PdfMerger() {
           return prev + 4;
         }
         if (prev < 92) {
-          setMergeStage("Optimizing fonts & compiling master PDF...");
+          setMergeStage("Combining the document pages...");
           return prev + 2;
         }
         return prev;
@@ -320,7 +320,7 @@ export default function PdfMerger() {
                     </div>
                     <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       <Zap className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                      <span>Instant Merge</span>
+                      <span>Combine Files</span>
                     </div>
                   </div>
                 </div>

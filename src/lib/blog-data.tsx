@@ -6,6 +6,7 @@ export type BlogPostMetadata = {
   title: string;
   excerpt: string;
   publishedAt: string;
+  updatedAt?: string;
   readTime: string;
   author: {
     name: string;
@@ -21,6 +22,7 @@ export const BLOG_POSTS: BlogPostMetadata[] = [
     title: 'Exismic 1.6: The Sparks Rewards Economy, All-New Studio Cockpit, and Streak Shields',
     excerpt: 'Exismic 1.6 introduces Exismic Sparks—a brand new rewards currency for completing quests, the redesigned Executive Studio Cockpit dashboard, Streak Freeze protection, modernized tool headers, and extensive platform refinements.',
     publishedAt: '2026-09-08',
+    updatedAt: '2026-10-01',
     readTime: '5 min read',
     author: {
       name: 'Exismic Team',
@@ -34,6 +36,7 @@ export const BLOG_POSTS: BlogPostMetadata[] = [
     title: 'Exismic 1.5: Quests, Developer API, Yearly Pro, and Gifting',
     excerpt: 'Exismic 1.5 introduces Daily & Weekly Quests to earn credits, official Developer API access, Yearly Pro plans, credit and membership gifting, and extensive visual refinements.',
     publishedAt: '2026-09-01',
+    updatedAt: '2026-10-01',
     readTime: '4 min read',
     author: {
       name: 'Exismic Team',

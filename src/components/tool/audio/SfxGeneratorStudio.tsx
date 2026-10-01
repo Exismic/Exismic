@@ -374,9 +374,9 @@ export function SfxGeneratorStudio() {
               Audio & Music Studio
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             AI Sound Effects Studio
-          </h1>
+          </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
             Generate custom sound effects, foley assets, and cinematic impacts from descriptive text prompts.
           </p>

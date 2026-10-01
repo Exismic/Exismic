@@ -200,6 +200,8 @@ export function getCategoryMetadata(categoryId: string) {
 export function getToolJsonLd(tool: any, category?: any) {
   const toolUrl = `${SITE_URL}${tool.href}`;
   const categoryName = category?.name || tool.category || 'AI Tools';
+  // These endpoints require Pro access; do not advertise a zero-price offer.
+  const requiresProAccess = tool.id === 'ai-img-gen' || tool.id === 'ai-logo';
   
   const softwareSchema = {
     '@context': 'https://schema.org',
@@ -209,7 +211,8 @@ export function getToolJsonLd(tool: any, category?: any) {
     url: toolUrl,
     applicationCategory: categoryName,
     operatingSystem: 'Any',
-    offers: {
+    isAccessibleForFree: requiresProAccess ? false : undefined,
+    offers: requiresProAccess ? undefined : {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
@@ -298,4 +301,3 @@ export function getCategoryJsonLd(category: any) {
 
   return [collectionSchema, breadcrumbSchema];
 }
-

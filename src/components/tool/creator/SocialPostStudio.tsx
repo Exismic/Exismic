@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // TYPES & PLATFORMS
@@ -2328,9 +2327,6 @@ export default function SocialPostStudio() {
           <span>{isDownloading ? "Rendering..." : "Download"}</span>
         </button>
       </div>
-
-      {/* Category Reactive Laser Horizon Divider */}
-      <ToolLaserDivider primaryHex="#6366f1" />
     </div>
   );
 }

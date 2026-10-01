@@ -30,7 +30,7 @@ const SPLITTER_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to extract or split pages from." },
   { title: "Choose Mode", desc: "Extract every page into individual files or choose a custom page range." },
   { title: "Page Range", desc: "Specify exact pages you need (for example: 1-2, 4) or extract all." },
-  { title: "Download", desc: "Save your separated pages instantly in pristine vector quality." }
+  { title: "Download", desc: "Download separate page PDFs in a ZIP or a PDF of the selected range." }
 ];
 
 export default function PdfSplitter() {
@@ -152,7 +152,7 @@ export default function PdfSplitter() {
     const progressInterval = setInterval(() => {
       setSplitProgress((prev) => {
         if (prev < 45) {
-          setSplitStage("Extracting vector graphics & page fonts...");
+          setSplitStage("Preparing the selected pages...");
           return prev + 8;
         }
         if (prev < 80) {
@@ -307,7 +307,7 @@ export default function PdfSplitter() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-white/5 w-full">
                     <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                      <span>100% Private</span>
+                      <span>Online Processing</span>
                     </div>
                     <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       <Layers className="w-3.5 h-3.5 text-red-400 shrink-0" />

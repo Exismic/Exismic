@@ -4,8 +4,8 @@ import { Metadata } from "next";
 import { ToolPageShell } from "@/components/tool/ToolPageShell";
 
 export const metadata: Metadata = constructMetadata({
-  title: "AI Video Enhancer & Quality Upscaler Online | Exismic",
-  description: "Enhance video clarity, contrast, and resolution with AI vision processing. Upscale footage automatically with studio results.",
+  title: "Video Enhancer - Sharpen, Reduce Noise & Adjust Color | Exismic",
+  description: "Apply video sharpening, noise reduction, stabilization, and color filters online. Compare the original with the processed MP4 before downloading.",
   canonicalUrl: "/tools/video/enhancer",
   keywords: ["video enhancer","ai video upscaler","enhance video quality","fix blurry video","online video enhancer","Exismic"],
 });

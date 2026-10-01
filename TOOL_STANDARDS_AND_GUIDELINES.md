@@ -100,17 +100,8 @@ The generic `<Sparkles>` icon has been overused across web apps as a lazy placeh
    - Tool interactive containers must not have excessive desktop bottom padding (`lg:pb-0` or `lg:pb-2`).
    - SEO guide sections must use tight top margins (`mt-2 sm:mt-4`) rather than `mt-16`.
 3. **Category-Reactive Anamorphic Laser Horizon Divider**:
-   - Every tool page must include the signature cyber laser horizon divider between the tool workspace and the Guide & Overview card:
-     ```tsx
-     {/* Ambient Flare */}
-     <div style={{ background: `radial-gradient(ellipse at center, ${theme.primaryHex}, transparent 70%)` }} />
-     {/* Laser Hairline */}
-     <div style={{ background: `linear-gradient(90deg, transparent 0%, ${theme.primaryHex}20 15%, ${theme.primaryHex} 50%, ${theme.primaryHex}20 85%, transparent 100%)` }} />
-     {/* Specular White Needle */}
-     <div style={{ background: `linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%)` }} />
-     {/* Cyber Core Jewel */}
-     <div style={{ background: "#ffffff", boxShadow: `0 0 10px 2px ${theme.primaryHex}` }} />
-     ```
+   - Every tool page must include the signature cyber laser horizon divider between the tool workspace and the Guide & Overview card.
+   - **Mandatory Single Source of Truth**: The divider is **automatically provided** at the top of `<ToolSeoSection />` via `<ToolLaserDivider />`. **Do NOT manually insert `<ToolLaserDivider />` at the bottom of individual tool workspaces**, as doing so creates duplicate stacked laser lines.
 4. **Zero Ellipsis Truncation**:
    - Never let chips or badges truncate into `Ec...`, `Lo...`, etc.
    - Use `whitespace-nowrap`, proportional column sizing (e.g. `grid-cols-[1fr_1.35fr_1fr]`), and 2-column grids on split layouts to give every badge generous room.

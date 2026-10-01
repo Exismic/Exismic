@@ -30,8 +30,8 @@ import { readDownloadResponse } from "@/lib/pdf-client";
 
 const TO_WORD_STEPS = [
   { title: "Upload PDF", desc: "Select the document you want to convert into an editable Microsoft Word document." },
-  { title: "Select Formatting", desc: "Choose continuous paragraph flow or line-preserving layout for tables and receipts." },
-  { title: "Text Extraction", desc: "Exismic recovers embedded typography and structures an authentic DOCX file." },
+  { title: "Select Formatting", desc: "Choose paragraph flow or keep the extracted line breaks." },
+  { title: "Text Extraction", desc: "Extract the readable text and place it in a DOCX document." },
   { title: "Download", desc: "Open and edit your converted file directly in Microsoft Word, Google Docs, or Pages." }
 ];
 
@@ -96,7 +96,7 @@ export default function PdfToWord() {
     const progressInterval = setInterval(() => {
       setConvertProgress((prev) => {
         if (prev < 42) {
-          setStatus("Extracting text streams & font dictionaries...");
+          setStatus("Extracting the document text...");
           return prev + 7;
         }
         if (prev < 78) {
@@ -179,7 +179,7 @@ export default function PdfToWord() {
                       PDF to Word <span className="bg-gradient-to-r from-red-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">Studio</span>
                     </h3>
                     <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-relaxed max-w-md mx-auto">
-                      Convert PDF files into fully editable Microsoft Word (.docx) documents with intact layout
+                      Extract PDF text into editable Word (.docx) documents; original page layouts are not recreated
                     </p>
                   </div>
 
@@ -374,7 +374,7 @@ export default function PdfToWord() {
                                 Line Preserving (Recommended)
                               </h5>
                               <p className="text-[11px] text-zinc-400 font-medium leading-relaxed mt-0.5">
-                                Preserves precise line breaks, headers, invoice tables, and structured text
+                                Keeps extracted line breaks; original tables, fonts, and images are not recreated
                               </p>
                             </div>
                           </button>

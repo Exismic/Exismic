@@ -9,6 +9,10 @@ const attributes = (tag) => Object.fromEntries([...tag.matchAll(/([\w-]+)=["']([
 const tags = (html, name) => [...html.matchAll(new RegExp('<' + name + '\\b[^>]*>', 'gi'))].map((m) => attributes(m[0]));
 const canonical = (html) => tags(html, 'link').filter((tag) => tag.rel === 'canonical');
 const text = (html) => html.replace(/<(script|style|svg|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi, '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+const decodedText = (value) => text(value)
+  .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&#(?:x([\da-f]+)|(\d+));/gi, (_, hex, decimal) => String.fromCodePoint(parseInt(hex || decimal, hex ? 16 : 10)))
+  .replace(/\s+/g, ' ').trim();
 function check(condition, message) { if (!condition) failures.push(message); }
 async function get(path, userAgent) {
   const response = await fetch(new URL(path, base), {
@@ -49,6 +53,23 @@ async function main() {
         }
         if (url.pathname.startsWith('/tools/')) {
           for (const type of ['SoftwareApplication', 'BreadcrumbList', 'FAQPage', 'HowTo']) check(schemas.filter((s) => s['@type'] === type).length === 1, url.pathname + ' schema count for ' + type);
+          const application = schemas.find((s) => s['@type'] === 'SoftwareApplication');
+          const breadcrumb = schemas.find((s) => s['@type'] === 'BreadcrumbList');
+          check(application?.url === canonicalOrigin + url.pathname, url.pathname + ' application URL mismatch');
+          if (['/tools/ai/img-gen', '/tools/ai/logo'].includes(url.pathname)) {
+            check(application?.isAccessibleForFree === false && application?.offers?.price !== '0', url.pathname + ' falsely advertises free Pro generation');
+          }
+          check(breadcrumb?.itemListElement?.at(-1)?.item === canonicalOrigin + url.pathname, url.pathname + ' breadcrumb URL mismatch');
+          const body = decodedText(html);
+          for (const faq of schemas.find((s) => s['@type'] === 'FAQPage')?.mainEntity || []) {
+            check(body.includes(decodedText(faq.name)) && body.includes(decodedText(faq.acceptedAnswer.text)), url.pathname + ' FAQ schema does not match rendered content');
+          }
+          for (const step of schemas.find((s) => s['@type'] === 'HowTo')?.step || []) {
+            check(body.includes(decodedText(step.text)), url.pathname + ' HowTo schema does not match rendered content');
+          }
+          const guide = html.match(/<section\b[^>]*class="[^"]*mt-2 sm:mt-4 w-full text-left[^"]*"[^>]*>[\s\S]*?<\/section>/)?.[0];
+          check(Boolean(guide), url.pathname + ' missing server-rendered guide');
+          check(!/style="[^"]*opacity:\s*0(?:;|")/.test(guide || ''), url.pathname + ' guide starts invisible');
         }
         const outbound = tags(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''), 'a').flatMap((tag) => {
           if (!tag.href) return [];
@@ -79,6 +100,19 @@ async function main() {
     ['/tools/productivity/units', /Examples to try/, /Generate resumes, barcodes/],
     ['/tools/ai-detector', /misclassify both human and AI writing/, /Creative Brainstorming/],
     ['/tools/citation-generator', /Check names, dates, titles/, /Summarize textbooks/],
+    ['/tools/video/to-gif', /320, 480, or 640 pixels/, /zero server waiting|Fast In-Browser Cuts/],
+    ['/tools/pdf/compressor', /does not downsample embedded pictures/, /100% Private & Local|40% and 80%/],
+    ['/tools/pdf/to-word', /does not reconstruct fonts, tables, pictures/, /with intact layout/],
+    ['/tools/ai/img-gen', /Image dimensions/, /Tune the tone, length/],
+    ['/tools/ai/logo', /does not trace the picture/, /Infinitely scalable vector/],
+    ['/tools/creator/teleprompter', /does not record or export video/, /Crisp PNG and MP4 downloads/],
+    ['/tools/hash-generator', /without checking whether the text is valid code/, /highlights formatting mistakes and syntax errors/],
+    ['/tools/audio/noise-remover', /does not change how an uploaded recording is cleaned/, /100% royalty-free/],
+    ['/tools/student/plagiarism-checker', /compares only the two supplied texts/, /web-wide plagiarism search included/],
+    ['/tools/creator/thumbnail-analyzer', /does not access YouTube analytics/, /predict a verified click-through rate with certainty/],
+    ['/tools/pdf-to-notes', /first 18,000 characters/, /entire document without limits/],
+    ['/tools/image/vectorizer', /send the image to the server fallback/, /runs entirely in your browser session/],
+    ['/tools/creator/carousel-generator', /edits the supplied slides/, /AI-generated researched article/],
   ];
   for (const [path, expected, forbidden] of contentChecks) {
     const body = text(pages.get(path)?.html || '');

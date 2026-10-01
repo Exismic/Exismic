@@ -32,7 +32,6 @@ import {
   VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // SCRIPT PRESETS (Plain Everyday English, Authentic Lucide Icons)
@@ -1584,9 +1583,6 @@ export default function TeleprompterStudio() {
           </div>
         </div>
       </div>
-
-      {/* Category Reactive Laser Horizon Divider */}
-      <ToolLaserDivider primaryHex="#6366f1" />
     </div>
   );
 }

@@ -26,7 +26,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { consumePipelineItem } from "@/lib/pipeline";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ==========================================
 // PRESET TYPES & OPTIONS
@@ -1437,9 +1436,6 @@ export default function DeviceMockupStudio() {
           />
         </div>
       )}
-
-      {/* Category Reactive Laser Horizon Divider */}
-      <ToolLaserDivider primaryHex="#6366f1" />
     </div>
   );
 }

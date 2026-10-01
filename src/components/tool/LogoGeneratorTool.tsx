@@ -769,7 +769,7 @@ export function LogoGeneratorTool() {
                 </span>
               </div>
               <p className="text-xs text-zinc-300">
-                Loaded live brand parameters. Download the full kit: Scalable Vector SVG, 3 Transparent PNGs, Multi-size .ico Favicons, and Brand Guidelines PDF (.ZIP).
+                Loaded live brand parameters. Download the full kit: SVG image document, 3 Transparent PNGs, Multi-size .ico Favicons, and Brand Guidelines PDF (.ZIP).
               </p>
             </div>
           </div>
@@ -1245,7 +1245,7 @@ export function LogoGeneratorTool() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-bold text-amber-400/80 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">
-                          1024 × 1024 Vector Frame
+                          1024 × 1024 Image Frame
                         </span>
                         <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400">
                           {brandName || "Logo Stage"}
@@ -1288,7 +1288,7 @@ export function LogoGeneratorTool() {
                                 <span>Estimated wait: ~{estimatedTime}s</span>
                               </div>
                               <p className="text-zinc-500 font-bold text-[9px] uppercase tracking-[0.2em] mt-1">
-                                Synthesizing sharp vector shapes on clean background
+                                Generating a logo image on the selected background
                               </p>
                             </div>
                           </div>
@@ -1338,7 +1338,7 @@ export function LogoGeneratorTool() {
                             </div>
                             <div className="text-right">
                               <span className="text-[9px] font-mono text-amber-400/90 uppercase tracking-wider font-bold">
-                                Vector Artwork
+                                Logo Artwork
                               </span>
                               <p className="text-[8px] text-zinc-500 font-medium">1024 × 1024 px</p>
                             </div>
@@ -1424,7 +1424,7 @@ export function LogoGeneratorTool() {
                                 className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2"
                               >
                                 <Shapes className="w-3.5 h-3.5 text-amber-400" />
-                                Export Scalable SVG (Vector Wrapper)
+                                Export SVG (Embedded Image)
                               </button>
 
                               {/* 1-Click Startup Brand Kit (.ZIP) Pro Moat */}
@@ -1939,10 +1939,10 @@ export function LogoGeneratorTool() {
                   <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-white">
                       <Shapes className="w-3.5 h-3.5 text-amber-400" />
-                      Scalable Vector (.SVG)
+                      Image Document (.SVG)
                     </div>
                     <p className="text-[10px] text-zinc-400">
-                      Infinitely scalable vector with clean shapes for web and high-res print.
+                      SVG document containing the generated image; its shapes are not traced into editable paths.
                     </p>
                   </div>
 

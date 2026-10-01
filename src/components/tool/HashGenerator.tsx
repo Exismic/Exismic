@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // IN-BROWSER MD5 IMPLEMENTATION (RFC 1321 Standard)
@@ -675,9 +674,6 @@ export default function HashGenerator() {
           )}
         </div>
       )}
-
-      {/* Laser Divider Horizon Bridge */}
-      <ToolLaserDivider primaryHex="#84cc16" />
 
       {/* Result Retention & History */}
       <ResultRetentionBar

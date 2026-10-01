@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { ToolWorkflowChaining } from "@/components/tool/ToolWorkflowChaining";
 import { ToolSuggestions } from "@/components/tool/ToolSuggestions";
 import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 
 // ============================================================================
 // TYPES & BLUEPRINTS (Zero Tech Jargon, 100% Everyday English)
@@ -546,9 +545,6 @@ export default function RegexTester() {
           </div>
         </div>
       </div>
-
-      {/* Laser Divider Horizon Bridge */}
-      <ToolLaserDivider primaryHex="#84cc16" />
 
       {/* Result Retention & History */}
       <ResultRetentionBar

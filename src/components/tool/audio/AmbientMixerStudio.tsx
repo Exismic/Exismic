@@ -476,9 +476,9 @@ export function AmbientMixerStudio() {
               Audio & Music Studio
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             Cinematic Ambient Mixer
-          </h1>
+          </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
             Mix multi-layered organic soundscapes with rain, cozy fires, cafe murmurs, and ocean swells for deep focus and sleep.
           </p>

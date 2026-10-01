@@ -1,6 +1,6 @@
 # Exismic Studio — Master Project Continuation & Architecture Memory
 
-> **Last Updated**: September 30, 2026  
+> **Last Updated**: October 1, 2026
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
 > **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors), Next.js 16 Production Build verified (`npm run build` = 0 errors). Performance & low-end/mobile architecture hardened. 100% human, tech-bro jargon-free copy across all landing page sections and modals.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
@@ -8,6 +8,67 @@
 > **Mandatory Tool Design & Copy Standards**: [`TOOL_STANDARDS_AND_GUIDELINES.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/TOOL_STANDARDS_AND_GUIDELINES.md) (Zero tech jargon, zero sparkles, balanced void-free layouts, and laser bridges).
 > **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
+
+### Targeted SEO/content cleanup after v1.7 — implemented locally, NOT deployed
+
+- Added source-checked guides for the 63 public tools that inherited category features, steps, or FAQs. Preserved the 36 complete existing guides. Guide data lives in `src/data/tool-guides.ts` and `src/data/additional-tool-guides.ts`; visible FAQ/HowTo and JSON-LD share these fields.
+- Replaced inaccurate shared category content with `src/data/category-guides.ts`. Corrected rendered metadata on 33 pages (19 titles and 31 descriptions), four duplicate studio H1s, and Video-to-GIF application/breadcrumb URLs. Image/logo generation schema no longer advertises a zero-price offer for those Pro-only endpoints.
+- Tool/category guide text is visible from SSR onward. `useGuideMotion.ts` retains viewport movement and disables it for reduced motion; opacity no longer gates reading.
+- Kept the 133-URL sitemap and current domain, canonicals, robots, redirects, access behavior, and tool processing. Updated 83 meaningful lastmod dates, retaining 50 other dates. Added one About→Careers link and five contextual release-post links.
+- Validation: TypeScript and final production build passed; 133 local production URL regression checks passed; changed-file lint has zero errors. Repository-wide lint still has 58 pre-existing errors. Local database TLS reads can fall back to saved public data; no credentials or database settings changed.
+- Tool behavior issues documented rather than changed: large-file MD5 truncation, illustrative cron times, noise-removal profile buttons not affecting processing, and camera policy blocking teleprompter preview. Review separately if functional fixes are requested.
+- No deployment, GSC writes, search-engine pings, or indexing requests performed. Full report and local verification artifacts are in `C:\Users\rayan\Documents\Codex\2026-09-28\for-x20`.
+
+### 0.0000000000000000000000000 ⚡ Elimination of Stacked Duplicate Laser Horizon Dividers [100% COMPLETED]
+* **Problem Addressed**:
+  - On several tool pages (including Creator and Developer studio tools like Fake Tweet Studio, Video Hook Generator, Base64, etc.), two laser horizon dividers were stacked right on top of each other separated by only a few pixels.
+  - Top line had the cyber optic jewel halo (`<ToolLaserDivider>`), while the bottom line had `ToolSeoSection`'s section divider right above the Hero card.
+* **Root Cause**:
+  - `ToolSeoSection` already built-in a category-reactive laser horizon divider at the top of its container to bridge every tool workspace to the Guide & Overview.
+  - Simultaneously, 18 individual tool components had manually appended `<ToolLaserDivider />` at the bottom of their workspace root JSX.
+  - When rendered inside `ToolPageShell` or `ToolDetailClient`, both the tool's bottom divider and `ToolSeoSection`'s top divider rendered back-to-back.
+* **Architecture Fix & Standardization**:
+  1. Standardized `ToolSeoSection.tsx` to use `ToolLaserDivider` with the high-precision optic halo jewel and crosshair micro-flare as the single source of truth for the bridge divider.
+  2. Purged redundant `<ToolLaserDivider />` calls from all 18 individual tool components (`SocialPostStudio`, `ThumbnailAnalyzer`, `TeleprompterStudio`, `LinkedinFormatter`, `HookScriptGenerator`, `DeviceMockupStudio`, `CarouselGenerator`, `Base64Encoder`, `HashGenerator`, `PasswordGenerator`, `JsonFormatter`, `JsonToTypes`, `SqlBuilder`, `SvgOptimizer`, `LoremIpsumGenerator`, `CronGenerator`, `RegexTester`, `UuidGenerator`, `PaletteGenerator`, and `TextToSpeechStudio`).
+  3. Updated `TOOL_STANDARDS_AND_GUIDELINES.md` (Standard 3) with an explicit architecture directive that `<ToolSeoSection />` provides the divider automatically and individual tools must never manually insert duplicate dividers.
+* **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.000000000000000000000000 💎 Practical Guide Sections Cyber Luxury Overhaul (Examples, Things to Know, Terms, Use Cases) [100% COMPLETED]
+* **Problems Addressed**:
+  - "Examples to try" and "Things to know" sections on tool pages were rendering as raw, unstyled dark boxes with plain unformatted HTML `<ul><li>` bullet lists, completely lacking the Exismic cyber design aesthetic.
+  - "Popular Real-World Use Cases" cards used hardcoded cyan dots regardless of the active category theme.
+* **Architecture & Styling Upgrades Implemented in [`ToolSeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/ToolSeoSection.tsx)**:
+  1. **Examples to Try**:
+     - Upgraded from raw bullet lists to dedicated section header with authentic `<Compass>` icon in `theme.iconContainer`, bold headline, and uppercase subtitle.
+     - 2-column responsive bento grid of obsidian cards (`bg-[#070914]/85`, `border border-white/[0.08]`) with `.seo-card-lift-sm`, specular top rim highlight, and category hover spotlight.
+     - Category-reactive numbered jewel badges (`01`, `02`, etc.) in `theme.badgeBorder`, `theme.badgeBg`, and `theme.badgeText`.
+  2. **Things to Know**:
+     - Dedicated section header with authentic `<Info>` icon in `theme.iconContainer` (*"File requirements, capabilities, and system limits"*).
+     - 2-column bento grid of obsidian guidance cards with `.seo-card-lift-sm`, specular rim, category hover spotlight, and category-themed check badges (`<CheckCircle2 size={14} />`).
+  3. **Key Concepts & Terminology**:
+     - Dedicated section header with authentic `<Layers>` icon in `theme.iconContainer`.
+     - 2-column bento grid with category-reactive term pill badges and clean typography.
+  4. **Popular Real-World Use Cases**:
+     - Replaced hardcoded cyan dot with reactive category dot (`theme.badgeDot` with `boxShadow: 0 0 8px ${theme.primaryHex}` matching violet for video, cyan for image, pink for audio, etc.).
+     - Upgraded cards with `.seo-card-lift-sm`, specular rim, and category hover spotlights.
+  5. **Silky Smooth 320ms Deceleration Curves in [`globals.css`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/globals.css)**:
+     - Implemented `.seo-card-lift` and `.seo-card-lift-sm` with `cubic-bezier(0.16, 1, 0.3, 1)` and `will-change: transform` across all guide surfaces.
+* **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
+
+### 0.00000000000000000000000 ⚡ Card Hover & Release Animation Lag Optimization (Category & Tool SEO Guides) [100% COMPLETED]
+* **Problems Addressed**:
+  - Hovering over cards in the "Overview & Features" section (e.g. Photo Editing, Conversion & Design Tools) and "Why People Choose Exismic" felt laggy and dropped frames.
+  - On mouse release (unhover), the card suffered from an awkward 80ms to 260ms delay before beginning to animate back down.
+* **Root Causes & Solutions Implemented**:
+  1. **React State-Driven Re-render Storm**:
+     - `handleHeroMouseMove` called `setMousePos` React state on every mousemove event, triggering 60-120 full component re-renders per second of the 1,000+ line component while the user moved their mouse.
+     - **Solution**: Removed `mousePos` React state and replaced it with direct CSS custom property injection on `heroRef.current` (`--hero-mouse-x` and `--hero-mouse-y`) in [`CategorySeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/CategorySeoSection.tsx), [`ToolSeoSection.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/ToolSeoSection.tsx), and [`BackgroundRemoverLivingGuide.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/components/seo/BackgroundRemoverLivingGuide.tsx). Zero component re-renders on mouse movement; 0% CPU overhead.
+  2. **Framer Motion Variant Delay Leak on Unhover**:
+     - `whileHover={{ y: -5 }}` was defined on `<motion.div>` which also carried `transition={{ duration: 0.45, delay: 0.08 + idx * 0.06 }}`. When hover was released, Framer Motion reverted back using the root transition's cascade delay (up to 260ms delay on card 4).
+     - **Solution**: Decoupled entrance from hover interactions. Outer `<motion.div>` handles viewport entrance cascades, while the inner card utilizes hardware-accelerated CSS transitions (`transition-[transform,border-color,box-shadow] duration-200 ease-out hover:-translate-y-1.5 will-change-transform motion-reduce:hover:translate-y-0`). On hover, the card lifts smoothly; on release, it glides back down with **0ms delay**.
+  3. **Heavy Filter Raster Overhead**:
+     - Removed redundant `backdrop-blur-xl` on translating cards over opaque 90-95% dark obsidian backgrounds, eliminating GPU gaussian blur shader thrashing during transforms.
+* **TypeScript Verification**: Clean compilation via `npx tsc --noEmit` with **0 errors**.
 
 ### 0.0000000000000000000000 💳 Fix Razorpay & PayPal Subscription Launch Discount Price Passing [100% COMPLETED]
 * **Problems Addressed**:

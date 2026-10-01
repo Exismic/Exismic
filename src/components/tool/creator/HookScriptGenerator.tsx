@@ -45,7 +45,6 @@ import {
   type CtaItem, 
   type HookObj 
 } from "@/lib/hook-script-blueprints";
-import { ToolLaserDivider } from "@/components/tool/ToolLaserDivider";
 import { MediaPipelineBar } from "@/components/tool/MediaPipelineBar";
 import { ResultRetentionBar } from "@/components/tool/ResultRetentionBar";
 import { sendToTool } from "@/lib/pipeline";
@@ -1055,9 +1054,6 @@ export default function HookScriptGenerator() {
           </div>
         )}
       </div>
-
-      {/* Category Reactive Laser Horizon Divider */}
-      <ToolLaserDivider primaryHex="#6366f1" />
 
       {/* Result Retention Bar */}
       {output && (
