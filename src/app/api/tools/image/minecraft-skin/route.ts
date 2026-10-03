@@ -30,8 +30,10 @@ import {
 import { compileMinecraftSkinBlueprint } from "@/lib/minecraft-skin-blueprint";
 import {
   MINECRAFT_SKIN_JSON_SCHEMA,
+  MINECRAFT_SKIN_ART_INSTRUCTION,
   LEGACY_STYLE_MAP,
   buildDesignInstruction,
+  buildSkinArtConstraints,
   mergeRemixDesign,
 } from "@/lib/minecraft-skin-control";
 import { DEFAULT_GROQ_TEXT_MODEL, DEFAULT_GROQ_VISION_MODEL } from "@/lib/ai-models";
@@ -58,7 +60,7 @@ const requestSchema = z.object({
     ])
     .default("balanced"),
   eyeStyle: z.enum(["anime", "classic", "glowing", "minimal", "visor"]).optional(),
-  mouthStyle: z.enum(["smile", "neutral", "smirk", "open", "none"]).optional(),
+  mouthStyle: z.enum(["smile", "neutral", "smirk", "open", "none", "masked"]).optional(),
   targetPart: z.enum(["all", "head", "torso", "arms", "legs"]).default("all"),
   seed: z.number().int().min(0).max(4294967295).optional(),
   baseSkinUrl: z.string().max(6_000_000).optional(),
@@ -321,7 +323,7 @@ async function createAiDesign(
         body: JSON.stringify({
           model: hasValidReference ? VISION_MODEL : TEXT_MODEL,
           temperature: referenceMode === "guided" ? 0.20 : 0.15,
-          max_tokens: 3000,
+          max_tokens: 6000,
           response_format: {
             type: "json_schema",
             json_schema: {
@@ -339,9 +341,10 @@ async function createAiDesign(
                 "- PRIMARY CONCEPT vs SECONDARY DETAILS: Extract the central character identity (outfit, traits, expression) while preserving every secondary detail (zippers, emblems, socks, earrings, belts).",
                 "- CLOTHING LAYERS HIERARCHY: Do NOT collapse multiple clothing layers into one generic garment. If multiple layers are worn (e.g. 'bomber jacket over hoodie with undershirt', 'denim jacket over flannel', 'coat over vest'):",
                 "  * outer garment: set garmentType ('bomber-jacket', 'jacket', 'coat', etc.). If open at front, set placket='open_front'.",
-                "  * middle layer: set midLayer ('hoodie', 'sweater', 'vest', 'none'). If hoodie worn down, set hoodState='down'.",
+                "  * middle layer: set midLayer ('hoodie', 'sweater', 'vest', 'none') ONLY for a separate garment underneath an outer jacket. A hoodie worn alone uses midLayer='none'. If hoodie worn down, set hoodState='down'.",
                 "  * inner garment: set innerGarment ('undershirt', 'crew_tee', 'graphic_tee', 'turtleneck', 'none').",
-                "  * sleeves: set sleeveStyle ('layered_undershirt', 'slouch_gather', 'short_sleeve', etc.).",
+                "  * sleeves: set sleeveStyle ('layered_undershirt', 'slouch_gather', 'short_sleeve', etc.). Layered HAIR does not imply layered sleeves. Hoodies have long sleeves unless the prompt explicitly requests short sleeves.",
+                "  * fastening: a regular hoodie uses placket='pullover', zipper='none'; use center_zip only for zip-up clothing. Drawstrings use 'none', 'thin', or 'tied'. Cargo PANTS do not put cargo pockets on the torso.",
                 "- DETAILS & ACCESSORIES: Extract zippers ('silver'/'gold'/'none'), cargo pockets (cargoPockets=true), emblems ('crescent', etc.), socks ('knee_high_plain', 'knee_high_striped', 'ankle', 'none'), and footwearStyle ('chunky-sneaker', 'high-top-sneaker', 'combat-boots', etc.).",
                 "- ASYMMETRY: If asymmetry between arms, legs, or bangs is mentioned, set asymmetry=true.",
                 "- HAIR & BANGS: Curtain bangs -> bangsStyle='curtain', hairSilhouette='curtain-bangs'. Wolf cut -> hairSilhouette='wolf-cut'. Messy fringe -> hairSilhouette='messy-fringe'.",
@@ -412,6 +415,9 @@ async function remixAiDesign(
     `   - If user asks to modify or remove facial hair (e.g. 'remove facial hair', 'clean shaven', 'no beard', 'goatee'), set facialHair accordingly ('none', 'stubble', 'short-beard', 'goatee') and NEVER alter head hair, eyes, skin, or clothing.`,
     `   - If user asks for a broad style change (e.g. 'make the outfit cyberpunk'), change outfit, garmentType, pattern, and accent colors, but PRESERVE the character's skin tone, face construction, and general identity.`,
     `3. NEVER reset unspecified fields to generic defaults.`,
+    MINECRAFT_SKIN_ART_INSTRUCTION,
+    buildSkinArtConstraints(remixInstruction),
+    `4. Preserve existing pixelArt for all unchanged parts; palette recolors should retain the same pixel pattern.`,
   ].join("\n");
 
   let lastError: unknown = null;
@@ -426,7 +432,7 @@ async function remixAiDesign(
         body: JSON.stringify({
           model: TEXT_MODEL,
           temperature: 0.12,
-          max_tokens: 3000,
+          max_tokens: 6000,
           response_format: {
             type: "json_schema",
             json_schema: {
@@ -817,7 +823,7 @@ export async function POST(request: NextRequest) {
       seed
     );
 
-    let referenceGuided = Boolean(referenceImage && !referenceRebuilt);
+    const referenceGuided = Boolean(referenceImage && referenceMode === "guided" && !referenceRebuilt);
     let generated: Uint8Array;
     let renderer: "blueprint" | "procedural" = "procedural";
 

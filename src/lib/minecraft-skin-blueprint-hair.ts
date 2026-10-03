@@ -36,7 +36,7 @@ export function applyHairAccessories(
   accessories?: HairBlueprintParams["accessories"]
 ): HairBlueprint {
   if (!accessories) return bp;
-  let res: HairBlueprint = {
+  const res: HairBlueprint = {
     front: [...bp.front],
     top: [...bp.top],
     right: [...bp.right],
@@ -342,11 +342,11 @@ function generateBaseHairBlueprint(params: HairBlueprintParams): HairBlueprint {
         ".SDDDDS.",
       ],
       front: [
-        "hHhhLHhH",
-        "HhLhLHHh",
-        "HH.HL.HH",
-        "HS..S.SH",
-        "D.....D.",
+        "SHHLLHHS",
+        "HHLLHHSH",
+        "HHLHSH.H",
+        "HS.H..S.",
+        "S......S",
         "........",
         "........",
         "........",
@@ -859,7 +859,7 @@ export function generateFaceBlueprint(style: string, eyeStyle?: string, mouthSty
         "sbb..bbs",
         "w*E..*Ew",
         "wEe..eEw",
-        "srrkkrrs",
+        "KsrKKrsK",
         "KKKllKKK",
         "dKKKKKKd",
       ];
@@ -909,8 +909,8 @@ export function applyEyeStyleToFaceBlueprint(bp: TokenMatrix, eyeStyle: string):
     case "anime":
     default:
       // Anime / Aesthetic 2x2 Catchlight
-      result[3] = "w*E..*Ew";
-      result[4] = "wEe..eEw";
+      result[3] = "K*EkkE*K";
+      result[4] = "KwEkkEwK";
       break;
   }
   return result;

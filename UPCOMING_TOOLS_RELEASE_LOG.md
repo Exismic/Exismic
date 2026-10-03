@@ -4,6 +4,14 @@
 
 ---
 
+## Advanced Minecraft Skin Maker update — October 3, 2026 (pending deployment)
+
+Added original custom heads (duck, TV, robot, creature, cat, abstract), plaid and graphic clothing, ripped/patchwork trousers, suit ties and coordinated gradients. The AI can compose bounded palette-bound pixel details; validation protects faces and existing clothing shading. Remix preserves artwork during recolors and unrelated edits. Four new free presets demonstrate the styles. Uses the existing AI service; no added paid image service. Offline regression covers 480 renders plus UV/art safety, seven character kinds and all ten UI presets. Three actual AI generations and one remix succeeded in direct route-function tests. Not a guarantee of artist quality for every prompt. No new tool or route; changes remain local.
+
+## Existing tool update — October 3, 2026 (pending deployment)
+
+**Minecraft Skin Maker** (`/tools/image/minecraft-skin`): improved hair/face shading, clothing folds, hood lining, sleeves, pockets, and footwear. Fixed mismatched AI design fields, preserved older saved controls, completed missing base texture faces, and corrected uneven limb lighting. Uses the existing text-to-design service and pixel renderer; no added paid image service. Offline regression checks: `node scripts/minecraft-skin-regression.cjs` (240 renders). No new tool or route.
+
 ## 📦 Summary of New Tools in this Sprint
 
 | # | Tool Name | Route | Category | Engine / Tech | Status |
@@ -1135,3 +1143,10 @@
   - **Purged "Original Video Preview" Badge**: Removed all instances of the redundant "Original Video Preview" toolbar badge in `VideoEnhancer` and `VideoCompressor`, keeping the video stage clean, immersive, and 100% unobstructed.
   - **Fixed Corrupted Video Enhancement Preview**: Eliminated canvas Skia 8-bit RGB wrap in Chromium by using hardware-accelerated CSS GPU-composited enhancement filters (`contrast(1.05..1.08)`, `saturate(1.08..1.12)`, `brightness(1.02..1.03)`). Split-screen comparison is now 100% natural, crisp, vibrant, and artifact-free at 60fps.
   - **Suite-Wide Animated Download Feedback**: Added tactile micro-animations to download buttons across all 6 video tools (spinner/bouncing arrow during preparation -> transition to emerald green glow with `<Check>` icon and `"Saved to Downloads!"` before smoothly resetting).
+### Minecraft Skin Maker controls audit — October 3, 2026 (local, not deployed)
+
+- Fixed preset editor loading, mirrored fill/shading, native custom color changes, preservation of current manual edits during free face changes, and torso-only merges touching the arm. Editor AI merge uses the current painted texture. Added undoable missing-body-pixel restoration and legacy texture normalization.
+- Improved mobile framing and labels, remix dialog viewport/error handling, selected-model reload, and accurate reference/download/clipboard feedback.
+- Browser checks covered ten presets, both models/layers/body views, drawing tools/colors/undo/redo, eye/mouth controls, poses/backgrounds/camera, Dream import and approved reference-upload preview. TypeScript and targeted lint passed. Renderer/build evidence is in the controls audit artifact folder.
+- Authenticated AI/credits/storage/email and native downloaded files still require deployed testing. No commit, push or deployment; localhost port 3100 left available after restart.
+- Follow-up: Masked now draws a cloth mask instead of silently meaning no lips. Added No mouth, clearer expressions and selected labels; both renderers and request/schema validation support the new mask style. Six browser-captured outputs are distinct without body changes; regression and TypeScript passed.

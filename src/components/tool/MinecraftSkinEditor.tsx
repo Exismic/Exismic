@@ -19,6 +19,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSkinToCanvas } from "skinview-utils";
 import type { MinecraftArmModel, MinecraftSkinPart } from "@/lib/minecraft-skin";
 
 type EditorTool = "pencil" | "eraser" | "picker" | "bucket" | "shade";
@@ -297,6 +298,9 @@ export function MinecraftSkinEditor({
 
   useEffect(() => {
     let cancelled = false;
+    setError(null);
+    setPixels(null);
+    setOriginalPixels(null);
     const image = new window.Image();
     image.crossOrigin = "anonymous";
     image.onload = () => {
@@ -305,11 +309,22 @@ export function MinecraftSkinEditor({
       canvas.width = 64;
       canvas.height = 64;
       const context = canvas.getContext("2d");
-      if (!context) return;
+      if (!context) {
+        setError("Your browser could not open the drawing canvas. Try reloading the page.");
+        return;
+      }
       context.imageSmoothingEnabled = false;
       context.clearRect(0, 0, 64, 64);
-      context.drawImage(image, 0, 0, 64, 64);
-      const loaded = new Uint8ClampedArray(context.getImageData(0, 0, 64, 64).data);
+      let loaded: Uint8ClampedArray;
+      try {
+        const normalized = document.createElement("canvas");
+        loadSkinToCanvas(normalized, image);
+        context.drawImage(normalized, 0, 0, 64, 64);
+        loaded = new Uint8ClampedArray(context.getImageData(0, 0, 64, 64).data);
+      } catch {
+        setError("The skin could not be opened for painting. Try another skin or reload the page.");
+        return;
+      }
       pixelsRef.current = loaded;
       setPixels(loaded);
       setOriginalPixels(new Uint8ClampedArray(loaded));
@@ -319,7 +334,8 @@ export function MinecraftSkinEditor({
       setError(null);
     };
     image.onerror = () => !cancelled && setError("The skin texture could not be loaded into the editor.");
-    image.src = `${skinUrl}${skinUrl.includes("?") ? "&" : "?"}editor=${Date.now()}`;
+    // Data/blob URLs and signed download URLs must be loaded unchanged.
+    image.src = skinUrl;
     return () => {
       cancelled = true;
     };
@@ -349,9 +365,7 @@ export function MinecraftSkinEditor({
     setPixels(next);
   }, []);
 
-  const floodFill = (startX: number, startY: number) => {
-    const current = pixelsRef.current;
-    if (!current) return;
+  const floodFill = (current: Uint8ClampedArray, startX: number, startY: number) => {
     const startOffset = (startY * 64 + startX) * 4;
     const targetR = current[startOffset];
     const targetG = current[startOffset + 1];
@@ -361,7 +375,7 @@ export function MinecraftSkinEditor({
     const [fillR, fillG, fillB] = hexToRgb(color);
     const fillA = tool === "eraser" ? 0 : 255;
 
-    if (targetR === fillR && targetG === fillG && targetB === fillB && targetA === fillA) return;
+    if (targetR === fillR && targetG === fillG && targetB === fillB && targetA === fillA) return current;
 
     const next = new Uint8ClampedArray(current);
     const queue: Array<[number, number]> = [[startX, startY]];
@@ -397,7 +411,7 @@ export function MinecraftSkinEditor({
         }
       }
     }
-    updatePixels(next);
+    return next;
   };
 
   const shadePixel = (x: number, y: number, amount: number) => {
@@ -426,13 +440,20 @@ export function MinecraftSkinEditor({
       return;
     }
 
+    const mirroredX = symmetry && part !== "full"
+      ? region.x + region.width - 1 - (x - region.x)
+      : x;
+
     if (tool === "bucket") {
-      floodFill(x, y);
+      let next = floodFill(current, x, y);
+      if (mirroredX !== x) next = floodFill(next, mirroredX, y);
+      updatePixels(next);
       return;
     }
 
     if (tool === "shade") {
       shadePixel(x, y, -0.08);
+      if (mirroredX !== x) shadePixel(mirroredX, y, -0.08);
       return;
     }
 
@@ -450,10 +471,7 @@ export function MinecraftSkinEditor({
       }
     };
     apply(x);
-    if (symmetry && part !== "full") {
-      const mirroredX = region.x + region.width - 1 - (x - region.x);
-      if (mirroredX !== x) apply(mirroredX);
-    }
+    if (mirroredX !== x) apply(mirroredX);
     updatePixels(next);
   };
 
@@ -496,6 +514,26 @@ export function MinecraftSkinEditor({
     setRedoStack((stack) => stack.slice(0, -1));
     setUndoStack((stack) => [...stack.slice(-39), new Uint8ClampedArray(pixels)]);
     updatePixels(new Uint8ClampedArray(next));
+  };
+
+  const restoreBodyPixels = () => {
+    const current = pixelsRef.current;
+    if (!current || !originalPixels) return;
+    const mask = new Uint8Array(64 * 64);
+    markFaces(mask, [...BASE_FACES, ...armBaseFaces(armModel)]);
+    const next = new Uint8ClampedArray(current);
+    for (let pixel = 0; pixel < mask.length; pixel += 1) {
+      const offset = pixel * 4;
+      if (mask[pixel] && next[offset + 3] < 255) {
+        next.set(originalPixels.subarray(offset, offset + 3), offset);
+        next[offset + 3] = 255;
+      }
+    }
+    setUndoStack((stack) => [...stack.slice(-39), new Uint8ClampedArray(current)]);
+    setRedoStack([]);
+    updatePixels(next);
+    setShowOriginal(false);
+    setMessage("Missing body pixels restored. Outer-layer transparency is unchanged.");
   };
 
   const save = async () => {
@@ -545,8 +583,14 @@ export function MinecraftSkinEditor({
 
   if (!pixels || !originalPixels) {
     return (
-      <div className="flex min-h-[520px] items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-cyan-200" />
+      <div className="flex min-h-[520px] items-center justify-center p-6">
+        {error ? (
+          <div role="alert" className="max-w-sm space-y-3 text-center">
+            <AlertTriangle className="mx-auto size-6 text-amber-300" />
+            <p className="text-sm text-zinc-200">{error}</p>
+            <p className="text-xs text-zinc-400">Choose another skin and open Edit again.</p>
+          </div>
+        ) : <Loader2 className="size-6 animate-spin text-cyan-200" />}
       </div>
     );
   }
@@ -559,6 +603,7 @@ export function MinecraftSkinEditor({
           <div>
             <p className="mb-2 text-[11px] font-bold text-zinc-300">Body view</p>
             <select
+              aria-label="Body view"
               value={part}
               onChange={(event) => setPart(event.target.value as EditorPart)}
               className="min-h-11 w-full rounded-md border border-white/10 bg-[#0d0f16] px-3 text-xs font-semibold text-white outline-none focus:border-cyan-300/35"
@@ -690,6 +735,10 @@ export function MinecraftSkinEditor({
               <input
                 type="color"
                 value={color}
+                onInput={(event) => {
+                  setColor(event.currentTarget.value);
+                  if (tool === "eraser" || tool === "picker") setTool("pencil");
+                }}
                 onChange={(event) => {
                   setColor(event.target.value);
                   if (tool === "eraser" || tool === "picker") setTool("pencil");
@@ -767,11 +816,20 @@ export function MinecraftSkinEditor({
                 <p className="text-xs font-bold text-white">{validation.valid ? "Skin is game-ready" : "Base layer needs repair"}</p>
                 <p className="mt-1 text-[10px] leading-4 text-zinc-500">
                   {validation.valid
-                    ? "All required UV pixels are opaque."
+                    ? "All required body pixels are filled."
                     : `${validation.transparentBasePixels} required pixels are transparent.`}
                 </p>
               </div>
             </div>
+            {!validation.valid && (
+              <button
+                type="button"
+                onClick={restoreBodyPixels}
+                className="mt-3 min-h-10 w-full rounded-md border border-amber-300/25 px-3 text-xs font-bold text-amber-100 hover:bg-amber-300/10"
+              >
+                Restore missing body pixels
+              </button>
+            )}
           </div>
 
           <div>

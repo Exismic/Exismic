@@ -142,7 +142,7 @@ export function Minecraft3DStudioViewer({
       viewer.autoRotateSpeed = 0.6;
       viewer.controls.enablePan = false;
       viewer.controls.enableZoom = true;
-      viewer.zoom = 1.02;
+      viewer.zoom = 0.8;
 
       // Apply overlay layer visibility
       if (viewer.playerObject?.skin) {
@@ -172,12 +172,12 @@ export function Minecraft3DStudioViewer({
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || !skinUrl) return;
-    void viewer.loadSkin(skinUrl).then(() => {
+    void viewer.loadSkin(skinUrl, { model: armModel === "slim" ? "slim" : "default" }).then(() => {
       if (viewer.playerObject?.skin) {
         viewer.playerObject.skin.setOuterLayerVisible(showOverlays);
       }
     });
-  }, [skinUrl, showOverlays]);
+  }, [skinUrl, showOverlays, armModel]);
 
   // Handle animation switch dynamically without recreating full canvas
   useEffect(() => {
@@ -240,7 +240,7 @@ export function Minecraft3DStudioViewer({
     const viewer = viewerRef.current;
     if (!viewer) return;
     viewer.resetCameraPose();
-    viewer.zoom = 1.02;
+    viewer.zoom = 0.8;
   };
 
   // Zoom controls
@@ -302,6 +302,7 @@ export function Minecraft3DStudioViewer({
         {/* Left: Animation Selector */}
         <div className="relative pointer-events-auto">
           <button
+            aria-label={`Character pose: ${currentAnim.label}`}
             onClick={() => {
               setIsAnimDropdownOpen(!isAnimDropdownOpen);
               setIsEnvDropdownOpen(false);
@@ -350,6 +351,7 @@ export function Minecraft3DStudioViewer({
           {/* Environment Selector */}
           <div className="relative">
             <button
+              aria-label={`Studio background: ${currentEnv.label}`}
               onClick={() => {
                 setIsEnvDropdownOpen(!isEnvDropdownOpen);
                 setIsAnimDropdownOpen(false);
@@ -364,7 +366,7 @@ export function Minecraft3DStudioViewer({
             {isEnvDropdownOpen && (
               <div className="absolute top-full right-0 mt-2 w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
                 <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2.5 py-1 block">
-                  Studio Lighting
+                  Studio Background
                 </span>
                 {ENVIRONMENT_OPTIONS.map((env) => {
                   const OptEnvIcon = env.icon;

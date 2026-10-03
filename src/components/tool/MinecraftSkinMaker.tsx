@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { loadSkinToCanvas } from "skinview-utils";
 import {
   BadgeCheck,
   Box,
@@ -43,6 +45,7 @@ import { MinecraftBetaModal } from "@/components/tool/MinecraftBetaModal";
 import {
   compileMinecraftSkin,
   createFallbackSkinDesign,
+  mergeMinecraftFaceStyleChange,
   type MinecraftArmModel,
   type MinecraftSkinDesign,
   type MinecraftSkinPalette,
@@ -96,7 +99,7 @@ interface GeneratedSkin {
 }
 
 export type EyeStyleMode = "anime" | "classic" | "glowing" | "minimal" | "visor";
-export type MouthStyleMode = "smile" | "neutral" | "smirk" | "open" | "none";
+export type MouthStyleMode = "smile" | "neutral" | "smirk" | "open" | "none" | "masked";
 
 export interface SkinBlueprint {
   id: string;
@@ -111,6 +114,7 @@ export interface SkinBlueprint {
   palette: MinecraftSkinPalette;
   description: string;
   traits: string[];
+  design?: Partial<MinecraftSkinDesign>;
 }
 
 export const MINECRAFT_BLUEPRINTS: SkinBlueprint[] = [
@@ -264,27 +268,38 @@ export const MINECRAFT_BLUEPRINTS: SkinBlueprint[] = [
     description: "Sky vessel mechanic in a sheepskin bomber jacket with brass flying goggles and utility gear.",
     traits: ["brass goggles", "leather bomber", "utility belt", "denim trousers"],
   },
+  ...[
+    { id: "duck-in-a-suit", name: "Duck in a Suit", subtitle: "Teal feathers and a golden bill", badge: "Character", prompt: "Teal duck with a golden bill wearing a charcoal suit, cream shirt, gold tie and dark trousers", armModel: "classic" as const, design: { characterType: "duck" as const, outfit: "formal" as const, garmentType: "jacket" as const, placket: "open_front" as const, innerGarment: "undershirt" as const } },
+    { id: "screen-head", name: "Screen Head", subtitle: "Blue screen and silver casing", badge: "Character", prompt: "TV-head character with a blue screen, silver casing, charcoal suit, purple tie and dark trousers", armModel: "classic" as const, design: { characterType: "tv" as const, outfit: "formal" as const, garmentType: "jacket" as const, placket: "open_front" as const, innerGarment: "undershirt" as const } },
+    { id: "plaid-wanderer", name: "Plaid Wanderer", subtitle: "Flannel jacket and ripped denim", badge: "Streetwear", prompt: "Red-haired wanderer wearing an open brown plaid flannel jacket, cream undershirt, ripped blue jeans and gray sneakers", armModel: "slim" as const, design: { topPattern: "plaid" as const, pantsDetail: "ripped" as const, garmentType: "jacket" as const, placket: "open_front" as const, innerGarment: "undershirt" as const, palette: { skin: "#e3baa4", skinShade: "#bf9481", hair: "#8a3338", hairHighlight: "#b25750", eyes: "#708b92", top: "#745143", topAccent: "#b18b6d", pants: "#627a95", shoes: "#b3b5bd", detail: "#c5b5a0" } } },
+    { id: "pastel-drift", name: "Pastel Drift", subtitle: "A flowing pastel gradient", badge: "Abstract", prompt: "Abstract pastel gradient character flowing from cyan through lavender and pink to pale yellow and sage green, with tiny soft glints", armModel: "slim" as const, design: { characterType: "abstract" as const, colorTreatment: "gradient" as const } },
+  ].map((preset): SkinBlueprint => ({
+    ...preset, style: "balanced", eyeStyle: "classic", mouthStyle: "none",
+    palette: preset.design.palette || createFallbackSkinDesign(preset.prompt, 998877).palette,
+    description: preset.prompt, traits: [],
+  })),
 ];
 
 function compileBlueprintToSkin(blueprint: SkinBlueprint): GeneratedSkin {
   const design: MinecraftSkinDesign = {
+    ...createFallbackSkinDesign(blueprint.prompt, 998877),
+    // Keep existing preset choices; new character presets use their prompt defaults.
+    ...(!blueprint.design ? {
+      hairStyle: "short" as const, outfit: "casual" as const, sleeves: "long" as const,
+      gloves: true, footwear: "boots" as const, pattern: "clean" as const,
+    } : {}),
     name: blueprint.name,
     description: blueprint.description,
-    hairStyle: "short",
-    outfit: "casual",
     expression: "calm-confident",
     eyeShape: "normal",
     eyeStyle: blueprint.eyeStyle,
     mouthStyle: blueprint.mouthStyle,
     facialHair: "none",
     faceStyle: blueprint.id === "cyber-samurai" ? "visor" : "open",
-    sleeves: "long",
-    gloves: true,
-    footwear: "boots",
-    pattern: "clean",
     emblem: "",
     traits: blueprint.traits,
     palette: blueprint.palette,
+    ...blueprint.design,
   };
   const seed = 998877;
   let newPixels: Uint8Array;
@@ -376,7 +391,8 @@ const MOUTH_OPTIONS: Array<{
   { id: "neutral", label: "Neutral", desc: "Subtle calm lip line" },
   { id: "smirk", label: "Smirk", desc: "Confident upward smirk" },
   { id: "open", label: "Open", desc: "Energetic open expression" },
-  { id: "none", label: "Masked", desc: "Clean under-mask or faceless look" },
+  { id: "none", label: "No mouth", desc: "Remove the lip line" },
+  { id: "masked", label: "Masked", desc: "Cover the lower face with a cloth mask" },
 ];
 
 function readFileAsDataUrl(file: File) {
@@ -452,6 +468,7 @@ export function MinecraftSkinMaker() {
   const [isVarying, setIsVarying] = useState(false);
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"craft" | "import">("craft");
+  const [isUpdatingFace, setIsUpdatingFace] = useState(false);
 
   // Initial mount: Pre-load Blueprint #1 (Standard 3: Zero Dead Void)
   useEffect(() => {
@@ -506,7 +523,20 @@ export function MinecraftSkinMaker() {
         throw new Error(data.error || `Could not find player "${cleanUsername}".`);
       }
 
-      const skinUrl = data.dataUrl || data.skinUrl;
+      const importedImage = new window.Image();
+      importedImage.crossOrigin = "anonymous";
+      importedImage.src = data.dataUrl || data.skinUrl;
+      await importedImage.decode();
+      const normalized = document.createElement("canvas");
+      loadSkinToCanvas(normalized, importedImage);
+      const texture = document.createElement("canvas");
+      texture.width = 64;
+      texture.height = 64;
+      const textureContext = texture.getContext("2d");
+      if (!textureContext) throw new Error("Your browser could not open the imported skin.");
+      textureContext.imageSmoothingEnabled = false;
+      textureContext.drawImage(normalized, 0, 0, 64, 64);
+      const skinUrl = texture.toDataURL("image/png");
       const fallbackDesign = createFallbackSkinDesign(cleanUsername);
       fallbackDesign.name = `${cleanUsername}'s Skin`;
 
@@ -558,6 +588,10 @@ export function MinecraftSkinMaker() {
   }, [isStyleDropdownOpen]);
 
   const enhancePromptWithAi = async () => {
+    if (!userId) {
+      setError("Sign in to improve your prompt with AI.");
+      return;
+    }
     if (!prompt.trim()) {
       setError("Type a character idea first, e.g. 'shadow ninja' or 'frost knight'");
       return;
@@ -593,72 +627,55 @@ export function MinecraftSkinMaker() {
     }
   };
 
-  const handleSelectEyeStyle = (newEyeStyle: EyeStyleMode) => {
-    setEyeStyle(newEyeStyle);
-    if (result) {
-      const updatedDesign: MinecraftSkinDesign = {
-        ...result.design,
-        eyeStyle: newEyeStyle,
-      };
-      let newPixels: Uint8Array;
-      if (result.renderer === "blueprint") {
+  const updateFaceStyle = async (patch: Pick<MinecraftSkinDesign, "eyeStyle"> | Pick<MinecraftSkinDesign, "mouthStyle">) => {
+    if (!result || !result.renderer || isUpdatingFace) return;
+    const source = result;
+    const updatedDesign: MinecraftSkinDesign = { ...source.design, ...patch };
+    const compile = (design: MinecraftSkinDesign) => {
+      if (source.renderer === "blueprint") {
         try {
-          newPixels = compileMinecraftSkinBlueprint(updatedDesign, result.seed, armModel, style, prompt);
+          return compileMinecraftSkinBlueprint(design, source.seed, source.armModel, style, prompt);
         } catch {
-          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
+          return compileMinecraftSkin(design, source.seed, source.armModel, toLegacySkinStyle(style), prompt);
         }
-      } else {
-        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
       }
+      return compileMinecraftSkin(design, source.seed, source.armModel, toLegacySkinStyle(style), prompt);
+    };
+    setIsUpdatingFace(true);
+    setError(null);
+    try {
+      const image = new window.Image();
+      image.crossOrigin = "anonymous";
+      image.src = source.skinUrl;
+      await image.decode();
       const canvas = document.createElement("canvas");
       canvas.width = 64;
       canvas.height = 64;
       const ctx = canvas.getContext("2d");
-      if (ctx) {
-        const imgData = ctx.createImageData(64, 64);
-        imgData.data.set(newPixels);
-        ctx.putImageData(imgData, 0, 0);
-        setResult({
-          ...result,
-          design: updatedDesign,
-          skinUrl: canvas.toDataURL("image/png"),
-        });
-      }
+      if (!ctx) throw new Error("Your browser could not open the skin for editing.");
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(image, 0, 0, 64, 64);
+      const current = new Uint8Array(ctx.getImageData(0, 0, 64, 64).data);
+      const imgData = ctx.createImageData(64, 64);
+      imgData.data.set(mergeMinecraftFaceStyleChange(current, compile(source.design), compile(updatedDesign)));
+      ctx.putImageData(imgData, 0, 0);
+      const skinUrl = canvas.toDataURL("image/png");
+      setResult((latest) => latest === source ? { ...source, design: updatedDesign, skinUrl } : latest);
+    } catch (faceError) {
+      setError(faceError instanceof Error ? faceError.message : "The face could not be updated. Try again.");
+    } finally {
+      setIsUpdatingFace(false);
     }
+  };
+
+  const handleSelectEyeStyle = (newEyeStyle: EyeStyleMode) => {
+    setEyeStyle(newEyeStyle);
+    void updateFaceStyle({ eyeStyle: newEyeStyle });
   };
 
   const handleSelectMouthStyle = (newMouthStyle: MouthStyleMode) => {
     setMouthStyle(newMouthStyle);
-    if (result) {
-      const updatedDesign: MinecraftSkinDesign = {
-        ...result.design,
-        mouthStyle: newMouthStyle,
-      };
-      let newPixels: Uint8Array;
-      if (result.renderer === "blueprint") {
-        try {
-          newPixels = compileMinecraftSkinBlueprint(updatedDesign, result.seed, armModel, style, prompt);
-        } catch {
-          newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
-        }
-      } else {
-        newPixels = compileMinecraftSkin(updatedDesign, result.seed, armModel, toLegacySkinStyle(style), prompt);
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = 64;
-      canvas.height = 64;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        const imgData = ctx.createImageData(64, 64);
-        imgData.data.set(newPixels);
-        ctx.putImageData(imgData, 0, 0);
-        setResult({
-          ...result,
-          design: updatedDesign,
-          skinUrl: canvas.toDataURL("image/png"),
-        });
-      }
-    }
+    void updateFaceStyle({ mouthStyle: newMouthStyle });
   };
 
   // Standard 4: Continuous Dynamic Progress Feedback Ticker
@@ -703,7 +720,7 @@ export function MinecraftSkinMaker() {
       setReferenceMode("guided");
       setNotice(
         optimized.looksLikeSkinLayout
-          ? "Skin-layout reference detected. Guided remix is active so Exismic preserves original pixels while applying prompt modifications."
+          ? "Skin texture added as a design reference. Choose Rebuild Skin to turn it into an editable skin."
           : "Reference photo added. Guided remix will capture color palette and character cues from your image."
       );
     } catch (uploadError) {
@@ -777,7 +794,7 @@ export function MinecraftSkinMaker() {
         payload.referenceRebuilt
           ? "Reference rebuilt as a clean, game-ready 64×64 texture."
           : payload.referenceGuided
-            ? "Reference texture preserved. Prompt edits applied accurately to 3D model."
+            ? "Your reference guided the new design. Inspect the result before downloading."
             : targetPart === "all"
               ? "Skin compiled and validated at 64×64."
               : `${PARTS.find((part) => part.id === targetPart)?.label} updated without changing other body parts.`
@@ -927,6 +944,7 @@ export function MinecraftSkinMaker() {
     if (!result) return;
     try {
       const response = await fetch(result.skinUrl);
+      if (!response.ok) throw new Error("The skin download is unavailable.");
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -943,9 +961,10 @@ export function MinecraftSkinMaker() {
   };
 
   const copyHex = (hex: string) => {
-    void navigator.clipboard.writeText(hex);
-    setCopiedColor(hex);
-    setTimeout(() => setCopiedColor(null), 1800);
+    void navigator.clipboard.writeText(hex).then(() => {
+      setCopiedColor(hex);
+      setTimeout(() => setCopiedColor(null), 1800);
+    }).catch(() => setError(`Could not copy automatically. The colour is ${hex}.`));
   };
 
   const applyEditorAiEdit = async (
@@ -962,7 +981,7 @@ export function MinecraftSkinMaker() {
         armModel: result.armModel,
         style,
         targetPart: editorTargetPart,
-        baseSkinUrl: result.skinUrl,
+        baseSkinUrl: editorReference,
         referenceImage: editorReference,
         referenceMode: "guided",
       }),
@@ -1110,6 +1129,7 @@ export function MinecraftSkinMaker() {
             {/* Card 2: Character Aesthetics & Silhouette */}
             <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 p-5 sm:p-6 shadow-xl space-y-5">
               <h3 className="text-sm font-black text-white">Body Silhouette & Art Style</h3>
+              <p className="text-xs text-zinc-400">Body and art style apply to your next generation.</p>
 
               {/* Arm Model (Silhouette) */}
               <div>
@@ -1211,10 +1231,15 @@ export function MinecraftSkinMaker() {
               </div>
 
               {/* Eye Style & Facial Expression */}
+              {result && !result.renderer ? (
+                <p className="pt-2 border-t border-white/5 text-xs text-zinc-400">Use the skin editor or Remix to change this imported face while keeping its original artwork.</p>
+              ) : result?.design.characterType && result.design.characterType !== "human" ? (
+                <p className="pt-2 border-t border-white/5 text-xs text-zinc-400">This character has a custom head. Use Remix or the skin editor to change its face.</p>
+              ) : (
               <div className="space-y-3 pt-2 border-t border-white/5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-zinc-400">Eye Aesthetics (Instant Switching: 0 Credits)</p>
-                  <span className="text-[10px] text-emerald-400 font-bold">Free Live Recompile</span>
+                  <p className="text-xs font-bold text-zinc-400">Eye Style</p>
+                  <span className="text-[10px] text-emerald-400 font-bold">Change for free</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1226,6 +1251,7 @@ export function MinecraftSkinMaker() {
                         key={option.id}
                         type="button"
                         onClick={() => handleSelectEyeStyle(option.id)}
+                        disabled={isUpdatingFace}
                         className={cn(
                           "flex items-center justify-between gap-2.5 rounded-xl border p-2.5 text-left transition cursor-pointer",
                           isSelected
@@ -1247,9 +1273,9 @@ export function MinecraftSkinMaker() {
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-zinc-400">Mouth & Lip Line:</span>
-                    <span className="text-[11px] text-cyan-300 font-bold capitalize">{mouthStyle}</span>
+                    <span className="text-[11px] text-cyan-300 font-bold">{MOUTH_OPTIONS.find((option) => option.id === mouthStyle)?.label}</span>
                   </div>
-                  <div className="grid grid-cols-5 gap-1.5 rounded-xl border border-white/10 bg-black/40 p-1.5">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 rounded-xl border border-white/10 bg-black/40 p-1.5">
                     {MOUTH_OPTIONS.map((option) => {
                       const isSelected = mouthStyle === option.id;
                       return (
@@ -1257,6 +1283,7 @@ export function MinecraftSkinMaker() {
                           key={option.id}
                           type="button"
                           onClick={() => handleSelectMouthStyle(option.id)}
+                          disabled={isUpdatingFace}
                           className={cn(
                             "rounded-lg py-2 px-1 text-center text-xs font-bold capitalize transition cursor-pointer",
                             isSelected
@@ -1272,6 +1299,7 @@ export function MinecraftSkinMaker() {
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Card 3: Gamertag Importer & Reference Photo (Drawer Tabs) */}
@@ -1377,9 +1405,9 @@ export function MinecraftSkinMaker() {
                           <p className="truncate text-xs font-black text-white">{referenceName}</p>
                           <p className="mt-1 text-[11px] text-zinc-400 leading-normal">
                             {referenceMode === "rebuild"
-                              ? "Clean 64×64 rebuild preserving exact UV textures."
+                              ? "Rebuild as a 64×64 skin texture."
                               : referenceMode === "guided"
-                                ? "Guided remix applying your prompt edits."
+                                ? "Use this image to guide your new design."
                                 : "Used as color and theme inspiration."}
                           </p>
                         </div>
@@ -1520,7 +1548,7 @@ export function MinecraftSkinMaker() {
                 disabled={isGenerating}
                 className="group relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 px-6 text-sm font-black text-white shadow-[0_10px_35px_rgba(6,182,212,0.35)] transition-all hover:shadow-[0_15px_45px_rgba(6,182,212,0.5)] hover:brightness-110 active:scale-[0.99] cursor-pointer disabled:opacity-60"
               >
-                <span className="relative flex items-center justify-center gap-2.5 whitespace-nowrap">
+                <span className="relative flex flex-wrap items-center justify-center gap-2.5 py-3 text-center">
                   {isGenerating ? (
                     <>
                       <Loader2 className="size-5 shrink-0 animate-spin" />
@@ -1576,13 +1604,13 @@ export function MinecraftSkinMaker() {
                 <p className="text-[11px] text-zinc-400">Spin, animate, inspect, and export your 64×64 texture.</p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="grid grid-cols-3 rounded-xl border border-white/10 bg-black/40 p-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="grid min-w-[220px] flex-1 grid-cols-3 rounded-xl border border-white/10 bg-black/40 p-1">
                   <button
                     type="button"
                     onClick={() => setPreviewMode("character")}
                     className={cn(
-                      "flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition cursor-pointer",
+                      "flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 sm:px-3 text-xs font-bold transition cursor-pointer",
                       previewMode === "character" ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30" : "text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1593,7 +1621,7 @@ export function MinecraftSkinMaker() {
                     type="button"
                     onClick={() => setPreviewMode("texture")}
                     className={cn(
-                      "flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition cursor-pointer",
+                      "flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 sm:px-3 text-xs font-bold transition cursor-pointer",
                       previewMode === "texture" ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30" : "text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1605,7 +1633,7 @@ export function MinecraftSkinMaker() {
                     disabled={!result}
                     onClick={() => setPreviewMode("editor")}
                     className={cn(
-                      "flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30",
+                      "flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 sm:px-3 text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30",
                       previewMode === "editor" ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30" : "text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1799,6 +1827,7 @@ export function MinecraftSkinMaker() {
                     <button
                       type="button"
                       onClick={() => {
+                        setError(null);
                         setRemixPrompt("");
                         setRemixModalOpen(true);
                       }}
@@ -1913,8 +1942,7 @@ export function MinecraftSkinMaker() {
       </div>
 
       {/* Character Remix Modal */}
-      <AnimatePresence>
-        {remixModalOpen && (
+        {remixModalOpen && createPortal(
           <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -1927,7 +1955,10 @@ export function MinecraftSkinMaker() {
               initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/15 bg-[#090b14] p-6 sm:p-7 shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(6,182,212,0.2)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="minecraft-remix-title"
+              className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 bg-[#090b14] p-6 sm:p-7 shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(6,182,212,0.2)]"
             >
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
@@ -1935,12 +1966,13 @@ export function MinecraftSkinMaker() {
                     <SlidersHorizontal className="size-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-white">Remix Character Features</h3>
+                    <h3 id="minecraft-remix-title" className="text-base font-black text-white">Remix Character Features</h3>
                     <p className="text-xs text-zinc-400">Modify specific elements while locking the core character look.</p>
                   </div>
                 </div>
                 <button
                   type="button"
+                  aria-label="Close remix"
                   onClick={() => setRemixModalOpen(false)}
                   className="grid size-8 place-items-center rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white cursor-pointer"
                 >
@@ -1996,8 +2028,10 @@ export function MinecraftSkinMaker() {
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+              {error && <p role="alert" className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-xs leading-5 text-red-200">{error}</p>}
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                <div className="flex items-center gap-1.5 whitespace-nowrap text-xs text-zinc-400">
                   <span>Cost:</span>
                   <span className="font-bold text-cyan-300">{isPro ? 16 : 25} credits</span>
                 </div>
@@ -2005,7 +2039,7 @@ export function MinecraftSkinMaker() {
                   <button
                     type="button"
                     onClick={() => setRemixModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                    className="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -2013,7 +2047,7 @@ export function MinecraftSkinMaker() {
                     type="button"
                     onClick={handleRemix}
                     disabled={isRemixing || !remixPrompt.trim()}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
+                    className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {isRemixing ? (
                       <>
@@ -2030,9 +2064,8 @@ export function MinecraftSkinMaker() {
                 </div>
               </div>
             </motion.div>
-          </div>
+          </div>, document.body
         )}
-      </AnimatePresence>
 
       {/* Out of Credits / Pro Upsell Modal */}
       <CreditModal

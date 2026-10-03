@@ -1,3 +1,5 @@
+import { inferSkinArt, sanitizeSkinPixelArt, SKIN_CHARACTER_TYPES, SKIN_CHARACTER_PALETTES, type SkinCharacterType, type SkinPixelArtFace } from "./minecraft-skin-art-types";
+
 export type MinecraftArmModel = "classic" | "slim";
 export type MinecraftSkinPart = "all" | "head" | "torso" | "arms" | "legs";
 export type MinecraftSkinStyle = "balanced" | "pixel-detailed" | "minimal" | "high-contrast";
@@ -23,7 +25,7 @@ export interface MinecraftSkinDesign {
   expression: "neutral" | "friendly" | "serious" | "calm-confident";
   eyeShape: "normal" | "angry" | "soft";
   eyeStyle?: "anime" | "classic" | "glowing" | "minimal" | "visor";
-  mouthStyle?: "smile" | "neutral" | "smirk" | "open" | "none";
+  mouthStyle?: "smile" | "neutral" | "smirk" | "open" | "none" | "masked";
   facialHair: "none" | "stubble" | "short-beard" | "goatee";
   faceStyle: "open" | "mask" | "visor";
   sleeves: "short" | "long" | "armored";
@@ -61,6 +63,12 @@ export interface MinecraftSkinDesign {
   lightingDirection?: "upper-left" | "upper-right" | "front" | "top-down";
   asymmetry?: boolean;
   negativeConstraints?: string[];
+  characterType?: SkinCharacterType;
+  topPattern?: "clean" | "plaid" | "striped";
+  pantsDetail?: "clean" | "ripped" | "patchwork";
+  graphic?: "none" | "skull" | "heart" | "checker" | "bolt";
+  colorTreatment?: "solid" | "gradient";
+  pixelArt?: SkinPixelArtFace[];
 }
 
 type Rgba = [number, number, number, number];
@@ -541,6 +549,19 @@ function extractPromptPalette(prompt: string): Partial<MinecraftSkinPalette> {
   };
 }
 
+export function extractMinecraftCharacterPalette(prompt: string): Partial<MinecraftSkinPalette> {
+  const kind = inferSkinArt(prompt).characterType;
+  if (kind === "human" || kind === "abstract") return {};
+  const skin = colorNearContext(prompt, kind === "tv" ? ["casing", "case"] : [kind, "head", "feathers", "fur", "body"]);
+  const accent = colorNearContext(prompt.replace(/\bgolden\b/gi, "gold"), ["bill", "beak", "tie", "feature"]);
+  const eyes = colorNearContext(prompt, ["eyes", "screen", "optics", "display"]);
+  const detail = colorNearContext(prompt, ["mouth", "markings", "glyph"]);
+  return {
+    ...(skin ? { skin, skinShade: shade(skin, -0.16), ...(kind === "tv" ? { hair: skin, hairHighlight: shade(skin, 0.12) } : {}) } : {}),
+    ...(accent ? { topAccent: accent } : {}), ...(eyes ? { eyes } : {}), ...(detail ? { detail } : {}),
+  };
+}
+
 function requestsAngryEyes(prompt: string) {
   return (
     /\b(angry|sharp|fierce|intense|menacing)\b[^,.]{0,28}\b(eyes?|eyebrows?)\b/i.test(prompt) ||
@@ -895,6 +916,13 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
   ];
   const complexion = palettes[seed % palettes.length];
   const promptPalette = extractPromptPalette(prompt);
+  const characterType = inferSkinArt(prompt).characterType;
+  const characterPalette = SKIN_CHARACTER_PALETTES[characterType];
+  // Head colors must not inherit an unrelated first clothing color in the prompt.
+  if (characterPalette) for (const key of ["skin", "skinShade", "hair", "hairHighlight", "eyes", "topAccent", "detail"] as const) {
+    if (characterPalette[key]) promptPalette[key] = characterPalette[key];
+  }
+  Object.assign(promptPalette, extractMinecraftCharacterPalette(prompt));
 
   // Safe emblem extraction: only extract if explicitly designated as emblem/logo/text or quoted
   let fallbackEmblem = "";
@@ -975,6 +1003,8 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
 
   return {
     name: prompt.trim().split(/\s+/).slice(0, 5).join(" ") || "Exismic Skin",
+    ...inferSkinArt(prompt),
+    pixelArt: [],
     description: `A Minecraft-compatible character inspired by: ${prompt.trim() || "a modern adventurer"}.`,
     hairStyle,
     hairSilhouette,
@@ -1019,20 +1049,25 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
     pattern,
     emblem: fallbackEmblem,
     traits: traitCandidates.slice(0, 8),
-    palette: sanitizePalette({ ...DEFAULT_PALETTE, ...complexion, ...theme?.palette, ...promptPalette }),
+    palette: sanitizePalette({ ...DEFAULT_PALETTE, ...complexion, ...theme?.palette, ...SKIN_CHARACTER_PALETTES[inferSkinArt(prompt).characterType], ...promptPalette }),
     headphones: isHeadphones,
     glasses: isGlasses,
     cables: isCables,
     horns: isHorns,
     crown: isRoyalCrown,
     halo: isHalo,
-    placket: /open front|open at front|unzipped/i.test(lower) ? "open_front" : "center_zip",
+    placket: /open front|open at front|unzipped/i.test(lower) ? "open_front"
+      : /zipper|zip[- ]?up|bomber|track jacket/i.test(lower) ? "center_zip"
+        : sleeves === "armored" ? "armor_fauld" : "pullover",
     midLayer: isHoodieGarment && /bomber|jacket|coat/i.test(lower) ? "hoodie" : "none",
     innerGarment: /undershirt|tee|t-shirt/i.test(lower) ? "undershirt" : "none",
     zipper: /silver zipper/i.test(lower) ? "silver" : /gold zipper/i.test(lower) ? "gold" : "none",
-    sleeveStyle: /layered sleeves?|slouch/i.test(lower) ? "slouch_gather" : "short_sleeve",
+    sleeveStyle: /long[- ]sleeve (?:under|beneath)|layered sleeves?/i.test(lower) ? "layered_undershirt"
+      : sleeves === "short" ? "short_sleeve"
+        : sleeves === "armored" ? "gauntlet_bracer"
+          : /rolled sleeves?/i.test(lower) ? "rolled_cuff" : "slouch_gather",
     pantsType: /cargo/i.test(lower) ? "wide_cargo" : /jeans/i.test(lower) ? "relaxed_jeans" : "tailored_trousers",
-    cargoPockets: /cargo pockets?/i.test(lower),
+    cargoPockets: /\bcargo(?:s| pants| trousers| pockets)?\b/i.test(lower),
     socks: "none",
     lightingDirection: /upper-left|upper left/i.test(lower) ? "upper-left" : "front",
     asymmetry: /asymmetr/i.test(lower),
@@ -1062,7 +1097,7 @@ export function sanitizeSkinDesign(
   const expressions = ["neutral", "friendly", "serious", "calm-confident"] as const;
   const eyeShapes = ["normal", "angry", "soft"] as const;
   const eyeStyles = ["anime", "classic", "glowing", "minimal", "visor"] as const;
-  const mouthStyles = ["smile", "neutral", "smirk", "open", "none"] as const;
+  const mouthStyles = ["smile", "neutral", "smirk", "open", "none", "masked"] as const;
   const facialHair = ["none", "stubble", "short-beard", "goatee"] as const;
   const faceStyles = ["open", "mask", "visor"] as const;
   const sleeves = ["short", "long", "armored"] as const;
@@ -1085,6 +1120,14 @@ export function sanitizeSkinDesign(
   const pick = <T extends string>(candidate: unknown, options: readonly T[], defaultValue: T) =>
     typeof candidate === "string" && options.includes(candidate as T) ? candidate as T : defaultValue;
 
+  // Older saved skins and the previous AI schema used different names and booleans.
+  // Reconcile those at the boundary so the renderer only receives supported tokens.
+  const alias = (candidate: unknown, aliases: Record<string, string>) =>
+    typeof candidate === "string" ? aliases[candidate] || candidate : candidate;
+  const raw = value as Record<string, unknown>;
+  const placket = pick(alias(value.placket, { open: "open_front", zipper: "center_zip", closed: "pullover" }),
+    ["open_front", "center_zip", "pullover", "buttons_single", "buttons_double", "haori_wrap", "armor_fauld"] as const, fallback.placket || "pullover");
+
   return {
     name: typeof value.name === "string" ? value.name.trim().slice(0, 60) || fallback.name : fallback.name,
     description: typeof value.description === "string"
@@ -1098,8 +1141,11 @@ export function sanitizeSkinDesign(
     hoodState: pick(value.hoodState, hoodStates, fallback.hoodState || "none"),
     fit: pick(value.fit, fits, fallback.fit || "oversized"),
     bangsStyle: pick(value.bangsStyle, bangsStyles, fallback.bangsStyle || "curtain"),
-    footwearStyle: pick(value.footwearStyle, footwearStyles, fallback.footwearStyle || "high-top-sneaker"),
-    drawstrings: pick(value.drawstrings, drawstringStyles, fallback.drawstrings || "thin"),
+    hairLength: pick(value.hairLength, ["short", "medium", "long"] as const, value.hairStyle === "long" || fallback.hairStyle === "long" ? "long" : "short"),
+    collarStyle: pick(value.collarStyle, ["hood-collar", "crew", "v-neck", "turtleneck", "open"] as const,
+      /\bturtleneck\b/i.test(prompt) ? "turtleneck" : /\bhoodie\b/i.test(prompt) ? "hood-collar" : "crew"),
+    footwearStyle: pick(alias(value.footwearStyle, { "chunky-sneakers": "chunky-sneaker", "high-top-skate": "high-top-sneaker" }), footwearStyles, fallback.footwearStyle || "high-top-sneaker"),
+    drawstrings: pick(typeof raw.drawstrings === "boolean" ? (raw.drawstrings ? "thin" : "none") : value.drawstrings, drawstringStyles, fallback.drawstrings || "none"),
     outfit: pick(value.outfit, outfits, fallback.outfit),
     expression: pick(value.expression, expressions, fallback.expression),
     eyeShape: pick(value.eyeShape, eyeShapes, fallback.eyeShape),
@@ -1124,17 +1170,23 @@ export function sanitizeSkinDesign(
     horns: typeof value.horns === "boolean" ? value.horns : fallback.horns,
     crown: typeof value.crown === "boolean" ? value.crown : fallback.crown,
     halo: typeof value.halo === "boolean" ? value.halo : fallback.halo,
-    placket: value.placket ?? fallback.placket,
-    midLayer: value.midLayer ?? fallback.midLayer,
-    innerGarment: value.innerGarment ?? fallback.innerGarment,
-    zipper: value.zipper ?? fallback.zipper,
-    sleeveStyle: value.sleeveStyle ?? fallback.sleeveStyle,
-    pantsType: value.pantsType ?? fallback.pantsType,
+    placket,
+    midLayer: pick(value.midLayer, ["hoodie", "sweater", "vest", "none"] as const, fallback.midLayer || "none"),
+    innerGarment: pick(alias(value.innerGarment, { "white undershirt": "undershirt", "t-shirt": "crew_tee", "tank-top": "crew_tee" }), ["undershirt", "crew_tee", "graphic_tee", "turtleneck", "striped_undershirt", "v_neck_tee", "tunic", "none"] as const, fallback.innerGarment || "none"),
+    zipper: pick(typeof raw.zipper === "boolean" ? (raw.zipper ? "silver" : "none") : value.zipper, ["silver", "gold", "black", "none"] as const, fallback.zipper || "none"),
+    sleeveStyle: pick(alias(value.sleeveStyle, { "ribbed-cuff": "slouch_gather", loose: "slouch_gather", rolled: "rolled_cuff", armored: "gauntlet_bracer", straight: "slouch_gather" }), ["layered_undershirt", "slouch_gather", "short_sleeve", "rolled_cuff", "wide_haori", "gauntlet_bracer"] as const, value.sleeves === "short" ? "short_sleeve" : fallback.sleeveStyle || "slouch_gather"),
+    pantsType: pick(alias(value.pantsType, { "relaxed-cargo": "wide_cargo", "baggy-jeans": "relaxed_jeans", "ripped-denim": "relaxed_jeans", "techwear-joggers": "jumpsuit_cuffed", "armored-greaves": "tailored_trousers", "tailored-trousers": "tailored_trousers", shorts: "shorts_knee_highs", skirt: "pleated_skirt" }), ["wide_cargo", "relaxed_jeans", "tailored_trousers", "pleated_skirt", "jumpsuit_cuffed", "shorts_knee_highs"] as const, fallback.pantsType || "relaxed_jeans"),
     cargoPockets: typeof value.cargoPockets === "boolean" ? value.cargoPockets : fallback.cargoPockets,
-    socks: value.socks ?? fallback.socks,
-    lightingDirection: value.lightingDirection ?? fallback.lightingDirection,
+    socks: pick(value.socks, ["none", "ankle", "knee_high_plain", "knee_high_striped"] as const, fallback.socks || "none"),
+    lightingDirection: pick(value.lightingDirection, ["upper-left", "upper-right", "front", "top-down"] as const, fallback.lightingDirection || "front"),
     asymmetry: typeof value.asymmetry === "boolean" ? value.asymmetry : fallback.asymmetry,
     negativeConstraints: Array.isArray(value.negativeConstraints) ? value.negativeConstraints : fallback.negativeConstraints,
+    characterType: pick(value.characterType, SKIN_CHARACTER_TYPES, fallback.characterType || "human"),
+    topPattern: pick(value.topPattern, ["clean", "plaid", "striped"] as const, fallback.topPattern || "clean"),
+    pantsDetail: pick(value.pantsDetail, ["clean", "ripped", "patchwork"] as const, fallback.pantsDetail || "clean"),
+    graphic: pick(value.graphic, ["none", "skull", "heart", "checker", "bolt"] as const, fallback.graphic || "none"),
+    colorTreatment: pick(value.colorTreatment, ["solid", "gradient"] as const, fallback.colorTreatment || "solid"),
+    pixelArt: sanitizeSkinPixelArt(value.pixelArt, pick(value.characterType, SKIN_CHARACTER_TYPES, fallback.characterType || "human")),
   };
 }
 
@@ -3050,6 +3102,39 @@ export function applyPromptEditsToMinecraftSkin(
   return canvas.pixels;
 }
 
+// Apply explicit mouth choices after face construction so a visor/mask inferred
+// from the prompt cannot silently swallow the selected expression.
+export function applyMinecraftMouthStyle(pixels: Uint8Array, design: MinecraftSkinDesign) {
+  if (!design.mouthStyle || (design.characterType && design.characterType !== "human")) return;
+  const put = (x: number, y: number, color: string) => pixels.set(hexToRgba(color), (y * 64 + x) * 4);
+  const skin = design.palette.skin;
+  const lip = `#${hexToRgba(skin).slice(0, 3).map((channel, i) => Math.round(channel * 0.5 + [76, 45, 54][i] * 0.5).toString(16).padStart(2, "0")).join("")}`;
+  // Clear the previous central mouth while retaining eyes, cheeks and beard edges.
+  for (let y = 13; y <= 14; y++) for (let x = 10; x <= 13; x++) put(x, y, skin);
+  switch (design.mouthStyle) {
+    case "smile":
+      put(10, 13, lip); put(13, 13, lip); put(11, 14, lip); put(12, 14, lip);
+      break;
+    case "neutral":
+      put(11, 14, lip); put(12, 14, lip);
+      break;
+    case "smirk":
+      put(13, 13, lip); put(11, 14, lip); put(12, 14, lip); put(13, 14, lip);
+      break;
+    case "open":
+      put(11, 13, "#f1e7dd"); put(12, 13, "#f1e7dd");
+      put(11, 14, "#3b2025"); put(12, 14, "#3b2025");
+      break;
+    case "masked": {
+      const fabric = design.palette.top;
+      for (let y = 13; y <= 15; y++) for (let x = 8; x <= 15; x++) {
+        put(x, y, shadeWithHueShift(fabric, y === 13 ? 0.14 : y === 15 ? -0.2 : 0, "fabric"));
+      }
+      break;
+    }
+  }
+}
+
 export function compileMinecraftSkin(
   design: MinecraftSkinDesign,
   seed: number,
@@ -3067,6 +3152,8 @@ export function compileMinecraftSkin(
   paintLeg(canvas, "right", design, style, prompt, random);
   paintLeg(canvas, "left", design, style, prompt, random);
 
+  applyMinecraftMouthStyle(canvas.pixels, design);
+
   // 1. Bake contact seam ambient occlusion (under chin, neck, groin, joints)
   applySeamAmbientOcclusion(canvas);
 
@@ -3080,7 +3167,7 @@ const PART_RECTS: Record<Exclude<MinecraftSkinPart, "all">, Face[]> = {
   head: [{ x: 0, y: 0, width: 64, height: 16 }],
   torso: [
     { x: 16, y: 16, width: 24, height: 16 },
-    { x: 16, y: 32, width: 32, height: 16 },
+    { x: 16, y: 32, width: 24, height: 16 },
   ],
   arms: [
     { x: 40, y: 16, width: 16, height: 32 },
@@ -3101,6 +3188,20 @@ export function mergeMinecraftSkinPart(base: Uint8Array, generated: Uint8Array, 
   output.pixels.set(base);
   PART_RECTS[part].forEach((face) => output.copyRectFrom(generated, face));
   return output.pixels;
+}
+
+// Apply only the pixels changed by a face control, keeping manual artwork intact.
+export function mergeMinecraftFaceStyleChange(base: Uint8Array, before: Uint8Array, after: Uint8Array) {
+  if ([base, before, after].some((pixels) => pixels.length !== 64 * 64 * 4)) {
+    throw new Error("Skin buffers must be 64x64 RGBA.");
+  }
+  const output = new Uint8Array(base);
+  for (let offset = 0; offset < 64 * 16 * 4; offset += 4) {
+    if (before.slice(offset, offset + 4).some((channel, index) => channel !== after[offset + index])) {
+      output.set(after.subarray(offset, offset + 4), offset);
+    }
+  }
+  return output;
 }
 
 export function getMinecraftSkinSeed(prompt: string, requestedSeed?: number) {
