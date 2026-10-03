@@ -33,6 +33,8 @@ interface MinecraftSkinEditorProps {
   armModel: MinecraftArmModel;
   onSaved: (skinUrl: string) => void;
   onAiEdit: (command: string, targetPart: MinecraftSkinPart, referenceImage: string) => Promise<void>;
+  disabled?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 }
 
 const PART_OPTIONS: Array<{ id: EditorPart; label: string }> = [
@@ -277,6 +279,8 @@ export function MinecraftSkinEditor({
   armModel,
   onSaved,
   onAiEdit,
+  disabled = false,
+  onBusyChange,
 }: MinecraftSkinEditorProps) {
   const [pixels, setPixels] = useState<Uint8ClampedArray | null>(null);
   const [originalPixels, setOriginalPixels] = useState<Uint8ClampedArray | null>(null);
@@ -295,6 +299,7 @@ export function MinecraftSkinEditor({
   const [aiCommand, setAiCommand] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const operationRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -430,6 +435,7 @@ export function MinecraftSkinEditor({
   };
 
   const paintPixel = (x: number, y: number) => {
+    if (disabled || operationRef.current) return;
     const current = pixelsRef.current;
     if (!current) return;
     const offset = (y * 64 + x) * 4;
@@ -476,6 +482,7 @@ export function MinecraftSkinEditor({
   };
 
   const beginStroke = () => {
+    if (disabled || operationRef.current) return;
     if (tool !== "picker" && pixelsRef.current) {
       strokeStartRef.current = new Uint8ClampedArray(pixelsRef.current);
     }
@@ -537,7 +544,10 @@ export function MinecraftSkinEditor({
   };
 
   const save = async () => {
+    if (disabled || operationRef.current) return;
     if (!pixels || !validation.valid) return;
+    operationRef.current = true;
+    onBusyChange?.(true);
     setIsSaving(true);
     setError(null);
     try {
@@ -563,11 +573,16 @@ export function MinecraftSkinEditor({
       setError(saveError instanceof Error ? saveError.message : "Could not save the edited skin.");
     } finally {
       setIsSaving(false);
+      operationRef.current = false;
+      onBusyChange?.(false);
     }
   };
 
   const runAiEdit = async () => {
+    if (disabled || operationRef.current) return;
     if (!pixels || aiCommand.trim().length < 3) return;
+    operationRef.current = true;
+    onBusyChange?.(true);
     setIsAiEditing(true);
     setError(null);
     setMessage(null);
@@ -578,6 +593,8 @@ export function MinecraftSkinEditor({
       setError(aiError instanceof Error ? aiError.message : "Exismic could not apply that edit.");
     } finally {
       setIsAiEditing(false);
+      operationRef.current = false;
+      onBusyChange?.(false);
     }
   };
 
@@ -596,7 +613,7 @@ export function MinecraftSkinEditor({
   }
 
   return (
-    <div className="min-h-[520px] bg-[#070810] p-3 sm:p-5">
+    <fieldset disabled={disabled || isSaving || isAiEditing} className="min-w-0 min-h-[520px] bg-[#070810] p-3 sm:p-5">
       <div className="grid gap-4 2xl:grid-cols-[240px_minmax(0,1fr)_280px]">
         {/* LEFT PANEL: BODY VIEW & TOOLS */}
         <aside className="space-y-4 rounded-lg border border-white/10 bg-black/25 p-3">
@@ -843,7 +860,7 @@ export function MinecraftSkinEditor({
             <button
               type="button"
               onClick={() => void runAiEdit()}
-              disabled={isAiEditing || aiCommand.trim().length < 3}
+              disabled={disabled || isSaving || isAiEditing || aiCommand.trim().length < 3}
               className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-violet-300/20 bg-violet-400/10 text-xs font-bold text-violet-100 transition hover:bg-violet-400/15 disabled:opacity-40"
             >
               {isAiEditing ? <Loader2 className="size-4 animate-spin" /> : <Paintbrush className="size-4" />}
@@ -863,7 +880,7 @@ export function MinecraftSkinEditor({
           <button
             type="button"
             onClick={() => void save()}
-            disabled={isSaving || !validation.valid}
+            disabled={disabled || isSaving || isAiEditing || !validation.valid}
             className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 text-xs font-black text-black shadow-lg transition hover:brightness-110 disabled:opacity-40"
           >
             {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
@@ -871,6 +888,6 @@ export function MinecraftSkinEditor({
           </button>
         </aside>
       </div>
-    </div>
+    </fieldset>
   );
 }

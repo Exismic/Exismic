@@ -35,6 +35,8 @@ import {
   buildDesignInstruction,
   buildSkinArtConstraints,
   mergeRemixDesign,
+  mergeMinecraftRemixPixels,
+  minecraftRemixParts,
 } from "@/lib/minecraft-skin-control";
 import { DEFAULT_GROQ_TEXT_MODEL, DEFAULT_GROQ_VISION_MODEL } from "@/lib/ai-models";
 
@@ -289,7 +291,8 @@ async function createAiDesign(
   style: string,
   targetPart: MinecraftSkinPart,
   referenceMode: "inspire" | "guided" | "rebuild",
-  referenceImage?: string
+  referenceImage?: string,
+  parentDesign?: Partial<MinecraftSkinDesign>,
 ): Promise<Partial<MinecraftSkinDesign> | null> {
   const keys = getGroqKeys();
   if (!keys.length) {
@@ -300,7 +303,9 @@ async function createAiDesign(
   const hasValidReference = Boolean(
     referenceImage && /^data:image\/(png|jpe?g|webp);base64,/i.test(referenceImage)
   );
-  const instruction = buildDesignInstruction(prompt, style, targetPart, referenceMode);
+  const instruction = buildDesignInstruction(prompt, style, targetPart, referenceMode) + (parentDesign
+    ? `\nCURRENT CHARACTER: ${JSON.stringify(parentDesign)}\nApply only the requested change. Keep the existing outfit structure, colors and features unless explicitly changed. A skin reference is a flat 64x64 Minecraft UV texture atlas, not a portrait.`
+    : "");
   const userContent = hasValidReference
     ? [
       {
@@ -322,6 +327,7 @@ async function createAiDesign(
         },
         body: JSON.stringify({
           model: hasValidReference ? VISION_MODEL : TEXT_MODEL,
+          ...(hasValidReference ? { reasoning_effort: "none" } : {}),
           temperature: referenceMode === "guided" ? 0.20 : 0.15,
           max_tokens: 6000,
           response_format: {
@@ -565,6 +571,7 @@ export async function PUT(request: NextRequest) {
           height: 64,
           armModel: parsed.data.armModel,
           edited: true,
+          sizeBytes: png.length,
           editor: "pixel-studio",
         },
       },
@@ -751,6 +758,10 @@ export async function POST(request: NextRequest) {
       remixInstruction,
     } = body.data;
 
+    if (action === "remix" && !minecraftRemixParts(remixInstruction || prompt).length) {
+      return NextResponse.json({ error: "Describe something you want to change, such as the jacket color." }, { status: 400 });
+    }
+
     let seed = getMinecraftSkinSeed(prompt, body.data.seed);
     const user = apiUser ? await ensureDatabaseUser(apiUser) : null;
     const isPro = Boolean(user && (user.plan === "pro" || user.subscriptionStatus === "active"));
@@ -785,7 +796,17 @@ export async function POST(request: NextRequest) {
       // Generate a genuinely distinct composition seed to vary hair flow, asymmetry, and clusters
       seed = ((body.data.seed || seed) + Math.floor(Math.random() * 999999) + 1) % 4294967296;
       if (parentDesign && typeof parentDesign === "object") {
-        aiDesign = parentDesign as Partial<MinecraftSkinDesign>;
+        const parent = parentDesign as Partial<MinecraftSkinDesign>;
+        effectivePrompt = parent.description || prompt;
+        const variation = await remixAiDesign(parent,
+          "Draw a fresh original variation of the sparse pixelArt: change connected hair highlight clusters, small cloth fold highlights, seam stitches and screen artwork. Keep character type, all palette colors, garment types, facial features and accessories unchanged. Provide 2-6 new valid sparse face drawings, not flat material fills.", style);
+        if (variation) {
+          aiDesign = {
+            ...parent,
+            pixelArt: variation.pixelArt?.length ? variation.pixelArt : parent.pixelArt,
+            lightingDirection: parent.lightingDirection === "upper-left" ? "upper-right" : "upper-left",
+          };
+        }
       } else {
         aiDesign = await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
       }
@@ -795,17 +816,21 @@ export async function POST(request: NextRequest) {
       effectivePrompt = instruction;
       if (parentDesign && typeof parentDesign === "object") {
         const rawRemix = await remixAiDesign(parentDesign as Partial<MinecraftSkinDesign>, instruction, style);
-        aiDesign = mergeRemixDesign(parentDesign as Partial<MinecraftSkinDesign>, rawRemix || {}, instruction);
+        if (rawRemix) aiDesign = mergeRemixDesign(parentDesign as Partial<MinecraftSkinDesign>, rawRemix, instruction);
       } else {
         aiDesign = await createAiDesign(instruction, style, targetPart, referenceMode, referenceImage);
       }
     } else {
       // Standard Generation
-      aiDesign = await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage);
+      aiDesign = await createAiDesign(prompt, style, targetPart, referenceMode, referenceImage, parentDesign as Partial<MinecraftSkinDesign> | undefined);
+      if (aiDesign && parentDesign && targetPart !== "all") {
+        aiDesign = mergeRemixDesign(parentDesign as Partial<MinecraftSkinDesign>, aiDesign, prompt);
+      }
     }
 
     if (!referenceRebuilt && !aiDesign) {
-      console.warn("[Minecraft Skin] AI-directed design extraction was unsuccessful; fallback design was used. aiDirected = false");
+      // Do not store or charge for a basic fallback presented as a successful AI edit.
+      return NextResponse.json({ error: "The AI could not finish this skin. Your credits were not used. Please try again shortly." }, { status: 503 });
     }
 
     // Palette Precedence: Groq extraction (honoring prompt overrides) takes precedence over image color counts
@@ -824,6 +849,9 @@ export async function POST(request: NextRequest) {
     );
 
     const referenceGuided = Boolean(referenceImage && referenceMode === "guided" && !referenceRebuilt);
+    const renderPrompt = parentDesign && (action === "remix" || targetPart !== "all")
+      ? `${typeof parentDesign.description === "string" ? parentDesign.description : prompt}. ${effectivePrompt}`
+      : effectivePrompt;
     let generated: Uint8Array;
     let renderer: "blueprint" | "procedural" = "procedural";
 
@@ -836,27 +864,29 @@ export async function POST(request: NextRequest) {
 
     if (referenceRebuilt) {
       generated = await rebuildReferenceTexture(referenceImage!, armModel as MinecraftArmModel);
-    } else if (process.env.FEATURE_FLAG_BLUEPRINT_RENDERER === "true") {
+    } else if (process.env.FEATURE_FLAG_BLUEPRINT_RENDERER !== "false") {
       try {
         generated = compileMinecraftSkinBlueprint(
           design,
           seed,
           armModel as MinecraftArmModel,
           style as any,
-          effectivePrompt
+          renderPrompt
         );
         renderer = "blueprint";
       } catch (blueprintError) {
         console.error("[Minecraft Skin] Blueprint compilation failed, falling back to legacy:", blueprintError);
-        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, legacyStyle, effectivePrompt);
+        generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, legacyStyle, renderPrompt);
         renderer = "procedural";
       }
     } else {
-      generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, legacyStyle, effectivePrompt);
+      generated = compileMinecraftSkin(design, seed, armModel as MinecraftArmModel, legacyStyle, renderPrompt);
     }
-    const pixels = targetPart === "all"
-      ? generated
-      : mergeMinecraftSkinPart(await loadBaseSkin(baseSkinUrl), generated, targetPart);
+    const pixels = action === "remix" && baseSkinUrl
+      ? mergeMinecraftRemixPixels(await loadBaseSkin(baseSkinUrl), generated, remixInstruction || prompt)
+      : targetPart === "all"
+        ? generated
+        : mergeMinecraftSkinPart(await loadBaseSkin(baseSkinUrl), generated, targetPart);
     const png = await sharp(Buffer.from(pixels), {
       raw: { width: 64, height: 64, channels: 4 },
     })
@@ -918,6 +948,7 @@ export async function POST(request: NextRequest) {
           metadata: {
             width: 64,
             height: 64,
+            sizeBytes: png.length,
             armModel,
             targetPart,
             style,

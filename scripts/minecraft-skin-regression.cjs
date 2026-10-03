@@ -63,7 +63,20 @@ function checkTexture(pixels, model) {
 async function main() {
   const { SKIN_ART_REGIONS, inferSkinArt, sanitizeSkinPixelArt } = require("../src/lib/minecraft-skin-art-types.ts");
   const { skinArtFaces, applySkinPixelArt, skinArtColors, paintAdvancedMinecraftSkin } = require("../src/lib/minecraft-skin-art.ts");
-  const { mergeRemixDesign } = require("../src/lib/minecraft-skin-control.ts");
+  const { mergeRemixDesign, minecraftRemixParts } = require("../src/lib/minecraft-skin-control.ts");
+  assert.deepEqual(minecraftRemixParts("Make only the jacket navy blue. Preserve hair, face, trousers and shoes."), ["torso", "arms"]);
+  assert.deepEqual(minecraftRemixParts("Keep my face and jeans but change the jacket to green"), ["torso", "arms"]);
+  assert.deepEqual(minecraftRemixParts("Keep everything unchanged"), []);
+  const independent = sanitizeSkinDesign({ characterType: "duck", outfit: "formal", garmentType: "jacket", placket: "open_front", innerGarment: "undershirt", pixelArt: [] }, "Teal duck with a golden bill, emerald tie and cream undershirt", 42);
+  assert.equal(independent.palette.skin, "#287c73", "Teal duck color was lost");
+  assert.deepEqual(independent.featureColors, { bill: "#eab308", tie: "#15805d", inner: "#faf5ef" });
+  const independentPixels = compileMinecraftSkinBlueprint(independent, 42, "classic", "balanced", independent.description);
+  assert.deepEqual(pixel(independentPixels, 10, 13).slice(0, 3), [234, 179, 8], "Duck bill inherited tie color");
+  assert.deepEqual(pixel(independentPixels, 23, 37).slice(0, 3), [21, 128, 93], "Tie inherited duck bill color");
+  const accented = { ...independent, pixelArt: [{ region: "torso-front", layer: "outer", rows: ["........", "...A....", ...Array(10).fill("........")] }] };
+  const accentedPixels = compileMinecraftSkinBlueprint(accented, 42, "classic", "balanced", independent.description);
+  assert.deepEqual(pixel(accentedPixels, 23, 37).slice(0, 3), [21, 128, 93], "Sparse AI accent overwrote requested tie color");
+  assert.deepEqual(sanitizeSkinDesign({ featureColors: { bill: "invalid", tie: "#15805d" } }, "character", 42).featureColors, { tie: "#15805d" });
   assert.deepEqual(Object.keys(MINECRAFT_SKIN_JSON_SCHEMA.properties).sort(), [...MINECRAFT_SKIN_JSON_SCHEMA.required].sort(), "Strict AI schema omitted required properties");
   const drawing = { region: "torso-front", layer: "outer", rows: ["........", "........", "...XX...", "..XxxX..", ".XX..XX.", "..XxxX..", "...XX...", "........", "........", "........", "........", "........"] };
   assert.deepEqual(sanitizeSkinPixelArt([drawing, drawing]), [drawing], "Duplicate art faces survived");

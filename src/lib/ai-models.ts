@@ -12,12 +12,12 @@ export const GROQ_TEXT_MODELS = [
 ] as const;
 
 export const GROQ_VISION_MODELS = [
-  "groq/compound",
-  "openai/gpt-oss-120b",
+  "qwen/qwen3.8-27b",
 ] as const;
 
 export const DEFAULT_GROQ_TEXT_MODEL = GROQ_TEXT_MODELS[0];
 export const FALLBACK_GROQ_TEXT_MODEL = GROQ_TEXT_MODELS[1];
 
 export const DEFAULT_GROQ_VISION_MODEL = GROQ_VISION_MODELS[0];
-export const FALLBACK_GROQ_VISION_MODEL = GROQ_VISION_MODELS[1];
+// Groq currently lists one image-capable model; never fall back to a text-only model.
+export const FALLBACK_GROQ_VISION_MODEL = GROQ_VISION_MODELS[0];

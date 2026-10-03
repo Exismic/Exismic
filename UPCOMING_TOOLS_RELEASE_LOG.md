@@ -4,7 +4,11 @@
 
 ---
 
-## Advanced Minecraft Skin Maker update — October 3, 2026 (pending deployment)
+## Minecraft production-audit fixes — October 3, 2026 (pending user push)
+
+Fixed the image AI provider, silent paid fallbacks, jacket remix preservation, overlapping Save/AI edits, duplicate clicks and file-size metadata. Advanced rendering is the default unless explicitly disabled. Variations now request fresh details and change lighting/pattern placement. Added faithful teal/forest-green/emerald/burgundy parsing and separate bill/tie/undershirt colors. No new route, tool, paid image service, environment change or database migration. Verified with 480 renderer cases, billing/editor-race/part-preservation route regression, TypeScript, production build and actual Groq image-edit/variation requests. Live authenticated retest is pending the user's next deployment.
+
+## Advanced Minecraft Skin Maker update — October 3, 2026 (shipped by user in f067752)
 
 Added original custom heads (duck, TV, robot, creature, cat, abstract), plaid and graphic clothing, ripped/patchwork trousers, suit ties and coordinated gradients. The AI can compose bounded palette-bound pixel details; validation protects faces and existing clothing shading. Remix preserves artwork during recolors and unrelated edits. Four new free presets demonstrate the styles. Uses the existing AI service; no added paid image service. Offline regression covers 480 renders plus UV/art safety, seven character kinds and all ten UI presets. Three actual AI generations and one remix succeeded in direct route-function tests. Not a guarantee of artist quality for every prompt. No new tool or route; changes remain local.
 

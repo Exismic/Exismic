@@ -469,6 +469,8 @@ export function MinecraftSkinMaker() {
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"craft" | "import">("craft");
   const [isUpdatingFace, setIsUpdatingFace] = useState(false);
+  const [isEditorBusy, setIsEditorBusy] = useState(false);
+  const skinBusy = isGenerating || isVarying || isRemixing || isUpdatingFace || isFetchingGamertag || isEditorBusy;
 
   // Initial mount: Pre-load Blueprint #1 (Standard 3: Zero Dead Void)
   useEffect(() => {
@@ -779,7 +781,7 @@ export function MinecraftSkinMaker() {
         needsUpgrade?: boolean;
       };
       if (!response.ok || !payload.success) {
-        if (response.status === 403 || payload.needsUpgrade || payload.error?.toLowerCase().includes("credit") || payload.error?.toLowerCase().includes("balance")) {
+        if (response.status === 402 || response.status === 403 || payload.needsUpgrade) {
           setShowUpsell(true);
         }
         throw new Error(payload.error || "Could not generate this skin.");
@@ -832,7 +834,7 @@ export function MinecraftSkinMaker() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: prompt.trim() || result.design.name,
-          armModel,
+          armModel: result.armModel,
           style,
           targetPart: "all",
           action: "variation",
@@ -848,8 +850,8 @@ export function MinecraftSkinMaker() {
       if (!response.ok || !payload.success) {
         if (
           response.status === 403 ||
-          payload.needsUpgrade ||
-          payload.error?.toLowerCase().includes("credit")
+          response.status === 402 ||
+          payload.needsUpgrade
         ) {
           setShowUpsell(true);
         }
@@ -900,11 +902,13 @@ export function MinecraftSkinMaker() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: prompt.trim() || result.design.name,
-          armModel,
+          armModel: result.armModel,
           style,
           targetPart: "all",
           action: "remix",
           parentDesign: result.design,
+          baseSkinUrl: result.skinUrl,
+          seed: result.seed,
           remixInstruction: remixPrompt.trim(),
         }),
       });
@@ -916,8 +920,8 @@ export function MinecraftSkinMaker() {
       if (!response.ok || !payload.success) {
         if (
           response.status === 403 ||
-          payload.needsUpgrade ||
-          payload.error?.toLowerCase().includes("credit")
+          response.status === 402 ||
+          payload.needsUpgrade
         ) {
           setShowUpsell(true);
         }
@@ -984,6 +988,8 @@ export function MinecraftSkinMaker() {
         baseSkinUrl: editorReference,
         referenceImage: editorReference,
         referenceMode: "guided",
+        parentDesign: result.design,
+        seed: result.seed,
       }),
     });
     const payload = await response.json() as GeneratedSkin & { success?: boolean; error?: string };
@@ -1005,7 +1011,7 @@ export function MinecraftSkinMaker() {
   const StyleIcon = selectedStyleObj.icon;
 
   return (
-    <div className="space-y-8">
+    <fieldset disabled={skinBusy} className="min-w-0 space-y-8">
       {/* Studio Top Stage Frame */}
       <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#070913] shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
         {/* Subtle Cyber Grid Mask */}
@@ -1697,6 +1703,8 @@ export function MinecraftSkinMaker() {
                   skinUrl={result.skinUrl}
                   skinName={result.design.name}
                   armModel={result.armModel}
+                  disabled={skinBusy}
+                  onBusyChange={setIsEditorBusy}
                   onSaved={(skinUrl) => {
                     setResult((current) => current ? { ...current, skinUrl } : current);
                     setNotice("Pixel edits saved. The 3D preview and download now use your modified texture.");
@@ -1845,6 +1853,7 @@ export function MinecraftSkinMaker() {
                 {/* Integrated Retention & Export Bar */}
                 <div className="pt-2 border-t border-white/5">
                   <ResultRetentionBar
+                    key={result.skinUrl}
                     toolType="minecraft-skin-maker"
                     toolName="Minecraft Skin Studio"
                     title={result.design.name}
@@ -2046,7 +2055,7 @@ export function MinecraftSkinMaker() {
                   <button
                     type="button"
                     onClick={handleRemix}
-                    disabled={isRemixing || !remixPrompt.trim()}
+                    disabled={skinBusy || !remixPrompt.trim()}
                     className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {isRemixing ? (
@@ -2077,6 +2086,6 @@ export function MinecraftSkinMaker() {
 
       {/* Beta Feedback & Welcome Modal */}
       <MinecraftBetaModal />
-    </div>
+    </fieldset>
   );
 }

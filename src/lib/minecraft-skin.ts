@@ -69,6 +69,7 @@ export interface MinecraftSkinDesign {
   graphic?: "none" | "skull" | "heart" | "checker" | "bolt";
   colorTreatment?: "solid" | "gradient";
   pixelArt?: SkinPixelArtFace[];
+  featureColors?: Partial<Record<"bill" | "tie" | "inner", string>>;
 }
 
 type Rgba = [number, number, number, number];
@@ -441,6 +442,7 @@ const PROMPT_COLORS: Array<[string, string]> = [
   ["pink", "#f472b6"],
   ["cyan", "#06b6d4"],
   ["turquoise", "#14b8a6"],
+  ["teal", "#287c73"],
   ["mint", "#6ee7b7"],
   ["pastel green", "#a7f3d0"],
   ["sage green", "#9caf88"],
@@ -448,6 +450,8 @@ const PROMPT_COLORS: Array<[string, string]> = [
   ["olive", "#556b2f"],
   ["lime", "#84cc16"],
   ["dark green", "#166534"],
+  ["forest green", "#2f5d46"],
+  ["emerald", "#15805d"],
   ["green", "#16a34a"],
   ["light blue", "#60a5fa"],
   ["sky blue", "#38bdf8"],
@@ -456,6 +460,7 @@ const PROMPT_COLORS: Array<[string, string]> = [
   ["dark blue", "#1e3a8a"],
   ["blue", "#2563eb"],
   ["crimson", "#be123c"],
+  ["burgundy", "#722f37"],
   ["red", "#dc2626"],
   ["cream", "#faf5ef"],
   ["beige", "#e7d8c9"],
@@ -511,6 +516,20 @@ function colorNearContext(prompt: string, contexts: string[]) {
     }
   }
   return bestColor;
+}
+
+function sanitizeFeatureColors(value: MinecraftSkinDesign["featureColors"], prompt: string): MinecraftSkinDesign["featureColors"] {
+  const inferred = {
+    bill: colorNearContext(prompt.replace(/\bgolden\b/gi, "gold"), ["bill", "beak"]),
+    tie: colorNearContext(prompt, ["tie"]),
+    inner: colorNearContext(prompt, ["undershirt", "inner shirt", "tee", "t-shirt"]),
+  };
+  const colors: NonNullable<MinecraftSkinDesign["featureColors"]> = {};
+  for (const key of ["bill", "tie", "inner"] as const) {
+    const hex = inferred[key] || value?.[key];
+    if (typeof hex === "string" && /^#[a-f0-9]{6}$/i.test(hex)) colors[key] = hex.toLowerCase();
+  }
+  return colors;
 }
 
 function extractPromptPalette(prompt: string): Partial<MinecraftSkinPalette> {
@@ -1164,6 +1183,7 @@ export function sanitizeSkinDesign(
       ? value.traits.filter((trait): trait is string => typeof trait === "string").map((trait) => trait.trim().slice(0, 40)).filter(Boolean).slice(0, 8)
       : fallback.traits,
     palette: sanitizePalette({ ...fallback.palette, ...(value.palette ?? {}) }),
+    featureColors: sanitizeFeatureColors(value.featureColors, prompt),
     headphones: typeof value.headphones === "boolean" ? value.headphones : fallback.headphones,
     glasses: typeof value.glasses === "boolean" ? value.glasses : fallback.glasses,
     cables: typeof value.cables === "boolean" ? value.cables : fallback.cables,

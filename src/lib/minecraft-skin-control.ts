@@ -1,5 +1,5 @@
 import type { MinecraftSkinDesign, MinecraftSkinPart, MinecraftSkinStyle } from "./minecraft-skin";
-import { extractMinecraftCharacterPalette } from "./minecraft-skin";
+import { extractMinecraftCharacterPalette, mergeMinecraftSkinPart } from "./minecraft-skin";
 import { SKIN_ART_REGIONS, SKIN_CHARACTER_TYPES, sanitizeSkinPixelArt } from "./minecraft-skin-art-types";
 
 export const MINECRAFT_SKIN_ART_INSTRUCTION = [
@@ -383,12 +383,41 @@ export function buildDesignInstruction(
  * Enforces field-level preservation so unmentioned attributes (skin tone, eye color,
  * face construction, unmentioned clothing, accessories) strictly remain clamped to parent.
  */
+export function minecraftChangeInstruction(instruction: string): string {
+  // Preservation clauses describe boundaries, not requested changes.
+  return instruction.toLowerCase().replace(
+    /\b(?:preserve|keep|retain|maintain|leave|do not (?:change|alter|add)|don't (?:change|alter|add))\b[^.;!?]*(?=[.;!?]|$)/gi,
+    (clause) => {
+      const change = clause.search(/\b(?:but|then|and)\s+(?:change|make|add|remove|recolor|replace)\b/i);
+      return change < 0 ? "" : clause.slice(change);
+    },
+  ).trim();
+}
+
+export function minecraftRemixParts(instruction: string): Exclude<MinecraftSkinPart, "all">[] {
+  const text = minecraftChangeInstruction(instruction);
+  if (!text.replace(/[\s.,;!?]/g, "")) return [];
+  if (/\b(?:whole|entire|full)\s+(?:skin|character|body)\b|\b(?:gradient|rainbow)\b/.test(text)) return ["head", "torso", "arms", "legs"];
+  const parts = new Set<Exclude<MinecraftSkinPart, "all">>();
+  if (/\b(?:head|hair|bangs|fringe|face|skin tone|eyes?|mouth|lips?|smile|smirk|beard|stubble|goatee|mask|visor|glasses|horns?|halo|crown|duck|tv|robot|cat)\b/.test(text)) parts.add("head");
+  if (/\b(?:torso|chest|back|hoodie|jacket|shirt|bomber|sweater|robe|tunic|top|vest|coat|collar|tie|graphic|logo|plaid|pattern|outfit|clothes|costume)\b/.test(text)) parts.add("torso");
+  if (/\b(?:arms?|sleeves?|cuffs?|gloves?|hoodie|jacket|shirt|bomber|sweater|robe|tunic|coat|outfit|clothes|costume)\b/.test(text)) parts.add("arms");
+  if (/\b(?:legs?|pants|jeans|cargo|trousers|shorts|skirt|shoes|boots|sneakers|footwear|socks|outfit|clothes|costume)\b/.test(text)) parts.add("legs");
+  return parts.size ? [...parts] : ["head", "torso", "arms", "legs"];
+}
+
+export function mergeMinecraftRemixPixels(base: Uint8Array, generated: Uint8Array, instruction: string): Uint8Array {
+  let pixels: Uint8Array = new Uint8Array(base);
+  for (const part of minecraftRemixParts(instruction)) pixels = mergeMinecraftSkinPart(pixels, generated, part);
+  return pixels;
+}
+
 export function mergeRemixDesign(
   parent: Partial<MinecraftSkinDesign>,
   remixResult: Partial<MinecraftSkinDesign>,
   remixInstruction: string
 ): Partial<MinecraftSkinDesign> {
-  const instructionLower = remixInstruction.toLowerCase();
+  const instructionLower = minecraftChangeInstruction(remixInstruction);
 
   // Strip "facial hair" / "facial-hair" before checking for head-hair keywords so facial hair is NEVER treated as head hair
   const headHairInstruction = instructionLower.replace(/\bfacial[- ]hair\b/gi, "");
@@ -511,7 +540,7 @@ export function mergeRemixDesign(
   const changedRegion = (region: string) => region.startsWith("head-") ? mentionsHair || mentionsFaceGeneral || mentionsCharacter
     : region.startsWith("torso-") ? mentionsTop || broadOutfit
       : region.includes("arm-") ? mentionsTop || broadOutfit : mentionsPants || mentionsFootwear || broadOutfit;
-  const recolorOnly = /\b(?:color|colour|recolor|recolour)\b/i.test(instructionLower) && !/\b(?:add|remove|pattern|print|graphic|shape|style)\b/i.test(instructionLower);
+  const recolorOnly = /\b(?:color|colour|recolor|recolour)\b|\b(?:make|change|turn)\b.*\b(?:red|blue|navy|green|black|white|purple|pink|gold|yellow|teal|gray|grey|brown)\b/i.test(instructionLower) && !/\b(?:add|remove|replace|pattern|print|graphic|shape|style|longer|shorter)\b/i.test(instructionLower);
   const changedArt = newArt.filter((art) => changedRegion(art.region));
   const removesArt = /\b(?:remove|clear|without|no)\b.*\b(?:graphic|print|logo|pattern|marking|pixel|detail)\b/i.test(instructionLower);
   merged.pixelArt = recolorOnly ? parentArt : [
@@ -519,5 +548,19 @@ export function mergeRemixDesign(
     ...changedArt,
   ];
 
+  if (recolorOnly) {
+    const palette = { ...parent.palette } as MinecraftSkinDesign["palette"];
+    const copy = (keys: Array<keyof MinecraftSkinDesign["palette"]>) => {
+      for (const key of keys) if (remixResult.palette?.[key]) palette[key] = remixResult.palette[key]!;
+    };
+    if (mentionsHair) copy(["hair", "hairHighlight"]);
+    if (/\bskin\b/.test(instructionLower)) copy(["skin", "skinShade"]);
+    if (mentionsEyes) copy(["eyes"]);
+    if (mentionsTop) copy(["top"]);
+    if (/\b(?:accent|lining|trim|tie|bill|beak)\b/.test(instructionLower)) copy(["topAccent"]);
+    if (mentionsPants) copy(["pants"]);
+    if (mentionsFootwear) copy(["shoes"]);
+    return { ...parent, palette, pixelArt: parentArt };
+  }
   return merged;
 }

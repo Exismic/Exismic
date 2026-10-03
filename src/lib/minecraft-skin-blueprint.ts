@@ -1434,11 +1434,11 @@ export function compileMinecraftSkinBlueprint(
   };
 
   // 4. Build Independent Material Ramps per Component
-  const innerHex = (hasMidLayer && hasInner) || /\bcream\b/i.test(prompt)
+  const innerHex = design.featureColors?.inner || ((hasMidLayer && hasInner) || /\bcream\b/i.test(prompt)
     ? "#faf5ee"
     : /\bwhite\b/i.test(prompt)
       ? "#f8fafc"
-      : (palette.topAccent && palette.topAccent !== palette.top) ? "#faf5ee" : "#f1f5f9";
+      : (palette.topAccent && palette.topAccent !== palette.top) ? "#faf5ee" : "#f1f5f9");
 
   const zipperColor = garmentGrammar.zipper === "gold" ? "#c7a35e" : garmentGrammar.zipper === "black" ? "#292c33" : "#abb7c1";
 

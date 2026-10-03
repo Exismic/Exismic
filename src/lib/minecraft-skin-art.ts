@@ -59,6 +59,11 @@ function drawCharacterHead(pixels: Uint8Array, design: MinecraftSkinDesign, mode
   if (kind === "human") return;
   const { put, clear } = paintContext(pixels);
   const base = skinArtFaces(model), outer = skinArtFaces(model, true), colors = skinArtColors(design);
+  if (kind === "duck" && design.featureColors?.bill) {
+    colors.A = rgb(design.featureColors.bill);
+    colors.a = rgb(shadeWithHueShift(design.featureColors.bill, 0.04, "fabric"));
+    colors.B = rgb(shadeWithHueShift(design.featureColors.bill, -0.07, "fabric"));
+  }
   const casing = kind === "tv" ? colors.H : colors.K;
   for (const [region, face] of Object.entries(base)) {
     if (!region.startsWith("head-")) continue;
@@ -111,8 +116,8 @@ function drawClothing(pixels: Uint8Array, design: MinecraftSkinDesign, seed: num
         for (let y = 0; y < face.height; y++) for (let x = 0; x < face.width; x++) {
           const color = get(face.x + x, face.y + y);
           if (!opaque(face.x + x, face.y + y) || !materialPixel(color)) continue;
-          const horizontal = y % 4 === 1;
-          const vertical = (x + wrapOffset) % 4 === 1;
+          const horizontal = (y + seed % 4) % 4 === 1;
+          const vertical = (x + wrapOffset + seed % 4) % 4 === 1;
           const weight = design.topPattern === "striped" ? (horizontal ? 0.55 : 0)
             : horizontal && vertical ? 0.65 : horizontal || vertical ? 0.32 : 0;
           if (weight) put(face.x + x, face.y + y, blend(color, horizontal && vertical ? colors.X : colors.A, weight));
@@ -137,7 +142,7 @@ function drawClothing(pixels: Uint8Array, design: MinecraftSkinDesign, seed: num
   }
   if (design.pantsDetail === "ripped") {
     for (const [i, region] of (["right-leg-front", "left-leg-front"] as const).entries()) {
-      const face = fronts[region], overlay = overlays[region], y = i === 0 ? 4 : 5;
+      const face = fronts[region], overlay = overlays[region], y = 3 + ((seed + i) % 3);
       const width = 2 + ((seed + i) % 2);
       for (let x = 0; x < width; x++) {
         put(face.x + x, face.y + y, blend(colors.K, colors.N, 0.06));
@@ -155,7 +160,10 @@ function drawClothing(pixels: Uint8Array, design: MinecraftSkinDesign, seed: num
   }
   if (design.outfit === "formal" || /\b(?:tie|tuxedo|suit)\b/i.test(design.description)) {
     const face = overlays["torso-front"];
-    for (let y = 1; y < 8; y++) put(face.x + 3 + (y === 7 ? 1 : 0), face.y + y, y % 3 === 0 ? colors.B : colors.A);
+    const tie = design.featureColors?.tie;
+    const main = tie ? rgb(tie) : colors.A;
+    const shadow = tie ? rgb(shadeWithHueShift(tie, -0.07, "fabric")) : colors.B;
+    for (let y = 1; y < 8; y++) put(face.x + 3 + (y === 7 ? 1 : 0), face.y + y, y % 3 === 0 ? shadow : main);
   }
 }
 
@@ -198,16 +206,19 @@ export function applySkinPixelArt(pixels: Uint8Array, design: MinecraftSkinDesig
   let painted = 0;
   for (const art of sanitizeSkinPixelArt(design.pixelArt, design.characterType || "human")) {
     const face = skinArtFaces(model, art.layer === "outer")[art.region];
+    const faceColors = design.characterType === "duck" && art.region.startsWith("head-") && design.featureColors?.bill
+      ? { ...colors, A: rgb(design.featureColors.bill), a: rgb(shadeWithHueShift(design.featureColors.bill, 0.04, "fabric")), B: rgb(shadeWithHueShift(design.featureColors.bill, -0.07, "fabric")) }
+      : colors;
     art.rows.forEach((line, y) => {
       for (let x = 0; x < face.width; x++) {
         const sourceX = line.length === face.width ? x : Math.min(line.length - 1, Math.floor((x + 0.5) * line.length / face.width));
         const token = line[sourceX];
-        if (token === "." || !colors[token]) continue;
+        if (token === "." || !faceColors[token]) continue;
         // Human eye and mouth controls remain editable after AI surface painting.
         if ((design.characterType || "human") === "human" && art.region === "head-front" && (((y === 3 || y === 4) && x >= 1 && x <= 6) || (y === 6 && x >= 2 && x <= 5))) continue;
         if ((design.characterType || "human") === "human" && art.region === "head-front" && art.layer === "outer" && !"HhLD".includes(token)) continue;
         if ((design.characterType || "human") === "human" && art.region === "head-front" && art.layer === "outer" && y >= 3 && x >= 1 && x <= 6) continue;
-        put(face.x + x, face.y + y, colors[token]); painted++;
+        put(face.x + x, face.y + y, faceColors[token]); painted++;
       }
     });
   }
@@ -219,4 +230,10 @@ export function paintAdvancedMinecraftSkin(pixels: Uint8Array, design: Minecraft
   drawCharacterHead(pixels, design, model);
   if (design.colorTreatment === "gradient") drawGradient(pixels, design, model, seed);
   applySkinPixelArt(pixels, design, model);
+  // Sparse AI accents must not overwrite an explicitly colored tie with the bill/lining color.
+  if (design.featureColors?.tie && (design.outfit === "formal" || /\btie\b/i.test(design.description))) {
+    const { put } = paintContext(pixels), face = skinArtFaces(model, true)["torso-front"];
+    const color = rgb(design.featureColors.tie), shadow = rgb(shadeWithHueShift(design.featureColors.tie, -0.07, "fabric"));
+    for (let y = 1; y < 8; y++) put(face.x + 3 + (y === 7 ? 1 : 0), face.y + y, y % 3 === 0 ? shadow : color);
+  }
 }
