@@ -36,6 +36,83 @@ interface PersonalizedHomeSectionProps {
   onDeletionCancelled?: () => void;
 }
 
+const CATEGORY_ACCENT_CONFIG: Record<
+  string,
+  {
+    dot: string;
+    dotGlow: string;
+    headerGrad: string;
+    zapText: string;
+  }
+> = {
+  video: {
+    dot: "bg-violet-400",
+    dotGlow: "shadow-[0_0_12px_rgba(139,92,246,1)]",
+    headerGrad: "from-violet-300 via-purple-200 to-white",
+    zapText: "text-violet-400",
+  },
+  audio: {
+    dot: "bg-pink-400",
+    dotGlow: "shadow-[0_0_12px_rgba(236,72,153,1)]",
+    headerGrad: "from-pink-300 via-rose-200 to-white",
+    zapText: "text-pink-400",
+  },
+  pdf: {
+    dot: "bg-red-400",
+    dotGlow: "shadow-[0_0_12px_rgba(239,68,68,1)]",
+    headerGrad: "from-red-300 via-rose-200 to-white",
+    zapText: "text-red-400",
+  },
+  productivity: {
+    dot: "bg-emerald-400",
+    dotGlow: "shadow-[0_0_12px_rgba(16,185,129,1)]",
+    headerGrad: "from-emerald-300 via-teal-200 to-white",
+    zapText: "text-emerald-400",
+  },
+  developer: {
+    dot: "bg-lime-400",
+    dotGlow: "shadow-[0_0_12px_rgba(163,230,53,1)]",
+    headerGrad: "from-lime-300 via-emerald-200 to-white",
+    zapText: "text-lime-400",
+  },
+  student: {
+    dot: "bg-amber-400",
+    dotGlow: "shadow-[0_0_12px_rgba(251,191,36,1)]",
+    headerGrad: "from-amber-300 via-yellow-200 to-white",
+    zapText: "text-amber-400",
+  },
+  business: {
+    dot: "bg-orange-400",
+    dotGlow: "shadow-[0_0_12px_rgba(249,115,22,1)]",
+    headerGrad: "from-orange-300 via-amber-200 to-white",
+    zapText: "text-orange-400",
+  },
+  ai: {
+    dot: "bg-amber-400",
+    dotGlow: "shadow-[0_0_12px_rgba(245,158,11,1)]",
+    headerGrad: "from-amber-300 via-yellow-200 to-white",
+    zapText: "text-amber-400",
+  },
+  creator: {
+    dot: "bg-indigo-400",
+    dotGlow: "shadow-[0_0_12px_rgba(99,102,241,1)]",
+    headerGrad: "from-indigo-300 via-sky-200 to-white",
+    zapText: "text-indigo-400",
+  },
+  seo: {
+    dot: "bg-sky-400",
+    dotGlow: "shadow-[0_0_12px_rgba(2,132,199,1)]",
+    headerGrad: "from-sky-300 via-cyan-200 to-white",
+    zapText: "text-sky-400",
+  },
+  image: {
+    dot: "bg-cyan-400",
+    dotGlow: "shadow-[0_0_12px_rgba(34,211,238,1)]",
+    headerGrad: "from-cyan-300 via-teal-200 to-white",
+    zapText: "text-cyan-400",
+  },
+};
+
 function getStyleForTool(tool?: Tool | null): CategoryAnimStyle {
   const effectiveCat = getEffectiveToolCategory(tool);
   return CATEGORY_ANIM_STYLES[effectiveCat] || CATEGORY_ANIM_STYLES.image;
@@ -62,7 +139,9 @@ export function PersonalizedHomeSection({
 
   const GreetingIcon = greeting.icon;
 
+  const continueCat = getEffectiveToolCategory(continueUsing.tool);
   const continueStyle = getStyleForTool(continueUsing.tool);
+  const continueAccent = CATEGORY_ACCENT_CONFIG[continueCat] || CATEGORY_ACCENT_CONFIG.image;
   const ContinueToolIcon =
     continueUsing.tool?.icon && ICON_MAP[continueUsing.tool.icon]
       ? ICON_MAP[continueUsing.tool.icon]
@@ -225,10 +304,10 @@ export function PersonalizedHomeSection({
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,1)]"></span>
+              <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", continueAccent.dot)}></span>
+              <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", continueAccent.dot, continueAccent.dotGlow)}></span>
             </span>
-            <span className="text-xs font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-teal-200 to-white">
+            <span className={cn("text-xs font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r", continueAccent.headerGrad)}>
               {continueUsing.isNewUser ? "GET STARTED" : "CONTINUE USING"}
             </span>
           </div>
@@ -333,7 +412,7 @@ export function PersonalizedHomeSection({
                 {/* Prompt Preview Terminal Box */}
                 {continueUsing.prompt ? (
                   <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl bg-black/60 border border-white/10 text-[11px] sm:text-xs font-mono text-zinc-300 max-w-full backdrop-blur-xl shadow-inner">
-                    <Zap size={11} className="text-cyan-400 shrink-0 animate-pulse" />
+                    <Zap size={11} className={cn("shrink-0 animate-pulse", continueAccent.zapText)} />
                     <span className="text-zinc-500 font-bold uppercase text-[8.5px] sm:text-[9px] tracking-wider shrink-0">
                       {continueUsing.isNewUser ? "Featured:" : "Recent:"}
                     </span>

@@ -173,11 +173,20 @@ def fastapi_app():
             input_path = write_upload(temp_dir, req.file_name, req.file_data_base64)
             output_format = req.format if req.format in {"mp4", "webm"} else "mp4"
             output_path = os.path.join(temp_dir, f"compressed.{output_format}")
-            crf = {"low": "32", "medium": "26", "high": "21", "ultra": "18"}.get(
-                req.quality, "26"
+            crf = {"low": "33", "medium": "27", "high": "23", "ultra": "19"}.get(
+                req.quality, "27"
             )
+            scale_filter = {
+                "low": "scale='min(iw,854)':-2",
+                "medium": "scale='min(iw,1280)':-2",
+                "high": "scale='min(iw,1920)':-2",
+                "ultra": "scale='min(iw,3840)':-2",
+            }.get(req.quality, "scale='min(iw,1280)':-2")
+            audio_present = has_audio(input_path)
             if output_format == "webm":
                 codec_args = [
+                    "-vf",
+                    scale_filter,
                     "-c:v",
                     "libvpx-vp9",
                     "-crf",
@@ -185,32 +194,35 @@ def fastapi_app():
                     "-b:v",
                     "0",
                     "-deadline",
-                    "good",
+                    "realtime",
                     "-cpu-used",
-                    "3",
-                    "-c:a",
-                    "libopus",
-                    "-b:a",
-                    "128k",
+                    "8",
                 ]
+                if audio_present:
+                    codec_args.extend(["-c:a", "libopus", "-b:a", "96k"])
+                else:
+                    codec_args.extend(["-an"])
                 mime_type = "video/webm"
             else:
                 codec_args = [
+                    "-vf",
+                    scale_filter,
                     "-c:v",
                     "libx264",
                     "-crf",
                     crf,
                     "-preset",
-                    "medium",
+                    "ultrafast",
+                    "-tune",
+                    "fastdecode",
                     "-pix_fmt",
                     "yuv420p",
-                    "-c:a",
-                    "aac",
-                    "-b:a",
-                    "128k",
-                    "-movflags",
-                    "+faststart",
                 ]
+                if audio_present:
+                    codec_args.extend(["-c:a", "aac", "-b:a", "96k"])
+                else:
+                    codec_args.extend(["-an"])
+                codec_args.extend(["-movflags", "+faststart"])
                 mime_type = "video/mp4"
             run_ffmpeg(["ffmpeg", "-hide_banner", "-i", input_path, *codec_args, "-y", output_path])
             return {
@@ -268,9 +280,9 @@ def fastapi_app():
                         "-crf",
                         "20",
                         "-preset",
-                        "medium",
+                        "ultrafast",
                         "-c:a",
-                        "aac",
+                        "copy",
                         "-movflags",
                         "+faststart",
                         "-y",
@@ -406,14 +418,16 @@ def fastapi_app():
             input_path = write_upload(temp_dir, req.file_name, req.file_data_base64)
             output_path = os.path.join(temp_dir, "output.gif")
             filter_graph = (
-                f"fps={req.fps},scale={req.width}:-2:flags=lanczos,"
+                f"fps={req.fps},scale={req.width}:-2:flags=bicubic,"
                 "split[base][palette];[palette]palettegen=max_colors=256[p];"
-                "[base][p]paletteuse=dither=sierra2_4a"
+                "[base][p]paletteuse=dither=bayer:bayer_scale=3"
             )
             run_ffmpeg(
                 [
                     "ffmpeg",
                     "-hide_banner",
+                    "-threads",
+                    "4",
                     "-ss",
                     str(req.start_time),
                     "-t",

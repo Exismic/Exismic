@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
         format,
       },
       requestId,
+      35000,
     );
     const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
     const debit = await chargeToolAccess(access, "video-compressor", `tool:${requestId}`);

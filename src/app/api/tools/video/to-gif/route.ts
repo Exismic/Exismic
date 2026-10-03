@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const startTime = boundedNumber(formData.get("start"), 0, 60 * 60, "Start time");
     const duration = boundedNumber(formData.get("duration"), 0.1, 30, "GIF duration");
-    const fps = Math.round(boundedNumber(formData.get("fps"), 5, 30, "Frame rate"));
+    const fps = Math.round(boundedNumber(formData.get("fps"), 5, 60, "Frame rate"));
     const width = Math.round(boundedNumber(formData.get("width"), 240, 1280, "Width"));
 
     const baseUrl = process.env.MODAL_VIDEO_URL;

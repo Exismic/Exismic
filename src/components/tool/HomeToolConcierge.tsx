@@ -4,18 +4,22 @@ import { FormEvent, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowRight,
   ArrowUp,
   ArrowUpRight,
+  Bot,
   CheckCircle2,
   Code2,
   Compass,
   FileArchive,
   FileUser,
-  ImageIcon,
+  Film,
   ImageMinus,
   Loader2,
-  MessageSquare,
-  Sparkles,
+  Search,
+  Target,
+  Waves,
+  Zap,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -42,16 +46,191 @@ interface ConciergeMessage {
   recommendations?: Recommendation[];
 }
 
-const starterPrompts: Array<{ label: string; prompt: string; icon: LucideIcon }> = [
-  { label: "Remove a background", prompt: "Remove a photo background", icon: ImageMinus },
-  { label: "Compress a PDF", prompt: "Make a PDF smaller", icon: FileArchive },
-  { label: "Build a resume", prompt: "Create a professional resume", icon: FileUser },
-  { label: "Make a thumbnail", prompt: "Create a YouTube thumbnail", icon: ImageIcon },
-  { label: "Build a support bot", prompt: "Create a website support chatbot", icon: MessageSquare },
-  { label: "Fix code", prompt: "Debug and improve my code", icon: Code2 },
+interface StarterPrompt {
+  label: string;
+  prompt: string;
+  category: string;
+  icon: LucideIcon;
+  badgeClass: string;
+  iconContainerClass: string;
+  hoverBorderClass: string;
+}
+
+const starterPrompts: StarterPrompt[] = [
+  {
+    label: "Remove Background",
+    prompt: "Remove a photo background",
+    category: "Image",
+    icon: ImageMinus,
+    badgeClass: "text-cyan-400 bg-cyan-500/10 border-cyan-400/25",
+    iconContainerClass: "text-cyan-300 border-cyan-400/30 bg-cyan-500/10",
+    hoverBorderClass: "hover:border-cyan-400/40 hover:bg-cyan-500/[0.06] hover:shadow-[0_0_20px_rgba(6,182,212,0.18)]",
+  },
+  {
+    label: "Compress PDF",
+    prompt: "Make a PDF file smaller without quality loss",
+    category: "PDF",
+    icon: FileArchive,
+    badgeClass: "text-red-400 bg-red-500/10 border-red-400/25",
+    iconContainerClass: "text-red-300 border-red-400/30 bg-red-500/10",
+    hoverBorderClass: "hover:border-red-400/40 hover:bg-red-500/[0.06] hover:shadow-[0_0_20px_rgba(239,68,68,0.18)]",
+  },
+  {
+    label: "Build Resume",
+    prompt: "Create a professional printable resume",
+    category: "Career",
+    icon: FileUser,
+    badgeClass: "text-emerald-400 bg-emerald-500/10 border-emerald-400/25",
+    iconContainerClass: "text-emerald-300 border-emerald-400/30 bg-emerald-500/10",
+    hoverBorderClass: "hover:border-emerald-400/40 hover:bg-emerald-500/[0.06] hover:shadow-[0_0_20px_rgba(16,185,129,0.18)]",
+  },
+  {
+    label: "Merge Videos",
+    prompt: "Combine video scenes with audio into one video",
+    category: "Video",
+    icon: Film,
+    badgeClass: "text-violet-400 bg-violet-500/10 border-violet-400/25",
+    iconContainerClass: "text-violet-300 border-violet-400/30 bg-violet-500/10",
+    hoverBorderClass: "hover:border-violet-400/40 hover:bg-violet-500/[0.06] hover:shadow-[0_0_20px_rgba(139,92,246,0.18)]",
+  },
+  {
+    label: "Fix & Format Code",
+    prompt: "Debug and improve my code snippet",
+    category: "Dev",
+    icon: Code2,
+    badgeClass: "text-lime-400 bg-lime-500/10 border-lime-400/25",
+    iconContainerClass: "text-lime-300 border-lime-400/30 bg-lime-500/10",
+    hoverBorderClass: "hover:border-lime-400/40 hover:bg-lime-500/[0.06] hover:shadow-[0_0_20px_rgba(132,204,22,0.18)]",
+  },
+  {
+    label: "Isolate Vocals",
+    prompt: "Separate vocals and instrumental from music track",
+    category: "Audio",
+    icon: Waves,
+    badgeClass: "text-pink-400 bg-pink-500/10 border-pink-400/25",
+    iconContainerClass: "text-pink-300 border-pink-400/30 bg-pink-500/10",
+    hoverBorderClass: "hover:border-pink-400/40 hover:bg-pink-500/[0.06] hover:shadow-[0_0_20px_rgba(236,72,153,0.18)]",
+  },
 ];
 
-const routingPills = ["Smart routing", "Best-match tools", "Instant launch"];
+interface CategoryTheme {
+  label: string;
+  badge: string;
+  bestMatchBadge: string;
+  iconBg: string;
+  borderHover: string;
+  glowHover: string;
+  laserGradient: string;
+  buttonClass: string;
+}
+
+const CATEGORY_THEMES: Record<string, CategoryTheme> = {
+  video: {
+    label: "Video Studio",
+    badge: "text-violet-300 border-violet-400/25 bg-violet-500/10",
+    bestMatchBadge: "text-violet-200 border-violet-400/40 bg-violet-500/20 shadow-[0_0_12px_rgba(139,92,246,0.35)]",
+    iconBg: "border-violet-400/30 bg-violet-500/15 text-violet-300 group-hover/tool:border-violet-400/50 group-hover/tool:bg-violet-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-violet-400/40 hover:bg-violet-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(139,92,246,0.2)]",
+    laserGradient: "from-violet-500 via-purple-500 to-indigo-500",
+    buttonClass: "border-violet-400/30 bg-violet-500/15 text-violet-200 group-hover/tool:bg-violet-600 group-hover/tool:text-white group-hover/tool:border-violet-400/50 shadow-[0_0_12px_rgba(139,92,246,0.25)]",
+  },
+  audio: {
+    label: "Audio & Music",
+    badge: "text-pink-300 border-pink-400/25 bg-pink-500/10",
+    bestMatchBadge: "text-pink-200 border-pink-400/40 bg-pink-500/20 shadow-[0_0_12px_rgba(236,72,153,0.35)]",
+    iconBg: "border-pink-400/30 bg-pink-500/15 text-pink-300 group-hover/tool:border-pink-400/50 group-hover/tool:bg-pink-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-pink-400/40 hover:bg-pink-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(236,72,153,0.2)]",
+    laserGradient: "from-pink-500 via-rose-500 to-fuchsia-500",
+    buttonClass: "border-pink-400/30 bg-pink-500/15 text-pink-200 group-hover/tool:bg-pink-600 group-hover/tool:text-white group-hover/tool:border-pink-400/50 shadow-[0_0_12px_rgba(236,72,153,0.25)]",
+  },
+  image: {
+    label: "Image Studio",
+    badge: "text-cyan-300 border-cyan-400/25 bg-cyan-500/10",
+    bestMatchBadge: "text-cyan-200 border-cyan-400/40 bg-cyan-500/20 shadow-[0_0_12px_rgba(6,182,212,0.35)]",
+    iconBg: "border-cyan-400/30 bg-cyan-500/15 text-cyan-300 group-hover/tool:border-cyan-400/50 group-hover/tool:bg-cyan-400/25 group-hover/tool:text-white",
+    borderHover: "hover:border-cyan-400/40 hover:bg-cyan-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(6,182,212,0.2)]",
+    laserGradient: "from-cyan-400 via-teal-400 to-sky-500",
+    buttonClass: "border-cyan-400/30 bg-cyan-500/15 text-cyan-200 group-hover/tool:bg-cyan-600 group-hover/tool:text-white group-hover/tool:border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.25)]",
+  },
+  pdf: {
+    label: "PDF Tools",
+    badge: "text-red-300 border-red-400/25 bg-red-500/10",
+    bestMatchBadge: "text-red-200 border-red-400/40 bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.35)]",
+    iconBg: "border-red-400/30 bg-red-500/15 text-red-300 group-hover/tool:border-red-400/50 group-hover/tool:bg-red-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-red-400/40 hover:bg-red-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(239,68,68,0.2)]",
+    laserGradient: "from-red-500 via-rose-500 to-orange-500",
+    buttonClass: "border-red-400/30 bg-red-500/15 text-red-200 group-hover/tool:bg-red-600 group-hover/tool:text-white group-hover/tool:border-red-400/50 shadow-[0_0_12px_rgba(239,68,68,0.25)]",
+  },
+  productivity: {
+    label: "Productivity",
+    badge: "text-emerald-300 border-emerald-400/25 bg-emerald-500/10",
+    bestMatchBadge: "text-emerald-200 border-emerald-400/40 bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.35)]",
+    iconBg: "border-emerald-400/30 bg-emerald-500/15 text-emerald-300 group-hover/tool:border-emerald-400/50 group-hover/tool:bg-emerald-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-emerald-400/40 hover:bg-emerald-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(16,185,129,0.2)]",
+    laserGradient: "from-emerald-400 via-teal-500 to-green-500",
+    buttonClass: "border-emerald-400/30 bg-emerald-500/15 text-emerald-200 group-hover/tool:bg-emerald-600 group-hover/tool:text-white group-hover/tool:border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.25)]",
+  },
+  career: {
+    label: "Career",
+    badge: "text-emerald-300 border-emerald-400/25 bg-emerald-500/10",
+    bestMatchBadge: "text-emerald-200 border-emerald-400/40 bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.35)]",
+    iconBg: "border-emerald-400/30 bg-emerald-500/15 text-emerald-300 group-hover/tool:border-emerald-400/50 group-hover/tool:bg-emerald-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-emerald-400/40 hover:bg-emerald-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(16,185,129,0.2)]",
+    laserGradient: "from-emerald-400 via-teal-500 to-green-500",
+    buttonClass: "border-emerald-400/30 bg-emerald-500/15 text-emerald-200 group-hover/tool:bg-emerald-600 group-hover/tool:text-white group-hover/tool:border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.25)]",
+  },
+  developer: {
+    label: "Developer",
+    badge: "text-lime-300 border-lime-400/25 bg-lime-500/10",
+    bestMatchBadge: "text-lime-200 border-lime-400/40 bg-lime-500/20 shadow-[0_0_12px_rgba(132,204,22,0.35)]",
+    iconBg: "border-lime-400/30 bg-lime-500/15 text-lime-300 group-hover/tool:border-lime-400/50 group-hover/tool:bg-lime-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-lime-400/40 hover:bg-lime-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(132,204,22,0.2)]",
+    laserGradient: "from-lime-400 via-emerald-500 to-green-500",
+    buttonClass: "border-lime-400/30 bg-lime-500/15 text-lime-200 group-hover/tool:bg-lime-600 group-hover/tool:text-white group-hover/tool:border-lime-400/50 shadow-[0_0_12px_rgba(132,204,22,0.25)]",
+  },
+  dev: {
+    label: "Developer",
+    badge: "text-lime-300 border-lime-400/25 bg-lime-500/10",
+    bestMatchBadge: "text-lime-200 border-lime-400/40 bg-lime-500/20 shadow-[0_0_12px_rgba(132,204,22,0.35)]",
+    iconBg: "border-lime-400/30 bg-lime-500/15 text-lime-300 group-hover/tool:border-lime-400/50 group-hover/tool:bg-lime-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-lime-400/40 hover:bg-lime-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(132,204,22,0.2)]",
+    laserGradient: "from-lime-400 via-emerald-500 to-green-500",
+    buttonClass: "border-lime-400/30 bg-lime-500/15 text-lime-200 group-hover/tool:bg-lime-600 group-hover/tool:text-white group-hover/tool:border-lime-400/50 shadow-[0_0_12px_rgba(132,204,22,0.25)]",
+  },
+  business: {
+    label: "Business",
+    badge: "text-orange-300 border-orange-400/25 bg-orange-500/10",
+    bestMatchBadge: "text-orange-200 border-orange-400/40 bg-orange-500/20 shadow-[0_0_12px_rgba(249,115,22,0.35)]",
+    iconBg: "border-orange-400/30 bg-orange-500/15 text-orange-300 group-hover/tool:border-orange-400/50 group-hover/tool:bg-orange-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-orange-400/40 hover:bg-orange-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(249,115,22,0.2)]",
+    laserGradient: "from-orange-400 via-amber-500 to-yellow-500",
+    buttonClass: "border-orange-400/30 bg-orange-500/15 text-orange-200 group-hover/tool:bg-orange-600 group-hover/tool:text-white group-hover/tool:border-orange-400/50 shadow-[0_0_12px_rgba(249,115,22,0.25)]",
+  },
+  ai: {
+    label: "AI Studio",
+    badge: "text-amber-300 border-amber-400/25 bg-amber-500/10",
+    bestMatchBadge: "text-amber-200 border-amber-400/40 bg-amber-500/20 shadow-[0_0_12px_rgba(245,158,11,0.35)]",
+    iconBg: "border-amber-400/30 bg-amber-500/15 text-amber-300 group-hover/tool:border-amber-400/50 group-hover/tool:bg-amber-500/25 group-hover/tool:text-white",
+    borderHover: "hover:border-amber-400/40 hover:bg-amber-950/20",
+    glowHover: "hover:shadow-[0_16px_40px_rgba(245,158,11,0.2)]",
+    laserGradient: "from-amber-400 via-orange-500 to-yellow-500",
+    buttonClass: "border-amber-400/30 bg-amber-500/15 text-amber-200 group-hover/tool:bg-amber-600 group-hover/tool:text-white group-hover/tool:border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]",
+  },
+};
+
+const getCategoryTheme = (category?: string): CategoryTheme => {
+  const key = (category || "").toLowerCase();
+  return CATEGORY_THEMES[key] || CATEGORY_THEMES.video;
+};
 
 export function HomeToolConcierge() {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +240,7 @@ export function HomeToolConcierge() {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<ConciergeMessage[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -105,7 +284,7 @@ export function HomeToolConcierge() {
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
-        textareaRef.current?.focus();
+        inputRef.current?.focus();
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -311,35 +490,52 @@ export function HomeToolConcierge() {
                   className="space-y-4 py-1"
                 >
                   {/* Hero Intent Card */}
-                  <div className="relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[linear-gradient(135deg,rgba(124,58,237,0.18),rgba(255,255,255,0.03)_50%,rgba(34,211,238,0.1))] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-5">
-                    <div className="mb-3 flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-[0.18em] text-cyan-300">
-                      <Compass size={13} className="text-cyan-300" />
-                      Intent router
+                  <div className="relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[linear-gradient(135deg,rgba(139,92,246,0.18),rgba(255,255,255,0.03)_50%,rgba(6,182,212,0.12))] p-4.5 sm:p-5 shadow-[0_20px_60px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-400 to-cyan-400 opacity-70" />
+
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/15 px-2.5 py-0.5 text-[9.5px] font-black uppercase tracking-[0.2em] text-violet-300 shadow-[0_0_10px_rgba(139,92,246,0.25)]">
+                        <Compass size={12} className="text-violet-400" />
+                        AI Suite Navigator
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-400 font-semibold">40+ Studio Tools</span>
                     </div>
-                    <h3 className="relative max-w-sm text-xl font-black leading-tight tracking-tight text-white sm:text-2xl">
-                      Tell me the outcome.
+
+                    <h3 className="relative text-xl sm:text-2xl font-black leading-tight tracking-tight text-white font-outfit">
+                      What do you want to{" "}
+                      <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">
+                        create today?
+                      </span>
                     </h3>
-                    <p className="relative mt-2 max-w-sm text-xs sm:text-sm font-medium leading-relaxed text-zinc-300">
-                      Explain what you want to create, edit, convert, or improve. I will take you straight to the best tool.
+                    <p className="relative mt-2 text-xs sm:text-sm font-medium leading-relaxed text-zinc-300">
+                      Describe any task in everyday English. Exismic AI instantly maps you to the exact tool and opens it in one click.
                     </p>
+
                     <div className="relative mt-3.5 flex flex-wrap gap-1.5">
-                      {routingPills.map((pill) => (
-                        <span
-                          key={pill}
-                          className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-white/[0.1] bg-black/30 px-3 text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-300 shadow-sm backdrop-blur-md"
-                        >
-                          <CheckCircle2 size={11} className="text-cyan-300" />
-                          {pill}
-                        </span>
-                      ))}
+                      <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-violet-400/25 bg-black/40 px-3 text-[9px] font-bold uppercase tracking-[0.12em] text-violet-200 backdrop-blur-md">
+                        <Zap size={11} className="text-violet-400" />
+                        Instant Match
+                      </span>
+                      <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-cyan-400/25 bg-black/40 px-3 text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-200 backdrop-blur-md">
+                        <Target size={11} className="text-cyan-400" />
+                        Smart Routing
+                      </span>
+                      <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-emerald-400/25 bg-black/40 px-3 text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-200 backdrop-blur-md">
+                        <CheckCircle2 size={11} className="text-emerald-400" />
+                        1-Click Launch
+                      </span>
                     </div>
                   </div>
 
                   {/* Starter Examples Grid */}
-                  <div>
-                    <p className="mb-2.5 text-[9.5px] font-black uppercase tracking-[0.18em] text-zinc-400">
-                      Start with an example
-                    </p>
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between px-0.5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                        Popular Quick Starts
+                      </p>
+                      <span className="text-[10px] text-zinc-400">Tap any to test</span>
+                    </div>
+
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       {starterPrompts.map((prompt) => {
                         const PromptIcon = prompt.icon;
@@ -348,16 +544,36 @@ export function HomeToolConcierge() {
                             key={prompt.prompt}
                             type="button"
                             onClick={() => void sendMessage(prompt.prompt)}
-                            className="group/prompt relative flex min-h-[58px] items-center gap-3 overflow-hidden rounded-xl border border-white/[0.09] bg-white/[0.03] px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/40 hover:bg-cyan-500/[0.06] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] active:scale-[0.98]"
+                            className={cn(
+                              "group/prompt relative flex min-h-[58px] items-center gap-2.5 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] p-2.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer",
+                              prompt.hoverBorderClass
+                            )}
                           >
-                            <span className="pointer-events-none absolute inset-y-0 left-0 w-[2px] bg-gradient-to-b from-cyan-400 to-purple-500 opacity-0 transition group-hover/prompt:opacity-100" />
-                            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-black/40 text-cyan-300 transition group-hover/prompt:border-cyan-400/30 group-hover/prompt:text-white group-hover/prompt:scale-105">
-                              <PromptIcon size={16} />
+                            <span
+                              className={cn(
+                                "flex size-8.5 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 group-hover/prompt:scale-105",
+                                prompt.iconContainerClass
+                              )}
+                            >
+                              <PromptIcon size={15} />
                             </span>
-                            <span className="text-xs font-bold leading-snug text-zinc-200 transition group-hover/prompt:text-white">
-                              {prompt.label}
-                            </span>
-                            <ArrowUpRight size={14} className="ml-auto shrink-0 text-zinc-500 transition-transform duration-200 group-hover/prompt:-translate-y-0.5 group-hover/prompt:translate-x-0.5 group-hover/prompt:text-cyan-300" />
+                            <div className="min-w-0 flex-1">
+                              <span
+                                className={cn(
+                                  "inline-block text-[7.5px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded border mb-0.5",
+                                  prompt.badgeClass
+                                )}
+                              >
+                                {prompt.category}
+                              </span>
+                              <span className="block text-xs font-bold leading-snug text-white group-hover/prompt:text-white transition-colors line-clamp-2 break-words">
+                                {prompt.label}
+                              </span>
+                            </div>
+                            <ArrowUpRight
+                              size={13}
+                              className="ml-auto shrink-0 text-zinc-500 transition-transform duration-200 group-hover/prompt:-translate-y-0.5 group-hover/prompt:translate-x-0.5 group-hover/prompt:text-white"
+                            />
                           </button>
                         );
                       })}
@@ -389,56 +605,106 @@ export function HomeToolConcierge() {
                   </div>
 
                   {message.recommendations?.length ? (
-                    <div className="space-y-2.5 pt-1">
+                    <div className="space-y-3 pt-1">
                       {message.recommendations.map((recommendation, index) => {
                         const ToolIcon = ICON_MAP[recommendation.icon] || Compass;
+                        const theme = getCategoryTheme(recommendation.category);
                         return (
                           <Link
                             key={recommendation.id}
                             href={recommendation.href}
-                            className="group/tool relative flex min-h-[82px] items-center gap-3 overflow-hidden rounded-2xl border border-white/[0.1] bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-3.5 shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-cyan-500/[0.05] hover:shadow-[0_16px_40px_rgba(6,182,212,0.15)] active:scale-[0.99]"
+                            className={cn(
+                              "group/tool relative flex flex-col gap-2.5 overflow-hidden rounded-2xl border border-white/[0.1] bg-[#0c0e20]/90 p-3.5 sm:p-4 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 active:scale-[0.99]",
+                              theme.borderHover,
+                              theme.glowHover
+                            )}
                           >
-                            <span className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-violet-400 via-fuchsia-400 to-cyan-300 opacity-80" />
-                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-500/10 text-cyan-300 transition group-hover/tool:border-cyan-300/40 group-hover/tool:bg-cyan-400/10 group-hover/tool:text-white group-hover/tool:scale-105">
-                              <ToolIcon size={20} />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="flex flex-wrap items-center gap-2">
-                                <span className="truncate text-xs sm:text-sm font-bold text-white group-hover/tool:text-cyan-200 transition-colors">
-                                  {recommendation.name}
-                                </span>
-                                {index === 0 && (
-                                  <span className="rounded-full border border-cyan-300/30 bg-cyan-300/15 px-2 py-0.5 text-[7.5px] font-black uppercase tracking-wider text-cyan-200 shadow-[0_0_8px_rgba(6,182,212,0.3)]">
-                                    Best match
-                                  </span>
-                                )}
-                                {recommendation.pro && (
-                                  <span className="rounded-full border border-purple-400/30 bg-purple-400/15 px-2 py-0.5 text-[7.5px] font-black uppercase tracking-wider text-purple-200">
-                                    Pro
-                                  </span>
-                                )}
-                              </span>
-                              <span className="mt-0.5 line-clamp-1 block text-[11px] font-medium text-zinc-400">
-                                {recommendation.description}
-                              </span>
-                              <span className="mt-1.5 flex flex-wrap items-center gap-2 text-[9.5px] font-bold uppercase tracking-[0.12em] text-zinc-500">
-                                {typeof recommendation.confidence === "number" && (
-                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-emerald-300 font-mono">
-                                    <Sparkles size={9} />
-                                    {recommendation.confidence}% match
-                                  </span>
-                                )}
-                                {recommendation.reason && (
-                                  <span className="line-clamp-1 normal-case tracking-normal text-zinc-400">
-                                    {recommendation.reason}
-                                  </span>
-                                )}
-                              </span>
-                            </span>
-                            <ArrowUpRight
-                              size={16}
-                              className="shrink-0 text-zinc-500 transition-transform duration-200 group-hover/tool:-translate-y-0.5 group-hover/tool:translate-x-0.5 group-hover/tool:text-cyan-300"
+                            {/* Category reactive laser accent bar on left */}
+                            <span
+                              className={cn(
+                                "absolute inset-y-0 left-0 w-1 bg-gradient-to-b transition-opacity duration-300",
+                                theme.laserGradient,
+                                index === 0 ? "opacity-100" : "opacity-40 group-hover/tool:opacity-100"
+                              )}
                             />
+
+                            {/* Top row: Icon + Tool Name + Category/Best Match Badges + Open button */}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div
+                                  className={cn(
+                                    "flex size-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 group-hover/tool:scale-105",
+                                    theme.iconBg
+                                  )}
+                                >
+                                  <ToolIcon size={20} />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                                    <span
+                                      className={cn(
+                                        "rounded-md border px-1.5 py-0.2 text-[7.5px] font-black uppercase tracking-wider",
+                                        theme.badge
+                                      )}
+                                    >
+                                      {theme.label}
+                                    </span>
+                                    {index === 0 && (
+                                      <span
+                                        className={cn(
+                                          "rounded-md border px-1.5 py-0.2 text-[7.5px] font-black uppercase tracking-wider",
+                                          theme.bestMatchBadge
+                                        )}
+                                      >
+                                        Best match
+                                      </span>
+                                    )}
+                                    {recommendation.pro && (
+                                      <span className="rounded-md border border-purple-400/30 bg-purple-400/15 px-1.5 py-0.2 text-[7.5px] font-black uppercase tracking-wider text-purple-200">
+                                        Pro
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="text-sm sm:text-base font-bold text-white group-hover/tool:text-white transition-colors truncate">
+                                    {recommendation.name}
+                                  </h4>
+                                </div>
+                              </div>
+
+                              {/* Interactive Open Tool Pill */}
+                              <div
+                                className={cn(
+                                  "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-300 shrink-0",
+                                  theme.buttonClass
+                                )}
+                              >
+                                <span>Open</span>
+                                <ArrowRight
+                                  size={13}
+                                  className="transition-transform duration-200 group-hover/tool:translate-x-0.5"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Description text */}
+                            <p className="text-xs font-medium leading-relaxed text-zinc-300 line-clamp-2 pl-0.5">
+                              {recommendation.description}
+                            </p>
+
+                            {/* Footer info: match % and reason */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-[10px]">
+                              {typeof recommendation.confidence === "number" && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                  <Target size={11} className="text-emerald-400 shrink-0" />
+                                  {recommendation.confidence}% match
+                                </span>
+                              )}
+                              {recommendation.reason && (
+                                <span className="line-clamp-1 text-zinc-400 font-medium">
+                                  {recommendation.reason}
+                                </span>
+                              )}
+                            </div>
                           </Link>
                         );
                       })}
@@ -448,43 +714,78 @@ export function HomeToolConcierge() {
               ))}
 
               {isLoading && (
-                <div className="flex items-center gap-3 rounded-2xl border border-purple-400/20 bg-purple-500/10 px-4 py-3 text-xs font-semibold text-zinc-300 shadow-md backdrop-blur-md">
-                  <span className="relative flex size-7 items-center justify-center rounded-lg border border-purple-400/30 bg-black/40 text-cyan-300">
-                    <Loader2 size={15} className="animate-spin text-cyan-300" />
-                  </span>
-                  <span className="animate-pulse">Mapping your request to Exismic...</span>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative overflow-hidden rounded-2xl border border-violet-500/25 bg-[#090b1c]/90 p-3.5 sm:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_20px_rgba(139,92,246,0.15)] backdrop-blur-xl"
+                >
+                  <div className="relative flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {/* High-tech pulsing scanner orb */}
+                      <div className="relative flex size-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-500/15 shadow-[0_0_15px_rgba(139,92,246,0.25)]">
+                        <span className="absolute size-5 rounded-full border border-violet-400/40 animate-ping opacity-60" />
+                        <span className="absolute size-6 rounded-full border border-t-cyan-400 border-r-transparent border-b-violet-400 border-l-transparent animate-spin" />
+                        <Bot size={15} className="text-violet-300" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs sm:text-sm font-bold text-white tracking-tight">
+                            Mapping your request...
+                          </p>
+                          <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-2 py-0.2 text-[8px] font-mono font-bold uppercase tracking-wider text-cyan-300">
+                            Neural Router
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] font-medium text-zinc-400">
+                          Scanning 40+ creative tools for the best match
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Animated Waveform / Neural Dots */}
+                    <div className="flex items-center gap-1 shrink-0 px-1">
+                      <span className="size-1.5 rounded-full bg-violet-400 animate-[bounce_1s_infinite_100ms]" />
+                      <span className="size-1.5 rounded-full bg-cyan-400 animate-[bounce_1s_infinite_250ms]" />
+                      <span className="size-1.5 rounded-full bg-fuchsia-400 animate-[bounce_1s_infinite_400ms]" />
+                    </div>
+                  </div>
+
+                  {/* Shimmering Laser Progress Bar */}
+                  <div className="relative mt-3 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                    <div className="absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-violet-500 to-cyan-400 animate-[shimmer_1.5s_infinite_linear]" />
+                  </div>
+                </motion.div>
               )}
             </div>
 
             {/* Redesigned Premium Input / Composer Bar */}
-            <div className="relative z-10 border-t border-white/[0.08] bg-black/40 p-3 sm:p-3.5 backdrop-blur-2xl">
+            <div className="relative z-10 border-t border-white/[0.08] bg-[#070914]/90 p-3 sm:p-3.5 backdrop-blur-2xl">
               <form
                 onSubmit={handleSubmit}
-                className="group/composer relative flex items-center gap-2 rounded-2xl border border-white/[0.12] bg-[#0b0d1e]/85 p-1.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.4)] transition-all duration-300 focus-within:border-cyan-400/50 focus-within:bg-[#0e1126] focus-within:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                className="group/composer relative flex items-center gap-2 rounded-2xl border border-white/[0.12] bg-[#0c0e1e] p-1.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-300 focus-within:border-violet-500/50 focus-within:bg-[#0f1226] focus-within:shadow-[0_0_25px_rgba(139,92,246,0.2)]"
               >
-                <textarea
-                  ref={textareaRef}
+                <div className="flex items-center pl-3 text-zinc-400 group-focus-within/composer:text-violet-400 transition-colors shrink-0">
+                  <Search size={16} strokeWidth={2.2} />
+                </div>
+                <input
+                  ref={inputRef}
+                  type="text"
                   value={input}
                   onChange={(event) => setInput(event.target.value.slice(0, 500))}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      if (input.trim()) void sendMessage(input);
-                    }
-                  }}
-                  placeholder="Example: remove the background from my product photo"
-                  rows={1}
-                  className="min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-xs sm:text-sm font-medium text-white outline-none placeholder:text-zinc-500"
+                  placeholder="Describe any task (e.g. compress video, build resume)..."
+                  className="w-full flex-1 bg-transparent px-2.5 py-2 text-xs sm:text-sm font-medium text-white outline-none placeholder:text-zinc-500"
                 />
-
+                <span className="hidden sm:inline-flex items-center text-[10px] font-mono text-zinc-400 border border-white/10 rounded-md px-1.5 py-0.5 shrink-0 select-none">
+                  Enter ↵
+                </span>
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
                   className={cn(
                     "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl text-white shadow-md transition-all duration-200 active:scale-90",
                     input.trim() && !isLoading
-                      ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 shadow-[0_0_18px_rgba(6,182,212,0.4)] hover:brightness-110 cursor-pointer"
+                      ? "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 shadow-[0_0_20px_rgba(139,92,246,0.5)] hover:brightness-110 cursor-pointer"
                       : "bg-white/[0.06] text-zinc-600 cursor-not-allowed opacity-40"
                   )}
                   aria-label="Send request"

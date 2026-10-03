@@ -74,92 +74,135 @@ export function formatTimeAgo(dateString: string): string {
 
 export function getEffectiveToolCategory(tool?: Tool | null): string {
   if (!tool) return "image";
+  const cat = (tool.category || "").toLowerCase();
   const id = (tool.id || "").toLowerCase();
   const href = (tool.href || "").toLowerCase();
   const name = (tool.name || "").toLowerCase();
-  const cat = (tool.category || "").toLowerCase();
 
-  // 1. Image & Graphic tools (AI Image Gen, Minecraft Skin, Eraser, Resizer, Compressor, Converter, Meme, etc.)
-  if (
-    id.includes("img") ||
-    id.includes("image") ||
-    id.includes("eraser") ||
-    id.includes("compressor") ||
-    id.includes("resizer") ||
-    id.includes("converter") ||
-    id.includes("watermark") ||
-    id.includes("minecraft") ||
-    id.includes("vector") ||
-    id.includes("upscaler") ||
-    id.includes("meme") ||
-    id.includes("collage") ||
-    href.includes("/image") ||
-    href.includes("img-gen") ||
-    name.includes("image") ||
-    name.includes("photo") ||
-    name.includes("skin maker")
-  ) {
-    return "image";
+  // 1. Direct canonical category match
+  const canonicalCategories = [
+    "video",
+    "audio",
+    "pdf",
+    "image",
+    "productivity",
+    "business",
+    "developer",
+    "student",
+    "creator",
+    "ai",
+    "seo",
+  ];
+  if (cat && canonicalCategories.includes(cat)) {
+    return cat;
   }
 
-  // 2. Audio tools
+  // 2. Video tools
   if (
+    id.startsWith("video-") ||
+    id.includes("video") ||
+    href.includes("/video") ||
+    name.includes("video") ||
+    id.includes("subtitles") ||
+    id.includes("trimmer")
+  ) {
+    return "video";
+  }
+
+  // 3. Audio tools
+  if (
+    id.startsWith("audio-") ||
     id.includes("audio") ||
+    href.includes("/audio") ||
     id.includes("vocal") ||
     id.includes("voice") ||
     id.includes("speech") ||
-    href.includes("/audio") ||
-    cat === "audio"
+    id.includes("reverb") ||
+    id.includes("audiogram") ||
+    id.includes("ambient-mixer") ||
+    id.includes("sfx-generator")
   ) {
     return "audio";
   }
 
-  // 3. PDF tools
+  // 4. PDF tools
   if (
+    id.startsWith("pdf-") ||
     id.includes("pdf") ||
     href.includes("/pdf") ||
-    cat === "pdf"
+    id.includes("ocr") ||
+    name.includes("pdf")
   ) {
     return "pdf";
   }
 
-  // 4. Developer tools
+  // 5. Developer tools
   if (
+    href.includes("/developer") ||
     id.includes("code") ||
+    id.includes("diff") ||
     id.includes("regex") ||
     id.includes("json") ||
-    id.includes("developer") ||
-    id.includes("css") ||
-    cat === "developer"
+    id.includes("favicon") ||
+    id.includes("mesh-gradient")
   ) {
     return "developer";
   }
 
-  // 5. Productivity & Document tools
+  // 6. Productivity & Finance
   if (
-    id.includes("invoice") ||
+    href.includes("/productivity") ||
     id.includes("resume") ||
-    id.includes("calculator") ||
-    id.includes("cv") ||
-    cat === "productivity" ||
-    cat === "business"
+    id.includes("invoice") ||
+    id.includes("cover-letter") ||
+    id.includes("typing") ||
+    id.includes("gst-calculator") ||
+    id.includes("calculator")
   ) {
     return "productivity";
   }
 
-  // 6. Creator & Social tools
+  // 7. Student & Study tools
   if (
+    href.includes("/student") ||
+    id.includes("study") ||
+    id.includes("mind-map") ||
+    id.includes("citation") ||
+    id.includes("flashcard") ||
+    id.includes("math-solver")
+  ) {
+    return "student";
+  }
+
+  // 8. Creator & Social
+  if (
+    href.includes("/creator") ||
+    href.includes("/seo") ||
     id.includes("caption") ||
-    id.includes("hook") ||
-    id.includes("script") ||
-    cat === "creator"
+    id.includes("hashtag") ||
+    id.includes("teleprompter") ||
+    id.includes("post-mockup") ||
+    id.includes("og-banner")
   ) {
     return "creator";
   }
 
-  // 7. AI tools
-  if (cat === "ai" || id.startsWith("ai-")) {
+  // 9. AI & Generator tools
+  if (id.startsWith("ai-") || cat === "ai") {
     return "ai";
+  }
+
+  // 10. Image tools
+  if (
+    id.includes("img") ||
+    id.includes("image") ||
+    id.includes("photo") ||
+    id.includes("eraser") ||
+    id.includes("watermark") ||
+    id.includes("minecraft") ||
+    href.includes("/image")
+  ) {
+    return "image";
   }
 
   return cat || "image";
