@@ -154,6 +154,31 @@ export async function getPayPalAccessToken() {
   return String(data.access_token);
 }
 
+export async function getPayPalClientToken() {
+  try {
+    const accessToken = await getPayPalAccessToken();
+    const response = await fetch(`${getPayPalApiBase()}/v1/identity/generate-token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Accept-Language": "en_US",
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    const data = (await response.json().catch(() => null)) as { client_token?: string } | null;
+    if (!response.ok || !data?.client_token) {
+      console.warn("[PayPal] Could not generate client token for Hosted Fields", data);
+      return null;
+    }
+    return String(data.client_token);
+  } catch (err) {
+    console.warn("[PayPal] Error generating client token:", err);
+    return null;
+  }
+}
+
 export async function createPayPalOrder({
   context,
   description,

@@ -11,6 +11,9 @@ import {
 } from "@/lib/emails";
 import { createNotification } from "@/lib/notifications";
 import { generateGiftCode } from "@/lib/gifts";
+import { deliverBillingReceipt } from "./receipt-delivery";
+import { getServerSiteUrl } from "@/lib/site-url";
+import { addMembershipPeriod } from "./period";
 
 type FulfillPaymentInput = {
   orderId: string;
@@ -21,13 +24,7 @@ type FulfillPaymentInput = {
 
 function periodEndFor(planId: BillingPlanId) {
   if (planId !== "pro" && planId !== "pro_yearly") return null;
-  const next = new Date();
-  if (planId === "pro_yearly") {
-    next.setFullYear(next.getFullYear() + 1);
-  } else {
-    next.setMonth(next.getMonth() + 1);
-  }
-  return next;
+  return addMembershipPeriod(new Date(), planId === "pro_yearly" ? "year" : "month");
 }
 
 function formatAmount(amountMinor: number, currency: string) {
@@ -59,8 +56,8 @@ export async function recordBillingFailure({
     : {};
   const safeReason = (reason || "The payment provider could not complete this transaction.").slice(0, 500);
 
-  await prisma.paymentOrder.update({
-    where: { id: order.id },
+  const changed = await prisma.paymentOrder.updateMany({
+    where: { id: order.id, status: { not: "paid" } },
     data: {
       status: "failed",
       ...(providerPaymentId ? { providerPaymentId } : {}),
@@ -71,6 +68,7 @@ export async function recordBillingFailure({
       },
     },
   });
+  if (!changed.count) return { recorded: false, reason: "already_paid" };
 
   const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
   if (!dbUser?.email) return { recorded: true, emailSent: false };
@@ -83,8 +81,8 @@ export async function recordBillingFailure({
   });
 
   if (sent) {
-    await prisma.paymentOrder.update({
-      where: { id: order.id },
+    await prisma.paymentOrder.updateMany({
+      where: { id: order.id, status: "failed" },
       data: { metadata: { ...metadata, failureReason: safeReason, failedAt: new Date().toISOString(), failureEmailSentAt: new Date().toISOString() } },
     });
   }
@@ -101,7 +99,18 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
       const existingTransaction = await tx.paymentTransaction.findFirst({
         where: { metadata: { path: ["billingOrderId"], equals: order.id } },
       });
-      return { order, alreadyProcessed: true, transactionReference: existingTransaction?.transactionReference || null };
+      const meta = order.metadata as Record<string, unknown>;
+      return { order, alreadyProcessed: true, transactionReference: existingTransaction?.transactionReference || null, isGift: Boolean(meta.isGift), giftCode: typeof meta.giftCode === "string" ? meta.giftCode : null };
+    }
+
+    // Claim this order before any grants. A simultaneous webhook/checkout callback waits
+    // on the same row and then sees count=0 instead of crediting the account twice.
+    const claimed = await tx.paymentOrder.updateMany({ where: { id: order.id, status: { not: "paid" } }, data: { status: "paid" } });
+    if (!claimed.count) {
+      const paid = await tx.paymentOrder.findUniqueOrThrow({ where: { id: order.id } });
+      const existing = await tx.paymentTransaction.findFirst({ where: { metadata: { path: ["billingOrderId"], equals: order.id } } });
+      const meta = paid.metadata as Record<string, unknown>;
+      return { order: paid, alreadyProcessed: true, transactionReference: existing?.transactionReference || null, isGift: Boolean(meta.isGift), giftCode: typeof meta.giftCode === "string" ? meta.giftCode : null };
     }
 
     const plan = getBillingPlan(order.planId);
@@ -188,6 +197,7 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
           ...rawMetadata,
           isGift,
           ...(generatedGiftCode ? { giftCode: generatedGiftCode, giftType } : {}),
+          ...(currentPeriodEnd ? { nextBillingTime: currentPeriodEnd.toISOString() } : {}),
           fulfilledAt: new Date().toISOString()
         },
       },
@@ -235,11 +245,7 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
     await tx.userBilling.upsert({
       where: { userId: order.userId },
       update: {
-        planId: isProPlan ? plan.id : "pro",
-        status: isProPlan ? "active" : "paid",
-        ...(isProPlan ? {} : { credits: { increment: order.credits } }),
-        currentPeriodEnd,
-        lastPaymentOrderId: order.id,
+        ...(isProPlan ? { planId: plan.id, status: "active", currentPeriodEnd, lastPaymentOrderId: order.id } : { credits: { increment: order.credits } }),
       },
       create: {
         userId: order.userId,
@@ -388,7 +394,7 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
       const reference = result.transactionReference || result.order.providerPaymentId || result.order.id;
 
       if (email) {
-        const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://exismic.com";
+        const siteUrl = getServerSiteUrl();
         const redeemUrl = `${siteUrl}/redeem?code=${encodeURIComponent(result.giftCode)}`;
         const isPro = result.plan.id === "pro" || result.plan.id === "pro_yearly";
         const giftTitle = isPro 
@@ -455,6 +461,7 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
     }
   }
 
+  await deliverBillingReceipt(result.order.userId, result.order.providerPaymentId || providerPaymentId || `${result.order.gateway}_${result.order.id}`);
   return result;
 }
 
@@ -499,10 +506,12 @@ export async function fulfillProRenewal({
       },
     });
 
+    const originalOrder = await tx.paymentOrder.findFirst({ where: { userId, providerOrderId: subscriptionId, planId: { in: ["pro", "pro_yearly"] }, status: "paid" }, orderBy: { createdAt: "desc" } });
+    const renewalPlanId = originalOrder?.planId === "pro_yearly" ? "pro_yearly" : "pro";
     await tx.userBilling.upsert({
       where: { userId },
-      update: { planId: "pro", status: "active", currentPeriodEnd: periodEnd },
-      create: { userId, planId: "pro", status: "active", currentPeriodEnd: periodEnd },
+      update: { planId: renewalPlanId, status: "active", currentPeriodEnd: periodEnd },
+      create: { userId, planId: renewalPlanId, status: "active", currentPeriodEnd: periodEnd },
     });
 
     const transaction = await tx.paymentTransaction.create({
@@ -517,6 +526,7 @@ export async function fulfillProRenewal({
         currency,
         metadata: {
           subscriptionId,
+          planId: renewalPlanId,
           nextBillingTime: periodEnd.toISOString(),
           ...rawMetadata,
         },
@@ -544,6 +554,7 @@ export async function fulfillProRenewal({
     ).catch((error) => console.error(`[Billing] Renewal notification failed for payment ${providerPaymentId}:`, error));
   }
 
+  await deliverBillingReceipt(userId, providerPaymentId);
   return result;
 }
 

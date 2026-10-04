@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { getBillingPlan, getPlanPrice, type BillingMarket } from "@/lib/billing/plans";
 import { resolveMarket } from "@/lib/geo/getUserCountry";
-import { PRICING_CONFIG } from "@/config/pricing";
+import { PRICING_CONFIG, isExismic17PromoActive } from "@/config/pricing";
 import { checkUserLaunchDiscountEligibility } from "@/lib/billing/launch-discount";
 
 const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 0. Exismic 1.7 Launch Special (Official 20% Discount) & Custom Coupon Blocking
-    if (PRICING_CONFIG.V17_LAUNCH_PROMO.ACTIVE) {
+    if (isExismic17PromoActive()) {
       if (cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE || cleanCode === "EXISMIC17" || cleanCode === "V16LAUNCH") {
         if (plan.id === "pro_yearly") {
           return NextResponse.json({

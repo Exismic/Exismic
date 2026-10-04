@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { createNotification } from "@/lib/notifications";
+import { addMembershipPeriod } from "@/lib/billing/period";
 
 export const dynamic = "force-dynamic";
+
+class GiftNeedsCancellation extends Error {}
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +22,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { code, verifyOnly } = body;
 
-    if (!code?.trim()) {
+    if (typeof code !== "string" || !code.trim()) {
       return NextResponse.json({ error: "Promo or voucher code is required" }, { status: 400 });
     }
 
@@ -82,6 +85,7 @@ export async function POST(request: Request) {
     const isPro30d = cleanCode.includes("PRO30") || cleanCode.includes("PRO-30") || cleanCode.includes("PRO1M") || cleanCode.includes("PROMONTH");
     const isPro7d = cleanCode.includes("PRO7D") || cleanCode.includes("PRO-7D") || cleanCode.includes("PRO1W");
     const isPro24h = cleanCode.includes("PRO24H") || cleanCode.includes("PRO-24H") || cleanCode.includes("PRO1D");
+    const isPaidGift = cleanCode.startsWith("GIFT-");
     const isBadge = cleanCode.includes("BADGE") || cleanCode.includes("COSMIC");
 
     let rewardMessage = "";
@@ -94,11 +98,11 @@ export async function POST(request: Request) {
       rewardType = "pro";
       if (isPro365d) {
         rewardTitle = "1-Year Exismic Pro Pass";
-        rewardDescription = "365 days of full Pro access, 500 daily credits, and all VIP creator tools.";
+        rewardDescription = isPaidGift ? "12 months of Pro access with 500 daily credits." : "365 days of full Pro access with 500 daily credits.";
         rewardValue = 8760;
       } else if (isPro30d) {
         rewardTitle = "30-Day Exismic Pro Pass";
-        rewardDescription = "30 days of full Pro access, 500 daily credits, and all VIP creator tools.";
+        rewardDescription = isPaidGift ? "1 month of Pro access with 500 daily credits." : "30 days of full Pro access with 500 daily credits.";
         rewardValue = 720;
       } else if (isPro7d) {
         rewardTitle = "7-Day Exismic Pro Pass";
@@ -131,6 +135,12 @@ export async function POST(request: Request) {
 
     // 5. Execute transaction: Increment redemptions, write redemption mapping, award reward
     await prisma.$transaction(async (tx) => {
+      const dbUser = await tx.user.findUnique({ where: { id: authUser.id } });
+      // A renewing subscription would overwrite prepaid gift time at its next charge.
+      // Keep the voucher unused until the recipient turns off that renewal.
+      if (isPaidGift && (isPro365d || isPro30d) && /^(sub_|I-)/.test(dbUser?.subscriptionId || "") && dbUser?.subscriptionStatus !== "cancelled") {
+        throw new GiftNeedsCancellation("Cancel your existing Pro subscription's future renewals before redeeming a Pro gift pass. Your voucher has not been used.");
+      }
       // Atomic increment with strict capacity check
       const updateResult = await tx.promoCode.updateMany({
         where: { 
@@ -152,7 +162,6 @@ export async function POST(request: Request) {
         },
       });
 
-      const dbUser = await tx.user.findUnique({ where: { id: authUser.id } });
       const now = new Date();
 
       if (isPro365d || isPro30d || isPro7d || isPro24h) {
@@ -168,16 +177,26 @@ export async function POST(request: Request) {
           currentExpiry = now;
         }
 
-        const newExpiry = new Date(currentExpiry.getTime() + hoursToAdd * 60 * 60 * 1000);
+        const newExpiry = isPaidGift && (isPro365d || isPro30d)
+          ? addMembershipPeriod(currentExpiry, isPro365d ? "year" : "month")
+          : new Date(currentExpiry.getTime() + hoursToAdd * 60 * 60 * 1000);
 
         await tx.user.update({
           where: { id: authUser.id },
           data: {
             plan: "pro",
             planExpiresAt: newExpiry,
-            subscriptionStatus: "promo_pro",
+            subscriptionStatus: dbUser?.subscriptionStatus === "active" ? "active" : "promo_pro",
             dailyCredits: 500,
+            aiGenerationsLimit: 1000,
+            // Detach old provider callbacks from the new prepaid gift access.
+            ...(isPaidGift && /^(sub_|I-)/.test(dbUser?.subscriptionId || "") ? { subscriptionId: null } : {}),
           },
+        });
+        if (isPaidGift) await tx.userBilling.upsert({
+          where: { userId: authUser.id },
+          update: { planId: isPro365d ? "pro_yearly" : "pro", status: "prepaid", currentPeriodEnd: newExpiry },
+          create: { userId: authUser.id, planId: isPro365d ? "pro_yearly" : "pro", status: "prepaid", currentPeriodEnd: newExpiry },
         });
 
         rewardMessage = isPro365d
@@ -203,8 +222,9 @@ export async function POST(request: Request) {
         await tx.user.update({
           where: { id: authUser.id },
           data: {
-            bonusCredits: { increment: promo.bonusCredits },
-            lifetimeCredits: { increment: promo.bonusCredits },
+            // Paid gift credits belong to the permanent balance. Award one balance
+            // only: adding to both bonus and permanent doubles the advertised amount.
+            ...(isPaidGift ? { lifetimeCredits: { increment: promo.bonusCredits } } : { bonusCredits: { increment: promo.bonusCredits } }),
           },
         });
 
@@ -212,7 +232,7 @@ export async function POST(request: Request) {
           data: {
             userId: authUser.id,
             amount: promo.bonusCredits,
-            balanceType: "bonus",
+            balanceType: isPaidGift ? "permanent" : "bonus",
             transactionType: "voucher_redemption",
             description: `Redeemed gift voucher: ${promo.code}`,
           },
@@ -228,7 +248,7 @@ export async function POST(request: Request) {
       "Reward Code Redeemed!",
       `Successfully claimed ${rewardMessage} using code ${cleanCode}!`,
       "success"
-    );
+    ).catch((error) => console.error("[PROMO_REDEEM_NOTIFICATION]", error));
 
     return NextResponse.json({
       success: true,
@@ -238,6 +258,7 @@ export async function POST(request: Request) {
       code: cleanCode,
     });
   } catch (error) {
+    if (error instanceof GiftNeedsCancellation) return NextResponse.json({ error: error.message }, { status: 409 });
     console.error("[PROMO_REDEEM_POST]", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

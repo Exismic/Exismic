@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { fulfillBillingOrder, fulfillProRenewal, recordBillingFailure } from "@/lib/billing/fulfillment";
+import { expectedRenewalAmount } from "@/lib/billing/renewal-price";
 import { prisma } from "@/lib/prisma";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { sendPaymentFailedEmail } from "@/lib/emails";
@@ -81,26 +82,22 @@ export async function POST(req: NextRequest) {
     }
 
     if (["subscription.pending", "subscription.activated", "subscription.resumed"].includes(eventType) && providerOrderId) {
-      const periodEnd = dateFromUnix(subscription?.current_end) || dateFromUnix(subscription?.charge_at);
       const active = eventType !== "subscription.pending";
       const affectedUsers = await prisma.user.findMany({
-        where: { subscriptionId: providerOrderId },
+        where: { subscriptionId: providerOrderId, ...(active ? { planExpiresAt: { gt: new Date() } } : {}) },
         select: { id: true },
       });
       await prisma.user.updateMany({
-        where: { subscriptionId: providerOrderId },
+        where: { subscriptionId: providerOrderId, ...(active ? { planExpiresAt: { gt: new Date() } } : {}) },
         data: {
           ...(active ? { plan: "pro", dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS, aiGenerationsLimit: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS } : {}),
           subscriptionStatus: active ? "active" : "past_due",
-          ...(periodEnd ? { planExpiresAt: periodEnd } : {}),
         },
       });
       await prisma.userBilling.updateMany({
         where: { userId: { in: affectedUsers.map((user) => user.id) } },
         data: {
-          planId: "pro",
           status: active ? "active" : "past_due",
-          ...(periodEnd ? { currentPeriodEnd: periodEnd } : {}),
         },
       });
       await prisma.paymentEvent.updateMany({
@@ -129,7 +126,7 @@ export async function POST(req: NextRequest) {
       await prisma.userBilling.updateMany({
         where: { userId: { in: affectedUsers.map((user) => user.id) } },
         data: {
-          planId: accessEnded ? "free" : "pro",
+          ...(accessEnded ? { planId: "free" } : {}),
           status: eventType === "subscription.halted" ? "suspended" : "cancelled",
           currentPeriodEnd: expiryDate,
         },
@@ -147,7 +144,7 @@ export async function POST(req: NextRequest) {
       const paymentOrder = await prisma.paymentOrder.findFirst({ where: { gateway: "razorpay", providerOrderId } });
       if (paymentOrder) {
         const failureReason = stringField(payment, "error_description") || stringField(payment, "error_reason") || "Razorpay could not complete this payment.";
-        if (paymentOrder.status === "paid" && paymentOrder.planId === "pro") {
+        if (paymentOrder.status === "paid" && ["pro", "pro_yearly"].includes(paymentOrder.planId)) {
           const user = await prisma.user.findUnique({ where: { id: paymentOrder.userId }, select: { email: true } });
           if (user?.email) await sendPaymentFailedEmail(user.email, { purchaseType: "pro", orderId: providerEventId, reason: failureReason });
         } else {
@@ -175,11 +172,15 @@ export async function POST(req: NextRequest) {
 
     const paidAmount = numberField(payment, "amount");
     const paidCurrency = stringField(payment, "currency");
-    if (paidAmount !== paymentOrder.amount || paidCurrency !== paymentOrder.currency) {
+    const recurringPro = ["pro", "pro_yearly"].includes(paymentOrder.planId) && providerOrderId.startsWith("sub_");
+    const existingPayment = await prisma.paymentTransaction.findUnique({ where: { providerPaymentId } });
+    const isRenewal = recurringPro && paymentOrder.status === "paid" && providerPaymentId !== paymentOrder.providerPaymentId;
+    const expectedAmount = existingPayment?.amount ?? (isRenewal ? expectedRenewalAmount(paymentOrder) : paymentOrder.amount);
+    if (paidAmount !== expectedAmount || paidCurrency !== paymentOrder.currency) {
       console.error("[Billing] Razorpay webhook amount mismatch", {
         paymentOrderId: paymentOrder.id,
         providerPaymentId,
-        expectedAmount: paymentOrder.amount,
+        expectedAmount,
         receivedAmount: paidAmount,
         expectedCurrency: paymentOrder.currency,
         receivedCurrency: paidCurrency,
@@ -193,12 +194,13 @@ export async function POST(req: NextRequest) {
 
     const periodEnd = dateFromUnix(subscription?.current_end) || dateFromUnix(subscription?.charge_at) || (() => {
       const fallback = new Date();
-      fallback.setMonth(fallback.getMonth() + 1);
+      if (paymentOrder.planId === "pro_yearly") fallback.setFullYear(fallback.getFullYear() + 1);
+      else fallback.setMonth(fallback.getMonth() + 1);
       return fallback;
     })();
 
     let alreadyProcessed = false;
-    if (paymentOrder.planId === "pro" && paymentOrder.status === "paid") {
+    if (isRenewal) {
       const renewal = await fulfillProRenewal({
         userId: paymentOrder.userId,
         provider: "razorpay",
@@ -214,7 +216,7 @@ export async function POST(req: NextRequest) {
       const result = await fulfillBillingOrder({
         orderId: paymentOrder.id,
         providerPaymentId,
-        periodEnd: paymentOrder.planId === "pro" ? periodEnd : null,
+        periodEnd: recurringPro ? periodEnd : null,
         rawMetadata: { verifiedBy: "razorpay_webhook", webhookEventId: providerEventId, razorpaySubscriptionId: stringField(payment, "subscription_id") || null },
       });
       alreadyProcessed = result.alreadyProcessed;

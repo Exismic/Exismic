@@ -19,9 +19,10 @@ import {
   Clock,
   RefreshCw
 } from "lucide-react";
+import { loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
-import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive, getAnnualSavings } from "@/config/pricing";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
@@ -87,7 +88,7 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
     displayCredits: "2,000",
     subtitle: "1,500 base + 500 bonus (never expires)",
     bonusCredits: 500,
-    popular: true,
+    popular: false,
     style: {
       icon: Diamond,
       iconColor: "text-purple-300",
@@ -98,7 +99,7 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
       numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
       conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
       markTheme: "purple",
-      subtitle: "Best Value Pack",
+      subtitle: "For Regular Creators",
       subtitleColor: "text-zinc-400 group-hover/launch:text-fuchsia-200/90",
       arrowBoxHover: "group-hover/launch:border-fuchsia-300/60 group-hover/launch:bg-fuchsia-300/[0.2] group-hover/launch:text-fuchsia-50 group-hover/launch:shadow-[0_0_30px_rgba(217,70,239,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
       arrowIconHover: "group-hover/launch:text-fuchsia-100",
@@ -109,6 +110,7 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
   },
   {
     id: "ultimate",
+    popular: true,
     label: "STUDIO POWER",
     displayCredits: "6,000",
     subtitle: "5,000 base + 1,000 bonus (never expires)",
@@ -149,6 +151,7 @@ export function BuyCreditsModal({
 }: BuyCreditsModalProps) {
   const [activeCategory, setActiveCategory] = useState<"pro" | "credits">(initialCategory);
   const [isIndia, setIsIndia] = useState(false);
+  const annualSavings = getAnnualSavings(isIndia);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [timeUntilReset, setTimeUntilReset] = useState("00h 00m 00s");
@@ -157,6 +160,7 @@ export function BuyCreditsModal({
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState<"pro" | "credits">("credits");
   const [successCredits, setSuccessCredits] = useState(0);
+  const [successOrderId, setSuccessOrderId] = useState<string>();
   const [showFailure, setShowFailure] = useState(false);
   const [failureReason, setFailureReason] = useState<string | undefined>();
 
@@ -288,17 +292,15 @@ export function BuyCreditsModal({
       }
 
       if (data.gateway === "razorpay") {
-        if (typeof window === "undefined" || !window.Razorpay) {
-          throw new Error("Payment gateway is loading. Please try again in a moment.");
-        }
-
-        const razorpay = new window.Razorpay({
+        const Razorpay = await loadRazorpayCheckout();
+        const razorpay = new Razorpay({
           key: data.keyId,
           amount: data.amount,
           currency: data.currency,
           name: "Exismic",
           description: planTitle,
-          order_id: data.razorpayOrderId || data.providerOrderId,
+          ...(data.razorpaySubscriptionId ? { subscription_id: data.razorpaySubscriptionId } : { order_id: data.razorpayOrderId || data.providerOrderId }),
+          modal: { ondismiss: () => setLoadingId(null) },
           handler: async (response: any) => {
             try {
               const verifyRes = await fetch("/api/billing/razorpay/verify", {
@@ -308,18 +310,18 @@ export function BuyCreditsModal({
               });
               const verifyData = await verifyRes.json();
               if (verifyRes.ok && verifyData.success) {
-                await refreshCredits();
                 setSuccessType(category);
                 setSuccessCredits(planCredits);
+                setSuccessOrderId(verifyData.orderId);
                 setShowSuccess(true);
-                onClose();
+                // A stale balance must never turn a confirmed payment into a failure.
+                void Promise.resolve().then(() => refreshCredits()).catch(() => {});
               } else {
-                setFailureReason(verifyData.error || "Payment verification could not be completed.");
-                setShowFailure(true);
+                window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
               }
-            } catch (err: any) {
-              setFailureReason(err.message || "Failed to verify payment.");
-              setShowFailure(true);
+            } catch {
+              // The provider callback may be charged while our webhook is still pending.
+              window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
             } finally {
               setLoadingId(null);
             }
@@ -609,7 +611,7 @@ export function BuyCreditsModal({
                               </div>
                               <div>
                                 <h3 className="text-lg font-black text-white tracking-tight">1-Month Pro Pass</h3>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Monthly Unlimited</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Monthly membership</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -742,7 +744,7 @@ export function BuyCreditsModal({
                               </div>
                             </div>
                             <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)]">
-                              <Flame size={11} className="text-amber-300 fill-amber-400/40" /> Save 28%
+                              <Flame size={11} className="text-amber-300 fill-amber-400/40" /> Save {annualSavings.percent}%
                             </span>
                           </div>
 
@@ -764,7 +766,7 @@ export function BuyCreditsModal({
                               { icon: Coins, text: "182,500 Total Creative Credits", sub: "500 daily allowance for 365 days", chip: "365 Days", color: "text-purple-300" },
                               { icon: Flame, text: "Priority Compute Queue", sub: "Top-priority rendering capacity", chip: "Priority Queue", color: "text-fuchsia-300" },
                               { icon: Palette, text: "Full Studio Suite & 4K Exports", sub: "Maximum resolution & priority models", chip: "Full Suite", color: "text-pink-300" },
-                              { icon: ShieldCheck, text: "1-Year Commercial License", sub: "Full client & commercial revenue rights", chip: "Save 28%", color: "text-emerald-300" },
+                              { icon: ShieldCheck, text: "1-Year Commercial License", sub: "Full client & commercial revenue rights", chip: `Save ${annualSavings.percent}%`, color: "text-emerald-300" },
                             ].map((item, idx) => {
                               const ItemIcon = item.icon;
                               return (
@@ -856,9 +858,10 @@ export function BuyCreditsModal({
       {/* Post-Purchase Success Confirmation */}
       <PaymentSuccessModal
         isOpen={showSuccess}
-        onClose={() => setShowSuccess(false)}
+        onClose={() => { setShowSuccess(false); onClose(); }}
         type={successType}
         amount={successCredits}
+        orderId={successOrderId}
       />
 
       {/* Payment Failure Modal */}

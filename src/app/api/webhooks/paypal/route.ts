@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PRICING_CONFIG } from "@/config/pricing";
 import { fulfillBillingOrder, fulfillProRenewal, recordBillingFailure } from "@/lib/billing/fulfillment";
+import { expectedRenewalAmount } from "@/lib/billing/renewal-price";
 import { getPayPalAccessToken, getPayPalApiBase, getPayPalSubscription } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
 import { sendPaymentFailedEmail } from "@/lib/emails";
@@ -65,7 +66,7 @@ function extractCurrency(payload: PayPalWebhookPayload) {
   const billingInfo = asRecord(resource.billing_info);
   const lastPayment = asRecord(billingInfo.last_payment);
   const lastPaymentAmount = asRecord(lastPayment.amount);
-  return stringField(amount, "currency_code") || stringField(amount, "currency") || stringField(lastPaymentAmount, "currency_code") || "USD";
+  return stringField(amount, "currency_code") || stringField(amount, "currency") || stringField(lastPaymentAmount, "currency_code") || null;
 }
 
 async function verifyPayPalWebhook(req: NextRequest, event: PayPalWebhookPayload) {
@@ -116,11 +117,15 @@ async function renewSubscription(subscriptionId: string, event: PayPalWebhookPay
   const providerPaymentId = extractCaptureId(event) || event.id || `${subscriptionId}:${event.event_type || "renewal"}`;
   const amount = extractAmountMinor(event);
   const currency = extractCurrency(event);
-  if (amount !== paymentOrder.amount || currency !== paymentOrder.currency) {
+  const existingPayment = await prisma.paymentTransaction.findUnique({ where: { providerPaymentId } });
+  const initialPeriodEnd = (paymentOrder.metadata as Record<string, unknown>)?.nextBillingTime;
+  const sameInitialCycle = typeof initialPeriodEnd === "string" && new Date(initialPeriodEnd).getTime() === nextBillingDate.getTime();
+  const expectedAmount = existingPayment?.amount ?? (paymentOrder.status === "paid" && !sameInitialCycle ? expectedRenewalAmount(paymentOrder) : paymentOrder.amount);
+  if (!currency || amount !== expectedAmount || currency !== paymentOrder.currency) {
     console.error("[Billing] PayPal subscription amount mismatch", {
       paymentOrderId: paymentOrder.id,
       providerPaymentId,
-      expectedAmount: paymentOrder.amount,
+      expectedAmount,
       receivedAmount: amount,
       expectedCurrency: paymentOrder.currency,
       receivedCurrency: currency,
@@ -128,7 +133,7 @@ async function renewSubscription(subscriptionId: string, event: PayPalWebhookPay
     return { processed: false, reason: "amount_or_currency_mismatch" };
   }
 
-  if (paymentOrder.status !== "paid") {
+  if (paymentOrder.status !== "paid" || sameInitialCycle) {
     const result = await fulfillBillingOrder({
       orderId: paymentOrder.id,
       providerPaymentId,
@@ -171,6 +176,11 @@ async function activateSubscription(subscriptionId: string, event: PayPalWebhook
   }
 
   if (paymentOrder.status !== "paid") {
+    const lastPayment = subscription.billing_info?.last_payment?.amount;
+    const paidAmount = Number(lastPayment?.value);
+    if (!Number.isFinite(paidAmount) || paidAmount <= 0 || Math.round(paidAmount * 100) !== paymentOrder.amount || lastPayment?.currency_code !== paymentOrder.currency) {
+      return { processed: false, reason: "subscription_payment_not_confirmed" };
+    }
     const result = await fulfillBillingOrder({
       orderId: paymentOrder.id,
       providerPaymentId: subscriptionId,
@@ -180,6 +190,11 @@ async function activateSubscription(subscriptionId: string, event: PayPalWebhook
     return { processed: true, userId: paymentOrder.userId, alreadyProcessed: result.alreadyProcessed };
   }
 
+  // Activation/resumption is not a payment. Preserve the period already paid for.
+  const account = await prisma.user.findUnique({ where: { id: paymentOrder.userId }, select: { planExpiresAt: true, subscriptionId: true } });
+  if (account?.subscriptionId !== subscriptionId) return { processed: false, reason: "subscription_no_longer_current" };
+  const paidThrough = account?.planExpiresAt;
+  if (!paidThrough || paidThrough <= new Date()) return { processed: false, reason: "subscription_payment_not_confirmed" };
   await prisma.$transaction(async (tx) => {
     await tx.user.update({
       where: { id: paymentOrder.userId },
@@ -187,15 +202,15 @@ async function activateSubscription(subscriptionId: string, event: PayPalWebhook
         plan: "pro",
         subscriptionId,
         subscriptionStatus: "active",
-        planExpiresAt: nextBillingDate,
+        planExpiresAt: paidThrough,
         dailyCredits: PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS,
         aiGenerationsLimit: 1000,
       },
     });
     await tx.userBilling.upsert({
       where: { userId: paymentOrder.userId },
-      update: { planId: "pro", status: "active", currentPeriodEnd: nextBillingDate },
-      create: { userId: paymentOrder.userId, planId: "pro", status: "active", currentPeriodEnd: nextBillingDate },
+      update: { planId: paymentOrder.planId, status: "active", currentPeriodEnd: paidThrough },
+      create: { userId: paymentOrder.userId, planId: paymentOrder.planId, status: "active", currentPeriodEnd: paidThrough },
     });
   });
 
@@ -351,6 +366,13 @@ export async function POST(req: NextRequest) {
 
     const paymentOrder = await prisma.paymentOrder.findFirst({ where: { gateway: "paypal", providerOrderId } });
     if (!paymentOrder) return NextResponse.json({ received: true, processed: false, reason: "order_not_found" });
+
+    const paidAmount = extractAmountMinor(event);
+    const paidCurrency = extractCurrency(event);
+    if (!providerPaymentId || paidAmount !== paymentOrder.amount || paidCurrency !== paymentOrder.currency) {
+      await prisma.paymentEvent.updateMany({ where: { gateway: "paypal", providerEventId }, data: { processed: true } });
+      return NextResponse.json({ received: true, processed: false, reason: "amount_or_currency_mismatch" });
+    }
 
     const result = await fulfillBillingOrder({
       orderId: paymentOrder.id,

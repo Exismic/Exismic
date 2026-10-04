@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     const valid = expectedBuffer.length === receivedBuffer.length && crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
 
     if (!valid) {
-      await prisma.paymentOrder.update({ where: { id: paymentOrder.id }, data: { status: "failed", providerPaymentId: razorpay_payment_id } });
+      await prisma.paymentOrder.updateMany({ where: { id: paymentOrder.id, status: { not: "paid" } }, data: { status: "failed", providerPaymentId: razorpay_payment_id } });
       return NextResponse.json({ error: "Payment signature verification failed." }, { status: 400 });
     }
 

@@ -42,7 +42,14 @@ function paintContext(pixels: Uint8Array) {
 export function skinArtColors(design: MinecraftSkinDesign): Record<string, Color> {
   const p = design.palette;
   const ramp = (base: string, amount: number) => rgb(shadeWithHueShift(base, amount, "fabric"));
+  const accents: Record<string, Color> = {};
+  for (const token of ["U", "V", "O", "Z"] as const) {
+    const hex = design.artColors?.[token] || p.detail;
+    accents[token] = rgb(hex);
+    accents[token.toLowerCase()] = ramp(hex, -0.06);
+  }
   return {
+    ...accents,
     K: rgb(p.skin), k: blend(rgb(p.skin), rgb(p.skinShade), 0.45), C: blend(rgb(p.skin), [255, 246, 225], 0.15), R: blend(rgb(p.skin), [180, 108, 108], 0.13),
     H: rgb(p.hair), h: rgb(p.hairHighlight), L: blend(rgb(p.hair), rgb(p.hairHighlight), 0.45), D: ramp(p.hair, -0.035),
     T: rgb(p.top), t: ramp(p.top, 0.04), S: ramp(p.top, -0.04), s: ramp(p.top, -0.07),
@@ -202,10 +209,12 @@ function drawGradient(pixels: Uint8Array, design: MinecraftSkinDesign, model: Mi
 }
 
 export function applySkinPixelArt(pixels: Uint8Array, design: MinecraftSkinDesign, model: MinecraftArmModel): number {
-  const { put } = paintContext(pixels), colors = skinArtColors(design);
+  const { put, get, opaque, clear } = paintContext(pixels), colors = skinArtColors(design);
   let painted = 0;
   for (const art of sanitizeSkinPixelArt(design.pixelArt, design.characterType || "human")) {
     const face = skinArtFaces(model, art.layer === "outer")[art.region];
+    const hasHeadAccessory = design.headphones || design.horns || design.crown || design.halo || design.glasses || design.hoodState === "up";
+    if (art.mode === "replace" && art.layer === "outer" && art.region.startsWith("head-") && !hasHeadAccessory) clear(face);
     const faceColors = design.characterType === "duck" && art.region.startsWith("head-") && design.featureColors?.bill
       ? { ...colors, A: rgb(design.featureColors.bill), a: rgb(shadeWithHueShift(design.featureColors.bill, 0.04, "fabric")), B: rgb(shadeWithHueShift(design.featureColors.bill, -0.07, "fabric")) }
       : colors;
@@ -218,7 +227,20 @@ export function applySkinPixelArt(pixels: Uint8Array, design: MinecraftSkinDesig
         if ((design.characterType || "human") === "human" && art.region === "head-front" && (((y === 3 || y === 4) && x >= 1 && x <= 6) || (y === 6 && x >= 2 && x <= 5))) continue;
         if ((design.characterType || "human") === "human" && art.region === "head-front" && art.layer === "outer" && !"HhLD".includes(token)) continue;
         if ((design.characterType || "human") === "human" && art.region === "head-front" && art.layer === "outer" && y >= 3 && x >= 1 && x <= 6) continue;
-        put(face.x + x, face.y + y, faceColors[token]); painted++;
+        const px = face.x + x, py = face.y + y;
+        // Cloth shading follows the material already underneath, including plaid.
+        // It cannot cover a cream inner shirt, bare hands, torn knee or shoe with jacket color.
+        const material = "TtSs".includes(token) ? "T" : "PpQ".includes(token) ? "P" : "Ffg".includes(token) ? "F" : undefined;
+        if (material && !art.region.startsWith("head-")) {
+          const baseFace = skinArtFaces(model)[art.region];
+          const current = opaque(px, py) ? get(px, py) : get(baseFace.x + x, baseFace.y + y);
+          const blockers = material === "T" ? [colors.K, colors.A] : material === "P" ? [colors.K, colors.F] : [colors.K, colors.P];
+          if (distance(current, colors[material]) > 85 || blockers.some((color) => distance(current, color) < distance(current, colors[material]))) continue;
+          const hex = `#${current.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
+          const amount = ({ T: 0, t: 0.035, S: -0.04, s: -0.07, P: 0, p: 0.04, Q: -0.05, F: 0, f: 0.035, g: -0.05 } as Record<string, number>)[token];
+          put(px, py, rgb(shadeWithHueShift(hex, amount, "fabric")));
+        } else put(px, py, faceColors[token]);
+        painted++;
       }
     });
   }

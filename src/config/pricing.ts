@@ -9,7 +9,7 @@ export const PRICING_CONFIG = {
   },
   V17_LAUNCH_PROMO: {
     CODE: "EXISMIC17",
-    ACTIVE: true,
+    ACTIVE: false,
     EXPIRES_AT: "2026-10-08T23:59:59Z", // 1 week from now (Oct 1 - Oct 8, 2026)
     DISCOUNT_PERCENT: 20,
     LABEL: "20% OFF (Exismic 1.7 Special)",
@@ -29,7 +29,7 @@ export const PRICING_CONFIG = {
       tier_2: { USD: 7.19, INR: 559, regularUSD: 8.99, regularINR: 699 },
       tier_3: { USD: 15.99, INR: 1199, regularUSD: 19.99, regularINR: 1499 },
     },
-    BLOCK_CUSTOM_COUPONS: true,
+    BLOCK_CUSTOM_COUPONS: false,
   },
   V16_LAUNCH_PROMO: {
     CODE: "V16LAUNCH",
@@ -67,7 +67,7 @@ export const PRICING_CONFIG = {
       priceINR: 699,
       label: 'Creator Choice',
       color: 'purple',
-      popular: true,
+      popular: false,
       icon: 'Sparkles'
     },
     {
@@ -78,6 +78,7 @@ export const PRICING_CONFIG = {
       priceUSD: 19.99,
       priceINR: 1499,
       label: 'Studio Power',
+      popular: true,
       color: 'gold',
       icon: 'Crown'
     }
@@ -110,6 +111,18 @@ export function formatPrice(amount: number, currency: 'USD' | 'INR') {
     return `₹${amount}`;
   }
   return `$${amount}`;
+}
+
+export function getAnnualSavings(isIndia: boolean) {
+  const monthly = isIndia ? PRICING_CONFIG.PRO_PLAN.INR : PRICING_CONFIG.PRO_PLAN.USD;
+  const yearly = isIndia ? PRICING_CONFIG.PRO_YEARLY_PLAN.INR : PRICING_CONFIG.PRO_YEARLY_PLAN.USD;
+  const standardYear = monthly * 12;
+  return {
+    percent: Math.round((1 - yearly / standardYear) * 100),
+    saved: standardYear - yearly,
+    standardYear,
+    monthlyEquivalent: yearly / 12,
+  };
 }
 
 export function isExismic17PromoActive() {

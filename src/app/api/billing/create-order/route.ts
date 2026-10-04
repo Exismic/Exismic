@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import type { Prisma } from "@prisma/client";
-import { PRICING_CONFIG } from "@/config/pricing";
+import { PRICING_CONFIG, isExismic17PromoActive } from "@/config/pricing";
 import { getBillingPlan, getPlanPrice, type BillingMarket } from "@/lib/billing/plans";
 import { createPayPalOrder, createPayPalSubscription } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
@@ -134,7 +134,8 @@ async function createRazorpayProSubscription(
         standardPlanId = String(standardPlan.id);
         razorpayPlanCache.set(standardCacheKey, standardPlanId);
       } catch (planErr) {
-        console.warn("[Razorpay Standard Plan Creation Warning]", planErr);
+        console.error("[Razorpay Standard Plan Creation Failed]", planErr);
+        throw new Error("The standard renewal plan could not be prepared. Please try again later.");
       }
     }
 
@@ -246,7 +247,7 @@ export async function POST(req: NextRequest) {
     const isGift = Boolean(body.isGift);
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { plan: true, subscriptionStatus: true, planExpiresAt: true, email: true },
+      select: { plan: true, subscriptionStatus: true, planExpiresAt: true, email: true, name: true },
     });
     const isProSubscriptionPlan = plan.id === "pro" || plan.id === "pro_yearly";
     if (isProSubscriptionPlan && !isGift && dbUser && hasActiveProAccess(dbUser)) {
@@ -276,7 +277,7 @@ export async function POST(req: NextRequest) {
     let isLaunchDiscount = false;
 
     // Check for Exismic 1.7 Launch Special (20% OFF on Pro Monthly and Credit Packs; NO discount on Yearly Pro)
-    if (PRICING_CONFIG.V17_LAUNCH_PROMO.ACTIVE) {
+    if (isExismic17PromoActive()) {
       const cleanCode = body.couponCode?.trim().toUpperCase();
       const isPromoCode = cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE || cleanCode === "EXISMIC17" || cleanCode === "V16LAUNCH";
 
@@ -447,6 +448,15 @@ export async function POST(req: NextRequest) {
         metadata: {
           countryCode: marketInfo.countryCode,
           displayAmount: price.display,
+          receiptSnapshot: {
+            buyerName: dbUser?.name || user.user_metadata?.full_name || "Exismic customer",
+            buyerEmail: dbUser?.email || user.email || "",
+            itemName: isProSubscriptionPlan ? `Exismic Pro (${plan.id === "pro_yearly" ? "Annual" : "Monthly"})${isGift ? " gift pass" : ""}` : `${plan.credits.toLocaleString()} permanent credits${isGift ? " gift voucher" : ""}`,
+            credits: plan.credits,
+            regularAmountMinor: basePrice.regularAmountMinor,
+            recurring: isProSubscriptionPlan && !isGift,
+            billingInterval: isProSubscriptionPlan ? plan.id === "pro_yearly" ? "year" : "month" : "one_time",
+          },
           appliedRetentionDiscount,
           appliedCouponCode,
           appliedCouponDiscountMinor,
@@ -562,7 +572,7 @@ export async function POST(req: NextRequest) {
     const successParams = new URLSearchParams({
       gateway: "paypal",
       order: paymentOrder.id,
-      type: plan.id === "pro" ? "pro" : "credits",
+      type: isProSubscriptionPlan && !isGift ? "pro" : "credits",
       credits: String(plan.credits),
     });
     const cancelParams = new URLSearchParams({
@@ -570,7 +580,7 @@ export async function POST(req: NextRequest) {
       order: paymentOrder.id,
     });
 
-    if (isProSubscriptionPlan) {
+    if (isProSubscriptionPlan && !isGift) {
       const { subscription, approvalUrl } = await createPayPalSubscription({
         context: {
           userId: user.id,

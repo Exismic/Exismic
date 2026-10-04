@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, RefreshCcw, ArrowLeft } from "lucide-react";
-import GradientText from "@/components/ui/GradientText";
 import { Portal } from "@/components/ui/Portal";
 
 interface PaymentFailureModalProps {
@@ -62,7 +61,7 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
 
               {/* Error Reason Box */}
               <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.06] p-4 text-center text-xs font-medium leading-relaxed text-zinc-300 shadow-inner">
-                {reason || "Payment gateway authentication failed or transaction was cancelled. No charges were completed."}
+                {reason || "The payment provider did not confirm this payment."}
               </div>
 
               {/* Action Buttons */}
@@ -87,11 +86,10 @@ export function PaymentFailureModal({ isOpen, onClose, onRetry, reason }: Paymen
                 </button>
               </div>
 
-              {/* Security Guarantee Note */}
-              <div className="pt-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-zinc-400">
-                  <span>✓</span> No charge was completed
-                </span>
+              <div className="space-y-2 pt-2 text-xs leading-relaxed text-zinc-400">
+                <p>If your bank shows a charge, check purchase history before paying again.</p>
+                <a href="/shop#purchases" className="inline-flex min-h-11 items-center text-cyan-200 underline">Check purchases & receipts</a>
+                <a href="mailto:billing@exismic.xyz" className="block text-cyan-200 underline">Get billing help</a>
               </div>
             </div>
           </motion.div>

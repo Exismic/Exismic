@@ -40,7 +40,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePro } from "@/hooks/usePro";
 import { ManageSubscriptionModal } from "@/components/tool/ManageSubscriptionModal";
-import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 import { GiftPurchaseModal } from "@/components/modals/GiftPurchaseModal";
@@ -49,7 +48,7 @@ import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
-import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive, getAnnualSavings } from "@/config/pricing";
 
 const OUTCOMES = [
   { value: "10x", label: "daily credit capacity", icon: Gauge, tone: "text-fuchsia-300", wash: "from-fuchsia-500/[0.10]" },
@@ -187,7 +186,7 @@ interface RazorpayOptions {
   };
 }
 
-type RazorpayConstructor = new (options: RazorpayOptions) => { open: () => void };
+type RazorpayConstructor = new (options: RazorpayOptions) => { open: () => void; on: (event: string, handler: (failure: unknown) => void) => void };
 
 export function ProClient() {
   const router = useRouter();
@@ -198,7 +197,6 @@ export function ProClient() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [market, setMarket] = useState<"IN" | "GLOBAL">("GLOBAL");
@@ -281,14 +279,14 @@ export function ProClient() {
     if (!paymentStatus) return;
 
     if (paymentStatus === "success") {
-      setShowSuccess(true);
-      setToast({ message: "Welcome to Exismic Pro. Your membership is active.", type: "success" });
-      void refresh();
+      const order = searchParams.get("order");
+      router.replace(order ? `/billing/success?order=${encodeURIComponent(order)}` : "/shop#purchases");
+      return;
     } else if (paymentStatus === "failed") {
       setShowFailure(true);
       setToast({ message: paymentReason || "Payment could not be verified.", type: "error" });
     } else if (paymentStatus === "cancelled") {
-      setToast({ message: "Checkout cancelled. No payment was captured.", type: "info" });
+      setToast({ message: "Checkout cancelled. If charged, check purchase history before trying again.", type: "info" });
     }
 
     router.replace("/pro", { scroll: false });
@@ -297,6 +295,7 @@ export function ProClient() {
   }, [paymentStatus, paymentReason, router]);
 
   const isIndia = market === "IN";
+  const annualSavings = getAnnualSavings(isIndia);
   const currencySymbol = isIndia ? "₹" : "$";
   const [billingInterval] = useState<"monthly" | "yearly">("monthly");
   const [selectedPlanId, setSelectedPlanId] = useState<"pro" | "pro_yearly">("pro");
@@ -309,6 +308,7 @@ export function ProClient() {
     giftCredits?: number;
     recipientName?: string;
     recipientMessage?: string;
+    orderId?: string;
   } | null>(null);
 
   const currentProConfig = PRICING_CONFIG.PRO_PLAN;
@@ -388,6 +388,7 @@ export function ProClient() {
             ondismiss: () => setLoading(false),
           },
           handler: async (paymentResponse) => {
+            try {
             const verifyResponse = await fetch("/api/billing/razorpay/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -395,11 +396,13 @@ export function ProClient() {
             });
             const verifyData = await verifyResponse.json().catch(() => null);
             if (!verifyResponse.ok || !verifyData?.success) {
-              setToast({ message: verifyData?.error || "Payment verification failed.", type: "error" });
-              setLoading(false);
+              window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
               return;
             }
-            window.location.href = "/billing/success?type=pro";
+            window.location.href = `/billing/success?order=${encodeURIComponent(verifyData.orderId)}`;
+            } catch {
+              window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
+            } finally { setLoading(false); }
           },
         };
 
@@ -410,6 +413,7 @@ export function ProClient() {
         }
 
         const razorpay = new Razorpay(razorpayOptions);
+        razorpay.on("payment.failed", () => { setLoading(false); setShowFailure(true); });
         razorpay.open();
         return;
       }
@@ -655,7 +659,7 @@ export function ProClient() {
                                 </div>
                                 <p className="mt-2 text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
                                   <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
-                                  <span>Billed monthly • Cancel anytime in 1-click</span>
+                                  <span>Billed monthly • Cancel future renewals in membership settings</span>
                                 </p>
                               </div>
                             )}
@@ -827,7 +831,7 @@ export function ProClient() {
 
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)] self-start sm:self-auto shrink-0">
                               <Flame size={12} className="text-amber-300 fill-amber-400/40" />
-                              Save 28%
+                              Save {annualSavings.percent}%
                             </span>
                           </div>
 
@@ -843,12 +847,12 @@ export function ProClient() {
                             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
                               <span className="text-emerald-400 flex items-center gap-1">
                                 <Flame size={14} className="text-amber-300 fill-amber-400/30" />
-                                Only {isIndia ? "₹375" : "$4.99"} / month
+                                Only {`${isIndia ? "₹" : "$"}${annualSavings.monthlyEquivalent.toFixed(2)}`} / month
                               </span>
                               <span className="text-zinc-600">•</span>
                               <span className="line-through text-zinc-500 font-semibold">{isIndia ? "₹5,988/yr" : "$83.88/yr"}</span>
                               <span className="rounded-full bg-emerald-400/15 border border-emerald-400/40 px-2.5 py-0.5 text-[9px] font-black text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]">
-                                Save {isIndia ? "₹1,489" : "$23.89"}
+                                Save {`${isIndia ? "₹" : "$"}${annualSavings.saved.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
                               </span>
                             </div>
                           </div>
@@ -878,9 +882,9 @@ export function ProClient() {
                                 icon: Award,
                                 iconColor: "text-fuchsia-300",
                                 iconBg: "border-fuchsia-400/35 bg-fuchsia-500/15 shadow-[0_0_15px_rgba(217,70,239,0.25)]",
-                                title: "3.5 Months Completely Free",
-                                subtitle: "Single annual payment with zero transaction fees",
-                                badge: "28% Off",
+                                title: `Save ${annualSavings.percent}% vs monthly billing`,
+                                subtitle: "Compared with 12 standard monthly payments",
+                                badge: `Save ${annualSavings.percent}%`,
                                 badgeStyle: "text-fuchsia-200 bg-fuchsia-500/20 border-fuchsia-400/40 shadow-[0_0_10px_rgba(217,70,239,0.25)]",
                               },
                               {
@@ -949,7 +953,7 @@ export function ProClient() {
                                     GET YEARLY PRO • {isIndia ? "₹4,499" : "$59.99"}
                                   </span>
                                   <span className="block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-200 truncate">
-                                    🔥 SAVE 28% • 3.5 MO FREE
+                                    Save {annualSavings.percent}% vs standard monthly
                                   </span>
                                 </div>
                               </div>
@@ -1456,7 +1460,6 @@ export function ProClient() {
         onCancel={handleCancelSubscription}
         isCancelling={isCancelling}
       />
-      <PaymentSuccessModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} type="pro" />
       <PaymentFailureModal
         isOpen={showFailure}
         onClose={() => setShowFailure(false)}
@@ -1502,6 +1505,7 @@ export function ProClient() {
           giftCredits={giftSuccessDetails.giftCredits}
           recipientName={giftSuccessDetails.recipientName}
           recipientMessage={giftSuccessDetails.recipientMessage}
+          orderId={giftSuccessDetails.orderId}
         />
       )}
       <RedeemPromoModal

@@ -22,9 +22,10 @@ import {
   CheckCircle2,
   Ticket
 } from "lucide-react";
+import { loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
-import { PRICING_CONFIG, getIsIndia } from "@/config/pricing";
+import { PRICING_CONFIG, getIsIndia, getAnnualSavings } from "@/config/pricing";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
 
@@ -89,7 +90,7 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
     displayCredits: "2,000",
     subtitle: "1,500 base + 500 bonus (never expires)",
     bonusCredits: 500,
-    popular: true,
+    popular: false,
     style: {
       icon: Diamond,
       iconColor: "text-purple-300",
@@ -100,7 +101,7 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
       numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
       conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
       markTheme: "purple",
-      subtitle: "Best Value Pack",
+      subtitle: "For Regular Creators",
       subtitleColor: "text-zinc-400 group-hover/launch:text-fuchsia-200/90",
       arrowBoxHover: "group-hover/launch:border-fuchsia-300/60 group-hover/launch:bg-fuchsia-300/[0.2] group-hover/launch:text-fuchsia-50 group-hover/launch:shadow-[0_0_30px_rgba(217,70,239,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
       arrowIconHover: "group-hover/launch:text-fuchsia-100",
@@ -111,6 +112,7 @@ const CREDIT_PACK_OPTIONS: CreditPackOption[] = [
   },
   {
     id: "ultimate",
+    popular: true,
     label: "STUDIO POWER",
     displayCredits: "6,000",
     subtitle: "5,000 base + 1,000 bonus (never expires)",
@@ -141,6 +143,7 @@ interface GiftPurchaseModalProps {
   onClose: () => void;
   initialPlanId?: string;
   onSuccess: (giftDetails: {
+    orderId?: string;
     giftCode: string;
     giftType: "pro" | "pro_monthly" | "pro_yearly" | "credits";
     giftCredits?: number;
@@ -172,6 +175,7 @@ export function GiftPurchaseModal({
   const [recipientName, setRecipientName] = useState("");
   const [recipientMessage, setRecipientMessage] = useState("");
   const [isIndia, setIsIndia] = useState(false);
+  const annualSavings = getAnnualSavings(isIndia);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -272,17 +276,15 @@ export function GiftPurchaseModal({
       }
 
       if (data.gateway === "razorpay") {
-        if (typeof window === "undefined" || !window.Razorpay) {
-          throw new Error("Razorpay SDK is loading. Please try again in a moment.");
-        }
-
-        const razorpay = new window.Razorpay({
+        const Razorpay = await loadRazorpayCheckout();
+        const razorpay = new Razorpay({
           key: data.keyId,
           amount: data.amount,
           currency: data.currency,
           name: "Exismic Studio",
           description: `Gift Voucher: ${planTitle}`,
           order_id: data.razorpayOrderId || data.providerOrderId,
+          modal: { ondismiss: () => setLoadingId(null) },
           handler: async (response: any) => {
             try {
               const verifyRes = await fetch("/api/billing/razorpay/verify", {
@@ -291,20 +293,21 @@ export function GiftPurchaseModal({
                 body: JSON.stringify(response),
               });
               const verifyData = await verifyRes.json();
-              if (verifyRes.ok && verifyData.success) {
+              if (verifyRes.ok && verifyData.success && verifyData.giftCode) {
                 onClose();
                 onSuccess({
-                  giftCode: verifyData.giftCode || "GIFT-VOUCHER-ACTIVATED",
+                  orderId: verifyData.orderId,
+                  giftCode: verifyData.giftCode,
                   giftType: planId === "pro_yearly" ? "pro_yearly" : planId === "pro" ? "pro_monthly" : "credits",
                   giftCredits: credits,
                   recipientName: recipientName.trim() || undefined,
                   recipientMessage: recipientMessage.trim() || undefined,
                 });
               } else {
-                setErrorMessage(verifyData.error || "Payment verification could not be completed.");
+                window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
               }
-            } catch (err: any) {
-              setErrorMessage(err.message || "Failed to verify payment.");
+            } catch {
+              window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
             } finally {
               setLoadingId(null);
             }
@@ -583,7 +586,7 @@ export function GiftPurchaseModal({
                                   GIFT 1-MONTH • {isIndia ? "₹499" : "$6.99"}
                                 </span>
                                 <span className="block text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-cyan-300/90 truncate">
-                                  Card, UPI & Gift Cards
+                                  Secure one-time payment
                                 </span>
                               </div>
                             </div>
@@ -616,7 +619,7 @@ export function GiftPurchaseModal({
                             </div>
                           </div>
                           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400/25 via-orange-500/25 to-pink-500/25 px-3 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)]">
-                            <Flame size={11} className="text-amber-300 fill-amber-400/40" /> Save 28%
+                            <Flame size={11} className="text-amber-300 fill-amber-400/40" /> Save {annualSavings.percent}%
                           </span>
                         </div>
 
@@ -638,7 +641,7 @@ export function GiftPurchaseModal({
                             { icon: Coins, text: "182,500 Total Creative Credits", sub: "500 daily allowance for 365 days", chip: "365 Days", color: "text-purple-300" },
                             { icon: Flame, text: "Priority Compute Queue", sub: "Top-priority rendering capacity", chip: "Priority Queue", color: "text-fuchsia-300" },
                             { icon: Palette, text: "Full Studio Suite & 4K Exports", sub: "Maximum resolution & priority models", chip: "Full Suite", color: "text-pink-300" },
-                            { icon: ShieldCheck, text: "1-Year Commercial License", sub: "Full client & commercial revenue rights", chip: "Save 28%", color: "text-emerald-300" },
+                            { icon: ShieldCheck, text: "1-Year Commercial License", sub: "Full client & commercial revenue rights", chip: `Save ${annualSavings.percent}%`, color: "text-emerald-300" },
                           ].map((item, idx) => {
                             const ItemIcon = item.icon;
                             return (
@@ -682,7 +685,7 @@ export function GiftPurchaseModal({
                                   GIFT 1-YEAR • {isIndia ? "₹4,499" : "$59.99"}
                                 </span>
                                 <span className="block text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-300 truncate">
-                                  Card, UPI & Gift Cards
+                                  Secure one-time payment
                                 </span>
                               </div>
                             </div>
@@ -789,7 +792,7 @@ export function GiftPurchaseModal({
                                     "mt-0.5 block text-[8px] font-bold uppercase tracking-[0.16em] transition-colors duration-500",
                                     pack.style.subtitleColor
                                   )}>
-                                    Card, UPI & Gift Cards
+                                    Secure one-time payment
                                   </span>
                                 </span>
 
@@ -828,7 +831,7 @@ export function GiftPurchaseModal({
                   <span>Instant 1-time gift code generated immediately after payment.</span>
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 shrink-0">
-                  Never Expires
+                  Redeem within 12 months
                 </span>
               </div>
 

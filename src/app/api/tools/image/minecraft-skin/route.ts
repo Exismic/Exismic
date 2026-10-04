@@ -30,6 +30,8 @@ import {
 import { compileMinecraftSkinBlueprint } from "@/lib/minecraft-skin-blueprint";
 import {
   MINECRAFT_SKIN_JSON_SCHEMA,
+  MINECRAFT_ARTWORK_JSON_SCHEMA,
+  MINECRAFT_REMIX_JSON_SCHEMA,
   MINECRAFT_SKIN_ART_INSTRUCTION,
   LEGACY_STYLE_MAP,
   buildDesignInstruction,
@@ -39,6 +41,7 @@ import {
   minecraftRemixParts,
 } from "@/lib/minecraft-skin-control";
 import { DEFAULT_GROQ_TEXT_MODEL, DEFAULT_GROQ_VISION_MODEL } from "@/lib/ai-models";
+import { sanitizeSkinPixelArt } from "@/lib/minecraft-skin-art-types";
 
 export const runtime = "nodejs";
 export const maxDuration = 45;
@@ -286,6 +289,47 @@ function getGroqKeys(): string[] {
     .filter(Boolean);
 }
 
+async function refineAiArtwork(design: Partial<MinecraftSkinDesign>, prompt: string, usedKey: string, deadline: number): Promise<Partial<MinecraftSkinDesign> | null> {
+  const { pixelArt: existingArt, ...character } = design;
+  const instruction = [
+    `Draw original coordinated Minecraft pixel artwork for: ${prompt}`,
+    `FIXED CHARACTER SETTINGS AND MAIN PALETTE: ${JSON.stringify(character)}`,
+    MINECRAFT_SKIN_ART_INSTRUCTION,
+    "Return ONLY pixelArt and artColors. Choose four #rrggbb artColors U/V/O/Z for explicitly requested secondary colors and motifs (e.g. burgundy sleeve panels, gold embroidery, silver seams). Their lowercase tokens are shadows. Do not alter the main palette or character identity.",
+    "Compose 6-10 faces with exact dimensions. Clothing faces MUST leave at least half their pixels as dots; draw requested motifs, connected folds and stitches on the correct material. Human hair requires three H/h/L/D tones and negative space around both eyes. No flat slabs. Each face MUST use a region from the schema; each row MUST have the schema instruction's exact width.",
+  ].join("\n");
+  // Prefer a different key after the initial design request, within the same
+  // overall response deadline. Provider failure remains a free failed request.
+  const keys = getGroqKeys();
+  const ordered = [...keys.filter((key) => key !== usedKey), ...keys.filter((key) => key === usedKey)];
+  for (const key of ordered) {
+    const remaining = deadline - Date.now();
+    if (remaining < 1000) break;
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: TEXT_MODEL, temperature: 0.3, reasoning_effort: "low", max_tokens: 2500,
+          response_format: { type: "json_schema", json_schema: { name: "minecraft_artwork", strict: true, schema: MINECRAFT_ARTWORK_JSON_SCHEMA } },
+          messages: [{ role: "system", content: "You are a Minecraft pixel artist. This pass is exclusively for original connected drawings; character settings are final. Return every required artwork field." }, { role: "user", content: instruction }],
+        }),
+        signal: AbortSignal.timeout(Math.min(12_000, remaining)),
+      });
+      if (!response.ok) continue;
+      const payload = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+      const content = payload.choices?.[0]?.message?.content;
+      if (!content) continue;
+      const artwork = extractJson(content);
+      const accepted = sanitizeSkinPixelArt(artwork.pixelArt, design.characterType);
+      const validColors = ["U", "V", "O", "Z"].every((token) => /^#[a-f0-9]{6}$/i.test(artwork.artColors?.[token as "U" | "V" | "O" | "Z"] || ""));
+      if (accepted.length < 2 || !validColors) continue;
+      // Keep existing accepted motifs on faces the artist pass did not redraw.
+      const revisedFaces = new Set(accepted.map((face) => `${face.region}:${face.layer}`));
+      return { ...design, artColors: artwork.artColors, pixelArt: [...sanitizeSkinPixelArt(existingArt, design.characterType).filter((face) => !revisedFaces.has(`${face.region}:${face.layer}`)), ...accepted] };
+    } catch { /* Try the next configured key within the remaining deadline. */ }
+  }
+  return null;
+}
+
 async function createAiDesign(
   prompt: string,
   style: string,
@@ -304,7 +348,7 @@ async function createAiDesign(
     referenceImage && /^data:image\/(png|jpe?g|webp);base64,/i.test(referenceImage)
   );
   const instruction = buildDesignInstruction(prompt, style, targetPart, referenceMode) + (parentDesign
-    ? `\nCURRENT CHARACTER: ${JSON.stringify(parentDesign)}\nApply only the requested change. Keep the existing outfit structure, colors and features unless explicitly changed. A skin reference is a flat 64x64 Minecraft UV texture atlas, not a portrait.`
+    ? `\nCURRENT CHARACTER: ${JSON.stringify(parentDesign)}\nApply only the requested change. Keep the existing outfit structure, colors and features unless explicitly changed. Keep artColors U/V/O/Z and their roles unchanged unless recoloring their specific embroidery/panels/markings; return all four artColors when supplied. A skin reference is a flat 64x64 Minecraft UV texture atlas, not a portrait.`
     : "");
   const userContent = hasValidReference
     ? [
@@ -317,7 +361,9 @@ async function createAiDesign(
     : instruction;
 
   let lastError: unknown = null;
+  const deadline = Date.now() + 36_000;
   for (const key of keys) {
+    if (deadline - Date.now() < 1000) break;
     try {
       const response = await fetch(GROQ_API_URL, {
         method: "POST",
@@ -327,47 +373,32 @@ async function createAiDesign(
         },
         body: JSON.stringify({
           model: hasValidReference ? VISION_MODEL : TEXT_MODEL,
-          ...(hasValidReference ? { reasoning_effort: "none" } : {}),
+          reasoning_effort: hasValidReference ? "none" : "low",
           temperature: referenceMode === "guided" ? 0.20 : 0.15,
-          max_tokens: 6000,
+          max_tokens: 4000,
           response_format: {
             type: "json_schema",
             json_schema: {
               name: "minecraft_skin_design",
               strict: true,
-              schema: MINECRAFT_SKIN_JSON_SCHEMA,
+              schema: targetPart !== "all" && Object.keys(parentDesign?.artColors || {}).length ? MINECRAFT_REMIX_JSON_SCHEMA : MINECRAFT_SKIN_JSON_SCHEMA,
             },
           },
           messages: [
             {
               role: "system",
               content: [
-                "You are Exismic's professional Minecraft skin director. Deconstruct the user's character prompt into strict structured design tokens for a 64x64 Minecraft skin.",
-                "RULES FOR EXTRACTION:",
-                "- PRIMARY CONCEPT vs SECONDARY DETAILS: Extract the central character identity (outfit, traits, expression) while preserving every secondary detail (zippers, emblems, socks, earrings, belts).",
-                "- CLOTHING LAYERS HIERARCHY: Do NOT collapse multiple clothing layers into one generic garment. If multiple layers are worn (e.g. 'bomber jacket over hoodie with undershirt', 'denim jacket over flannel', 'coat over vest'):",
-                "  * outer garment: set garmentType ('bomber-jacket', 'jacket', 'coat', etc.). If open at front, set placket='open_front'.",
-                "  * middle layer: set midLayer ('hoodie', 'sweater', 'vest', 'none') ONLY for a separate garment underneath an outer jacket. A hoodie worn alone uses midLayer='none'. If hoodie worn down, set hoodState='down'.",
-                "  * inner garment: set innerGarment ('undershirt', 'crew_tee', 'graphic_tee', 'turtleneck', 'none').",
-                "  * sleeves: set sleeveStyle ('layered_undershirt', 'slouch_gather', 'short_sleeve', etc.). Layered HAIR does not imply layered sleeves. Hoodies have long sleeves unless the prompt explicitly requests short sleeves.",
-                "  * fastening: a regular hoodie uses placket='pullover', zipper='none'; use center_zip only for zip-up clothing. Drawstrings use 'none', 'thin', or 'tied'. Cargo PANTS do not put cargo pockets on the torso.",
-                "- DETAILS & ACCESSORIES: Extract zippers ('silver'/'gold'/'none'), cargo pockets (cargoPockets=true), emblems ('crescent', etc.), socks ('knee_high_plain', 'knee_high_striped', 'ankle', 'none'), and footwearStyle ('chunky-sneaker', 'high-top-sneaker', 'combat-boots', etc.).",
-                "- ASYMMETRY: If asymmetry between arms, legs, or bangs is mentioned, set asymmetry=true.",
-                "- HAIR & BANGS: Curtain bangs -> bangsStyle='curtain', hairSilhouette='curtain-bangs'. Wolf cut -> hairSilhouette='wolf-cut'. Messy fringe -> hairSilhouette='messy-fringe'.",
-                "- NEGATIVE CONSTRAINTS (CRITICAL): Strictly honor negative instructions ('no beard', 'clean shaven' -> facialHair='none'; 'not a helmet', 'no helmet' -> hairStyle='short' or 'long', NEVER 'helmet'; 'no glasses' -> glasses=false; 'no horns' -> horns=false; 'no headphones' -> headphones=false; 'no hat' -> crown=false, hoodState='none'). NEVER allow words mentioned in negative context to become positive feature flags! Always add forbidden traits to negativeConstraints array.",
-                "- PALETTE: Extract faithful 6-digit hex codes (#rrggbb) for all 10 palette fields (skin, skinShade, hair, hairHighlight, eyes, top, topAccent, pants, shoes, detail). If user explicitly requests colors (e.g. 'white jacket', 'purple hair'), ensure palette matches.",
-                "- STYLE PRESET: Align traits and palette to the requested visual style preset:",
-                "  * balanced: harmonious modern anime shading",
-                "  * detailed: high detail density, rich accessories, cargo pockets",
-                "  * anime: vibrant anime blocks, expressive face, curtain bangs",
-                "  * pixel-artist: clean planar contrast, distinct contours",
-                "  * minimal: clean flat aesthetic, simplified face, understated palette",
+                "You are Exismic's Minecraft pixel artist. Return a complete schema-valid 64x64 skin specification AND original composed pixel drawings for its distinguishing features.",
+                "Keep every requested color, garment, expression and accessory. Use faithful #rrggbb palette colors. Draw motifs with pixelArt; emblem is short requested LETTERING only, otherwise an empty string.",
+                "CLOTHING: outer garment=garmentType, open jacket=placket open_front, separate middle hoodie/sweater=midLayer, inner tee=innerGarment. Hoodie worn alone has midLayer none, placket pullover, zipper none unless zip-up. Cargo pants do not add torso pockets. Layered hair does not imply layered sleeves; hoodies have long sleeves unless requested otherwise.",
+                "HAIR: choose the requested silhouette and bangs; use asymmetry when requested. NEGATIVES MUST STAY ABSENT: clean shaven=no facial hair; no helmet=normal hair; no glasses/horns/headphones/hat disables those features. Include forbidden concepts in negativeConstraints, never enable them from their mention.",
+                "STYLE: balanced=harmonious shading; detailed/pixel-artist=connected material shading and purposeful detail; anime=expressive face and bold strands; minimal=quiet shapes with few accents. Return every required field with neutral values for unused features.",
               ].join("\n"),
             },
             { role: "user", content: userContent },
           ],
         }),
-        signal: AbortSignal.timeout(28_000),
+        signal: AbortSignal.timeout(Math.min(28_000, deadline - Date.now())),
       });
 
       if (!response.ok) {
@@ -385,7 +416,11 @@ async function createAiDesign(
         lastError = new Error("Groq API returned an empty choices content.");
         continue;
       }
-      return extractJson(content);
+      const design = extractJson(content);
+      if (targetPart === "all" && ["detailed", "pixel-artist", "pixel-detailed", "high-contrast"].includes(style)) {
+        return refineAiArtwork(design, prompt, key, deadline);
+      }
+      return design;
     } catch (error) {
       console.error("[Minecraft Skin] Groq invocation failed:", error);
       lastError = error;
@@ -424,6 +459,7 @@ async function remixAiDesign(
     MINECRAFT_SKIN_ART_INSTRUCTION,
     buildSkinArtConstraints(remixInstruction),
     `4. Preserve existing pixelArt for all unchanged parts; palette recolors should retain the same pixel pattern.`,
+    `5. Preserve artColors U/V/O/Z exactly unless the user specifically recolors their embroidery, panels or markings. Return all four hex colors; for a legacy skin without artColors use its detail color as their neutral default.`,
   ].join("\n");
 
   let lastError: unknown = null;
@@ -438,13 +474,14 @@ async function remixAiDesign(
         body: JSON.stringify({
           model: TEXT_MODEL,
           temperature: 0.12,
-          max_tokens: 6000,
+          reasoning_effort: "low",
+          max_tokens: 4000,
           response_format: {
             type: "json_schema",
             json_schema: {
               name: "minecraft_skin_design",
               strict: true,
-              schema: MINECRAFT_SKIN_JSON_SCHEMA,
+              schema: MINECRAFT_REMIX_JSON_SCHEMA,
             },
           },
           messages: [

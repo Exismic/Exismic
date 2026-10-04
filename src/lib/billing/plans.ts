@@ -46,13 +46,13 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
     id: "creator",
     name: "Creator",
     description: "A stronger permanent credit pack for regular creators.",
-    credits: 1500,
+    credits: 2000,
     interval: "one_time",
     prices: {
       IN: { amount: 699, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 8.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
-    features: ["1,500 permanent credits", "Best everyday value", "Secure checkout"],
+    features: ["2,000 permanent credits (including 500 bonus)", "For regular creators", "Secure checkout"],
   },
   pro: {
     id: "pro",
@@ -69,31 +69,31 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
   pro_yearly: {
     id: "pro_yearly",
     name: "Exismic Pro Yearly",
-    description: "Yearly Pro access with 28% savings and priority creative capacity.",
+    description: "Yearly Pro access with savings compared with 12 standard monthly payments.",
     credits: 500,
     interval: "year",
     prices: {
       IN: { amount: 4499, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 59.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
-    features: ["Pro membership (1 Year)", "500 daily credits", "Priority processing", "Commercial exports", "Save ~28% yearly"],
+    features: ["Pro membership (1 Year)", "500 daily credits", "Priority processing", "Commercial exports"],
   },
   ultimate: {
     id: "ultimate",
     name: "Ultimate",
     description: "Large permanent credit reserve for heavy creators.",
-    credits: 5000,
+    credits: 6000,
     interval: "one_time",
     prices: {
       IN: { amount: 1499, currency: "INR", symbol: "₹", gateway: "razorpay" },
       GLOBAL: { amount: 19.99, currency: "USD", symbol: "$", gateway: "paypal" },
     },
-    features: ["5,000 permanent credits", "Best for bulk jobs", "Support tracking invoice"],
+    features: ["6,000 permanent credits (including 1,000 bonus)", "Lowest price per credit", "Downloadable payment receipt"],
   },
 };
 
 export function getBillingPlan(planId?: string | null) {
-  if (!planId || !(planId in BILLING_PLANS)) return null;
+  if (!planId || !Object.hasOwn(BILLING_PLANS, planId)) return null;
   return BILLING_PLANS[planId as BillingPlanId];
 }
 

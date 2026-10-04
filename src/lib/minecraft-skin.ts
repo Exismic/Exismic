@@ -70,6 +70,7 @@ export interface MinecraftSkinDesign {
   colorTreatment?: "solid" | "gradient";
   pixelArt?: SkinPixelArtFace[];
   featureColors?: Partial<Record<"bill" | "tie" | "inner", string>>;
+  artColors?: Partial<Record<"U" | "V" | "O" | "Z", string>>;
 }
 
 type Rgba = [number, number, number, number];
@@ -451,6 +452,7 @@ const PROMPT_COLORS: Array<[string, string]> = [
   ["lime", "#84cc16"],
   ["dark green", "#166534"],
   ["forest green", "#2f5d46"],
+  ["emerald green", "#15805d"],
   ["emerald", "#15805d"],
   ["green", "#16a34a"],
   ["light blue", "#60a5fa"],
@@ -943,9 +945,9 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
   }
   Object.assign(promptPalette, extractMinecraftCharacterPalette(prompt));
 
-  // Safe emblem extraction: only extract if explicitly designated as emblem/logo/text or quoted
+  // Safe emblem extraction: require a complete short word, never truncate "none" or "crescent".
   let fallbackEmblem = "";
-  const explicitEmblem = prompt.match(/(?:emblem|logo|crest|insignia|lettering|letters?|text|patch|badge|reads?|says?)\s+(?:reading|saying|of|with|is)?\s*["']?([a-z0-9]{1,3})["']?/i);
+  const explicitEmblem = prompt.match(/\b(?:emblem|logo|crest|insignia|lettering|letters?|text|patch|badge|reads?|says?)\s+(?:(?:reading|saying|of|with|is)\s+)?["']?([a-z0-9]{1,3})\b["']?/i);
   const quotedEmblem = prompt.match(/["']([a-z0-9]{1,3})["']/i);
   if (explicitEmblem) {
     const candidate = explicitEmblem[1].toUpperCase();
@@ -1094,6 +1096,49 @@ export function createFallbackSkinDesign(prompt: string, seed = hashSeed(prompt)
   };
 }
 
+function sanitizeEmblem(value: unknown, fallback: string, prompt: string): string {
+  if (/\b(?:no|without|remove|omit)\s+(?:any\s+)?(?:emblem|logo|lettering|text|badge)\b/i.test(prompt)) return "";
+  const text = typeof value === "string" ? value.trim() : fallback;
+  if (/^(?:none|null|undefined|false|no|n\/?a|no emblem)$/i.test(text)) return "";
+  // A long motif name is not three letters of text; pixelArt draws such motifs.
+  const letters = text.replace(/[^a-z0-9]/gi, "");
+  return letters.length <= 3 ? letters.toUpperCase() : "";
+}
+
+function sanitizeArtColors(input: MinecraftSkinDesign["artColors"]): MinecraftSkinDesign["artColors"] {
+  const colors: NonNullable<MinecraftSkinDesign["artColors"]> = {};
+  for (const key of ["U", "V", "O", "Z"] as const) {
+    const hex = input?.[key];
+    if (typeof hex === "string" && /^#[a-f0-9]{6}$/i.test(hex)) colors[key] = hex.toLowerCase();
+  }
+  return colors;
+}
+
+// Reconcile a specifically named source accent with its requested replacement.
+// This covers "change burgundy sleeve panels to navy blue" even when the AI
+// correctly changes its description but forgets the independently stored color.
+export function reconcileMinecraftArtColors(parent: MinecraftSkinDesign["artColors"], proposed: MinecraftSkinDesign["artColors"], instruction: string): MinecraftSkinDesign["artColors"] {
+  const colors = { ...parent, ...sanitizeArtColors(proposed) };
+  const change = instruction.match(/\b(?:make|change|turn|recolor|recolour)\b(.{0,120}?)\b(?:to|into)\b([^.;]{1,60})/i);
+  if (!change || !parent) return colors;
+  const names = [...PROMPT_COLORS].sort((a, b) => b[0].length - a[0].length);
+  const findColor = (text: string) => names.find(([name]) => new RegExp(`\\b${name}\\b`, "i").test(text))?.[1];
+  const source = findColor(change[1]), target = findColor(change[2]);
+  if (!source || !target) return colors;
+  const rgb = (hex: string) => [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16));
+  const sourceRgb = rgb(source);
+  const sourceChroma = Math.max(...sourceRgb) - Math.min(...sourceRgb);
+  const candidates = Object.entries(sanitizeArtColors(parent) || {}).map(([key, hex]) => {
+    const channels = rgb(hex!);
+    const grayPenalty = sourceChroma > 25 && Math.max(...channels) - Math.min(...channels) < 12 ? 60 : 0;
+    return { key, distance: Math.hypot(...channels.map((channel, index) => channel - sourceRgb[index])) + grayPenalty };
+  }).sort((a, b) => a.distance - b.distance);
+  if (candidates[0]?.distance < 60 && (!candidates[1] || candidates[1].distance - candidates[0].distance > 5)) {
+    colors[candidates[0].key as "U" | "V" | "O" | "Z"] = target;
+  }
+  return colors;
+}
+
 export function sanitizeSkinDesign(
   value: Partial<Omit<MinecraftSkinDesign, "palette">> & { palette?: Partial<MinecraftSkinPalette> },
   prompt: string,
@@ -1176,14 +1221,13 @@ export function sanitizeSkinDesign(
     gloves: typeof value.gloves === "boolean" ? value.gloves : fallback.gloves,
     footwear: pick(value.footwear, footwear, fallback.footwear),
     pattern: pick(value.pattern, patterns, fallback.pattern),
-    emblem: typeof value.emblem === "string"
-      ? value.emblem.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 3)
-      : fallback.emblem,
+    emblem: sanitizeEmblem(value.emblem, fallback.emblem, prompt),
     traits: Array.isArray(value.traits)
-      ? value.traits.filter((trait): trait is string => typeof trait === "string").map((trait) => trait.trim().slice(0, 40)).filter(Boolean).slice(0, 8)
+      ? value.traits.filter((trait): trait is string => typeof trait === "string").map((trait) => trait.trim().slice(0, 40)).filter((trait) => Boolean(trait) && (sanitizeEmblem(value.emblem, fallback.emblem, prompt) !== "" || !/^(?:non|none|null|n\/a|no)\s+emblem$/i.test(trait))).slice(0, 8)
       : fallback.traits,
     palette: sanitizePalette({ ...fallback.palette, ...(value.palette ?? {}) }),
     featureColors: sanitizeFeatureColors(value.featureColors, prompt),
+    artColors: sanitizeArtColors(value.artColors),
     headphones: typeof value.headphones === "boolean" ? value.headphones : fallback.headphones,
     glasses: typeof value.glasses === "boolean" ? value.glasses : fallback.glasses,
     cables: typeof value.cables === "boolean" ? value.cables : fallback.cables,

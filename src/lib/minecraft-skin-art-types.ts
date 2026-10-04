@@ -18,6 +18,8 @@ export interface SkinPixelArtFace {
   region: SkinArtRegion;
   layer: "base" | "outer";
   rows: string[];
+  // Older drawings remain additive. Replace permits deliberate gaps in a custom hair/rim silhouette.
+  mode?: "accent" | "replace";
 }
 
 export function inferSkinArt(prompt: string) {
@@ -39,7 +41,7 @@ export function inferSkinArt(prompt: string) {
   return { characterType, topPattern, pantsDetail, graphic, colorTreatment: /\b(?:gradient|iridescent|rainbow|galaxy)\b/.test(text) ? "gradient" as const : "solid" as const };
 }
 
-export const SKIN_ART_TOKENS = ".KkCHhLD TtSsAaBPpQFfgEeWNXxYR".replace(/ /g, "");
+export const SKIN_ART_TOKENS = ".KkCHhLD TtSsAaBPpQFfgEeWNXxYRUuVvOoZz".replace(/ /g, "");
 
 export function sanitizeSkinPixelArt(input: unknown, characterType?: SkinCharacterType): SkinPixelArtFace[] {
   if (!Array.isArray(input)) return [];
@@ -47,7 +49,7 @@ export function sanitizeSkinPixelArt(input: unknown, characterType?: SkinCharact
   const seen = new Set<string>();
   for (const entry of input.slice(0, 32)) {
     if (!entry || typeof entry !== "object") continue;
-    const { region, layer, rows } = entry;
+    const { region, layer, rows, mode } = entry;
     if (!SKIN_ART_REGIONS.includes(region) || !["base", "outer"].includes(layer) || !Array.isArray(rows)) continue;
     const part = region.replace(/-(top|bottom|right|front|left|back)$/, "");
     const plane = region.split("-").at(-1);
@@ -55,10 +57,30 @@ export function sanitizeSkinPixelArt(input: unknown, characterType?: SkinCharact
     const height = part === "head" ? 8 : ["top", "bottom"].includes(plane) ? 4 : 12;
     // Reject the whole face, rather than quietly stretching a malformed drawing.
     if (rows.length !== height || !rows.every((row: unknown) => typeof row === "string" && row.length === width && [...row].every((token) => SKIN_ART_TOKENS.includes(token)))) continue;
-    const tokens = rows.join("");
-    // Reject broad material fills that would erase the renderer's cloth folds.
-    if (part !== "head" && [...tokens].filter((token) => "TtSsPpQFfg".includes(token)).length > tokens.length * 0.65 && [...tokens].filter((token) => token === ".").length < tokens.length * 0.3) continue;
+    let drawingRows: string[] = [...rows];
+    const tokens = drawingRows.join("");
+    const coverage = [...tokens].filter((token) => token !== ".").length / tokens.length;
+    // A one-tone slab is not an authored hair silhouette: retain the shaded template.
+    if (characterType === "human" && part === "head" && layer === "outer" && (mode === "replace" || coverage > 0.5) && new Set(tokens.replace(/\./g, "")).size < 3) continue;
+    // Recover an artist's connected folds/markings from a broad material fill.
+    // Its flat foundation is already present; keeping it would hide garment structure.
+    if (part !== "head" && [...tokens].filter((token) => "TtSsPpQFfg".includes(token)).length > tokens.length * 0.65 && [...tokens].filter((token) => token === ".").length < tokens.length * 0.3) {
+      drawingRows = drawingRows.map((row) => row.replace(/[TPF]/g, "."));
+      if (!drawingRows.some((row) => /[^.]/.test(row))) continue;
+    }
+    if (part !== "head" && coverage > 0.7) {
+      const counts = new Map<string, number>();
+      for (const token of tokens) if (token !== ".") counts.set(token, (counts.get(token) || 0) + 1);
+      const dominant = [...counts].sort((a, b) => b[1] - a[1])[0];
+      // The model sometimes uses N/W/A/X as a flat background. Keep its motif,
+      // but expose the garment underneath instead of accepting a solid colored slab.
+      if (dominant && dominant[1] > tokens.length * 0.5 && "NWAXUuVvOoZz".includes(dominant[0])) {
+        drawingRows = drawingRows.map((row) => [...row].map((token) => token === dominant[0] ? "." : token).join(""));
+        if (!drawingRows.some((row) => /[^.]/.test(row))) continue;
+      }
+    }
     if (characterType === "human" && region === "head-front" && layer === "outer" && [...tokens].some((token) => !".HhLD".includes(token))) continue;
+    if (characterType === "human" && region === "head-front" && layer === "base" && rows.some((row: string, y: number) => [...row].some((token, x) => "Ee".includes(token) && !((y === 3 || y === 4) && [1, 2, 5, 6].includes(x))))) continue;
     if (characterType === "duck" && region === "head-front" && layer === "base") {
       const hasEye = (start: number) => rows.slice(2, 5).some((row: string) => [...row.slice(start, start + 2)].some((token) => "EWNe".includes(token)));
       if (!hasEye(1) || !hasEye(5)) continue;
@@ -66,7 +88,7 @@ export function sanitizeSkinPixelArt(input: unknown, characterType?: SkinCharact
     const key = `${region}:${layer}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    result.push({ region, layer, rows: [...rows] });
+    result.push({ region, layer, rows: drawingRows, ...(mode === "replace" && part === "head" && layer === "outer" ? { mode: "replace" as const } : mode === "accent" || mode === "replace" ? { mode: "accent" as const } : {}) });
   }
   return result;
 }

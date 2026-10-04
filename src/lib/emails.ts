@@ -2,6 +2,8 @@ import { resend } from './resend';
 import { recordEmailEvent } from './email-diagnostics';
 import { getServerSiteUrl } from './site-url';
 import { PRICING_CONFIG } from '@/config/pricing';
+import { billingAmount, type BillingReceipt } from '@/lib/billing/receipt-data';
+import { createReceiptPdf } from '@/lib/billing/receipt-pdf';
 
 const EMAIL_SENDER_DOMAIN = process.env.EMAIL_SENDER_DOMAIN?.trim() || 'exismic.xyz';
 const SENDER_PAYMENT = `"Exismic" <payments@${EMAIL_SENDER_DOMAIN}>`;
@@ -10,6 +12,26 @@ const SENDER_WELCOME = `"Exismic" <welcome@${EMAIL_SENDER_DOMAIN}>`;
 
 const SITE_URL = getServerSiteUrl();
 const PRO_DAILY_CREDITS_LABEL = PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS.toLocaleString();
+
+export async function sendDownloadableReceiptEmail(email: string, receipt: BillingReceipt) {
+  try {
+    const pdf = await createReceiptPdf(receipt);
+    const downloadUrl = `${SITE_URL}/api/billing/receipt?transactionId=${encodeURIComponent(receipt.transactionId)}`;
+    const amount = billingAmount(receipt.amountMinor, receipt.currency);
+    const { error } = await sendTrackedEmail('payment_receipt', email, {
+      from: SENDER_PAYMENT,
+      to: email,
+      subject: `Your Exismic payment receipt — ${receipt.reference}`,
+      text: `Payment confirmed\n${receipt.item}\nTotal paid: ${amount}\nReceipt: ${receipt.reference}\nPaid: ${receipt.paidAt}\nYour PDF receipt is attached. You can also download it after signing in: ${downloadUrl}\nBilling help: billing@exismic.xyz`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;padding:32px;color:#172033"><h1>Payment confirmed</h1><p>Thank you for your purchase. Your full PDF receipt is attached.</p><table style="width:100%;text-align:left;line-height:2"><tr><th>Purchase</th><td>${escapeEmailText(receipt.item)}</td></tr><tr><th>Total paid</th><td>${escapeEmailText(amount)}</td></tr><tr><th>Receipt</th><td>${escapeEmailText(receipt.reference)}</td></tr><tr><th>Payment date (UTC)</th><td>${escapeEmailText(receipt.paidAt)}</td></tr></table><p><a href="${escapeEmailText(downloadUrl)}">Download your receipt</a> (sign-in required)</p><p>You can find this receipt again in <a href="${SITE_URL}/shop#purchases">purchase history</a>.</p><p>Questions? <a href="mailto:billing@exismic.xyz">billing@exismic.xyz</a></p></div>`,
+      attachments: [{ filename: `Exismic-Receipt-${receipt.reference.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`, content: pdf }],
+    }, { idempotencyKey: `payment-receipt-v1/${receipt.transactionId}` });
+    return !error;
+  } catch (error) {
+    console.error('[Billing] Receipt email failed:', error);
+    return false;
+  }
+}
 
 function escapeEmailText(value: string) {
   return value
@@ -503,7 +525,6 @@ export async function sendPaymentFailedEmail(email: string, details?: {
 }) {
   try {
     const purchaseLabel = details?.purchaseType === 'credits' ? 'credit purchase' : details?.purchaseType === 'pro' ? 'Pro membership' : 'purchase';
-    const retryUrl = details?.purchaseType === 'credits' ? `${SITE_URL}/shop` : `${SITE_URL}/pro`;
     const safeReason = details?.reason ? escapeEmailText(details.reason) : 'The payment provider could not complete this transaction.';
     const safeOrderId = details?.orderId ? escapeEmailText(details.orderId) : null;
     const { error } = await sendTrackedEmail('payment_failed', email, {
@@ -513,8 +534,8 @@ export async function sendPaymentFailedEmail(email: string, details?: {
       html: PREMIUM_DARK_THEME(`
         <div class="hero-section">
             <div class="status-badge" style="background:rgba(244,63,94,0.10); border-color:rgba(244,63,94,0.26); color:#fb7185;">PAYMENT NOT COMPLETED</div>
-            <h1>Your ${purchaseLabel} needs <span class="accent-text" style="color:#fb7185;">another try.</span></h1>
-            <p>We could not complete this payment. Your Exismic account has not been upgraded or charged with credits.</p>
+            <h1>Your ${purchaseLabel} needs <span class="accent-text" style="color:#fb7185;">attention.</span></h1>
+            <p>The payment provider reported that this payment was not completed. If your bank shows a charge, check purchase history or contact billing support before paying again.</p>
         </div>
         <div class="info-card">
           <div class="info-grid">
@@ -524,7 +545,7 @@ export async function sendPaymentFailedEmail(email: string, details?: {
           <div style="height:1px; margin:14px 0 18px; background:rgba(255,255,255,0.08);"></div>
           <p style="margin:0; font-size:13px; line-height:1.65;">${safeReason}</p>
         </div>
-        <a href="${retryUrl}" class="cta-button">Try Again Securely</a>
+        <a href="${SITE_URL}/shop#purchases" class="cta-button">Check Purchase History</a>
         <p style="margin:18px 0 0; color:#737f94; font-size:12px; line-height:1.6;">A temporary bank authorization may take a short time to disappear. Contact support with the reference above if you need help.</p>
       `),
     }, details?.orderId ? { idempotencyKey: `payment-failed/${details.orderId}` } : undefined);
@@ -602,7 +623,7 @@ export async function sendProRenewalReceiptEmail(email: string, details: {
         <div class="hero-section">
           <div class="status-badge">PRO RENEWED</div>
           <h1>Your membership stays <span class="accent-text">active.</span></h1>
-          <p>Your monthly Exismic Pro payment was completed successfully.</p>
+          <p>Your Exismic Pro renewal payment was completed successfully.</p>
         </div>
         <div class="info-card">
           <div class="info-grid">

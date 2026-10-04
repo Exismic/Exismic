@@ -3,6 +3,7 @@ import { fulfillBillingOrder } from "@/lib/billing/fulfillment";
 import { capturePayPalOrder, getPayPalCapture } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { deliverBillingReceipt } from "@/lib/billing/receipt-delivery";
 
 type CaptureBody = {
   paypalOrderId?: string;
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (paymentOrder.status === "paid") {
+      if (paymentOrder.providerPaymentId) await deliverBillingReceipt(user.id, paymentOrder.providerPaymentId);
       return NextResponse.json({ success: true, alreadyProcessed: true, orderId: paymentOrder.id });
     }
 

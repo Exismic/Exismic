@@ -955,10 +955,13 @@ export function MinecraftSkinMaker() {
       link.href = url;
       link.download = `${result.design.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "exismic-minecraft-skin"}.png`;
       document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-      setNotice("Minecraft-ready 64×64 PNG texture downloaded.");
+      try {
+        link.click();
+      } finally {
+        // Give the browser time to start reading the blob before releasing it.
+        setTimeout(() => { link.remove(); URL.revokeObjectURL(url); }, 30_000);
+      }
+      setNotice("PNG download started. Check your browser’s downloads.");
     } catch {
       setError("The skin could not be downloaded. Please try again.");
     }

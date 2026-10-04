@@ -7,7 +7,7 @@ import {
   Check, 
   Copy, 
   Share2, 
-  Sparkles, 
+  ShieldCheck,
   Crown, 
   Coins, 
   ExternalLink, 
@@ -18,10 +18,12 @@ import {
   ArrowRight
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { ReceiptDownload } from "@/components/billing/ReceiptDownload";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 
 interface GiftSuccessModalProps {
+  orderId?: string;
   isOpen: boolean;
   onClose: () => void;
   giftCode: string;
@@ -35,6 +37,7 @@ export function GiftSuccessModal({
   isOpen,
   onClose,
   giftCode,
+  orderId,
   giftType,
   giftCredits = 0,
   recipientName,
@@ -52,7 +55,7 @@ export function GiftSuccessModal({
 
   const redeemUrl = typeof window !== "undefined" 
     ? `${window.location.origin}/redeem?code=${encodeURIComponent(giftCode)}`
-    : `https://exismic.com/redeem?code=${encodeURIComponent(giftCode)}`;
+    : `https://www.exismic.xyz/redeem?code=${encodeURIComponent(giftCode)}`;
 
   useEffect(() => {
     if (isOpen) {
@@ -134,14 +137,14 @@ export function GiftSuccessModal({
             <div className="flex justify-center mb-5">
               <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400/25 via-purple-500/25 to-yellow-400/20 border border-amber-400/50 flex items-center justify-center text-amber-300 shadow-[0_0_35px_rgba(245,158,11,0.35)]">
                 <Gift size={38} className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-bounce" />
-                <Sparkles size={16} className="absolute top-2 right-2 text-yellow-300 animate-pulse" />
+                <ShieldCheck size={16} className="absolute top-2 right-2 text-yellow-300 animate-pulse" />
               </div>
             </div>
 
             {/* Header Text */}
             <div className="space-y-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/35 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                <Sparkles size={12} /> Gift Voucher Activated
+                <ShieldCheck size={12} /> Gift Voucher Activated
               </span>
               <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
                 Your Gift Pass is Ready!
@@ -211,6 +214,7 @@ export function GiftSuccessModal({
 
             {/* Quick Share Buttons */}
             <div className="mt-5 space-y-3">
+              {orderId && <ReceiptDownload url={`/api/billing/receipt?orderId=${encodeURIComponent(orderId)}`} className="w-full" />}
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <button
                   onClick={handleCopyLink}

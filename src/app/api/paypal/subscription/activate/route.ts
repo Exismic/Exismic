@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPlanPrice } from "@/lib/billing/plans";
 import { fulfillBillingOrder } from "@/lib/billing/fulfillment";
-import { getPayPalSubscription, parsePayPalCustomId, resolvePayPalProPlanId } from "@/lib/paypal";
+import { getPayPalSubscription, parsePayPalCustomId } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { deliverBillingReceipt } from "@/lib/billing/receipt-delivery";
 
 type ActivateBody = {
   subscriptionId?: string;
@@ -29,7 +29,7 @@ function resolveNextBillingDate(subscription: Awaited<ReturnType<typeof getPayPa
 }
 
 function amountsMatch(actual: number | null | undefined, expected: number) {
-  if (typeof actual !== "number" || !Number.isFinite(actual) || actual <= 0) return true;
+  if (typeof actual !== "number" || !Number.isFinite(actual) || actual <= 0) return false;
   return Math.round(actual * 100) === Math.round(expected * 100);
 }
 
@@ -57,11 +57,13 @@ export async function POST(req: NextRequest) {
       if (existingTransaction.userId !== user.id) {
         return NextResponse.json({ error: "This PayPal subscription does not belong to your account." }, { status: 403 });
       }
+      await deliverBillingReceipt(user.id, subscriptionId);
       return NextResponse.json({
         success: true,
         duplicate: true,
         plan: "pro",
         subscriptionId,
+        orderId: (existingTransaction.metadata as Record<string, unknown> | null)?.billingOrderId || null,
         message: "PayPal subscription was already verified.",
       });
     }
@@ -88,24 +90,16 @@ export async function POST(req: NextRequest) {
 
     const isYearly = customContext.tierId === "pro_yearly";
     const planTier = isYearly ? "pro_yearly" : "pro";
-    const proPrice = getPlanPrice(planTier, "GLOBAL");
-
-    if (Number.isFinite(customContext.amount) && Math.round(customContext.amount * 100) !== proPrice.amountMinor) {
-      return NextResponse.json({ error: "PayPal subscription amount does not match Exismic Pro pricing." }, { status: 400 });
-    }
 
     const paidAmount = subscription.billing_info?.last_payment?.amount?.value
       ? Number(subscription.billing_info.last_payment.amount.value)
       : null;
     const paidCurrency = subscription.billing_info?.last_payment?.amount?.currency_code;
 
-    if (paidCurrency && paidCurrency !== "USD") {
+    if (paidCurrency !== "USD") {
       return NextResponse.json({ error: "PayPal subscription currency does not match Exismic Pro pricing." }, { status: 400 });
     }
 
-    if (!amountsMatch(paidAmount, proPrice.amount)) {
-      return NextResponse.json({ error: "PayPal subscription amount does not match Exismic Pro pricing." }, { status: 400 });
-    }
 
     const nextBillingDate = resolveNextBillingDate(subscription, isYearly);
     const paymentOrder = await prisma.paymentOrder.findFirst({
@@ -118,6 +112,10 @@ export async function POST(req: NextRequest) {
     });
     if (!paymentOrder || paymentOrder.userId !== user.id) {
       return NextResponse.json({ error: "Payment order not found for this account." }, { status: 404 });
+    }
+
+    if (paymentOrder.planId !== planTier || !amountsMatch(paidAmount, paymentOrder.amount / 100)) {
+      return NextResponse.json({ error: "PayPal has not confirmed the matching payment for this purchase yet." }, { status: 400 });
     }
 
     const result = await fulfillBillingOrder({
@@ -139,6 +137,7 @@ export async function POST(req: NextRequest) {
       subscriptionId,
       nextBillingDate: nextBillingDate.toISOString(),
       alreadyProcessed: result.alreadyProcessed,
+      orderId: paymentOrder.id,
     });
   } catch (error) {
     console.error("[PayPal] Subscription activation failed:", error);

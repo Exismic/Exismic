@@ -4,9 +4,23 @@
 
 ---
 
-## Minecraft production-audit fixes — October 3, 2026 (pending user push)
+## Checkout and downloadable payment receipts — October 4, 2026 (pending user deployment)
 
-Fixed the image AI provider, silent paid fallbacks, jacket remix preservation, overlapping Save/AI edits, duplicate clicks and file-size metadata. Advanced rendering is the default unless explicitly disabled. Variations now request fresh details and change lighting/pattern placement. Added faithful teal/forest-green/emerald/burgundy parsing and separate bill/tie/undershirt colors. No new route, tool, paid image service, environment change or database migration. Verified with 480 renderer cases, billing/editor-race/part-preservation route regression, TypeScript, production build and actual Groq image-edit/variation requests. Live authenticated retest is pending the user's next deployment.
+Corrected advertised pack grants (500/2,000/6,000), preserved Pro on top-ups, fixed paid gift credit double grants, added accurate annual totals/renewal terms and membership details, and made success/failure/pending screens reflect verified payment records. Shared gateway checkout, safe provider proof and duplicate-callback handling, private purchase history and downloadable full PDF receipts attached to confirmed-payment emails. Gift codes remain recoverable from owned history, redeem once, and preserve prepaid access after cancelled recurring subscriptions. Removed third-party gift-card payment submissions and the unsupported local-only 30% retention offer (both endpoints 410). Direct cancellation verifies account status and preserves paid-through access.
+
+35 offline billing checks passed; desktop/mobile checkout review and two fake PDF receipt layouts inspected. Final production build/lint evidence and live-test limits: `C:/Users/rayan/Documents/Codex/2026-09-28/for-x20/checkout-quality/report.md`. No real payment, account grant, cancellation or receipt email sent; no dependency/env/schema/migration changes. Existing Minecraft work preserved. Changes not pushed/deployed; actual payment settlement and emailed attachment delivery still require a check after the user's deployment. No new creative tool.
+
+## Minecraft artist-quality pass — October 4, 2026 (pending user deployment)
+
+Added a drawing-only AI stage to complete Detailed/Pixel Artist/high-contrast generation, four independent detail colors with their shadows, and editable outer-head silhouettes. Fixed eyes hidden by hair, phantom `NON` emblems, compound emerald green and immediate download blob revocation. AI clothing details now preserve underlying material/layers; monochrome slabs and misplaced human eyes are rejected. Independent detail colors can be remixed without drifting unrelated colors. No new tool, paid image service, environment change or migration; successful generation keeps its existing credit price, and failed drawing stages are not stored or charged.
+
+Validated with the renderer suite, 100 hair/eye combinations, route/billing/Save-AI/download tests, TypeScript and real configured AI generation, image editing, variation and accent remix. Actual samples still show inconsistent motif/prompt fidelity; this is not a guarantee of hand-crafted artist quality. TV smile was deprioritized. Build/visual evidence: `C:/Users/rayan/Documents/Codex/2026-09-28/for-x20/minecraft-quality/oct4/report.md`. Nothing pushed/deployed; localhost was not started.
+
+## Minecraft production-audit fixes — October 3, 2026 (shipped by user in a7381c2)
+
+Fixed the image AI provider, silent paid fallbacks, jacket remix preservation, overlapping Save/AI edits, duplicate clicks and file-size metadata. Advanced rendering is the default unless explicitly disabled. Variations now request fresh details and change lighting/pattern placement. Added faithful teal/forest-green/emerald/burgundy parsing and separate bill/tie/undershirt colors. No new route, tool, paid image service, environment change or database migration. Verified with 480 renderer cases, billing/editor-race/part-preservation route regression, TypeScript, production build and actual Groq image-edit/variation requests. Live authenticated retest results follow below.
+
+Live retest completed after the user's push: image editing, protected remix pixels, Save/AI locks, exact Save, meaningful variation, nonzero library sizes, both arm models, six mouth styles and five eye styles passed; 82 credits correctly deducted. Remaining quality issues are TV smile-glyph fidelity, stray `NON emblem` traits and compound emerald-green shade parsing. Native download capture remains unconfirmed. Evidence: `C:/Users/rayan/Documents/Codex/2026-09-28/for-x20/minecraft-quality/post-deploy/audit.md`.
 
 ## Advanced Minecraft Skin Maker update — October 3, 2026 (shipped by user in f067752)
 

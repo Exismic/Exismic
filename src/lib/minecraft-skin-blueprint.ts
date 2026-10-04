@@ -1298,6 +1298,9 @@ export function applyDirectionalLighting(
           }
         }
         if (face.height >= 8) shift -= (row / (face.height - 1)) * 0.02;
+        // Discrete shade bands keep connected pixel clusters; a continuous per-pixel
+        // gradient previously introduced hundreds of barely different colors.
+        shift = Math.round(shift / 0.02) * 0.02;
         const hex = `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
         canvas.setPixel(x, y, materialShade(hex, shift, "fabric"), a);
       }
@@ -1488,6 +1491,15 @@ export function compileMinecraftSkinBlueprint(
       headphones: Boolean(design.headphones),
     },
   });
+
+  // Hair templates used to sit over both irises, producing a blank face even
+  // though the AI correctly chose the eyes. Keep each style's actual eye aperture.
+  if ((design.characterType || "human") === "human") {
+    const eyes = design.eyeStyle || "anime";
+    const rows = eyes === "classic" ? [4] : [3, 4];
+    const columns = eyes === "minimal" ? [2, 5] : eyes === "visor" ? [1, 2, 3, 4, 5, 6] : [1, 2, 5, 6];
+    for (const row of rows) hairBp.front[row] = [...hairBp.front[row]].map((token, col) => columns.includes(col) ? "." : token).join("");
+  }
 
   const faceBp = generateFaceBlueprint(design.faceConstruction || "clean-aesthetic", design.eyeStyle, design.mouthStyle);
 

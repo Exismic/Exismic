@@ -1,18 +1,21 @@
 import type { MinecraftSkinDesign, MinecraftSkinPart, MinecraftSkinStyle } from "./minecraft-skin";
-import { extractMinecraftCharacterPalette, mergeMinecraftSkinPart } from "./minecraft-skin";
+import { extractMinecraftCharacterPalette, mergeMinecraftSkinPart, reconcileMinecraftArtColors } from "./minecraft-skin";
 import { SKIN_ART_REGIONS, SKIN_CHARACTER_TYPES, sanitizeSkinPixelArt } from "./minecraft-skin-art-types";
 
 export const MINECRAFT_SKIN_ART_INSTRUCTION = [
   "ART DIRECTION: choose characterType human/duck/tv/robot/creature/cat/abstract; never add human hair to a screen, animal, robot, or abstract head.",
   "Choose topPattern clean/plaid/striped, pantsDetail clean/ripped/patchwork, graphic none/skull/heart/checker/bolt, and colorTreatment solid/gradient to match the prompt. Keep these on the correct body part.",
-  "You can draw ORIGINAL custom pixel details in pixelArt. Provide 2-6 deliberately composed faces only where they improve the design; use [] when the semantic patterns suffice. Each entry is {region,layer,rows}. Existing templates already render faces, hair, plaid, tears, clothes and folds: do not replace these with flat filled rectangles.",
+  "You are drawing original pixel art, not just selecting templates. For rich/detailed/pixel-artist designs compose 6-12 coordinated pixelArt faces across head, torso, sleeves and legs, including side or back details; for minimal designs use 0-3. Each entry is {region,layer,mode,rows}. Spend pixels on the character's requested distinguishing features, not generic badges. Existing templates supply the garment structure: do not replace these with flat filled rectangles.",
   "Regions name a cube face, e.g. head-front, head-back, head-top, torso-front, torso-back, right-arm-front, left-leg-front. layer is base or outer. Never return a full UV atlas or coordinates.",
   "Dimensions MUST be exact: every head face 8 characters x 8 rows; torso front/back 8 x 12; torso top/bottom 8 x 4; torso sides 4 x 12; arm/leg front/back/sides 4 x 12; arm/leg top/bottom 4 x 4. Always draw arms at width 4; the renderer adapts slim arms.",
   "One character is one pixel. Color tokens: K skin, k skin shadow, C skin light, R soft blush; H hair/head casing, h hair highlight, L hair mid-light, D hair root shadow; T top, t top light, S top shadow, s top deep shadow; A topAccent, a accent light, B accent shadow; P pants, p pants light, Q pants shadow; F shoes, f shoe light, g shoe shadow; E eyes/screen, e eye light; W off-white, N charcoal; X detail, x detail light, Y detail shadow. Dot . means keep the existing pixel/transparent outer space.",
+  "When the character has artColors, U/V/O/Z use those independent accent colors and u/v/o/z their shadows. Use these for embroidery, sleeve panels, small gems or stitching rather than borrowing an unrelated tie or hair color.",
   "Think like a pixel artist: connected 2-4 pixel shadow masses, directional strands, quiet fabric areas, 1px seam highlights, and intentional negative space. No scattered random noise or repeating every color. Connect color masses across front, side, and back. Use the outer layer sparingly for hair edges, a screen rim, a bill, collar, or pockets.",
+  "COMPOSITION: choose one main focal point and a limited 3-4 tone ramp per material. Brightest pixels belong at focal highlights; keep the rest quieter. Carry a requested motif around adjacent faces instead of inventing an unrelated logo. Make left/right folds subtly different where asymmetry is requested, without changing the outfit. Small metal edges are crisp, cloth folds are connected and soft. Never add lettering unless explicitly requested; emblem is an empty string when absent.",
+  "MODE: every clothing or base drawing MUST use accent. Its background MUST be dots, never N/W/T/P/F/A/X fills. Use replace ONLY for outer head hair/casing faces when you design their whole silhouette: dot clears that outer pixel and reveals the shaded base. Human hair MUST contain at least 3 H/h/L/D tones in connected strands, with deliberate gaps separating locks, plus matching top and side/back drawings. An all-H wall is rejected. If the head has headphones, horns, a crown, glasses, halo or a raised hood, use accent to retain those accessories.",
   "Human eyes are centered at columns 1-2 and 5-6, rows 3-4; nose bridge columns 3-4. Eye/mouth controls are protected on both layers. Human head-front outer art is HAIR ONLY: use H/h/L/D above or beside the face and dots over the whole face. NEVER draw eyes or skin onto a human outer hair face.",
   "For clothing art, use dots for at least half the face so existing folds, lapels and pockets remain visible. Use sparse X/W/N markings for logos, tiny patches, stitched trim or seams. Do not paint broad T/P rectangles. For a custom nonhuman head, a base drawing can cover the full face, but use at least 3 tones and recognizable features. Duck eyes must be a separated pair at columns 1-2 and 5-6, with a 4-6px wide bill lower down; not a single eye in the center. TV screen symbols go inside its rim. Connect casing/feathers around side and back faces.",
-  'Original sparse human fringe EXAMPLE: {"region":"head-front","layer":"outer","rows":["DHHLLHHD","HHhLLhHH",".HH..HH.","........","........","........","........","........"]}. Original tiny jacket patch EXAMPLE: {"region":"torso-back","layer":"outer","rows":["........","........","...XX...","..X..X..","...XX...","........","........","........","........","........","........","........"]}. Compose different original motifs for the request instead of copying these examples.',
+  "Before returning, check each drawing's exact dimensions, the separated eyes, continuation of motifs across edges, and that each requested distinguishing feature has actual pixels. Do not merely mention missing features in the description. Produce a different original composition for the user's character rather than reusing a stock fringe or diamond patch.",
   "For gradients use hair as head/start color, topAccent as shoulder color, top as chest color, pants as leg color, shoes as the final color. For duck/creature/robot head use skin for the head color, topAccent for bill/feature, eyes for eyes, detail for markings. For TV heads use hair for the case, eyes for the screen.",
 ].join("\n");
 
@@ -244,8 +247,8 @@ export const MINECRAFT_SKIN_JSON_SCHEMA = {
       type: "array",
       items: {
         type: "object",
-        properties: { region: { type: "string", enum: SKIN_ART_REGIONS }, layer: { type: "string", enum: ["base", "outer"] }, rows: { type: "array", items: { type: "string" } } },
-        required: ["region", "layer", "rows"], additionalProperties: false,
+        properties: { region: { type: "string", enum: SKIN_ART_REGIONS }, layer: { type: "string", enum: ["base", "outer"] }, mode: { type: "string", enum: ["accent", "replace"] }, rows: { type: "array", items: { type: "string" } } },
+        required: ["region", "layer", "mode", "rows"], additionalProperties: false,
       },
     },
     palette: {
@@ -343,10 +346,33 @@ export const LEGACY_STYLE_MAP: Record<string, MinecraftSkinStyle> = {
   "high-contrast": "high-contrast",
 };
 
+// A separate drawing-only pass avoids asking the model to juggle dozens of
+// garment settings while composing its pixel clusters.
+export const MINECRAFT_ARTWORK_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    pixelArt: MINECRAFT_SKIN_JSON_SCHEMA.properties.pixelArt,
+    artColors: {
+      type: "object",
+      properties: { U: { type: "string" }, V: { type: "string" }, O: { type: "string" }, Z: { type: "string" } },
+      required: ["U", "V", "O", "Z"], additionalProperties: false,
+    },
+  },
+  required: ["pixelArt", "artColors"], additionalProperties: false,
+};
+
+export const MINECRAFT_REMIX_JSON_SCHEMA = {
+  ...MINECRAFT_SKIN_JSON_SCHEMA,
+  properties: { ...MINECRAFT_SKIN_JSON_SCHEMA.properties, artColors: MINECRAFT_ARTWORK_JSON_SCHEMA.properties.artColors },
+  required: [...MINECRAFT_SKIN_JSON_SCHEMA.required, "artColors"],
+};
+
 export function buildSkinArtConstraints(prompt: string): string {
   return [
-    "Use only these exact enum values (for plaid set topPattern=plaid and pattern=clean): " + Object.entries(MINECRAFT_SKIN_JSON_SCHEMA.properties).filter(([, property]) => "enum" in property).map(([key, property]) => `${key}=${("enum" in property ? property.enum : []).join("|")}`).join("; "),
-    "Allowed pixelArt regions: " + SKIN_ART_REGIONS.join(", "),
+    "Use the exact field names, enum values and drawing regions in the supplied JSON schema. For plaid set topPattern=plaid and pattern=clean. Include every required field.",
+    "RETURN ALL of these top-level fields, including unused features with their neutral values (graphic=none, hoodState=none, emblem=empty string): " + MINECRAFT_SKIN_JSON_SCHEMA.required.join(", "),
+    "Exact enum spellings: " + Object.entries(MINECRAFT_SKIN_JSON_SCHEMA.properties).filter(([, property]) => "enum" in property).map(([key, property]) => `${key}=${("enum" in property ? property.enum : []).join("|")}`).join("; "),
+    "Use ONLY these exact pixelArt region names: " + SKIN_ART_REGIONS.join(", "),
     "Explicit custom-character color anchors (honor these requested colors): " + JSON.stringify(extractMinecraftCharacterPalette(prompt)),
   ].join("\n");
 }
@@ -448,6 +474,9 @@ export function mergeRemixDesign(
       ...(remixResult.palette || {}),
     } as any,
   };
+  if (!broadOutfit && !/\b(?:embroidery|embroidered|stitching|stitches|seams?|panels?|trim|lining|motifs?|gems?|tattoos?|markings|graphics?|logos?|patches)\b/i.test(instructionLower)) {
+    merged.artColors = parent.artColors;
+  } else merged.artColors = reconcileMinecraftArtColors(parent.artColors, remixResult.artColors, instructionLower);
 
   // If instruction didn't mention head hair, strictly lock head hair fields to parent
   if (!mentionsHair && !mentionsCharacter && parent.hairStyle) {
@@ -560,7 +589,7 @@ export function mergeRemixDesign(
     if (/\b(?:accent|lining|trim|tie|bill|beak)\b/.test(instructionLower)) copy(["topAccent"]);
     if (mentionsPants) copy(["pants"]);
     if (mentionsFootwear) copy(["shoes"]);
-    return { ...parent, palette, pixelArt: parentArt };
+    return { ...parent, palette, artColors: merged.artColors, pixelArt: parentArt };
   }
   return merged;
 }

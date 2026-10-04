@@ -27,8 +27,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive } from "@/config/pricing";
 import { cn } from "@/lib/utils";
+import { PurchaseHistory } from "@/components/billing/PurchaseHistory";
 import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
-import { PaymentSuccessModal } from "@/components/modals/PaymentSuccessModal";
 import { PaymentFailureModal } from "@/components/modals/PaymentFailureModal";
 import { createCheckoutSignal, loadRazorpayCheckout } from "@/lib/payments/loadRazorpayCheckout";
 import { reportPaymentFailure } from "@/lib/payments/reportPaymentFailure";
@@ -100,7 +100,7 @@ const packStyles: Record<string, {
     numberGradient: "bg-[linear-gradient(110deg,#ffffff,#f0abfc,#38bdf8,#ffffff)] drop-shadow-[0_0_20px_rgba(240,171,252,0.5)]",
     conicGradient: "bg-[conic-gradient(from_0deg,rgba(168,85,247,1)_0%,rgba(236,72,153,1)_33%,rgba(192,132,252,1)_66%,rgba(168,85,247,1)_100%)]",
     markTheme: "purple",
-    subtitle: "Best Value Pack",
+    subtitle: "For Regular Creators",
     subtitleColor: "text-zinc-400 group-hover/launch:text-fuchsia-200/90",
     arrowBoxHover: "group-hover/launch:border-fuchsia-300/60 group-hover/launch:bg-fuchsia-300/[0.2] group-hover/launch:text-fuchsia-50 group-hover/launch:shadow-[0_0_30px_rgba(217,70,239,0.6),inset_0_1px_5px_rgba(255,255,255,0.3)]",
     arrowIconHover: "group-hover/launch:text-fuchsia-100",
@@ -163,7 +163,6 @@ export default function ShopPage() {
   const [claimResult, setClaimResult] = useState<{ amount: number; rarity: string; type?: "temporary" | "permanent" } | null>(null);
   const [claimStage, setClaimStage] = useState<"idle" | "opening" | "revealed">("idle");
   const [claimLocked, setClaimLocked] = useState(false);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showPaymentFailure, setShowPaymentFailure] = useState(false);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
@@ -173,8 +172,8 @@ export default function ShopPage() {
     giftCredits?: number;
     recipientName?: string;
     recipientMessage?: string;
+    orderId?: string;
   } | null>(null);
-  const [successCredits, setSuccessCredits] = useState(0);
   const [failureReason, setFailureReason] = useState<string | undefined>();
 
   useEffect(() => {
@@ -205,18 +204,16 @@ export default function ShopPage() {
     if (!paymentStatus) return;
 
     if (paymentStatus === "success") {
-      const parsedCredits = Number(paymentCredits || 0);
-      setSuccessCredits(Number.isFinite(parsedCredits) ? parsedCredits : 0);
-      setShowPaymentSuccess(true);
-      void refreshCredits();
-      toast("Credits added to your account.", "success");
+      const order = searchParams.get("order");
+      router.replace(order ? `/billing/success?order=${encodeURIComponent(order)}` : "/shop#purchases");
+      return;
     } else if (paymentStatus === "failed") {
       const reason = paymentReason || "Payment could not be verified.";
       setFailureReason(reason);
       setShowPaymentFailure(true);
       toast(reason, "warning");
     } else if (paymentStatus === "cancelled") {
-      toast("Checkout cancelled. No payment was captured.", "info");
+      toast("Checkout cancelled. If charged, check purchase history before trying again.", "info");
     }
 
     router.replace("/shop", { scroll: false });
@@ -389,6 +386,7 @@ export default function ShopPage() {
             ondismiss: () => setIsProcessingId(null),
           },
           handler: async (paymentResponse: RazorpayPaymentResponse) => {
+            try {
             const verifyResponse = await fetch("/api/billing/razorpay/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -396,20 +394,19 @@ export default function ShopPage() {
             });
             const verifyData = await verifyResponse.json().catch(() => null);
             if (!verifyResponse.ok || !verifyData?.success) {
-              const reason = verifyData?.error || "Payment verification failed.";
-              setFailureReason(reason);
-              setShowPaymentFailure(true);
-              toast(reason, "warning");
-              setIsProcessingId(null);
+              window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
               return;
             }
-            window.location.href = `/billing/success?type=credits&credits=${selectedPack.credits}`;
+            window.location.href = `/billing/success?order=${encodeURIComponent(verifyData.orderId)}`;
+            } catch {
+              window.location.assign(`/billing/success?order=${encodeURIComponent(data.orderId)}`);
+            } finally { setIsProcessingId(null); }
           },
         });
 
         razorpay.on("payment.failed", (failure: unknown) => {
           reportPaymentFailure(data.orderId, failure);
-          const reason = "Payment was not completed. No charge was added to your account.";
+          const reason = "The payment provider reported this payment as unsuccessful.";
           setFailureReason(reason);
           setShowPaymentFailure(true);
           toast(reason, "warning");
@@ -559,11 +556,11 @@ export default function ShopPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative"
+            className="relative order-2"
           >
             <DailyRewardLootBox
               user={user}
@@ -576,7 +573,7 @@ export default function ShopPage() {
             />
           </motion.div>
 
-          <div className="space-y-5">
+          <div className="order-1 space-y-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Permanent reserve</p>
@@ -641,6 +638,7 @@ export default function ShopPage() {
                             <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
                             {pack.bonusCredits > 0 ? `${pack.credits.toLocaleString()} base + ${pack.bonusCredits.toLocaleString()} bonus (never expires)` : "Permanent balance, never expires"}
                           </p>
+                          <p className="mt-2 text-sm text-zinc-300">{isIndia ? "₹" : "$"}{((isIndia ? pack.priceINR : pack.priceUSD) / (pack.credits + pack.bonusCredits) * 100).toFixed(2)} per 100 credits · one-time payment</p>
                         </div>
                       </div>
 
@@ -715,12 +713,12 @@ export default function ShopPage() {
                                         {pack.regularPriceLabel}
                                       </span>
                                     )}
-                                    <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                                    <span className="block text-sm font-bold text-white/90 drop-shadow-sm transition-all duration-500 group-hover/launch:text-white group-hover/launch:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
                                       BUY • {pack.priceLabel}
                                     </span>
                                   </div>
                                   <span className={cn(
-                                    "mt-0.5 block text-[8px] font-bold uppercase tracking-[0.16em] transition-colors duration-500",
+                                    "mt-0.5 block text-xs font-medium transition-colors duration-500",
                                     pack.style.subtitleColor
                                   )}>
                                     {pack.style.subtitle}
@@ -763,6 +761,7 @@ export default function ShopPage() {
             </div>
           </div>
         </section>
+        <section id="purchases" className="mt-10 rounded-2xl border border-white/10 bg-black/30 p-5 sm:p-6">{user ? <PurchaseHistory /> : <div className="space-y-3"><h3 className="text-lg font-bold text-white">Purchases & receipts</h3><p className="text-sm text-zinc-400">Sign in to view your purchases and download payment receipts.</p><Link href="/auth/login?next=/shop" className="inline-flex min-h-11 items-center text-cyan-200 underline">Sign in</Link></div>}</section>
       </main>
       <PaymentTermsModal
         isOpen={isTermsModalOpen}
@@ -775,12 +774,6 @@ export default function ShopPage() {
         gateway={isIndia ? "razorpay" : "paypal"}
         isProcessing={isProcessingId !== null}
         planId={selectedPack?.billingPlanId || selectedPack?.id || "starter"}
-      />
-      <PaymentSuccessModal
-        isOpen={showPaymentSuccess}
-        onClose={() => setShowPaymentSuccess(false)}
-        type="credits"
-        amount={successCredits}
       />
       <PaymentFailureModal
         isOpen={showPaymentFailure}
@@ -808,6 +801,7 @@ export default function ShopPage() {
           giftCredits={giftSuccessDetails.giftCredits}
           recipientName={giftSuccessDetails.recipientName}
           recipientMessage={giftSuccessDetails.recipientMessage}
+          orderId={giftSuccessDetails.orderId}
         />
       )}
     </div>

@@ -13,7 +13,7 @@ const skin = require("../src/lib/minecraft-skin.ts");
 const blueprint = require("../src/lib/minecraft-skin-blueprint.ts");
 const control = require("../src/lib/minecraft-skin-control.ts");
 const models = require("../src/lib/ai-models.ts");
-let debits = 0, uploads = [], files = [], calls = [], fail = false, providerDesign;
+let debits = 0, uploads = [], files = [], calls = [], fail = false, failArtwork = false, providerDesign;
 const user = { id: "fixture", plan: "pro", dailyCredits: 500 };
 class NextResponse {
   static json(body, options = {}) { return { body, status: options.status || 200 }; }
@@ -42,7 +42,7 @@ const sandbox = {
     ? require(path.join(root, "src", name.slice(2) + ".ts")) : require(name),
   fetch: async (_, init) => {
     calls.push(JSON.parse(init.body));
-    return fail ? { ok: false, status: 400, text: async () => "provider unavailable" }
+    return fail || (failArtwork && calls.at(-1).response_format.json_schema.name === "minecraft_artwork") ? { ok: false, status: 400, text: async () => "provider unavailable" }
       : { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(providerDesign) } }] }) };
   },
 };
@@ -99,6 +99,7 @@ async function checkEditorRace() {
 }
 async function main() {
   await checkEditorRace();
+  await checkDownloadLifetime();
   const parent = skin.sanitizeSkinDesign({ garmentType: "jacket", placket: "open_front", innerGarment: "undershirt", topPattern: "plaid" }, "brown plaid jacket over cream undershirt and blue jeans", 42);
   providerDesign = { ...parent, garmentType: "shirt", placket: "pullover", palette: { ...parent.palette, top: "#2f5d46", hair: "#ffffff", pants: "#ffffff" } };
   fail = true;
@@ -154,6 +155,62 @@ async function main() {
   const varied = new Uint8Array(await sharp(uploads[0]).ensureAlpha().raw().toBuffer());
   assert.ok(changed(original, varied) > 100, "Variation barely differs from original");
   assert.equal(variation.body.renderer, "blueprint", "Advanced renderer disabled when flag unset");
+  const artistDrawing = { region: "torso-back", layer: "outer", mode: "accent", rows: ["........", "........", "..UU....", "..uu....", ...Array(8).fill("........")] };
+  const artistHead = { region: "head-front", layer: "outer", mode: "replace", rows: [".DHhhHD.", "DHhLLHHD", ".HH..HH.", ...Array(5).fill("........")] };
+  providerDesign = { ...parent, artColors: { U: "#800020", V: "#eab308", O: "#c0c0c0", Z: "#2f5d46" }, pixelArt: [artistDrawing, artistHead] };
+  reset();
+  failArtwork = true;
+  assert.equal((await post({ prompt: "silver hair and burgundy jacket stitching", style: "pixel-artist" })).status, 503);
+  assert.equal(debits, 0, "Failed drawing pass consumed credits after initial design succeeded");
+  assert.equal(uploads.length, 0, "Incomplete artist pass stored as successful generation");
+  failArtwork = false;
+  for (const model of ["classic", "slim"]) {
+    reset();
+    const rich = await post({ prompt: "silver hair and burgundy jacket stitching", style: "pixel-artist", armModel: model, seed: 42 });
+    assert.equal(rich.status, 200);
+    assert.deepEqual(calls.map((request) => request.response_format.json_schema.name), ["minecraft_skin_design", "minecraft_artwork"]);
+    assert.equal(calls[1].reasoning_effort, "low");
+    assert.equal(rich.body.design.artColors.U, "#800020");
+    assert.equal(debits, 16, "Two artist stages charged the user twice");
+    const image = new Uint8Array(await sharp(uploads[0]).ensureAlpha().raw().toBuffer());
+    const base = blueprint.compileMinecraftSkinBlueprint({ ...providerDesign, pixelArt: [] }, 42, model, "pixel-artist", "silver hair and burgundy jacket stitching");
+    assert.ok(changed(image, base) > 10, "Artist pass did not affect rendered pixels");
+  }
   console.log("PASS: editor Save/AI race and duplicate clicks, provider failure billing, preservation-only rejection, both arm models, vision editor, remix protection, meaningful variation, advanced renderer default and file metadata.");
+}
+async function checkDownloadLifetime() {
+  const file = path.join(root, "src/components/tool/MinecraftSkinMaker.tsx");
+  const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let handler;
+  const visit = (node) => {
+    if (ts.isVariableDeclaration(node) && node.name.getText(source) === "downloadSkin") handler = `const ${node.getText(source)};`;
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  assert.ok(handler);
+  let cleanup, revoked = 0, removed = 0, clicked = 0, notice = "", error = "", timerDelay;
+  const state = {
+    result: { skinUrl: "fixture", design: { name: "Test Skin" } },
+    fetch: async () => ({ ok: true, blob: async () => "blob" }),
+    URL: { createObjectURL: () => "blob:fixture", revokeObjectURL: () => { revoked++; } },
+    document: { createElement: () => ({ click() { clicked++; }, remove() { removed++; } }), body: { appendChild() {} } },
+    setTimeout: (callback, delay) => { cleanup = callback; timerDelay = delay; },
+    setNotice: (text) => { notice = text; }, setError: (text) => { error = text; },
+  };
+  vm.createContext(state);
+  vm.runInContext(ts.transpileModule(handler + "\nglobalThis.download = downloadSkin;", { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText, state);
+  await state.download();
+  assert.equal(clicked, 1);
+  assert.equal(revoked, 0, "Blob URL revoked before browser reads the download");
+  assert.equal(removed, 0);
+  assert.ok(timerDelay >= 1000);
+  assert.match(notice, /started/);
+  cleanup();
+  assert.equal(revoked, 1); assert.equal(removed, 1);
+  state.fetch = async () => ({ ok: false }); notice = "";
+  await state.download(); assert.equal(notice, ""); assert.match(error, /could not/); assert.equal(clicked, 1);
+  state.fetch = async () => ({ ok: true, blob: async () => "blob" });
+  state.document.createElement = () => ({ click() { throw new Error("blocked"); }, remove() { removed++; } });
+  await state.download(); cleanup(); assert.equal(revoked, 2, "Blocked click leaked blob URL");
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

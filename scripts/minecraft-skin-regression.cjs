@@ -77,11 +77,39 @@ async function main() {
   const accentedPixels = compileMinecraftSkinBlueprint(accented, 42, "classic", "balanced", independent.description);
   assert.deepEqual(pixel(accentedPixels, 23, 37).slice(0, 3), [21, 128, 93], "Sparse AI accent overwrote requested tie color");
   assert.deepEqual(sanitizeSkinDesign({ featureColors: { bill: "invalid", tie: "#15805d" } }, "character", 42).featureColors, { tie: "#15805d" });
+  assert.deepEqual(sanitizeSkinDesign({ artColors: { U: "#800020", V: "unsafe", O: "#C0C0C0" } }, "character", 42).artColors, { U: "#800020", O: "#c0c0c0" });
+  assert.deepEqual(skinArtColors(sanitizeSkinDesign({ artColors: { U: "#800020" } }, "character", 42)).U, [128, 0, 32]);
+  assert.notDeepEqual(skinArtColors(sanitizeSkinDesign({ artColors: { U: "#800020" } }, "character", 42)).u, [128, 0, 32]);
+  assert.equal(sanitizeSkinDesign({}, "Teal duck with emerald green tie", 42).featureColors.tie, "#15805d", "Generic green hijacked compound emerald green");
+  for (const sentinel of ["none", "null", "n/a", "no emblem", "undefined", "crescent"]) {
+    const absent = sanitizeSkinDesign({ emblem: sentinel, traits: ["NON emblem", "Duck"] }, "duck character", 42);
+    assert.equal(absent.emblem, "", "Absent/motif emblem became truncated lettering");
+    assert.deepEqual(absent.traits, ["Duck"]);
+  }
+  assert.equal(sanitizeSkinDesign({ emblem: "EX" }, "No lettering or emblem on the jacket", 42).emblem, "");
+  assert.equal(sanitizeSkinDesign({ emblem: "NON" }, 'Logo reads "NON"', 42).emblem, "NON", "Valid explicitly requested lettering was lost");
+  assert.equal(createFallbackSkinDesign("jacket emblem none", 42).emblem, "");
   assert.deepEqual(Object.keys(MINECRAFT_SKIN_JSON_SCHEMA.properties).sort(), [...MINECRAFT_SKIN_JSON_SCHEMA.required].sort(), "Strict AI schema omitted required properties");
   const drawing = { region: "torso-front", layer: "outer", rows: ["........", "........", "...XX...", "..XxxX..", ".XX..XX.", "..XxxX..", "...XX...", "........", "........", "........", "........", "........"] };
   assert.deepEqual(sanitizeSkinPixelArt([drawing, drawing]), [drawing], "Duplicate art faces survived");
   const flat = { ...drawing, rows: Array(12).fill("TTTTTTTT") };
   assert.deepEqual(sanitizeSkinPixelArt([flat]), [], "Flat AI fill would erase cloth folds");
+  const recoverable = { ...flat, rows: ["TTTTTTTT", "TTttTTTT", "TTTTTTTT", "TTSSSSTT", "TTSSSSTT", "TTTTTTTT", "TTXXTTTT", "TTXXTTTT", "TTTTTTTT", "TTTTTTTT", "........", "........"] };
+  const recovered = sanitizeSkinPixelArt([recoverable]);
+  assert.equal(recovered.length, 1, "Useful folds/markings discarded with their background");
+  assert.equal(recovered[0].rows[6], "..XX....");
+  assert.deepEqual(sanitizeSkinPixelArt(recovered), recovered, "Drawing cleanup not stable across saves/renders");
+  const blackSlab = { ...flat, mode: "replace", rows: Array(12).fill("NNNNNNNN") };
+  assert.deepEqual(sanitizeSkinPixelArt([blackSlab]), [], "Charcoal fill bypassed cloth safety");
+  assert.deepEqual(sanitizeSkinPixelArt([{ ...blackSlab, rows: Array(12).fill("OOOOOOOO") }]), [], "Extra accent color bypassed cloth safety");
+  const hairSlab = { region: "head-front", layer: "outer", mode: "replace", rows: Array(8).fill("HHHHHHHH") };
+  assert.deepEqual(sanitizeSkinPixelArt([hairSlab], "human"), [], "Flat custom hair erased shaded locks");
+  assert.deepEqual(sanitizeSkinPixelArt([{ ...hairSlab, rows: ["........", "........", "..HHHH..", ".HHHHHH.", ".HHHHHH.", "..HHHH..", "........", "........"] }], "human"), [], "Sparse flat hair replaced the whole shaded silhouette");
+  assert.deepEqual(sanitizeSkinPixelArt([{ ...hairSlab, layer: "base", rows: ["........", "........", "..EE....", "........", "........", "........", "........", "........"] }], "human"), [], "Misplaced extra human eye accepted");
+  const authoredHair = { ...hairSlab, rows: [".DHhhHD.", "DHhLLHHD", ".HH..HH.", "........", "........", "........", "........", "........"] };
+  assert.deepEqual(sanitizeSkinPixelArt([authoredHair], "human"), [authoredHair]);
+  const faceSchema = MINECRAFT_SKIN_JSON_SCHEMA.properties.pixelArt.items;
+  assert.deepEqual(Object.keys(faceSchema.properties).sort(), [...faceSchema.required].sort());
   assert.deepEqual(sanitizeSkinPixelArt([{ region: "head-front", layer: "outer", rows: Array(8).fill("HHHEEEHH") }], "human"), [], "AI eyes were accepted on outer human hair layer");
   assert.deepEqual(sanitizeSkinPixelArt([{ region: "head-front", layer: "base", rows: ["KKKKKKKK", "KKKKKKKK", "KKEEKKKK", "KKEEKKKK", "KKKKKKKK", "KAAAAAAK", "KAAAAAAK", "KKKKKKKK"] }], "duck"), [], "Single misplaced duck eye survived");
   assert.equal(inferSkinArt("Human boy in a pastel gradient hoodie").characterType, "human", "Gradient clothes turned a human into an abstract head");
@@ -91,6 +119,14 @@ async function main() {
   assert.equal(inferSkinArt("Human without duck, no robot, no plaid and no gradient").characterType, "human");
   assert.equal(inferSkinArt("Human without duck, no robot, no plaid and no gradient").colorTreatment, "solid");
   const parent = sanitizeSkinDesign({ pixelArt: [drawing] }, "brown hoodie", 42);
+  const artParent = { ...parent, artColors: { U: "#800020", V: "#eab308" } };
+  assert.deepEqual(mergeRemixDesign(artParent, { artColors: { U: "#0000ff", V: "#ffffff" } }, "make hoodie blue").artColors, artParent.artColors, "Jacket recolor drifted unrelated embroidery colors");
+  assert.equal(mergeRemixDesign(artParent, { artColors: { U: "#0000ff", V: "#eab308" } }, "make embroidery blue").artColors.U, "#0000ff", "Independent accent could not be recolored");
+  assert.equal(mergeRemixDesign(artParent, { artColors: artParent.artColors }, "change burgundy sleeve panels to navy blue").artColors.U, "#172554", "Explicit source-to-target detail recolor ignored");
+  const grayAccentParent = { ...artParent, artColors: { ...artParent.artColors, Z: "#555555" } };
+  const correctedAccent = mergeRemixDesign(grayAccentParent, { artColors: grayAccentParent.artColors }, "change burgundy sleeve panels to navy blue");
+  assert.equal(correctedAccent.artColors.U, "#172554", "Neutral gray confused burgundy color matching");
+  assert.equal(correctedAccent.artColors.Z, "#555555", "Detail recolor affected neutral seams");
   assert.deepEqual(mergeRemixDesign(parent, { pixelArt: [], palette: { top: "#f02a33" } }, "make hoodie red").pixelArt, [drawing], "Color remix erased artwork");
   assert.deepEqual(mergeRemixDesign(parent, { pixelArt: [] }, "remove the graphic from my hoodie").pixelArt, [], "Graphic removal kept artwork");
   assert.deepEqual(mergeRemixDesign(parent, { pixelArt: [] }, "make my hair longer").pixelArt, [drawing], "Hair remix erased torso artwork");
@@ -98,6 +134,32 @@ async function main() {
   newDrawing.rows[2] = "..XXXX..";
   assert.deepEqual(mergeRemixDesign(parent, { pixelArt: [newDrawing] }, "add a custom logo").pixelArt, [newDrawing], "Logo remix did not update torso artwork");
   for (const model of ["classic", "slim"]) {
+    const hairDesign = sanitizeSkinDesign({ pixelArt: [authoredHair] }, "silver wolf cut hair", 42);
+    const replaceCanvas = compileMinecraftSkinBlueprint({ ...hairDesign, pixelArt: [] }, 42, model, "balanced", "silver wolf cut hair");
+    const baseHead = Array.from(replaceCanvas.slice((8 * 64 + 8) * 4, (8 * 64 + 16) * 4));
+    applySkinPixelArt(replaceCanvas, hairDesign, model);
+    assert.equal(pixel(replaceCanvas, 40, 8)[3], 0, "Authored gap retained the old hair wall");
+    assert.deepEqual(Array.from(replaceCanvas.slice((8 * 64 + 8) * 4, (8 * 64 + 16) * 4)), baseHead, "Outer hair replacement erased required head pixels");
+    const accessoryCanvas = new Uint8Array(64 * 64 * 4);
+    accessoryCanvas.set([12, 34, 56, 255], (8 * 64 + 40) * 4);
+    applySkinPixelArt(accessoryCanvas, { ...hairDesign, headphones: true }, model);
+    assert.deepEqual(pixel(accessoryCanvas, 40, 8), [12, 34, 56, 255], "Hair replacement erased headphones");
+    // Custom cloth shading retains inner garments and bare skin and uses the
+    // existing pattern as its foundation rather than replacing it with top color.
+    const cloth = sanitizeSkinDesign({ palette, garmentType: "jacket", placket: "open_front", innerGarment: "undershirt" }, "jacket", 42);
+    const clothCanvas = new Uint8Array(64 * 64 * 4);
+    clothCanvas.set([250, 245, 239, 255], (22 * 64 + 23) * 4);
+    clothCanvas.set([52, 57, 65, 255], (22 * 64 + 20) * 4);
+    const foldArt = { region: "torso-front", layer: "base", mode: "accent", rows: Array.from({ length: 12 }, (_, y) => y === 2 ? "S..S...." : "........") };
+    applySkinPixelArt(clothCanvas, { ...cloth, pixelArt: [foldArt] }, model);
+    assert.deepEqual(pixel(clothCanvas, 23, 22), [250, 245, 239, 255], "Jacket folds painted over inner shirt");
+    assert.notDeepEqual(pixel(clothCanvas, 20, 22), [52, 57, 65, 255], "Connected cloth fold was lost");
+    for (const silhouette of MINECRAFT_SKIN_JSON_SCHEMA.properties.hairSilhouette.enum) for (const eyeStyle of ["classic", "anime", "glowing", "minimal", "visor"]) {
+      const visible = compileMinecraftSkinBlueprint(sanitizeSkinDesign({ hairSilhouette: silhouette, eyeStyle }, "character", 42), 42, model, "balanced", "character");
+      const cols = eyeStyle === "minimal" ? [2, 5] : [1, 2, 5, 6];
+      for (const x of cols) assert.equal(pixel(visible, 40 + x, 12)[3], 0, `${silhouette} concealed ${eyeStyle} eye`);
+      checkTexture(visible, model);
+    }
     for (const characterType of MINECRAFT_SKIN_JSON_SCHEMA.properties.characterType.enum) {
       const prompt = `${characterType} character`;
       checkTexture(compileMinecraftSkinBlueprint(sanitizeSkinDesign({ characterType }, prompt, 42), 42, model, "balanced", prompt), model);

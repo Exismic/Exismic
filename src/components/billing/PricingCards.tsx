@@ -122,7 +122,7 @@ export function PricingCards() {
               <p className="mt-2 min-h-12 text-sm font-medium leading-6 text-zinc-500">{plan.description}</p>
               <div className="mt-6 flex items-end gap-2">
                 <span className="text-4xl font-black text-white">{plan.price.display}</span>
-                <span className="pb-1 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-600">{plan.interval === "month" ? "/ month" : plan.interval === "one_time" ? "one time" : "forever"}</span>
+                <span className="pb-1 text-xs font-bold text-zinc-400">{plan.interval === "month" ? "/ month" : plan.interval === "year" ? "/ year" : plan.interval === "one_time" ? "one time" : "free"}</span>
               </div>
               <div className="mt-5 space-y-3">
                 {plan.features.map((feature) => (

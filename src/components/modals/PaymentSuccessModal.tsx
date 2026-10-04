@@ -1,21 +1,23 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ArrowRight, Sparkles, Crown, Zap } from "lucide-react";
+import { Check, ArrowRight, ShieldCheck, Crown, Zap } from "lucide-react";
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import GradientText from "@/components/ui/GradientText";
 import { cn } from "@/lib/utils";
 import { Portal } from "@/components/ui/Portal";
+import { ReceiptDownload } from "@/components/billing/ReceiptDownload";
 
 interface PaymentSuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   type: 'pro' | 'credits';
   amount?: number;
+  orderId?: string;
 }
 
-export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSuccessModalProps) {
+export function PaymentSuccessModal({ isOpen, onClose, type, amount, orderId }: PaymentSuccessModalProps) {
   useEffect(() => {
     if (isOpen) {
       const duration = 3 * 1000;
@@ -36,10 +38,8 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
       }, 250);
 
-      const timer = setTimeout(onClose, 8000); // Auto close after 8s
       return () => {
         clearInterval(interval);
-        clearTimeout(timer);
       };
     }
   }, [isOpen, onClose]);
@@ -64,7 +64,7 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
             role="dialog"
             aria-modal="true"
             aria-label={type === "pro" ? "Pro membership activated" : "Credits added"}
-            className="glass-dark relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/10 p-5 text-center shadow-4xl sm:rounded-[3rem] sm:p-10 lg:p-12"
+            className="glass-dark relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-x-hidden overflow-y-auto rounded-2xl border border-white/10 p-5 text-center shadow-4xl sm:rounded-[3rem] sm:p-10 lg:p-12"
           >
             {/* Success Glow */}
             <div className={cn(
@@ -95,14 +95,16 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
                        <><GradientText>Refuel</GradientText> Complete.</>
                      )}
                   </h2>
-                  <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed max-w-xs mx-auto">
+                  <p className="text-sm text-zinc-300 leading-relaxed max-w-sm mx-auto">
                      {type === 'pro' 
-                       ? "Your creative potential is now unlimited. All pro tools and priority processing are now active." 
-                       : `Successfully added ${amount || 0} credits to your account reserve. Carry on creating.`}
+                       ? "Your Pro membership is active with 500 daily credits and priority processing. Unused daily credits reset each day."
+                       : `Added ${(amount || 0).toLocaleString()} permanent credits to your account. These credits never expire.`}
                   </p>
                </div>
 
                <div className="space-y-6">
+                  {orderId && <ReceiptDownload url={`/api/billing/receipt?orderId=${encodeURIComponent(orderId)}`} className="w-full" />}
+                  <a href="/shop#purchases" className="block text-sm text-cyan-200 underline">Purchases & receipts</a>
                   <button 
                     onClick={onClose}
                     className={cn(
@@ -120,7 +122,7 @@ export function PaymentSuccessModal({ isOpen, onClose, type, amount }: PaymentSu
                      </div>
                      <div className="w-1 h-1 rounded-full bg-zinc-800" />
                      <div className="flex items-center gap-2">
-                        <Sparkles size={12} />
+                        <ShieldCheck size={12} />
                         <span className="text-[8px] font-black uppercase tracking-widest">System Ready</span>
                      </div>
                   </div>

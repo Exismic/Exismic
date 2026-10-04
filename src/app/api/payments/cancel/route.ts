@@ -16,12 +16,6 @@ function getRazorpayClient() {
   return new Razorpay({ key_id, key_secret });
 }
 
-function fallbackExpiryDate() {
-  const expiryDate = new Date();
-  expiryDate.setMonth(expiryDate.getMonth() + 1);
-  return expiryDate;
-}
-
 type RazorpaySubscriptionLike = {
   end_at?: number;
   current_end?: number;
@@ -29,16 +23,16 @@ type RazorpaySubscriptionLike = {
 };
 
 function resolveRazorpayExpiry(subscription: RazorpaySubscriptionLike) {
-  const endAt = subscription.end_at || subscription.current_end || subscription.charge_at;
+  const endAt = subscription.current_end || subscription.charge_at;
   if (typeof endAt === "number" && Number.isFinite(endAt)) {
     return new Date(endAt * 1000);
   }
-  return fallbackExpiryDate();
+  return null;
 }
 
 function resolveLocalExpiry(existingExpiry?: Date | null) {
   if (existingExpiry && existingExpiry > new Date()) return existingExpiry;
-  return fallbackExpiryDate();
+  return existingExpiry || new Date();
 }
 
 function getProvider(subscriptionId?: string | null) {
@@ -87,9 +81,9 @@ export async function POST() {
 
     const billingOrder = dbUser.subscriptionId
       ? await prisma.paymentOrder.findFirst({
-          where: { providerOrderId: dbUser.subscriptionId, planId: "pro" },
+          where: { userId: dbUser.id, providerOrderId: dbUser.subscriptionId, planId: { in: ["pro", "pro_yearly"] }, status: "paid" },
           orderBy: { createdAt: "desc" },
-          select: { gateway: true },
+          select: { gateway: true, planId: true },
         })
       : null;
     const provider = billingOrder?.gateway === "paypal" || billingOrder?.gateway === "razorpay"
@@ -112,7 +106,8 @@ export async function POST() {
       try {
         const razorpay = getRazorpayClient();
         const subscription = await razorpay.subscriptions.cancel(dbUser.subscriptionId, true);
-        expiryDate = resolveRazorpayExpiry(subscription as RazorpaySubscriptionLike);
+        const providerExpiry = resolveRazorpayExpiry(subscription as RazorpaySubscriptionLike);
+        if (providerExpiry && providerExpiry > expiryDate) expiryDate = providerExpiry;
         providerCancelled = true;
       } catch (error) {
         console.error("[Razorpay] Subscription cancel failed:", error);
@@ -138,7 +133,7 @@ export async function POST() {
       },
       create: {
         userId: dbUser.id,
-        planId: "pro",
+        planId: billingOrder?.planId || "pro",
         status: "cancelled",
         currentPeriodEnd: expiryDate,
       },
