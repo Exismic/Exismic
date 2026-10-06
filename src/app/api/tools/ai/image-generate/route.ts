@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 // Forced Launch Update - Production Fix
 import { prisma } from "@/lib/prisma";
@@ -12,11 +13,11 @@ import { requireProApiUser } from "@/lib/api-security";
 function enhancePrompt(rawPrompt: string): { prompt: string; enhancedUsed: string } {
   let p = rawPrompt.trim();
   const lowercase = p.toLowerCase();
-  
+
   // 1. Better Environment Understanding: For prompts containing "Minecraft Nether"
   if (lowercase.includes("minecraft nether") || (lowercase.includes("minecraft") && lowercase.includes("nether"))) {
     const isRealistic = lowercase.includes("realistic") || lowercase.includes("real life") || lowercase.includes("photo") || lowercase.includes("cinematic") || lowercase.includes("hyper");
-    
+
     if (isRealistic || !lowercase.includes("block") || lowercase.includes("ferrari") || lowercase.includes("car") || lowercase.includes("buggati") || lowercase.includes("bugatti")) {
       p = `${p}, set in a highly detailed, cinematic hyper-realistic Minecraft Nether dimension featuring dramatic deep cavern space, massive glowing lava oceans with flowing volcanic cascades, towering structures of dark netherrack stone, crimson forests with giant glowing fungi trees, basalt deltas with volumetric ash particles, blue flame soul fires on soul sand, highly dramatic octane render style, photorealistic 8k detailing, cinematic atmosphere, dynamic overhead lighting.`;
     } else {
@@ -27,14 +28,14 @@ function enhancePrompt(rawPrompt: string): { prompt: string; enhancedUsed: strin
   // 2. Standard Photorealistic / Hyper-realistic Enhancer
   const nonRealisticStyles = ["anime", "cartoon", "illustration", "drawing", "painting", "vector", "sketch", "pixel art", "watercolor", "flat art", "2d", "minecraft block", "blocky"];
   const containsNonRealistic = nonRealisticStyles.some(s => lowercase.includes(s));
-  
+
   if (!containsNonRealistic) {
     const enhancers = [
-      "hyper-realistic", 
-      "photorealistic 8k", 
-      "ultra detailed textures", 
-      "cinematic dramatic lighting", 
-      "sharp focus", 
+      "hyper-realistic",
+      "photorealistic 8k",
+      "ultra detailed textures",
+      "cinematic dramatic lighting",
+      "sharp focus",
       "octane render"
     ];
     const missingEnhancers = enhancers.filter(e => !lowercase.includes(e.split(" ")[0]));
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 
     if (!sbUser || !sbUser.email) {
-      return NextResponse.json({ error: "Please sign in to generate images" }, { status: 401 });
+      return publicJson({ error: "Please sign in to generate images" }, { status: 401 });
     }
 
     // 1. Get or create user in Prisma
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     const { prompt: rawPrompt, width = 1024, height = 1024, steps = 4, guidance = 3.5, n = 1, toolId = "ai-img-gen" } = await req.json();
 
-    if (!rawPrompt) return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    if (!rawPrompt) return publicJson({ error: "Prompt is required" }, { status: 400 });
 
     let prompt = rawPrompt.trim();
     let enhancedUsed = prompt;
@@ -136,11 +137,11 @@ export async function POST(req: NextRequest) {
     const totalCost = costPerGen * n;
 
     if (totalCreditsAvailable < totalCost) {
-      const upgradeMsg = userPlan === "free" 
+      const upgradeMsg = userPlan === "free"
         ? `You've reached your free daily limit. Pro users get ${getDailyCreditLimit("pro")} daily credits and priority generation. Upgrade when you need more creative capacity.`
         : "You've reached your Pro daily limit. Please wait for the daily reset or contact support for higher limits.";
-      
-      return NextResponse.json({ 
+
+      return publicJson({
         error: upgradeMsg,
         needsUpgrade: userPlan === "free"
       }, { status: 403 });
@@ -186,7 +187,7 @@ export async function POST(req: NextRequest) {
         }
       } catch (togetherError: any) {
         console.error("Together.ai Exception:", togetherError.message);
-        
+
         // Retry with standard paid/premium model name if Free one is not available
         try {
           console.log("Retrying with paid Together.ai Flux Schnell...");
@@ -243,9 +244,9 @@ export async function POST(req: NextRequest) {
           const data = await falResponse.json();
           if (data.images && data.images[0]?.url) {
             console.log("Fal.ai Success! Downloading image...");
-            const imgResp = await axios.get(data.images[0].url, { 
+            const imgResp = await axios.get(data.images[0].url, {
               responseType: 'arraybuffer',
-              timeout: 15000 
+              timeout: 15000
             });
             imageBuffer = Buffer.from(imgResp.data);
             method = "fal-pro-schnell";
@@ -264,7 +265,7 @@ export async function POST(req: NextRequest) {
         console.log("Using Pollinations Flux Schnell (Free)...");
         const seed = Math.floor(Math.random() * 2147483647);
         const cloudUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=${noWatermark ? "true" : "false"}`;
-        
+
         const response = await fetch(cloudUrl, {
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -291,7 +292,7 @@ export async function POST(req: NextRequest) {
         try {
           const seed = Math.floor(Math.random() * 2147483647);
           const turboUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=turbo&nologo=${noWatermark ? "true" : "false"}`;
-          
+
           const response = await fetch(turboUrl, {
             headers: {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -362,7 +363,7 @@ export async function POST(req: NextRequest) {
     // 5. Save to Supabase Storage
     const localFileName = `flux_${uuidv4()}.png`;
     const resultUrl = await uploadProcessedFile(imageBuffer, localFileName, "image/png");
-    
+
     await prisma.userFile.create({
       data: {
         userId: sbUser.id,
@@ -372,8 +373,8 @@ export async function POST(req: NextRequest) {
         resultUrl,
         fileType: 'image',
         status: 'completed',
-        metadata: { 
-          width, height, steps, guidance, 
+        metadata: {
+          width, height, steps, guidance,
           model: 'flux-schnell',
           generationMethod: method,
           priority,
@@ -391,8 +392,8 @@ export async function POST(req: NextRequest) {
       console.error("[Image Gen] Credit deduction failed after generation:", debitResult.error);
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return publicJson({
+      success: true,
       imageUrl: resultUrl,
       method,
       priority,
@@ -408,8 +409,8 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("Critical Generation Error:", error.message);
-    return NextResponse.json({ 
-      error: error.message || "Generation failed. Please try again." 
+    return publicJson({
+      error: error.message || "Generation failed. Please try again."
     }, { status: 500 });
   }
 }

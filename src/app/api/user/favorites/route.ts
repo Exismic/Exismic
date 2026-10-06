@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { normalizeFavoriteToolId } from "@/lib/favorites";
@@ -16,7 +17,7 @@ export async function GET() {
     const { data: { user: sbUser } } = await supabaseServer.auth.getUser();
 
     if (!sbUser) {
-      return NextResponse.json(
+      return publicJson(
         { favorites: [], authenticated: false },
         { headers: responseHeaders },
       );
@@ -25,13 +26,13 @@ export async function GET() {
     const owner = await resolveFavoriteOwner(sbUser);
     const favorites = owner ? await listFavoriteToolIds(owner.id) : [];
 
-    return NextResponse.json(
+    return publicJson(
       { favorites, authenticated: true },
       { headers: responseHeaders },
     );
   } catch (error: unknown) {
     console.error("Error fetching favorites:", error);
-    return NextResponse.json({ error: "Failed to fetch favorites" }, { status: 500 });
+    return publicJson({ error: "Failed to fetch favorites" }, { status: 500 });
   }
 }
 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     const { data: { user: sbUser } } = await supabaseServer.auth.getUser();
 
     if (!sbUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     const action = body?.action;
 
     if (!toolId || !["add", "remove"].includes(action)) {
-      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+      return publicJson({ error: "Invalid request" }, { status: 400 });
     }
 
     const owner = await resolveFavoriteOwner(sbUser, { create: true });
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json(
+    return publicJson(
       {
         success: true,
         isFavorited: action === "add",
@@ -87,6 +88,6 @@ export async function POST(req: NextRequest) {
     );
   } catch (error: unknown) {
     console.error("Error updating favorite:", error);
-    return NextResponse.json({ error: "Failed to update favorite" }, { status: 500 });
+    return publicJson({ error: "Failed to update favorite" }, { status: 500 });
   }
 }

@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import pdf from "pdf-parse";
 import { requireApiUser, getRequestIp, checkDistributedRateLimit, rateLimitResponse } from "@/lib/api-security";
@@ -66,12 +67,12 @@ export async function POST(req: NextRequest) {
 
     const ip = getRequestIp(req);
     const limit = await checkDistributedRateLimit(`pdf-to-notes:${authUser.id || ip}`, 20, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const userCredits = await getUserCredits(authUser.id);
     const available = userCredits ? getCreditTotal(userCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
         { status: 402 }
       );
@@ -92,14 +93,14 @@ export async function POST(req: NextRequest) {
         fileName = file.name;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        
+
         try {
           const parsed = await pdf(buffer);
           extractedText = parsed.text || "";
           pageCount = parsed.numpages || 1;
         } catch (pdfErr) {
           console.error("PDF Parsing error:", pdfErr);
-          return NextResponse.json({ error: "Failed to extract text from PDF file. Please ensure it is not password protected." }, { status: 400 });
+          return publicJson({ error: "Failed to extract text from PDF file. Please ensure it is not password protected." }, { status: 400 });
         }
       } else if (rawText.trim()) {
         extractedText = rawText.trim();
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!extractedText || extractedText.trim().length < 20) {
-      return NextResponse.json({ error: "Please provide a valid PDF file or paste study text with at least 20 characters." }, { status: 400 });
+      return publicJson({ error: "Please provide a valid PDF file or paste study text with at least 20 characters." }, { status: 400 });
     }
 
     // Truncate text if excessively long to fit AI token window
@@ -150,7 +151,7 @@ Structure your response strictly in the following sections:
     // Atomically deduct credits
     await deductCredits(authUser.id, TOOL_COST, "pdf-to-notes");
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       fileName,
       pageCount,
@@ -163,6 +164,6 @@ Structure your response strictly in the following sections:
   } catch (error: unknown) {
     console.error("[PDF to Notes Error]:", error);
     const message = error instanceof Error ? error.message : "Failed to generate AI study notes.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

@@ -136,30 +136,30 @@ export function ApiKeyManager() {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-[#090a12]/95 via-[#07080f]/95 to-[#05060a]/98 p-6 sm:p-8 shadow-[0_16px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)] space-y-6">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-[#090a12]/95 via-[#07080f]/95 to-[#05060a]/98 p-4 sm:p-8 shadow-[0_16px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)] space-y-6">
       
       {/* Background Ambient Glows */}
       <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 bg-purple-600/10 rounded-full blur-[100px]" />
       <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-[100px]" />
 
       {/* Header Row */}
-      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 w-full sm:w-auto sm:flex-1 items-start gap-3.5">
           <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-cyan-400/20 via-sky-500/10 to-indigo-950/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
             <Key size={20} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-black uppercase italic tracking-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                 Developer API Keys
               </h3>
               {isPro ? (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 text-[9px] font-black uppercase tracking-wider text-purple-300 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 whitespace-nowrap text-[9px] font-black uppercase tracking-wider text-purple-300 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
                   <Crown size={10} className="text-amber-300" fill="currentColor" />
                   <span>PRO TIER</span>
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full bg-zinc-800 border border-white/10 text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                <span className="px-2 py-0.5 rounded-full bg-zinc-800 border border-white/10 whitespace-nowrap text-[9px] font-black uppercase tracking-wider text-zinc-400">
                   FREE TIER
                 </span>
               )}
@@ -218,7 +218,7 @@ export function ApiKeyManager() {
 
       {/* Creation Form */}
       <form onSubmit={handleCreate} className="relative z-10 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <input
             type="text"
             value={keyName}
@@ -261,7 +261,7 @@ export function ApiKeyManager() {
           {/* Glassmorphic Cyber-Obsidian Core */}
           <div
             className={cn(
-              "relative flex h-full w-full items-center justify-center gap-2.5 overflow-hidden rounded-2xl px-6 backdrop-blur-2xl transition-all duration-300",
+              "relative flex h-full w-full items-center justify-center gap-2.5 overflow-hidden rounded-2xl px-3 sm:px-6 backdrop-blur-2xl transition-all duration-300",
               isLimitReached
                 ? "bg-[#0b0c14] border border-white/5 text-zinc-500"
                 : "bg-gradient-to-r from-[#0d091e]/95 via-[#101438]/95 to-[#081226]/95 border border-purple-400/30 group-hover/btn:border-cyan-300/60"
@@ -307,7 +307,7 @@ export function ApiKeyManager() {
             {/* Luxury Embossed Gradient Typography */}
             <span
               className={cn(
-                "relative z-10 font-black text-xs uppercase tracking-[0.18em] transition-all drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]",
+                "relative z-10 font-black text-xs uppercase tracking-wider sm:tracking-[0.18em] transition-all drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]",
                 isLimitReached
                   ? "text-zinc-500"
                   : "bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-transparent group-hover/btn:from-white group-hover/btn:via-white group-hover/btn:to-cyan-200"
@@ -424,14 +424,14 @@ export function ApiKeyManager() {
       </div>
 
       {/* Developer REST API v1 Quickstart Console */}
-      <div className="relative z-10 rounded-2xl border border-white/[0.08] bg-[#07080f]/90 p-5 space-y-3.5 shadow-inner">
+      <div className="relative z-10 rounded-2xl border border-white/[0.08] bg-[#07080f]/90 p-4 sm:p-5 space-y-3.5 shadow-inner">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2 text-zinc-200 text-xs font-bold">
-            <Terminal size={15} className="text-cyan-400" />
+            <Terminal size={15} className="shrink-0 text-cyan-400" />
             <span>Developer REST API v1 Quickstart</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleCopyCurl}
               className="inline-flex items-center gap-1 text-[10.5px] font-bold text-zinc-400 hover:text-cyan-300 transition-colors"
@@ -451,7 +451,7 @@ export function ApiKeyManager() {
         </div>
 
         <p className="text-[11px] text-zinc-400 leading-relaxed">
-          Authenticate your requests by adding your API key in the <code className="text-cyan-300 font-mono bg-white/[0.04] px-1 py-0.5 rounded">Authorization: Bearer &lt;key&gt;</code> header.
+          Authenticate your requests by adding your API key in the <code className="break-words text-cyan-300 font-mono bg-white/[0.04] px-1 py-0.5 rounded">Authorization: Bearer &lt;key&gt;</code> header.
         </p>
 
         <pre className="relative p-4 rounded-xl bg-black/70 border border-white/[0.06] text-[11px] font-mono text-zinc-300 overflow-x-auto select-all leading-relaxed">

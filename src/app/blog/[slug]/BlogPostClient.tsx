@@ -344,7 +344,7 @@ export function BlogPostClient({ post }: { post: BlogPostMetadata }) {
                 <h4 className="text-lg font-black text-white uppercase tracking-wider">How Streak Shields Work</h4>
               </div>
               <p className="text-zinc-300 text-sm leading-relaxed mb-4">
-                You can hold up to 3 armed shields in your inventory. If you miss a calendar day, an armed shield automatically triggers when you next log in, preserving your streak without losing momentum.
+                You can hold up to 3 shields in your inventory. Each shield automatically covers one missed daily reward claim and is consumed. Reward days reset at 12:00 PM IST; claim your daily reward to continue your streak.
               </p>
               <p className="text-zinc-400 text-xs leading-relaxed">
                 Shields can be equipped in the Sparks Rewards Shop or earned automatically as rewards along the streak quest roadmap.

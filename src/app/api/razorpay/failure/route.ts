@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from 'next/server';
 import { recordBillingFailure } from '@/lib/billing/fulfillment';
 import { createClient } from '@/utils/supabase/server';
 
@@ -12,10 +13,10 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user?.id) return publicJson({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({})) as FailureBody;
-    if (!body.orderId) return NextResponse.json({ error: 'Payment order is required.' }, { status: 400 });
+    if (!body.orderId) return publicJson({ error: 'Payment order is required.' }, { status: 400 });
 
     const result = await recordBillingFailure({
       orderId: body.orderId,
@@ -24,10 +25,10 @@ export async function POST(req: NextRequest) {
       reason: body.reason,
     });
 
-    return NextResponse.json({ success: true, ...result });
+    return publicJson({ success: true, ...result });
   } catch (error) {
     console.error('[Billing] Failure recording failed:', error);
     const message = error instanceof Error ? error.message : 'Could not record payment failure.';
-    return NextResponse.json({ error: message }, { status: message.includes('not found') ? 404 : 500 });
+    return publicJson({ error: message }, { status: message.includes('not found') ? 404 : 500 });
   }
 }

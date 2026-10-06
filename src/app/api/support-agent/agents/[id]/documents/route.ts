@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSupportPlan, isUuid, requireSupportUser } from "@/lib/support-agent/api-utils";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +8,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const auth = await requireSupportUser();
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  if (!isUuid(id)) return NextResponse.json({ documents: [] });
+  if (!isUuid(id)) return publicJson({ documents: [] });
 
   try {
     const documents = await prisma.$queryRaw<SupportDocument[]>`
@@ -15,10 +16,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       where agent_id = ${id}::uuid and user_id = ${auth.user.id}::uuid
       order by updated_at desc
     `;
-    return NextResponse.json({ documents });
+    return publicJson({ documents });
   } catch (error) {
     console.error("[SupportAgent documents GET]", error);
-    return NextResponse.json({ error: "Could not load knowledge base." }, { status: 500 });
+    return publicJson({ error: "Could not load knowledge base." }, { status: 500 });
   }
 }
 
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const auth = await requireSupportUser();
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  if (!isUuid(id)) return NextResponse.json({ error: "Support agent not found." }, { status: 404 });
+  if (!isUuid(id)) return publicJson({ error: "Support agent not found." }, { status: 404 });
 
   try {
     const body = await request.json();
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const sourceUrl = body.source_url ? String(body.source_url).slice(0, 500) : null;
 
     if (!content.trim()) {
-      return NextResponse.json({ error: "Knowledge content is required." }, { status: 400 });
+      return publicJson({ error: "Knowledge content is required." }, { status: 400 });
     }
 
     const plan = await getCurrentSupportPlan(auth.supabase, auth.user.id);
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     `;
 
     if (Number(count ?? 0) >= plan.documentLimit) {
-      return NextResponse.json({ error: `${plan.name} supports up to ${plan.documentLimit} documents.` }, { status: 402 });
+      return publicJson({ error: `${plan.name} supports up to ${plan.documentLimit} documents.` }, { status: 402 });
     }
 
     const [document] = await prisma.$transaction([
@@ -64,9 +65,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       `,
     ]);
 
-    return NextResponse.json({ document: document[0] });
+    return publicJson({ document: document[0] });
   } catch (error) {
     console.error("[SupportAgent documents POST]", error);
-    return NextResponse.json({ error: "Could not save knowledge." }, { status: 500 });
+    return publicJson({ error: "Could not save knowledge." }, { status: 500 });
   }
 }

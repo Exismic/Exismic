@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import {
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.email) {
-      return NextResponse.json({ error: "Please sign in to run Exismic tools." }, { status: 401 });
+      return publicJson({ error: "Please sign in to run Exismic tools." }, { status: 401 });
     }
 
     const body = await request.formData();
@@ -137,14 +138,14 @@ export async function POST(request: NextRequest) {
     try {
       messages = JSON.parse(rawMessages);
     } catch {
-      return NextResponse.json({ error: "Invalid chat history." }, { status: 400 });
+      return publicJson({ error: "Invalid chat history." }, { status: 400 });
     }
     if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
-      return NextResponse.json({ error: "Invalid chat history." }, { status: 400 });
+      return publicJson({ error: "Invalid chat history." }, { status: 400 });
     }
 
     const detected = detectExismicTool(prompt);
-    if (!detected) return NextResponse.json({ handled: false });
+    if (!detected) return publicJson({ handled: false });
 
     const registryEntry = exismicAiToolRegistry[detected.toolId];
     if (detected.missing === "dimensions") {
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
         assistantMessage: { role: "assistant", content: message },
         fallbackTitle: "Resize Image",
       });
-      return NextResponse.json({ handled: true, requiresInput: true, message, id: activeSessionId });
+      return publicJson({ handled: true, requiresInput: true, message, id: activeSessionId });
     }
 
     const uploaded = body.get("file");
@@ -169,17 +170,17 @@ export async function POST(request: NextRequest) {
       }
     }
     if (!sourceFile) {
-      return NextResponse.json({
+      return publicJson({
         handled: true,
         requiresInput: true,
         message: `Upload an image so I can run ${registryEntry.label}.`,
       });
     }
     if (!sourceFile.type.startsWith("image/")) {
-      return NextResponse.json({ error: "This tool requires an image file." }, { status: 415 });
+      return publicJson({ error: "This tool requires an image file." }, { status: 415 });
     }
     if (sourceFile.size > MAX_SOURCE_BYTES) {
-      return NextResponse.json({ error: "The image is larger than 25MB." }, { status: 413 });
+      return publicJson({ error: "The image is larger than 25MB." }, { status: 413 });
     }
 
     const parameters = validateExismicToolParameters(detected) as Record<string, unknown>;
@@ -191,7 +192,7 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await sourceFile.arrayBuffer());
       const metadata = await sharp(buffer).metadata();
       if (!metadata.width || !metadata.height) {
-        return NextResponse.json({ error: "Could not read the image dimensions." }, { status: 400 });
+        return publicJson({ error: "Could not read the image dimensions." }, { status: 400 });
       }
       toolForm.append("crop", JSON.stringify({
         x: 0,
@@ -219,7 +220,7 @@ export async function POST(request: NextRequest) {
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result?.success) {
       const status = response.status >= 400 ? response.status : 500;
-      return NextResponse.json(
+      return publicJson(
         { error: result?.error || `${registryEntry.label} failed.` },
         { status },
       );
@@ -227,7 +228,7 @@ export async function POST(request: NextRequest) {
 
     const resultUrl = String(result.result || result.resultUrl || "");
     if (!resultUrl) {
-      return NextResponse.json({ error: `${registryEntry.label} returned no result.` }, { status: 502 });
+      return publicJson({ error: `${registryEntry.label} returned no result.` }, { status: 502 });
     }
 
     const sourceStem = safeFileStem(sourceFile.name || "exismic-image");
@@ -263,7 +264,7 @@ export async function POST(request: NextRequest) {
       fallbackTitle: registryEntry.label,
     });
 
-    return NextResponse.json({
+    return publicJson({
       handled: true,
       message,
       id: activeSessionId,
@@ -272,6 +273,6 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error("[Exismic Ai Orchestrator]", error);
     const message = error instanceof Error ? error.message : "Exismic could not run this tool.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

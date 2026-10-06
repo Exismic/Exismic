@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { verifyAndAuthenticateApiKey } from "@/lib/api-keys";
 
 export const dynamic = "force-dynamic";
@@ -8,10 +9,10 @@ export async function GET(request: NextRequest) {
   const auth = await verifyAndAuthenticateApiKey(authHeader);
 
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return publicJson({ error: auth.error }, { status: auth.status });
   }
 
-  return NextResponse.json({
+  return publicJson({
     id: auth.user.id,
     name: auth.user.name,
     email: auth.user.email,

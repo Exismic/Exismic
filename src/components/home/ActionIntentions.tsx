@@ -178,10 +178,10 @@ export function ActionIntentions() {
                   <div className="relative z-10 flex-1 flex flex-col">
                     {/* Title & Description */}
                     <div>
-                      <h3 className="text-base font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors line-clamp-1">
+                      <h3 className="text-base font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors sm:line-clamp-1">
                         {item.title}
                       </h3>
-                      <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal line-clamp-2 min-h-[34px]">
+                      <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal sm:line-clamp-2 min-h-[34px]">
                         {item.detail}
                       </p>
                     </div>

@@ -35,6 +35,8 @@ const TOOL_TYPE_ALIASES: Record<string, string> = {
   "social-caption": "social-caption-generator",
   "hook-script": "hook-script-generator",
 
+  "video-to-gif": "video-gif",
+
   // PDF
   "pdf-processing": "pdf-compressor",
 

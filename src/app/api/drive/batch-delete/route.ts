@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     const { ids } = body as { ids?: string[] };
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: "No file IDs provided" }, { status: 400 });
+      return publicJson({ error: "No file IDs provided" }, { status: 400 });
     }
 
     // Fetch user files to verify ownership & get resultUrls
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (filesToDelete.length === 0) {
-      return NextResponse.json({ success: true, deletedCount: 0 });
+      return publicJson({ success: true, deletedCount: 0 });
     }
 
     // Asynchronously delete from Supabase storage to reclaim space
@@ -47,13 +48,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       deletedCount: deleteResult.count,
     });
   } catch (error) {
     console.error("[DRIVE_BATCH_DELETE]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error instanceof Error ? error.message : "Failed to delete files" },
       { status: 500 }
     );

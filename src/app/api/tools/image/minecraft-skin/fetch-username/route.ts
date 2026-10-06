@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
     const username = (body.username || "").trim();
 
     if (!username || !/^[a-zA-Z0-9_]{1,16}$/.test(username)) {
-      return NextResponse.json(
+      return publicJson(
         { success: false, error: "Invalid Minecraft username. Please enter 1-16 letters, numbers, or underscores." },
         { status: 400 }
       );
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
     // 3. Fetch image buffer to return as base64 dataUrl (guaranteeing instant client rendering without CORS)
     const imgRes = await fetch(skinUrl, { signal: AbortSignal.timeout(6000) });
     if (!imgRes.ok) {
-      return NextResponse.json(
+      return publicJson(
         { success: false, error: `Could not find a Minecraft skin for player "${username}".` },
         { status: 404 }
       );
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     const base64Data = buffer.toString("base64");
     const dataUrl = `data:image/png;base64,${base64Data}`;
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       username,
       uuid,
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("[Minecraft Skin Fetch Error]", error);
-    return NextResponse.json(
+    return publicJson(
       { success: false, error: "Failed to fetch Minecraft player skin. Please try again." },
       { status: 500 }
     );

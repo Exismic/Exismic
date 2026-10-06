@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from '@/lib/prisma';
 import { getOrCreateUser } from '@/lib/user-access';
@@ -11,7 +11,7 @@ export async function GET(req: Request, props: { params: Promise<{ sessionId: st
 
 
     if (!sbUser || !sbUser.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await getOrCreateUser(sbUser);
@@ -21,11 +21,11 @@ export async function GET(req: Request, props: { params: Promise<{ sessionId: st
     });
 
     if (!chatSession) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+      return publicJson({ error: "Session not found" }, { status: 404 });
     }
 
     if (chatSession.userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return publicJson({ error: "Unauthorized" }, { status: 403 });
     }
 
     let parsedMessages = [];
@@ -35,14 +35,14 @@ export async function GET(req: Request, props: { params: Promise<{ sessionId: st
       console.error("Failed to parse messages JSON", e);
     }
 
-    return NextResponse.json({ 
-      id: chatSession.id, 
-      title: chatSession.title, 
+    return publicJson({
+      id: chatSession.id,
+      title: chatSession.title,
       messages: parsedMessages
     });
   } catch (error) {
     console.error("Fetch session error:", error);
-    return NextResponse.json({ error: "Failed to fetch session" }, { status: 500 });
+    return publicJson({ error: "Failed to fetch session" }, { status: 500 });
   }
 }
 
@@ -53,7 +53,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ sessionId:
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 
     if (!sbUser || !sbUser.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await getOrCreateUser(sbUser);
@@ -63,20 +63,20 @@ export async function DELETE(req: Request, props: { params: Promise<{ sessionId:
     });
 
     if (!chatSession) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+      return publicJson({ error: "Session not found" }, { status: 404 });
     }
 
     if (chatSession.userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return publicJson({ error: "Unauthorized" }, { status: 403 });
     }
 
     await prisma.chatSession.delete({
       where: { id: params.sessionId }
     });
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("Delete session error:", error);
-    return NextResponse.json({ error: "Failed to delete session" }, { status: 500 });
+    return publicJson({ error: "Failed to delete session" }, { status: 500 });
   }
 }

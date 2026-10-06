@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { PDFDocument } from "pdf-lib";
 import {
   checkRateLimit,
@@ -23,12 +24,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `pdf-merger:${user?.id || "guest"}:${getRequestIp(request)}`,
+    const limit = await checkRateLimit(
+      `pdf-merger:${user?.id || getRequestIp(request)}`,
       user ? 20 : 6,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await request.formData();
     const files = formData
@@ -36,13 +37,13 @@ export async function POST(request: NextRequest) {
       .filter((entry): entry is File => entry instanceof File);
 
     if (files.length < 2) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Select at least two PDF files.", requestId },
         { status: 400 },
       );
     }
     if (files.length > 20) {
-      return NextResponse.json(
+      return publicJson(
         { error: "You can merge up to 20 PDFs at once.", requestId },
         { status: 400 },
       );
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     if (totalBytes > 160 * 1024 * 1024) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: "Combined PDFs are too large. Maximum total size is 160MB.",
           requestId,

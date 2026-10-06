@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { getBillingPlan, getPlanPrice, type BillingMarket } from "@/lib/billing/plans";
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      return NextResponse.json({ valid: false, error: "Please sign in to apply coupon codes." }, { status: 401 });
+      return publicJson({ valid: false, error: "Please sign in to apply coupon codes." }, { status: 401 });
     }
 
     const body = await req.json().catch(() => ({}));
@@ -27,20 +28,20 @@ export async function POST(req: NextRequest) {
     };
 
     if (!code?.trim()) {
-      return NextResponse.json({ valid: false, error: "Please enter a coupon code." }, { status: 400 });
+      return publicJson({ valid: false, error: "Please enter a coupon code." }, { status: 400 });
     }
 
     const cleanCode = code.trim().toUpperCase();
     const plan = getBillingPlan(planId);
     if (!plan) {
-      return NextResponse.json({ valid: false, error: "Please select a valid item before applying a coupon." }, { status: 400 });
+      return publicJson({ valid: false, error: "Please select a valid item before applying a coupon." }, { status: 400 });
     }
 
     // 0. Exismic 1.7 Launch Special (Official 20% Discount) & Custom Coupon Blocking
     if (isExismic17PromoActive()) {
       if (cleanCode === PRICING_CONFIG.V17_LAUNCH_PROMO.CODE || cleanCode === "EXISMIC17" || cleanCode === "V16LAUNCH") {
         if (plan.id === "pro_yearly") {
-          return NextResponse.json({
+          return publicJson({
             valid: false,
             error: "Yearly Pro is not eligible for the 20% launch discount as it already features built-in annual savings.",
           }, { status: 400 });
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
         const basePrice = getPlanPrice(plan.id, market);
         const isIndia = market === "IN";
 
-        return NextResponse.json({
+        return publicJson({
           valid: true,
           code: cleanCode,
           discountType: "launch_special",
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Block all custom coupons during the 1-week official launch sale
-      return NextResponse.json({
+      return publicJson({
         valid: false,
         error: "Custom coupons cannot be used during the Exismic 1.7 Launch Sale (official 20% discount is already active from us).",
       }, { status: 400 });
@@ -83,17 +84,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!promo) {
-      return NextResponse.json({ valid: false, error: "Invalid or unrecognized coupon code." }, { status: 404 });
+      return publicJson({ valid: false, error: "Invalid or unrecognized coupon code." }, { status: 404 });
     }
 
     // 2. Validate expiration
     if (promo.expiresAt && new Date() > new Date(promo.expiresAt)) {
-      return NextResponse.json({ valid: false, error: "This coupon code has expired." }, { status: 400 });
+      return publicJson({ valid: false, error: "This coupon code has expired." }, { status: 400 });
     }
 
     // 3. Validate overall usage limit
     if (promo.redemptionCount >= promo.maxRedemptions) {
-      return NextResponse.json({ valid: false, error: "This coupon code has already been redeemed." }, { status: 400 });
+      return publicJson({ valid: false, error: "This coupon code has already been redeemed." }, { status: 400 });
     }
 
     // 4. Validate if this specific user already claimed this coupon
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (userClaim) {
-      return NextResponse.json({ valid: false, error: "You have already redeemed this coupon code." }, { status: 400 });
+      return publicJson({ valid: false, error: "You have already redeemed this coupon code." }, { status: 400 });
     }
 
     // 5. Anti-Exploitation: 5-Day Cooldown on Discount Codes
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
       const msPassed = Date.now() - new Date(recentRedemption.redeemedAt).getTime();
       const hoursRemaining = Math.ceil((FIVE_DAYS_MS - msPassed) / (1000 * 60 * 60));
       const daysRemaining = Math.ceil(hoursRemaining / 24);
-      return NextResponse.json(
+      return publicJson(
         {
           valid: false,
           error: `Anti-exploit cooldown: You recently used a discount voucher. Vouchers are limited to once every 5 days (cooldown ends in ${daysRemaining} day${daysRemaining > 1 ? "s" : ""}).`,
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
     const isPro20Voucher = cleanCode.startsWith("PRO20");
 
     if (!isFixedDiscountVoucher && !isPro20Voucher) {
-      return NextResponse.json(
+      return publicJson(
         {
           valid: false,
           error: "This code is a free gift or credit code, not a checkout discount coupon. Please redeem it in Account -> Redeem Codes.",
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
     // Rule A: Minimum $3.00 (or ₹249) spend constraint for OFF100 voucher
     if (isFixedDiscountVoucher) {
       if (isIndia && basePrice.amountMinor < 24900) {
-        return NextResponse.json(
+        return publicJson(
           {
             valid: false,
             error: "This voucher requires a minimum purchase of ₹249. Please choose a qualifying Credit Pack or Pro Pass.",
@@ -172,7 +173,7 @@ export async function POST(req: NextRequest) {
         );
       }
       if (!isIndia && basePrice.amount < 3.0) {
-        return NextResponse.json(
+        return publicJson(
           {
             valid: false,
             error: "This voucher requires a minimum purchase of $3.00. Please choose a qualifying Credit Pack or Pro Pass.",
@@ -186,7 +187,7 @@ export async function POST(req: NextRequest) {
       const appliedDiscountMinor = Math.min(basePrice.amountMinor, discountMinor);
       const finalAmountMinor = Math.max(0, basePrice.amountMinor - appliedDiscountMinor);
 
-      return NextResponse.json({
+      return publicJson({
         valid: true,
         code: cleanCode,
         discountType: "fixed",
@@ -204,17 +205,17 @@ export async function POST(req: NextRequest) {
     // Rule B: PRO20 Voucher -> Strictly Monthly Pro Only (Does NOT stack on Yearly Pro, NOT for Credit Packs)
     if (isPro20Voucher) {
       if (plan.id === "pro_yearly") {
-        return NextResponse.json(
+        return publicJson(
           {
             valid: false,
-            error: "This 20% voucher is valid on Monthly Pro only. Yearly Pro already includes a built-in ~28% annual discount.",
+            error: "This 20% voucher is valid on Monthly Pro only. Yearly Pro already includes a built-in 25% annual discount.",
           },
           { status: 400 }
         );
       }
 
       if (plan.id !== "pro") {
-        return NextResponse.json(
+        return publicJson(
           {
             valid: false,
             error: "This voucher is exclusively valid for Monthly Exismic Pro memberships and cannot be applied to Credit Packs.",
@@ -226,7 +227,7 @@ export async function POST(req: NextRequest) {
       const discountMinor = Math.round(basePrice.amountMinor * 0.2);
       const finalAmountMinor = basePrice.amountMinor - discountMinor;
 
-      return NextResponse.json({
+      return publicJson({
         valid: true,
         code: cleanCode,
         discountType: "percent",
@@ -242,9 +243,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ valid: false, error: "Unrecognized voucher code type." }, { status: 400 });
+    return publicJson({ valid: false, error: "Unrecognized voucher code type." }, { status: 400 });
   } catch (error) {
     console.error("[VALIDATE_COUPON_POST]", error);
-    return NextResponse.json({ valid: false, error: "Could not validate coupon. Please try again." }, { status: 500 });
+    return publicJson({ valid: false, error: "Could not validate coupon. Please try again." }, { status: 500 });
   }
 }

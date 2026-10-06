@@ -33,6 +33,7 @@ export function ToolWorkspaceHeader({
   onShare: () => void;
   onFavorite: () => void;
 }) {
+  const isMinecraft = toolId === "image-minecraft-skin";
   return (
     <header className="border-b border-white/[0.07] pb-6 sm:pb-8">
       <Link
@@ -44,7 +45,7 @@ export function ToolWorkspaceHeader({
       </Link>
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex min-w-0 items-start gap-5 sm:gap-7">
+        <div className={cn("flex min-w-0 items-start gap-5 sm:gap-7", isMinecraft && "grid grid-cols-[64px_minmax(0,1fr)] gap-x-4 gap-y-3 sm:flex")}>
           {/* Logo Box Container */}
           <div className="relative group flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center">
              {/* Idle ambient breathing aura strictly matching category color */}
@@ -79,29 +80,29 @@ export function ToolWorkspaceHeader({
              </div>
           </div>
 
-          <div className="min-w-0 pt-1 sm:pt-2">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className={cn("min-w-0 pt-1 sm:pt-2", isMinecraft && "contents sm:block")}>
+            <div className={cn("mb-3 flex flex-wrap items-center gap-2", isMinecraft && "col-start-2 mb-0 self-center sm:mb-3")}>
               <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] shadow-lg", (CATEGORY_ANIM_STYLES[categoryId]?.badge || CATEGORY_ANIM_STYLES.image.badge))}>
                 {categoryName} workspace
               </span>
               <ToolReliabilityBadge toolId={toolId} />
             </div>
             
-            <div className="relative inline-block">
+            <div className={cn("relative inline-block", isMinecraft && "col-span-2 min-w-0")}>
                {/* Background glow for the text */}
                <span aria-hidden="true" className={cn("absolute inset-0 break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 blur-xl opacity-30 select-none pointer-events-none",
                  CATEGORY_ANIM_STYLES[categoryId]?.iconGlow || "text-cyan-400"
                )}>
                  {name}
                </span>
-               <div className="relative flex items-center gap-4">
+               <div className={cn("relative flex items-center gap-4", isMinecraft && "flex-wrap gap-y-2")}>
                  <h1 className={cn("relative break-words text-[clamp(2rem,4.5vw,3.5rem)] font-black leading-normal tracking-tight pb-2 pt-0.5 text-transparent bg-clip-text bg-[length:200%_100%] animate-[shine_4s_linear_infinite]",
                    CATEGORY_ANIM_STYLES[categoryId]?.textGrad || CATEGORY_ANIM_STYLES.image.textGrad
                  )}>
                    {name}
                  </h1>
                  {toolId === 'image-minecraft-skin' && (
-                   <div className="group relative flex cursor-help items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-cyan-300 backdrop-blur-md transition hover:bg-cyan-400/20">
+                   <div className="group relative flex shrink-0 cursor-help items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-cyan-300 backdrop-blur-md transition hover:bg-cyan-400/20">
                      <FlaskConical size={14} className="mr-1.5" /> BETA
                      <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[#0b0c12] px-3 py-2 text-[10px] font-medium normal-case tracking-normal text-zinc-300 opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
                        This tool is currently under testing.
@@ -111,7 +112,7 @@ export function ToolWorkspaceHeader({
                </div>
             </div>
             
-            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-zinc-400 sm:text-base">
+            <p className={cn("mt-3 max-w-2xl text-sm font-medium leading-relaxed text-zinc-400 sm:text-base", isMinecraft && "col-span-2 mt-0 sm:mt-3")}>
               {description}
             </p>
           </div>

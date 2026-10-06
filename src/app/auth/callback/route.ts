@@ -1,17 +1,20 @@
+import { issueDeletionRecoveryProof } from "@/lib/auth/deletion-recovery";
+import { issueSessionProof } from "@/lib/auth/session-proof";
+import { safeAuthReturnPath } from "@/lib/auth/redirect";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { getServerSiteUrl } from "@/lib/site-url";
-import { sendWelcomeEmailOnce } from "@/lib/welcome-email";
+import { queueWelcomeEmail, sendWelcomeEmailOnce } from "@/lib/welcome-email";
 import { createNotification } from "@/lib/notifications";
 import { cookies } from "next/headers";
 import {
-  createOAuthLinkRequestAction,
+  createOAuthLinkRequest,
   isOAuthProviderApproved,
   recordOAuthProviderApproval,
   type OAuthLinkProvider,
-} from "@/app/actions/auth";
+} from "@/lib/auth/oauth-link";
 
 const NEW_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
 const OAUTH_PROVIDERS = new Set<OAuthLinkProvider>([
@@ -19,13 +22,6 @@ const OAUTH_PROVIDERS = new Set<OAuthLinkProvider>([
   "github",
   "discord",
 ]);
-
-function safeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/dashboard";
-  }
-  return value;
-}
 
 function redirectToLogin(request: Request, reason: string) {
   const url = new URL("/auth/login", getServerSiteUrl(request));
@@ -46,7 +42,7 @@ export async function GET(request: Request) {
     const code = searchParams.get("code");
     const tokenHash = searchParams.get("token_hash");
     const verificationType = searchParams.get("type");
-    const next = safeNextPath(searchParams.get("next"));
+    const next = safeAuthReturnPath(searchParams.get("next"));
 
     if (!code && (!tokenHash || verificationType !== "magiclink")) {
       return redirectToLogin(request, "invalid_callback");
@@ -79,7 +75,7 @@ export async function GET(request: Request) {
     });
 
     if (dbUserStatusCheck?.status === "suspended") {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "local" });
       const url = new URL("/auth/login", siteUrl);
       url.searchParams.set("error", "suspended");
       return NextResponse.redirect(url);
@@ -129,8 +125,13 @@ export async function GET(request: Request) {
       },
     });
 
+    if (existingUser?.status === 'deleting') {
+      await supabase.auth.signOut({ scope: 'local' });
+      return redirectToLogin(request, 'account_deletion_started');
+    }
     if (existingUser?.status === "pending_deletion") {
-      await supabase.auth.signOut();
+      if (existingUser.id === userId && authUser.email_confirmed_at) await issueDeletionRecoveryProof(existingUser.id, existingUser.scheduledDeletionAt);
+      await supabase.auth.signOut({ scope: "local" });
       const loginUrl = new URL("/auth/login", siteUrl);
       loginUrl.searchParams.set("pendingDeletion", "true");
       loginUrl.searchParams.set("email", email);
@@ -153,7 +154,7 @@ export async function GET(request: Request) {
 
     if (providerNeedsConsent && provider) {
       if (idConflict) {
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: "local" });
         const supabaseAdmin = createAdminClient();
         const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
         if (deleteError) {
@@ -171,10 +172,10 @@ export async function GET(request: Request) {
           console.error("[Auth] Could not pause unapproved OAuth identity:", unlinkError.message);
           return redirectToLogin(request, "provider_link_failed");
         }
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: "local" });
       }
 
-      const linkRequest = await createOAuthLinkRequestAction(email, provider);
+      const linkRequest = await createOAuthLinkRequest(email, provider);
       const linkUrl = new URL("/auth/login", siteUrl);
       linkUrl.searchParams.set("link", linkRequest.nonce);
       linkUrl.searchParams.set("returnUrl", next);
@@ -235,24 +236,27 @@ export async function GET(request: Request) {
       const myReferralCode = `${prefix}${rand}`;
       const hasReferralPayout = referrerUser && !isSuspicious;
 
-      await prisma.user.create({
-        data: {
-          id: userId,
-          email,
-          name: userName,
-          image: providerAvatar,
-          discordUserId: discordUserId ? String(discordUserId) : null,
-          discordUsername: discordUsername ? String(discordUsername) : null,
-          dailyCredits: 50,
-          bonusCredits: hasReferralPayout ? 50 : 0,
-          lifetimeCredits: hasReferralPayout ? 50 : 0,
-          plan: "free",
-          creditsLastReset: new Date(),
-          aiMessagesToday: 0,
-          aiMessagesReset: new Date(),
-          referralCode: myReferralCode,
-          hasSeenWelcome: false,
-        },
+      await prisma.$transaction(async tx => {
+        const account = await tx.user.create({
+          data: {
+            id: userId,
+            email,
+            name: userName,
+            image: providerAvatar,
+            discordUserId: discordUserId ? String(discordUserId) : null,
+            discordUsername: discordUsername ? String(discordUsername) : null,
+            dailyCredits: 50,
+            bonusCredits: hasReferralPayout ? 50 : 0,
+            lifetimeCredits: hasReferralPayout ? 50 : 0,
+            plan: "free",
+            creditsLastReset: new Date(),
+            aiMessagesToday: 0,
+            aiMessagesReset: new Date(),
+            referralCode: myReferralCode,
+            hasSeenWelcome: false,
+          },
+        });
+        await queueWelcomeEmail(tx, account);
       });
 
       appUserCreated = true;
@@ -362,6 +366,9 @@ export async function GET(request: Request) {
       }
     }
 
+    if (!data.session) return redirectToLogin(request, 'missing_identity');
+    await issueSessionProof(data.session);
+
     const authCreatedAt = Date.parse(authUser.created_at);
     const authIdentityIsNew =
       Number.isFinite(authCreatedAt) &&
@@ -402,6 +409,8 @@ export async function GET(request: Request) {
       return NextResponse.redirect(targetUrl);
     }
 
+    // Returning verified accounts can retry a queued welcome after a failed send.
+    await sendWelcomeEmailOnce(email);
     return NextResponse.redirect(new URL(next, siteUrl));
   } catch (error) {
     console.error("[Auth] Callback failed:", error);

@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { randomUUID } from "crypto";
@@ -128,15 +129,15 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
+      return publicJson({ error: "No file uploaded." }, { status: 400 });
     }
 
     if (!SUPPORTED_INPUT_TYPES.has(file.type)) {
-      return NextResponse.json({ error: "Only PNG, JPG, WebP, and AVIF images are supported." }, { status: 415 });
+      return publicJson({ error: "Only PNG, JPG, WebP, and AVIF images are supported." }, { status: 415 });
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
-      return NextResponse.json({ error: "Image is too large. Maximum size is 20MB." }, { status: 413 });
+      return publicJson({ error: "Image is too large. Maximum size is 20MB." }, { status: 413 });
     }
 
     const region = parseRegion(formData.get("region"));
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
     const imageHeight = metadata.height || 0;
 
     if (!imageWidth || !imageHeight) {
-      return NextResponse.json({ error: "Could not read image dimensions." }, { status: 400 });
+      return publicJson({ error: "Could not read image dimensions." }, { status: 400 });
     }
 
     let provider = "local-region-reconstruction";
@@ -199,7 +200,7 @@ export async function POST(req: NextRequest) {
     }
 
     const debit = await chargeToolAccess(access, "watermark-remover", `tool:${randomUUID()}`);
-    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+    if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
 
     const outputMetadata = await sharp(outputBuffer).metadata();
 
@@ -218,6 +219,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Watermark removal failed:", error);
-    return NextResponse.json({ error: getErrorMessage(error) || "Processing failed." }, { status: 500 });
+    return publicJson({ error: getErrorMessage(error) || "Processing failed." }, { status: 500 });
   }
 }

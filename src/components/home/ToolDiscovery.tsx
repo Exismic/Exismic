@@ -222,7 +222,7 @@ export function ToolDiscovery() {
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "relative group/pill px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer transform-gpu hover:scale-[1.03] active:scale-95 select-none overflow-hidden antialiased flex items-center gap-2",
+                  "relative group/pill min-h-11 sm:min-h-0 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer transform-gpu hover:scale-[1.03] active:scale-95 select-none overflow-hidden antialiased flex items-center gap-2",
                   isSelected
                     ? cat.activeGrad
                     : "bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.07]"
@@ -326,7 +326,7 @@ export function ToolDiscovery() {
                   <h3 className="text-base sm:text-[17px] font-bold text-white tracking-tight group-hover/card:text-zinc-100 transition-colors line-clamp-1">
                     {tool.name}
                   </h3>
-                  <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal line-clamp-2 min-h-[34px]">
+                  <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed font-normal sm:line-clamp-2 min-h-[34px]">
                     {tool.description}
                   </p>
                 </div>
@@ -349,7 +349,7 @@ export function ToolDiscovery() {
                 <Link
                   href={tool.href}
                   className={cn(
-                    "relative w-full py-2.5 px-4 rounded-full flex items-center justify-center gap-2 uppercase tracking-wider text-xs transition-all duration-300 transform-gpu group-hover/card:scale-[1.02] active:scale-95 shadow-lg overflow-hidden antialiased cursor-pointer",
+                    "relative w-full min-h-11 sm:min-h-0 py-2.5 px-4 rounded-full flex items-center justify-center gap-2 uppercase tracking-wider text-xs transition-all duration-300 transform-gpu group-hover/card:scale-[1.02] active:scale-95 shadow-lg overflow-hidden antialiased cursor-pointer",
                     tool.buttonGrad,
                     tool.buttonTextDark ? "text-amber-950 font-black" : "text-white font-bold"
                   )}

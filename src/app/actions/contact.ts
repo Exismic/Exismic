@@ -174,6 +174,6 @@ export async function submitContactRequest(formData: FormData) {
     return { success: true };
   } catch (error: any) {
     console.error("Contact Form Action Error:", error);
-    return { error: error.message || "An unexpected error occurred." };
+    return { error: "Could not send your message right now. Please try again." };
   }
 }

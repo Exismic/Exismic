@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { generateNewApiKey, type ApiKeyPayload } from "@/lib/api-keys";
@@ -11,7 +12,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const [context, dbUser] = await Promise.all([
@@ -36,8 +37,8 @@ export async function GET() {
       } catch {}
     }
 
-    return NextResponse.json({ 
-      keys, 
+    return publicJson({
+      keys,
       plan: dbUser?.plan || "free",
       isPro,
       maxKeys,
@@ -45,7 +46,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[API_KEYS_GET_ERROR]", error);
-    return NextResponse.json({ error: "Failed to fetch keys" }, { status: 500 });
+    return publicJson({ error: "Failed to fetch keys" }, { status: 500 });
   }
 }
 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const [context, dbUser] = await Promise.all([
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
     const existingKeys: ApiKeyPayload[] = currentPreferences.apiKeys || [];
 
     if (existingKeys.length >= maxKeys) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: isPro
             ? `You have reached the maximum limit of ${maxKeys} API keys.`
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       apiKey: rawKey,
       keyMetadata: {
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[API_KEYS_POST_ERROR]", error);
-    return NextResponse.json({ error: "Failed to generate key" }, { status: 500 });
+    return publicJson({ error: "Failed to generate key" }, { status: 500 });
   }
 }
 
@@ -131,7 +132,7 @@ export async function DELETE(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { keyId } = await request.json();
@@ -140,7 +141,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!context?.preferences) {
-      return NextResponse.json({ error: "No keys found" }, { status: 404 });
+      return publicJson({ error: "No keys found" }, { status: 404 });
     }
 
     const currentPreferences = JSON.parse(context.preferences);
@@ -152,9 +153,9 @@ export async function DELETE(request: NextRequest) {
       data: { preferences: JSON.stringify(currentPreferences) },
     });
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[API_KEYS_DELETE_ERROR]", error);
-    return NextResponse.json({ error: "Failed to revoke key" }, { status: 500 });
+    return publicJson({ error: "Failed to revoke key" }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import axios from "axios";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
@@ -9,7 +10,7 @@ export async function POST(req: NextRequest) {
     const { prompt, toolId, systemInstruction } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+      return publicJson({ error: "Prompt is required" }, { status: 400 });
     }
 
     // Expert Domain System Prompts for each tool
@@ -66,8 +67,8 @@ Maintain a confident, enthusiastic tone and structure into clear opening, body, 
     }
 
     if (!GROQ_API_KEY) {
-      return NextResponse.json({ 
-        output: "AI API Key missing. Please configure GROQ_API_KEY in environment settings." 
+      return publicJson({
+        output: "AI API Key missing. Please configure GROQ_API_KEY in environment settings."
       }, { status: 500 });
     }
 
@@ -92,12 +93,12 @@ Maintain a confident, enthusiastic tone and structure into clear opening, body, 
 
     const outputText = groqResponse.data.choices[0]?.message?.content || "";
 
-    return NextResponse.json({ output: outputText, text: outputText });
+    return publicJson({ output: outputText, text: outputText });
   } catch (error: any) {
     console.error("AI Generate Error:", error?.response?.data || error.message);
-    return NextResponse.json({ 
-      error: "Failed to generate AI response", 
-      details: error?.response?.data?.error?.message || error.message 
+    return publicJson({
+      error: "Failed to generate AI response",
+      details: error?.response?.data?.error?.message || error.message
     }, { status: 500 });
   }
 }

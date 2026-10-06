@@ -31,7 +31,7 @@ export function LaunchOfferModal() {
   const { isPro, isLoading: isProLoading, authUser, user } = usePro();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isIndia, setIsIndia] = useState(false);
+  const [isIndia, setIsIndia] = useState(() => getIsIndia());
   const [promoPrices, setPromoPrices] = useState<{
     inr: number;
     usd: number;

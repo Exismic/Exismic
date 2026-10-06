@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from '@/lib/api-security';
 
@@ -57,18 +58,18 @@ async function generateGoogleSpeechFallback(text: string): Promise<Buffer | null
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(`tts:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 30 : 15, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const limit = await checkRateLimit(`tts:${authUser?.id || getRequestIp(req)}`, authUser ? 30 : 15, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const { text, voice_id, settings } = await req.json();
 
     if (!text) {
-      return NextResponse.json({ error: 'No text provided' }, { status: 400 });
+      return publicJson({ error: 'No text provided' }, { status: 400 });
     }
 
     const cleanText = String(text).trim();
     if (cleanText.length > 5000) {
-      return NextResponse.json({ error: 'Text is too long. Maximum length is 5,000 characters.' }, { status: 413 });
+      return publicJson({ error: 'Text is too long. Maximum length is 5,000 characters.' }, { status: 413 });
     }
 
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -126,13 +127,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ 
+    return publicJson({
       error: 'Failed to generate speech. Please try again.',
     }, { status: 500 });
 
   } catch (error: unknown) {
     console.error('TTS Route Fatal Error:', error);
-    return NextResponse.json({ 
+    return publicJson({
       error: 'Failed to generate speech',
     }, { status: 500 });
   }

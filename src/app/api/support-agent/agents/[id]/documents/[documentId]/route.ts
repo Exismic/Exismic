@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { isUuid, requireSupportUser } from "@/lib/support-agent/api-utils";
 import { prisma } from "@/lib/prisma";
@@ -6,7 +7,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const auth = await requireSupportUser();
   if (auth instanceof NextResponse) return auth;
   const { id, documentId } = await params;
-  if (!isUuid(id) || !isUuid(documentId)) return NextResponse.json({ success: true });
+  if (!isUuid(id) || !isUuid(documentId)) return publicJson({ success: true });
 
   try {
     await prisma.$executeRaw`
@@ -15,9 +16,9 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       and agent_id = ${id}::uuid
       and user_id = ${auth.user.id}::uuid
     `;
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[SupportAgent document DELETE]", error);
-    return NextResponse.json({ error: "Could not delete knowledge item." }, { status: 500 });
+    return publicJson({ error: "Could not delete knowledge item." }, { status: 500 });
   }
 }

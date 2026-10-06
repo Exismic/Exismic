@@ -30,8 +30,14 @@ export function ReceiptDownload({ url, className = "" }: { url: string; classNam
     } finally { setBusy(false); }
   }
   return <div>
-    <button type="button" disabled={busy} onClick={download} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-300/30 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/10 disabled:opacity-60 ${className}`}>
-      {busy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {busy ? "Preparing receipt…" : "Download receipt (PDF)"}
+    <button
+      type="button"
+      disabled={busy}
+      onClick={download}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-purple-400/30 bg-purple-500/15 px-5 py-2.5 text-sm font-semibold text-purple-200 hover:bg-purple-500/25 hover:border-purple-400/50 hover:text-white transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)] disabled:opacity-60 cursor-pointer ${className}`}
+    >
+      {busy ? <Loader2 size={16} className="animate-spin text-purple-300" /> : <Download size={16} className="text-purple-300" />}
+      <span>{busy ? "Preparing receipt…" : "Download receipt (PDF)"}</span>
     </button>
     {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
   </div>;

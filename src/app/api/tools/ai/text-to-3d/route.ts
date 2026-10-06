@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import { Client } from "@gradio/client";
 import axios from "axios";
@@ -11,8 +12,8 @@ import axios from "axios";
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(`text-to-3d:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 30 : 10, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const limit = await checkRateLimit(`text-to-3d:${authUser?.id || getRequestIp(req)}`, authUser ? 30 : 10, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const body = await req.json().catch(() => ({}));
     const { action } = body;
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
     if (action === "generate-image") {
       const { prompt } = body;
       if (!prompt || typeof prompt !== "string") {
-        return NextResponse.json({ error: "Please enter a model description." }, { status: 400 });
+        return publicJson({ error: "Please enter a model description." }, { status: 400 });
       }
 
       console.log(`[Text-to-3D] Generating 2D Concept Art for: "${prompt}"`);
@@ -49,14 +50,14 @@ export async function POST(req: NextRequest) {
       const base64Image = Buffer.from(imageRes.data).toString("base64");
       const dataUrl = `data:image/png;base64,${base64Image}`;
 
-      return NextResponse.json({ image: dataUrl });
+      return publicJson({ image: dataUrl });
     }
 
     // Action 2: Concept Art to GLB/OBJ 3D Mesh
     if (action === "generate-3d") {
       const { imageUrl, removeBg = true, foregroundRatio = 0.85, resolution = 256 } = body;
       if (!imageUrl || typeof imageUrl !== "string") {
-        return NextResponse.json({ error: "Missing concept art image url/data." }, { status: 400 });
+        return publicJson({ error: "Missing concept art image url/data." }, { status: 400 });
       }
 
       console.log(`[Text-to-3D] Reconstructing 3D mesh via InstantMesh (BG Removal: ${removeBg})`);
@@ -125,22 +126,22 @@ export async function POST(req: NextRequest) {
       const objMesh = resultList[0];
       const glbMesh = resultList[1];
 
-      return NextResponse.json({
+      return publicJson({
         objUrl: objMesh.url,
         glbUrl: glbMesh.url
       });
     }
 
-    return NextResponse.json({ error: "Invalid action request." }, { status: 400 });
+    return publicJson({ error: "Invalid action request." }, { status: 400 });
 
   } catch (error: any) {
     console.error("[Text-to-3D Route Error]:", error);
-    
+
     let message = error?.message || "Failed to generate 3D model asset. GPU workers might be overloaded.";
     if (message.includes("ZeroGPU quota")) {
       message = "You have exceeded the free anonymous GPU quota for today. To fix this, please configure a free Hugging Face token ('HF_TOKEN') in your environment settings.";
     }
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

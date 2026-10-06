@@ -23,12 +23,12 @@ export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `video-merger:${authUser?.id || "guest"}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `video-merger:${authUser?.id || getRequestIp(req)}`,
       authUser ? 8 : 3,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await req.formData();
     const clips = formData.getAll("clips").filter((clip): clip is File => clip instanceof File);

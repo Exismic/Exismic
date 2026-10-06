@@ -75,6 +75,7 @@ export function DeletionAlertBanner({
       }
 
       setIsSuccess(true);
+      window.location.href = '/auth/login?deletionCancelled=true';
       if (onCancelled) {
         setTimeout(() => {
           onCancelled();
@@ -119,7 +120,7 @@ export function DeletionAlertBanner({
                 </div>
 
                 <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal">
-                  Your account, saved creations, projects, and credits will be permanently destroyed when this countdown reaches zero.
+                  Your account and saved work become eligible for permanent deletion when the safety period ends. Cancel before then to keep your account.
                 </p>
 
                 {error && (
@@ -159,7 +160,7 @@ export function DeletionAlertBanner({
                 <button
                   type="button"
                   onClick={handleCancelDeletion}
-                  disabled={isCancelling}
+                  disabled={isCancelling || time.isExpired}
                   className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.55)] transition-all active:scale-95 disabled:opacity-50 cursor-pointer whitespace-nowrap"
                 >
                   {isCancelling ? (

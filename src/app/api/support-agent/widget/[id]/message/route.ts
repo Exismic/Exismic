@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupportAgentPlan, type SupportAgent, type SupportDocument } from "@/lib/support-agent/types";
 import { generateSupportReply } from "@/lib/support-agent/reply";
@@ -19,13 +20,13 @@ interface WidgetMessageBody {
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!isUuid(id)) return NextResponse.json({ error: "Support agent not found." }, { status: 404, headers: SUPPORT_WIDGET_CORS_HEADERS });
+  if (!isUuid(id)) return publicJson({ error: "Support agent not found." }, { status: 404, headers: SUPPORT_WIDGET_CORS_HEADERS });
 
   try {
     const requestIp = getRequestIp(request);
-    const limit = checkRateLimit(`support-widget:${id}:${requestIp}`, 30, 60 * 60 * 1000);
+    const limit = await checkRateLimit(`support-widget:${id}:${requestIp}`, 30, 60 * 60 * 1000);
     if (!limit.allowed) {
-      const response = rateLimitResponse(limit.retryAfter);
+      const response = rateLimitResponse(limit.retryAfter, limit.unavailable);
       for (const [key, value] of Object.entries(SUPPORT_WIDGET_CORS_HEADERS)) {
         response.headers.set(key, value);
       }
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const body = (await request.json()) as WidgetMessageBody;
     const message = String(body.message || "").trim().slice(0, 1200);
-    if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400, headers: SUPPORT_WIDGET_CORS_HEADERS });
+    if (!message) return publicJson({ error: "Message is required." }, { status: 400, headers: SUPPORT_WIDGET_CORS_HEADERS });
     const visitorId = String(body.visitorId || "website-visitor").trim().slice(0, 120);
     const leadName = body.lead?.name ? String(body.lead.name).trim().slice(0, 120) : null;
     const leadEmail = body.lead?.email ? String(body.lead.email).trim().slice(0, 160).toLowerCase() : null;
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where id = ${id}::uuid
       limit 1
     `;
-    if (!agent) return NextResponse.json({ error: "Support agent not found." }, { status: 404, headers: SUPPORT_WIDGET_CORS_HEADERS });
+    if (!agent) return publicJson({ error: "Support agent not found." }, { status: 404, headers: SUPPORT_WIDGET_CORS_HEADERS });
 
     const owner = await prisma.user.findUnique({ where: { id: agent.user_id }, select: { plan: true } });
     const plan = getSupportAgentPlan(owner?.plan);
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     `;
     const used = Number(usage?.used ?? 0);
     if (used >= plan.messageLimit) {
-      return NextResponse.json(
+      return publicJson(
         {
           reply: "This support assistant has reached its monthly message limit. Please contact the business directly.",
           source: "limit",
@@ -141,10 +142,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       `,
     ]);
 
-    return NextResponse.json({ reply, source, conversationId, messages: messages ?? [] }, { headers: SUPPORT_WIDGET_CORS_HEADERS });
+    return publicJson({ reply, source, conversationId, messages: messages ?? [] }, { headers: SUPPORT_WIDGET_CORS_HEADERS });
   } catch (error) {
     console.error("[SupportAgent widget message]", error);
-    return NextResponse.json({ error: "Support agent could not reply right now." }, { status: 500, headers: SUPPORT_WIDGET_CORS_HEADERS });
+    return publicJson({ error: "Support agent could not reply right now." }, { status: 500, headers: SUPPORT_WIDGET_CORS_HEADERS });
   }
 }
 

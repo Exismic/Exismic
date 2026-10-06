@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { getOptionalApiUser, checkRateLimit, getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import { deductCredits } from "@/lib/credits";
 
@@ -56,17 +57,17 @@ function generateSmartFallback(rawPrompt: string): string {
 export async function POST(req: NextRequest) {
   const apiUser = await getOptionalApiUser();
 
-  const rateLimit = checkRateLimit(
-    `mc-prompt-enhance:${apiUser?.id || "guest"}:${getRequestIp(req)}`,
+  const rateLimit = await checkRateLimit(
+    `mc-prompt-enhance:${apiUser?.id || getRequestIp(req)}`,
     apiUser ? 30 : 5,
     60 * 1000
   );
-  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter);
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter, rateLimit.unavailable);
 
   try {
     const { prompt } = await req.json();
     if (!prompt || typeof prompt !== "string" || prompt.trim().length < 2) {
-      return NextResponse.json({ error: "Please enter a brief idea to enhance." }, { status: 400 });
+      return publicJson({ error: "Please enter a brief idea to enhance." }, { status: 400 });
     }
 
     const trimmedInput = prompt.trim().slice(0, 500);
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
       );
 
       if (!deduction.success) {
-        return NextResponse.json(
+        return publicJson(
           { error: "Insufficient credits. You need at least 1 credit to optimize prompts." },
           { status: 402 }
         );
@@ -161,14 +162,14 @@ Rules:
       enhancedPrompt = generateSmartFallback(trimmedInput);
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       enhancedPrompt,
       cost: apiUser ? PROMPT_ENHANCE_COST : 0,
     });
   } catch (error: any) {
     console.error("[MC Prompt Enhance Route Error]:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "Failed to optimize prompt." },
       { status: 500 }
     );

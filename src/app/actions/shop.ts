@@ -14,7 +14,7 @@ function getRazorpayClient() {
   const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!key_id || !key_secret) {
-    throw new Error("Payment provider is not configured.");
+    throw new Error("Payments are temporarily unavailable. Please try again later.");
   }
 
   return new Razorpay({ key_id, key_secret });
@@ -75,7 +75,7 @@ export async function verifyRazorpayPayment(
 
   const secret = process.env.RAZORPAY_KEY_SECRET || '';
   if (!secret) {
-    return { success: false, error: "Payment provider is not configured." };
+    return { success: false, error: "Payments are temporarily unavailable. Please try again later." };
   }
 
   const tier = getCreditPackageByCredits(creditsToAdd);

@@ -56,8 +56,8 @@ export async function verifyAndAuthenticateApiKey(authHeader?: string | null) {
   const context = allContexts[0];
   const user = context.user;
 
-  if (user.status === "suspended") {
-    return { error: "Account suspended", status: 403 };
+  if (user.status !== "active") {
+    return { error: "This account cannot use the API right now.", status: 403 };
   }
 
   const credits = getCreditTotal(user);

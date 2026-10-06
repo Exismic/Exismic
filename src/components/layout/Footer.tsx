@@ -150,7 +150,7 @@ export function Footer() {
 
   return (
     <>
-      <footer className="relative overflow-hidden border-t border-white/[0.08] bg-[#020205]" suppressHydrationWarning>
+      <footer className="relative overflow-hidden border-t border-white/[0.08] bg-[#020205] pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-0" suppressHydrationWarning>
       {/* Ambient Multi-Spectrum Laser Horizon Top Border */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 via-fuchsia-500 via-purple-500 to-transparent shadow-[0_0_20px_rgba(168,85,247,0.7)]" />
       
@@ -238,10 +238,10 @@ export function Footer() {
                 </div>
                 
                 <span className="min-w-0 flex-1 text-left relative z-10">
-                  <span className="block text-[11px] sm:text-[12px] font-black uppercase tracking-[0.18em] sm:tracking-[0.22em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] transition-all duration-500 group-hover/launch:text-cyan-100 whitespace-nowrap">
+                  <span className="block text-[11px] sm:text-[12px] font-black uppercase tracking-[0.18em] sm:tracking-[0.22em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] transition-all duration-500 group-hover/launch:text-cyan-100 whitespace-normal sm:whitespace-nowrap">
                     {session ? "Open Exismic" : "Enter Exismic"}
                   </span>
-                  <span className="mt-0.5 sm:mt-1 block text-[8px] sm:text-[8.5px] font-black uppercase tracking-[0.16em] sm:tracking-[0.18em] text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)] transition-colors duration-500 group-hover/launch:text-fuchsia-300 whitespace-nowrap">
+                  <span className="mt-0.5 sm:mt-1 block text-[8px] sm:text-[8.5px] font-black uppercase tracking-[0.16em] sm:tracking-[0.18em] text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)] transition-colors duration-500 group-hover/launch:text-fuchsia-300 whitespace-normal sm:whitespace-nowrap">
                     Explore 50+ tools
                   </span>
                 </span>
@@ -324,14 +324,14 @@ export function Footer() {
                       <Link
                         href={link.href}
                         prefetch={true}
-                        className={`group inline-flex items-center gap-2 text-[14px] font-bold text-zinc-200 transition-all duration-200 ${section.hoverColor} hover:translate-x-1.5`}
+                        className={`group relative inline-flex items-center gap-2 text-[14px] font-bold text-zinc-200 transition-all duration-200 ${section.hoverColor} hover:translate-x-1.5`}
                       >
                         <span className={`transition-all duration-200 ${section.hoverGlow}`}>
                           {link.name}
                         </span>
                         <ArrowUpRight
                           size={13}
-                          className="opacity-0 -translate-x-1.5 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 text-current"
+                          className="absolute left-full ml-2 md:static md:ml-0 opacity-0 -translate-x-1.5 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 text-current"
                         />
                       </Link>
                     </li>
@@ -380,13 +380,13 @@ export function Footer() {
           </div>
 
           {/* Quick Legal Links: Fully visible with ample clearance before the AI helper button */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11.5px] font-black uppercase tracking-[0.18em] text-zinc-300">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center gap-x-6 sm:gap-x-4 gap-y-2 sm:gap-y-1.5 text-[11.5px] font-black uppercase tracking-[0.18em] text-zinc-300">
             <Link href="/privacy-policy" className="hover:text-cyan-300 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all">Privacy</Link>
-            <span className="text-zinc-600 font-bold">•</span>
+            <span className="hidden sm:inline text-zinc-600 font-bold" aria-hidden="true">•</span>
             <Link href="/terms-of-service" className="hover:text-cyan-300 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all">Terms</Link>
-            <span className="text-zinc-600 font-bold">•</span>
+            <span className="hidden sm:inline text-zinc-600 font-bold" aria-hidden="true">•</span>
             <Link href="/refund-policy" className="hover:text-cyan-300 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all">Refunds</Link>
-            <span className="text-zinc-600 font-bold">•</span>
+            <span className="hidden sm:inline text-zinc-600 font-bold" aria-hidden="true">•</span>
             <Link href="/help" className="hover:text-cyan-300 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all">Support</Link>
           </div>
         </div>

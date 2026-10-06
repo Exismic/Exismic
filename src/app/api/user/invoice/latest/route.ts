@@ -1,5 +1,5 @@
-﻿import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { publicJson } from "@/lib/public-json";
+﻿import { prisma } from "@/lib/prisma";
 import { fallbackTransactionReference, generateTransactionReference, getPaymentInvoiceType } from "@/lib/payment-reference";
 import { createClient } from "@/utils/supabase/server";
 
@@ -140,7 +140,7 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user?.id || !user.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findFirst({
@@ -155,7 +155,7 @@ export async function GET() {
     });
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User record not found." }, { status: 404 });
+      return publicJson({ error: "User record not found." }, { status: 404 });
     }
 
     const invoiceUserIds = Array.from(new Set([dbUser.id, user.id].filter(Boolean)));
@@ -179,7 +179,7 @@ export async function GET() {
     const proInvoice = proInvoices[0] || null;
     const creditsInvoice = creditInvoices[0] || null;
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       invoices: {
         pro: proInvoices,
@@ -193,6 +193,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[Invoice] Invoice lookup failed:", error);
-    return NextResponse.json({ error: "Could not load invoice details." }, { status: 500 });
+    return publicJson({ error: "Could not load invoice details." }, { status: 500 });
   }
 }

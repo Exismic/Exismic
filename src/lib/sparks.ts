@@ -1,5 +1,10 @@
+import { Prisma } from "@prisma/client";
+import { runSerializable } from "./serializable";
+import { settleUserStreak, settleStreakInTransaction, deliverStreakProtectionEmails } from "./streaks";
+import { MAX_STREAK_SHIELDS } from "./streak-state";
 import { prisma } from "./prisma";
 import { SPARKS_SHOP_ITEMS, SparksShopItem, FREE_SPARKS_GIFT_EXPIRES_AT } from "@/config/sparks-shop";
+import { isDevAccountEmail, DEV_INFINITE_BALANCE } from "@/lib/dev-account";
 
 export interface UserSparksProfile {
   userId: string;
@@ -29,10 +34,14 @@ export interface UserSparksProfile {
  */
 export async function getUserSparksData(userId: string): Promise<UserSparksProfile | null> {
   try {
+    await settleUserStreak(userId);
+    await deliverStreakProtectionEmails(userId, 5);
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
+        email: true,
+        role: true,
         sparks: true,
         lifetimeSparks: true,
         unlockedAvatarFrames: true,
@@ -119,10 +128,12 @@ export async function getUserSparksData(userId: string): Promise<UserSparksProfi
     });
     const hasClaimedFreeSparks = !!freeSparksClaim;
 
+    const isDev = isDevAccountEmail(user.email) || user.role === "developer";
+
     return {
       userId: user.id,
-      sparks: user.sparks ?? 0,
-      lifetimeSparks: user.lifetimeSparks ?? 0,
+      sparks: isDev ? DEV_INFINITE_BALANCE : (user.sparks ?? 0),
+      lifetimeSparks: isDev ? DEV_INFINITE_BALANCE : (user.lifetimeSparks ?? 0),
       unlockedAvatarFrames,
       unlockedNameGradients,
       unlockedInsignias,
@@ -131,13 +142,13 @@ export async function getUserSparksData(userId: string): Promise<UserSparksProfi
       activeNameGradient: user.nameGradient,
       activeInsignia: user.insignia,
       activeCanopy: user.canopy,
-      plan: user.plan || "free",
-      planExpiresAt: user.planExpiresAt,
-      dailyCredits: user.dailyCredits,
-      bonusCredits: user.bonusCredits,
-      lifetimeCredits: user.lifetimeCredits,
-      streakShields: user.streakShields ?? 0,
-      dailyStreak: user.dailyStreak ?? 0,
+      plan: isDev ? "pro" : (user.plan || "free"),
+      planExpiresAt: isDev ? null : user.planExpiresAt,
+      dailyCredits: isDev ? DEV_INFINITE_BALANCE : user.dailyCredits,
+      bonusCredits: isDev ? DEV_INFINITE_BALANCE : user.bonusCredits,
+      lifetimeCredits: isDev ? DEV_INFINITE_BALANCE : user.lifetimeCredits,
+      streakShields: isDev ? 99 : (user.streakShields ?? 0),
+      dailyStreak: isDev ? 999 : (user.dailyStreak ?? 0),
       voucherCooldowns,
       hasClaimedFreeSparks,
     };
@@ -218,11 +229,16 @@ export async function redeemSparksShopItem(
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    await settleUserStreak(userId);
+    await deliverStreakProtectionEmails(userId, 5);
+    const result = await runSerializable(() => prisma.$transaction(async (tx) => {
+      await settleStreakInTransaction(tx, userId);
       const user = await tx.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
+          email: true,
+          role: true,
           sparks: true,
           lifetimeSparks: true,
           unlockedAvatarFrames: true,
@@ -242,13 +258,14 @@ export async function redeemSparksShopItem(
         throw new Error("User not found");
       }
 
-      const currentSparks = user.sparks ?? 0;
-      if (currentSparks < item.costSparks) {
+      const isDev = isDevAccountEmail(user.email) || user.role === "developer";
+      const currentSparks = isDev ? DEV_INFINITE_BALANCE : (user.sparks ?? 0);
+      if (!isDev && currentSparks < item.costSparks) {
         throw new Error(`Insufficient Sparks! You need ${item.costSparks} ⚡ (you have ${currentSparks} ⚡).`);
       }
 
       // 1. Calculate next Sparks balance
-      let newSparksBalance = currentSparks - item.costSparks;
+      let newSparksBalance = isDev ? DEV_INFINITE_BALANCE : currentSparks - item.costSparks;
 
       // 2. Prepare Updates based on Item Type
       const userUpdates: Record<string, unknown> = {
@@ -295,23 +312,23 @@ export async function redeemSparksShopItem(
         details.hasClaimedFreeSparks = true;
       } else if (item.type === "streak_shield") {
         const currentShields = user.streakShields ?? 0;
-        if (currentShields >= 3) {
-          throw new Error("You already have the maximum of 3 Streak Shields active in your vault!");
+        if (currentShields >= MAX_STREAK_SHIELDS) {
+          throw new Error(`You already have the maximum of ${MAX_STREAK_SHIELDS} Streak Shields active in your vault!`);
         }
         const shieldsToAdd = Number(item.value);
-        const newShields = Math.min(3, currentShields + shieldsToAdd);
+        const newShields = Math.min(MAX_STREAK_SHIELDS, currentShields + shieldsToAdd);
         userUpdates.streakShields = newShields;
 
         await tx.notification.create({
           data: {
             userId,
             title: `Streak Shield Charged! (${newShields}/3)`,
-            message: `You activated ${item.title}. If you ever miss logging in for a day, this shield will automatically prevent your streak from breaking!`,
+            message: `You activated ${item.title}. Each saver automatically protects one missed daily reward claim.`,
             type: "reward",
           },
         });
 
-        details.shieldsAwarded = shieldsToAdd;
+        details.shieldsAwarded = newShields - currentShields;
         details.totalShields = newShields;
       } else if (item.type === "shop_voucher") {
         // Enforce 7-day cooldown per voucher purchase
@@ -517,7 +534,7 @@ export async function redeemSparksShopItem(
         remainingSparks: newSparksBalance,
         details,
       };
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
     return {
       success: true,

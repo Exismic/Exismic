@@ -1,108 +1,117 @@
 import "server-only";
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/emails";
 
-const WELCOME_EMAIL_CLAIM = "welcome_email_claim";
-const WELCOME_EMAIL_SENT = "welcome_email_sent";
+const PENDING_PREFIX = "welcome_pending:";
 const CLAIM_TIMEOUT_MS = 10 * 60 * 1000;
+const RETRY_MS = 15 * 60 * 1000;
 
-export type WelcomeEmailResult =
-  | "sent"
-  | "already_sent"
-  | "in_progress"
-  | "failed";
+type WelcomeAccount = { id: string; email: string | null; createdAt: Date };
+export type WelcomeEmailResult = "sent" | "already_sent" | "in_progress" | "failed" | "skipped";
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
+function jobKeys(account: WelcomeAccount) {
+  // Account creation time prevents old markers suppressing a recreated account.
+  const key = createHash("sha256").update(`${account.id}/${account.createdAt.toISOString()}`).digest("hex");
+  return { pending: `${PENDING_PREFIX}${key}`, claim: `welcome_claim:${key}`, sent: `welcome_sent:${key}`, key };
 }
 
-function isUniqueConstraintError(error: unknown) {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+/** Persist with the account creation transaction, before any email request. */
+export async function queueWelcomeEmail(tx: Prisma.TransactionClient, account: WelcomeAccount) {
+  const email = account.email?.trim().toLowerCase();
+  if (!email) return;
+  const type = jobKeys(account).pending;
+  await tx.authRateLimit.upsert({
+    where: { email_type: { email, type } },
+    create: { email, type, lastRequestedAt: new Date() },
+    update: {},
+  });
 }
 
-async function acquireWelcomeClaim(email: string) {
-  const now = new Date();
-
+async function acquireClaim(email: string, type: string, now: Date) {
   try {
-    await prisma.authRateLimit.create({
-      data: {
-        email,
-        type: WELCOME_EMAIL_CLAIM,
-        lastRequestedAt: now,
-      },
-    });
+    await prisma.authRateLimit.create({ data: { email, type, lastRequestedAt: now } });
     return true;
   } catch (error) {
-    if (!isUniqueConstraintError(error)) throw error;
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") throw error;
   }
-
-  const staleBefore = new Date(now.getTime() - CLAIM_TIMEOUT_MS);
-  const reclaimed = await prisma.authRateLimit.updateMany({
-    where: {
-      email,
-      type: WELCOME_EMAIL_CLAIM,
-      lastRequestedAt: { lte: staleBefore },
-    },
+  return (await prisma.authRateLimit.updateMany({
+    where: { email, type, lastRequestedAt: { lte: new Date(now.getTime() - CLAIM_TIMEOUT_MS) } },
     data: { lastRequestedAt: now },
-  });
-
-  return reclaimed.count === 1;
+  })).count === 1;
 }
 
-export async function sendWelcomeEmailOnce(
-  rawEmail: string,
-): Promise<WelcomeEmailResult> {
-  const email = normalizeEmail(rawEmail);
-  if (!email) return "failed";
-
-  const sentMarker = await prisma.authRateLimit.findUnique({
-    where: {
-      email_type: { email, type: WELCOME_EMAIL_SENT },
-    },
-    select: { id: true },
-  });
-  if (sentMarker) return "already_sent";
-
-  const claimed = await acquireWelcomeClaim(email);
-  if (!claimed) return "in_progress";
-
+/** Only sends an explicitly queued signup welcome; never enrols returning users. */
+export async function sendWelcomeEmailOnce(rawEmail: string, expectedPendingType?: string): Promise<WelcomeEmailResult> {
+  const email = rawEmail.trim().toLowerCase();
+  if (!email) return "skipped";
+  let ownedClaim: { email: string; type: string; lastRequestedAt: Date } | undefined;
   try {
-    const emailHash = createHash("sha256").update(email).digest("hex");
-    const sent = await sendWelcomeEmail(email, `welcome/${emailHash}`);
+    const account = await prisma.user.findUnique({ where: { email }, select: { id: true, email: true, createdAt: true, status: true } });
+    if (!account || account.status !== "active") return "skipped";
+    const keys = jobKeys(account);
+    if (expectedPendingType && expectedPendingType !== keys.pending) return "skipped";
+    const sent = await prisma.authRateLimit.findUnique({ where: { email_type: { email, type: keys.sent } } });
+    if (sent) return "already_sent";
+    const pending = await prisma.authRateLimit.findUnique({ where: { email_type: { email, type: keys.pending } } });
+    if (!pending) return "skipped";
 
-    if (!sent) {
-      await prisma.authRateLimit.deleteMany({
-        where: { email, type: WELCOME_EMAIL_CLAIM },
+    // Preserve pre-upgrade deliveries without suppressing a recreated account.
+    const legacy = await prisma.authRateLimit.findUnique({ where: { email_type: { email, type: "welcome_email_sent" } } });
+    if (legacy && legacy.lastRequestedAt >= account.createdAt) {
+      await prisma.$transaction(async tx => {
+        await tx.authRateLimit.upsert({ where: { email_type: { email, type: keys.sent } }, create: { email, type: keys.sent, lastRequestedAt: legacy.lastRequestedAt }, update: {} });
+        await tx.authRateLimit.deleteMany({ where: { email, type: keys.pending } });
       });
-      return "failed";
+      return "already_sent";
     }
+    const now = new Date();
+    if (pending.lastRequestedAt > now) return "in_progress";
+    if (!await acquireClaim(email, keys.claim, now)) return "in_progress";
+    ownedClaim = { email, type: keys.claim, lastRequestedAt: now };
 
-    await prisma.$transaction([
-      prisma.authRateLimit.upsert({
-        where: {
-          email_type: { email, type: WELCOME_EMAIL_SENT },
-        },
-        update: { lastRequestedAt: new Date() },
-        create: {
-          email,
-          type: WELCOME_EMAIL_SENT,
-          lastRequestedAt: new Date(),
-        },
-      }),
-      prisma.authRateLimit.deleteMany({
-        where: { email, type: WELCOME_EMAIL_CLAIM },
-      }),
-    ]);
+    // Another worker may have finished while this request acquired the lease.
+    const ready = await prisma.authRateLimit.updateMany({ where: { email, type: keys.pending, lastRequestedAt: { lte: now } }, data: { lastRequestedAt: new Date(now.getTime() + RETRY_MS) } });
+    if (ready.count !== 1) return "in_progress";
+    const stillActive = await prisma.user.findFirst({ where: { id: account.id, email, createdAt: account.createdAt, status: "active" }, select: { id: true } });
+    if (!stillActive) return "skipped";
 
-    return "sent";
+    // Reuse the key if provider acceptance succeeds but saving the receipt fails.
+    // Provider deduplication is finite; acceptance is not inbox delivery.
+    if (!await sendWelcomeEmail(email, `welcome-v2/${keys.key}`)) return "failed";
+    const accepted = await prisma.$transaction(async tx => {
+      const released = await tx.authRateLimit.deleteMany({ where: ownedClaim });
+      if (released.count !== 1) return false;
+      await tx.authRateLimit.upsert({ where: { email_type: { email, type: keys.sent } }, create: { email, type: keys.sent, lastRequestedAt: new Date() }, update: {} });
+      await tx.authRateLimit.deleteMany({ where: { email, type: keys.pending } });
+      return true;
+    });
+    return accepted ? "sent" : "in_progress";
   } catch (error) {
-    console.error(`[Auth] Welcome email failed for ${email}:`, error);
-    await prisma.authRateLimit.deleteMany({
-      where: { email, type: WELCOME_EMAIL_CLAIM },
-    }).catch(() => undefined);
+    // Mail/database errors must not turn a completed signup into a failure.
+    console.error("[WelcomeEmail] Delivery attempt failed; queued jobs remain retryable:", error);
     return "failed";
+  } finally {
+    if (ownedClaim) await prisma.authRateLimit.deleteMany({ where: ownedClaim }).catch(() => undefined);
   }
+}
+
+export async function retryQueuedWelcomeEmails() {
+  const startedAt = Date.now();
+  const jobs = await prisma.authRateLimit.findMany({ where: { type: { startsWith: PENDING_PREFIX }, lastRequestedAt: { lte: new Date() } }, orderBy: { lastRequestedAt: "asc" }, take: 50 });
+  const counts = { sent: 0, failed: 0, skipped: 0, inProgress: 0 };
+  for (const job of jobs) {
+    if (Date.now() - startedAt > 40_000) break;
+    const result = await sendWelcomeEmailOnce(job.email, job.type);
+    if (result === "sent") counts.sent++;
+    else if (result === "failed") counts.failed++;
+    else if (result === "in_progress") counts.inProgress++;
+    else {
+      counts.skipped++;
+      await prisma.authRateLimit.deleteMany({ where: { id: job.id, type: job.type, lastRequestedAt: job.lastRequestedAt } });
+    }
+  }
+  return counts;
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserSparksData, redeemSparksShopItem } from "@/lib/sparks";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -12,7 +13,7 @@ export async function GET() {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user?.id) {
-      return NextResponse.json({
+      return publicJson({
         success: true,
         isLoggedIn: false,
         profile: {
@@ -31,7 +32,7 @@ export async function GET() {
     const dbUser = await getOrCreateUser(user);
     const sparksProfile = await getUserSparksData(dbUser.id);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       isLoggedIn: true,
       profile: sparksProfile || {
@@ -47,7 +48,7 @@ export async function GET() {
     });
   } catch (err) {
     console.error("[API_SPARKS_GET]", err);
-    return NextResponse.json({ error: "Failed to load Sparks profile" }, { status: 500 });
+    return publicJson({ error: "Failed to load Sparks profile" }, { status: 500 });
   }
 }
 
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -65,13 +66,13 @@ export async function POST(request: NextRequest) {
     const { itemId } = body;
 
     if (!itemId) {
-      return NextResponse.json({ error: "Missing itemId" }, { status: 400 });
+      return publicJson({ error: "Missing itemId" }, { status: 400 });
     }
 
     const result = await redeemSparksShopItem(dbUser.id, itemId);
 
     if (!result.success) {
-      return NextResponse.json(
+      return publicJson(
         { success: false, error: result.error || "Redemption failed" },
         { status: 400 }
       );
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       item: result.item,
       remainingSparks: result.remainingSparks,
@@ -103,6 +104,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error("[API_SPARKS_POST]", err);
-    return NextResponse.json({ error: "Redemption error" }, { status: 500 });
+    return publicJson({ error: "Redemption error" }, { status: 500 });
   }
 }

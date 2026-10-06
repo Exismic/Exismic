@@ -468,7 +468,7 @@ html.ai-chat-active [class*="Footer_"] {
 }
 
 /* Mobile responsiveness safety net.
-   Keeps desktop utilities intact while taming oversized premium layouts on phones. */
+   Match whole, unprefixed utility tokens so sm:/md:/lg: styles stay at their breakpoints. */
 @media (max-width: 640px) {
   html,
   body {
@@ -487,79 +487,79 @@ html.ai-chat-active [class*="Footer_"] {
     min-width: 0;
   }
 
-  [class*="w-screen"] {
+  [class~="w-screen"] {
     width: 100% !important;
   }
 
-  [class*="max-w-7xl"],
-  [class*="max-w-6xl"],
-  [class*="max-w-5xl"],
-  [class*="max-w-4xl"] {
+  [class~="max-w-7xl"],
+  [class~="max-w-6xl"],
+  [class~="max-w-5xl"],
+  [class~="max-w-4xl"] {
     max-width: calc(100vw - 1rem) !important;
   }
 
-  [class*="p-24"],
-  [class*="p-20"],
-  [class*="p-16"],
-  [class*="p-12"],
-  [class*="p-10"],
-  [class*="p-8"] {
+  [class~="p-24"],
+  [class~="p-20"],
+  [class~="p-16"],
+  [class~="p-12"],
+  [class~="p-10"],
+  [class~="p-8"] {
     padding: 1.25rem !important;
   }
 
-  [class*="px-24"],
-  [class*="px-20"],
-  [class*="px-16"],
-  [class*="px-12"],
-  [class*="px-10"],
-  [class*="px-8"] {
+  [class~="px-24"],
+  [class~="px-20"],
+  [class~="px-16"],
+  [class~="px-12"],
+  [class~="px-10"],
+  [class~="px-8"] {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
 
-  [class*="py-32"],
-  [class*="py-28"],
-  [class*="py-24"],
-  [class*="py-20"],
-  [class*="py-16"],
-  [class*="py-12"] {
+  [class~="py-32"],
+  [class~="py-28"],
+  [class~="py-24"],
+  [class~="py-20"],
+  [class~="py-16"],
+  [class~="py-12"] {
     padding-top: 3.5rem !important;
     padding-bottom: 3.5rem !important;
   }
 
-  [class*="gap-20"],
-  [class*="gap-16"],
-  [class*="gap-12"],
-  [class*="space-y-16"],
-  [class*="space-y-12"],
-  [class*="space-y-10"] {
+  [class~="gap-20"],
+  [class~="gap-16"],
+  [class~="gap-12"],
+  [class~="space-y-16"],
+  [class~="space-y-12"],
+  [class~="space-y-10"] {
     gap: 1.5rem !important;
   }
 
-  [class*="rounded-[5rem]"],
-  [class*="rounded-[4.5rem]"],
-  [class*="rounded-[4rem]"],
-  [class*="rounded-[3.5rem]"],
-  [class*="rounded-[3rem]"] {
+  [class~="rounded-[5rem]"],
+  [class~="rounded-[4.5rem]"],
+  [class~="rounded-[4rem]"],
+  [class~="rounded-[3.5rem]"],
+  [class~="rounded-[3rem]"] {
     border-radius: 1.5rem !important;
   }
 
-  [class*="text-9xl"],
-  [class*="text-8xl"],
-  [class*="text-7xl"],
-  [class*="text-6xl"] {
+  [class~="text-9xl"],
+  [class~="text-8xl"],
+  [class~="text-7xl"],
+  [class~="text-6xl"] {
     font-size: clamp(2.25rem, 12vw, 3.75rem) !important;
     line-height: 0.95 !important;
   }
 
-  [class*="text-5xl"] {
+  [class~="text-5xl"] {
     font-size: clamp(2rem, 10vw, 3rem) !important;
     line-height: 1 !important;
   }
 
-  [class*="tracking-[0.4em]"],
-  [class*="tracking-[0.3em]"],
-  [class*="tracking-[0.25em]"] {
+  [class~="tracking-[0.4em]"],
+  [class~="tracking-[0.3em]"],
+  [class~="tracking-[0.25em]"] {
     letter-spacing: 0.16em !important;
   }
 
@@ -598,20 +598,20 @@ html.ai-chat-active [class*="Footer_"] {
     font-size: 16px;
   }
 
-  [class*="gap-10"],
-  [class*="gap-8"] {
+  [class~="gap-10"],
+  [class~="gap-8"] {
     gap: 1.25rem !important;
   }
 
-  [class*="rounded-[2.5rem]"],
-  [class*="rounded-[3rem]"],
-  [class*="rounded-[3.5rem]"] {
+  [class~="rounded-[2.5rem]"],
+  [class~="rounded-[3rem]"],
+  [class~="rounded-[3.5rem]"] {
     border-radius: 1.5rem !important;
   }
 
-  [class*="max-w-[400px]"],
-  [class*="max-w-[450px]"],
-  [class*="max-w-[500px]"] {
+  [class~="max-w-[400px]"],
+  [class~="max-w-[450px]"],
+  [class~="max-w-[500px]"] {
     max-width: 100% !important;
   }
 

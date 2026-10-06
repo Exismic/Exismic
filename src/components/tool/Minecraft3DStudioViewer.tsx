@@ -283,7 +283,7 @@ export function Minecraft3DStudioViewer({
     <div
       ref={shellRef}
       className={cn(
-        "relative h-[500px] min-h-[460px] sm:h-[580px] xl:h-[640px] w-full overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.7)] group/studio bg-[#06070e]",
+        "relative h-[400px] min-h-[400px] sm:h-[580px] xl:h-[640px] w-full overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.7)] group/studio bg-[#06070e]",
         className
       )}
       style={{
@@ -307,7 +307,7 @@ export function Minecraft3DStudioViewer({
               setIsAnimDropdownOpen(!isAnimDropdownOpen);
               setIsEnvDropdownOpen(false);
             }}
-            className="px-3.5 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-2 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40"
+            className="min-h-11 px-3.5 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-2 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40"
           >
             <AnimIcon className="size-3.5 text-cyan-300" />
             <span className="hidden sm:inline">{currentAnim.label}</span>
@@ -315,7 +315,7 @@ export function Minecraft3DStudioViewer({
           </button>
 
           {isAnimDropdownOpen && (
-            <div className="absolute top-full left-0 mt-2 w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute top-full left-0 mt-2 max-h-[260px] overflow-y-auto w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
               <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2.5 py-1 block">
                 Character Poses
               </span>
@@ -331,7 +331,7 @@ export function Minecraft3DStudioViewer({
                       setIsAnimDropdownOpen(false);
                     }}
                     className={cn(
-                      "w-full px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-colors text-left cursor-pointer",
+                      "min-h-11 w-full px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-colors text-left cursor-pointer",
                       isSelected
                         ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
                         : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
@@ -356,7 +356,7 @@ export function Minecraft3DStudioViewer({
                 setIsEnvDropdownOpen(!isEnvDropdownOpen);
                 setIsAnimDropdownOpen(false);
               }}
-              className="px-3.5 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-2 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40"
+              className="min-h-11 px-3.5 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-xs font-bold text-white flex items-center gap-2 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40"
             >
               <EnvIcon className="size-3.5 text-cyan-300" />
               <span className="hidden sm:inline">{currentEnv.label}</span>
@@ -364,7 +364,7 @@ export function Minecraft3DStudioViewer({
             </button>
 
             {isEnvDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute top-full right-0 mt-2 max-h-[260px] overflow-y-auto w-48 rounded-2xl bg-[#090b14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-1.5 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
                 <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500 px-2.5 py-1 block">
                   Studio Background
                 </span>
@@ -379,7 +379,7 @@ export function Minecraft3DStudioViewer({
                         setIsEnvDropdownOpen(false);
                       }}
                       className={cn(
-                        "w-full px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors text-left cursor-pointer",
+                        "min-h-11 w-full px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors text-left cursor-pointer",
                         isSelected
                           ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
                           : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
@@ -402,7 +402,7 @@ export function Minecraft3DStudioViewer({
             onClick={handleTakeSnapshot}
             disabled={isCapturing}
             title="Download 3D Pose Snapshot (PNG)"
-            className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-cyan-300 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-cyan-300 shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 disabled:opacity-50"
           >
             <Camera size={14} className={cn(isCapturing && "animate-spin text-cyan-400")} />
           </button>
@@ -415,7 +415,7 @@ export function Minecraft3DStudioViewer({
         <button
           onClick={() => setIsPaused(!isPaused)}
           title={isPaused ? "Resume Animation" : "Pause Animation"}
-          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95"
         >
           {isPaused ? <Play size={14} className="text-emerald-400" /> : <Pause size={14} className="text-amber-400" />}
         </button>
@@ -425,7 +425,7 @@ export function Minecraft3DStudioViewer({
           onClick={() => setShowOverlays(!showOverlays)}
           title={showOverlays ? "Hide Outer Layer Details" : "Show Outer Layer Details"}
           className={cn(
-            "p-2.5 rounded-xl backdrop-blur-xl border shadow-xl transition-all cursor-pointer active:scale-95",
+            "inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl backdrop-blur-xl border shadow-xl transition-all cursor-pointer active:scale-95",
             showOverlays
               ? "bg-cyan-500/25 border-cyan-400/50 text-cyan-200"
               : "bg-black/80 border-white/15 text-zinc-400 hover:text-white hover:border-white/30"
@@ -439,7 +439,7 @@ export function Minecraft3DStudioViewer({
           onClick={() => onAutoRotateChange?.(!autoRotate)}
           title={autoRotate ? "Stop Auto-Rotation" : "Enable Auto-Rotation"}
           className={cn(
-            "p-2.5 rounded-xl backdrop-blur-xl border shadow-xl transition-all cursor-pointer active:scale-95",
+            "inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl backdrop-blur-xl border shadow-xl transition-all cursor-pointer active:scale-95",
             autoRotate
               ? "bg-cyan-500/25 border-cyan-400/50 text-cyan-200"
               : "bg-black/80 border-white/15 text-zinc-400 hover:text-white hover:border-white/30"
@@ -452,7 +452,7 @@ export function Minecraft3DStudioViewer({
         <button
           onClick={handleResetView}
           title="Reset Camera to Front"
-          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95"
         >
           <RotateCcw size={14} />
         </button>
@@ -461,25 +461,25 @@ export function Minecraft3DStudioViewer({
         <button
           onClick={() => handleZoom(0.15)}
           title="Zoom In"
-          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 hidden sm:flex"
+          className="min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 hidden sm:flex"
         >
           <ZoomIn size={14} />
         </button>
         <button
           onClick={() => handleZoom(-0.15)}
           title="Zoom Out"
-          className="p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 hidden sm:flex"
+          className="min-h-11 min-w-11 items-center justify-center p-2.5 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-xl border border-white/15 text-zinc-300 hover:text-white shadow-xl transition-all cursor-pointer hover:border-cyan-400/40 active:scale-95 hidden sm:flex"
         >
           <ZoomOut size={14} />
         </button>
       </div>
 
       {/* Bottom Interaction Hint */}
-      <div className="pointer-events-none absolute inset-x-6 bottom-4 flex justify-center z-10">
-        <span className="rounded-full border border-white/10 bg-black/75 px-4 py-1.5 text-[11px] font-semibold text-zinc-400 backdrop-blur-md shadow-2xl flex items-center gap-2">
-          <span>Click and drag to rotate</span>
-          <span className="text-zinc-600">·</span>
-          <span>Scroll to zoom</span>
+      <div className="pointer-events-none absolute inset-x-3 bottom-4 flex justify-center z-10">
+        <span className="rounded-full border border-white/10 bg-black/75 max-w-full px-3 py-2 text-[11px] font-semibold text-zinc-400 backdrop-blur-md shadow-2xl flex items-center gap-2">
+          <span className="sm:hidden">Drag to rotate</span><span className="hidden sm:inline">Click and drag to rotate</span>
+          <span className="hidden sm:inline text-zinc-600">·</span>
+          <span className="hidden sm:inline">Scroll to zoom</span>
         </span>
       </div>
     </div>

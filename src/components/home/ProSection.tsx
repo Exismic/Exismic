@@ -102,7 +102,7 @@ export function ProSection() {
         />
 
         {/* Inner Dark Shell */}
-        <div className="relative z-10 h-full w-full p-6 sm:p-10 md:p-12 rounded-[calc(1.5rem-2px)] sm:rounded-[calc(2.5rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden">
+        <div className="relative z-10 h-full w-full p-4 sm:p-10 md:p-12 rounded-[calc(1.5rem-2px)] sm:rounded-[calc(2.5rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden">
           
           {/* Continuous Hover Shine Sweep — elevated z-30 pointer-events-none */}
           <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none z-30">

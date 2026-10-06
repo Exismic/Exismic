@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -34,7 +35,7 @@ export interface ToolProcessorContext {
 }
 
 export async function withToolHandler(
-  req: NextRequest, 
+  req: NextRequest,
   options: ToolOptions,
   processor: (file: Buffer, jobId: string, formData: FormData, context: ToolProcessorContext) => Promise<{ resultUrl: string, metadata?: Record<string, unknown> }>
 ) {
@@ -56,17 +57,17 @@ export async function withToolHandler(
     const file = formData.get("file") as File;
 
     if (!file && !options.optionalFile) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return publicJson({ error: "No file uploaded" }, { status: 400 });
     }
 
     // 3. Validate File (if present)
     if (file) {
       if (!options.allowedTypes.includes(file.type)) {
-        return NextResponse.json({ error: `Invalid file type. Allowed: ${options.allowedTypes.join(", ")}` }, { status: 400 });
+        return publicJson({ error: `Invalid file type. Allowed: ${options.allowedTypes.join(", ")}` }, { status: 400 });
       }
 
       if (file.size > options.maxSize) {
-        return NextResponse.json({ error: `File too large. Max: ${options.maxSize / 1024 / 1024}MB` }, { status: 400 });
+        return publicJson({ error: `File too large. Max: ${options.maxSize / 1024 / 1024}MB` }, { status: 400 });
       }
     }
 
@@ -118,11 +119,11 @@ export async function withToolHandler(
           data: { status: "FAILED", progress: 100, error: debitResult.error || "Insufficient credits" },
         });
       }
-      return NextResponse.json({ error: debitResult.error || "Insufficient credits" }, { status: 402 });
+      return publicJson({ error: debitResult.error || "Insufficient credits" }, { status: 402 });
     }
 
     if (!user || !job) {
-      return NextResponse.json({
+      return publicJson({
         success: true,
         jobId,
         result: result.resultUrl,
@@ -177,9 +178,9 @@ export async function withToolHandler(
       })
     ]);
 
-    return NextResponse.json({ 
-      success: true, 
-      jobId: job.id, 
+    return publicJson({
+      success: true,
+      jobId: job.id,
       result: result.resultUrl,
       priority: isPro,
       queue,
@@ -196,11 +197,11 @@ export async function withToolHandler(
         data: {
           status: "FAILED",
           progress: 100,
-          error: error instanceof Error ? error.message : "Internal Server Error",
+          error: "This file could not be processed. Please try again shortly.",
         },
       }).catch(() => undefined);
     }
     const message = error instanceof Error ? error.message : "Internal Server Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

@@ -335,8 +335,8 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                   )
                 }
                 footer={
-                  <div className="flex items-center justify-between w-full text-[11px] font-medium text-amber-200/90">
-                    <span className="flex items-center gap-1.5 font-semibold text-amber-200 whitespace-nowrap">
+                  <div className="flex flex-wrap items-center justify-between gap-2 w-full text-[11px] font-medium text-amber-200/90">
+                    <span className="flex items-center gap-1.5 font-semibold text-amber-200">
                       <Gift size={12} className={cn("shrink-0", !todayClaim ? "text-orange-400 animate-bounce" : "text-amber-400")} />
                       <span>{!todayClaim ? "Daily Reward Ready" : `Resets in ${countdown || "12h"}`}</span>
                     </span>
@@ -400,7 +400,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
         {/* 2. FUTURISTIC 3D CYBER SUITE COMMAND DECK */}
         <section className="space-y-4 pt-2">
           {/* Header Title Bar */}
-          <div className="flex items-center justify-between px-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-2">
             <div className="flex items-center gap-2.5">
               <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-cyan-400 animate-pulse shadow-[0_0_12px_rgba(168,85,247,1)]" />
               <span className="text-xs font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-purple-200 via-fuchsia-100 to-cyan-200 drop-shadow-sm">
@@ -408,7 +408,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
               </span>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-cyan-500/20 border border-purple-400/40 text-purple-100 font-black text-[11px] uppercase tracking-widest shadow-[0_0_20px_rgba(168,85,247,0.3)] flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
@@ -553,7 +553,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "group relative isolate flex flex-col justify-between gap-3 p-4 rounded-2xl border backdrop-blur-3xl transition-all duration-300 text-left overflow-hidden touch-manipulation",
+                    "group relative isolate min-w-0 flex flex-col justify-between gap-3 p-3 sm:p-4 rounded-2xl border backdrop-blur-3xl transition-all duration-300 text-left overflow-hidden touch-manipulation",
                     isActive
                       ? cn(theme.activeBg, theme.activeBorder, theme.activeGlow, theme.activeText, "scale-[1.04] z-20")
                       : cn(theme.idleBg, theme.idleBorder, theme.idleGlow, "hover:-translate-y-1 hover:scale-[1.02]")
@@ -563,7 +563,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                   <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none z-10" />
 
                   {/* Top Row: Icon Orb & Suite Badge */}
-                  <div className="flex items-center justify-between w-full relative z-20">
+                  <div className="flex flex-wrap items-center justify-between gap-1 w-full relative z-20">
                     <div className={cn(
                       "w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-inner shrink-0",
                       isActive 
@@ -586,7 +586,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
                   {/* Middle Row: Suite Title */}
                   <div className="relative z-20 pt-1">
                     <h4 className={cn(
-                      "text-xs font-black uppercase tracking-wider whitespace-nowrap",
+                      "text-[11px] sm:text-xs font-black uppercase tracking-normal sm:tracking-wider break-words",
                       isActive ? (tab.id === "favorites" ? "text-amber-950" : "text-white") : "text-zinc-100 group-hover:text-white"
                     )}>
                       {tab.label}
@@ -699,7 +699,7 @@ export function Dashboard({ initialUser }: { initialUser?: any }) {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                <div className="space-y-1">
                   <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
-                     <Star size={20} className="text-amber-500 fill-amber-500/20" />
+                     <Star size={20} className="shrink-0 text-amber-500 fill-amber-500/20" />
                      Popular Tools This Week
                   </h2>
                   <p className="text-zinc-400 text-sm font-medium">Tools used most by the community</p>
@@ -847,7 +847,7 @@ function StatCard({ label, value, icon: Icon, color, progress, loading, isPro, h
       <div className="absolute inset-0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-10" />
 
       {/* Top Header Row */}
-      <div className="flex items-center justify-between mb-3 relative z-20">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 relative z-20">
          <div className={cn(
            "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl border flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shrink-0",
            t.iconBg

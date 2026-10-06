@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasActiveProAccess } from "@/lib/user-access";
 import { createClient } from "@/utils/supabase/server";
@@ -225,7 +226,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      return NextResponse.json({ error: "Please sign in to use Exismic Ai." }, { status: 401 });
+      return publicJson({ error: "Please sign in to use Exismic Ai." }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
@@ -239,7 +240,7 @@ export async function POST(req: NextRequest) {
       const userCredits = await getUserCredits(user.id);
       const available = userCredits ? getCreditTotal(userCredits) : 0;
       if (available < TOOL_COST) {
-        return NextResponse.json(
+        return publicJson(
           { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS", requiredCredits: TOOL_COST, available },
           { status: 402 }
         );
@@ -250,7 +251,7 @@ export async function POST(req: NextRequest) {
     const brief = sanitizeMultiline(body.brief, "", 3000);
 
     if (brief.length < 8) {
-      return NextResponse.json({ error: "Tell Exismic AI a little more about the invoice." }, { status: 400 });
+      return publicJson({ error: "Tell Exismic AI a little more about the invoice." }, { status: 400 });
     }
 
     const invoice = await callGroq(brief);
@@ -260,13 +261,13 @@ export async function POST(req: NextRequest) {
       await deductCredits(user.id, TOOL_COST, "invoice-generator");
     }
 
-    return NextResponse.json({ success: true, invoice, creditsDeducted: TOOL_COST });
+    return publicJson({ success: true, invoice, creditsDeducted: TOOL_COST });
   } catch (error) {
     console.error("[Invoice AI] Generation failed:", error);
     const rawMessage = error instanceof Error ? error.message : "Exismic Ai invoice generation failed.";
     const message = rawMessage.includes("The AI processing service is currently unavailable")
       ? rawMessage
       : "Exismic Ai is temporarily unavailable. Please try again in a moment.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

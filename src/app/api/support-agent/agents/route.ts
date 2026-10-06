@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getCurrentSupportPlan,
@@ -17,10 +18,10 @@ export async function GET() {
       where user_id = ${auth.user.id}::uuid
       order by updated_at desc
     `;
-    return NextResponse.json({ agents });
+    return publicJson({ agents });
   } catch (error) {
     console.error("[SupportAgent agents GET]", error);
-    return NextResponse.json({ error: "Could not load support agents." }, { status: 500 });
+    return publicJson({ error: "Could not load support agents." }, { status: 500 });
   }
 }
 
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const input = sanitizeSupportAgentInput(await request.json());
     if (!input.business_name.trim()) {
-      return NextResponse.json({ error: "Business name is required." }, { status: 400 });
+      return publicJson({ error: "Business name is required." }, { status: 400 });
     }
     if (!input.name.trim()) {
       input.name = `${input.business_name.trim()} Support`;
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     `;
 
     if (Number(count ?? 0) >= plan.agentLimit) {
-      return NextResponse.json({ error: `${plan.name} supports up to ${plan.agentLimit} support agent${plan.agentLimit === 1 ? "" : "s"}.` }, { status: 402 });
+      return publicJson({ error: `${plan.name} supports up to ${plan.agentLimit} support agent${plan.agentLimit === 1 ? "" : "s"}.` }, { status: 402 });
     }
 
     const [agent] = await prisma.$queryRaw<SupportAgent[]>`
@@ -59,10 +60,10 @@ export async function POST(request: NextRequest) {
       )
       returning *
     `;
-    return NextResponse.json({ agent });
+    return publicJson({ agent });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not create support agent.";
     console.error("[SupportAgent agents POST]", error);
-    return NextResponse.json({ error: message || "Could not create support agent." }, { status: 500 });
+    return publicJson({ error: message || "Could not create support agent." }, { status: 500 });
   }
 }

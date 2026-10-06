@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { verifyAndAuthenticateApiKey } from "@/lib/api-keys";
 import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
@@ -64,19 +65,19 @@ export async function POST(req: NextRequest) {
     const auth = await verifyAndAuthenticateApiKey(authHeader);
 
     if ("error" in auth) {
-      return NextResponse.json({ error: auth.error, code: "UNAUTHORIZED" }, { status: auth.status });
+      return publicJson({ error: auth.error, code: "UNAUTHORIZED" }, { status: auth.status });
     }
 
     const ip = getRequestIp(req);
     const rateCheck = await checkDistributedRateLimit(`api-v1-text:${auth.userId || ip}`, 60, 60 * 1000);
     if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.retryAfter);
+      return rateLimitResponse(rateCheck.retryAfter, rateCheck.unavailable);
     }
 
     const currentCredits = await getUserCredits(auth.userId);
     const available = currentCredits ? getCreditTotal(currentCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`,
           code: "INSUFFICIENT_CREDITS",
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
     const { prompt, systemPrompt, temperature = 0.7, maxTokens = 2048 } = body;
 
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Field 'prompt' is required and must be a non-empty string.", code: "INVALID_BODY" },
         { status: 400 }
       );
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
     const debit = await deductCredits(auth.userId, TOOL_COST, "api-generate-text");
     const remainingCredits = debit.data ? getCreditTotal(debit.data) : available - TOOL_COST;
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       text: completion.text,
       model: completion.model,
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("[API v1 generate-text Error]:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "Failed to generate text completion", code: "INTERNAL_ERROR" },
       { status: 500 }
     );

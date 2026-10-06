@@ -487,7 +487,7 @@ const REGISTERED_TOOLS: Tool[] = [
     examples: [
   "Try a blue explorer jacket with brown boots, then inspect the sleeves in the 3D preview."
 ],
-    updatedAt: "2026-09-29T00:00:00.000Z" },
+    updatedAt: "2026-10-06T00:00:00.000Z" },
   { id: 'youtube-thumbnail', name: 'YouTube Thumbnail Maker', description: "Design punchy, high-click video thumbnails that stand out in crowded feeds. Add bold titles, glowing outlines, and sticker accents that grab instant attention.", category: 'image', icon: 'Youtube' as IconName, href: '/tools/youtube/thumbnail',
     suggestions: ["What makes a high-converting thumbnail?","Which fonts are best for readability on mobile?","How do I add a glow effect around my subject?"], popular: true, seoTitle: "Free YouTube Thumbnail Maker - Design 1280x720 PNG Thumbnails",
     seoDescription: "Design 1280x720 YouTube thumbnails with templates, editable text, colors, and image layers. Preview your design and download PNG.",

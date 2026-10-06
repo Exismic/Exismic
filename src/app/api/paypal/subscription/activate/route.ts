@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { fulfillBillingOrder } from "@/lib/billing/fulfillment";
 import { getPayPalSubscription, parsePayPalCustomId } from "@/lib/paypal";
 import { prisma } from "@/lib/prisma";
@@ -41,12 +42,12 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user?.id || !user.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { subscriptionId } = (await req.json()) as ActivateBody;
     if (!subscriptionId) {
-      return NextResponse.json({ error: "Missing PayPal subscription id." }, { status: 400 });
+      return publicJson({ error: "Missing PayPal subscription id." }, { status: 400 });
     }
 
     const existingTransaction = await prisma.paymentTransaction.findUnique({
@@ -55,10 +56,10 @@ export async function POST(req: NextRequest) {
 
     if (existingTransaction) {
       if (existingTransaction.userId !== user.id) {
-        return NextResponse.json({ error: "This PayPal subscription does not belong to your account." }, { status: 403 });
+        return publicJson({ error: "This PayPal subscription does not belong to your account." }, { status: 403 });
       }
       await deliverBillingReceipt(user.id, subscriptionId);
-      return NextResponse.json({
+      return publicJson({
         success: true,
         duplicate: true,
         plan: "pro",
@@ -77,15 +78,15 @@ export async function POST(req: NextRequest) {
         customUserId: customContext?.userId,
         subscriptionId,
       });
-      return NextResponse.json({ error: "This PayPal subscription does not belong to your account." }, { status: 403 });
+      return publicJson({ error: "This PayPal subscription does not belong to your account." }, { status: 403 });
     }
 
     if (String(subscription.status).toUpperCase() !== "ACTIVE") {
-      return NextResponse.json({ error: "PayPal subscription is not active yet." }, { status: 400 });
+      return publicJson({ error: "PayPal subscription is not active yet." }, { status: 400 });
     }
 
     if (customContext.currency !== "USD") {
-      return NextResponse.json({ error: "PayPal subscription currently accepts USD only." }, { status: 400 });
+      return publicJson({ error: "PayPal subscription currently accepts USD only." }, { status: 400 });
     }
 
     const isYearly = customContext.tierId === "pro_yearly";
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
     const paidCurrency = subscription.billing_info?.last_payment?.amount?.currency_code;
 
     if (paidCurrency !== "USD") {
-      return NextResponse.json({ error: "PayPal subscription currency does not match Exismic Pro pricing." }, { status: 400 });
+      return publicJson({ error: "PayPal subscription currency does not match Exismic Pro pricing." }, { status: 400 });
     }
 
 
@@ -111,11 +112,11 @@ export async function POST(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
     if (!paymentOrder || paymentOrder.userId !== user.id) {
-      return NextResponse.json({ error: "Payment order not found for this account." }, { status: 404 });
+      return publicJson({ error: "Payment order not found for this account." }, { status: 404 });
     }
 
     if (paymentOrder.planId !== planTier || !amountsMatch(paidAmount, paymentOrder.amount / 100)) {
-      return NextResponse.json({ error: "PayPal has not confirmed the matching payment for this purchase yet." }, { status: 400 });
+      return publicJson({ error: "PayPal has not confirmed the matching payment for this purchase yet." }, { status: 400 });
     }
 
     const result = await fulfillBillingOrder({
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       plan: planTier,
       subscriptionId,
@@ -142,6 +143,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[PayPal] Subscription activation failed:", error);
     const message = error instanceof Error ? error.message : "Could not verify PayPal subscription.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

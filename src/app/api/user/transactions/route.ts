@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
@@ -7,7 +7,7 @@ export async function GET() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const transactions = await prisma.paymentTransaction.findMany({
@@ -16,9 +16,9 @@ export async function GET() {
       take: 20,
     });
 
-    return NextResponse.json({ success: true, data: transactions });
+    return publicJson({ success: true, data: transactions });
   } catch (error) {
     console.error("[TRANSACTIONS_GET]", error);
-    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+    return publicJson({ error: "Internal Error" }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import { Client } from "@gradio/client";
 
@@ -9,18 +10,18 @@ import { Client } from "@gradio/client";
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(`ambient-mixer:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 30 : 10, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const limit = await checkRateLimit(`ambient-mixer:${authUser?.id || getRequestIp(req)}`, authUser ? 30 : 10, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const body = await req.json().catch(() => ({}));
-    const { 
-      prompt, 
+    const {
+      prompt,
       duration = 15,
       seed = 5
     } = body;
 
     if (!prompt || typeof prompt !== "string") {
-      return NextResponse.json({ error: "Please enter a visual music prompt description." }, { status: 400 });
+      return publicJson({ error: "Please enter a visual music prompt description." }, { status: 400 });
     }
 
     const numericSeed = Math.max(0, Math.min(10, parseInt(seed) || 5));
@@ -51,22 +52,22 @@ export async function POST(req: NextRequest) {
 
     const streamUrl = resultList[0].url;
 
-    return NextResponse.json({
+    return publicJson({
       url: streamUrl,
       seed: numericSeed
     });
 
   } catch (error: any) {
     console.error("[Ambient Mixer Route Error]:", error);
-    
+
     // Friendly error helper for Hugging Face quota limit warnings
     let message = error?.message || "Failed to generate AI background music loop.";
     if (message.includes("ZeroGPU quota")) {
       message = "You have exceeded the free anonymous GPU quota for today. To fix this permanently, please add a free Hugging Face token ('HF_TOKEN') to your project environment variables.";
     }
 
-    return NextResponse.json({ 
-      error: message 
+    return publicJson({
+      error: message
     }, { status: 500 });
   }
 }

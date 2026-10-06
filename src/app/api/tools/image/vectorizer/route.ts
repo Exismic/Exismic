@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import sharp from "sharp";
@@ -13,17 +14,17 @@ const Bitmap = require("potrace/lib/types/Bitmap");
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(`vectorizer:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 50 : 15, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const limit = await checkRateLimit(`vectorizer:${authUser?.id || getRequestIp(req)}`, authUser ? 50 : 15, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await req.formData().catch(() => null);
     if (!formData) {
-      return NextResponse.json({ error: "Invalid form data submission." }, { status: 400 });
+      return publicJson({ error: "Invalid form data submission." }, { status: 400 });
     }
 
     const file = formData.get("file") as File | null;
     if (!file) {
-      return NextResponse.json({ error: "No image file uploaded." }, { status: 400 });
+      return publicJson({ error: "No image file uploaded." }, { status: 400 });
     }
 
     // Read and bound trace threshold: 0 to 255
@@ -63,17 +64,17 @@ export async function POST(req: NextRequest) {
       const r = rawPixels[idx];
       const g = rawPixels[idx + 1];
       const b = rawPixels[idx + 2];
-      
+
       // Blend background (assuming white background behind transparency)
       let opacity = 1;
       if (channels === 4) {
         opacity = rawPixels[idx + 3] / 255;
       }
-      
+
       const blendedR = 255 + (r - 255) * opacity;
       const blendedG = 255 + (g - 255) * opacity;
       const blendedB = 255 + (b - 255) * opacity;
-      
+
       // Grayscale luminance formula: 0.2126 * R + 0.7152 * G + 0.0722 * B
       const lum = 0.2126 * blendedR + 0.7152 * blendedG + 0.0722 * blendedB;
       bitmap.data[i] = Math.round(lum);
@@ -106,8 +107,8 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("[Vectorizer Server Error]:", error);
-    return NextResponse.json({ 
-      error: error.message || "An unexpected error occurred during image vectorization." 
+    return publicJson({
+      error: error.message || "An unexpected error occurred during image vectorization."
     }, { status: 500 });
   }
 }

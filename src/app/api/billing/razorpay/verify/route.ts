@@ -1,5 +1,6 @@
+import { publicJson } from "@/lib/public-json";
 import crypto from "crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import Razorpay from "razorpay";
 import { fulfillBillingOrder } from "@/lib/billing/fulfillment";
 import { prisma } from "@/lib/prisma";
@@ -30,24 +31,24 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user?.id) return publicJson({ error: "Unauthorized" }, { status: 401 });
 
     const body = (await req.json()) as VerifyBody;
     const { razorpay_order_id, razorpay_subscription_id, razorpay_payment_id, razorpay_signature } = body;
     const providerCheckoutId = razorpay_subscription_id || razorpay_order_id;
     if (!providerCheckoutId || !razorpay_payment_id || !razorpay_signature) {
-      return NextResponse.json({ error: "Missing Razorpay verification fields." }, { status: 400 });
+      return publicJson({ error: "Missing Razorpay verification fields." }, { status: 400 });
     }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
-    if (!secret) return NextResponse.json({ error: "Razorpay is not configured." }, { status: 500 });
+    if (!secret) return publicJson({ error: "Razorpay is not configured." }, { status: 500 });
 
     const paymentOrder = await prisma.paymentOrder.findFirst({
       where: { providerOrderId: providerCheckoutId, gateway: "razorpay" },
     });
 
     if (!paymentOrder || paymentOrder.userId !== user.id) {
-      return NextResponse.json({ error: "Payment order not found for this account." }, { status: 404 });
+      return publicJson({ error: "Payment order not found for this account." }, { status: 404 });
     }
 
     const signaturePayload = razorpay_subscription_id
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     if (!valid) {
       await prisma.paymentOrder.updateMany({ where: { id: paymentOrder.id, status: { not: "paid" } }, data: { status: "failed", providerPaymentId: razorpay_payment_id } });
-      return NextResponse.json({ error: "Payment signature verification failed." }, { status: 400 });
+      return publicJson({ error: "Payment signature verification failed." }, { status: 400 });
     }
 
     const razorpay = getRazorpayClient();
@@ -68,16 +69,16 @@ export async function POST(req: NextRequest) {
     const paymentRecord = payment as unknown as Record<string, unknown>;
     const paymentStatus = String(payment.status || "").toLowerCase();
     if (paymentStatus !== "captured") {
-      return NextResponse.json({ error: "Razorpay payment is not completed yet." }, { status: 400 });
+      return publicJson({ error: "Razorpay payment is not completed yet." }, { status: 400 });
     }
     if (Number(payment.amount) !== paymentOrder.amount || String(payment.currency) !== paymentOrder.currency) {
-      return NextResponse.json({ error: "Payment amount or currency does not match this order." }, { status: 400 });
+      return publicJson({ error: "Payment amount or currency does not match this order." }, { status: 400 });
     }
 
     let periodEnd: Date | null = null;
     if (razorpay_subscription_id) {
       if (String(paymentRecord.subscription_id || "") !== providerCheckoutId) {
-        return NextResponse.json({ error: "Payment does not belong to this subscription." }, { status: 400 });
+        return publicJson({ error: "Payment does not belong to this subscription." }, { status: 400 });
       }
       const subscription = await razorpay.subscriptions.fetch(providerCheckoutId);
       const subscriptionRecord = subscription as unknown as Record<string, unknown>;
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (String(payment.order_id || "") !== providerCheckoutId) {
-      return NextResponse.json({ error: "Payment does not belong to this order." }, { status: 400 });
+      return publicJson({ error: "Payment does not belong to this order." }, { status: 400 });
     }
 
     const result = await fulfillBillingOrder({
@@ -110,9 +111,9 @@ export async function POST(req: NextRequest) {
       rawMetadata: { verifiedBy: "checkout_success", razorpaySignature: "verified", razorpayOrderId: razorpay_order_id || null, razorpaySubscriptionId: razorpay_subscription_id || null },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      alreadyProcessed: result.alreadyProcessed, 
+    return publicJson({
+      success: true,
+      alreadyProcessed: result.alreadyProcessed,
       orderId: paymentOrder.id,
       isGift: Boolean(result.isGift),
       giftCode: result.giftCode || null,
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
     const message = process.env.NODE_ENV === "production"
       ? "Could not verify Razorpay payment. Please contact support if you were charged."
       : error instanceof Error ? error.message : "Could not verify Razorpay payment.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }
 

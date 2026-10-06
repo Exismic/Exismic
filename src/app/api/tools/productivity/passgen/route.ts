@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { randomInt } from "node:crypto";
 
 type PasswordOptions = {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       .map((key) => CHARACTER_GROUPS[key]);
 
     if (groups.length === 0) {
-      return NextResponse.json({ error: "Select at least one character type." }, { status: 400 });
+      return publicJson({ error: "Select at least one character type." }, { status: 400 });
     }
 
     const allCharacters = groups.join("");
@@ -50,13 +51,13 @@ export async function POST(request: NextRequest) {
     while (passwordCharacters.length < length) passwordCharacters.push(secureCharacter(allCharacters));
     const password = shuffle(passwordCharacters).join("");
 
-    return NextResponse.json({ 
-      success: true, 
+    return publicJson({
+      success: true,
       result: password,
       length,
     });
 
   } catch {
-    return NextResponse.json({ error: "Failed to generate password" }, { status: 500 });
+    return publicJson({ error: "Failed to generate password" }, { status: 500 });
   }
 }

@@ -236,12 +236,12 @@ export function TrustedLoginSetup() {
         <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-purple-600/10 blur-[110px]" />
 
         <div className="relative space-y-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/30 bg-[linear-gradient(135deg,rgba(168,85,247,0.2),rgba(34,211,238,0.2))] text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,0.2)]">
+          <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
+            <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:gap-4">
+              <div className="flex h-12 w-12 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/30 bg-[linear-gradient(135deg,rgba(168,85,247,0.2),rgba(34,211,238,0.2))] text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,0.2)]">
                 <ShieldCheck size={28} className="drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.055] px-3 py-1 text-[8px] font-black uppercase tracking-[0.22em] text-cyan-100">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_#67e8f9]" />
                   Optional security setup
@@ -392,8 +392,8 @@ export function TrustedLoginSetup() {
                   className="relative overflow-hidden rounded-[2.5rem] border border-cyan-400/20 bg-[linear-gradient(145deg,rgba(34,211,238,0.08),rgba(168,85,247,0.03))] shadow-[0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-3xl"
                 >
                   <div className="absolute inset-0 bg-white/[0.01]" />
-                  <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-                    <div className="flex items-start gap-5">
+                  <div className="relative grid gap-4 sm:gap-6 p-4 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-5">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] border border-cyan-300/30 bg-gradient-to-br from-cyan-400/20 to-purple-500/20 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
                         <Laptop size={22} className="drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
                       </div>
@@ -464,10 +464,10 @@ export function TrustedLoginSetup() {
                     <Smartphone size={21} />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-white">
+                    <p className="break-words text-sm font-black text-white">
                       {enrollment.device.deviceName}
                     </p>
-                    <p className="mt-1 truncate text-xs text-zinc-500">
+                    <p className="mt-1 break-all text-xs text-zinc-500">
                       {enrollment.device.loginEmail}
                     </p>
                     <p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-zinc-600">

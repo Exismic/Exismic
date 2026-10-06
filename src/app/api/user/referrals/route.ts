@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
@@ -14,7 +14,7 @@ export async function GET() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     let dbUser = await prisma.user.findUnique({
@@ -23,7 +23,7 @@ export async function GET() {
     });
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return publicJson({ error: "User not found" }, { status: 404 });
     }
 
     // Generate referral code if missing
@@ -62,7 +62,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       referralCode: dbUser.referralCode,
       totalReferred: referrals.length,
@@ -78,6 +78,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[REFERRALS_GET]", error);
-    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+    return publicJson({ error: "Internal Error" }, { status: 500 });
   }
 }

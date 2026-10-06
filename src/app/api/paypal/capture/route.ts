@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-
+import { publicJson } from "@/lib/public-json";
 export async function POST() {
-  return NextResponse.json(
+  return publicJson(
     { error: "This payment endpoint has been retired. Refresh the page and try again." },
     { status: 410 },
   );

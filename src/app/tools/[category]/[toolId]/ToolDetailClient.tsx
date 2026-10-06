@@ -18,7 +18,7 @@ import { ImageFormatConverter } from "@/components/tool/ImageFormatConverter";
 import { PhotoRestorer } from "@/components/tool/PhotoRestorer";
 import { WatermarkRemover } from "@/components/tool/WatermarkRemover";
 import { CollageMaker } from "@/components/tool/CollageMaker";
-import { MinecraftSkinMaker } from "@/components/tool/MinecraftSkinMaker";
+import { MinecraftSkinWorkspace } from "@/components/tool/MinecraftSkinWorkspace";
 import { VocalRemover } from "@/components/tool/VocalRemover";
 import { StemSplitter } from "@/components/tool/StemSplitter";
 import { NoiseRemover } from "@/components/tool/NoiseRemover";
@@ -281,7 +281,7 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
              ) : tool.id === 'image-collage' ? (
                 <CollageMaker />
              ) : tool.id === 'image-minecraft-skin' ? (
-                <MinecraftSkinMaker />
+                <MinecraftSkinWorkspace />
              ) : tool.id === 'audio-vocal-remover' ? (
                 <VocalRemover />
              ) : tool.id === 'audio-stem-splitter' ? (
@@ -470,7 +470,8 @@ export function ToolDetailClient({ tool, category, relatedTools, categoryId, too
   const PageContent = (
     <div className={cn(
       "mx-auto space-y-6 px-3 pb-24 pt-24 sm:px-5 sm:pt-24 md:space-y-8 md:px-8 md:pb-28 md:pt-28",
-      isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]"
+      isSpecialTool ? "w-full max-w-[1720px]" : "max-w-[1440px]",
+      tool.id === "image-minecraft-skin" && "pt-6 sm:pt-10 md:pt-12"
     )}>
 
       {categoryId === 'pdf' && (

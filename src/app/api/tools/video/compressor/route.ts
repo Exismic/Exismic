@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
@@ -27,12 +28,12 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const access = await resolveToolAccess(req, { toolId: "video-compressor", mode: "free-quality", creditCost: 8, formData });
     if (isToolAccessResponse(access)) return access;
-    const limit = checkRateLimit(
-      `video-compressor:${access.authUser?.id || "guest"}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `video-compressor:${access.authUser?.id || getRequestIp(req)}`,
       access.isAuthenticated ? 8 : 3,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
     const file = formData.get("video") as File;
     const requestedQuality = String(formData.get("quality") || "medium");
     const quality = access.outputTier === "standard" ? "medium" : requestedQuality;
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
     );
     const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
     const debit = await chargeToolAccess(access, "video-compressor", `tool:${requestId}`);
-    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+    if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
     const fileName = `${safeVideoStem(file.name)}-compressed.${format}`;
 
     return createVideoDownloadResponse(bytes, {

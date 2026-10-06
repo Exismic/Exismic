@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
@@ -185,7 +186,7 @@ export function videoErrorResponse(error: unknown, requestId: string) {
     console.error(`[video:${requestId}] processing failed`, error);
   }
 
-  return NextResponse.json(
+  return publicJson(
     {
       error: message,
       code: known ? error.code : "VIDEO_PROCESSING_FAILED",

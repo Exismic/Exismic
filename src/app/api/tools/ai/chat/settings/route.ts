@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
@@ -94,7 +95,7 @@ async function getUser() {
 export async function GET() {
   try {
     const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return publicJson({ error: "Unauthorized" }, { status: 401 });
 
     const context = await prisma.userContext.findUnique({
       where: { userId: user.id },
@@ -102,21 +103,21 @@ export async function GET() {
     });
     const preferences = parseJsonObject(context?.preferences);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       settings: normalizeSettings(preferences.aiChat),
       memories: parseMemories(context?.memories),
     });
   } catch (error) {
     console.error("[AI Chat Settings GET]", error);
-    return NextResponse.json({ error: "Could not load AI chat settings." }, { status: 500 });
+    return publicJson({ error: "Could not load AI chat settings." }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return publicJson({ error: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
     const context = await prisma.userContext.findUnique({
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     if (body?.action === "add-memory") {
       const memory = String(body.memory || "").replace(/\s+/g, " ").trim().slice(0, 500);
-      if (!memory) return NextResponse.json({ error: "Memory cannot be empty." }, { status: 400 });
+      if (!memory) return publicJson({ error: "Memory cannot be empty." }, { status: 400 });
       const lower = memory.toLowerCase();
       nextMemories = [memory, ...nextMemories.filter(item => item.toLowerCase() !== lower)].slice(0, 40);
     }
@@ -174,13 +175,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       settings: nextSettings,
       memories: nextMemories,
     });
   } catch (error) {
     console.error("[AI Chat Settings POST]", error);
-    return NextResponse.json({ error: "Could not save AI chat settings." }, { status: 500 });
+    return publicJson({ error: "Could not save AI chat settings." }, { status: 500 });
   }
 }

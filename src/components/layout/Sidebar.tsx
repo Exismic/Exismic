@@ -1072,13 +1072,14 @@ function CategoryDropdown({ category, catName, pathname, catGlow, isCompact, onI
 export function Sidebar() {
   const { t } = useTranslation();
   const pathname = usePathname();
-  const { isCompact, toggleCompact, isFocusMode, setFocusMode, setCompact, isMobileOpen, setMobileOpen } = useSidebarStore();
+  const { isCompact: isDesktopCompact, toggleCompact, isFocusMode, setFocusMode, setCompact, isMobileOpen, setMobileOpen } = useSidebarStore();
   const { isPro, user: dbUser, isLoading: isProLoading } = usePro();
   const { credits, loading: isCreditsLoading, dailyStreak, countdown } = useCredits();
   const [session, setSession] = useState<Session | null>(null);
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const [isDesktop, setIsDesktop] = useState(true);
+  const isCompact = isDesktop && isDesktopCompact;
 
   useEffect(() => {
     const handleResize = () => {
@@ -1362,7 +1363,7 @@ export function Sidebar() {
               style={{ willChange: isDesktop ? "auto" : "transform" }}
               className={cn(
                 "fixed inset-y-0 left-0 z-[140] w-[calc(100vw-16px)] max-w-[300px] h-full bg-zinc-950/95 backdrop-blur-md lg:backdrop-blur-xl border-r border-zinc-800 shadow-2xl lg:static lg:h-full lg:max-h-full lg:transition-[width] lg:duration-300 shrink-0 overflow-hidden lg:overflow-visible",
-                isFocusMode ? "hidden" : isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
+                isFocusMode && isDesktop ? "hidden" : isCompact ? "lg:w-[88px]" : "lg:w-[300px]"
               )}
             >
               {/* Compact Toggle Button - Distinct High-Contrast Floating Pill */}

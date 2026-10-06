@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { createWorker } from "tesseract.js";
 
 export const maxDuration = 120;
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
     const language = (formData.get("language") as string) || "eng";
 
     if (!file) {
-      return NextResponse.json(
+      return publicJson(
         { success: false, error: "No document or image file provided." },
         { status: 400 }
       );
@@ -27,13 +28,13 @@ export async function POST(req: NextRequest) {
     const text = result.data.text.trim();
 
     if (!text) {
-      return NextResponse.json(
+      return publicJson(
         { success: false, error: "No readable text was detected by server OCR." },
         { status: 422 }
       );
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       text,
       metadata: {
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("[Cloud OCR API] Error during text recognition:", error);
-    return NextResponse.json(
+    return publicJson(
       { success: false, error: error instanceof Error ? error.message : "Cloud OCR recognition failed." },
       { status: 500 }
     );

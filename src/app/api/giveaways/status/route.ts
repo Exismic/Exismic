@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { getUserGiveawayProgress } from "@/lib/giveaways";
 
@@ -13,7 +13,7 @@ export async function GET() {
 
     const data = await getUserGiveawayProgress(user?.id || null);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       ...data,
       user: user
@@ -26,7 +26,7 @@ export async function GET() {
     });
   } catch (error: any) {
     console.error("[Giveaway Status API Error]:", error);
-    return NextResponse.json(
+    return publicJson(
       { success: false, error: error?.message || "Failed to fetch giveaway status" },
       { status: 500 }
     );

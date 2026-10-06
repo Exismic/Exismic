@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { consumeAuthLimit } from "@/lib/auth/security";
+import { hasPendingResetCleanup } from "@/lib/auth/reset-cleanup";
+import { safeAuthReturnPath } from "@/lib/auth/redirect";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit, getRequestIp, rateLimitResponse } from "@/lib/api-security";
+import { getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import {
   createTrustedLoginToken,
   describeLoginDevice,
@@ -24,19 +28,16 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = requestSchema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) {
-      return NextResponse.json(
+      return publicJson(
         { error: parsed.error.issues[0]?.message || "Invalid login request." },
         { status: 400 },
       );
     }
 
     const email = normalizeLoginEmail(parsed.data.email);
-    const limiter = checkRateLimit(
-      `trusted-login-request:${email}:${getRequestIp(request)}`,
-      5,
-      15 * 60 * 1000,
-    );
-    if (!limiter.allowed) return rateLimitResponse(limiter.retryAfter);
+    const allowed = await consumeAuthLimit(`phone-request-ip:${getRequestIp(request)}`, 20, 15 * 60 * 1000)
+      && await consumeAuthLimit(`phone-request-email:${email}`, 5, 15 * 60 * 1000);
+    if (!allowed) return rateLimitResponse(900);
 
     const device = await prisma.trustedLoginDevice.findFirst({
       where: { loginEmail: email, status: "active" },
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       !device.pushP256dh ||
       !device.pushAuth
     ) {
-      return NextResponse.json(
+      return publicJson(
         {
           error:
             "Phone approval is not ready for this account. Sign in normally and register it in Settings > Security.",
@@ -59,6 +60,10 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       );
     }
+
+    const account = await prisma.user.findUnique({ where: { id: device.userId }, select: { status: true } });
+    if (await hasPendingResetCleanup(device.userId)) return publicJson({ error: 'Please sign in with your password to finish a security update.' }, { status: 403 });
+    if (!account || account.status !== "active") return publicJson({ error: "This account cannot sign in right now." }, { status: 403 });
 
     await prisma.trustedLoginChallenge.updateMany({
       where: {
@@ -72,8 +77,7 @@ export async function POST(request: NextRequest) {
 
     const approvalToken = createTrustedLoginToken();
     const userAgent = request.headers.get("user-agent") || "";
-    const returnUrl =
-      parsed.data.returnUrl?.startsWith("/") ? parsed.data.returnUrl : "/dashboard";
+    const returnUrl = safeAuthReturnPath(parsed.data.returnUrl);
     const expiresAt = trustedLoginChallengeExpiry();
     const challenge = await prisma.trustedLoginChallenge.create({
       data: {
@@ -133,7 +137,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.error("[Trusted Login Push]", error);
-      return NextResponse.json(
+      return publicJson(
         {
           error:
             "Exismic could not reach the registered phone. Open Settings on that phone and refresh the registration.",
@@ -142,7 +146,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       challengeId: challenge.id,
       expiresAt: expiresAt.toISOString(),
@@ -151,7 +155,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Trusted Login Request]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Could not start phone approval. Please try again." },
       { status: 500 },
     );

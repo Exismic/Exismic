@@ -23,8 +23,14 @@ export function createClient() {
         }
       }
     )
+    const signOut = client.auth.signOut.bind(client.auth)
+    client.auth.signOut = async (options?: { scope?: 'global' | 'local' | 'others' }) => {
+      if (options?.scope !== 'others') {
+        await fetch('/api/auth/session', { method: 'POST' }).catch(() => undefined)
+      }
+      return signOut(options)
+    }
   }
 
   return client
 }
-

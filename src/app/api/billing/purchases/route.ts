@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { billingMetadata, buildBillingReceipt, receiptUrl } from "@/lib/billing/receipt-data";
@@ -8,12 +9,12 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Please sign in to view purchases." }, { status: 401 });
+    if (!user) return publicJson({ error: "Please sign in to view purchases." }, { status: 401 });
     const cursor = request.nextUrl.searchParams.get("before");
     let boundary: { date: string; id: string; source: "transaction" | "order" } | null = null;
     if (cursor) {
-      try { boundary = JSON.parse(cursor); } catch { return NextResponse.json({ error: "Invalid history page." }, { status: 400 }); }
-      if (!boundary || typeof boundary.date !== "string" || typeof boundary.id !== "string" || Number.isNaN(Date.parse(boundary.date)) || !/^[a-zA-Z0-9_-]{1,100}$/.test(boundary.id) || !["transaction", "order"].includes(boundary.source) || (boundary.source === "order" && !/^[0-9a-f-]{36}$/i.test(boundary.id))) return NextResponse.json({ error: "Invalid history page." }, { status: 400 });
+      try { boundary = JSON.parse(cursor); } catch { return publicJson({ error: "Invalid history page." }, { status: 400 }); }
+      if (!boundary || typeof boundary.date !== "string" || typeof boundary.id !== "string" || Number.isNaN(Date.parse(boundary.date)) || !/^[a-zA-Z0-9_-]{1,100}$/.test(boundary.id) || !["transaction", "order"].includes(boundary.source) || (boundary.source === "order" && !/^[0-9a-f-]{36}$/i.test(boundary.id))) return publicJson({ error: "Invalid history page." }, { status: 400 });
     }
     function pageBoundary(source: "transaction" | "order") {
       if (!boundary) return {};
@@ -42,9 +43,9 @@ export async function GET(request: NextRequest) {
       }),
     ].sort((a, b) => b.date.localeCompare(a.date) || b.source.localeCompare(a.source) || b.id.localeCompare(a.id));
     const page = purchases.slice(0, 30);
-    return NextResponse.json({ purchases: page, nextCursor: purchases.length > 30 && page.length ? JSON.stringify({ date: page[page.length - 1].date, id: page[page.length - 1].id, source: page[page.length - 1].source }) : null }, { headers: { "Cache-Control": "private, no-store" } });
+    return publicJson({ purchases: page, nextCursor: purchases.length > 30 && page.length ? JSON.stringify({ date: page[page.length - 1].date, id: page[page.length - 1].id, source: page[page.length - 1].source }) : null }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("[Billing] Purchase history unavailable:", error);
-    return NextResponse.json({ error: "Purchase history could not be loaded. Please try again." }, { status: 500 });
+    return publicJson({ error: "Purchase history could not be loaded. Please try again." }, { status: 500 });
   }
 }

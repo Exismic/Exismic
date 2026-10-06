@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import Razorpay from "razorpay";
 import type { Prisma } from "@prisma/client";
 import { PRICING_CONFIG, isExismic17PromoActive } from "@/config/pricing";
@@ -15,8 +16,10 @@ type CreateOrderBody = {
   marketOverride?: "IN" | "GLOBAL";
   isGift?: boolean;
   recipientName?: string;
+  recipientEmail?: string;
   recipientMessage?: string;
   couponCode?: string;
+  paymentMethod?: "card" | "paypal" | "apple_pay" | "google_pay";
 };
 
 function getRazorpayClient() {
@@ -233,16 +236,16 @@ async function createRazorpayProSubscription(
 export async function POST(req: NextRequest) {
   try {
     if (!PRICING_CONFIG.PAYMENTS_ENABLED) {
-      return NextResponse.json({ error: PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE }, { status: 503 });
+      return publicJson({ error: PRICING_CONFIG.PAYMENT_UNAVAILABLE_MESSAGE }, { status: 503 });
     }
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user?.id) return publicJson({ error: "Unauthorized" }, { status: 401 });
 
     const body = (await req.json()) as CreateOrderBody;
     const plan = getBillingPlan(body.planId);
-    if (!plan) return NextResponse.json({ error: "Invalid plan selected." }, { status: 400 });
+    if (!plan) return publicJson({ error: "Invalid plan selected." }, { status: 400 });
 
     const isGift = Boolean(body.isGift);
     const dbUser = await prisma.user.findUnique({
@@ -251,7 +254,7 @@ export async function POST(req: NextRequest) {
     });
     const isProSubscriptionPlan = plan.id === "pro" || plan.id === "pro_yearly";
     if (isProSubscriptionPlan && !isGift && dbUser && hasActiveProAccess(dbUser)) {
-      return NextResponse.json({ error: "Your Pro membership is already active." }, { status: 409 });
+      return publicJson({ error: "Your Pro membership is already active." }, { status: 409 });
     }
 
     const recentOrderCount = await prisma.paymentOrder.count({
@@ -261,7 +264,7 @@ export async function POST(req: NextRequest) {
       },
     });
     if (recentOrderCount >= 5) {
-      return NextResponse.json({ error: "Too many checkout attempts. Please wait a minute and try again." }, { status: 429 });
+      return publicJson({ error: "Too many checkout attempts. Please wait a minute and try again." }, { status: 429 });
     }
 
     const allowMarketOverride = process.env.NODE_ENV !== "production";
@@ -283,7 +286,7 @@ export async function POST(req: NextRequest) {
 
       // Block all custom coupons during the 1-week launch sale
       if (cleanCode && !isPromoCode) {
-        return NextResponse.json({
+        return publicJson({
           error: "Custom coupons cannot be used during the Exismic 1.7 Launch Sale (official 20% discount is already active from us).",
         }, { status: 400 });
       }
@@ -320,15 +323,15 @@ export async function POST(req: NextRequest) {
       });
 
       if (!promo) {
-        return NextResponse.json({ error: "Invalid or unrecognized coupon code." }, { status: 404 });
+        return publicJson({ error: "Invalid or unrecognized coupon code." }, { status: 404 });
       }
 
       if (promo.expiresAt && new Date() > new Date(promo.expiresAt)) {
-        return NextResponse.json({ error: "This coupon code has expired." }, { status: 400 });
+        return publicJson({ error: "This coupon code has expired." }, { status: 400 });
       }
 
       if (promo.redemptionCount >= promo.maxRedemptions) {
-        return NextResponse.json({ error: "This coupon code has already been claimed and cannot be used again." }, { status: 400 });
+        return publicJson({ error: "This coupon code has already been claimed and cannot be used again." }, { status: 400 });
       }
 
       const alreadyClaimed = await prisma.promoRedemption.findUnique({
@@ -341,7 +344,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (alreadyClaimed) {
-        return NextResponse.json({ error: "You have already redeemed this coupon code." }, { status: 400 });
+        return publicJson({ error: "You have already redeemed this coupon code." }, { status: 400 });
       }
 
       // Anti-exploitation: 5-Day Cooldown on Discount Codes
@@ -361,7 +364,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (recentRedemption) {
-        return NextResponse.json({
+        return publicJson({
           error: "Anti-exploit cooldown: Discount vouchers can only be used once every 5 days.",
         }, { status: 400 });
       }
@@ -370,19 +373,19 @@ export async function POST(req: NextRequest) {
       const isPro20 = cleanCode.startsWith("PRO20");
 
       if (!isFixedDiscount && !isPro20) {
-        return NextResponse.json({
+        return publicJson({
           error: "This code is a free gift code. Please redeem it in Account -> Redeem Codes.",
         }, { status: 400 });
       }
 
       if (isFixedDiscount) {
         if (market === "IN" && basePrice.amountMinor < 24900) {
-          return NextResponse.json({
+          return publicJson({
             error: "This voucher requires a minimum purchase of ₹249.",
           }, { status: 400 });
         }
         if (market !== "IN" && basePrice.amount < 3.0) {
-          return NextResponse.json({
+          return publicJson({
             error: "This voucher requires a minimum purchase of $3.00.",
           }, { status: 400 });
         }
@@ -393,12 +396,12 @@ export async function POST(req: NextRequest) {
         appliedCouponCode = cleanCode;
       } else if (isPro20) {
         if (plan.id === "pro_yearly") {
-          return NextResponse.json({
+          return publicJson({
             error: "This 20% voucher is valid on Monthly Pro only. Yearly Pro already includes a built-in annual discount.",
           }, { status: 400 });
         }
         if (plan.id !== "pro") {
-          return NextResponse.json({
+          return publicJson({
             error: "This voucher is exclusively valid for Monthly Exismic Pro memberships and cannot be applied to Credit Packs.",
           }, { status: 400 });
         }
@@ -420,20 +423,20 @@ export async function POST(req: NextRequest) {
     const configurationError = localMockPayments ? null : productionConfigurationError(price.gateway, plan.id, isGift);
     if (configurationError) {
       console.error(`[Billing Configuration Error] ${configurationError}`);
-      return NextResponse.json({ 
+      return publicJson({
         error: "Checkout is temporarily unavailable. Please try again later.",
         details: process.env.NODE_ENV !== "production" ? configurationError : undefined
       }, { status: 503 });
     }
 
     if (price.amountMinor <= 0 || price.gateway === "none") {
-      return NextResponse.json({ success: true, free: true, plan: publicPlan(plan.id, market) });
+      return publicJson({ success: true, free: true, plan: publicPlan(plan.id, market) });
     }
 
-    const giftType = plan.id === "pro_yearly" 
-      ? "pro_yearly" 
-      : plan.id === "pro" 
-      ? "pro_monthly" 
+    const giftType = plan.id === "pro_yearly"
+      ? "pro_yearly"
+      : plan.id === "pro"
+      ? "pro_monthly"
       : "credits";
 
     const paymentOrder = await prisma.paymentOrder.create({
@@ -466,6 +469,7 @@ export async function POST(req: NextRequest) {
           giftCredits: plan.credits,
           buyerEmail: dbUser?.email || user.email,
           recipientName: body.recipientName?.trim() || null,
+          recipientEmail: body.recipientEmail?.trim()?.toLowerCase() || null,
           recipientMessage: body.recipientMessage?.trim() || null,
         },
       },
@@ -486,7 +490,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      return NextResponse.json({
+      return publicJson({
         success: true,
         gateway: "mock",
         orderId: paymentOrder.id,
@@ -523,7 +527,7 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        return NextResponse.json({
+        return publicJson({
           success: true,
           gateway: "razorpay",
           orderId: paymentOrder.id,
@@ -555,7 +559,7 @@ export async function POST(req: NextRequest) {
         data: { providerOrderId: razorpayOrder.id, metadata: asInputJson({ ...(paymentOrder.metadata as object), razorpayOrder }) },
       });
 
-      return NextResponse.json({
+      return publicJson({
         success: true,
         gateway: "razorpay",
         orderId: paymentOrder.id,
@@ -573,6 +577,7 @@ export async function POST(req: NextRequest) {
       gateway: "paypal",
       order: paymentOrder.id,
       type: isProSubscriptionPlan && !isGift ? "pro" : "credits",
+      plan: plan.id,
       credits: String(plan.credits),
     });
     const cancelParams = new URLSearchParams({
@@ -602,7 +607,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      return NextResponse.json({
+      return publicJson({
         success: true,
         gateway: "paypal",
         orderId: paymentOrder.id,
@@ -616,6 +621,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const isPayPalLoginPreference = body.paymentMethod === "paypal";
     const { order, approvalUrl } = await createPayPalOrder({
       context: {
         userId: user.id,
@@ -627,6 +633,7 @@ export async function POST(req: NextRequest) {
       description: `${plan.name} - Exismic`,
       returnUrl: `${origin}/billing/success?${successParams.toString()}`,
       cancelUrl: `${origin}/billing/cancel?${cancelParams.toString()}`,
+      landingPage: isPayPalLoginPreference ? "LOGIN" : "GUEST_CHECKOUT",
     });
 
     await prisma.paymentOrder.update({
@@ -634,7 +641,7 @@ export async function POST(req: NextRequest) {
       data: { providerOrderId: order.id, metadata: { ...(paymentOrder.metadata as object), paypalOrder: order } },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       gateway: "paypal",
       orderId: paymentOrder.id,
@@ -649,7 +656,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const message = getBillingErrorMessage(error);
     console.error("[Billing] Create order failed:", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }
 
@@ -661,19 +668,19 @@ function getBillingErrorMessage(error: unknown) {
   const message = typeof maybe?.message === "string" ? maybe.message : nestedDescription;
 
   if (nestedCode === "BAD_REQUEST_ERROR" && /auth/i.test(nestedDescription)) {
-    return "Payment gateway authentication failed. Please try again shortly.";
+    return "Payment could not be started right now. Please try again in a few moments.";
   }
 
   if (/auth/i.test(message) && (/failed/i.test(message) || /rejected/i.test(message))) {
-    return "PayPal authentication failed. Please verify your PayPal Client ID and Secret in Vercel.";
+    return "We couldn't connect to PayPal right now. Please try another payment method or try again in a moment.";
   }
 
-  if (/Razorpay is not configured/i.test(message)) {
-    return "Razorpay checkout is not configured yet.";
+  if (/Razorpay is not configured/i.test(message) || /Razorpay.*keys.*not configured/i.test(message)) {
+    return "Indian checkout is temporarily unavailable. Please try again shortly.";
   }
 
   if (/PayPal.*not configured/i.test(message) || (/PayPal/i.test(message) && /keys.*configured/i.test(message))) {
-    return "PayPal checkout is not configured yet. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in Vercel.";
+    return "PayPal checkout is temporarily unavailable. Please try another payment method or check back shortly.";
   }
 
   if (process.env.NODE_ENV === "production") {

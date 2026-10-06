@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { CATEGORIES, TOOLS } from "@/data/tools";
 import {
   checkRateLimit,
@@ -218,10 +219,10 @@ export async function POST(req: NextRequest) {
         : "";
 
     if (!TOOLS.some((tool) => tool.id === toolId)) {
-      return NextResponse.json({ error: "Unknown Exismic tool." }, { status: 400 });
+      return publicJson({ error: "Unknown Exismic tool." }, { status: 400 });
     }
     if (!userMessage) {
-      return NextResponse.json({ error: "Ask Exismic Ai a question first." }, { status: 400 });
+      return publicJson({ error: "Ask Exismic Ai a question first." }, { status: 400 });
     }
 
     const supabase = await createClient();
@@ -230,12 +231,12 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
     const identity = user?.id || getRequestIp(req);
     const requestLimit = user ? 60 : 15;
-    const limit = checkRateLimit(
+    const limit = await checkRateLimit(
       `tool-coach:${identity}`,
       requestLimit,
       60 * 60 * 1_000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const result = await callGroq({
       toolId,
@@ -244,7 +245,7 @@ export async function POST(req: NextRequest) {
       messages: cleanMessages(body.messages),
     });
 
-    return NextResponse.json({
+    return publicJson({
       ...result,
       source: "groq",
       remaining: limit.remaining,
@@ -253,6 +254,6 @@ export async function POST(req: NextRequest) {
     console.error("[ToolCoach]", error);
     const message =
       error instanceof Error ? error.message : "Exismic Ai is temporarily unavailable.";
-    return NextResponse.json({ error: message }, { status: 503 });
+    return publicJson({ error: message }, { status: 503 });
   }
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -7,9 +7,9 @@ export async function GET() {
       where: { active: true },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ success: true, announcements });
+    return publicJson({ success: true, announcements });
   } catch (error) {
     console.error("[USER_ANNOUNCEMENTS_GET]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return publicJson({ error: "Internal Server Error" }, { status: 500 });
   }
 }

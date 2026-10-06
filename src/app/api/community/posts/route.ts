@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOptionalApiUser, requireApiUser, getRequestIp } from "@/lib/api-security";
@@ -29,10 +30,10 @@ export async function GET(request: NextRequest) {
       clientIp,
     });
 
-    return NextResponse.json(result);
+    return publicJson(result);
   } catch (error: any) {
     console.error("[COMMUNITY_POSTS_GET_ERROR]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Failed to fetch community posts", message: error?.message },
       { status: 500 }
     );
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (!file || file.userId !== authUser.id) {
-        return NextResponse.json(
+        return publicJson(
           { error: "File not found or unauthorized" },
           { status: 404 }
         );
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
       previewUrl = file.resultUrl || previewUrl;
       prompt = prompt || file.originalUrl || file.originalName || "Generated Creation";
       title = title || file.originalName || "My Creation";
-      
+
       const lowerTool = (file.toolType || "").toLowerCase();
       if (!category) {
         if (lowerTool.includes("minecraft") || lowerTool.includes("skin")) {
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!title || !previewUrl || !category) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Missing required fields (title, previewUrl, category)" },
         { status: 400 }
       );
@@ -140,13 +141,13 @@ export async function POST(request: NextRequest) {
       tags: Array.isArray(tags) ? tags.map((t: string) => String(t).trim().replace(/^#/, "")).filter(Boolean) : [],
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       post: createdPost,
     });
   } catch (error: any) {
     console.error("[COMMUNITY_POSTS_CREATE]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Failed to publish post to community", message: error?.message },
       { status: 500 }
     );

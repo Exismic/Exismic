@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { publicJson } from "@/lib/public-json";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -8,7 +7,7 @@ export async function POST(req: Request) {
     const webhookUrl = process.env.DISCORD_SUPPORT_WEBHOOK_URL;
     if (!webhookUrl) {
       console.warn("DISCORD_SUPPORT_WEBHOOK_URL is not configured for cancellation feedback.");
-      return NextResponse.json({ success: true, warning: "Webhook missing" });
+      return publicJson({ success: true, warning: "Webhook missing" });
     }
 
     const embed = {
@@ -46,13 +45,13 @@ export async function POST(req: Request) {
     if (!response.ok) {
       const errText = await response.text();
       console.error("Discord Webhook Error (Cancellation Feedback):", errText);
-      return NextResponse.json({ error: "Failed to post to Discord webhook" }, { status: 500 });
+      return publicJson({ error: "Failed to post to Discord webhook" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error: any) {
     console.error("Error in cancellation feedback route:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "Internal server error" },
       { status: 500 }
     );

@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { requireApiUser, getRequestIp, checkDistributedRateLimit, rateLimitResponse } from "@/lib/api-security";
 import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
@@ -60,12 +61,12 @@ export async function POST(req: NextRequest) {
 
     const ip = getRequestIp(req);
     const limit = await checkDistributedRateLimit(`yt-summarizer:${authUser.id || ip}`, 20, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const userCredits = await getUserCredits(authUser.id);
     const available = userCredits ? getCreditTotal(userCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
         { status: 402 }
       );
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
     const { url, format = "summary" } = await req.json().catch(() => ({}));
 
     if (!url || typeof url !== "string") {
-      return NextResponse.json({ error: "Please enter a valid YouTube video URL." }, { status: 400 });
+      return publicJson({ error: "Please enter a valid YouTube video URL." }, { status: 400 });
     }
 
     console.log(`Processing YouTube summarizer: "${url}" (Format: ${format})`);
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     // If only requesting raw transcript, return immediately to save LLM tokens
     if (format === "transcript") {
-      return NextResponse.json({
+      return publicJson({
         title,
         videoId,
         segments,
@@ -95,13 +96,13 @@ export async function POST(req: NextRequest) {
 
     // 2. Bound/slice transcript to avoid hitting LLM context limits on extremely long videos
     const maxLength = 45000; // ~8,000 words limit
-    const cleanTranscript = rawText.length > maxLength 
+    const cleanTranscript = rawText.length > maxLength
       ? rawText.slice(0, maxLength) + " ... [Transcript truncated due to video length]"
       : rawText;
 
     // 3. Define prompt based on chosen output format
     let systemPrompt = "";
-    
+
     if (format === "blog") {
       systemPrompt = `You are a professional SEO copywriter and editor.
 Task: Write a comprehensive, publication-ready, SEO-optimized blog post based on the provided YouTube video transcript.
@@ -144,7 +145,7 @@ Rules:
     // Atomically deduct credits
     await deductCredits(authUser.id, TOOL_COST, "youtube-summarizer");
 
-    return NextResponse.json({
+    return publicJson({
       title,
       videoId,
       segments,
@@ -154,8 +155,8 @@ Rules:
 
   } catch (error: any) {
     console.error("[YouTube Summarizer Route Error]:", error);
-    return NextResponse.json({ 
-      error: error.message || "Failed to extract or process YouTube transcript." 
+    return publicJson({
+      error: error.message || "Failed to extract or process YouTube transcript."
     }, { status: 500 });
   }
 }

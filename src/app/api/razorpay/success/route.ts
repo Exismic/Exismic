@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
 
     if (!payload?.razorpay_order_id || !payload?.razorpay_payment_id || !payload?.razorpay_signature) {
-      return NextResponse.json(
+      return publicJson(
         {
           success: false,
           error: 'Payment success callback is missing Razorpay verification fields.',
@@ -28,9 +29,9 @@ export async function POST(req: NextRequest) {
       error: 'Payment verification returned an invalid response.',
     }));
 
-    return NextResponse.json(result, { status: verifyRes.status });
+    return publicJson(result, { status: verifyRes.status });
   } catch (error) {
     console.error('[Razorpay success forwarder]', error);
-    return NextResponse.json({ success: false, error: 'Payment success callback failed.' }, { status: 500 });
+    return publicJson({ success: false, error: 'Payment success callback failed.' }, { status: 500 });
   }
 }

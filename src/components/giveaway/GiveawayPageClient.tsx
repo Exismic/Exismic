@@ -26,7 +26,7 @@ import {
   Music,
   Share2,
 } from "lucide-react";
-import { CURRENT_GIVEAWAY } from "@/lib/giveaways";
+import { CURRENT_GIVEAWAY } from "@/config/giveaways";
 import { useCredits } from "@/hooks/useCredits";
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";

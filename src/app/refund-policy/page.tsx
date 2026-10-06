@@ -6,14 +6,12 @@ import {
   ArrowUpRight,
   RefreshCcw, 
   CheckCircle,
-  AlertCircle,
   CreditCard,
   Coins,
   ShieldAlert,
   Clock,
   HelpCircle,
-  Sparkles,
-  Zap,
+  ReceiptText,
   Mail
 } from "lucide-react";
 import Link from "next/link";
@@ -78,7 +76,7 @@ const SECTIONS = [
 
 export default function RefundPolicyPage() {
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-purple-500/30 pb-32 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-purple-500/30 pb-12 sm:pb-32 relative overflow-clip font-sans">
       {/* Cinematic Animated Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -103,48 +101,47 @@ export default function RefundPolicyPage() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
-      <main className="max-w-5xl mx-auto px-6 pt-32 space-y-24 relative z-10">
+      <main className="max-w-5xl mx-auto px-4 pt-6 space-y-10 sm:px-6 sm:pt-12 sm:space-y-16 lg:pt-24 lg:space-y-24 relative z-10">
         {/* Header Section */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-12 text-center flex flex-col items-center"
+          className="space-y-6 sm:space-y-10 text-center flex flex-col items-center"
         >
-          <Link href="/" className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg backdrop-blur-md">
+          <Link href="/" className="inline-flex min-h-11 items-center gap-3 px-5 sm:px-6 py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 group shadow-lg backdrop-blur-md">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform duration-300" />
             Back to Platform
           </Link>
 
-          <header className="space-y-8 flex flex-col items-center">
+          <header className="min-w-0 w-full space-y-5 sm:space-y-8 flex flex-col items-center">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative inline-flex items-center gap-4 px-6 py-3 rounded-full bg-purple-500/5 border border-purple-500/20 text-purple-300 shadow-[0_0_40px_rgba(168,85,247,0.15)] group"
+              className="relative inline-flex max-w-full items-center gap-2 sm:gap-4 px-4 sm:px-6 py-3 rounded-full bg-purple-500/5 border border-purple-500/20 text-purple-300 shadow-[0_0_40px_rgba(168,85,247,0.15)] group"
             >
               <div className="absolute inset-0 bg-purple-500/20 blur-md rounded-full group-hover:bg-purple-500/30 transition-colors" />
-              <RefreshCcw size={18} className="relative z-10" />
-              <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.4em] drop-shadow-md">Billing & Returns</span>
+              <RefreshCcw size={18} className="relative z-10 shrink-0" />
+              <span className="relative z-10 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] drop-shadow-md">Billing & Returns</span>
             </motion.div>
             
-            <div className="space-y-6">
-              <h1 className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85] select-none">
+            <div className="min-w-0 w-full space-y-5 sm:space-y-6">
+              <h1 className="px-2 pb-1 text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.95] select-none">
                 REFUND <br />
                 <motion.span 
                   animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                   transition={{ duration: 8, ease: "linear", repeat: Infinity }}
-                  className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-cyan-300 to-purple-400 bg-[length:200%_auto] drop-shadow-[0_0_60px_rgba(168,85,247,0.4)]"
+                  className="inline-block px-2 pb-1 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-cyan-300 to-purple-400 bg-[length:200%_auto] drop-shadow-[0_0_60px_rgba(168,85,247,0.4)]"
                 >
                   POLICY.
                 </motion.span>
               </h1>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-zinc-400 font-medium text-lg">
-                <p className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-cyan-300 animate-pulse" />
-                  Transparent cancellation and digital refund guidelines.
+              <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 text-zinc-400 font-medium text-base sm:text-lg">
+                <p className="flex max-w-xl items-start gap-2 leading-relaxed text-left sm:items-center sm:text-center">
+                  <ReceiptText size={16} className="mt-1 shrink-0 text-cyan-300 animate-pulse sm:mt-0" />
+                  <span className="min-w-0">Transparent cancellation and digital refund guidelines.</span>
                 </p>
-                <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-white/20" />
                 <p className="text-zinc-500 bg-white/5 px-4 py-1.5 rounded-full text-sm border border-white/5 shadow-inner">Last updated: September 2026</p>
               </div>
             </div>
@@ -156,7 +153,7 @@ export default function RefundPolicyPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="grid gap-8"
+          className="grid min-w-0 gap-4 sm:gap-8"
         >
           {SECTIONS.map((section, index) => (
             <motion.section 
@@ -165,19 +162,19 @@ export default function RefundPolicyPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="group p-8 md:p-12 rounded-[2.5rem] bg-white/[0.02] border border-white/[0.05] hover:border-white/10 hover:bg-white/[0.04] transition-all duration-500 relative overflow-hidden backdrop-blur-xl shadow-2xl"
+              className="group min-w-0 p-4 sm:p-8 md:p-12 rounded-[1.75rem] sm:rounded-[2.5rem] bg-white/[0.02] border border-white/[0.05] hover:border-white/10 hover:bg-white/[0.04] transition-all duration-500 relative overflow-clip backdrop-blur-xl shadow-2xl"
             >
               {/* Subtle hover gradient sweep */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
-              <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+              <div className="relative z-10 flex min-w-0 flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
                 <div className="shrink-0 relative">
                   <div className={cn(
                     "absolute inset-0 rounded-2xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500",
                     section.bg
                   )} />
                   <div className={cn(
-                    "relative w-16 h-16 rounded-2xl border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:scale-110 shadow-inner",
+                    "relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:scale-110 shadow-inner",
                     section.bg,
                     section.color,
                     section.glow
@@ -186,10 +183,10 @@ export default function RefundPolicyPage() {
                   </div>
                 </div>
                 
-                <div className="space-y-4 pt-1">
-                  <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight italic flex items-center gap-4">
-                    <span className="text-white/20 text-xl font-bold">{section.title.split('.')[0]}.</span>
-                    {section.title.split('.')[1]}
+                <div className="min-w-0 space-y-3 sm:space-y-4 pt-1">
+                  <h2 className="text-xl sm:text-3xl font-black text-white uppercase tracking-tight italic leading-tight flex items-start gap-2 sm:gap-4">
+                    <span className="shrink-0 text-white/20 text-lg sm:text-xl font-bold">{section.title.split('.')[0]}.</span>
+                    <span className="min-w-0 pr-1 pb-1">{section.title.split('.')[1]}</span>
                   </h2>
                   <p className="text-zinc-300 font-normal leading-relaxed text-base md:text-lg max-w-3xl group-hover:text-white transition-colors duration-300">
                     {section.content}
@@ -206,31 +203,32 @@ export default function RefundPolicyPage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative p-12 rounded-[3rem] border border-purple-500/20 text-center space-y-8 overflow-hidden group shadow-[0_0_50px_rgba(168,85,247,0.1)] bg-gradient-to-b from-[#0c0d18] to-[#040407]"
+          className="relative min-w-0 p-5 sm:p-8 md:p-12 rounded-[2rem] sm:rounded-[3rem] border border-purple-500/20 text-center space-y-8 overflow-clip group shadow-[0_0_50px_rgba(168,85,247,0.1)] bg-gradient-to-b from-[#0c0d18] to-[#040407]"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay" />
           
           <div className="relative z-10 space-y-5">
-            <div className="w-20 h-20 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center shadow-[0_0_40px_rgba(168,85,247,0.4)] group-hover:scale-110 transition-transform duration-500">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center shadow-[0_0_40px_rgba(168,85,247,0.4)] group-hover:scale-110 transition-transform duration-500">
               <Mail size={36} className="text-purple-300" />
             </div>
-            <h3 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-wider">
+            <h3 className="px-1 pb-1 text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase italic tracking-wide sm:tracking-wider">
               Have a Billing or Refund Question?
             </h3>
             <p className="text-zinc-300 font-normal max-w-xl mx-auto text-base md:text-lg">
               Our dedicated billing support desk handles charge inquiries, duplicate transactions, and payment questions with priority 24-hour turnaround.
             </p>
-            <div className="pt-6 flex flex-wrap items-center justify-center gap-4">
+            <div className="pt-2 sm:pt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               <a 
                 href="mailto:billing@exismic.xyz" 
-                className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+                className="inline-flex min-h-14 w-full sm:w-auto max-w-full items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-3 sm:py-4 rounded-full bg-white text-black font-black uppercase tracking-wider sm:tracking-widest text-xs sm:text-sm hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
               >
-                Contact Billing Team (billing@exismic.xyz) <ArrowUpRight size={18} />
+                <span className="min-w-0">Contact Billing Team <span className="block text-[11px] normal-case tracking-normal sm:inline sm:text-sm">(billing@exismic.xyz)</span></span>
+                <ArrowUpRight size={18} className="shrink-0" />
               </a>
               <Link 
                 href="/help"
-                className="inline-flex items-center gap-2 px-6 py-4 rounded-full border border-white/10 bg-white/[0.04] text-zinc-300 font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:text-white transition-all duration-300"
+                className="inline-flex min-h-11 w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 sm:py-4 rounded-full border border-white/10 bg-white/[0.04] text-zinc-300 font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:text-white transition-all duration-300"
               >
                 Help Center
               </Link>

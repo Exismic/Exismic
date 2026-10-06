@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { requireApiUser, getRequestIp, checkDistributedRateLimit, rateLimitResponse } from "@/lib/api-security";
 import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
@@ -60,12 +61,12 @@ export async function POST(req: NextRequest) {
 
     const ip = getRequestIp(req);
     const limit = await checkDistributedRateLimit(`landing-page-gen:${authUser.id || ip}`, 10, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const userCredits = await getUserCredits(authUser.id);
     const available = userCredits ? getCreditTotal(userCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
         { status: 402 }
       );
@@ -74,15 +75,15 @@ export async function POST(req: NextRequest) {
     const { prompt, style = "modern" } = await req.json().catch(() => ({}));
 
     if (!prompt || typeof prompt !== "string") {
-      return NextResponse.json({ error: "Please enter a description for your landing page." }, { status: 400 });
+      return publicJson({ error: "Please enter a description for your landing page." }, { status: 400 });
     }
 
     const cleanPrompt = prompt.trim();
     if (cleanPrompt.length < 5) {
-      return NextResponse.json({ error: "Your landing page description is too short." }, { status: 400 });
+      return publicJson({ error: "Your landing page description is too short." }, { status: 400 });
     }
     if (cleanPrompt.length > 1000) {
-      return NextResponse.json({ error: "Your description is too long. Limit is 1000 characters." }, { status: 413 });
+      return publicJson({ error: "Your description is too long. Limit is 1000 characters." }, { status: 413 });
     }
 
     console.log(`Generating AI landing page for prompt: "${cleanPrompt}" (Style: ${style})`);
@@ -137,15 +138,15 @@ Style tone selected: ${style}. Apply matching typography, colors, and borders. M
     // Atomically deduct credits
     await deductCredits(authUser.id, TOOL_COST, "landing-page-generator");
 
-    return NextResponse.json({
+    return publicJson({
       html: cleanHtml,
       creditsDeducted: TOOL_COST,
     });
 
   } catch (error: any) {
     console.error("[Landing Page Route Error]:", error);
-    return NextResponse.json({ 
-      error: error.message || "Failed to generate landing page template." 
+    return publicJson({
+      error: error.message || "Failed to generate landing page template."
     }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { verifyAndAuthenticateApiKey } from "@/lib/api-keys";
 import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
 import { getApiToolDefinition, API_TOOL_REGISTRY } from "@/lib/api-v1-registry";
@@ -64,7 +65,7 @@ export async function POST(
     const tool = getApiToolDefinition(toolId);
 
     if (!tool) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `Tool '${toolId}' not found. Available tools: ${Object.keys(API_TOOL_REGISTRY).join(", ")}`,
           code: "TOOL_NOT_FOUND",
@@ -76,19 +77,19 @@ export async function POST(
     const authHeader = req.headers.get("Authorization");
     const auth = await verifyAndAuthenticateApiKey(authHeader);
     if ("error" in auth) {
-      return NextResponse.json({ error: auth.error, code: "UNAUTHORIZED" }, { status: auth.status });
+      return publicJson({ error: auth.error, code: "UNAUTHORIZED" }, { status: auth.status });
     }
 
     const ip = getRequestIp(req);
     const rateCheck = await checkDistributedRateLimit(`api-v1-universal:${auth.userId || ip}`, 60, 60 * 1000);
     if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.retryAfter);
+      return rateLimitResponse(rateCheck.retryAfter, rateCheck.unavailable);
     }
 
     const currentCredits = await getUserCredits(auth.userId);
     const available = currentCredits ? getCreditTotal(currentCredits) : 0;
     if (available < tool.creditCost) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `Insufficient credits for '${tool.name}'. Required: ${tool.creditCost}, Available: ${available}`,
           code: "INSUFFICIENT_CREDITS",
@@ -106,7 +107,7 @@ export async function POST(
 
     if (toolId === "generate-text") {
       const { prompt, systemPrompt, temperature = 0.7 } = body;
-      if (!prompt) return NextResponse.json({ error: "Missing 'prompt' parameter" }, { status: 400 });
+      if (!prompt) return publicJson({ error: "Missing 'prompt' parameter" }, { status: 400 });
       const messages = [];
       if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
       messages.push({ role: "user", content: prompt });
@@ -114,7 +115,7 @@ export async function POST(
       resultData = { text };
     } else if (toolId === "essay-outline") {
       const { topic, paperType = "argumentative", academicTone = "standard" } = body;
-      if (!topic) return NextResponse.json({ error: "Missing 'topic' parameter" }, { status: 400 });
+      if (!topic) return publicJson({ error: "Missing 'topic' parameter" }, { status: 400 });
       const systemPrompt = "You are a university professor. Generate a detailed essay outline. Respond ONLY in valid JSON with fields: thesisOptions, sections, scholarKeywords.";
       const raw = await callGroqDirect(
         [
@@ -127,7 +128,7 @@ export async function POST(
       resultData = JSON.parse(raw);
     } else if (toolId === "plagiarism-checker") {
       const { doc1, doc2 } = body;
-      if (!doc1 || !doc2) return NextResponse.json({ error: "Missing 'doc1' and 'doc2' parameters" }, { status: 400 });
+      if (!doc1 || !doc2) return publicJson({ error: "Missing 'doc1' and 'doc2' parameters" }, { status: 400 });
       const systemPrompt = "Compare Document 1 vs Document 2 for plagiarism and semantic overlap. Respond ONLY in JSON with exactMatchScore, semanticSimilarityScore, riskLevel, summary.";
       const raw = await callGroqDirect(
         [
@@ -140,7 +141,7 @@ export async function POST(
       resultData = JSON.parse(raw);
     } else if (toolId === "readability-assessor") {
       const { text } = body;
-      if (!text) return NextResponse.json({ error: "Missing 'text' parameter" }, { status: 400 });
+      if (!text) return publicJson({ error: "Missing 'text' parameter" }, { status: 400 });
       const systemPrompt = "Analyze readability, Flesch score, grade level, and jargon words. Respond ONLY in JSON with fleschEase, gradeLevel, targetAudience, jargonWords.";
       const raw = await callGroqDirect(
         [
@@ -153,7 +154,7 @@ export async function POST(
       resultData = JSON.parse(raw);
     } else if (toolId === "landing-page-generator") {
       const { prompt, style = "modern" } = body;
-      if (!prompt) return NextResponse.json({ error: "Missing 'prompt' parameter" }, { status: 400 });
+      if (!prompt) return publicJson({ error: "Missing 'prompt' parameter" }, { status: 400 });
       const systemPrompt = `Generate a single-file Tailwind HTML landing page. Return ONLY raw HTML starting with <!DOCTYPE html> and ending with </html>. Style: ${style}`;
       const raw = await callGroqDirect(
         [
@@ -167,14 +168,14 @@ export async function POST(
       let clean = raw.replace(/^```html\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
       resultData = { html: clean };
     } else {
-      return NextResponse.json({ error: `Tool execution logic not configured for '${toolId}'` }, { status: 501 });
+      return publicJson({ error: `Tool execution logic not configured for '${toolId}'` }, { status: 501 });
     }
 
     // Atomically deduct credits
     const debit = await deductCredits(auth.userId, tool.creditCost, `api-${toolId}`);
     const remainingCredits = debit.data ? getCreditTotal(debit.data) : available - tool.creditCost;
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       toolId,
       toolName: tool.name,
@@ -186,6 +187,6 @@ export async function POST(
     });
   } catch (error: any) {
     console.error("[Universal API Route Error]:", error);
-    return NextResponse.json({ error: error.message || "Execution error", code: "EXECUTION_FAILED" }, { status: 500 });
+    return publicJson({ error: error.message || "Execution error", code: "EXECUTION_FAILED" }, { status: 500 });
   }
 }

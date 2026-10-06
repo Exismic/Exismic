@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { getUserCredits } from '@/lib/credits'
 import { getOrCreateUser } from '@/lib/user-access'
@@ -14,9 +15,9 @@ export async function GET() {
   try {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
     if (authError || !user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return publicJson({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const dbUser = await getOrCreateUser(user)
@@ -24,7 +25,7 @@ export async function GET() {
     const credits = await getUserCredits(userId)
 
     if (!credits) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return publicJson({ error: 'User not found' }, { status: 404 })
     }
 
     const { getTodayInIndia } = await import('@/lib/credits');
@@ -39,7 +40,7 @@ export async function GET() {
       select: { amount: true, rarity: true }
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       data: {
         dailyCredits: credits.dailyCredits,
@@ -65,7 +66,7 @@ export async function GET() {
     })
   } catch (err) {
     console.error('[API] Error fetching credits:', err)
-    return NextResponse.json(
+    return publicJson(
       { error: 'Internal server error' },
       { status: 500 }
     )
@@ -75,7 +76,7 @@ export async function GET() {
 /**
  * POST /api/user/credits
  * Deduct credits or consume AI message usage.
- * 
+ *
  * Body:
  * {
  *   action: 'deduct' | 'consume-message',
@@ -86,21 +87,21 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
     if (authError || !user?.id) {
       console.error('[API] Auth error or no user:', authError)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return publicJson({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userId = user.id
     const { action } = await request.json()
 
     if (!action) {
-      return NextResponse.json({ error: 'Missing action' }, { status: 400 })
+      return publicJson({ error: 'Missing action' }, { status: 400 })
     }
 
     if (action === 'deduct') {
-      return NextResponse.json(
+      return publicJson(
         { error: 'Credits can only be charged by a verified tool operation.' },
         { status: 403 },
       )
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
     console.log(`[API] Processing credit action: ${action} for user: ${userId}`)
 
     let result: { success: boolean; error?: string; data?: unknown } = { success: true }
-    
+
     try {
       if (action === 'consume-message') {
         const now = new Date()
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
         })
         result = { success: true, data: updated }
       } else {
-        return NextResponse.json(
+        return publicJson(
           { error: 'Invalid action. Use "consume-message"' },
           { status: 400 }
         )
@@ -146,13 +147,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+      return publicJson({ error: result.error }, { status: 400 })
     }
 
-    return NextResponse.json({ success: true, data: result.data || result })
+    return publicJson({ success: true, data: result.data || result })
   } catch (err) {
     console.error('[API] Global POST error:', err)
-    return NextResponse.json(
+    return publicJson(
       { error: 'Internal server error' },
       { status: 500 }
     )

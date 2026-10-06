@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -22,7 +22,7 @@ export async function GET() {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -57,7 +57,7 @@ export async function GET() {
     const usedPercent = Math.min(100, Math.round((usedBytes / totalBytes) * 1000) / 10);
     const remainingBytes = Math.max(0, totalBytes - usedBytes);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       plan: isPro ? "pro" : "free",
       usedBytes,
@@ -74,6 +74,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[DRIVE_STORAGE_GET]", error);
-    return NextResponse.json({ error: "Failed to calculate storage" }, { status: 500 });
+    return publicJson({ error: "Failed to calculate storage" }, { status: 500 });
   }
 }

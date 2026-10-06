@@ -89,6 +89,9 @@ export function getIsIndia() {
   if (typeof window === "undefined") return false;
 
   try {
+    const search = new URLSearchParams(window.location.search);
+    if (search.get("currency")?.toUpperCase() === "USD" || search.get("market")?.toUpperCase() === "GLOBAL") return false;
+    if (search.get("currency")?.toUpperCase() === "INR" || search.get("market")?.toUpperCase() === "IN") return true;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const locale = navigator.language || "";
     const locales = Array.isArray(navigator.languages) ? navigator.languages.join(",") : locale;

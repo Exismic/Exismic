@@ -1,75 +1,13 @@
 import { prisma } from "./prisma";
 import { FREE_DAILY_CREDITS, getDailyCreditLimit } from "@/lib/credit-policy";
 import { Prisma } from "@prisma/client";
+import { isDevAccountEmail, DEV_INFINITE_BALANCE } from "@/lib/dev-account";
 
-export function getMostRecentResetTimestamp(now: Date = new Date()): Date {
-  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
-  const istDate = new Date(now.getTime() + IST_OFFSET_MS);
-
-  const istYear = istDate.getUTCFullYear();
-  const istMonth = istDate.getUTCMonth();
-  const istDay = istDate.getUTCDate();
-  const istHour = istDate.getUTCHours();
-
-  let cycleStartYear = istYear;
-  let cycleStartMonth = istMonth;
-  let cycleStartDay = istDay;
-
-  if (istHour < 12) {
-    const yesterday = new Date(Date.UTC(istYear, istMonth, istDay - 1));
-    cycleStartYear = yesterday.getUTCFullYear();
-    cycleStartMonth = yesterday.getUTCMonth();
-    cycleStartDay = yesterday.getUTCDate();
-  }
-
-  // 12:00 PM IST is precisely 06:30:00.000 UTC
-  return new Date(Date.UTC(cycleStartYear, cycleStartMonth, cycleStartDay, 6, 30, 0, 0));
-}
-
-export function getTodayInIndia(now: Date = new Date()): Date {
-  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
-  const istDate = new Date(now.getTime() + IST_OFFSET_MS);
-
-  const istYear = istDate.getUTCFullYear();
-  const istMonth = istDate.getUTCMonth();
-  const istDay = istDate.getUTCDate();
-  const istHour = istDate.getUTCHours();
-
-  let cycleStartYear = istYear;
-  let cycleStartMonth = istMonth;
-  let cycleStartDay = istDay;
-
-  // Daily giftbox reward resets at 12:00 PM IST (noon)
-  if (istHour < 12) {
-    const yesterday = new Date(Date.UTC(istYear, istMonth, istDay - 1));
-    cycleStartYear = yesterday.getUTCFullYear();
-    cycleStartMonth = yesterday.getUTCMonth();
-    cycleStartDay = yesterday.getUTCDate();
-  }
-
-  return new Date(Date.UTC(
-    cycleStartYear,
-    cycleStartMonth,
-    cycleStartDay,
-  ));
-}
-
-function isRetryableTransactionError(error: unknown) {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
-}
-
-async function runSerializable<T>(operation: () => Promise<T>) {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error;
-      if (!isRetryableTransactionError(error) || attempt === 2) throw error;
-    }
-  }
-  throw lastError;
-}
+import { getTodayInIndia, getMostRecentResetTimestamp } from './daily-cycle';
+export { getTodayInIndia, getMostRecentResetTimestamp } from './daily-cycle';
+import { runSerializable } from './serializable';
+import { MAX_STREAK_SHIELDS, resolveStreak } from './streak-state';
+import { settleUserStreak, settleStreakInTransaction, deliverStreakProtectionEmails } from './streaks';
 
 export function getCreditTotal(credits: {
   dailyCredits?: number | null;
@@ -86,6 +24,8 @@ export async function resetCreditsIfNewDay(userId: string) {
         const user = await transaction.user.findUnique({
           where: { id: userId },
           select: {
+            email: true,
+            role: true,
             dailyCredits: true,
             bonusCredits: true,
             lifetimeCredits: true,
@@ -97,6 +37,9 @@ export async function resetCreditsIfNewDay(userId: string) {
         });
 
         if (!user) return null;
+        if (isDevAccountEmail(user.email) || user.role === "developer") {
+          return user;
+        }
 
         const now = new Date();
         let currentPlan = user.plan;
@@ -244,9 +187,20 @@ export async function deductCredits(
 
         const user = await transaction.user.findUnique({
           where: { id: userId },
-          select: { dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
+          select: { email: true, role: true, dailyCredits: true, bonusCredits: true, lifetimeCredits: true },
         });
         if (!user) throw new Error("User not found");
+
+        if (isDevAccountEmail(user.email) || user.role === "developer") {
+          return {
+            balances: {
+              dailyCredits: DEV_INFINITE_BALANCE,
+              bonusCredits: DEV_INFINITE_BALANCE,
+              lifetimeCredits: DEV_INFINITE_BALANCE,
+            },
+            spent: { dailySpend: 0, bonusSpend: 0, permanentSpend: 0 },
+          };
+        }
 
         const totalAvailable = getCreditTotal(user);
         if (totalAvailable < amount) throw new Error(`Insufficient credits:${totalAvailable}`);
@@ -375,27 +329,11 @@ export async function addBonusCredits(userId: string, amount: number, reason?: s
 export function calculateEffectiveStreak(
   dailyStreak?: number | null,
   lastClaimDate?: Date | string | null,
-  streakShields?: number | null
+  streakShields?: number | null,
+  streakFreezeUsedAt?: Date | string | null,
+  now = new Date(),
 ): number {
-  if (!dailyStreak || !lastClaimDate) return 0;
-
-  const today = getTodayInIndia();
-  const lastDate = new Date(lastClaimDate);
-  if (Number.isNaN(lastDate.getTime())) return 0;
-
-  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-  const lastUtc = Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate());
-
-  const diffInDays = Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000));
-
-  if (diffInDays === 0 || diffInDays === 1) {
-    return dailyStreak;
-  }
-  // If user missed 1 day (diffInDays === 2) and has a shield, their streak is preserved pending claim!
-  if (diffInDays === 2 && (streakShields || 0) > 0) {
-    return dailyStreak;
-  }
-  return 0;
+  return resolveStreak({ dailyStreak, lastClaimDate, streakShields, streakFreezeUsedAt }, now).dailyStreak;
 }
 
 export async function getUserCredits(userId: string) {
@@ -403,6 +341,8 @@ export async function getUserCredits(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
+        email: true,
+        role: true,
         dailyCredits: true,
         bonusCredits: true,
         lifetimeCredits: true,
@@ -417,10 +357,27 @@ export async function getUserCredits(userId: string) {
       },
     });
 
+    if (user && (isDevAccountEmail(user.email) || user.role === "developer")) {
+      return {
+        dailyCredits: DEV_INFINITE_BALANCE,
+        bonusCredits: DEV_INFINITE_BALANCE,
+        lifetimeCredits: DEV_INFINITE_BALANCE,
+        creditsLastReset: new Date(),
+        aiMessagesToday: 0,
+        plan: "pro",
+        dailyStreak: 999,
+        streakShields: 99,
+        streakFreezeUsedAt: null,
+        streakMilestonesClaimed: [],
+      };
+    }
+
     if (!user) {
       await initializeUserCredits(userId);
     }
 
+    await settleUserStreak(userId);
+    await deliverStreakProtectionEmails(userId, 5);
     await resetCreditsIfNewDay(userId);
 
     const updatedUser = await prisma.user.findUnique({
@@ -445,7 +402,8 @@ export async function getUserCredits(userId: string) {
     const effectiveStreak = calculateEffectiveStreak(
       updatedUser.dailyStreak,
       updatedUser.lastClaimDate,
-      updatedUser.streakShields
+      updatedUser.streakShields,
+      updatedUser.streakFreezeUsedAt
     );
 
     const rawClaimed = updatedUser.streakMilestonesClaimed;
@@ -465,10 +423,12 @@ export async function getUserCredits(userId: string) {
 }
 
 export async function claimDailyShopCredits(userId: string) {
-  const claimDate = getTodayInIndia();
+  const now = new Date();
+  const claimDate = getTodayInIndia(now);
 
   try {
-    const result = await prisma.$transaction(async (transaction) => {
+    const result = await runSerializable(() => prisma.$transaction(async (transaction) => {
+      const settled = await settleStreakInTransaction(transaction, userId, now);
       const existing = await transaction.creditShopClaim.findUnique({
         where: {
           userId_claimDate: {
@@ -488,33 +448,15 @@ export async function claimDailyShopCredits(userId: string) {
           dailyStreak: true,
           lastClaimDate: true,
           streakShields: true,
+          streakFreezeUsedAt: true,
           streakMilestonesClaimed: true,
         },
       });
 
-      const todayUtc = Date.UTC(claimDate.getUTCFullYear(), claimDate.getUTCMonth(), claimDate.getUTCDate());
-      let newStreak = 1;
-      let shieldConsumed = false;
-
-      if (user?.lastClaimDate) {
-        const lastDate = new Date(user.lastClaimDate);
-        if (!Number.isNaN(lastDate.getTime())) {
-          const lastUtc = Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate());
-          const diffInDays = Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000));
-
-          if (diffInDays === 1) {
-            newStreak = (user.dailyStreak || 0) + 1;
-          } else if (diffInDays === 0) {
-            newStreak = user.dailyStreak || 1;
-          } else if (diffInDays === 2 && (user.streakShields || 0) > 0) {
-            // Shield saved the streak!
-            newStreak = (user.dailyStreak || 0) + 1;
-            shieldConsumed = true;
-          } else {
-            newStreak = 1;
-          }
-        }
-      }
+      if (!user) throw new Error('User not found');
+      const state = resolveStreak(user, now);
+      const newStreak = state.claimedToday ? Math.max(1, state.dailyStreak) : state.dailyStreak + 1;
+      const shieldConsumed = Boolean(settled?.shieldsConsumed);
 
       const rawClaimed = user?.streakMilestonesClaimed;
       const claimedMilestones: string[] = Array.isArray(rawClaimed)
@@ -549,9 +491,9 @@ export async function claimDailyShopCredits(userId: string) {
       });
 
       // Calculate updated shield count
-      let currentShields = (user?.streakShields || 0) - (shieldConsumed ? 1 : 0);
+      let currentShields = (user?.streakShields || 0);
       let bonusShieldEarned = false;
-      if (newStreak % 7 === 0 && currentShields < 2) {
+      if (newStreak % 7 === 0 && currentShields < MAX_STREAK_SHIELDS) {
         currentShields += 1;
         bonusShieldEarned = true;
       }
@@ -562,7 +504,6 @@ export async function claimDailyShopCredits(userId: string) {
           dailyStreak: newStreak,
           lastClaimDate: claimDate,
           streakShields: currentShields,
-          ...(shieldConsumed ? { streakFreezeUsedAt: new Date() } : {}),
           ...(reward.type === "permanent"
             ? { lifetimeCredits: { increment: finalAmount } }
             : { bonusCredits: { increment: finalAmount } }),
@@ -609,8 +550,9 @@ export async function claimDailyShopCredits(userId: string) {
         hasDoubleLuck,
         hasIgnitionBoost,
       };
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
+    await deliverStreakProtectionEmails(userId, 5);
     return {
       success: true as const,
       rarity: result.reward.rarity,
@@ -654,65 +596,37 @@ export async function claimDailyShopCredits(userId: string) {
 
 export async function buyStreakShield(userId: string) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        dailyCredits: true,
-        bonusCredits: true,
-        lifetimeCredits: true,
-        streakShields: true,
-      },
-    });
-
-    if (!user) {
-      return { success: false, error: "User not found" };
-    }
-
-    if ((user.streakShields || 0) >= 2) {
-      return { success: false, error: "Maximum shields reached (limit: 2)." };
-    }
-
-    const totalCredits = (user.dailyCredits || 0) + (user.bonusCredits || 0) + (user.lifetimeCredits || 0);
-    const SHIELD_COST = 30;
-
-    if (totalCredits < SHIELD_COST) {
-      return { success: false, error: `Insufficient credits. You need ${SHIELD_COST} credits to equip a Streak Shield.` };
-    }
-
-    // Deduct 30 credits
-    const deductRes = await deductCredits(
-      userId,
-      SHIELD_COST,
-      "streak-shield",
-      undefined,
-      "shield_purchase",
-      "Equipped Streak Shield (-30 credits)"
-    );
-    if (!deductRes.success) {
-      return { success: false, error: deductRes.error || "Failed to deduct credits" };
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        streakShields: { increment: 1 },
-      },
-      select: {
-        streakShields: true,
-        dailyCredits: true,
-        bonusCredits: true,
-        lifetimeCredits: true,
-      },
-    });
-
-    return {
-      success: true,
-      streakShields: updatedUser.streakShields,
-      credits: updatedUser,
-    };
-  } catch (err) {
-    console.error("[CREDITS] buyStreakShield failed:", err);
-    return { success: false, error: "Failed to purchase Streak Shield." };
+    await settleUserStreak(userId);
+    await deliverStreakProtectionEmails(userId, 5);
+    await resetCreditsIfNewDay(userId);
+    const updatedUser = await runSerializable(() => prisma.$transaction(async tx => {
+      await settleStreakInTransaction(tx, userId);
+      const user = await tx.user.findUnique({ where: { id: userId }, select: {
+        dailyCredits: true, bonusCredits: true, lifetimeCredits: true, streakShields: true,
+      } });
+      if (!user) throw new Error('User not found');
+      if (user.streakShields >= MAX_STREAK_SHIELDS) throw new Error('Maximum savers reached (limit: 3).');
+      const cost = 30;
+      if (getCreditTotal(user) < cost) throw new Error('You need 30 credits to equip a streak saver.');
+      const dailySpend = Math.min(user.dailyCredits, cost);
+      const bonusSpend = Math.min(user.bonusCredits, cost - dailySpend);
+      const permanentSpend = cost - dailySpend - bonusSpend;
+      const updated = await tx.user.update({ where: { id: userId }, data: {
+        dailyCredits: user.dailyCredits - dailySpend, bonusCredits: user.bonusCredits - bonusSpend,
+        lifetimeCredits: user.lifetimeCredits - permanentSpend, streakShields: { increment: 1 },
+      }, select: { streakShields: true, dailyCredits: true, bonusCredits: true, lifetimeCredits: true } });
+      await tx.creditTransaction.create({ data: {
+        userId, amount: -cost, balanceType: 'mixed', transactionType: 'shield_purchase', toolId: 'streak-shield',
+        description: 'Equipped streak saver (-30 credits)', metadata: { dailySpend, bonusSpend, permanentSpend },
+      } });
+      return updated;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
+    return { success: true, streakShields: updatedUser.streakShields, credits: updatedUser };
+  } catch (error) {
+    console.error('[CREDITS] Streak saver purchase failed:', error);
+    const message = error instanceof Error ? error.message : '';
+    const expected = ['User not found', 'Maximum savers reached (limit: 3).', 'You need 30 credits to equip a streak saver.'];
+    return { success: false, error: expected.includes(message) ? message : 'Could not equip a streak saver. Please try again later.' };
   }
 }
 
@@ -730,13 +644,16 @@ export async function claimStreakMilestone(userId: string, milestoneDay: number)
   }
 
   try {
-    const result = await prisma.$transaction(async (transaction) => {
+    await settleUserStreak(userId);
+    await deliverStreakProtectionEmails(userId, 5);
+    const result = await runSerializable(() => prisma.$transaction(async (transaction) => {
       const user = await transaction.user.findUnique({
         where: { id: userId },
         select: {
           dailyStreak: true,
           lastClaimDate: true,
           streakShields: true,
+          streakFreezeUsedAt: true,
           streakMilestonesClaimed: true,
         },
       });
@@ -745,7 +662,7 @@ export async function claimStreakMilestone(userId: string, milestoneDay: number)
         throw new Error("User not found");
       }
 
-      const effectiveStreak = calculateEffectiveStreak(user.dailyStreak, user.lastClaimDate, user.streakShields);
+      const effectiveStreak = calculateEffectiveStreak(user.dailyStreak, user.lastClaimDate, user.streakShields, user.streakFreezeUsedAt);
       if (effectiveStreak < milestoneDay) {
         throw new Error(`Your streak (${effectiveStreak}) has not reached the ${milestoneDay}-day milestone yet.`);
       }
@@ -759,7 +676,7 @@ export async function claimStreakMilestone(userId: string, milestoneDay: number)
         throw new Error(`Milestone for day ${milestoneDay} has already been claimed.`);
       }
 
-      const shouldAddShield = milestone.shield > 0 && (user.streakShields || 0) < 2;
+      const shouldAddShield = milestone.shield > 0 && (user.streakShields || 0) < MAX_STREAK_SHIELDS;
 
       const updatedUser = await transaction.user.update({
         where: { id: userId },
@@ -801,7 +718,7 @@ export async function claimStreakMilestone(userId: string, milestoneDay: number)
         credits: updatedUser,
         shieldAwarded: shouldAddShield,
       };
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
     return {
       success: true,

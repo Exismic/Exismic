@@ -101,7 +101,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "How do Streak Freeze Shields work?",
-    a: "Streak Freeze Shields are items you can purchase in the Sparks Shop. If you miss a day of logging in, an equipped Streak Freeze automatically protects your daily streak counter from resetting to zero. Once used to save your streak, that shield is consumed."
+    a: "Streak Freeze Shields are items you can purchase in the Sparks Shop. If you miss a daily reward claim, one equipped shield automatically protects that missed day and is consumed. You can hold up to 3 shields. Reward days reset at 12:00 PM IST; logging in alone does not claim a reward."
   },
   {
     q: "Can I transfer Credits or Sparks to another person or account?",
@@ -517,7 +517,7 @@ export default function CurrencyGuidePage() {
                   </div>
                   <div>
                     <strong className="text-white block font-bold text-sm mb-0.5">Streak Freeze Shields</strong>
-                    <span className="text-zinc-300">Protect your streak from resetting to zero if you get busy or miss logging in for a day.</span>
+                    <span className="text-zinc-300">Protect your streak if you miss a daily reward claim. Each shield covers one missed reward day.</span>
                   </div>
                 </div>
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { isPrivateAnalyticsUrl } from "@/lib/analytics-privacy";
 import {
   COOKIE_CONSENT_CHANGED_EVENT,
   hasAnalyticsConsent,
@@ -9,6 +11,7 @@ import {
 
 const CLARITY_PROJECT_ID = "q6s4m5v6k8";
 const CLARITY_SCRIPT_ID = "microsoft-clarity";
+let clarityStopped = false;
 
 type ClarityCommand = (...args: unknown[]) => void;
 
@@ -39,7 +42,15 @@ function clearClarityCookies() {
 }
 
 function grantAnalyticsConsent() {
+  if (isPrivateAnalyticsUrl(window.location.href)) {
+    stopPrivateRecording();
+    return;
+  }
   const clarity = ensureClarityQueue();
+  if (clarityStopped) {
+    clarity("start");
+    clarityStopped = false;
+  }
   clarity("consentv2", {
     ad_Storage: "denied",
     analytics_Storage: "granted",
@@ -51,7 +62,17 @@ function grantAnalyticsConsent() {
   script.id = CLARITY_SCRIPT_ID;
   script.async = true;
   script.src = `https://www.clarity.ms/tag/${CLARITY_PROJECT_ID}`;
+  script.onload = () => {
+    if (isPrivateAnalyticsUrl(window.location.href)) stopPrivateRecording();
+  };
   document.head.appendChild(script);
+}
+
+function stopPrivateRecording() {
+  if (window.clarity) {
+    window.clarity("stop");
+    clarityStopped = true;
+  }
 }
 
 function denyAnalyticsConsent() {
@@ -67,7 +88,12 @@ function denyAnalyticsConsent() {
 }
 
 export function ConsentAwareAnalytics() {
+  const pathname = usePathname();
   useEffect(() => {
+    if (isPrivateAnalyticsUrl(window.location.href)) {
+      stopPrivateRecording();
+      return;
+    }
     if (hasAnalyticsConsent()) {
       grantAnalyticsConsent();
     } else {
@@ -94,7 +120,7 @@ export function ConsentAwareAnalytics() {
         handleConsentChange as EventListener,
       );
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

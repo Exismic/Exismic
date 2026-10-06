@@ -1,3 +1,4 @@
+import { accountStatusEmail } from "@/emails/notifications";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin } from "@/lib/auth/admin";
@@ -189,15 +190,7 @@ export async function PATCH(request: Request) {
               from: SUPPORT_SENDER,
               to: existingUser.email,
               subject: "Notice: Account Suspended",
-              html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6;">
-                <h2 style="color: #ef4444;">Exismic Safety Operations</h2>
-                <p>Hi <strong>${existingUser.name || "Creator"}</strong>,</p>
-                <p>We are writing to inform you that your Exismic creator account has been suspended for violating our Terms of Service.</p>
-                <p>As a result, your access to our dashboard and creative tools has been restricted.</p>
-                <p>If you believe this decision was made in error, you can submit an appeal by visiting the <a href="https://${EMAIL_DOMAIN}/appeal" style="color: #ef4444; font-weight: bold; text-decoration: none;">Ban Appeal Center</a>.</p>
-                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-                <p style="color: #6b7280; font-size: 11px;">This is an automated safety notice. Replies to this email address are not monitored.</p>
-              </div>`,
+              html: accountStatusEmail(existingUser.name || "Creator", false),
             });
           } catch (emailErr) {
             console.error("Failed to send suspension email:", emailErr);
@@ -208,15 +201,7 @@ export async function PATCH(request: Request) {
               from: SUPPORT_SENDER,
               to: existingUser.email,
               subject: "Account Status Restored",
-              html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6;">
-                <h2 style="color: #10b981;">Exismic Safety Operations</h2>
-                <p>Hi <strong>${existingUser.name || "Creator"}</strong>,</p>
-                <p>Following a review of your appeal, our administration team has resolved your ticket and restored your Exismic creator account.</p>
-                <p>You can now sign back in normally to resume using your plan and credits.</p>
-                <p>Welcome back to the community! Visit the <a href="https://${EMAIL_DOMAIN}/auth/login" style="color: #8b5cf6; font-weight: bold; text-decoration: none;">Dashboard</a> to get started.</p>
-                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-                <p style="color: #6b7280; font-size: 11px;">Thank you for your patience during the review process.</p>
-              </div>`,
+              html: accountStatusEmail(existingUser.name || "Creator", true),
             });
           } catch (emailErr) {
             console.error("Failed to send restoration email:", emailErr);

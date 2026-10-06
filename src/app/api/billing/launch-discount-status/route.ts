@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { checkUserLaunchDiscountEligibility } from "@/lib/billing/launch-discount";
 
@@ -10,9 +10,9 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     const eligibility = await checkUserLaunchDiscountEligibility(user?.id);
-    return NextResponse.json(eligibility);
+    return publicJson(eligibility);
   } catch (error) {
     console.error("[LaunchDiscountStatus] GET error:", error);
-    return NextResponse.json({ eligible: false, error: "Internal error" }, { status: 500 });
+    return publicJson({ eligible: false, error: "Internal error" }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasActiveProAccess } from "@/lib/user-access";
 import { normalizeResumeData, type AtsInsight, type ResumeData } from "@/lib/resume";
@@ -99,8 +100,8 @@ async function checkResumeAccess(cost: number) {
   // Non-pro users can use credits
   const totalCredits = getCreditTotal(dbUser);
   if (totalCredits < cost) {
-    return { 
-      error: `Insufficient credits. This requires ${cost} credits, but you have ${totalCredits}.`, 
+    return {
+      error: `Insufficient credits. This requires ${cost} credits, but you have ${totalCredits}.`,
       status: 402,
       required: cost,
       available: totalCredits
@@ -262,12 +263,12 @@ export async function POST(req: NextRequest) {
     if (mode === "full") {
       const gate = await checkResumeAccess(15);
       if (gate.status !== 200) {
-        return NextResponse.json({ error: gate.error, required: gate.required, available: gate.available }, { status: gate.status });
+        return publicJson({ error: gate.error, required: gate.required, available: gate.available }, { status: gate.status });
       }
     } else if (mode === "ats") {
       const gate = await checkResumeAccess(10);
       if (gate.status !== 200) {
-        return NextResponse.json({ error: gate.error, required: gate.required, available: gate.available }, { status: gate.status });
+        return publicJson({ error: gate.error, required: gate.required, available: gate.available }, { status: gate.status });
       }
     }
 
@@ -276,7 +277,7 @@ export async function POST(req: NextRequest) {
       const jobDescription = sanitizeText(body.jobDescription, "", 6000);
 
       if (brief.length < 12) {
-        return NextResponse.json({ error: "Tell Exismic Ai more about the resume you want." }, { status: 400 });
+        return publicJson({ error: "Tell Exismic Ai more about the resume you want." }, { status: 400 });
       }
 
       const content = await callGroq([
@@ -285,7 +286,7 @@ export async function POST(req: NextRequest) {
       ], true);
       const resume = normalizeResumeData(extractJson(content));
 
-      return NextResponse.json({ success: true, resume });
+      return publicJson({ success: true, resume });
     }
 
     if (mode === "ats") {
@@ -293,7 +294,7 @@ export async function POST(req: NextRequest) {
       const jobDescription = sanitizeText(body.jobDescription, "", 9000);
 
       if (!resumeText || jobDescription.length < 20) {
-        return NextResponse.json({ error: "Add resume content and a job description first." }, { status: 400 });
+        return publicJson({ error: "Add resume content and a job description first." }, { status: 400 });
       }
 
       const content = await callGroq([
@@ -302,7 +303,7 @@ export async function POST(req: NextRequest) {
       ], true);
       const insight = sanitizeAtsInsight(extractJson(content));
 
-      return NextResponse.json({ success: true, insight });
+      return publicJson({ success: true, insight });
     }
 
     const section = body.section || "summary";
@@ -311,7 +312,7 @@ export async function POST(req: NextRequest) {
       { role: "user", content: buildSectionPrompt(section, role, context) },
     ]);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       suggestion: content.trim(),
     });
@@ -321,6 +322,6 @@ export async function POST(req: NextRequest) {
     const message = rawMessage.includes("The AI processing service is currently unavailable")
       ? rawMessage
       : "Resume AI is temporarily unavailable. Please try again.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

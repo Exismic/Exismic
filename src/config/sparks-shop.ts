@@ -45,7 +45,7 @@ export const PERMANENT_SHOP_ITEMS: SparksShopItem[] = [
     id: "sparks_streak_freeze_1x",
     title: "Streak Freeze (1x Shield)",
     subtitle: "Streak Protection",
-    description: "Saves your daily streak if you miss logging in for one day. Automatically consumed if you miss a day. Stacks up to 3 shields.",
+    description: "Saves your daily reward streak if you miss one reward claim. One shield is used automatically for each missed day. Stacks up to 3 shields.",
     costSparks: 250,
     category: "perks",
     type: "streak_shield",

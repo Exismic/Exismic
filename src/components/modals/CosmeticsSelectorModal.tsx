@@ -96,7 +96,7 @@ export function CosmeticsSelectorModal({
                   <Gem size={20} className="text-amber-300" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                     <h2 className="text-base sm:text-2xl font-black text-white uppercase italic tracking-tight">
                       Creator Insignias
                     </h2>
@@ -112,7 +112,7 @@ export function CosmeticsSelectorModal({
 
               <button
                 onClick={onClose}
-                className="group flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/25 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
+                className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/25 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
                 aria-label="Close modal"
               >
                 <X size={18} className="group-hover:scale-110 transition-transform" />
@@ -148,7 +148,7 @@ export function CosmeticsSelectorModal({
             </div>
 
             {/* Grid Selector Body */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 relative z-10">
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 relative z-10">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
                 {items.map((item) => {
                   const isSelected = currentSelectedId === item.id;
@@ -266,14 +266,14 @@ export function CosmeticsSelectorModal({
                   <button
                     onClick={handleReset}
                     disabled={isApplying}
-                    className="flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+                    className="min-h-11 flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
                   >
                     Unequip
                   </button>
                 )}
                 <button
                   onClick={onClose}
-                  className="flex-1 sm:flex-initial px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer text-center"
+                  className="min-h-11 flex-1 sm:flex-initial px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer text-center"
                 >
                   Done
                 </button>

@@ -1,3 +1,4 @@
+import { publicJson } from "./public-json";
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -24,14 +25,14 @@ export async function handleAudioProcessingRequest(
     const proUser = task === "stem-separation" ? await requireProApiUser() : null;
     if (proUser instanceof NextResponse) return proUser;
     const user = proUser || await getOptionalApiUser();
-    const actor = user?.id || "guest";
+    const actor = user?.id || getRequestIp(request);
 
-    const limit = checkRateLimit(
-      `audio:${task}:${actor}:${getRequestIp(request)}`,
+    const limit = await checkRateLimit(
+      `audio:${task}:${actor}`,
       user ? 10 : 4,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await request.formData();
     const entry = formData.get("file");
@@ -44,7 +45,7 @@ export async function handleAudioProcessingRequest(
     if (fileError) return fileError;
 
     const result = await runAudioProcessing(file!, task, requestId);
-    return NextResponse.json(result, {
+    return publicJson(result, {
       headers: {
         "Cache-Control": "no-store",
         "X-Exismic-Request-Id": requestId,
@@ -53,7 +54,7 @@ export async function handleAudioProcessingRequest(
   } catch (error) {
     if (error instanceof AudioProviderUnavailableError) {
       console.error(`[audio:${requestId}] all providers failed`, error.attempts);
-      return NextResponse.json(
+      return publicJson(
         {
           error: error.message,
           code: error.code,
@@ -68,7 +69,7 @@ export async function handleAudioProcessingRequest(
     }
 
     console.error(`[audio:${requestId}] processing failed`, error);
-    return NextResponse.json(
+    return publicJson(
       {
         error: "The audio could not be processed. Please try another file.",
         code: "AUDIO_PROCESSING_FAILED",

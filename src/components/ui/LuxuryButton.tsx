@@ -19,6 +19,7 @@ export interface LuxuryButtonProps {
   size?: "default" | "sm";
   target?: string;
   rel?: string;
+  centerMobileText?: boolean;
 }
 
 export function LuxuryButton({
@@ -32,6 +33,7 @@ export function LuxuryButton({
   size = "default",
   target,
   rel,
+  centerMobileText = false,
 }: LuxuryButtonProps) {
   // Theme visual variations matching ProClient VIP button architecture
   const config = {
@@ -136,7 +138,7 @@ export function LuxuryButton({
           config.hoverCore
         )}
       >
-        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+        <div className={cn("flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1", centerMobileText && "contents sm:flex")}>
           {/* Distinct Custom Icon in Luminous Jewel Frame */}
           {icon && (
             <div className="relative shrink-0 flex items-center justify-center">
@@ -158,7 +160,7 @@ export function LuxuryButton({
           )}
 
           {/* Full Text Visibility Stack with clean spacing */}
-          <div className="text-left min-w-0 flex-1">
+          <div className={cn("text-left min-w-0 flex-1", centerMobileText && "text-center sm:text-left")}>
             <span className="block text-[11px] sm:text-xs md:text-[12.5px] font-black uppercase tracking-[0.05em] sm:tracking-[0.08em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] leading-tight">
               {title}
             </span>

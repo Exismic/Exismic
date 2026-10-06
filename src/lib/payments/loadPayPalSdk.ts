@@ -21,6 +21,13 @@ export type PayPalSdk = {
     render: (options: Record<string, unknown>) => Promise<PayPalHostedFieldsInstance>;
   };
   Buttons?: (options: Record<string, unknown>) => PayPalButtonsInstance;
+  FUNDING?: {
+    PAYPAL: string;
+    CARD: string;
+    PAYLATER: string;
+    CREDIT: string;
+    [key: string]: string;
+  };
 };
 
 declare global {

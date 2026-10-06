@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized. Please sign in to upload to Cloud Drive." }, { status: 401 });
+      return publicJson({ error: "Unauthorized. Please sign in to upload to Cloud Drive." }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -31,11 +32,11 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return publicJson({ error: "No file provided" }, { status: 400 });
     }
 
     if (file.size > maxSingleFileBytes) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `File exceeds the ${formatBytes(maxSingleFileBytes)} single upload limit for ${isPro ? "Pro" : "Free"} accounts.`,
         },
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (currentUsedBytes + file.size > totalStorageBytes) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `Cloud Drive storage limit reached (${formatBytes(totalStorageBytes)}). Upgrade to Pro or free up space to continue uploading.`,
         },
@@ -128,14 +129,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       file: newFile,
       savedBytes: Math.max(0, file.size - uploadBuffer.length),
     });
   } catch (error) {
     console.error("[DRIVE_UPLOAD_POST]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error instanceof Error ? error.message : "Failed to upload file to Cloud Drive" },
       { status: 500 }
     );

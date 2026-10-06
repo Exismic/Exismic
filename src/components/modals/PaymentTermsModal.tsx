@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, X } from "lucide-react";
+import { ArrowRight, CreditCard, Loader2, ShieldCheck, X } from "lucide-react";
 import { Portal } from "@/components/ui/Portal";
 import { PRICING_CONFIG, isExismic17PromoActive } from "@/config/pricing";
 import { getPlanPrice, type BillingPlanId } from "@/lib/billing/plans";
@@ -205,11 +205,11 @@ export function PaymentTermsModal({
         if (btnContainer && paypal.Buttons && !btnContainer.hasChildNodes()) {
           paypal.Buttons({
             style: {
-              layout: "horizontal",
+              layout: "vertical",
               color: "gold",
               shape: "rect",
               label: "paypal",
-              height: 42,
+              height: 48,
               tagline: false,
             },
             createOrder: async () => {
@@ -523,63 +523,86 @@ export function PaymentTermsModal({
                 {/* Payment Methods / Gateway Details */}
                 {gateway === "paypal" ? (
                   <div className="space-y-3">
-                    {/* On-Site Card Input Fields */}
-                    <div className="space-y-3 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0c101c]/80 to-[#070912]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
-                          Card Details
-                        </span>
-                        <span className="text-[11px] font-medium text-zinc-400">
-                          Visa, Mastercard, Amex
-                        </span>
-                      </div>
+                    {/* On-Site Card Input Fields ONLY if Hosted Fields is hydrated and ready */}
+                    {hostedFieldsReady && (
+                      <div className="space-y-3 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0c101c]/80 to-[#070912]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+                            Card Details
+                          </span>
+                          <span className="text-[11px] font-medium text-zinc-400">
+                            Visa, Mastercard, Amex
+                          </span>
+                        </div>
 
-                      {/* Card Number Field Container */}
-                      <div>
-                        <label htmlFor="paypal-card-number" className="block text-[11px] font-medium text-zinc-400 mb-1">
-                          Card number
-                        </label>
-                        <div
-                          id="paypal-card-number"
-                          className="h-11 w-full rounded-xl border border-white/[0.12] bg-black/60 px-3.5 flex items-center transition-all focus-within:border-cyan-400/60 focus-within:ring-1 focus-within:ring-cyan-400/30"
-                        />
-                      </div>
-
-                      {/* Expiration Date & CVV Row */}
-                      <div className="grid grid-cols-2 gap-3">
+                        {/* Card Number Field Container */}
                         <div>
-                          <label htmlFor="paypal-expiration-date" className="block text-[11px] font-medium text-zinc-400 mb-1">
-                            Expires
+                          <label htmlFor="paypal-card-number" className="block text-[11px] font-medium text-zinc-400 mb-1">
+                            Card number
                           </label>
                           <div
-                            id="paypal-expiration-date"
+                            id="paypal-card-number"
                             className="h-11 w-full rounded-xl border border-white/[0.12] bg-black/60 px-3.5 flex items-center transition-all focus-within:border-cyan-400/60 focus-within:ring-1 focus-within:ring-cyan-400/30"
                           />
                         </div>
 
-                        <div>
-                          <label htmlFor="paypal-cvv" className="block text-[11px] font-medium text-zinc-400 mb-1">
-                            CVV
-                          </label>
-                          <div
-                            id="paypal-cvv"
-                            className="h-11 w-full rounded-xl border border-white/[0.12] bg-black/60 px-3.5 flex items-center transition-all focus-within:border-cyan-400/60 focus-within:ring-1 focus-within:ring-cyan-400/30"
-                          />
+                        {/* Expiration Date & CVV Row */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label htmlFor="paypal-expiration-date" className="block text-[11px] font-medium text-zinc-400 mb-1">
+                              Expires
+                            </label>
+                            <div
+                              id="paypal-expiration-date"
+                              className="h-11 w-full rounded-xl border border-white/[0.12] bg-black/60 px-3.5 flex items-center transition-all focus-within:border-cyan-400/60 focus-within:ring-1 focus-within:ring-cyan-400/30"
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="paypal-cvv" className="block text-[11px] font-medium text-zinc-400 mb-1">
+                              CVV
+                            </label>
+                            <div
+                              id="paypal-cvv"
+                              className="h-11 w-full rounded-xl border border-white/[0.12] bg-black/60 px-3.5 flex items-center transition-all focus-within:border-cyan-400/60 focus-within:ring-1 focus-within:ring-cyan-400/30"
+                            />
+                          </div>
                         </div>
                       </div>
+                    )}
+
+                    {/* PayPal Smart Buttons Container (includes PayPal + Debit or Credit Card) */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                          Express Checkout
+                        </span>
+                        <span className="text-[11px] text-zinc-400">
+                          PayPal • Cards • Pay Later
+                        </span>
+                      </div>
+
+                      <div id="paypal-button-container" className="min-h-[48px] overflow-hidden rounded-xl" />
                     </div>
 
-                    {/* PayPal Button Alternative Container */}
-                    <div className="space-y-2">
-                      <div className="relative flex py-1 items-center justify-center">
-                        <div className="flex-grow border-t border-white/[0.08]" />
-                        <span className="flex-shrink mx-3 text-[10.5px] font-semibold text-zinc-400 uppercase tracking-widest">
-                          or pay with PayPal
-                        </span>
-                        <div className="flex-grow border-t border-white/[0.08]" />
+                    {/* Link to Dedicated Full-Page USD Checkout */}
+                    <div className="rounded-xl border border-cyan-500/25 bg-gradient-to-r from-cyan-950/40 via-[#0a0f1d]/60 to-[#070912]/80 p-3.5 text-xs flex items-center justify-between gap-3 shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 text-cyan-300 font-bold">
+                          <CreditCard size={14} className="text-cyan-400 shrink-0" />
+                          <span>Prefer full-page checkout?</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+                          Auto card detection, itemized summary & receipt.
+                        </p>
                       </div>
-
-                      <div id="paypal-button-container" className="min-h-[42px] overflow-hidden rounded-xl" />
+                      <Link
+                        href={`/checkout?plan=${normalizedId}${coupon ? `&coupon=${coupon.code}` : ""}`}
+                        onClick={onClose}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/40 bg-cyan-500/20 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-cyan-200 hover:bg-cyan-500/30 hover:text-white transition-all shrink-0 active:scale-95"
+                      >
+                        Open <ArrowRight size={13} />
+                      </Link>
                     </div>
 
                     {payPalInitError && (
@@ -589,14 +612,35 @@ export function PaymentTermsModal({
                     )}
                   </div>
                 ) : (
-                  /* Razorpay Info Bar for India */
-                  <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-950/25 via-slate-900/30 to-cyan-950/15 px-4 py-3 text-xs leading-relaxed text-zinc-300">
-                    <span className="font-semibold text-cyan-300">Payment via Razorpay: </span>
-                    <span>
-                      <strong className="text-zinc-100 font-medium">UPI</strong> (Google Pay, PhonePe, Paytm),{" "}
-                      <strong className="text-zinc-100 font-medium">Cards</strong>, and{" "}
-                      <strong className="text-zinc-100 font-medium">NetBanking</strong>.
-                    </span>
+                  /* Razorpay Info Bar & Full Page Checkout for India */
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-purple-500/25 bg-gradient-to-r from-purple-950/30 via-slate-900/40 to-violet-950/20 px-4 py-3 text-xs leading-relaxed text-zinc-300">
+                      <span className="font-semibold text-purple-300">Payment via Razorpay: </span>
+                      <span>
+                        <strong className="text-zinc-100 font-medium">UPI</strong> (Google Pay, PhonePe, Paytm),{" "}
+                        <strong className="text-zinc-100 font-medium">Cards</strong> (RuPay, Visa, MC), and{" "}
+                        <strong className="text-zinc-100 font-medium">NetBanking</strong>.
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl border border-purple-500/25 bg-gradient-to-r from-purple-950/40 via-[#0e0c1c]/60 to-[#070912]/80 p-3.5 text-xs flex items-center justify-between gap-3 shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 text-purple-300 font-bold">
+                          <CreditCard size={14} className="text-purple-400 shrink-0" />
+                          <span>Prefer full-page checkout?</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+                          Razorpay UPI QR, cards, live preview & receipt.
+                        </p>
+                      </div>
+                      <Link
+                        href={`/checkout?plan=${normalizedId}&market=IN${coupon ? `&coupon=${coupon.code}` : ""}`}
+                        onClick={onClose}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-purple-400/40 bg-purple-500/20 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-purple-200 hover:bg-purple-500/30 hover:text-white transition-all shrink-0 active:scale-95"
+                      >
+                        Open <ArrowRight size={13} />
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>

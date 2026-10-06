@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import axios from "axios";
 import sharp from "sharp";
 import { randomUUID } from "crypto";
@@ -9,24 +10,24 @@ export async function POST(req: NextRequest) {
   try {
     const access = await resolveToolAccess(req, { toolId: "image-eraser", mode: "free-quality", creditCost: 4 });
     if (isToolAccessResponse(access)) return access;
-    const actor = access.authUser?.id || "guest";
-    const limit = checkRateLimit(`image-eraser:${actor}:${getRequestIp(req)}`, access.isAuthenticated ? 30 : 8, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const actor = access.authUser?.id || getRequestIp(req);
+    const limit = await checkRateLimit(`image-eraser:${actor}`, access.isAuthenticated ? 30 : 8, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const { image, mask } = await req.json();
 
     if (!image || !mask) {
-      return NextResponse.json({ error: "Image and mask are required" }, { status: 400 });
+      return publicJson({ error: "Image and mask are required" }, { status: 400 });
     }
 
     const imageData = String(image);
     const maskData = String(mask);
     if (!imageData.startsWith("data:image/") || !maskData.startsWith("data:image/")) {
-      return NextResponse.json({ error: "Image and mask must be image data URLs." }, { status: 400 });
+      return publicJson({ error: "Image and mask must be image data URLs." }, { status: 400 });
     }
 
     if (imageData.length > 35_000_000 || maskData.length > 35_000_000) {
-      return NextResponse.json({ error: "Image payload is too large." }, { status: 413 });
+      return publicJson({ error: "Image payload is too large." }, { status: 413 });
     }
 
     // Try Hugging Face first (Free)
@@ -34,14 +35,14 @@ export async function POST(req: NextRequest) {
     if (hfToken) {
       try {
         console.log("Attempting free inpainting via Hugging Face...");
-        
+
         // Convert data URIs to blobs/buffers for HF
         const imageBase64 = imageData.split(",")[1];
         const maskBase64 = maskData.split(",")[1];
 
         // RunwayML SD Inpainting is the most reliable free model on HF Inference API
         const hfUrl = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting";
-        
+
         const response = await axios.post(hfUrl, {
           inputs: {
             image: imageBase64,
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
             num_inference_steps: 30
           }
         }, {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${hfToken}`,
             "Content-Type": "application/json"
           },
@@ -69,9 +70,9 @@ export async function POST(req: NextRequest) {
               .toBuffer();
           }
           const debit = await chargeToolAccess(access, "image-eraser", `tool:${randomUUID()}`);
-          if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+          if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
           const resultBase64 = resultBuffer.toString("base64");
-          return NextResponse.json({
+          return publicJson({
             success: true,
             result: `data:image/png;base64,${resultBase64}`,
             method: "hf-free",
@@ -107,8 +108,8 @@ export async function POST(req: NextRequest) {
         const data = await falResponse.json();
         if (data.image && data.image.url) {
           const debit = await chargeToolAccess(access, "image-eraser", `tool:${randomUUID()}`);
-          if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
-          return NextResponse.json({
+          if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
+          return publicJson({
             success: true,
             result: data.image.url,
             method: "fal-pro",
@@ -133,10 +134,10 @@ export async function POST(req: NextRequest) {
       const { width, height } = metadata;
 
       const resizedMask = await sharp(maskBuffer).resize(width, height).toBuffer();
-      
+
       // Create a "healed" layer with blur
       const blurredLayer = await sharp(imageBuffer).blur(15).composite([{ input: resizedMask, blend: 'dest-in' }]).toBuffer();
-      
+
       // Mix with a bit of noise/grain to simulate texture
       let resultBuffer = await sharp(imageBuffer)
         .composite([{ input: blurredLayer, top: 0, left: 0 }])
@@ -148,9 +149,9 @@ export async function POST(req: NextRequest) {
           .toBuffer();
       }
       const debit = await chargeToolAccess(access, "image-eraser", `tool:${randomUUID()}`);
-      if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+      if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
 
-      return NextResponse.json({
+      return publicJson({
         success: true,
         result: `data:image/png;base64,${resultBuffer.toString("base64")}`,
         method: "local-quick-fix",
@@ -163,8 +164,8 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("Eraser API Error:", error);
-    return NextResponse.json({ 
-      error: error.message || "Something went wrong during erasure." 
+    return publicJson({
+      error: error.message || "Something went wrong during erasure."
     }, { status: 500 });
   }
 }

@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
@@ -14,13 +15,13 @@ export async function POST(req: NextRequest) {
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 
     if (!sbUser || !sbUser.email) {
-      return NextResponse.json({ error: "Please sign in to use AI Writer" }, { status: 401 });
+      return publicJson({ error: "Please sign in to use AI Writer" }, { status: 401 });
     }
 
     const { prompt, tone, length, format, language } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+      return publicJson({ error: "Prompt is required" }, { status: 400 });
     }
 
     // 1. Credit Check (Pre-flight) via Prisma
@@ -43,12 +44,12 @@ export async function POST(req: NextRequest) {
     const cost = getToolCreditCost("ai-writer", 8);
 
     if (totalCreditsAvailable < cost) {
-      return NextResponse.json({ error: "Insufficient credits. AI Writer costs 8 credits." }, { status: 403 });
+      return publicJson({ error: "Insufficient credits. AI Writer costs 8 credits." }, { status: 403 });
     }
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (!GROQ_API_KEY) {
-      return NextResponse.json({ error: "The AI text generation service is currently unavailable. Please try again later." }, { status: 500 });
+      return publicJson({ error: "The AI text generation service is currently unavailable. Please try again later." }, { status: 500 });
     }
 
     const lengthInstructions = length === "Short"
@@ -90,9 +91,9 @@ CONTENT GUIDELINES:
     if (!response.ok) {
       const errorData = await response.json();
       console.error("[AiWriter] Groq Error Detail:", JSON.stringify(errorData, null, 2));
-      return NextResponse.json({ 
-        error: errorData.error?.message || `Groq API Error (${response.status})` 
-      }, { status: response.status });
+      return publicJson({
+        error: errorData.error?.message || `Groq API Error (${response.status})`
+      }, { status: response.status === 429 ? 429 : 503 });
     }
 
     const data = await response.json();
@@ -100,13 +101,13 @@ CONTENT GUIDELINES:
 
     const debitResult = await deductCredits(sbUser.id, cost, "ai-writer");
     if (!debitResult.success) {
-      return NextResponse.json({ error: debitResult.error || "Insufficient credits." }, { status: 403 });
+      return publicJson({ error: debitResult.error || "Insufficient credits." }, { status: 403 });
     }
 
-    return NextResponse.json({ content });
+    return publicJson({ content });
 
   } catch (error: any) {
     console.error("[AiWriter] API Error:", error);
-    return NextResponse.json({ error: error.message || "An error occurred during generation." }, { status: 500 });
+    return publicJson({ error: error.message || "An error occurred during generation." }, { status: 500 });
   }
 }

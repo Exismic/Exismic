@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { resolveMarket } from "@/lib/geo/getUserCountry";
 import { publicBillingPlans } from "@/lib/billing/plans";
 
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
   const allowOverride = process.env.NODE_ENV !== "production";
   const requestedMarket = allowOverride && (override === "IN" || override === "GLOBAL") ? override : null;
   const market = resolveMarket(req, requestedMarket);
-  return NextResponse.json({
+  return publicJson({
     countryCode: market.countryCode,
     market: market.market,
     currency: market.currency,

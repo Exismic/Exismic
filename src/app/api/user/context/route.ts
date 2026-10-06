@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from '@/lib/prisma';
 import { getOrCreateUser } from '@/lib/user-access';
@@ -7,22 +7,22 @@ export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
-    
-    if (!sbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!sbUser) return publicJson({ error: "Unauthorized" }, { status: 401 });
 
     const user = await getOrCreateUser(sbUser);
-    if (!user) return NextResponse.json({ context: null });
+    if (!user) return publicJson({ context: null });
 
     const context = await prisma.userContext.findUnique({
       where: { userId: user.id }
     });
 
-    return NextResponse.json({ 
+    return publicJson({
       context: context,
       activeProject: context?.activeProject || "Untitled"
     });
   } catch (error) {
-    return NextResponse.json({ error: "Failed" }, { status: 500 });
+    return publicJson({ error: "Failed" }, { status: 500 });
   }
 }
 
@@ -30,8 +30,8 @@ export async function POST(req: Request) {
   try {
     const supabase = await createClient();
     const { data: { user: sbUser } } = await supabase.auth.getUser();
-    
-    if (!sbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!sbUser) return publicJson({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
     const { preferences, memories, activeProject, recentFiles } = body;
@@ -40,24 +40,24 @@ export async function POST(req: Request) {
 
     const context = await prisma.userContext.upsert({
       where: { userId: user.id },
-      update: { 
-        preferences, 
-        memories, 
-        activeProject, 
+      update: {
+        preferences,
+        memories,
+        activeProject,
         recentFiles,
-        lastUpdated: new Date() 
+        lastUpdated: new Date()
       },
-      create: { 
-        userId: user.id, 
-        preferences, 
-        memories, 
-        activeProject, 
-        recentFiles 
+      create: {
+        userId: user.id,
+        preferences,
+        memories,
+        activeProject,
+        recentFiles
       }
     });
 
-    return NextResponse.json({ success: true, context });
+    return publicJson({ success: true, context });
   } catch (error) {
-    return NextResponse.json({ error: "Failed" }, { status: 500 });
+    return publicJson({ error: "Failed" }, { status: 500 });
   }
 }

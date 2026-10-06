@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import sharp from "sharp";
 import { randomUUID } from "crypto";
 import { chargeToolAccess, isToolAccessResponse, resolveToolAccess } from "@/lib/tool-access";
@@ -145,15 +146,15 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "File is required." }, { status: 400 });
+      return publicJson({ error: "File is required." }, { status: 400 });
     }
 
     if (!SUPPORTED_INPUT_TYPES.has(file.type)) {
-      return NextResponse.json({ error: "Only PNG, JPG, WebP, and AVIF images are supported." }, { status: 415 });
+      return publicJson({ error: "Only PNG, JPG, WebP, and AVIF images are supported." }, { status: 415 });
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
-      return NextResponse.json({ error: "Image is too large. Maximum size is 20MB." }, { status: 413 });
+      return publicJson({ error: "Image is too large. Maximum size is 20MB." }, { status: 413 });
     }
 
     const strength = clampNumber(formData.get("strength"), 70, 10, 100);
@@ -243,11 +244,11 @@ export async function POST(req: NextRequest) {
     }
 
     const debit = await chargeToolAccess(access, "image-restorer", `tool:${randomUUID()}`);
-    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+    if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
 
     const outputMetadata = await sharp(resultBuffer).metadata();
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       result: `data:image/png;base64,${resultBuffer.toString("base64")}`,
       size: resultBuffer.length,
@@ -264,6 +265,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Restorer API Error:", error);
-    return NextResponse.json({ error: getErrorMessage(error) || "Restoration failed." }, { status: 500 });
+    return publicJson({ error: getErrorMessage(error) || "Restoration failed." }, { status: 500 });
   }
 }

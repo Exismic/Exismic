@@ -27,7 +27,7 @@ import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { PRICING_CONFIG, getIsIndia, getAnnualSavings } from "@/config/pricing";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
-import { PaymentTermsModal } from "@/components/modals/PaymentTermsModal";
+import { useRouter } from "next/navigation";
 
 
 
@@ -158,6 +158,7 @@ export function GiftPurchaseModal({
   initialPlanId = "pro",
   onSuccess,
 }: GiftPurchaseModalProps) {
+  const router = useRouter();
   const isInitialCredit = ["starter", "creator", "ultimate", "tier_1", "tier_2", "tier_3", "credits_500", "credits_1000", "credits_2500"].includes(initialPlanId);
   const [activeCategory, setActiveCategory] = useState<"pro" | "credits">(
     isInitialCredit ? "credits" : "pro"
@@ -174,7 +175,7 @@ export function GiftPurchaseModal({
   const [selectedPlanId, setSelectedPlanId] = useState<string>(normalizedInitialId);
   const [recipientName, setRecipientName] = useState("");
   const [recipientMessage, setRecipientMessage] = useState("");
-  const [isIndia, setIsIndia] = useState(false);
+  const [isIndia, setIsIndia] = useState(() => getIsIndia());
   const annualSavings = getAnnualSavings(isIndia);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -233,17 +234,26 @@ export function GiftPurchaseModal({
     regularInr?: number,
     regularUsd?: number
   ) => {
-    const priceDisplay = isIndia ? `₹${inrPrice}` : `$${usdPrice}`;
+    onClose();
+    const query = new URLSearchParams({
+      plan: planId,
+      gift: "true",
+      market: isIndia ? "IN" : "GLOBAL",
+    });
+    if (recipientName.trim()) query.set("recipientName", recipientName.trim());
+    if (recipientMessage.trim()) query.set("recipientMessage", recipientMessage.trim());
+    router.push(`/checkout?${query.toString()}`);
+    return;
     const regularPriceDisplay = regularInr && regularUsd ? (isIndia ? `₹${regularInr}` : `$${regularUsd}`) : undefined;
-    setTermsPlan({
+    /* setTermsPlan({
       id: planId,
       title: planTitle,
       credits,
       priceDisplay,
       regularPriceDisplay,
       category,
-    });
-    setIsTermsOpen(true);
+    }); */
+
   };
 
   const handleCheckoutPlan = async (planId: string, planTitle: string, credits: number, couponCode?: string) => {
@@ -841,7 +851,7 @@ export function GiftPurchaseModal({
       </AnimatePresence>
 
       {/* Checkout & Gift Card Payment Options Modal */}
-      {termsPlan && (
+      {false && termsPlan && null /*
         <PaymentTermsModal
           isOpen={isTermsOpen}
           onClose={() => setIsTermsOpen(false)}
@@ -860,7 +870,7 @@ export function GiftPurchaseModal({
           gateway={isIndia ? "razorpay" : "paypal"}
           isProcessing={loadingId !== null}
         />
-      )}
+      */ }
     </Portal>
   );
 }

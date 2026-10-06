@@ -7,7 +7,8 @@ import {
   sendPaymentFailedEmail, 
   sendProRenewalReceiptEmail, 
   sendProWelcomeEmail,
-  sendGiftVoucherPurchasedEmail
+  sendGiftVoucherPurchasedEmail,
+  sendGiftVoucherToRecipientEmail,
 } from "@/lib/emails";
 import { createNotification } from "@/lib/notifications";
 import { generateGiftCode } from "@/lib/gifts";
@@ -388,9 +389,14 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
 
       const dbUser = await prisma.user.findUnique({
         where: { id: result.order.userId },
-        select: { email: true },
+        select: { email: true, name: true },
       });
-      const email = dbUser?.email || ((result.order.metadata as any)?.buyerEmail as string);
+      const orderMeta = (result.order.metadata as any) || {};
+      const email = dbUser?.email || (orderMeta.buyerEmail as string);
+      const recipientEmail = (orderMeta.recipientEmail as string)?.trim()?.toLowerCase();
+      const recipientName = orderMeta.recipientName || null;
+      const recipientMessage = orderMeta.recipientMessage || null;
+      const senderName = dbUser?.name || orderMeta?.receiptSnapshot?.buyerName || "A friend";
       const reference = result.transactionReference || result.order.providerPaymentId || result.order.id;
 
       if (email) {
@@ -400,6 +406,18 @@ export async function fulfillBillingOrder({ orderId, providerPaymentId, periodEn
         const giftTitle = isPro 
           ? (result.plan.id === "pro_yearly" ? "1-Year Exismic Pro Pass" : "1-Month Exismic Pro Pass")
           : `${result.order.credits.toLocaleString()} AI Generation Credits`;
+
+        if (recipientEmail && recipientEmail.includes("@")) {
+          sendGiftVoucherToRecipientEmail(recipientEmail, {
+            giftCode: result.giftCode,
+            giftTitle,
+            senderName,
+            redeemUrl,
+            recipientName,
+            recipientMessage,
+            invoiceId: reference,
+          }).catch((err) => console.error("[Email] Gift recipient email failed:", err));
+        }
 
         sendGiftVoucherPurchasedEmail(email, {
           giftCode: result.giftCode,

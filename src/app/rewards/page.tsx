@@ -265,9 +265,12 @@ export default function RewardsPage() {
   // User-chosen Target Goal Tracking (defaults to null if not chosen)
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [isGoalPickerOpen, setIsGoalPickerOpen] = useState(false);
-  const [isIndia, setIsIndia] = useState<boolean>(() => getIsIndia());
+  const [isIndia, setIsIndia] = useState<boolean>(false);
 
   useEffect(() => {
+    if (getIsIndia()) {
+      setIsIndia(true);
+    }
     let active = true;
     fetch("/api/billing/market", { cache: "no-store" })
       .then((response) => response.json())
@@ -1647,7 +1650,7 @@ export default function RewardsPage() {
                   {selectedReward.type === "free_sparks"
                     ? "This gift is completely free for every creator! Claim your 100 Sparks once during this 7-day event."
                     : selectedReward.type === "streak_shield"
-                    ? "This shield will automatically protect your daily streak if you ever miss logging in for a day (holds up to 3 shields total)."
+                    ? "Each shield automatically protects one missed daily reward claim. You can hold up to 3 shields; reward days reset at 12:00 PM IST."
                     : selectedReward.type === "shop_voucher"
                     ? "Generates an instant single-use discount coupon code that you can copy and redeem on your next Credit Pack or Pro Pass purchase in the Shop!"
                     : selectedReward.type === "credits_emergency"

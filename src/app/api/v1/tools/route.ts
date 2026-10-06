@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { getAllApiTools } from "@/lib/api-v1-registry";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   const tools = getAllApiTools();
-  return NextResponse.json({
+  return publicJson({
     success: true,
     totalTools: tools.length,
     version: "v1",

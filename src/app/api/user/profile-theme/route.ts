@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server';
-
+import { publicJson } from "@/lib/public-json";
 export async function POST() {
-  return NextResponse.json(
+  return publicJson(
     { message: "Profile themes have been discontinued." },
     { status: 410 }
   );

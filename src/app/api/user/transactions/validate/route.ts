@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
@@ -7,14 +8,14 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
     const ref = searchParams.get("ref")?.trim();
 
     if (!ref) {
-      return NextResponse.json({ error: "Missing ref parameter" }, { status: 400 });
+      return publicJson({ error: "Missing ref parameter" }, { status: 400 });
     }
 
     // Search in paymentTransaction table by reference, paymentId, or orderId
@@ -45,10 +46,10 @@ export async function GET(req: NextRequest) {
 
     const isValid = !!(transaction || order);
 
-    return NextResponse.json({ 
-      success: true, 
+    return publicJson({
+      success: true,
       isValid,
-      details: transaction 
+      details: transaction
         ? { amount: transaction.amount, currency: transaction.currency, date: transaction.createdAt, kind: transaction.kind }
         : order
           ? { amount: order.amount, currency: order.currency, date: order.createdAt, kind: order.planId }
@@ -56,6 +57,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("[TRANSACTION_VALIDATE]", error);
-    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+    return publicJson({ error: "Internal Error" }, { status: 500 });
   }
 }

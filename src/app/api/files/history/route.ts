@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -11,9 +12,6 @@ import {
 
 const VALID_STATUSES = new Set<ResultStatus>(["completed", "failed", "processing"]);
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Internal Error";
-}
 
 export async function GET(req: Request) {
   try {
@@ -48,7 +46,7 @@ export async function GET(req: Request) {
         }),
       ]);
 
-      return NextResponse.json({
+      return publicJson({
         toolsUsedToday,
         totalFiles,
         totalGenerations: profile?.aiGenerationsUsed ?? totalFiles,
@@ -61,10 +59,10 @@ export async function GET(req: Request) {
       take: limit,
     });
 
-    return NextResponse.json(history);
+    return publicJson(history);
   } catch (error) {
     console.error("[HISTORY_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    return publicJson({ error: "Could not load your files." }, { status: 500 });
   }
 }
 
@@ -74,7 +72,7 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user) {
-      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+      return publicJson({ error: "Please sign in to continue." }, { status: 401 });
     }
 
     const body = await req.json();
@@ -97,7 +95,7 @@ export async function POST(req: Request) {
     };
 
     if (!originalName || !toolType) {
-      return new NextResponse(JSON.stringify({ error: "Missing fields" }), { status: 400 });
+      return publicJson({ error: "Please provide the file name and tool." }, { status: 400 });
     }
 
     const normalizedToolType = normalizeHistoryToolType(toolType);
@@ -137,10 +135,10 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(historyItem);
+    return publicJson(historyItem);
   } catch (error: unknown) {
     console.error("[HISTORY_POST]", error);
-    return new NextResponse(JSON.stringify({ error: getErrorMessage(error) }), { status: 500 });
+    return publicJson({ error: "Could not save this result." }, { status: 500 });
   }
 }
 
@@ -168,9 +166,9 @@ export async function DELETE(req: Request) {
 
     await prisma.userFile.delete({ where: { id } });
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[HISTORY_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    return publicJson({ error: "Could not load your files." }, { status: 500 });
   }
 }

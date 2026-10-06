@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import {
   getDiscordPresenceInviteUrl,
   getDiscordPresenceWorkerStatus,
@@ -122,7 +123,7 @@ export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId")?.trim() ?? "";
 
   if (!DISCORD_ID_PATTERN.test(userId)) {
-    return NextResponse.json(
+    return publicJson(
       { error: "Enter a valid Discord user ID." },
       { status: 400 },
     );
@@ -169,7 +170,7 @@ export async function GET(request: NextRequest) {
         : presenceUser;
 
   if (Object.keys(user).length === 0) {
-    return NextResponse.json(
+    return publicJson(
       {
         error:
           "Discord profile data is unavailable. Check the user ID and try again.",
@@ -181,7 +182,7 @@ export async function GET(request: NextRequest) {
   const effectSku = profile ? findProfileEffectSku(profile) : null;
   const effect = await fetchProfileEffect(effectSku);
 
-  return NextResponse.json(
+  return publicJson(
     {
       userId,
       user,

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { verifyAndAuthenticateApiKey } from "@/lib/api-keys";
 import { deductCredits, getUserCredits, getCreditTotal } from "@/lib/credits";
 import { getToolCreditCost } from "@/lib/credit-policy";
@@ -21,19 +22,19 @@ export async function POST(req: NextRequest) {
     const auth = await verifyAndAuthenticateApiKey(authHeader);
 
     if ("error" in auth) {
-      return NextResponse.json({ error: auth.error, code: "UNAUTHORIZED" }, { status: auth.status });
+      return publicJson({ error: auth.error, code: "UNAUTHORIZED" }, { status: auth.status });
     }
 
     const ip = getRequestIp(req);
     const rateCheck = await checkDistributedRateLimit(`api-v1-bg:${auth.userId || ip}`, 30, 60 * 1000);
     if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.retryAfter);
+      return rateLimitResponse(rateCheck.retryAfter, rateCheck.unavailable);
     }
 
     const currentCredits = await getUserCredits(auth.userId);
     const available = currentCredits ? getCreditTotal(currentCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`,
           code: "INSUFFICIENT_CREDITS",
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!inputBuffer || inputBuffer.length === 0) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: "No image provided. Send a 'file' in multipart/form-data or 'imageUrl'/'imageBase64' in JSON body.",
           code: "MISSING_IMAGE",
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
 
     const base64Result = outputBuffer.toString("base64");
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       format: "png",
       imageBase64: `data:image/png;base64,${base64Result}`,
@@ -145,7 +146,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("[API v1 bg-remove Error]:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "Failed to remove background", code: "INTERNAL_ERROR" },
       { status: 500 }
     );

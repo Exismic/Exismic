@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { isAdminConfigured, isAdminEmail } from '@/lib/admin'
@@ -6,7 +7,7 @@ import { isAdminConfigured, isAdminEmail } from '@/lib/admin'
 /**
  * DEBUG ENDPOINT - Check user credits and auth
  * GET /api/debug/credits
- * 
+ *
  * Shows:
  * - Current user info
  * - Database credits
@@ -15,21 +16,21 @@ import { isAdminConfigured, isAdminEmail } from '@/lib/admin'
 export async function GET(request: NextRequest) {
   try {
     if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({ error: 'Debug endpoint disabled' }, { status: 404 })
+      return publicJson({ error: 'Debug endpoint disabled' }, { status: 404 })
     }
 
     const supabase = await createClient()
     const { data: { user: authUser } } = await supabase.auth.getUser()
 
     if (!authUser?.id || !authUser.email) {
-      return NextResponse.json({
+      return publicJson({
         error: 'Not authenticated',
         message: 'You need to be logged in'
       }, { status: 401 })
     }
 
     if (!isAdminEmail(authUser.email)) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+      return publicJson({ error: 'Admin access required' }, { status: 403 })
     }
 
     const userId = authUser.id
@@ -52,12 +53,12 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       console.log(`[DEBUG] 🛠️ User not found in database. Initializing user record for: ${userId}`)
-      
+
       const email = authUser.email
       const userName = authUser.user_metadata?.full_name ||
                        authUser.user_metadata?.name ||
                        email?.split('@')[0] || 'User'
-      
+
       const newUser = await prisma.user.upsert({
         where: { id: userId },
         update: {
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      return NextResponse.json({
+      return publicJson({
         success: true,
         message: 'User record was missing and has been initialized with 50 credits',
         data: {
@@ -110,7 +111,7 @@ export async function GET(request: NextRequest) {
 
     console.log(`[DEBUG] User found:`, currentUser)
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       message: 'User found',
       data: {
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err) {
     console.error('[DEBUG] Error:', err)
-    return NextResponse.json({
+    return publicJson({
       error: 'Debug error',
       message: String(err)
     }, { status: 500 })

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
 import {
@@ -34,12 +35,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `img-to-pdf:${user?.id || "guest"}:${getRequestIp(request)}`,
+    const limit = await checkRateLimit(
+      `img-to-pdf:${user?.id || getRequestIp(request)}`,
       user ? 20 : 6,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await request.formData();
     const files = formData
@@ -48,20 +49,20 @@ export async function POST(request: NextRequest) {
     const pageSize = formData.get("pageSize") === "a4" ? "a4" : "auto";
 
     if (files.length === 0) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Select at least one image.", requestId },
         { status: 400 },
       );
     }
     if (files.length > 40) {
-      return NextResponse.json(
+      return publicJson(
         { error: "You can convert up to 40 images at once.", requestId },
         { status: 400 },
       );
     }
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     if (totalBytes > 120 * 1024 * 1024) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: "Images are too large. Maximum combined size is 120MB.",
           requestId,

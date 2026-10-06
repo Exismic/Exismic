@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
 import { getOrCreateUser } from '@/lib/user-access';
@@ -9,17 +9,17 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user?.id || !user.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return publicJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { enabled } = await req.json();
     if (typeof enabled !== 'boolean') {
-      return NextResponse.json({ error: 'enabled must be a boolean.' }, { status: 400 });
+      return publicJson({ error: 'enabled must be a boolean.' }, { status: 400 });
     }
 
     const dbUser = await getOrCreateUser(user);
     if (enabled && !dbUser.discordUserId) {
-      return NextResponse.json({ error: 'Connect Discord before enabling Discord DMs.' }, { status: 400 });
+      return publicJson({ error: 'Connect Discord before enabling Discord DMs.' }, { status: 400 });
     }
 
     const updatedUser = await prisma.user.update({
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       data: { discord_dm_enabled: enabled }
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       discord_dm_enabled: updatedUser.discordDmEnabled,
       discord_user_id: updatedUser.discordUserId,
@@ -45,6 +45,6 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     console.error('Discord DM preference update failed:', error);
     const message = error instanceof Error ? error.message : 'Failed to update Discord DM preference';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

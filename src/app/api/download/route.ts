@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
   const fileName = searchParams.get("name") || "exismic-download.png";
 
   if (!fileUrl) {
-    return NextResponse.json({ error: "Missing file URL" }, { status: 400 });
+    return publicJson({ error: "Missing file URL" }, { status: 400 });
   }
 
   try {
@@ -45,6 +46,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Download proxy error:", error);
-    return NextResponse.json({ error: "Failed to download requested file" }, { status: 500 });
+    return publicJson({ error: "Failed to download requested file" }, { status: 500 });
   }
 }

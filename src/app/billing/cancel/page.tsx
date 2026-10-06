@@ -1,7 +1,25 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import { XCircle } from "lucide-react";
 
 export default function BillingCancelPage() {
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.opener && !window.opener.closed) {
+      try {
+        window.opener.postMessage({ type: "EXISMIC_PAYMENT_CANCELLED" }, "*");
+        setTimeout(() => {
+          if (typeof window !== "undefined") {
+            window.close();
+          }
+        }, 600);
+      } catch {
+        // Ignore cross-origin issues
+      }
+    }
+  }, []);
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#030306] px-4 text-white">
       <div className="max-w-lg rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center">

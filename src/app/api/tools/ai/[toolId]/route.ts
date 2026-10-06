@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import axios from "axios";
@@ -18,7 +19,7 @@ export async function POST(
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 
     if (!sbUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     let currentUser = await prisma.user.findUnique({
@@ -41,12 +42,12 @@ export async function POST(
     const prompt = file ? await file.text() : "";
 
     if (!prompt) {
-      return NextResponse.json({ error: "No input provided" }, { status: 400 });
+      return publicJson({ error: "No input provided" }, { status: 400 });
     }
 
     // Determine System Prompt based on ToolId
     let systemPrompt = "You are a professional AI assistant. Provide high-quality and accurate output.";
-    
+
     if (toolId === "summarizer") {
       systemPrompt = "You are an expert content summarizer. Provide a concise and clear summary of the input while retaining all key information.";
     } else if (toolId === "translator") {
@@ -90,26 +91,26 @@ export async function POST(
       const cost = getToolCreditCost(toolId, 4);
 
       if (totalCreditsAvailable < cost) {
-        return NextResponse.json({ error: "Insufficient credits" }, { status: 403 });
+        return publicJson({ error: "Insufficient credits" }, { status: 403 });
       }
 
       const debitResult = await deductCredits(currentUser.id, cost, toolId);
       if (!debitResult.success) {
-        return NextResponse.json({ error: debitResult.error || "Insufficient credits" }, { status: 403 });
+        return publicJson({ error: debitResult.error || "Insufficient credits" }, { status: 403 });
       }
 
-      return NextResponse.json({ 
-        success: true, 
-        result: generatedText 
+      return publicJson({
+        success: true,
+        result: generatedText
       });
 
     } catch (groqError: any) {
       console.error(`AI Core Error [${toolId}]:`, groqError.response?.data || groqError.message);
-      return NextResponse.json({ error: "Inference failed." }, { status: 500 });
+      return publicJson({ error: "Inference failed." }, { status: 500 });
     }
 
   } catch (error: any) {
     console.error(`Fatal AI Core Error:`, error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return publicJson({ error: "Internal server error" }, { status: 500 });
   }
 }

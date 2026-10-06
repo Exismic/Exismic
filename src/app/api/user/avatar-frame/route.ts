@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
 import { ALLOWED_AVATAR_FRAMES, getOrCreateUser, canUserUseAvatarFrame } from '@/lib/user-access';
@@ -9,17 +9,17 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user?.id || !user.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return publicJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { frameId } = await req.json();
     if (frameId !== null && frameId !== undefined && !ALLOWED_AVATAR_FRAMES.has(frameId)) {
-      return NextResponse.json({ error: 'Invalid avatar frame.' }, { status: 400 });
+      return publicJson({ error: 'Invalid avatar frame.' }, { status: 400 });
     }
 
     const dbUser = await getOrCreateUser(user);
     if (frameId && !canUserUseAvatarFrame(dbUser, frameId)) {
-      return NextResponse.json({ error: 'This Avatar Frame is locked. Unlock it permanently with Sparks in Rewards, or access included Pro frames.' }, { status: 403 });
+      return publicJson({ error: 'This Avatar Frame is locked. Unlock it permanently with Sparks in Rewards, or access included Pro frames.' }, { status: 403 });
     }
 
     await prisma.user.update({
@@ -35,10 +35,10 @@ export async function POST(req: Request) {
       console.error('Avatar frame metadata update failed:', authError.message);
     }
 
-    return NextResponse.json({ success: true, frameId: frameId || null });
+    return publicJson({ success: true, frameId: frameId || null });
   } catch (error: unknown) {
     console.error('Frame Update Error:', error);
     const message = error instanceof Error ? error.message : 'Failed to update frame';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

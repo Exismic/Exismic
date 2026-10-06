@@ -297,9 +297,9 @@ export function WhatExismicDoes() {
                 <div className="relative z-20 space-y-2.5">
                   
                   {/* Header row: Circling Neon Gradient 4-Icon Hub + Tag Badge + 4 Tools */}
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 flex-wrap items-center gap-3">
                       
                       {/* Circling Gradient Neon Ring around the 4 Icons */}
                       <div className="relative p-[2.5px] rounded-2xl overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-500 shadow-2xl">
@@ -408,7 +408,7 @@ export function WhatExismicDoes() {
                   </div>
 
                   {/* 4 Tactile Tool Buttons with Cool Hover Animations */}
-                  <div className="pt-0.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="pt-0.5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-2">
                     {area.tools.map((tool) => {
                       const ToolIcon = tool.icon;
                       return (
@@ -436,7 +436,7 @@ export function WhatExismicDoes() {
                             )}>
                               <ToolIcon className={cn("w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:scale-110", tool.color)} strokeWidth={2.2} />
                             </div>
-                            <span className="text-zinc-200 group-hover/btn:text-white transition-colors truncate text-xs font-bold tracking-wide">
+                            <span className="min-w-0 text-zinc-200 group-hover/btn:text-white transition-colors text-xs font-bold tracking-wide">
                               {tool.name}
                             </span>
                           </div>

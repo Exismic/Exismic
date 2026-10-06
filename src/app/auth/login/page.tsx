@@ -1,4 +1,5 @@
 "use client";
+import { safeAuthReturnPath } from "@/lib/auth/redirect";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -125,7 +126,6 @@ export default function AuthPage() {
     deletionRecoveryRequested: boolean;
   } | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
-  const [recoveryReason, setRecoveryReason] = useState("");
 
   // Interactive UI helpers
   const [showPassword, setShowPassword] = useState(false);
@@ -140,10 +140,7 @@ export default function AuthPage() {
   const linkToken = searchParams.get('link') || '';
   const tabParam = searchParams.get('tab') || searchParams.get('mode');
   const requestedReturnUrl = searchParams.get('returnUrl');
-  const returnUrl =
-    requestedReturnUrl?.startsWith('/') && !requestedReturnUrl.startsWith('//')
-      ? requestedReturnUrl
-      : '/dashboard';
+  const returnUrl = safeAuthReturnPath(requestedReturnUrl);
   
   const { isRedirecting: isHookRedirecting } = useAuth(returnUrl);
   const isRedirecting = isHookRedirecting || isRedirectingState;
@@ -155,8 +152,9 @@ export default function AuthPage() {
   }, [tabParam]);
 
   const getRemainingDays = (dateStr: string | null) => {
-    if (!dateStr) return "7 days";
+    if (!dateStr) return "the scheduled deletion date";
     const diffMs = new Date(dateStr).getTime() - Date.now();
+    if (diffMs <= 0) return "the next cleanup run";
     const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
     return `${days} ${days === 1 ? 'day' : 'days'}`;
   };
@@ -171,18 +169,17 @@ export default function AuthPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: "cancel",
           email: pendingDeletionInfo.email,
-          password: storedPassword,
-          reason: recoveryReason || "I want to cancel deletion and keep my account.",
+          ...(storedPassword ? { password: storedPassword } : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not send recovery request.");
-      setPendingDeletionInfo({
-        ...pendingDeletionInfo,
-        deletionRecoveryRequested: true,
-      });
-      setSuccess("Your recovery request has been sent! Our team will review and reactivate your account shortly.");
+      setPendingDeletionInfo(null);
+      setStoredPassword("");
+      setState('signin');
+      setSuccess("Account deletion cancelled. Sign in again to continue.");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to submit recovery request.");
     } finally {
@@ -190,22 +187,22 @@ export default function AuthPage() {
     }
   };
 
-  // Auto-dismiss success/error messages
+  // Errors remain visible until the user retries or changes the form.
   useEffect(() => {
-    if (success || error) {
+    if (success) {
       const timer = setTimeout(() => {
         setSuccess(null);
-        setError(null);
       }, 6000);
       return () => clearTimeout(timer);
     }
-  }, [success, error]);
+  }, [success]);
 
   useEffect(() => {
     if (deletedParam === 'true') {
       setSuccess("Your account deletion has been scheduled. You have 7 days to change your mind.");
     }
-  }, [deletedParam]);
+    if (searchParams.get('deletionCancelled') === 'true') setSuccess('Account deletion cancelled. Sign in again to continue.');
+  }, [deletedParam, searchParams]);
 
   useEffect(() => {
     const isPending = searchParams.get('pendingDeletion') === 'true';
@@ -235,6 +232,7 @@ export default function AuthPage() {
       provider_link_failed: "That login method couldn't be connected securely. Please try again.",
       session_exchange_failed: "The sign-in session expired before it could finish. Please try again.",
       missing_identity: "That provider didn't share a verified email address.",
+      account_deletion_started: "Account deletion has already started. Please contact support if you need help.",
     };
     setError(messages[authErrorCode] || "We couldn't finish that sign-in. Please try again.");
   }, [authErrorCode]);
@@ -327,18 +325,20 @@ export default function AuthPage() {
 
   // Handle OTP input
   const handleOtpChange = (index: number, value: string) => {
-    value = value.replace(/\D/g, '').slice(0, 1);
+    value = value.replace(/\D/g, '').slice(0, 6 - index);
     const newOtp = [...otp];
-    newOtp[index] = value;
+    if (!value) newOtp[index] = "";
+    for (let offset = 0; offset < value.length; offset++) newOtp[index + offset] = value[offset];
     setOtp(newOtp);
 
     if (value && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
+      const nextInput = document.getElementById(`otp-${Math.min(index + value.length, 5)}`);
       nextInput?.focus();
     }
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') { e.preventDefault(); if (!isLoading) void handleVerifyOtp(); return; }
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       prevInput?.focus();
@@ -358,8 +358,8 @@ export default function AuthPage() {
         },
       });
       if (error) throw error;
-    } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Social login failed.");
+    } catch {
+      setError("Could not connect this login method. Please try again or sign in with your email.");
       setSocialLoading(null);
     }
   };
@@ -396,6 +396,7 @@ export default function AuthPage() {
         if (result?.isPendingDeletion) {
           const supabase = createClient();
           await supabase.auth.signOut();
+          setStoredPassword(formPassword);
           setPendingDeletionInfo({
             email: result.email || formEmail,
             scheduledDeletionAt: result.scheduledDeletionAt || null,
@@ -449,6 +450,7 @@ export default function AuthPage() {
         } else if (result?.step === 'verify') {
           setEmail(String(result.email || formEmail).trim().toLowerCase());
           setPendingSignupPassword(password);
+          setOtp(["", "", "", "", "", ""]);
           setState('verify');
           setSuccess("Check your email for the verification code!");
         }
@@ -492,15 +494,19 @@ export default function AuthPage() {
 
     try {
       const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: linkEmail,
-        password,
-      });
-      if (signInError) {
-        setFieldErrors({ password: "That password doesn't match this account." });
-        setError("Password incorrect. Your account has not been changed.");
+      const loginForm = new FormData();
+      loginForm.set('email', linkEmail);
+      loginForm.set('password', password);
+      const login = await signInAction(loginForm);
+      if (login.error) { setError(login.error); return; }
+      if (login.requireDeviceOtp) {
+        setEmail(linkEmail); setDeviceChallengeId(login.challengeId || '');
+        setStoredPassword(password); setDeviceUnrecognizedName(login.deviceName || 'Unrecognized device');
+        setDeviceOtp(['','','','','','']); setState('verifyDeviceOtp');
+        setSuccess('Check your email to verify this device before connecting the login method.');
         return;
       }
+      if (login.isPendingDeletion) { setError('Restore this account before connecting another login method.'); return; }
 
       const approval = await consumeOAuthLinkRequestAction(linkToken);
       if (approval.error || !approval.provider) {
@@ -541,19 +547,6 @@ export default function AuthPage() {
       if (result.error) {
         setError(result.error);
       } else {
-        const supabase = createClient();
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password: pendingSignupPassword,
-        });
-
-        if (signInError) {
-          setPendingSignupPassword("");
-          setState('signin');
-          setSuccess("Email verified. Sign in with your new password.");
-          return;
-        }
-
         setState('success');
         setIsRedirectingState(true);
         setPendingSignupPassword("");
@@ -587,6 +580,13 @@ export default function AuthPage() {
       if (result?.error) {
         setError(result.error);
       } else {
+        if (linkToken) {
+          const approval = await consumeOAuthLinkRequestAction(linkToken);
+          if (approval.error || !approval.provider) { setError(approval.error || 'Could not connect this login method.'); return; }
+          const linked = await createClient().auth.linkIdentity({ provider: approval.provider, options: { redirectTo: `${getClientSiteUrl()}/auth/callback?next=${encodeURIComponent(returnUrl)}` } });
+          if (linked.error) setError('Could not connect this login method. Please try again.');
+          return;
+        }
         setState('success');
         setIsRedirectingState(true);
         setStoredPassword("");
@@ -594,18 +594,6 @@ export default function AuthPage() {
         return;
       }
     } catch {
-      // Check if user is already authenticated despite any network/action error
-      try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setState('success');
-          setIsRedirectingState(true);
-          setStoredPassword("");
-          window.location.replace(returnUrl);
-          return;
-        }
-      } catch {}
       setError("Device verification failed. Please try again.");
     } finally {
       setIsLoading(false);
@@ -621,6 +609,7 @@ export default function AuthPage() {
         setError(result.error);
       } else {
         if (result.challengeId) setDeviceChallengeId(result.challengeId);
+        setDeviceOtp(["", "", "", "", "", ""]);
         setSuccess("A new verification code has been sent to your email!");
       }
     } catch {
@@ -807,29 +796,17 @@ export default function AuthPage() {
 
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-2">
                   <div className="inline-flex items-center gap-1.5 text-amber-400 font-bold">
-                    <Clock size={13} /> 7-Day Safety Period Active
+                    <Clock size={13} /> Account Deletion Scheduled
                   </div>
                   <p className="text-zinc-300 leading-relaxed font-normal">
                     This account is scheduled to be erased in{" "}
                     <strong className="text-amber-300">
                       {getRemainingDays(pendingDeletionInfo?.scheduledDeletionAt ?? null)}
-                    </strong>. Sign in below or send a request to cancel the deletion.
+                    </strong>. Cancel during the safety period to keep your account. You will need to sign in again afterward.
                   </p>
                 </div>
 
-                {pendingDeletionInfo?.deletionRecoveryRequested ? (
-                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-200 text-xs">
-                    Recovery request received. Our team will restore your account shortly.
-                  </div>
-                ) : (
                   <div className="space-y-3">
-                    <input
-                      type="text"
-                      value={recoveryReason}
-                      onChange={(e) => setRecoveryReason(e.target.value)}
-                      placeholder="Reason for account recovery (optional)"
-                      className="w-full bg-[#07080e]/80 border border-white/10 hover:border-white/20 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder:text-zinc-500 hover:placeholder:text-zinc-400 focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/20 transition-all"
-                    />
 
                     <button
                       type="button"
@@ -840,7 +817,7 @@ export default function AuthPage() {
                       {isRecovering ? (
                         <>
                           <Loader2 className="animate-spin text-zinc-950" size={14} />
-                          <span>Sending Request...</span>
+                          <span>Cancelling...</span>
                         </>
                       ) : (
                         <>
@@ -850,7 +827,6 @@ export default function AuthPage() {
                       )}
                     </button>
                   </div>
-                )}
               </motion.div>
 
             ) : state === 'link' ? (
@@ -1016,14 +992,15 @@ export default function AuthPage() {
                 <form action={async (formData) => {
                   setIsLoading(true);
                   setError(null);
-                  const emailInput = formData.get("email") as string;
-                  const res = await forgotPasswordAction(emailInput);
-                  if (res?.error) {
-                    setError(res.error);
-                  } else {
-                    setSuccess("If an account exists, a reset link has been sent.");
-                  }
-                  setIsLoading(false);
+                  setSuccess(null);
+                  try {
+                    const emailInput = formData.get("email") as string;
+                    const res = await forgotPasswordAction(emailInput);
+                    if (res?.error) setError(res.error);
+                    else setSuccess("If an account exists, a reset link has been sent.");
+                  } catch {
+                    setError("Could not send the reset request. Please try again.");
+                  } finally { setIsLoading(false); }
                 }} className="space-y-3.5">
                   <div className="space-y-1.5">
                     <label htmlFor="forgot-email" className="text-xs font-medium text-zinc-300">Email Address</label>
@@ -1088,8 +1065,11 @@ export default function AuthPage() {
                       id={`otp-${i}`}
                       type="text"
                       inputMode="numeric"
+                      autoComplete={i === 0 ? "one-time-code" : "off"}
+                      aria-label={`Verification code digit ${i + 1}`}
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onPaste={(e) => { e.preventDefault(); handleOtpChange(i, e.clipboardData.getData("text")); }}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       className="w-11 h-13 bg-[#07080e]/80 border border-white/10 hover:border-white/20 rounded-xl text-center text-lg font-bold focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all font-mono"
                     />
@@ -1119,13 +1099,14 @@ export default function AuthPage() {
                     onClick={async () => {
                       setIsLoading(true);
                       try {
-                        const result = await resendOtpAction(email);
+                        const result = await resendOtpAction(email, pendingSignupPassword);
                         if (result?.error) {
                           setError(result.error);
                           setSuccess(null);
                           return;
                         }
                         setSuccess("New verification code sent!");
+                        setOtp(["", "", "", "", "", ""]);
                         setError(null);
                       } catch {
                         setError("Failed to resend code.");
@@ -1167,12 +1148,13 @@ export default function AuthPage() {
                       inputMode="numeric"
                       value={digit}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 1);
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6 - i);
                         const next = [...deviceOtp];
-                        next[i] = val;
+                        if (!val) next[i] = "";
+                        for (let offset = 0; offset < val.length; offset++) next[i + offset] = val[offset];
                         setDeviceOtp(next);
                         if (val && i < 5) {
-                          document.getElementById(`device-otp-${i + 1}`)?.focus();
+                          document.getElementById(`device-otp-${Math.min(i + val.length, 5)}`)?.focus();
                         }
                       }}
                       onPaste={(e) => {

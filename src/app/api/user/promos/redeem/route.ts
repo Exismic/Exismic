@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { createNotification } from "@/lib/notifications";
@@ -16,14 +16,14 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!authUser) {
-      return NextResponse.json({ error: "Please sign in to redeem promo codes." }, { status: 401 });
+      return publicJson({ error: "Please sign in to redeem promo codes." }, { status: 401 });
     }
 
     const body = await request.json();
     const { code, verifyOnly } = body;
 
     if (typeof code !== "string" || !code.trim()) {
-      return NextResponse.json({ error: "Promo or voucher code is required" }, { status: 400 });
+      return publicJson({ error: "Promo or voucher code is required" }, { status: 400 });
     }
 
     const cleanCode = code.trim().toUpperCase();
@@ -34,17 +34,17 @@ export async function POST(request: Request) {
     });
 
     if (!promo) {
-      return NextResponse.json({ error: "Invalid or non-existent voucher code" }, { status: 404 });
+      return publicJson({ error: "Invalid or non-existent voucher code" }, { status: 404 });
     }
 
     // 2. Validate expiration date
     if (promo.expiresAt && new Date() > new Date(promo.expiresAt)) {
-      return NextResponse.json({ error: "This voucher code has expired" }, { status: 400 });
+      return publicJson({ error: "This voucher code has expired" }, { status: 400 });
     }
 
     // 3. Validate overall usage limits
     if (promo.redemptionCount >= promo.maxRedemptions) {
-      return NextResponse.json({ error: "This voucher code has already been claimed" }, { status: 400 });
+      return publicJson({ error: "This voucher code has already been claimed" }, { status: 400 });
     }
 
     // 4. Check if user already claimed this specific voucher
@@ -58,12 +58,12 @@ export async function POST(request: Request) {
     });
 
     if (alreadyRedeemed) {
-      return NextResponse.json({ error: "You have already redeemed this code" }, { status: 400 });
+      return publicJson({ error: "You have already redeemed this code" }, { status: 400 });
     }
 
     // Guard: Prevent burning real-money checkout discount vouchers in the free promo code box
     if (cleanCode.startsWith("OFF") || cleanCode.startsWith("SAVE")) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: "This is a Shop checkout voucher! Apply this code during checkout in the Shop on purchases of $3.00 (₹249) or more to get ₹100 / $1.50 off.",
         },
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     }
 
     if (cleanCode.startsWith("PRO20")) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: "This is a 20% discount coupon for Monthly Pro! Apply this code during checkout in the Shop when upgrading to Monthly Exismic Pro.",
         },
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
 
     // If only verifying, return reward preview without mutating state
     if (verifyOnly) {
-      return NextResponse.json({
+      return publicJson({
         success: true,
         valid: true,
         code: cleanCode,
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       }
       // Atomic increment with strict capacity check
       const updateResult = await tx.promoCode.updateMany({
-        where: { 
+        where: {
           id: promo.id,
           redemptionCount: { lt: promo.maxRedemptions }
         },
@@ -250,7 +250,7 @@ export async function POST(request: Request) {
       "success"
     ).catch((error) => console.error("[PROMO_REDEEM_NOTIFICATION]", error));
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       rewardType,
       rewardValue,
@@ -258,8 +258,8 @@ export async function POST(request: Request) {
       code: cleanCode,
     });
   } catch (error) {
-    if (error instanceof GiftNeedsCancellation) return NextResponse.json({ error: error.message }, { status: 409 });
+    if (error instanceof GiftNeedsCancellation) return publicJson({ error: error.message }, { status: 409 });
     console.error("[PROMO_REDEEM_POST]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return publicJson({ error: "Internal Server Error" }, { status: 500 });
   }
 }

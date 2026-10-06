@@ -183,10 +183,15 @@ export function RedeemPromoModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: "spring", stiffness: 360, damping: 28 }}
-            className="relative w-full max-w-md rounded-[2.25rem] border-2 border-cyan-400/50 bg-gradient-to-b from-[#0e1222] via-[#080a14] to-[#030408] p-6 sm:p-7 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(6,182,212,0.25)] overflow-hidden z-10 backdrop-blur-3xl text-white"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Redeem voucher or code"
+            className="relative max-h-[calc(100dvh-2rem)] w-full max-w-md rounded-[2.25rem] border-2 border-cyan-400/50 bg-gradient-to-b from-[#0e1222] via-[#080a14] to-[#030408] p-5 sm:p-7 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(6,182,212,0.25)] overflow-x-hidden overflow-y-auto z-10 backdrop-blur-3xl text-white"
           >
-            <div className="pointer-events-none absolute -top-20 -right-20 h-52 w-52 rounded-full bg-cyan-500/15 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-20 h-52 w-52 rounded-full bg-purple-600/15 blur-3xl" />
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2.25rem]">
+              <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-cyan-500/15 blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 h-52 w-52 rounded-full bg-purple-600/15 blur-3xl" />
+            </div>
 
             {/* Close Button */}
             <button
@@ -196,7 +201,7 @@ export function RedeemPromoModal({
                 handleClose();
               }}
               aria-label="Close modal"
-              className="absolute top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer shadow-md"
+              className="absolute top-4 right-4 z-50 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer shadow-md"
             >
               <X size={18} />
             </button>
@@ -205,13 +210,13 @@ export function RedeemPromoModal({
             {!confirmationData && !successResult && (
               <div className="relative z-10 space-y-5">
                 {/* Header Icon + Titles */}
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-13 w-13 items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-500/20 via-blue-900/30 to-black/85 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
+                <div className="flex items-start gap-3 sm:gap-3.5">
+                  <div className="flex h-10 w-10 sm:h-13 sm:w-13 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-500/20 via-blue-900/30 to-black/85 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
                     <Ticket size={24} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-black uppercase tracking-tight text-white">
+                    <div className="flex flex-wrap items-center gap-2 pr-12">
+                      <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight text-white">
                         Redeem Code
                       </h3>
                       <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-cyan-300">

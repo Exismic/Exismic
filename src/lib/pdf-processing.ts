@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
@@ -90,7 +91,7 @@ export function pdfErrorResponse(error: unknown, requestId: string) {
     console.error(`[pdf:${requestId}] processing failed`, error);
   }
 
-  return NextResponse.json(
+  return publicJson(
     {
       error: message,
       code,

@@ -1,0 +1,51 @@
+// Integration checks: stub sending and authentication; never send mail or alter user accounts.
+const fs = require('node:fs'), path = require('node:path'), ts = require('typescript'), Module = require('node:module'), assert = require('node:assert/strict');
+const repo = path.resolve(__dirname, '..');
+require('@next/env').loadEnvConfig(repo);
+const originalResolve = Module._resolveFilename, originalLoad = Module._load;
+Module._resolveFilename = function(request, ...args) { return originalResolve.call(this, request.startsWith('@/') ? path.join(repo, 'src', request.slice(2)) : request, ...args); };
+const transpile = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true }, fileName: filename }).outputText, filename);
+require.extensions['.ts'] = transpile; require.extensions['.tsx'] = transpile;
+let user = null, allowed = true, saved, sent, rateKeys = [];
+Module._load = function(request, ...args) {
+  if (request === '@/lib/api-security') return { getOptionalApiUser: async () => user, getRequestIp: () => '192.0.2.50', checkDistributedRateLimit: async key => { rateKeys.push(key); return { allowed, retryAfter: 15 }; } };
+  if (request === '@/lib/prisma') return { prisma: { userFile: { create: async input => { saved = input; return input.data; } } } };
+  return originalLoad.call(this, request, ...args);
+};
+const { resend } = require('../src/lib/resend.ts');
+resend.emails.send = async payload => { sent = payload; return { data: { id: 'mock-no-email-sent' }, error: null }; };
+const { POST } = require('../src/app/api/tools/email-result/route.ts');
+const { NextRequest } = require('next/server');
+const call = body => POST(new NextRequest('https://www.exismic.xyz/api/tools/email-result', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+async function main() {
+  const email = 'syedrayangames@gmail.com';
+  for (const input of [{ email: [] }, { email, content: [] }, { email, fileUrl: 'blob:browser-only' }, { email, fileUrl: 'data:text/html,unsafe' }, { email, fileUrl: 'javascript:alert(1)' }, { email: 'test@mailinator.com', content: 'Test' }, { email, content: 'x'.repeat(50001) }]) assert.equal((await call(input)).status, 400);
+  allowed = false; assert.equal((await call({ email, content: 'Test' })).status, 429); allowed = true;
+  const { sendToolResultEmail } = require('../src/lib/emails.ts');
+  const largeText = '<sample>'.repeat(6250);
+  assert(await sendToolResultEmail({ email, toolType: 'ai-writer', content: largeText }));
+  assert(sent.html.length < 90000); assert.equal(sent.attachments[0].content.toString(), largeText);
+  assert(!sent.html.includes('<sample>'));
+  assert.equal((await call({ email, fileProof: 'tampered.invalid' })).status, 400);
+  const prepared = await call({ action: 'prepare-upload', email, title: 'Exismic-route-test.mp4', fileSize: 42, fileMime: 'image/gif' });
+  assert.equal(prepared.status, 200);
+  const { upload } = await prepared.json();
+  const { createClient } = require('@supabase/supabase-js');
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const bytes = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+  assert.equal(bytes.length, 42);
+  const uploaded = await client.storage.from(upload.bucket).uploadToSignedUrl(upload.path, upload.token, bytes, { contentType: 'image/gif' });
+  assert.equal(uploaded.error, null);
+  assert.equal((await call({ email: 'other@example.com', fileProof: upload.proof })).status, 400);
+  const response = await call({ email, toolType: 'video-to-gif', toolName: 'Video to GIF', title: 'Sample GIF', fileProof: upload.proof });
+  assert.equal(response.status, 200); assert.equal((await response.json()).success, true);
+  assert.equal(sent.to, email); assert.deepEqual(sent.attachments[0].content, bytes); assert.equal(sent.attachments[0].filename, 'Exismic-route-test.gif');
+  assert(sent.html.includes('https://www.exismic.xyz/tools/video/to-gif')); assert(!sent.html.includes('blob:')); assert(sent.html.includes('expires in 7 days'));
+  assert(rateKeys.includes('email_upload_daily:ip:192.0.2.50')); assert(rateKeys.includes('email_daily:ip:192.0.2.50'));
+  assert.equal(saved, undefined);
+  user = { id: 'MOCK-USER' };
+  const textResponse = await call({ email, toolType: 'ai-writer', content: '<script>sample</script>' });
+  assert.equal(textResponse.status, 200); assert.equal(saved.data.userId, 'MOCK-USER'); assert(sent.html.includes('&lt;script&gt;sample&lt;/script&gt;'));
+  console.log('PASS API private upload-to-email, GIF bytes/filename/URL, recipient binding, invalid URL rejection, disposable address rejection, rate limits, long text attachment and HTML escaping. All sending/database writes mocked.');
+}
+main().catch(error => { console.error(error.message); process.exitCode = 1; });

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import axios from "axios";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
 
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     const { keywords, platform = "all", mixTrending = true, count = 25 } = body;
 
     if (!keywords || typeof keywords !== "string" || !keywords.trim()) {
-      return NextResponse.json({ error: "Please provide a topic or keywords." }, { status: 400 });
+      return publicJson({ error: "Please provide a topic or keywords." }, { status: 400 });
     }
 
     const trimmedKeywords = keywords.trim();
@@ -98,7 +99,7 @@ Remember: Return pure JSON with tags without the '#' symbol. Do not duplicate wo
           const specificLongTail = sanitize(parsed.specificLongTail || []);
 
           if (broadReach.length > 0 || nicheCommunity.length > 0 || specificLongTail.length > 0) {
-            return NextResponse.json({
+            return publicJson({
               success: true,
               source: "ai",
               broadReach,
@@ -116,14 +117,14 @@ Remember: Return pure JSON with tags without the '#' symbol. Do not duplicate wo
 
     // High quality offline fallback with rich semantic mappings
     const fallback = generateSemanticFallback(trimmedKeywords, platform, mixTrending);
-    return NextResponse.json({
+    return publicJson({
       success: true,
       source: "semantic_engine",
       ...fallback,
     });
   } catch (error: any) {
     console.error("Hashtag generator API error:", error);
-    return NextResponse.json({ error: "Failed to generate hashtags." }, { status: 500 });
+    return publicJson({ error: "Failed to generate hashtags." }, { status: 500 });
   }
 }
 

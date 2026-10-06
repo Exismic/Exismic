@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { claimDailyShopCredits, getCreditTotal } from "@/lib/credits";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -11,7 +11,7 @@ export async function POST() {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     await getOrCreateUser(user);
@@ -19,7 +19,7 @@ export async function POST() {
     const result = await claimDailyShopCredits(user.id);
 
     if (!result.success) {
-      return NextResponse.json(
+      return publicJson(
         {
           success: false,
           alreadyClaimed: result.alreadyClaimed || false,
@@ -31,7 +31,7 @@ export async function POST() {
       );
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       amount: result.amount,
       rarity: result.rarity,
@@ -46,7 +46,7 @@ export async function POST() {
     });
   } catch (error) {
     console.error("[CreditsShopClaim]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Could not claim today's reward." },
       { status: 500 }
     );

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
+      return publicJson({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     const orders = await prisma.paymentOrder.findMany({
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
       take: 20,
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       orders: orders.map((o) => {
         const meta = (o.metadata as Record<string, unknown>) || {};
@@ -47,6 +48,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("[MyOrders] Error fetching billing history:", err);
-    return NextResponse.json({ error: "Failed to fetch purchase history." }, { status: 500 });
+    return publicJson({ error: "Failed to fetch purchase history." }, { status: 500 });
   }
 }

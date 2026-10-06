@@ -370,7 +370,7 @@ export function PracticalWorkflows() {
         </p>
 
         {/* Role Switcher Luxury Pills with Category-Reactive Colors */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center gap-2 sm:gap-2.5 pt-3 w-full sm:w-auto">
           {WORKFLOWS.map((w) => {
             const Icon = w.icon;
             const isSelected = w.id === activeWorkflowId;
@@ -380,7 +380,7 @@ export function PracticalWorkflows() {
                 type="button"
                 onClick={() => setActiveWorkflowId(w.id)}
                 className={cn(
-                  "relative group/tab flex items-center gap-2 px-4.5 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer transform-gpu hover:scale-[1.03] active:scale-95 select-none overflow-hidden antialiased",
+                  "relative group/tab flex min-h-11 sm:min-h-0 min-w-0 items-center justify-center gap-2 px-2.5 sm:px-4.5 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer transform-gpu hover:scale-[1.03] active:scale-95 select-none overflow-hidden antialiased",
                   isSelected
                     ? cn("text-white", w.activeTabGrad)
                     : "bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.06]"
@@ -390,7 +390,7 @@ export function PracticalWorkflows() {
                 <div className="absolute inset-0 -translate-x-[150%] group-hover/tab:translate-x-[150%] transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] pointer-events-none" />
 
                 <Icon 
-                  className={cn("w-3.5 h-3.5 relative z-10 transition-transform duration-300 group-hover/tab:scale-110", isSelected ? "text-white" : "text-zinc-400")}
+                  className={cn("w-3.5 h-3.5 shrink-0 relative z-10 transition-transform duration-300 group-hover/tab:scale-110", isSelected ? "text-white" : "text-zinc-400")}
                   strokeWidth={2}
                 />
                 <span className="relative z-10">{w.roleName}</span>
@@ -404,7 +404,7 @@ export function PracticalWorkflows() {
       <div className="group relative p-[2.5px] rounded-3xl sm:rounded-[2.25rem] bg-gradient-to-br from-cyan-400 via-purple-500 via-amber-400 to-emerald-400 shadow-[0_0_40px_rgba(6,182,212,0.25),0_0_40px_rgba(168,85,247,0.2),0_0_40px_rgba(245,158,11,0.2),0_0_40px_rgba(16,185,129,0.2)] hover:shadow-[0_0_65px_rgba(6,182,212,0.35),0_0_65px_rgba(168,85,247,0.3),0_0_65px_rgba(245,158,11,0.3),0_0_65px_rgba(16,185,129,0.3)] transition-all duration-700">
         
         {/* Inner Big Box Container */}
-        <div className="relative h-full w-full p-6 sm:p-8 md:p-10 rounded-[calc(2.25rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden flex flex-col justify-between">
+        <div className="relative h-full w-full p-4 sm:p-8 md:p-10 rounded-[calc(2.25rem-2.5px)] bg-gradient-to-b from-[#0e0f17]/98 via-[#0a0a10]/98 to-[#06060a]/98 backdrop-blur-3xl overflow-hidden flex flex-col justify-between">
           
           {/* 1. Continuous Hover Shine Sweep — elevated z-30 pointer-events-none to sweep over full box */}
           <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none z-30">
@@ -465,7 +465,7 @@ export function PracticalWorkflows() {
                     <div 
                       key={st.step}
                       className={cn(
-                        "group/step relative p-5 rounded-[1.75rem] flex flex-col justify-between transition-all duration-300 transform-gpu hover:-translate-y-1.5 active:translate-y-0 hover:shadow-2xl overflow-hidden w-[270px] sm:w-[290px] lg:w-auto shrink-0 snap-start",
+                        "group/step relative p-5 rounded-[1.75rem] flex min-w-0 flex-col justify-between transition-all duration-300 transform-gpu hover:-translate-y-1.5 active:translate-y-0 hover:shadow-2xl overflow-hidden w-full sm:w-[290px] lg:w-auto shrink-0 snap-start",
                         st.cardBg,
                         st.cardBorder
                       )}
@@ -539,7 +539,7 @@ export function PracticalWorkflows() {
                         <Link
                           href={st.href}
                           className={cn(
-                            "relative w-full py-2.5 px-4 rounded-full flex items-center justify-center gap-2 uppercase tracking-wider text-xs transition-all duration-300 transform-gpu group-hover/step:scale-[1.02] active:scale-95 shadow-lg overflow-hidden antialiased cursor-pointer",
+                            "relative w-full min-h-11 sm:min-h-0 py-2.5 px-4 rounded-full flex items-center justify-center gap-2 uppercase tracking-wider text-xs transition-all duration-300 transform-gpu group-hover/step:scale-[1.02] active:scale-95 shadow-lg overflow-hidden antialiased cursor-pointer",
                             st.buttonGrad,
                             st.buttonTextDark ? "text-amber-950 font-black" : "text-white font-bold"
                           )}

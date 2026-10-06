@@ -255,7 +255,7 @@ export function RealDeliverables() {
         </div>
 
         {/* Luxury Carousel Navigation Console */}
-        <div className="flex items-center justify-center md:justify-end gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2.5 shrink-0">
           
           {/* Glass Jewel Status Capsule */}
           <div className="relative p-[1.5px] rounded-full bg-gradient-to-r from-amber-400/40 via-rose-500/40 to-purple-500/40 shadow-[0_4px_25px_rgba(0,0,0,0.7),0_0_20px_rgba(244,63,94,0.2)]">
@@ -293,7 +293,7 @@ export function RealDeliverables() {
               disabled={!canScrollLeft}
               aria-label="Previous files"
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                "w-11 h-11 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300",
                 canScrollLeft
                   ? "bg-white/[0.08] hover:bg-gradient-to-r hover:from-amber-400 hover:to-rose-400 text-white hover:text-black hover:scale-110 active:scale-95 shadow-md cursor-pointer border border-white/15"
                   : "text-zinc-600 cursor-not-allowed opacity-30"
@@ -309,7 +309,7 @@ export function RealDeliverables() {
               disabled={!canScrollRight}
               aria-label="Next files"
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                "w-11 h-11 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300",
                 canScrollRight
                   ? "bg-white/[0.08] hover:bg-gradient-to-r hover:from-rose-400 hover:to-purple-400 text-white hover:text-black hover:scale-110 active:scale-95 shadow-md cursor-pointer border border-white/15"
                   : "text-zinc-600 cursor-not-allowed opacity-30"
@@ -518,7 +518,7 @@ export function RealDeliverables() {
                     <Link
                       href={item.toolUrl}
                       className={cn(
-                        "relative w-full py-2.5 px-4 rounded-full flex items-center justify-between font-bold uppercase tracking-wider text-xs transition-all duration-300 transform-gpu hover:scale-[1.015] active:scale-95 shadow-xl cursor-pointer text-white overflow-hidden animate-gradient-flow antialiased",
+                        "relative w-full min-h-11 sm:min-h-0 py-2.5 px-4 rounded-full flex items-center justify-between font-bold uppercase tracking-wider text-xs transition-all duration-300 transform-gpu hover:scale-[1.015] active:scale-95 shadow-xl cursor-pointer text-white overflow-hidden animate-gradient-flow antialiased",
                         item.buttonGrad
                       )}
                     >
@@ -545,7 +545,7 @@ export function RealDeliverables() {
       </div>
 
       {/* Luxury Pagination Page Pill Track */}
-      <div className="flex items-center justify-center gap-3 pt-3 sm:pt-4">
+      <div className="flex flex-wrap items-center justify-center gap-0 sm:gap-3 pt-3 sm:pt-4">
         {Array.from({ length: totalPages }).map((_, pageIdx) => {
           const isActive = activePage === pageIdx;
           return (
@@ -554,14 +554,15 @@ export function RealDeliverables() {
               type="button"
               onClick={() => goToPage(pageIdx)}
               aria-label={`Jump to page ${pageIdx + 1}`}
-              className="group py-2 px-1.5 cursor-pointer flex items-center gap-2.5 transition-all"
+              className="group w-11 sm:w-auto min-h-11 sm:min-h-0 py-2 px-1.5 cursor-pointer flex items-center justify-center gap-2.5 transition-all"
+              aria-current={isActive ? "page" : undefined}
             >
               <span
                 className={cn(
                   "block h-2 rounded-full transition-all duration-500",
                   isActive
-                    ? "w-16 sm:w-20 bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400 shadow-[0_0_18px_rgba(244,63,94,0.7)]"
-                    : "w-6 sm:w-8 bg-white/15 group-hover:bg-white/35"
+                    ? "w-8 sm:w-20 bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400 shadow-[0_0_18px_rgba(244,63,94,0.7)]"
+                    : "w-4 sm:w-8 bg-white/15 group-hover:bg-white/35"
                 )}
               />
               <span className={cn(

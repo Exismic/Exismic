@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Crown, 
@@ -149,8 +150,9 @@ export function BuyCreditsModal({
   initialCategory = "credits",
   initialPlanId,
 }: BuyCreditsModalProps) {
+  const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<"pro" | "credits">(initialCategory);
-  const [isIndia, setIsIndia] = useState(false);
+  const [isIndia, setIsIndia] = useState(() => getIsIndia());
   const annualSavings = getAnnualSavings(isIndia);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -256,7 +258,8 @@ export function BuyCreditsModal({
       regularPriceDisplay,
       category,
     });
-    setIsTermsOpen(true);
+    onClose();
+    router.push(`/checkout?plan=${planId}${isIndia ? "&market=IN" : ""}`);
   };
 
   const handleCheckoutPlan = async (
@@ -602,14 +605,14 @@ export function BuyCreditsModal({
                     <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-400/80 via-sky-500/50 to-indigo-500/60 flex flex-col justify-between">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl opacity-60 group-hover:opacity-100" />
 
-                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-6 sm:p-7">
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-4 sm:p-7">
                         <div>
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex min-w-0 items-center gap-3">
                               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
                                 <Crown size={20} className="text-cyan-300 fill-cyan-400/30" />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <h3 className="text-lg font-black text-white tracking-tight">1-Month Pro Pass</h3>
                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300/80">Monthly membership</p>
                               </div>
@@ -726,15 +729,15 @@ export function BuyCreditsModal({
                     <div className="group relative overflow-hidden rounded-[2.35rem] p-[2.5px] backdrop-blur-3xl transition-all duration-300 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-br from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col justify-between">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl opacity-80 group-hover:opacity-100" />
 
-                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-6 sm:p-7">
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.25rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-4 sm:p-7">
                         <div>
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex min-w-0 items-center gap-3">
                               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
                                 <Crown size={20} className="text-purple-200 fill-purple-400/30" />
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <h3 className="text-lg font-black text-white tracking-tight">1-Year Pro</h3>
                                   <span className="rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-400 px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-white">
                                     Best Value

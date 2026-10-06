@@ -222,7 +222,7 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
                         setSelectedInvoiceId(invoices[tab.id][0]?.id || null);
                       }}
                       className={cn(
-                        "relative min-h-14 rounded-xl px-3 text-left transition-all",
+                        "relative min-h-14 min-w-0 rounded-xl px-3 py-2 text-left transition-all",
                         activeTab === tab.id
                           ? "bg-white text-black shadow-[0_14px_35px_rgba(255,255,255,0.12)]"
                           : "text-zinc-500 hover:bg-white/[0.04] hover:text-white"
@@ -232,7 +232,7 @@ export function InvoiceModal({ isOpen, onClose, invoice }: InvoiceModalProps) {
                         {tab.label}
                         <span className={cn("h-1.5 w-1.5 rounded-full", hasInvoice ? "bg-emerald-400" : "bg-zinc-700")} />
                       </span>
-                      <span className="mt-1 block truncate text-[9px] font-bold uppercase tracking-[0.08em] opacity-60">{tab.caption}</span>
+                      <span className="mt-1 block whitespace-normal text-[9px] font-bold uppercase tracking-[0.08em] opacity-60">{tab.caption}</span>
                     </button>
                   );
                 })}

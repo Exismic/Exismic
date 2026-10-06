@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 
@@ -53,27 +54,27 @@ async function getUserId() {
 export async function GET() {
   try {
     const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return publicJson({ error: 'Unauthorized' }, { status: 401 });
 
     const context = await prisma.userContext.findUnique({
       where: { userId },
       select: { preferences: true },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       preferences: parseStoredPreferences(context?.preferences),
     });
   } catch (error) {
     console.error('[Preferences GET]', error);
-    return NextResponse.json({ error: 'Could not load preferences.' }, { status: 500 });
+    return publicJson({ error: 'Could not load preferences.' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return publicJson({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
     const current = await prisma.userContext.findUnique({
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (body?.key && typeof body.value === 'boolean') {
       const key = String(body.key) as PreferenceKey;
       if (!(key in DEFAULT_PREFERENCES)) {
-        return NextResponse.json({ error: 'Unknown preference.' }, { status: 400 });
+        return publicJson({ error: 'Unknown preference.' }, { status: 400 });
       }
       next = { ...existing, [key]: body.value };
     } else {
@@ -106,12 +107,12 @@ export async function POST(request: NextRequest) {
       select: { preferences: true },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       preferences: parseStoredPreferences(saved.preferences),
     });
   } catch (error) {
     console.error('[Preferences POST]', error);
-    return NextResponse.json({ error: 'Could not save preferences.' }, { status: 500 });
+    return publicJson({ error: 'Could not save preferences.' }, { status: 500 });
   }
 }

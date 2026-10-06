@@ -512,7 +512,7 @@ export function NotificationsDropdown() {
                   className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" 
                 />
 
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
                     <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 via-indigo-500/15 to-transparent text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.25)]">
                       <BellRing size={16} strokeWidth={2.2} />
@@ -521,8 +521,8 @@ export function NotificationsDropdown() {
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-black tracking-tight text-white">Notifications</h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="whitespace-nowrap text-sm font-black tracking-tight text-white">Notifications</h3>
                       {rawUnreadCount > 0 ? (
                         <span className="rounded-full border border-cyan-500/30 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-cyan-300">
                           {rawUnreadCount} New
@@ -586,14 +586,14 @@ export function NotificationsDropdown() {
                     onClick={() => setIsOpen(false)}
                     className="group/daily-banner relative flex items-center justify-between gap-3 overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/[0.16] via-amber-950/25 to-purple-950/20 p-3.5 shadow-[0_0_25px_rgba(245,158,11,0.18)] transition-all duration-300 hover:scale-[1.01] hover:border-amber-400/70"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
                       <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/50 bg-amber-400/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
                         <Gift size={20} className="animate-bounce" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-xs font-black uppercase tracking-wider text-amber-200">Daily Bonus Ready!</p>
-                          <span className="rounded-md bg-amber-400/25 px-1.5 py-0.5 text-[8px] font-black tracking-widest text-amber-300 border border-amber-400/40">
+                          <p className="min-w-0 flex-1 text-xs font-black uppercase tracking-wider text-amber-200">Daily Bonus Ready!</p>
+                          <span className="shrink-0 whitespace-nowrap rounded-md bg-amber-400/25 px-1.5 py-0.5 text-[8px] font-black tracking-widest text-amber-300 border border-amber-400/40">
                             CLAIM
                           </span>
                         </div>

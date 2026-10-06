@@ -148,7 +148,8 @@ export async function getPayPalAccessToken() {
       data,
     });
     const detail = data?.error_description || data?.error || `Status ${response.status}`;
-    throw new Error(`PayPal credentials authentication failed (${detail}). Verify your PayPal Client ID and Secret in Vercel.`);
+    console.error(`[PayPal] Authentication failed (${detail}). Verify your PayPal Client ID and Secret in your environment settings.`);
+    throw new Error("We couldn't connect to PayPal right now. Please try another payment method or try again in a moment.");
   }
 
   return String(data.access_token);
@@ -184,11 +185,13 @@ export async function createPayPalOrder({
   description,
   returnUrl,
   cancelUrl,
+  landingPage = "GUEST_CHECKOUT",
 }: {
   context: PayPalOrderContext;
   description: string;
   returnUrl: string;
   cancelUrl: string;
+  landingPage?: "GUEST_CHECKOUT" | "LOGIN" | "BILLING" | "NO_PREFERENCE";
 }) {
   const accessToken = await getPayPalAccessToken();
   const orderBody = {
@@ -206,7 +209,7 @@ export async function createPayPalOrder({
     ],
     application_context: {
       brand_name: "Exismic",
-      landing_page: "LOGIN",
+      landing_page: landingPage,
       shipping_preference: "NO_SHIPPING",
       user_action: "PAY_NOW",
       return_url: returnUrl,

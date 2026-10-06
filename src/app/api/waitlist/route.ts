@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { email, source } = await req.json();
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return NextResponse.json({ success: false, error: 'Invalid email address' }, { status: 400 });
+      return publicJson({ success: false, error: 'Invalid email address' }, { status: 400 });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         .maybeSingle();
 
       if (existing) {
-        return NextResponse.json({
+        return publicJson({
           success: true,
           alreadySubscribed: true,
           message: 'You are already subscribed!'
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
       if (error) {
         if (error.code === '23505') {
-          return NextResponse.json({
+          return publicJson({
             success: true,
             alreadySubscribed: true,
             message: 'You are already subscribed!'
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
         console.warn('Waitlist database notice:', error.message);
         // Fail gracefully for missing tables or schema issues
-        return NextResponse.json({
+        return publicJson({
           success: true,
           alreadySubscribed: false,
           message: 'Subscribed successfully!'
@@ -55,14 +55,14 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       alreadySubscribed: false,
       message: 'Subscribed successfully!'
     });
   } catch (err: any) {
     console.error('Waitlist API error:', err);
-    return NextResponse.json({
+    return publicJson({
       success: true,
       alreadySubscribed: false,
       message: 'Subscribed successfully!'

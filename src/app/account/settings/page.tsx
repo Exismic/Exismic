@@ -606,14 +606,14 @@ export default function AccountSettings() {
       const res = await fetch("/api/user/account/recover", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: "User cancelled deletion in account settings" }),
+        body: JSON.stringify({ action: "cancel" }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to cancel deletion.");
 
-      setStatus({ type: "success", message: "Recovery request submitted! Our team will restore your account." });
+      window.location.href = "/auth/login?deletionCancelled=true";
       if (dbUser) {
-        setDbUser({ ...dbUser, deletionRecoveryRequested: true });
+        setDbUser({ ...dbUser, status: "active", scheduledDeletionAt: null, deletionRecoveryRequested: false });
       }
     } catch (err: any) {
       setStatus({ type: "error", message: err.message || "Failed to request recovery." });
@@ -1065,13 +1065,13 @@ export default function AccountSettings() {
                                 
                                 {/* Slot 1: Avatar Frame */}
                                 <div className="group/slot relative rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-r from-[#0c0e1a]/90 via-[#070812]/95 to-[#06070e]/95 p-3.5 sm:p-5 shadow-lg backdrop-blur-xl hover:border-purple-500/40 transition-all">
-                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                   <div className="flex flex-col md:flex-row lg:flex-col xl:flex-row md:items-center lg:items-stretch xl:items-center justify-between gap-3 sm:gap-4">
                                       <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                                          <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)] group-hover/slot:scale-105 transition-transform">
                                             <UserCircle size={20} className="sm:w-6 sm:h-6" />
                                          </div>
                                          <div className="min-w-0 space-y-0.5">
-                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-purple-400">Avatar Frame</span>
                                                {selectedFrame ? (
                                                   <span className="px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
@@ -1083,10 +1083,10 @@ export default function AccountSettings() {
                                                   </span>
                                                )}
                                             </div>
-                                            <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                                            <h4 className="text-sm sm:text-base font-bold text-white break-words">
                                                {PRO_FRAMES.find((f) => f.id === selectedFrame)?.name || "Standard Profile"}
                                             </h4>
-                                            <p className="text-[11px] sm:text-xs text-zinc-400 line-clamp-1 sm:line-clamp-none">
+                                            <p className="text-[11px] sm:text-xs text-zinc-400">
                                                {selectedFrame ? "Custom animated ring surrounding your profile picture" : "No custom frame equipped"}
                                             </p>
                                          </div>
@@ -1116,13 +1116,13 @@ export default function AccountSettings() {
 
                                 {/* Slot 2: Name Style */}
                                 <div className="group/slot relative rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-r from-[#0a1120]/90 via-[#060a14]/95 to-[#04060c]/95 p-3.5 sm:p-5 shadow-lg backdrop-blur-xl hover:border-cyan-500/40 transition-all">
-                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                   <div className="flex flex-col md:flex-row lg:flex-col xl:flex-row md:items-center lg:items-stretch xl:items-center justify-between gap-3 sm:gap-4">
                                       <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                                          <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover/slot:scale-105 transition-transform">
                                             <Type size={18} className="sm:w-5 sm:h-5" />
                                          </div>
                                          <div className="min-w-0 space-y-0.5">
-                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-cyan-400">Name Style</span>
                                                {selectedGradient ? (
                                                   <span className="px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
@@ -1134,10 +1134,10 @@ export default function AccountSettings() {
                                                   </span>
                                                )}
                                             </div>
-                                            <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                                            <h4 className="text-sm sm:text-base font-bold text-white break-words">
                                                {NAME_GRADIENTS.find((g) => g.id === selectedGradient)?.name || "Classic White"}
                                             </h4>
-                                            <p className="text-[11px] sm:text-xs text-zinc-400 line-clamp-1 sm:line-clamp-none">
+                                            <p className="text-[11px] sm:text-xs text-zinc-400">
                                                {selectedGradient ? "Animated glowing gradient applied to your name" : "Standard white typography"}
                                             </p>
                                          </div>
@@ -1167,13 +1167,13 @@ export default function AccountSettings() {
 
                                 {/* Slot 3: Creator Insignia */}
                                 <div className="group/slot relative rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-r from-[#171308]/90 via-[#0d0a04]/95 to-[#080602]/95 p-3.5 sm:p-5 shadow-lg backdrop-blur-xl hover:border-amber-500/40 transition-all">
-                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                   <div className="flex flex-col md:flex-row lg:flex-col xl:flex-row md:items-center lg:items-stretch xl:items-center justify-between gap-3 sm:gap-4">
                                       <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                                          <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover/slot:scale-105 transition-transform">
                                             <ShieldCheck size={20} className="sm:w-6 sm:h-6" />
                                          </div>
                                          <div className="min-w-0 space-y-0.5">
-                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-400">Creator Insignia</span>
                                                {selectedInsignia ? (
                                                   <span className="px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
@@ -1185,10 +1185,10 @@ export default function AccountSettings() {
                                                   </span>
                                                )}
                                             </div>
-                                            <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                                            <h4 className="text-sm sm:text-base font-bold text-white break-words">
                                                {CREATOR_INSIGNIAS.find((i) => i.id === selectedInsignia)?.name || "No Insignia Active"}
                                             </h4>
-                                            <p className="text-[11px] sm:text-xs text-zinc-400 line-clamp-1 sm:line-clamp-none">
+                                            <p className="text-[11px] sm:text-xs text-zinc-400">
                                                {CREATOR_INSIGNIAS.find((i) => i.id === selectedInsignia)?.description || "Signature title emblem displayed next to your username"}
                                             </p>
                                          </div>
@@ -1223,8 +1223,8 @@ export default function AccountSettings() {
                                          <Zap size={15} />
                                       </div>
                                       <div className="min-w-0">
-                                         <p className="text-xs font-bold text-white truncate">Looking for new cosmetic drops?</p>
-                                         <p className="text-[10px] sm:text-[11px] text-zinc-400 line-clamp-1 sm:line-clamp-none">Unlock limited-edition frames, name styles, and insignias using Sparks in the shop.</p>
+                                         <p className="text-xs font-bold text-white break-words">Looking for new cosmetic drops?</p>
+                                         <p className="text-[10px] sm:text-[11px] text-zinc-400">Unlock limited-edition frames, name styles, and insignias using Sparks in the shop.</p>
                                       </div>
                                    </div>
                                    <Link
@@ -1255,7 +1255,7 @@ export default function AccountSettings() {
                                    <span className="text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.35em] text-cyan-500/70 group-hover:text-cyan-400 transition-colors">Total Balance</span>
                                 </div>
                                 <div suppressHydrationWarning className="space-y-1">
-                                   <h3 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-400 drop-shadow-sm">{credits}</h3>
+                                   <h3 className="break-words text-4xl sm:text-5xl md:text-6xl xl:text-3xl 2xl:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-400 drop-shadow-sm">{credits}</h3>
                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Daily + Bonus + Permanent</p>
                                 </div>
                                 <Link href="/shop" className="group/btn relative isolate flex min-h-12 sm:min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden rounded-xl sm:rounded-[14px] bg-[linear-gradient(135deg,#7c3aed,#2563eb_40%,#06b6d4)] text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_14px_35px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-1 hover:brightness-115 hover:shadow-[0_24px_60px_rgba(6,182,212,0.35)] active:scale-95">
@@ -1279,7 +1279,7 @@ export default function AccountSettings() {
                                    <span className="text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.35em] text-purple-500/70 group-hover:text-purple-400 transition-colors">Permanent Reserve</span>
                                 </div>
                                 <div suppressHydrationWarning className="space-y-1">
-                                   <h3 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-purple-100 to-purple-400 drop-shadow-sm">{lifetimeCredits}</h3>
+                                   <h3 className="break-words text-4xl sm:text-5xl md:text-6xl xl:text-3xl 2xl:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-purple-100 to-purple-400 drop-shadow-sm">{lifetimeCredits}</h3>
                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Bought • Never Expires</p>
                                 </div>
                                 <button onClick={() => setIsBuyModalOpen(true)} className="group/btn relative isolate flex min-h-12 sm:min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden rounded-xl sm:rounded-[14px] bg-[linear-gradient(135deg,#a855f7,#7c3aed_50%,#4f46e5)] text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_14px_35px_rgba(124,58,237,0.25)] transition-all hover:-translate-y-1 hover:brightness-115 hover:shadow-[0_24px_60px_rgba(168,85,247,0.35)] active:scale-95">
@@ -1303,7 +1303,7 @@ export default function AccountSettings() {
                                    <span className="text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.35em] text-blue-500/70 group-hover:text-blue-400 transition-colors">Daily Allowance</span>
                                 </div>
                                 <div suppressHydrationWarning className="space-y-1">
-                                   <h3 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-400 drop-shadow-sm">{dailyCredits} <span className="text-xl sm:text-2xl text-blue-900 tracking-normal">/</span> <span className="text-xl sm:text-2xl text-blue-500/50">{isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50}</span></h3>
+                                   <h3 className="break-words text-4xl sm:text-5xl md:text-6xl xl:text-3xl 2xl:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-400 drop-shadow-sm">{dailyCredits} <span className="text-xl sm:text-2xl text-blue-900 tracking-normal">/</span> <span className="text-xl sm:text-2xl text-blue-500/50">{isPro ? PRICING_CONFIG.PRO_PLAN.DAILY_CREDITS : 50}</span></h3>
                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">Resets Daily at 12:00 PM IST</p>
                                 </div>
                                 <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-3">
@@ -1370,20 +1370,20 @@ export default function AccountSettings() {
                               Open Credit Shop <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1.5" />
                             </span>
                          </Link>
-                         <button onClick={refreshCredits} className="group flex h-[52px] w-[52px] sm:h-[64px] sm:w-[64px] shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/5 bg-[linear-gradient(115deg,rgba(255,255,255,0.03),rgba(255,255,255,0.005))] text-zinc-400 shadow-lg transition-all hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.06] hover:text-white hover:shadow-[0_18px_40px_rgba(255,255,255,0.05)] active:scale-95">
+                         <button onClick={refreshCredits} aria-label="Refresh credit balance" className="group flex h-[52px] w-[52px] sm:h-[64px] sm:w-[64px] shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/5 bg-[linear-gradient(115deg,rgba(255,255,255,0.03),rgba(255,255,255,0.005))] text-zinc-400 shadow-lg transition-all hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.06] hover:text-white hover:shadow-[0_18px_40px_rgba(255,255,255,0.05)] active:scale-95">
                             <RefreshCcw size={18} className="sm:w-5 sm:h-5 transition-transform duration-500 group-hover:rotate-180" />
                          </button>
                        </div>
                        <section className="glass-dark border border-white/5 rounded-2xl sm:rounded-[3rem] p-5 sm:p-10 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8">
                           <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
-                             <svg className="w-full h-full transform -rotate-90"><circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-zinc-900" /><circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * (isPro ? 100 : (messagesUsed / 30) * 100)) / 100} className="text-accent-purple transition-all duration-1000" /></svg>
+                             <svg viewBox="0 0 160 160" aria-hidden="true" className="w-full h-full transform -rotate-90"><circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-zinc-900" /><circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * (isPro ? 100 : (messagesUsed / 30) * 100)) / 100} className="text-accent-purple transition-all duration-1000" /></svg>
                              <div className="absolute flex flex-col items-center"><span className="text-3xl sm:text-4xl font-black text-white italic">{messagesUsed}</span><span className="text-[8px] font-black uppercase tracking-widest text-zinc-600">Messages</span></div>
                           </div>
                           <div className="space-y-1.5 sm:space-y-2"><h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-white">AI Interactions</h4><p className="text-[9px] sm:text-[10px] font-medium text-zinc-500 leading-relaxed uppercase tracking-tight px-2 sm:px-4">{isPro ? "Unlimited elite model access active" : `Daily limit: ${messagesUsed}/30 interactions`}</p></div>
                        </section>
                        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
-                          <div className="p-5 sm:p-10 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-4 sm:space-y-6"><h4 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-accent-purple italic">What consumes credits?</h4><ul className="space-y-3 sm:space-y-4">{[{ label: "AI Image Generation", value: "18 Credits" }, { label: "Minecraft Skin Maker", value: "24 Credits" }, { label: "Vocal Extraction", value: "14 Credits" }, { label: "Video Processing", value: "30-35 Credits" }].map((item, i) => <li key={i} className="flex items-center justify-between"><span className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="text-[10px] font-black text-white tracking-widest">{item.value}</span></li>)}</ul></div>
-                          <div className="p-5 sm:p-10 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-4 sm:space-y-6"><h4 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-accent-cyan italic">What is free?</h4><ul className="space-y-3 sm:space-y-4">{[{ label: "PDF Merging", value: "Free" }, { label: "Basic Image Compression", value: "Free" }, { label: "Text Formatting", value: "Free" }, { label: "QR Code Generation", value: "Free" }].map((item, i) => <li key={i} className="flex items-center justify-between"><span className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="text-[10px] font-black text-accent-cyan tracking-widest uppercase">{item.value}</span></li>)}</ul></div>
+                          <div className="p-5 sm:p-10 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-4 sm:space-y-6"><h4 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-accent-purple italic">What consumes credits?</h4><ul className="space-y-3 sm:space-y-4">{[{ label: "AI Image Generation", value: "18 Credits" }, { label: "Minecraft Skin Maker", value: "24 Credits" }, { label: "Vocal Extraction", value: "14 Credits" }, { label: "Video Processing", value: "30-35 Credits" }].map((item, i) => <li key={i} className="flex items-start justify-between gap-3"><span className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="shrink-0 text-[10px] font-black text-white tracking-widest">{item.value}</span></li>)}</ul></div>
+                          <div className="p-5 sm:p-10 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-4 sm:space-y-6"><h4 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-accent-cyan italic">What is free?</h4><ul className="space-y-3 sm:space-y-4">{[{ label: "PDF Merging", value: "Free" }, { label: "Basic Image Compression", value: "Free" }, { label: "Text Formatting", value: "Free" }, { label: "QR Code Generation", value: "Free" }].map((item, i) => <li key={i} className="flex items-start justify-between gap-3"><span className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-tight">{item.label}</span><span className="shrink-0 text-[10px] font-black text-accent-cyan tracking-widest uppercase">{item.value}</span></li>)}</ul></div>
                        </section>
                     </div>
                  )}
@@ -1896,6 +1896,7 @@ export default function AccountSettings() {
                                   <button
                                     type="button"
                                     role="switch"
+                                    aria-label={pref.label}
                                     aria-checked={enabled}
                                     disabled={isLoadingPreferences || Boolean(savingPreference)}
                                     onClick={() => void handlePreferenceToggle(pref.key)}
@@ -1955,12 +1956,12 @@ export default function AccountSettings() {
                
                {/* Top Header */}
                <div className="p-4 sm:p-7 md:p-8 flex items-center justify-between z-20 border-b border-white/10 bg-[#090a18]/80 backdrop-blur-2xl gap-3 sm:gap-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                      <div className="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-purple-400/30 bg-purple-500/15 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
                         <Crown size={20} className="text-purple-300 fill-purple-400/20" />
                      </div>
                      <div>
-                        <div className="flex items-center gap-2 sm:gap-2.5">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                           <h2 className="text-base sm:text-2xl font-black text-white uppercase italic tracking-tight">Avatar Frames</h2>
                           <span className="rounded-full border border-purple-400/30 bg-purple-500/15 px-2 py-0.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-purple-300">
                             {PRO_FRAMES.length} Styles
@@ -1971,7 +1972,7 @@ export default function AccountSettings() {
                   </div>
                   <button 
                      onClick={() => setIsFrameModalOpen(false)} 
-                     className="group flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
+                     className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
                      aria-label="Close modal"
                   >
                      <X size={18} className="group-hover:scale-110 transition-transform" />
@@ -1979,7 +1980,7 @@ export default function AccountSettings() {
                </div>
 
                {/* Grid Frame Selector Body */}
-               <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 relative z-10">
+               <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 relative z-10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                      {PRO_FRAMES.map((frame) => {
                         const isSelected = selectedFrame === frame.id;
@@ -2108,14 +2109,14 @@ export default function AccountSettings() {
                         <button 
                            onClick={() => { handleApplyFrame(null); }}
                            disabled={isUpdatingFrame}
-                           className="flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                           className="min-h-11 flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
                         >
                            Reset
                         </button>
                      )}
                      <button 
                         onClick={() => setIsFrameModalOpen(false)}
-                        className="flex-1 sm:flex-initial px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer text-center"
+                        className="min-h-11 flex-1 sm:flex-initial px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer text-center"
                      >
                         Done
                      </button>
@@ -2148,12 +2149,12 @@ export default function AccountSettings() {
                
                {/* Top Header */}
                <div className="p-4 sm:p-7 md:p-8 flex items-center justify-between z-20 border-b border-white/10 bg-[#090a18]/80 backdrop-blur-2xl gap-3 sm:gap-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                      <div className="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-cyan-400/30 bg-cyan-500/15 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
                         <Type size={20} className="text-cyan-300" />
                      </div>
                      <div>
-                        <div className="flex items-center gap-2 sm:gap-2.5">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                           <h2 className="text-base sm:text-2xl font-black text-white uppercase italic tracking-tight">Name Styles</h2>
                           <span className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2 py-0.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-cyan-300">
                             {NAME_GRADIENTS.length} Styles
@@ -2164,7 +2165,7 @@ export default function AccountSettings() {
                   </div>
                   <button 
                      onClick={() => setIsGradientModalOpen(false)} 
-                     className="group flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
+                     className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer shadow-sm"
                      aria-label="Close modal"
                   >
                      <X size={18} className="group-hover:scale-110 transition-transform" />
@@ -2172,7 +2173,7 @@ export default function AccountSettings() {
                </div>
 
                {/* Grid Name Style Selector Body */}
-               <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 relative z-10">
+               <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 relative z-10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                      {NAME_GRADIENTS.map((gradient) => {
                         const isSelected = selectedGradient === gradient.id;
@@ -2286,14 +2287,14 @@ export default function AccountSettings() {
                         <button 
                            onClick={() => { handleApplyGradient(null); }}
                            disabled={isUpdatingGradient}
-                           className="flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                           className="min-h-11 flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
                         >
                            Reset
                         </button>
                      )}
                      <button 
                         onClick={() => setIsGradientModalOpen(false)}
-                        className="flex-1 sm:flex-initial px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer text-center"
+                        className="min-h-11 flex-1 sm:flex-initial px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-black text-xs uppercase tracking-wider transition-all shadow-xl active:scale-95 cursor-pointer text-center"
                      >
                         Done
                      </button>
@@ -2320,7 +2321,7 @@ export default function AccountSettings() {
               className="relative w-full max-w-2xl max-h-[calc(100dvh-1.5rem)] h-[82dvh] flex flex-col items-center justify-center bg-[#030303] border border-white/10 rounded-2xl sm:rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-4xl"
             >
                <div className="absolute top-0 inset-x-0 p-4 sm:p-8 flex items-center justify-between z-10 bg-linear-to-b from-black to-transparent">
-                  <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                      <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-accent-purple/20 text-accent-purple">
                         <CropIcon size={20} className="sm:w-6 sm:h-6" />
                      </div>
@@ -2460,6 +2461,8 @@ export default function AccountSettings() {
                   </div>
 
                   {/* Actions */}
+                  <p className="text-xs leading-relaxed text-zinc-400">If you have a recurring subscription, cancel it before requesting account deletion.</p>
+                  {status?.type === 'error' && <p role="alert" className="text-xs leading-relaxed text-rose-400">{status.message}</p>}
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <button
                       type="button"

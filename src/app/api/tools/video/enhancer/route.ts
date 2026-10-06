@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
@@ -49,12 +50,12 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const access = await resolveToolAccess(req, { toolId: "video-enhancer", mode: "free-quality", creditCost: 20, formData });
     if (isToolAccessResponse(access)) return access;
-    const limit = checkRateLimit(
-      `video-enhancer:${access.authUser?.id || "guest"}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `video-enhancer:${access.authUser?.id || getRequestIp(req)}`,
       access.isAuthenticated ? 8 : 2,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
     const file = formData.get("video") as File;
     const requestedLevel = String(formData.get("level") || "medium");
     const level = access.outputTier === "standard" ? "light" : requestedLevel;
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
     );
     const { bytes, mimeType } = decodeProviderFile(result.file_data_base64);
     const debit = await chargeToolAccess(access, "video-enhancer", `tool:${requestId}`);
-    if (!debit.success) return NextResponse.json({ error: debit.error }, { status: 402 });
+    if (!debit.success) return publicJson({ error: debit.error }, { status: 402 });
     return createVideoDownloadResponse(bytes, {
       fileName: `${safeVideoStem(file.name)}-enhanced.mp4`,
       contentType: mimeType || "video/mp4",

@@ -120,6 +120,7 @@ export function LandingPage() {
             <LuxuryButton
               href="/tools"
               title="Start creating free"
+              centerMobileText
               subtitle="Free access • No card required"
               theme="gold"
               icon={<Rocket size={17} className="text-amber-300" />}
@@ -128,6 +129,7 @@ export function LandingPage() {
             <LuxuryButton
               href="#tools"
               title="Explore all tools"
+              centerMobileText
               subtitle="Browse 50+ creative tools"
               theme="cyan"
               icon={<LayoutGrid size={17} className="text-cyan-300" />}

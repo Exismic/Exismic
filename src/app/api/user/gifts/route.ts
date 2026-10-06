@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { getUserPurchasedGifts } from "@/lib/gifts";
 
@@ -10,12 +10,12 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const gifts = await getUserPurchasedGifts(user.id);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       gifts,
       totalGifts: gifts.length,
@@ -23,6 +23,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[API_USER_GIFTS_GET_ERROR]", error);
-    return NextResponse.json({ error: "Failed to load purchased gifts" }, { status: 500 });
+    return publicJson({ error: "Failed to load purchased gifts" }, { status: 500 });
   }
 }

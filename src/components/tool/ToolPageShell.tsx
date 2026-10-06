@@ -18,6 +18,7 @@ interface ToolPageShellProps {
   className?: string;
   customTitle?: string;
   customDescription?: string;
+  afterGuide?: React.ReactNode;
 }
 
 export function ToolPageShell({
@@ -27,6 +28,7 @@ export function ToolPageShell({
   className,
   customTitle,
   customDescription,
+  afterGuide,
 }: ToolPageShellProps) {
   const tool: Tool | undefined = (ALL_TOOLS || TOOLS).find(
     (t) => t.id === toolId || t.id === `${explicitCategoryId}-${toolId}` || t.href.endsWith(`/${toolId}`)
@@ -209,6 +211,7 @@ export function ToolPageShell({
         seoIntro={tool?.seoIntro}
         showRelatedTools={true}
       />
+      {afterGuide}
     </div>
   );
 }

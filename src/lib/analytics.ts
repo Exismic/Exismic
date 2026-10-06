@@ -1,6 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
+import { isPrivateAnalyticsUrl } from "@/lib/analytics-privacy";
 
 export type EventProperties = Record<string, string | number | boolean | null | undefined>;
 
@@ -10,6 +11,7 @@ export type EventProperties = Record<string, string | number | boolean | null | 
  */
 export function trackEvent(name: string, properties?: EventProperties): void {
   if (typeof window === "undefined") return;
+  if (isPrivateAnalyticsUrl(window.location.href)) return;
 
   try {
     // 1. Vercel Analytics Custom Event

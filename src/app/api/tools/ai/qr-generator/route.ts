@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { checkRateLimit, getOptionalApiUser, getRequestIp, rateLimitResponse } from "@/lib/api-security";
 import { Client } from "@gradio/client";
 
@@ -9,14 +10,14 @@ import { Client } from "@gradio/client";
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(`qr-generator:${authUser?.id || "guest"}:${getRequestIp(req)}`, authUser ? 30 : 10, 60 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const limit = await checkRateLimit(`qr-generator:${authUser?.id || getRequestIp(req)}`, authUser ? 30 : 10, 60 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const body = await req.json().catch(() => ({}));
-    const { 
-      url, 
-      prompt, 
-      negativePrompt = "ugly, disfigured, low quality, blurry, nsfw", 
+    const {
+      url,
+      prompt,
+      negativePrompt = "ugly, disfigured, low quality, blurry, nsfw",
       guidanceScale = 7.5,
       conditioningScale = 1.15,
       strength = 0.9,
@@ -25,11 +26,11 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!url || typeof url !== "string") {
-      return NextResponse.json({ error: "Please enter a valid link or text to encode." }, { status: 400 });
+      return publicJson({ error: "Please enter a valid link or text to encode." }, { status: 400 });
     }
 
     if (!prompt || typeof prompt !== "string") {
-      return NextResponse.json({ error: "Please enter a visual prompt style." }, { status: 400 });
+      return publicJson({ error: "Please enter a visual prompt style." }, { status: 400 });
     }
 
     const numericSeed = seed && !isNaN(parseInt(seed))
@@ -75,15 +76,15 @@ export async function POST(req: NextRequest) {
     const base64Image = Buffer.from(buffer).toString("base64");
     const dataUrl = `data:image/png;base64,${base64Image}`;
 
-    return NextResponse.json({
+    return publicJson({
       image: dataUrl,
       seed: numericSeed
     });
 
   } catch (error: any) {
     console.error("[QR Generator Route Error]:", error);
-    return NextResponse.json({ 
-      error: error?.message || "Failed to generate AI QR code. The queue might be full, please try again." 
+    return publicJson({
+      error: error?.message || "Failed to generate AI QR code. The queue might be full, please try again."
     }, { status: 500 });
   }
 }

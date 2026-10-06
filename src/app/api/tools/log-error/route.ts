@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { logToolError } from "@/lib/tool-error-logger";
 
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const { toolId, toolName, errorMessage, errorStack, metadata } = body;
 
     if (!toolId || !errorMessage) {
-      return NextResponse.json({ error: "Missing required fields toolId or errorMessage" }, { status: 400 });
+      return publicJson({ error: "Missing required fields toolId or errorMessage" }, { status: 400 });
     }
 
     const log = await logToolError({
@@ -24,9 +24,9 @@ export async function POST(request: Request) {
       metadata: metadata && typeof metadata === "object" ? metadata : null,
     });
 
-    return NextResponse.json({ success: true, logId: log?.id });
+    return publicJson({ success: true, logId: log?.id });
   } catch (error) {
     console.error("[ToolLogErrorAPI] Exception:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return publicJson({ error: "Internal Server Error" }, { status: 500 });
   }
 }

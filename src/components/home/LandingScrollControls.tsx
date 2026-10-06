@@ -172,7 +172,7 @@ export function LandingScrollControls() {
   return (
     <aside 
       aria-label="Page navigation controls" 
-      className="fixed bottom-20 right-5 sm:bottom-24 sm:right-7 z-40 pointer-events-auto select-none"
+      className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] right-3 sm:bottom-24 sm:right-7 z-30 pointer-events-auto select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -207,7 +207,7 @@ export function LandingScrollControls() {
           <div className="absolute -inset-1 rounded-full bg-cyan-500/10 blur-xl opacity-0 group-hover/console:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
           {/* Frosted Smoked Glass Chamber */}
-          <div className="relative flex flex-col items-center gap-1 p-1 rounded-full bg-[#080914]/85 backdrop-blur-2xl border border-white/10 hover:border-white/20 shadow-[0_12px_36px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_24px_rgba(6,182,212,0.18)] transition-all duration-300">
+          <div className="relative flex flex-row sm:flex-col items-center gap-1 p-1 rounded-full bg-[#080914]/85 backdrop-blur-2xl border border-white/10 hover:border-white/20 shadow-[0_12px_36px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_24px_rgba(6,182,212,0.18)] transition-all duration-300">
             
             {/* Scroll Up Button */}
             <button
@@ -217,7 +217,7 @@ export function LandingScrollControls() {
               aria-label="Scroll up"
               title={canScrollUp ? "Scroll up" : "At top of page"}
               className={cn(
-                "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 relative",
+                "w-11 h-11 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 relative",
                 canScrollUp
                   ? "text-zinc-400 hover:text-white hover:bg-white/[0.08] active:scale-90 cursor-pointer"
                   : "text-zinc-600 opacity-20 cursor-default"
@@ -227,7 +227,7 @@ export function LandingScrollControls() {
             </button>
 
             {/* Hairline Divider */}
-            <div className="w-3.5 h-px bg-white/[0.08]" />
+            <div className="w-px h-3.5 sm:w-3.5 sm:h-px bg-white/[0.08]" />
 
             {/* Precision Circular Progress Dial */}
             <div 
@@ -272,7 +272,7 @@ export function LandingScrollControls() {
             </div>
 
             {/* Hairline Divider */}
-            <div className="w-3.5 h-px bg-white/[0.08]" />
+            <div className="w-px h-3.5 sm:w-3.5 sm:h-px bg-white/[0.08]" />
 
             {/* Scroll Down Button */}
             <button
@@ -282,7 +282,7 @@ export function LandingScrollControls() {
               aria-label="Scroll down"
               title={canScrollDown ? "Scroll down" : "At bottom of page"}
               className={cn(
-                "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 relative",
+                "w-11 h-11 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 relative",
                 canScrollDown
                   ? "text-zinc-400 hover:text-white hover:bg-white/[0.08] active:scale-90 cursor-pointer"
                   : "text-zinc-600 opacity-20 cursor-default"

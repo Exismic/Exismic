@@ -35,7 +35,7 @@ type Step = "input" | "processing" | "success" | "failure";
 export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const [billingCycle] = useState<"monthly" | "yearly">("monthly");
   const [amount, setAmount] = useState("");
-  const [isIndia, setIsIndia] = useState(false);
+  const [isIndia, setIsIndia] = useState(() => getIsIndia());
   const [step, setStep] = useState<Step>("input");
   const [error, setError] = useState("");
   const supabase = createClient();

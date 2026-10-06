@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   Mail,
@@ -13,7 +13,6 @@ import {
   Trophy,
   Send,
   X,
-  Lock,
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
@@ -21,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
 import { useCredits } from "@/hooks/useCredits";
 import Link from "next/link";
+import { ResultEmailClient, type ResultEmailAllowance } from "@/lib/client/result-email-client";
 
 export interface ResultRetentionBarProps {
   toolType: string;
@@ -48,12 +48,13 @@ export function ResultRetentionBar({
   onCopy,
 }: ResultRetentionBarProps) {
   const { userId } = useCredits();
-  const [userEmail, setUserEmail] = useState<string>("");
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [targetEmail, setTargetEmail] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<"idle" | "success" | "error">("idle");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "success" | "error" | "pending">("idle");
   const [emailMessage, setEmailMessage] = useState("");
+  const [emailQuota, setEmailQuota] = useState<ResultEmailAllowance | null>(null);
+  const emailClient = useRef(new ResultEmailClient());
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -71,11 +72,21 @@ export function ResultRetentionBar({
     const supabase = createClient();
     supabase.auth.getUser().then((res: { data: { user: { email?: string | null } | null } }) => {
       if (res.data?.user?.email) {
-        setUserEmail(res.data.user.email);
         setTargetEmail(res.data.user.email);
       }
     });
   }, [userId]);
+
+  useEffect(() => {
+    if (!isEmailModalOpen) return;
+    const controller = new AbortController();
+    setEmailQuota(null);
+    fetch('/api/tools/email-result', { cache: 'no-store', signal: controller.signal })
+      .then(response => response.json())
+      .then(data => { if (!controller.signal.aborted && data.quota) setEmailQuota(data.quota); })
+      .catch(() => { /* Sending will still check the server allowance. */ });
+    return () => controller.abort();
+  }, [isEmailModalOpen, userId]);
 
   const notifyQuestAndCreditUpdate = () => {
     if (typeof window !== "undefined") {
@@ -147,23 +158,15 @@ export function ResultRetentionBar({
     setEmailMessage("");
 
     try {
-      const res = await fetch("/api/tools/email-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: targetEmail.trim(),
-          toolType,
-          toolName,
-          title,
-          content,
-          fileUrl,
-          metadata,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
+      const data = await emailClient.current.send({ email: targetEmail, toolType, toolName, title, content, fileUrl, metadata, owner: userId },
+        async (upload, blob) => createClient().storage.from(upload.bucket).uploadToSignedUrl(upload.path, upload.token, blob, { contentType: blob.type }));
+      if (data.quota) setEmailQuota(data.quota);
+      if (data.pending) {
+        setEmailStatus("pending");
+        setEmailMessage(data.message || "This email is being processed. Check your inbox before sending again.");
+        return;
+      }
+      if (data.success) {
         setEmailStatus("success");
         setEmailMessage(data.message || `Output sent to ${targetEmail.trim()}`);
         notifyQuestAndCreditUpdate();
@@ -176,9 +179,9 @@ export function ResultRetentionBar({
         setEmailStatus("error");
         setEmailMessage(data.error || "Failed to send email. Please try again.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setEmailStatus("error");
-      setEmailMessage(err.message || "Failed to connect to email service.");
+      setEmailMessage(err instanceof Error ? err.message : "Failed to connect to email service.");
     } finally {
       setIsSendingEmail(false);
     }
@@ -216,7 +219,7 @@ export function ResultRetentionBar({
             setEmailStatus("idle");
             setEmailMessage("");
           }}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600/20 to-cyan-500/20 hover:from-violet-600/30 hover:to-cyan-500/30 border border-violet-500/30 hover:border-violet-500/50 text-white text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-violet-500/10"
+          className="min-h-11 basis-full sm:basis-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600/20 to-cyan-500/20 hover:from-violet-600/30 hover:to-cyan-500/30 border border-violet-500/30 hover:border-violet-500/50 text-white text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-lg shadow-violet-500/10 [&>svg]:shrink-0"
         >
           <Mail size={14} className="text-violet-300" />
           <span>Email Me Result</span>
@@ -227,7 +230,7 @@ export function ResultRetentionBar({
           type="button"
           onClick={handleSaveToLibrary}
           disabled={isSaving || isSaved}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+          className={`min-h-11 basis-full sm:basis-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer [&>svg]:shrink-0 ${
             isSaved
               ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300"
               : "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-zinc-200 hover:text-white active:scale-95"
@@ -248,7 +251,7 @@ export function ResultRetentionBar({
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/15 text-zinc-300 hover:text-white text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer"
+            className="flex min-h-11 shrink-0 items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/15 text-zinc-300 hover:text-white text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer"
             title="Copy output text to clipboard"
           >
             {copied ? (
@@ -265,7 +268,7 @@ export function ResultRetentionBar({
           <button
             type="button"
             onClick={downloadAction}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-md"
+            className="flex min-h-11 items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-md [&>svg]:shrink-0"
           >
             <Download size={14} />
             <span>{downloadLabel}</span>
@@ -346,9 +349,11 @@ export function ResultRetentionBar({
                       <div className="flex items-center gap-2">
                         <ShieldCheck size={16} className="text-cyan-400 shrink-0" />
                         <span>
-                          {userId
-                            ? "Creator account active: 10 emails per day"
-                            : "Guest export limit: 2 free emails per 24 hours"}
+                          {emailQuota ? `${emailQuota.tier === 'pro' ? 'Pro' : emailQuota.tier === 'free' ? 'Free' : 'Guest'}: ${emailQuota.remaining} of ${emailQuota.limit} daily emails available` : 'Checking your daily email allowance…'}
+                          {emailQuota && <span className="mt-1 block text-[10px] text-zinc-500">
+                            Resets {new Date(emailQuota.resetsAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            {emailQuota.reserved > 0 ? ` · ${emailQuota.reserved} reserved or processing` : ''}
+                          </span>}
                         </span>
                       </div>
                       <span className="text-[10px] text-zinc-500 font-mono sm:text-right shrink-0">
@@ -362,7 +367,9 @@ export function ResultRetentionBar({
                         className={`rounded-xl p-3 text-xs font-bold ${
                           emailStatus === "success"
                             ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
-                            : "bg-rose-500/10 border border-rose-500/20 text-rose-300"
+                            : emailStatus === "pending"
+                              ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-300"
+                              : "bg-rose-500/10 border border-rose-500/20 text-rose-300"
                         }`}
                       >
                         {emailMessage}
@@ -388,7 +395,7 @@ export function ResultRetentionBar({
                         ) : (
                           <Send size={14} />
                         )}
-                        <span>{isSendingEmail ? "Sending..." : "Send to Inbox"}</span>
+                        <span>{isSendingEmail ? "Sending..." : emailStatus === "pending" ? "Check status" : "Send to Inbox"}</span>
                       </button>
                     </div>
                   </form>

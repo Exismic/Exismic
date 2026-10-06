@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { consumeAuthLimit } from "@/lib/auth/security";
+import { requestIp } from "@/lib/trusted-login";
+import { publicJson } from "@/lib/public-json";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashTrustedLoginToken } from "@/lib/trusted-login";
@@ -15,9 +17,10 @@ export async function POST(request: Request) {
   try {
     const parsed = responseSchema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid approval response." }, { status: 400 });
+      return publicJson({ error: "Invalid approval response." }, { status: 400 });
     }
 
+    if (!await consumeAuthLimit(`phone-respond:${requestIp(request)}`, 60, 15 * 60 * 1000)) return publicJson({ error: "Too many attempts. Please try again later." }, { status: 429 });
     const challenge = await prisma.trustedLoginChallenge.findUnique({
       where: { id: parsed.data.challengeId },
       select: {
@@ -25,6 +28,8 @@ export async function POST(request: Request) {
         status: true,
         approvalTokenHash: true,
         expiresAt: true,
+        userId: true,
+        deviceId: true,
       },
     });
 
@@ -32,7 +37,7 @@ export async function POST(request: Request) {
       !challenge ||
       challenge.approvalTokenHash !== hashTrustedLoginToken(parsed.data.approvalToken)
     ) {
-      return NextResponse.json({ error: "This login request is invalid." }, { status: 403 });
+      return publicJson({ error: "This login request is invalid." }, { status: 403 });
     }
 
     if (challenge.expiresAt <= new Date()) {
@@ -40,11 +45,15 @@ export async function POST(request: Request) {
         where: { id: challenge.id, status: "pending" },
         data: { status: "expired" },
       });
-      return NextResponse.json({ error: "This login request has expired." }, { status: 410 });
+      return publicJson({ error: "This login request has expired." }, { status: 410 });
     }
 
+    const account = await prisma.user.findUnique({ where: { id: challenge.userId }, select: { status: true } });
+    const device = await prisma.trustedLoginDevice.findUnique({ where: { id: challenge.deviceId } });
+    if (!account || account.status !== "active" || !device || device.status !== "active" || device.revokedAt || device.expiresAt <= new Date()) return publicJson({ error: "This login request has expired." }, { status: 410 });
+
     if (challenge.status !== "pending") {
-      return NextResponse.json({
+      return publicJson({
         success: true,
         status: challenge.status,
       });
@@ -63,16 +72,16 @@ export async function POST(request: Request) {
     });
 
     if (!result.count) {
-      return NextResponse.json({ error: "This login request has expired." }, { status: 410 });
+      return publicJson({ error: "This login request has expired." }, { status: 410 });
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       status: parsed.data.decision,
     });
   } catch (error) {
     console.error("[Trusted Login Respond]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Could not update this login request." },
       { status: 500 },
     );

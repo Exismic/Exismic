@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
@@ -563,17 +564,17 @@ export async function PUT(request: NextRequest) {
   const apiUser = await requireApiUser();
   if (apiUser instanceof NextResponse) return apiUser;
 
-  const rateLimit = checkRateLimit(
-    `minecraft-skin-edit:${apiUser.id}:${getRequestIp(request)}`,
+  const rateLimit = await checkRateLimit(
+    `minecraft-skin-edit:${apiUser.id}`,
     30,
     10 * 60 * 1000
   );
-  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter);
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter, rateLimit.unavailable);
 
   try {
     const parsed = editRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json(
+      return publicJson(
         { error: parsed.error.issues[0]?.message || "The edited skin data is invalid." },
         { status: 400 }
       );
@@ -584,7 +585,7 @@ export async function PUT(request: NextRequest) {
     const image = sharp(source);
     const metadata = await image.metadata();
     if (metadata.width !== 64 || metadata.height !== 64) {
-      return NextResponse.json({ error: "Edited skins must remain exactly 64x64 pixels." }, { status: 400 });
+      return publicJson({ error: "Edited skins must remain exactly 64x64 pixels." }, { status: 400 });
     }
 
     const png = await image
@@ -614,10 +615,10 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, skinUrl: resultUrl });
+    return publicJson({ success: true, skinUrl: resultUrl });
   } catch (error) {
     console.error("[Minecraft Skin] Pixel edit save failed:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error instanceof Error ? error.message : "The edited skin could not be saved." },
       { status: 500 }
     );
@@ -763,17 +764,17 @@ async function extractImagePalette(referenceImage: string): Promise<Partial<Mine
 export async function POST(request: NextRequest) {
   const apiUser = await getOptionalApiUser();
 
-  const rateLimit = checkRateLimit(
-    `minecraft-skin:${apiUser?.id || "guest"}:${getRequestIp(request)}`,
+  const rateLimit = await checkRateLimit(
+    `minecraft-skin:${apiUser?.id || getRequestIp(request)}`,
     apiUser ? 12 : 3,
     10 * 60 * 1000
   );
-  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter);
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfter, rateLimit.unavailable);
 
   try {
     const body = requestSchema.safeParse(await request.json());
     if (!body.success) {
-      return NextResponse.json(
+      return publicJson(
         { error: body.error.issues[0]?.message || "Check the skin settings and try again." },
         { status: 400 }
       );
@@ -796,7 +797,7 @@ export async function POST(request: NextRequest) {
     } = body.data;
 
     if (action === "remix" && !minecraftRemixParts(remixInstruction || prompt).length) {
-      return NextResponse.json({ error: "Describe something you want to change, such as the jacket color." }, { status: 400 });
+      return publicJson({ error: "Describe something you want to change, such as the jacket color." }, { status: 400 });
     }
 
     let seed = getMinecraftSkinSeed(prompt, body.data.seed);
@@ -812,7 +813,7 @@ export async function POST(request: NextRequest) {
     const availableCredits = user ? getCreditTotal(user) : 0;
 
     if (user && availableCredits < cost) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: `This generation needs ${cost} credits. Your current balance is ${availableCredits}.`,
           needsUpgrade: !isPro,
@@ -867,7 +868,7 @@ export async function POST(request: NextRequest) {
 
     if (!referenceRebuilt && !aiDesign) {
       // Do not store or charge for a basic fallback presented as a successful AI edit.
-      return NextResponse.json({ error: "The AI could not finish this skin. Your credits were not used. Please try again shortly." }, { status: 503 });
+      return publicJson({ error: "The AI could not finish this skin. Your credits were not used. Please try again shortly." }, { status: 503 });
     }
 
     // Palette Precedence: Groq extraction (honoring prompt overrides) takes precedence over image color counts
@@ -934,7 +935,7 @@ export async function POST(request: NextRequest) {
     const resultUrl = await uploadProcessedFile(png, filename, "image/png");
 
     if (!apiUser) {
-      return NextResponse.json({
+      return publicJson({
         success: true,
         skinUrl: resultUrl,
         design,
@@ -962,7 +963,7 @@ export async function POST(request: NextRequest) {
       `tool:minecraft-skin:${filename}`,
     );
     if (!debit.success || !debit.data) {
-      return NextResponse.json(
+      return publicJson(
         { error: debit.error || "Your credit balance changed. Please try again." },
         { status: 402 },
       );
@@ -1005,7 +1006,7 @@ export async function POST(request: NextRequest) {
       }),
     ]);
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       skinUrl: resultUrl,
       design,
@@ -1026,7 +1027,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Skin generation failed.";
     console.error("[Minecraft Skin] Generation failed:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: message === "fetch failed" ? "The design service is temporarily unavailable." : message },
       { status: 500 }
     );

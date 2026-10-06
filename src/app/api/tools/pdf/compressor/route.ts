@@ -23,12 +23,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `pdf-compressor:${user?.id || "guest"}:${getRequestIp(request)}`,
+    const limit = await checkRateLimit(
+      `pdf-compressor:${user?.id || getRequestIp(request)}`,
       user ? 20 : 6,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await request.formData();
     const entry = formData.get("file");

@@ -32,12 +32,12 @@ export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `video-to-gif:${authUser?.id || "guest"}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `video-to-gif:${authUser?.id || getRequestIp(req)}`,
       authUser ? 10 : 3,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await req.formData();
     const file = formData.get("video") as File;

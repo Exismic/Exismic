@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { TOOLS, type Tool } from "@/data/tools";
 import { checkRateLimit, getRequestIp, rateLimitResponse } from "@/lib/api-security";
@@ -263,12 +264,12 @@ async function askGroq(message: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const limit = checkRateLimit(`tool-concierge:${getRequestIp(request)}`, 20, 10 * 60 * 1000);
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    const limit = await checkRateLimit(`tool-concierge:${getRequestIp(request)}`, 20, 10 * 60 * 1000);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: "Tell Exismic Ai what you want to do." }, { status: 400 });
+      return publicJson({ error: "Tell Exismic Ai what you want to do." }, { status: 400 });
     }
 
     let result;
@@ -278,7 +279,7 @@ export async function POST(request: NextRequest) {
       result = localRecommendations(parsed.data.message);
     }
 
-    return NextResponse.json({
+    return publicJson({
       reply: result.reply,
       recommendations: result.tools.map((tool, index) => toRecommendation(
         tool,
@@ -288,7 +289,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[ToolConcierge]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Exismic Ai could not process that request. Please try again." },
       { status: 500 }
     );

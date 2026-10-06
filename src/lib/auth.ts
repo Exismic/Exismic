@@ -8,18 +8,18 @@ import { createClient } from '@/utils/supabase/server'
 export async function getAuth(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { session }, error } = await supabase.auth.getSession()
+    const { data: { user }, error } = await supabase.auth.getUser()
 
     if (error) {
       console.error('[AUTH] Error getting session:', error)
       return { userId: null, error }
     }
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return { userId: null, error: 'No session' }
     }
 
-    return { userId: session.user.id }
+    return { userId: user.id }
   } catch (err) {
     console.error('[AUTH] Error in getAuth:', err)
     return { userId: null, error: err }
@@ -33,8 +33,8 @@ export async function getAuth(request: NextRequest) {
 export async function isAuthenticated(): Promise<boolean> {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    return !!session?.user?.id
+    const { data: { user } } = await supabase.auth.getUser()
+    return !!user?.id
   } catch {
     return false
   }
@@ -47,8 +47,8 @@ export async function isAuthenticated(): Promise<boolean> {
 export async function getCurrentUserId(): Promise<string | null> {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.user?.id || null
+    const { data: { user } } = await supabase.auth.getUser()
+    return user?.id || null
   } catch {
     return null
   }

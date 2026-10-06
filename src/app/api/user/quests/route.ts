@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
-import { 
-  getDailyCycleInfo, 
-  getWeeklyCycleInfo, 
-  generateQuestsForUser, 
+import {
+  getDailyCycleInfo,
+  getWeeklyCycleInfo,
+  generateQuestsForUser,
   UserActivityData,
   QuestItem
 } from "@/lib/quests";
@@ -52,11 +53,11 @@ function buildActivityData(
 
   const distinctTools = new Set(
     txInWindow
-      .filter((t) => 
+      .filter((t) =>
         t.transactionType === "tool_usage" &&
-        t.toolId && 
-        t.toolId !== "chat" && 
-        t.toolId !== "ai-chat" && 
+        t.toolId &&
+        t.toolId !== "chat" &&
+        t.toolId !== "ai-chat" &&
         t.toolId !== "vault" &&
         t.toolId !== "streak-shield" &&
         t.toolId !== "streak_shield_purchase"
@@ -64,36 +65,36 @@ function buildActivityData(
       .map((t) => t.toolId as string)
   );
 
-  const visualTxCount = txInWindow.filter((t) => 
+  const visualTxCount = txInWindow.filter((t) =>
     t.transactionType === "tool_usage" && t.toolId && VISUAL_TOOL_IDS.includes(t.toolId)
   ).length;
-  const visualFilesCount = filesInWindow.filter((f) => 
+  const visualFilesCount = filesInWindow.filter((f) =>
     VISUAL_TOOL_IDS.includes(f.toolType) || f.toolType === "image" || f.toolType === "skin"
   ).length;
   const visualCraftCount = Math.max(visualTxCount, visualFilesCount);
 
-  const chatTxCount = txInWindow.filter((t) => 
-    t.toolId === "chat" || 
-    t.toolId === "ai-chat" || 
-    t.transactionType === "chat_message" || 
+  const chatTxCount = txInWindow.filter((t) =>
+    t.toolId === "chat" ||
+    t.toolId === "ai-chat" ||
+    t.transactionType === "chat_message" ||
     (t.description && t.description.toLowerCase().includes("chat"))
   ).length;
   const chatCount = chatsInWindow.length + chatTxCount;
 
   const vaultClaimedCount = claimsInWindow.length;
 
-  const docTxCount = txInWindow.filter((t) => 
+  const docTxCount = txInWindow.filter((t) =>
     t.transactionType === "tool_usage" && t.toolId && DOC_TOOL_IDS.includes(t.toolId)
   ).length;
-  const docFilesCount = filesInWindow.filter((f) => 
+  const docFilesCount = filesInWindow.filter((f) =>
     DOC_TOOL_IDS.includes(f.toolType) || f.toolType === "pdf"
   ).length;
   const docProcessCount = Math.max(docTxCount, docFilesCount);
 
-  const toolTxCount = txInWindow.filter((t) => 
-    t.transactionType === "tool_usage" && 
-    t.toolId && 
-    t.toolId !== "streak-shield" && 
+  const toolTxCount = txInWindow.filter((t) =>
+    t.transactionType === "tool_usage" &&
+    t.toolId &&
+    t.toolId !== "streak-shield" &&
     t.toolId !== "streak_shield_purchase"
   ).length;
   const totalCreationsCount = Math.max(filesInWindow.length, toolTxCount);
@@ -124,7 +125,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -134,8 +135,8 @@ export async function GET() {
     const weeklyCycle = getWeeklyCycleInfo();
 
     // The weekly cycle start is always earlier or equal to daily cycle start
-    const windowStart = weeklyCycle.cycleStartUTC < dailyCycle.cycleStartUTC 
-      ? weeklyCycle.cycleStartUTC 
+    const windowStart = weeklyCycle.cycleStartUTC < dailyCycle.cycleStartUTC
+      ? weeklyCycle.cycleStartUTC
       : dailyCycle.cycleStartUTC;
 
     // Fetch user activity from DB in a single consolidated batch
@@ -183,26 +184,26 @@ export async function GET() {
         select: { preferences: true },
       }),
       prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_likes 
+        SELECT COUNT(*)::int as count FROM community_likes
         WHERE user_id = ${userId} AND created_at >= ${dailyCycle.cycleStartUTC}
       `.catch(() => [{ count: 0 }]),
       prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_likes 
+        SELECT COUNT(*)::int as count FROM community_likes
         WHERE user_id = ${userId} AND created_at >= ${weeklyCycle.cycleStartUTC}
       `.catch(() => [{ count: 0 }]),
       prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_posts 
+        SELECT COUNT(*)::int as count FROM community_posts
         WHERE user_id = ${userId} AND created_at >= ${dailyCycle.cycleStartUTC}
       `.catch(() => [{ count: 0 }]),
       prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_posts 
+        SELECT COUNT(*)::int as count FROM community_posts
         WHERE user_id = ${userId} AND created_at >= ${weeklyCycle.cycleStartUTC}
       `.catch(() => [{ count: 0 }]),
     ]);
 
-    const dailyCommunityInteractions = 
+    const dailyCommunityInteractions =
       Number(dailyLikesResult?.[0]?.count || 0) + Number(dailyPostsResult?.[0]?.count || 0);
-    const weeklyCommunityInteractions = 
+    const weeklyCommunityInteractions =
       Number(weeklyLikesResult?.[0]?.count || 0) + Number(weeklyPostsResult?.[0]?.count || 0);
 
     // Build Activity Data for Daily and Weekly
@@ -272,7 +273,7 @@ export async function GET() {
     const totalCompleted = dailyCompleted + weeklyCompleted;
     const totalAvailable = dailyQuests.length + weeklyQuests.length;
 
-    return NextResponse.json({
+    return publicJson({
       daily: {
         quests: dailyQuests,
         totalCompleted: dailyCompleted,
@@ -300,7 +301,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[API_QUESTS_ERROR]", error);
-    return NextResponse.json({ error: "Failed to load quests" }, { status: 500 });
+    return publicJson({ error: "Failed to load quests" }, { status: 500 });
   }
 }
 
@@ -310,7 +311,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -320,7 +321,7 @@ export async function POST(request: NextRequest) {
     const { questId, questType: providedType } = body;
 
     if (!questId) {
-      return NextResponse.json({ error: "Quest ID is required" }, { status: 400 });
+      return publicJson({ error: "Quest ID is required" }, { status: 400 });
     }
 
     // Determine type ("daily" or "weekly")
@@ -371,11 +372,11 @@ export async function POST(request: NextRequest) {
         select: { createdAt: true },
       }),
       prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_likes 
+        SELECT COUNT(*)::int as count FROM community_likes
         WHERE user_id = ${userId} AND created_at >= ${windowStart}
       `.catch(() => [{ count: 0 }]),
       prisma.$queryRaw<{ count: number }[]>`
-        SELECT COUNT(*)::int as count FROM community_posts 
+        SELECT COUNT(*)::int as count FROM community_posts
         WHERE user_id = ${userId} AND created_at >= ${windowStart}
       `.catch(() => [{ count: 0 }]),
       prisma.userContext.findUnique({
@@ -427,29 +428,29 @@ export async function POST(request: NextRequest) {
 
     const normalizedQuestId = String(questId).replace(/^(daily_|weekly_)/, "");
     const quest = userQuests.find(
-      (q) => 
-        q.id === questId || 
-        q.templateId === questId || 
+      (q) =>
+        q.id === questId ||
+        q.templateId === questId ||
         q.templateId === normalizedQuestId ||
         `${questType}_${q.templateId}` === questId
     );
 
     if (!quest) {
-      return NextResponse.json({ error: "Quest not found in active cycle" }, { status: 404 });
+      return publicJson({ error: "Quest not found in active cycle" }, { status: 404 });
     }
 
     if (quest.claimed || claimedList.includes(quest.templateId) || claimedList.includes(quest.id)) {
-      return NextResponse.json({ error: "Quest reward already claimed for this cycle" }, { status: 400 });
+      return publicJson({ error: "Quest reward already claimed for this cycle" }, { status: 400 });
     }
 
     if (!quest.completed) {
-      return NextResponse.json({ error: "Quest objectives have not been completed yet." }, { status: 400 });
+      return publicJson({ error: "Quest objectives have not been completed yet." }, { status: 400 });
     }
 
     // Award Exismic Sparks
     const rewardSparks = quest.rewardSparks || quest.rewardCredits || 15;
     const reason = `${questType === "weekly" ? "Weekly" : "Daily"} Quest Reward: ${quest.title}`;
-    
+
     const sparksResult = await addSparks(userId, rewardSparks, "quest_completion", reason, {
       questId: quest.id,
       templateId: quest.templateId,
@@ -485,7 +486,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       rewardSparks,
       rewardCredits: rewardSparks,
@@ -495,7 +496,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[API_CLAIM_QUEST_ERROR]", error);
-    return NextResponse.json({ error: "Failed to claim reward" }, { status: 500 });
+    return publicJson({ error: "Failed to claim reward" }, { status: 500 });
   }
 }
 

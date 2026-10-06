@@ -333,7 +333,7 @@ function FormattedChatMessage({ content }: { content: string }) {
   }
 
   return (
-    <div className="space-y-2.5 text-xs sm:text-sm leading-relaxed">
+    <div className="min-w-0 space-y-2.5 text-xs sm:text-sm leading-relaxed [overflow-wrap:anywhere]">
       {blocks.map((block, idx) => {
         switch (block.type) {
           case 'spacer':
@@ -365,7 +365,7 @@ function FormattedChatMessage({ content }: { content: string }) {
                 <span className="w-5 h-5 rounded-md bg-cyan-500/10 border border-cyan-400/25 text-cyan-300 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                   {block.num}
                 </span>
-                <div className="flex-1 leading-relaxed">{renderInlineStyles(block.text)}</div>
+                <div className="min-w-0 flex-1 leading-relaxed">{renderInlineStyles(block.text)}</div>
               </div>
             );
 
@@ -373,7 +373,7 @@ function FormattedChatMessage({ content }: { content: string }) {
             return (
               <div key={idx} className="flex items-start gap-2.5 pl-0.5 text-zinc-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
-                <div className="flex-1 leading-relaxed">{renderInlineStyles(block.text)}</div>
+                <div className="min-w-0 flex-1 leading-relaxed">{renderInlineStyles(block.text)}</div>
               </div>
             );
 
@@ -569,7 +569,9 @@ export default function HelpPage() {
   useEffect(() => {
     if (activeMode === "ai" && chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
+        top: chatMessages.length === 1 && chatMessages[0].id === "welcome"
+          ? 0
+          : chatContainerRef.current.scrollHeight,
         behavior: "smooth"
       });
     }
@@ -791,7 +793,7 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-cyan-500/30 pb-32 overflow-hidden" suppressHydrationWarning>
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-cyan-500/30 pb-16 sm:pb-32 overflow-clip" suppressHydrationWarning>
       {/* Background Lighting Architecture */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[900px] bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12)_0%,transparent_70%)]" />
@@ -800,21 +802,21 @@ export default function HelpPage() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.025]" />
       </div>
       
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 md:pt-16 space-y-10 relative z-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 md:pt-16 space-y-6 sm:space-y-10 relative z-10">
         <PageBreadcrumb items={[{ label: "Support & Help Center" }]} />
 
         {/* Hero Section with Live Authenticated User Status Strip */}
-        <header className="relative isolate overflow-hidden rounded-[2.5rem] border-2 border-cyan-400/40 bg-gradient-to-b from-[#0e0c1f]/95 via-[#090814]/95 to-[#04040a]/98 p-6 sm:p-10 lg:p-12 shadow-[0_30px_100px_rgba(0,0,0,0.8),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-2xl space-y-8">
+        <header className="relative isolate overflow-clip rounded-[2rem] border-2 border-cyan-400/40 bg-gradient-to-b from-[#0e0c1f]/95 via-[#090814]/95 to-[#04040a]/98 p-4 sm:p-10 sm:rounded-[2.5rem] lg:p-12 shadow-[0_30px_100px_rgba(0,0,0,0.8),0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-2xl space-y-6 sm:space-y-8">
           
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-            <div className="space-y-4 max-w-2xl">
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 sm:gap-8">
+            <div className="min-w-0 space-y-4 max-w-2xl">
+              <div className="inline-flex max-w-full items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 text-cyan-300 text-[9px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider shadow-[0_0_15px_rgba(34,211,238,0.2)] sm:gap-2.5 sm:px-3.5">
                 <ExismicMark size={18} letter="S" theme="blue" animated={false} />
                 <span>Exismic Support & Knowledge Hub</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase italic leading-[1.1]">
-                Instant Answers & <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-purple-200 to-white drop-shadow-sm">
+              <h1 className="text-[clamp(1.6rem,7.5vw,2.25rem)] sm:text-5xl font-black tracking-tighter uppercase italic leading-[1.1]">
+                <span className="block pr-2">Instant Answers &</span>
+                <span className="block pr-2 pb-1 text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-purple-200 to-white drop-shadow-sm">
                   AI Support Intelligence.
                 </span>
               </h1>
@@ -824,12 +826,12 @@ export default function HelpPage() {
             </div>
 
             {/* High-Contrast Interactive Mode Switcher Tabs */}
-            <div className="flex bg-[#070814]/90 p-1.5 rounded-2xl border border-white/[0.08] shrink-0 shadow-2xl backdrop-blur-xl self-start md:self-auto ring-1 ring-white/[0.05]">
+            <div className="grid w-full grid-cols-2 bg-[#070814]/90 p-1.5 rounded-2xl border border-white/[0.08] shrink-0 shadow-2xl backdrop-blur-xl self-start sm:flex sm:w-auto xl:self-auto ring-1 ring-white/[0.05]">
               <button
                 type="button"
                 onClick={() => setActiveMode("ai")}
                 className={cn(
-                  "flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer",
+                  "flex min-h-11 min-w-0 items-center justify-center gap-2 px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer sm:gap-2.5 sm:px-5",
                   activeMode === "ai"
                     ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.4)] font-bold"
                     : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
@@ -842,20 +844,20 @@ export default function HelpPage() {
                 type="button"
                 onClick={() => setActiveMode("ticket")}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer",
+                  "flex min-h-11 min-w-0 items-center justify-center gap-2 px-2 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer sm:px-5",
                   activeMode === "ticket"
                     ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-[0_0_25px_rgba(168,85,247,0.4)] font-bold"
                     : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                 )}
               >
-                <MessageSquare size={16} />
+                <MessageSquare size={16} className="shrink-0" />
                 <span>Submit Ticket</span>
               </button>
             </div>
           </div>
 
           {/* User Account Context Banner (Fetched & Live) */}
-          <div className="pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="pt-5 sm:pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
             {/* 1. User Identity */}
             <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md">
               <AvatarWithFrame
@@ -866,36 +868,36 @@ export default function HelpPage() {
                 size="sm"
               />
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <PremiumName name={activeDisplayName} gradientId={nameGradient} isPro={activeIsPro} className="text-xs font-black truncate" />
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <PremiumName name={activeDisplayName} gradientId={nameGradient} isPro={activeIsPro} className="text-xs font-black [overflow-wrap:anywhere]" />
                   {activeIsPro && (
                     <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[8px] font-black uppercase tracking-wider shrink-0">
                       PRO
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-zinc-500 truncate font-mono mt-0.5">{activeDisplayEmail || "Guest User"}</p>
+                <p className="text-[10px] text-zinc-500 font-mono mt-0.5 [overflow-wrap:anywhere]">{activeDisplayEmail || "Guest User"}</p>
               </div>
             </div>
 
             {/* 2. Available Vault Credits */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-400/30 text-purple-300 flex items-center justify-center shrink-0">
                   <CreditCard size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-white font-mono">{totalAvailableCredits.toLocaleString()}</p>
+                  <p className="text-xs font-black text-white font-mono [overflow-wrap:anywhere]">{totalAvailableCredits.toLocaleString()}</p>
                   <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">Vault Credits</p>
                 </div>
               </div>
-              <Link href="/shop" className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+              <Link href="/shop" className="min-h-11 text-[10px] font-bold text-cyan-400 hover:text-cyan-300 flex shrink-0 items-center gap-1">
                 Refill <ExternalLink size={10} />
               </Link>
             </div>
 
             {/* 3. Membership Status */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <div className={cn("w-9 h-9 rounded-xl border flex items-center justify-center shrink-0", activeIsPro ? "bg-amber-500/15 border-amber-400/30 text-amber-300" : "bg-zinc-800 border-white/10 text-zinc-400")}>
                   <Crown size={16} />
@@ -905,7 +907,7 @@ export default function HelpPage() {
                   <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">{activeIsPro ? "500 Daily Credits" : "50 Daily Credits"}</p>
                 </div>
               </div>
-              <Link href="/pro" className="text-[10px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1">
+              <Link href="/pro" className="min-h-11 text-[10px] font-bold text-purple-400 hover:text-purple-300 flex shrink-0 items-center gap-1">
                 {activeIsPro ? "Perks" : "Upgrade"} <ExternalLink size={10} />
               </Link>
             </div>
@@ -917,7 +919,7 @@ export default function HelpPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-tight text-white">Under 24h Review</p>
-                <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider truncate">Dedicated Support Desk</p>
+                <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">Dedicated Support Desk</p>
               </div>
             </div>
           </div>
@@ -936,7 +938,7 @@ export default function HelpPage() {
               className="space-y-6"
             >
               {/* Main Open Studio Workspace */}
-              <div className="relative overflow-hidden rounded-[2rem] border-2 border-cyan-400/40 bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(6,182,212,0.25)] flex flex-col min-h-[640px] max-h-[760px]">
+              <div className="relative overflow-clip rounded-[2rem] border-2 border-cyan-400/40 bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(6,182,212,0.25)] flex flex-col h-[600px] sm:h-auto sm:min-h-[640px] sm:max-h-[760px]">
                 
                 {/* Subtle Ambient Studio Lighting */}
                 <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-3/4 h-48 bg-gradient-to-b from-cyan-500/[0.08] via-blue-600/[0.03] to-transparent blur-3xl -z-0" />
@@ -944,12 +946,12 @@ export default function HelpPage() {
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#ffffff04_1px,transparent_1px)] [background-size:24px_24px] opacity-60 -z-0" />
 
                 {/* Studio Header Bar */}
-                <div className="px-6 py-4.5 sm:px-8 sm:py-5 border-b border-white/[0.07] bg-[#070814]/85 backdrop-blur-xl flex items-center justify-between gap-4 z-20 shrink-0">
-                  <div className="flex items-center gap-3.5 sm:gap-4">
+                <div className="px-4 py-4 sm:px-8 sm:py-5 border-b border-white/[0.07] bg-[#070814]/85 backdrop-blur-xl grid grid-cols-[minmax(0,1fr)_44px] sm:flex sm:items-center sm:justify-between gap-3 sm:gap-4 z-20 shrink-0">
+                  <div className="flex min-w-0 items-center gap-2 sm:gap-4">
                     <div className="relative p-1.5 rounded-2xl bg-gradient-to-b from-cyan-500/15 to-transparent border border-cyan-400/25 shadow-[0_0_20px_rgba(6,182,212,0.18)] shrink-0">
                       <ExismicMark size={36} letter="S" theme="blue" animated={true} />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2.5">
                         <h3 className="text-sm sm:text-base font-bold tracking-tight text-white">Exismic AI Assistant</h3>
                         <span className="inline-flex items-center gap-1.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-cyan-300 bg-cyan-500/10 border border-cyan-400/30 px-2.5 py-0.5 rounded-full shadow-[0_0_12px_rgba(6,182,212,0.18)]">
@@ -957,27 +959,29 @@ export default function HelpPage() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
                           </span>
-                          Live Support Intelligence
+                          <span className="sm:hidden">Live support</span>
+                          <span className="hidden sm:inline">Live Support Intelligence</span>
                         </span>
                       </div>
-                      <p className="text-[11px] sm:text-xs text-zinc-400 font-normal mt-0.5">Trained across all 11 tool suites, credit rules, Sparks rewards, Pro perks, and developer APIs</p>
+                      <p className="hidden sm:block text-xs text-zinc-400 font-normal mt-0.5">Trained across all 11 tool suites, credit rules, Sparks rewards, Pro perks, and developer APIs</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleClearChat}
-                    className="group px-3.5 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all duration-200 text-xs font-medium flex items-center gap-2 border border-white/[0.08] hover:border-white/[0.18] cursor-pointer shadow-sm active:scale-95"
+                    className="group h-11 min-w-11 self-start sm:self-auto shrink-0 justify-center px-3 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all duration-200 text-xs font-medium flex items-center gap-2 border border-white/[0.08] hover:border-white/[0.18] cursor-pointer shadow-sm active:scale-95 sm:px-3.5"
                     title="Reset chat conversation"
                   >
                     <RotateCcw size={13} className="text-zinc-400 group-hover:text-cyan-300 group-hover:-rotate-45 transition-all duration-200" />
                     <span className="hidden sm:inline">Reset Session</span>
                   </button>
+                  <p className="col-span-2 text-[11px] text-zinc-400 font-normal sm:hidden">Trained across all 11 tool suites, credit rules, Sparks rewards, Pro perks, and developer APIs</p>
                 </div>
 
                 {/* Open Chat Message Stream (Internal-only smooth scrolling) */}
                 <div 
                   ref={chatContainerRef}
-                  className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 space-y-6 relative z-10 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.08)_transparent]"
+                  className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-8 space-y-5 sm:space-y-6 relative z-10 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.08)_transparent]"
                 >
                   {chatMessages.map((msg) => {
                     const isUser = msg.role === "user";
@@ -988,8 +992,8 @@ export default function HelpPage() {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={cn(
-                          "flex gap-3.5 sm:gap-4 max-w-full group/msg",
-                          isUser ? "ml-auto flex-row-reverse max-w-[85%]" : "mr-auto max-w-[92%]"
+                          "flex min-w-0 gap-2 sm:gap-4 group/msg",
+                          isUser ? "ml-auto flex-row-reverse max-w-full sm:max-w-[85%]" : "mr-auto max-w-full sm:max-w-[92%]"
                         )}
                       >
                         {/* Avatar Column */}
@@ -1010,13 +1014,13 @@ export default function HelpPage() {
                         </div>
 
                         {/* Content Area */}
-                        <div className={cn("space-y-1.5", isUser ? "max-w-full" : "flex-1 min-w-0")}>
+                        <div className={cn("min-w-0 space-y-1.5", isUser ? "max-w-full" : "flex-1")}>
                           {isUser ? (
-                            <div className="px-5 py-3.5 rounded-2xl rounded-tr-sm bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-700 text-white font-medium text-xs sm:text-sm leading-relaxed shadow-[0_4px_20px_rgba(147,51,234,0.3)] border border-purple-400/30">
+                            <div className="px-3 py-3 sm:px-5 sm:py-3.5 rounded-2xl rounded-tr-sm bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-700 text-white font-medium text-xs sm:text-sm leading-relaxed [overflow-wrap:anywhere] shadow-[0_4px_20px_rgba(147,51,234,0.3)] border border-purple-400/30">
                               <p className="whitespace-pre-wrap">{msg.content}</p>
                             </div>
                           ) : (
-                            <div className="rounded-2xl rounded-tl-sm bg-white/[0.03] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.12] p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.25)] text-zinc-200 backdrop-blur-md transition-all duration-200">
+                            <div className="min-w-0 rounded-2xl rounded-tl-sm bg-white/[0.03] hover:bg-white/[0.045] border border-white/[0.07] hover:border-white/[0.12] p-3 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.25)] text-zinc-200 backdrop-blur-md transition-all duration-200">
                               <FormattedChatMessage content={msg.content} />
                             </div>
                           )}
@@ -1028,7 +1032,7 @@ export default function HelpPage() {
                               <button
                                 type="button"
                                 onClick={() => copyMessage(msg.id, msg.content)}
-                                className="opacity-0 group-hover/msg:opacity-100 px-2 py-0.5 rounded-md hover:bg-white/[0.08] text-zinc-400 hover:text-cyan-300 transition-all flex items-center gap-1.5 cursor-pointer"
+                                className="min-h-11 opacity-100 sm:opacity-0 sm:group-hover/msg:opacity-100 focus-visible:opacity-100 px-2 py-0.5 rounded-md hover:bg-white/[0.08] text-zinc-400 hover:text-cyan-300 transition-all flex items-center gap-1.5 cursor-pointer"
                                 title="Copy answer"
                               >
                                 {isCopied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
@@ -1085,7 +1089,7 @@ export default function HelpPage() {
                       type="button"
                       onClick={() => scrollPrompts("left")}
                       aria-label="Scroll suggestions left"
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
+                      className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95 sm:left-2.5"
                     >
                       <ChevronLeft size={13} className="shrink-0" />
                     </button>
@@ -1097,7 +1101,7 @@ export default function HelpPage() {
                       type="button"
                       onClick={() => scrollPrompts("right")}
                       aria-label="Scroll suggestions right"
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#060712]/95 hover:bg-cyan-500/20 border border-white/20 hover:border-cyan-400/60 text-zinc-300 hover:text-white flex items-center justify-center shadow-lg transition-all backdrop-blur-md cursor-pointer active:scale-95 sm:right-2.5"
                     >
                       <ChevronRight size={13} className="shrink-0" />
                     </button>
@@ -1116,7 +1120,7 @@ export default function HelpPage() {
                         onClick={() => handleSendAiMessage(prompt.query || prompt.label)}
                         disabled={isAiLoading}
                         className={cn(
-                          "group relative flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer disabled:opacity-40 shadow-sm shrink-0 hover:-translate-y-0.5 active:translate-y-0",
+                          "group relative flex min-h-11 items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer disabled:opacity-40 shadow-sm shrink-0 hover:-translate-y-0.5 active:translate-y-0",
                           prompt.isSparks
                             ? "bg-amber-500/[0.05] hover:bg-amber-500/15 border-amber-500/25 hover:border-amber-400/60 text-amber-200/90 hover:text-amber-100 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                             : "bg-white/[0.03] hover:bg-cyan-500/10 border-white/[0.08] hover:border-cyan-400/40 text-zinc-300 hover:text-cyan-200 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
@@ -1148,25 +1152,28 @@ export default function HelpPage() {
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Ask about any tool, credits, Pro benefits, APIs, or issue..."
+                      placeholder="Ask a support question..."
+                      aria-label="Your support question"
                       disabled={isAiLoading}
-                      className="flex-1 h-11 sm:h-12 bg-transparent border-none pl-3 sm:pl-4 pr-2 text-xs sm:text-sm font-medium text-white placeholder-zinc-500 outline-none focus:outline-none ring-0 focus:ring-0"
+                      className="min-w-0 flex-1 h-11 sm:h-12 bg-transparent border-none pl-2 sm:pl-4 pr-2 text-xs sm:text-sm font-medium text-white placeholder-zinc-500 outline-none focus:outline-none ring-0 focus:ring-0"
                     />
                     {chatInput && (
                       <button
                         type="button"
                         onClick={() => setChatInput("")}
-                        className="p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
+                        aria-label="Clear support question"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
                       >
                         <X size={15} />
                       </button>
                     )}
                     <button
                       type="submit"
+                      aria-label="Ask AI"
                       disabled={isAiLoading || !chatInput.trim()}
-                      className="group h-11 sm:h-12 px-6 sm:px-7 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 hover:from-cyan-300 hover:via-blue-400 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] active:scale-95 disabled:opacity-30 disabled:scale-100 disabled:pointer-events-none disabled:shadow-none transition-all cursor-pointer shrink-0"
+                      className="group h-11 w-11 sm:w-auto sm:h-12 px-3 sm:px-7 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 hover:from-cyan-300 hover:via-blue-400 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] active:scale-95 disabled:opacity-30 disabled:scale-100 disabled:pointer-events-none disabled:shadow-none transition-all cursor-pointer shrink-0"
                     >
-                      <span>Ask AI</span>
+                      <span className="hidden sm:inline">Ask AI</span>
                       <Send size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </button>
                   </div>
@@ -1176,28 +1183,29 @@ export default function HelpPage() {
               {/* Secondary Support Channels (Under AI Studio) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Direct Email Card */}
-                <div className="p-5 sm:p-6 rounded-2xl border border-white/[0.08] hover:border-white/[0.14] bg-[#070814]/80 backdrop-blur-xl shadow-xl flex items-center justify-between gap-4 transition-all duration-200">
-                  <div className="flex items-center gap-3.5">
+                <div className="p-4 sm:p-6 rounded-2xl border border-white/[0.08] hover:border-white/[0.14] bg-[#070814]/80 backdrop-blur-xl shadow-xl flex flex-col items-start justify-between gap-4 xl:flex-row xl:items-center transition-all duration-200">
+                  <div className="flex min-w-0 items-center gap-3.5">
                     <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
                       <Mail size={18} />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold uppercase text-white tracking-wide">Direct Email Desk</h4>
-                      <p className="text-[11px] text-zinc-400 font-mono">support@exismic.xyz</p>
+                      <p className="text-[11px] text-zinc-400 font-mono [overflow-wrap:anywhere]">support@exismic.xyz</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto">
                     <button
                       type="button"
                       onClick={copyEmail}
-                      className="px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all text-xs font-semibold flex items-center gap-1.5 border border-white/[0.08] cursor-pointer"
+                      aria-label="Copy support email"
+                      className="min-h-11 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all text-xs font-semibold flex items-center justify-center gap-1.5 border border-white/[0.08] cursor-pointer"
                     >
                       {copiedEmail ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                       <span>{copiedEmail ? "Copied" : "Copy"}</span>
                     </button>
                     <a
                       href="mailto:support@exismic.xyz"
-                      className="px-4 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all"
+                      className="min-h-11 px-4 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
                     >
                       <span>Open Mail</span>
                       <ExternalLink size={11} />
@@ -1206,8 +1214,8 @@ export default function HelpPage() {
                 </div>
 
                 {/* Developer API Docs Card */}
-                <div className="p-5 sm:p-6 rounded-2xl border border-white/[0.08] hover:border-white/[0.14] bg-[#070814]/80 backdrop-blur-xl shadow-xl flex items-center justify-between gap-4 transition-all duration-200">
-                  <div className="flex items-center gap-3.5">
+                <div className="p-4 sm:p-6 rounded-2xl border border-white/[0.08] hover:border-white/[0.14] bg-[#070814]/80 backdrop-blur-xl shadow-xl flex flex-col items-start justify-between gap-4 xl:flex-row xl:items-center transition-all duration-200">
+                  <div className="flex min-w-0 items-center gap-3.5">
                     <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
                       <Key size={18} />
                     </div>
@@ -1218,7 +1226,7 @@ export default function HelpPage() {
                   </div>
                   <Link
                     href="/developer/docs"
-                    className="px-4 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/30 text-purple-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                    className="min-h-11 px-4 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/30 text-purple-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]"
                   >
                     <span>Browse Docs</span>
                     <ExternalLink size={11} />
@@ -1238,7 +1246,7 @@ export default function HelpPage() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.99 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative overflow-hidden rounded-[2rem] border-2 border-purple-500/40 bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(168,85,247,0.25)] p-6 sm:p-10"
+                  className="relative overflow-clip rounded-[2rem] border-2 border-purple-500/40 bg-[#070814]/90 backdrop-blur-2xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.95),0_0_45px_rgba(168,85,247,0.25)] p-4 sm:p-10"
                 >
                   {/* Ambient Backdrop Glows */}
                   <div className="pointer-events-none absolute -top-28 left-1/2 -translate-x-1/2 w-3/4 h-52 bg-gradient-to-b from-purple-600/[0.08] via-indigo-600/[0.03] to-transparent blur-3xl -z-0" />
@@ -1305,6 +1313,7 @@ export default function HelpPage() {
                                   <button
                                     key={opt.label}
                                     type="button"
+                                    aria-pressed={isSelected}
                                     onClick={() => setSubject(opt.label)}
                                     className={cn(
                                       "group relative p-3.5 sm:p-4 rounded-xl border text-left flex items-start gap-3.5 transition-all duration-200 cursor-pointer overflow-hidden active:scale-[0.98]",
@@ -1322,8 +1331,8 @@ export default function HelpPage() {
                                       <opt.icon size={16} />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-bold uppercase tracking-wide truncate">{opt.label}</p>
-                                      <p className="text-[11px] text-zinc-400/80 mt-0.5 truncate">{opt.desc}</p>
+                                      <p className="text-xs font-bold uppercase tracking-wide">{opt.label}</p>
+                                      <p className="text-[11px] text-zinc-400/80 mt-0.5 leading-relaxed">{opt.desc}</p>
                                     </div>
                                   </button>
                                 );
@@ -1334,10 +1343,11 @@ export default function HelpPage() {
                           {/* Name & Email Row */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div className="space-y-2">
-                              <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Your Name</label>
+                              <label htmlFor="help-ticket-name" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Your Name</label>
                               <div className="relative flex items-center group">
                                 <User size={15} className="absolute left-4 text-zinc-500 group-focus-within:text-purple-400 transition-colors pointer-events-none" />
                                 <input 
+                                  id="help-ticket-name"
                                   required 
                                   value={name} 
                                   onChange={e => setName(e.target.value)} 
@@ -1349,10 +1359,11 @@ export default function HelpPage() {
                             </div>
                             
                             <div className="space-y-2">
-                              <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Email Address</label>
+                              <label htmlFor="help-ticket-email" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Email Address</label>
                               <div className="relative flex items-center group">
                                 <Mail size={15} className="absolute left-4 text-zinc-500 group-focus-within:text-purple-400 transition-colors pointer-events-none" />
                                 <input 
+                                  id="help-ticket-email"
                                   required 
                                   value={email} 
                                   onChange={e => setEmail(e.target.value)} 
@@ -1374,9 +1385,10 @@ export default function HelpPage() {
                                 className="space-y-3 overflow-hidden"
                               >
                                 <div className="space-y-2">
-                                  <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Transaction Reference / Order ID</label>
+                                  <label htmlFor="help-ticket-order" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Transaction Reference / Order ID</label>
                                   <div className="relative flex items-center">
                                     <input 
+                                      id="help-ticket-order"
                                       required 
                                       value={transactionId} 
                                       onChange={e => {
@@ -1450,10 +1462,11 @@ export default function HelpPage() {
 
                           {/* Message Textarea */}
                           <div className="space-y-2">
-                            <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Describe Your Issue or Request</label>
+                            <label htmlFor="help-ticket-message" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Describe Your Issue or Request</label>
                             <div className="relative group">
                               <AlignLeft size={15} className="absolute left-4 top-4 text-zinc-500 group-focus-within:text-purple-400 transition-colors pointer-events-none" />
                               <textarea 
+                                id="help-ticket-message"
                                 required 
                                 value={message} 
                                 onChange={e => setMessage(e.target.value)} 
@@ -1470,8 +1483,9 @@ export default function HelpPage() {
 
                           {/* Screenshot / File Attachment */}
                           <div className="space-y-2">
-                            <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Attachment (Optional screenshot)</label>
+                            <label htmlFor="help-ticket-attachment" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Attachment (Optional screenshot)</label>
                             <input 
+                              id="help-ticket-attachment"
                               type="file" 
                               accept="image/*" 
                               className="hidden" 
@@ -1481,7 +1495,7 @@ export default function HelpPage() {
                             <div 
                               onClick={() => fileInputRef.current?.click()}
                               className={cn(
-                                "w-full h-16 border border-dashed rounded-xl flex items-center justify-center gap-3 cursor-pointer transition-all duration-200 px-4 group",
+                                "w-full min-h-16 border border-dashed rounded-xl flex items-center justify-center gap-3 cursor-pointer transition-all duration-200 px-3 py-3 sm:px-4 group",
                                 imageFile 
                                 ? "border-purple-400/50 bg-purple-500/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.18)]" 
                                 : "border-white/[0.12] hover:border-purple-400/40 bg-white/[0.02] hover:bg-purple-500/[0.04] text-zinc-400 hover:text-zinc-200 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)]"
@@ -1490,10 +1504,11 @@ export default function HelpPage() {
                               {imageFile ? (
                                 <>
                                   <CheckCircle2 size={18} className="text-purple-400 shrink-0" />
-                                  <span className="text-xs font-semibold tracking-wide truncate">{imageFile.name} attached</span>
+                                  <span className="min-w-0 text-xs font-semibold tracking-wide [overflow-wrap:anywhere]">{imageFile.name} attached</span>
                                   <button 
                                     type="button"
-                                    className="ml-auto p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-red-400 transition-colors"
+                                    aria-label="Remove attachment"
+                                    className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/10 text-zinc-400 hover:text-red-400 transition-colors"
                                     onClick={(e) => { e.stopPropagation(); setImageFile(null); }}
                                   >
                                     <X size={15} />
@@ -1501,7 +1516,7 @@ export default function HelpPage() {
                                 </>
                               ) : (
                                 <>
-                                  <ImagePlus size={18} className="text-zinc-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-200" />
+                                  <ImagePlus size={18} className="shrink-0 text-zinc-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-200" />
                                   <span className="text-xs font-medium">Click to attach a screenshot (JPG/PNG under 5MB)</span>
                                 </>
                               )}
@@ -1518,7 +1533,7 @@ export default function HelpPage() {
                             <button 
                               disabled={isSubmitting || checkingActiveTicket || !!activeTicket} 
                               type="submit" 
-                              className="group/btn w-full sm:w-auto h-11 sm:h-12 px-7 sm:px-8 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(168,85,247,0.35)] hover:shadow-[0_0_35px_rgba(168,85,247,0.55)] border border-purple-400/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:scale-100 disabled:pointer-events-none cursor-pointer flex items-center justify-center gap-2.5 shrink-0"
+                              className="group/btn w-full sm:w-auto min-h-11 sm:min-h-12 px-4 py-3 sm:px-8 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(168,85,247,0.35)] hover:shadow-[0_0_35px_rgba(168,85,247,0.55)] border border-purple-400/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:scale-100 disabled:pointer-events-none cursor-pointer flex items-center justify-center gap-2.5 shrink-0"
                             >
                               {checkingActiveTicket ? (
                                 <span className="flex items-center gap-2">
@@ -1567,11 +1582,11 @@ export default function HelpPage() {
                     Prefer to write directly from your email client? Send technical inquiries or attachments to our desk.
                   </p>
                   <div className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] hover:border-white/[0.14] flex items-center justify-between gap-2 transition-all">
-                    <span className="text-xs font-semibold text-white font-mono truncate select-all">support@exismic.xyz</span>
+                    <span className="min-w-0 text-xs font-semibold text-white font-mono [overflow-wrap:anywhere] select-all">support@exismic.xyz</span>
                     <button
                       type="button"
                       onClick={copyEmail}
-                      className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0"
+                      className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0"
                       title="Copy email"
                     >
                       {copiedEmail ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}

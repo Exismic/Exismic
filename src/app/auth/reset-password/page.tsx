@@ -29,7 +29,13 @@ function generateStrongPassword(): string {
   const numbers = "23456789";
   const symbols = "!@#$%^&*()_+-=[]{}|;:";
 
-  const getRandom = (str: string) => str[Math.floor(Math.random() * str.length)];
+  const randomIndex = (maximum: number) => {
+    const values = new Uint32Array(1);
+    const ceiling = Math.floor(0x100000000 / maximum) * maximum;
+    do { crypto.getRandomValues(values); } while (values[0] >= ceiling);
+    return values[0] % maximum;
+  };
+  const getRandom = (str: string) => str[randomIndex(str.length)];
 
   // Guarantee at least 2 of each character class
   const required = [
@@ -52,7 +58,7 @@ function generateStrongPassword(): string {
 
   // Shuffle array using Fisher-Yates algorithm
   for (let i = required.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = randomIndex(i + 1);
     [required[i], required[j]] = [required[j], required[i]];
   }
 
@@ -109,8 +115,7 @@ function ResetPasswordForm() {
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  const isDemoMode = !token || !email || token === "demo" || searchParams.get("demo") === "true";
-  const displayEmail = email || "user@exismic.com";
+  const displayEmail = email || "";
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -128,25 +133,21 @@ function ResetPasswordForm() {
     let cancelled = false;
 
     const validateLink = async () => {
-      if (isDemoMode) {
-        setIsCheckingLink(false);
-        setLinkError(null);
-        return;
-      }
-
       if (!token || !email) {
         setIsCheckingLink(false);
         setLinkError("This password reset link is invalid or has expired.");
         return;
       }
 
-      const result = await validateResetPasswordTokenAction(email, token);
-      if (cancelled) return;
-
-      if (!result.valid) {
-        setLinkError(result.error || "This password reset link is invalid or has already been used.");
+      try {
+        const result = await validateResetPasswordTokenAction(email, token);
+        if (cancelled) return;
+        if (!result.valid) setLinkError(result.error || "This password reset link is invalid or has already been used.");
+      } catch {
+        if (!cancelled) setLinkError("We couldn’t check this link. Please refresh the page and try again.");
+      } finally {
+        if (!cancelled) setIsCheckingLink(false);
       }
-      setIsCheckingLink(false);
     };
 
     void validateLink();
@@ -154,7 +155,7 @@ function ResetPasswordForm() {
     return () => {
       cancelled = true;
     };
-  }, [email, token, isDemoMode]);
+  }, [email, token]);
 
   const handleSuggestPassword = () => {
     const generated = generateStrongPassword();
@@ -182,17 +183,11 @@ function ResetPasswordForm() {
     setError(null);
 
     try {
-      if (isDemoMode) {
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setSuccess(true);
-      } else {
-        const result = await updatePasswordAction(email!, token!, password);
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setSuccess(true);
-        }
-      }
+      if (!token || !email || linkError) { setError("Please request a new password reset link."); return; }
+      const result = await updatePasswordAction(email, token, password);
+      if (result.error) setError(result.error);
+      else if (result.success) setSuccess(true);
+      else setError("Could not confirm the password change. Please try again.");
     } catch {
       setError("Failed to reset password. Please try again.");
     } finally {

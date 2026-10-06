@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
@@ -44,12 +45,12 @@ export async function POST(req: NextRequest) {
   const requestId = createVideoRequestId();
   try {
     const authUser = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `video-subtitles:${authUser?.id || "guest"}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `video-subtitles:${authUser?.id || getRequestIp(req)}`,
       authUser ? 20 : 8,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await req.formData();
     const file = formData.get("video") as File;
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
 
           const srt = srtBlocks.join("\n\n");
 
-          return NextResponse.json(
+          return publicJson(
             {
               success: true,
               srt,
@@ -197,7 +198,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    return publicJson(
       {
         success: true,
         srt: result.srt,

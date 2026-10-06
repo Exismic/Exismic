@@ -1,7 +1,9 @@
+import { consumeAuthLimit } from "@/lib/auth/security";
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit, getRequestIp, rateLimitResponse, requireApiUser } from "@/lib/api-security";
+import { getRequestIp, rateLimitResponse, requireApiUser } from "@/lib/api-security";
 import {
   hashDeviceToken,
   isMobileUserAgent,
@@ -93,14 +95,14 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       emails: verifiedIdentityEmails(user),
       device: device ? serializeDevice(device) : null,
     });
   } catch (error) {
     console.error("[Trusted Login GET]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Could not load trusted login settings." },
       { status: 500 },
     );
@@ -112,16 +114,16 @@ export async function POST(request: NextRequest) {
     const user = await requireApiUser();
     if (user instanceof NextResponse) return user;
 
-    const limiter = checkRateLimit(
+    const allowed = await consumeAuthLimit(
       `trusted-login-enroll:${user.id}:${getRequestIp(request)}`,
       5,
       60 * 60 * 1000,
     );
-    if (!limiter.allowed) return rateLimitResponse(limiter.retryAfter);
+    if (!allowed) return rateLimitResponse(3600);
 
     const parsed = enrollmentSchema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) {
-      return NextResponse.json(
+      return publicJson(
         { error: parsed.error.issues[0]?.message || "Invalid trusted phone details." },
         { status: 400 },
       );
@@ -129,7 +131,7 @@ export async function POST(request: NextRequest) {
 
     const selectedEmail = normalizeLoginEmail(parsed.data.email);
     if (!verifiedIdentityEmails(user).includes(selectedEmail)) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Choose a verified email connected to this Exismic account." },
         { status: 403 },
       );
@@ -137,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     const userAgent = request.headers.get("user-agent") || "";
     if (!isMobileUserAgent(userAgent)) {
-      return NextResponse.json(
+      return publicJson(
         {
           error:
             "Open Exismic Settings on the phone you want to register, then complete setup there.",
@@ -152,7 +154,7 @@ export async function POST(request: NextRequest) {
       select: { userId: true },
     });
     if (emailOwner && emailOwner.userId !== user.id) {
-      return NextResponse.json(
+      return publicJson(
         { error: "This login email is already registered to another Exismic account." },
         { status: 409 },
       );
@@ -163,7 +165,7 @@ export async function POST(request: NextRequest) {
       select: { userId: true },
     });
     if (tokenOwner && tokenOwner.userId !== user.id) {
-      return NextResponse.json(
+      return publicJson(
         { error: "This phone is already registered to another Exismic account." },
         { status: 409 },
       );
@@ -174,7 +176,7 @@ export async function POST(request: NextRequest) {
       select: { userId: true },
     });
     if (endpointOwner && endpointOwner.userId !== user.id) {
-      return NextResponse.json(
+      return publicJson(
         { error: "This phone notification subscription belongs to another Exismic account." },
         { status: 409 },
       );
@@ -195,7 +197,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const device = await prisma.trustedLoginDevice.upsert({
-      where: { deviceTokenHash },
+      where: { userId: user.id },
       update: {
         loginEmail: selectedEmail,
         deviceTokenHash,
@@ -240,14 +242,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       message: "Registration successful. This phone can now receive Exismic login approvals.",
       device: serializeDevice(device),
     });
   } catch (error) {
     console.error("[Trusted Login POST]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Could not finish trusted phone registration." },
       { status: 500 },
     );
@@ -267,10 +269,10 @@ export async function DELETE() {
       },
     });
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[Trusted Login DELETE]", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Could not remove the trusted phone." },
       { status: 500 },
     );

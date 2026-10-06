@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextResponse } from "next/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
@@ -11,9 +12,9 @@ export function supportSchemaUnavailable(error: unknown) {
 }
 
 export function schemaFallbackResponse() {
-  return NextResponse.json(
+  return publicJson(
     {
-      error: "Support Agent storage is not connected yet.",
+      error: "Support Agent is temporarily unavailable. Please try again shortly.",
       fallback: "local",
     },
     { status: 424 }
@@ -25,7 +26,7 @@ export async function requireSupportUser(): Promise<{ supabase: SupabaseClient; 
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Please sign in to use Support Agent." }, { status: 401 });
+    return publicJson({ error: "Please sign in to use Support Agent." }, { status: 401 });
   }
 
   return { supabase, user };

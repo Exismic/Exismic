@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
@@ -53,13 +54,13 @@ export async function POST(req: NextRequest) {
     const ip = getRequestIp(req);
     const rateCheck = await checkDistributedRateLimit(`student-plagiarism:${user.id || ip}`, 15, 60 * 1000);
     if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.retryAfter);
+      return rateLimitResponse(rateCheck.retryAfter, rateCheck.unavailable);
     }
 
     const userCredits = await getUserCredits(user.id);
     const available = userCredits ? getCreditTotal(userCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
         { status: 402 }
       );
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
     const { doc1, doc2 } = body;
 
     if (!doc1 || !doc2 || !doc1.trim() || !doc2.trim()) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Please provide text in both Document 1 and Document 2." },
         { status: 400 }
       );
@@ -118,14 +119,14 @@ ${doc2.trim()}
     // Atomically deduct credits
     await deductCredits(user.id, TOOL_COST, "plagiarism-checker");
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       data: parsedData,
       creditsDeducted: TOOL_COST,
     });
   } catch (error: any) {
     console.error("[PlagiarismChecker API Error]:", error.response?.data || error.message);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "Failed to run plagiarism diff check via Groq AI." },
       { status: 500 }
     );

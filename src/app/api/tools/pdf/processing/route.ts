@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-
+import { publicJson } from "@/lib/public-json";
 export async function POST() {
-  return NextResponse.json(
+  return publicJson(
     {
       error: "This legacy processing endpoint has been retired. Use the dedicated PDF merger, splitter, compressor, or converter endpoint.",
     },

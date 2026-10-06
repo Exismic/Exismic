@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
@@ -8,7 +8,7 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     await prisma.user.update({
@@ -16,9 +16,9 @@ export async function POST() {
       data: { hasSeenWelcome: true },
     });
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[API] Error updating welcome modal status:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return publicJson({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,5 +1,7 @@
 import { createHash, randomBytes, randomInt } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { createOtpChallenge, consumeOtpChallenge } from '@/lib/auth/security';
+import { hasPendingResetCleanup } from '@/lib/auth/reset-cleanup';
 
 export const DEVICE_TOKEN_COOKIE_NAME = "exismic_device_token";
 export const DEVICE_TRUST_DAYS = 90;
@@ -82,216 +84,44 @@ export function extractClientIp(headers: Headers): string {
 }
 
 export async function checkIsDeviceTrusted(
-  userId: string,
-  email: string,
-  rawDeviceToken?: string,
-  clientIp?: string,
+  userId: string, email: string, rawDeviceToken?: string, clientIp?: string,
+  authVersion = 'initial',
 ) {
-  if (!rawDeviceToken || !rawDeviceToken.trim()) {
-    return { isTrusted: false, device: null };
-  }
-
-  const tokenHash = hashDeviceToken(rawDeviceToken.trim());
-
+  if (!rawDeviceToken || !/^[a-f0-9]{64}$/.test(rawDeviceToken)) return { isTrusted: false, device: null };
+  const tokenHash = hashDeviceToken(rawDeviceToken);
+  const emailLower = email.trim().toLowerCase();
   try {
-    const device = await prisma.trustedLoginDevice.findFirst({
-      where: {
-        deviceTokenHash: tokenHash,
-        status: "active",
-        expiresAt: { gt: new Date() },
-        revokedAt: null,
-      },
-    });
-
-    if (!device) {
+    if (await hasPendingResetCleanup(userId)) return { isTrusted: false, device: null };
+    const saved = await prisma.verificationToken.findFirst({ where: { identifier: `browser_trust:${userId}`, token: { startsWith: `browser_trust:v1:${tokenHash}:` }, expires: { gt: new Date() } } });
+    if (saved) {
+      const data = JSON.parse(Buffer.from(saved.token.split(':')[3], 'base64url').toString()) as { email: string; version: string; deviceName: string; lastIp: string };
+      if (data.email === emailLower && data.version === authVersion) return { isTrusted: true, device: { deviceName: data.deviceName, lastIp: clientIp || data.lastIp } };
       return { isTrusted: false, device: null };
     }
-
-    // Verify user match
-    const emailLower = email.trim().toLowerCase();
-    if (device.userId !== userId && device.loginEmail !== emailLower) {
-      return { isTrusted: false, device: null };
-    }
-
-    // Update last seen in background
-    void prisma.trustedLoginDevice.update({
-      where: { id: device.id },
-      data: {
-        lastSeenAt: new Date(),
-        lastIp: clientIp || device.lastIp,
-      },
-    }).catch((err) => {
-      console.error("[DeviceSecurity] Failed to update device lastSeenAt:", err);
-    });
-
-    return { isTrusted: true, device };
+    // Honour existing browser cookies only until the first password-version change.
+    const device = authVersion === 'initial' ? await prisma.trustedLoginDevice.findFirst({ where: { userId, loginEmail: emailLower, deviceTokenHash: tokenHash, status: 'active', expiresAt: { gt: new Date() }, revokedAt: null } }) : null;
+    return { isTrusted: Boolean(device), device };
   } catch (error) {
-    console.error("[DeviceSecurity] Error checking device trust:", error);
+    console.error('[DeviceSecurity] Device trust could not be checked:', error);
     return { isTrusted: false, device: null };
   }
 }
 
-export async function createDeviceVerificationOtp(
-  email: string,
-  userId: string,
-  requestIp: string,
-  userAgent: string,
-) {
-  const emailLower = email.trim().toLowerCase();
-  const otp = generate6DigitOtp();
-  const challengeId = randomBytes(16).toString("hex");
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-  const parsedUa = parseUserAgent(userAgent);
-
-  // Clear existing device OTP tokens for this email
-  await prisma.verificationToken.deleteMany({
-    where: {
-      identifier: emailLower,
-      token: { startsWith: DEVICE_OTP_CHALLENGE_PREFIX },
-    },
-  });
-
-  // Store token in DB: "device_otp:<challengeId>:<otp>:<userId>"
-  const tokenString = `${DEVICE_OTP_CHALLENGE_PREFIX}${challengeId}:${otp}:${userId}`;
-  await prisma.verificationToken.create({
-    data: {
-      identifier: emailLower,
-      token: tokenString,
-      expires: expiresAt,
-    },
-  });
-
-  return {
-    challengeId,
-    otp,
-    expiresAt,
-    deviceName: parsedUa.deviceName,
-    ip: requestIp,
-  };
+export async function createDeviceVerificationOtp(email: string, userId: string, requestIp: string, userAgent: string) {
+  const created = await createOtpChallenge('device', email.trim().toLowerCase(), userId);
+  return { challengeId: created.id, otp: created.otp, expiresAt: created.expires, deviceName: parseUserAgent(userAgent).deviceName, ip: requestIp };
+}
+export async function verifyDeviceOtpCode(email: string, challengeId: string, otpCode: string) {
+  const consumed = await consumeOtpChallenge('device', email.trim().toLowerCase(), challengeId, otpCode.trim());
+  return consumed ? { valid: true, userId: consumed.userId, error: null } : { valid: false, userId: null, error: 'This code is invalid or has expired. Please request a new code.' };
 }
 
-export async function verifyDeviceOtpCode(
-  email: string,
-  challengeId: string,
-  otpCode: string,
-) {
-  const emailLower = email.trim().toLowerCase();
-  const cleanOtp = otpCode.trim();
-
-  const tokenRecord = await prisma.verificationToken.findFirst({
-    where: {
-      identifier: emailLower,
-      token: {
-        startsWith: `${DEVICE_OTP_CHALLENGE_PREFIX}${challengeId}:${cleanOtp}:`,
-      },
-      expires: { gt: new Date() },
-    },
-  });
-
-  if (!tokenRecord) {
-    return { valid: false, userId: null, error: "Invalid or expired verification code." };
-  }
-
-  const parts = tokenRecord.token.split(":");
-  const userId = parts[3];
-
-  if (!userId) {
-    return { valid: false, userId: null, error: "Verification error. Please sign in again." };
-  }
-
-  // Delete consumed token
-  await prisma.verificationToken.delete({
-    where: {
-      identifier_token: {
-        identifier: tokenRecord.identifier,
-        token: tokenRecord.token,
-      },
-    },
-  });
-
-  return { valid: true, userId, error: null };
-}
-
-export async function registerTrustedDevice(
-  userId: string,
-  email: string,
-  userAgent: string,
-  ip: string,
-) {
-  const emailLower = email.trim().toLowerCase();
+/** Each browser gets a separate hashed token; phone registration stays untouched. */
+export async function registerTrustedDevice(userId: string, email: string, userAgent: string, ip: string, authVersion = 'initial') {
   const rawDeviceToken = generateDeviceToken();
-  const deviceTokenHash = hashDeviceToken(rawDeviceToken);
-  const parsedUa = parseUserAgent(userAgent);
-
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + DEVICE_TRUST_DAYS);
-
-  try {
-    await prisma.trustedLoginDevice.upsert({
-      where: { userId },
-      update: {
-        loginEmail: emailLower,
-        deviceTokenHash,
-        deviceName: parsedUa.deviceName,
-        deviceType: parsedUa.deviceType,
-        platform: parsedUa.os,
-        browserName: parsedUa.browser,
-        status: "active",
-        lastIp: ip,
-        userAgent,
-        expiresAt,
-        lastSeenAt: new Date(),
-        revokedAt: null,
-      },
-      create: {
-        userId,
-        loginEmail: emailLower,
-        deviceTokenHash,
-        deviceName: parsedUa.deviceName,
-        deviceType: parsedUa.deviceType,
-        platform: parsedUa.os,
-        browserName: parsedUa.browser,
-        status: "active",
-        lastIp: ip,
-        userAgent,
-        expiresAt,
-      },
-    });
-  } catch (upsertError) {
-    console.warn("[DeviceSecurity] Upsert failed, performing safe cleanup replace:", upsertError);
-    try {
-      await prisma.trustedLoginDevice.deleteMany({
-        where: {
-          OR: [
-            { userId },
-            { loginEmail: emailLower },
-            { deviceTokenHash },
-          ],
-        },
-      });
-      await prisma.trustedLoginDevice.create({
-        data: {
-          userId,
-          loginEmail: emailLower,
-          deviceTokenHash,
-          deviceName: parsedUa.deviceName,
-          deviceType: parsedUa.deviceType,
-          platform: parsedUa.os,
-          browserName: parsedUa.browser,
-          status: "active",
-          lastIp: ip,
-          userAgent,
-          expiresAt,
-        },
-      });
-    } catch (fallbackError) {
-      console.error("[DeviceSecurity] Non-blocking trusted device registration error:", fallbackError);
-    }
-  }
-
-  return {
-    rawDeviceToken,
-    expiresAt,
-    deviceName: parsedUa.deviceName,
-  };
+  const expiresAt = new Date(Date.now() + DEVICE_TRUST_DAYS * 86400000);
+  const deviceName = parseUserAgent(userAgent).deviceName;
+  const data = { email: email.trim().toLowerCase(), version: authVersion, deviceName, lastIp: ip };
+  await prisma.verificationToken.create({ data: { identifier: `browser_trust:${userId}`, token: `browser_trust:v1:${hashDeviceToken(rawDeviceToken)}:${Buffer.from(JSON.stringify(data)).toString('base64url')}`, expires: expiresAt } });
+  return { rawDeviceToken, expiresAt, deviceName };
 }

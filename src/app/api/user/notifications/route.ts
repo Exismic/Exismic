@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -20,10 +21,10 @@ export async function GET(req: NextRequest) {
       take: 10,
     });
 
-    return NextResponse.json({ success: true, data: notifications });
+    return publicJson({ success: true, data: notifications });
   } catch (err) {
     console.error("[Notifications API GET] error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return publicJson({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser = await getOrCreateUser(user);
@@ -42,13 +43,13 @@ export async function POST(req: NextRequest) {
     const { action, id } = body;
 
     if (action === "mark-read") {
-      if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      if (!id) return publicJson({ error: "Missing id" }, { status: 400 });
       await prisma.notification.updateMany({
         where: { id, userId },
         data: { read: true },
       });
     } else if (action === "delete") {
-      if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      if (!id) return publicJson({ error: "Missing id" }, { status: 400 });
       await prisma.notification.deleteMany({
         where: { id, userId },
       });
@@ -62,18 +63,18 @@ export async function POST(req: NextRequest) {
         where: { userId },
       });
     } else if (action === "claim") {
-      if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-      
+      if (!id) return publicJson({ error: "Missing id" }, { status: 400 });
+
       const notification = await prisma.notification.findFirst({
         where: { id, userId },
       });
 
       if (!notification) {
-        return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+        return publicJson({ error: "Notification not found" }, { status: 404 });
       }
 
       if (!notification.type.startsWith("claim:")) {
-        return NextResponse.json({ error: "This notification is not claimable" }, { status: 400 });
+        return publicJson({ error: "This notification is not claimable" }, { status: 400 });
       }
 
       const parts = notification.type.split(":");
@@ -131,15 +132,15 @@ export async function POST(req: NextRequest) {
           });
         });
       } else {
-        return NextResponse.json({ error: "Invalid claimable reward type" }, { status: 400 });
+        return publicJson({ error: "Invalid claimable reward type" }, { status: 400 });
       }
     } else {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      return publicJson({ error: "Invalid action" }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (err) {
     console.error("[Notifications API POST] error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return publicJson({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -41,7 +41,8 @@ export function AppShell({ children, hasSession }: AppShellProps) {
   const refreshedForSessionRef = useRef(false);
   const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
   const isRewardsRoute = pathname === "/rewards";
-  const isStandaloneRoute = isAuthRoute || isRewardsRoute;
+  const isCheckoutRoute = pathname === "/checkout" || pathname.startsWith("/checkout");
+  const isStandaloneRoute = isAuthRoute || isRewardsRoute || isCheckoutRoute;
   const isOverviewPage = pathname === "/" || pathname === "/dashboard" || pathname === "/tools";
 
   // Dynamic Background Colors based on route

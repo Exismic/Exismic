@@ -1016,20 +1016,20 @@ export function MinecraftSkinMaker() {
   return (
     <fieldset disabled={skinBusy} className="min-w-0 space-y-8">
       {/* Studio Top Stage Frame */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#070913] shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
+      <div className="relative overflow-clip rounded-3xl border border-white/[0.08] bg-[#070913] shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
         {/* Subtle Cyber Grid Mask */}
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:36px_36px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
 
         {/* Studio Command Header */}
-        <header className="relative border-b border-white/[0.06] px-6 py-6 sm:px-8 sm:py-7">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+        <header className="relative border-b border-white/[0.06] px-4 py-5 sm:px-8 sm:py-7">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] items-center gap-3 sm:flex sm:gap-5">
               <div className="grid size-14 shrink-0 place-items-center rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/20 via-blue-600/10 to-transparent shadow-[0_0_35px_rgba(6,182,212,0.25)]">
                 <MinecraftIcon className="size-8 text-cyan-200" />
               </div>
-              <div className="min-w-0">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
+              <div className="contents sm:block sm:min-w-0">
+                <div className="col-start-2 flex flex-wrap items-center gap-2 sm:mb-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-black text-emerald-300">
                     <Check className="size-3" />
                     Java & Bedrock Ready
@@ -1045,20 +1045,20 @@ export function MinecraftSkinMaker() {
                     </span>
                   )}
                 </div>
-                <h2 className="text-2xl font-black text-white sm:text-3xl tracking-tight">
+                <h2 className="col-span-2 text-2xl font-black text-white sm:text-3xl tracking-tight">
                   Minecraft Skin Studio
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400 max-w-2xl leading-relaxed">
+                <p className="col-span-2 text-sm text-zinc-400 max-w-2xl leading-relaxed sm:mt-1">
                   Craft authentic custom Minecraft character skins. Inspect in interactive 3D, customize poses, and export game-ready textures.
                 </p>
               </div>
             </div>
 
             {/* Telemetry Counter Cards */}
-            <div className="flex items-center gap-3 shrink-0 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3.5 backdrop-blur-xl shadow-inner">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] items-center gap-3 xl:w-[360px] xl:shrink-0 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3.5 sm:px-5 backdrop-blur-xl shadow-inner">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Available Vault</p>
-                <p className="mt-0.5 text-base font-black text-white">{credits.toLocaleString()} credits</p>
+                <p className="mt-0.5 break-words text-sm sm:text-base font-black text-white">{credits.toLocaleString()} credits</p>
               </div>
               <div className="h-9 w-px bg-white/10" />
               <div>
@@ -1070,24 +1070,24 @@ export function MinecraftSkinMaker() {
         </header>
 
         {/* Spacious 12-Column Two-Column Studio Layout */}
-        <div className="relative grid min-w-0 grid-cols-1 xl:grid-cols-12 gap-8 p-6 sm:p-8 lg:p-10">
+        <div className="relative grid min-w-0 grid-cols-1 xl:grid-cols-12 gap-4 p-3 sm:gap-8 sm:p-8 lg:p-10">
           {/* =========================================================================
               LEFT COLUMN: Craft Console (5 cols on 2xl, 6 on xl)
              ========================================================================= */}
-          <section className="xl:col-span-6 2xl:col-span-5 space-y-6">
+          <section className="xl:col-span-6 2xl:col-span-5 min-w-0 space-y-4 sm:space-y-6">
             {/* Card 1: Describe Character Concept */}
-            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 p-5 sm:p-6 shadow-xl space-y-4">
+            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 min-w-0 p-3 sm:p-6 shadow-xl space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h3 className="text-sm font-black text-white">Describe Your Character</h3>
                   <p className="text-xs text-zinc-400 mt-0.5">Specify outfit, armor, hairstyle, accessories, or themes.</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={enhancePromptWithAi}
                     disabled={isEnhancingPrompt || !prompt.trim()}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-cyan-400/35 bg-cyan-500/15 hover:bg-cyan-500/25 px-3 py-1.5 text-xs font-black text-cyan-200 shadow-md transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+                    className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-cyan-400/35 bg-cyan-500/15 hover:bg-cyan-500/25 px-3 py-1.5 text-xs font-black text-cyan-200 shadow-md transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
                     title="Expand your idea into a detailed, aesthetic Minecraft prompt using AI (1 credit)"
                   >
                     {isEnhancingPrompt ? (
@@ -1103,13 +1103,14 @@ export function MinecraftSkinMaker() {
                       </>
                     )}
                   </button>
-                  <span className="text-xs font-semibold text-zinc-500">{prompt.length}/2000</span>
+                  <span className="shrink-0 text-xs font-semibold text-zinc-500">{prompt.length}/2000</span>
                 </div>
               </div>
 
               <div className="relative">
                 <textarea
                   id="skin-prompt"
+                  aria-label="Character description"
                   value={prompt}
                   onChange={(event) => setPrompt(event.target.value.slice(0, 2000))}
                   placeholder="Example: Cyberpunk cyber samurai warrior with neon cyan glowing visor, matte black carbon armor, katana harness, and glowing circuitry trims..."
@@ -1126,7 +1127,7 @@ export function MinecraftSkinMaker() {
                       key={bp.id}
                       type="button"
                       onClick={() => setPrompt(bp.prompt)}
-                      className="shrink-0 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-cyan-500/10 hover:border-cyan-400/30 px-3 py-1.5 text-left text-xs font-medium text-zinc-300 hover:text-cyan-200 transition-colors cursor-pointer"
+                      className="min-h-11 shrink-0 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-cyan-500/10 hover:border-cyan-400/30 px-3 py-1.5 text-left text-xs font-medium text-zinc-300 hover:text-cyan-200 transition-colors cursor-pointer"
                     >
                       {bp.name}
                     </button>
@@ -1136,7 +1137,7 @@ export function MinecraftSkinMaker() {
             </div>
 
             {/* Card 2: Character Aesthetics & Silhouette */}
-            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 p-5 sm:p-6 shadow-xl space-y-5">
+            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 min-w-0 p-3 sm:p-6 shadow-xl space-y-5">
               <h3 className="text-sm font-black text-white">Body Silhouette & Art Style</h3>
               <p className="text-xs text-zinc-400">Body and art style apply to your next generation.</p>
 
@@ -1152,7 +1153,7 @@ export function MinecraftSkinMaker() {
                         type="button"
                         onClick={() => setArmModel(model)}
                         className={cn(
-                          "rounded-xl border p-3.5 text-left transition cursor-pointer flex items-center justify-between",
+                          "relative min-w-0 rounded-xl border p-3 text-left transition cursor-pointer flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between",
                           isSelected
                             ? "border-cyan-400/50 bg-cyan-500/15 text-white shadow-[0_0_20px_rgba(6,182,212,0.15)]"
                             : "border-white/10 bg-black/30 text-zinc-400 hover:border-white/20 hover:text-white"
@@ -1185,7 +1186,7 @@ export function MinecraftSkinMaker() {
                     <StyleIcon className="size-4 text-cyan-300 shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-white">{selectedStyleObj.label}</p>
-                      <p className="text-[11px] text-zinc-400 truncate">{selectedStyleObj.desc}</p>
+                      <p className="text-[11px] leading-relaxed text-zinc-400 break-words">{selectedStyleObj.desc}</p>
                     </div>
                   </div>
                   <ChevronDown
@@ -1203,7 +1204,7 @@ export function MinecraftSkinMaker() {
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: 6 }}
                       transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="absolute left-0 right-0 top-full z-50 mt-2 space-y-1 rounded-2xl border border-white/15 bg-[#090b14]/98 p-2 shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(6,182,212,0.15)] backdrop-blur-2xl"
+                      className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(320px,50svh)] overflow-y-auto space-y-1 rounded-2xl border border-white/15 bg-[#090b14]/98 p-2 shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(6,182,212,0.15)] backdrop-blur-2xl"
                     >
                       {STYLE_OPTIONS.map((option) => {
                         const isSelected = style === option.id;
@@ -1227,7 +1228,7 @@ export function MinecraftSkinMaker() {
                               <OptIcon className={cn("size-4 shrink-0", isSelected ? "text-cyan-300" : "text-zinc-400")} />
                               <div className="min-w-0">
                                 <p className="text-xs font-bold text-white">{option.label}</p>
-                                <p className="text-[10px] text-zinc-400 truncate">{option.desc}</p>
+                                <p className="text-[10px] leading-relaxed text-zinc-400 break-words">{option.desc}</p>
                               </div>
                             </div>
                             {isSelected && <Check className="size-4 shrink-0 text-cyan-300" />}
@@ -1246,7 +1247,7 @@ export function MinecraftSkinMaker() {
                 <p className="pt-2 border-t border-white/5 text-xs text-zinc-400">This character has a custom head. Use Remix or the skin editor to change its face.</p>
               ) : (
               <div className="space-y-3 pt-2 border-t border-white/5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-xs font-bold text-zinc-400">Eye Style</p>
                   <span className="text-[10px] text-emerald-400 font-bold">Change for free</span>
                 </div>
@@ -1280,11 +1281,11 @@ export function MinecraftSkinMaker() {
 
                 {/* Mouth & Expression Row */}
                 <div className="pt-2">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <span className="text-xs font-semibold text-zinc-400">Mouth & Lip Line:</span>
                     <span className="text-[11px] text-cyan-300 font-bold">{MOUTH_OPTIONS.find((option) => option.id === mouthStyle)?.label}</span>
                   </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 rounded-xl border border-white/10 bg-black/40 p-1.5">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 xl:grid-cols-3 2xl:grid-cols-6 gap-1.5 rounded-xl border border-white/10 bg-black/40 p-1.5">
                     {MOUTH_OPTIONS.map((option) => {
                       const isSelected = mouthStyle === option.id;
                       return (
@@ -1294,7 +1295,7 @@ export function MinecraftSkinMaker() {
                           onClick={() => handleSelectMouthStyle(option.id)}
                           disabled={isUpdatingFace}
                           className={cn(
-                            "rounded-lg py-2 px-1 text-center text-xs font-bold capitalize transition cursor-pointer",
+                            "min-h-11 rounded-lg py-2 px-1 text-center text-xs font-bold capitalize transition cursor-pointer",
                             isSelected
                               ? "bg-cyan-500/25 text-cyan-200 border border-cyan-400/30 shadow-sm"
                               : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
@@ -1312,14 +1313,14 @@ export function MinecraftSkinMaker() {
             </div>
 
             {/* Card 3: Gamertag Importer & Reference Photo (Drawer Tabs) */}
-            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 p-5 sm:p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 min-w-0 p-3 sm:p-6 shadow-xl space-y-4">
+              <div className="flex flex-col items-start gap-2 border-b border-white/5 pb-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab("craft")}
                     className={cn(
-                      "text-xs font-bold pb-1 transition border-b-2 cursor-pointer",
+                      "min-h-11 text-xs font-bold pb-1 transition border-b-2 cursor-pointer",
                       activeTab === "craft"
                         ? "border-cyan-400 text-white"
                         : "border-transparent text-zinc-500 hover:text-zinc-300"
@@ -1331,7 +1332,7 @@ export function MinecraftSkinMaker() {
                     type="button"
                     onClick={() => setActiveTab("import")}
                     className={cn(
-                      "text-xs font-bold pb-1 transition border-b-2 cursor-pointer",
+                      "min-h-11 text-xs font-bold pb-1 transition border-b-2 cursor-pointer",
                       activeTab === "import"
                         ? "border-cyan-400 text-white"
                         : "border-transparent text-zinc-500 hover:text-zinc-300"
@@ -1360,14 +1361,15 @@ export function MinecraftSkinMaker() {
                           void handleImportGamertag();
                         }
                       }}
-                      placeholder="Enter Minecraft username (e.g. Dream)"
-                      className="h-11 flex-1 rounded-xl border border-white/10 bg-black/40 px-3.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20"
+                      aria-label="Minecraft username"
+                      placeholder="Minecraft username"
+                      className="h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-black/40 px-3.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20"
                     />
                     <button
                       type="button"
                       onClick={() => void handleImportGamertag()}
                       disabled={isFetchingGamertag || !gamertag.trim()}
-                      className="h-11 px-5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-xs font-black text-white flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                      className="h-11 shrink-0 px-3 sm:px-5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-xs font-black text-white flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                     >
                       {isFetchingGamertag ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -1384,7 +1386,7 @@ export function MinecraftSkinMaker() {
                         key={tag}
                         type="button"
                         onClick={() => void handleImportGamertag(tag)}
-                        className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-cyan-500/10 border border-white/5 hover:border-cyan-400/30 text-[11px] text-zinc-300 hover:text-cyan-200 transition-colors shrink-0 cursor-pointer"
+                        className="min-h-11 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-cyan-500/10 border border-white/5 hover:border-cyan-400/30 text-[11px] text-zinc-300 hover:text-cyan-200 transition-colors shrink-0 cursor-pointer"
                       >
                         {tag}
                       </button>
@@ -1403,15 +1405,15 @@ export function MinecraftSkinMaker() {
                   />
                   {referenceImage ? (
                     <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/[0.05] p-3.5 space-y-3">
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={referenceImage}
                           alt=""
-                          className="size-16 rounded-lg border border-white/10 object-cover [image-rendering:pixelated]"
+                          className="size-12 shrink-0 sm:size-16 rounded-lg border border-white/10 object-cover [image-rendering:pixelated]"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-black text-white">{referenceName}</p>
+                          <p className="break-words text-xs font-black text-white">{referenceName}</p>
                           <p className="mt-1 text-[11px] text-zinc-400 leading-normal">
                             {referenceMode === "rebuild"
                               ? "Rebuild as a 64×64 skin texture."
@@ -1427,7 +1429,7 @@ export function MinecraftSkinMaker() {
                             setReferenceName(null);
                             setReferenceMode("guided");
                           }}
-                          className="grid size-10 shrink-0 place-items-center rounded-lg border border-white/10 text-zinc-400 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
+                          className="grid size-11 shrink-0 place-items-center rounded-lg border border-white/10 text-zinc-400 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
                           aria-label="Remove reference image"
                         >
                           <X className="size-4" />
@@ -1439,7 +1441,7 @@ export function MinecraftSkinMaker() {
                           type="button"
                           onClick={() => setReferenceMode("rebuild")}
                           className={cn(
-                            "py-2 px-1 text-center rounded-lg text-xs font-bold transition cursor-pointer",
+                            "min-h-11 py-2 px-1 text-center rounded-lg text-xs font-bold transition cursor-pointer",
                             referenceMode === "rebuild"
                               ? "bg-cyan-500/25 text-white"
                               : "text-zinc-500 hover:text-zinc-300"
@@ -1451,7 +1453,7 @@ export function MinecraftSkinMaker() {
                           type="button"
                           onClick={() => setReferenceMode("guided")}
                           className={cn(
-                            "py-2 px-1 text-center rounded-lg text-xs font-bold transition cursor-pointer",
+                            "min-h-11 py-2 px-1 text-center rounded-lg text-xs font-bold transition cursor-pointer",
                             referenceMode === "guided"
                               ? "bg-cyan-500/25 text-white"
                               : "text-zinc-500 hover:text-zinc-300"
@@ -1463,7 +1465,7 @@ export function MinecraftSkinMaker() {
                           type="button"
                           onClick={() => setReferenceMode("inspire")}
                           className={cn(
-                            "py-2 px-1 text-center rounded-lg text-xs font-bold transition cursor-pointer",
+                            "min-h-11 py-2 px-1 text-center rounded-lg text-xs font-bold transition cursor-pointer",
                             referenceMode === "inspire"
                               ? "bg-cyan-500/25 text-white"
                               : "text-zinc-500 hover:text-zinc-300"
@@ -1477,12 +1479,12 @@ export function MinecraftSkinMaker() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex min-h-24 w-full items-center gap-4 rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-4 text-left transition hover:border-cyan-400/40 hover:bg-cyan-500/[0.03] cursor-pointer"
+                      className="flex min-h-24 w-full items-center gap-3 sm:gap-4 rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-3 sm:p-4 text-left transition hover:border-cyan-400/40 hover:bg-cyan-500/[0.03] cursor-pointer"
                     >
-                      <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/10 bg-black/40">
+                      <span className="grid size-10 sm:size-12 shrink-0 place-items-center rounded-xl border border-white/10 bg-black/40">
                         <Upload className="size-5 text-cyan-300" />
                       </span>
-                      <span>
+                      <span className="min-w-0">
                         <span className="block text-xs font-black text-white">Upload Reference Texture or Art</span>
                         <span className="mt-1 block text-[11px] text-zinc-500">PNG, JPG or WEBP · 8MB maximum</span>
                       </span>
@@ -1493,10 +1495,10 @@ export function MinecraftSkinMaker() {
             </div>
 
             {/* Card 4: Target Area & Primary Action Button */}
-            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 p-5 sm:p-6 shadow-xl space-y-4">
+            <div className="rounded-2xl border border-white/[0.07] bg-[#090c17]/90 min-w-0 p-3 sm:p-6 shadow-xl space-y-4">
               <div>
                 <p className="mb-2.5 text-xs font-bold text-zinc-400">Target Body Part</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {PARTS.map((part) => {
                     const Icon = part.icon;
                     const disabled = part.id !== "all" && !result;
@@ -1509,7 +1511,7 @@ export function MinecraftSkinMaker() {
                         onClick={() => setTargetPart(part.id)}
                         title={part.description}
                         className={cn(
-                          "flex items-center justify-center sm:justify-start gap-2 rounded-xl border px-3 py-2.5 text-left transition cursor-pointer select-none",
+                          "flex min-h-11 items-center justify-center sm:justify-start gap-2 rounded-xl border px-3 py-2.5 text-left transition cursor-pointer select-none",
                           isSelected
                             ? "border-cyan-400/50 bg-cyan-500/15 text-white shadow-[0_0_12px_rgba(6,182,212,0.18)]"
                             : "border-white/10 bg-black/30 text-zinc-400 hover:border-white/20 hover:text-white",
@@ -1555,9 +1557,9 @@ export function MinecraftSkinMaker() {
                 type="button"
                 onClick={() => void generate()}
                 disabled={isGenerating}
-                className="group relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 px-6 text-sm font-black text-white shadow-[0_10px_35px_rgba(6,182,212,0.35)] transition-all hover:shadow-[0_15px_45px_rgba(6,182,212,0.5)] hover:brightness-110 active:scale-[0.99] cursor-pointer disabled:opacity-60"
+                className="group relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 px-3 sm:px-6 text-sm font-black text-white shadow-[0_10px_35px_rgba(6,182,212,0.35)] transition-all hover:shadow-[0_15px_45px_rgba(6,182,212,0.5)] hover:brightness-110 active:scale-[0.99] cursor-pointer disabled:opacity-60"
               >
-                <span className="relative flex flex-wrap items-center justify-center gap-2.5 py-3 text-center">
+                <span className="relative grid min-w-0 grid-cols-[20px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-2 py-3 text-center sm:flex sm:flex-wrap sm:justify-center">
                   {isGenerating ? (
                     <>
                       <Loader2 className="size-5 shrink-0 animate-spin" />
@@ -1575,7 +1577,7 @@ export function MinecraftSkinMaker() {
                               ? "Generate Minecraft Character"
                               : `Regenerate ${targetPart}`}
                       </span>
-                      <span className="rounded-full bg-black/40 px-2 py-0.5 text-xs font-black">
+                      <span className="col-span-2 justify-self-center rounded-full bg-black/40 px-2 py-0.5 text-xs font-black">
                         {currentCost} credits
                       </span>
                     </>
@@ -1605,21 +1607,39 @@ export function MinecraftSkinMaker() {
           {/* =========================================================================
               RIGHT COLUMN: Spacious 3D Interactive Stage & Result Deck (7 cols on 2xl, 6 on xl)
              ========================================================================= */}
-          <section className="xl:col-span-6 2xl:col-span-7 space-y-6">
+          <section className="xl:col-span-6 2xl:col-span-7 min-w-0 space-y-4 sm:space-y-6">
             {/* Viewport Control Bar */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-white/[0.07] bg-[#090c17]/90 px-5 py-3.5 shadow-xl">
-              <div>
+            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between rounded-2xl border border-white/[0.07] bg-[#090c17]/90 px-3 sm:px-5 py-3.5 shadow-xl">
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0">
                 <p className="text-xs font-black text-white">Live 3D Studio Stage</p>
                 <p className="text-[11px] text-zinc-400">Spin, animate, inspect, and export your 64×64 texture.</p>
+                </div>
+                {previewMode === "character" && result && (
+                  <button
+                    type="button"
+                    onClick={() => setAutoRotate((current) => !current)}
+                    className={cn(
+                      "grid size-11 shrink-0 place-items-center rounded-xl border transition cursor-pointer",
+                      autoRotate
+                        ? "border-cyan-400/40 bg-cyan-500/20 text-cyan-200 shadow-sm"
+                        : "border-white/10 bg-black/40 text-zinc-400 hover:text-white"
+                    )}
+                    aria-label={autoRotate ? "Stop automatic rotation" : "Start automatic rotation"}
+                    title={autoRotate ? "Stop automatic rotation" : "Start automatic rotation"}
+                  >
+                    <RefreshCw className={cn("size-4", autoRotate && "animate-[spin_8s_linear_infinite]")} />
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <div className="grid min-w-[220px] flex-1 grid-cols-3 rounded-xl border border-white/10 bg-black/40 p-1">
+                <div className="grid min-w-0 flex-1 grid-cols-3 rounded-xl border border-white/10 bg-black/40 p-1">
                   <button
                     type="button"
                     onClick={() => setPreviewMode("character")}
                     className={cn(
-                      "flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 sm:px-3 text-xs font-bold transition cursor-pointer",
+                      "flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-1 sm:px-3 text-xs font-bold transition cursor-pointer",
                       previewMode === "character" ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30" : "text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1628,9 +1648,10 @@ export function MinecraftSkinMaker() {
                   </button>
                   <button
                     type="button"
+                    disabled={!result}
                     onClick={() => setPreviewMode("texture")}
                     className={cn(
-                      "flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 sm:px-3 text-xs font-bold transition cursor-pointer",
+                      "flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-1 sm:px-3 text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30",
                       previewMode === "texture" ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30" : "text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1642,7 +1663,7 @@ export function MinecraftSkinMaker() {
                     disabled={!result}
                     onClick={() => setPreviewMode("editor")}
                     className={cn(
-                      "flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 sm:px-3 text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30",
+                      "flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-1 sm:px-3 text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30",
                       previewMode === "editor" ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30" : "text-zinc-400 hover:text-white"
                     )}
                   >
@@ -1651,22 +1672,6 @@ export function MinecraftSkinMaker() {
                   </button>
                 </div>
 
-                {previewMode === "character" && result && (
-                  <button
-                    type="button"
-                    onClick={() => setAutoRotate((current) => !current)}
-                    className={cn(
-                      "grid size-10 place-items-center rounded-xl border transition cursor-pointer",
-                      autoRotate
-                        ? "border-cyan-400/40 bg-cyan-500/20 text-cyan-200 shadow-sm"
-                        : "border-white/10 bg-black/40 text-zinc-400 hover:text-white"
-                    )}
-                    aria-label={autoRotate ? "Stop automatic rotation" : "Start automatic rotation"}
-                    title={autoRotate ? "Stop automatic rotation" : "Start automatic rotation"}
-                  >
-                    <RefreshCw className={cn("size-4", autoRotate && "animate-[spin_8s_linear_infinite]")} />
-                  </button>
-                )}
               </div>
             </div>
 
@@ -1681,8 +1686,8 @@ export function MinecraftSkinMaker() {
                     onAutoRotateChange={setAutoRotate}
                   />
                   {!result && (
-                    <div className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 z-10">
-                      <span className="rounded-full border border-cyan-400/30 bg-black/80 px-4 py-1.5 text-xs font-bold text-cyan-200 backdrop-blur-md shadow-2xl flex items-center gap-2">
+                    <div className="pointer-events-none absolute top-[4.5rem] left-1/2 -translate-x-1/2 z-10">
+                      <span className="rounded-full border border-cyan-400/30 bg-black/80 px-3 py-1.5 whitespace-nowrap text-[11px] sm:text-xs font-bold text-cyan-200 backdrop-blur-md shadow-2xl flex items-center gap-2">
                         <Box size={13} className="text-cyan-300" />
                         <span>Interactive 3D Studio</span>
                       </span>
@@ -1690,8 +1695,8 @@ export function MinecraftSkinMaker() {
                   )}
                 </div>
               ) : previewMode === "texture" && result ? (
-                <div className="relative flex min-h-[500px] sm:min-h-[580px] xl:min-h-[640px] items-center justify-center p-8">
-                  <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/60 px-4 py-1.5 text-xs font-semibold text-zinc-300 backdrop-blur-md">
+                <div className="relative flex min-h-[380px] sm:min-h-[580px] xl:min-h-[640px] items-center justify-center p-4 sm:p-8">
+                  <div className="absolute inset-x-3 top-3 text-center sm:inset-x-auto sm:left-6 sm:top-6 rounded-full border border-white/10 bg-black/60 px-4 py-1.5 text-xs font-semibold text-zinc-300 backdrop-blur-md">
                     Standard 64 × 64 PNG Pixel Map
                   </div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1722,16 +1727,16 @@ export function MinecraftSkinMaker() {
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-white/[0.08] bg-[#090c17]/95 p-6 shadow-2xl space-y-6"
+                className="rounded-2xl border border-white/[0.08] bg-[#090c17]/95 p-4 sm:p-6 shadow-2xl space-y-6"
               >
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                <div className="flex flex-col gap-6">
                   {/* Left: Info & Traits */}
                   <div className="min-w-0 flex-1 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-emerald-400/30 bg-emerald-500/15">
                         <BadgeCheck className="size-5 text-emerald-300" />
                       </span>
-                      <h2 className="text-lg font-black text-white">{result.design.name}</h2>
+                      <h2 className="break-words text-lg font-black text-white">{result.design.name}</h2>
                       <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-xs font-semibold text-zinc-300 capitalize">
                         {result.armModel} model
                       </span>
@@ -1776,7 +1781,7 @@ export function MinecraftSkinMaker() {
 
                     {/* Color Swatches with 1-click Hex Copy */}
                     <div className="pt-2">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <Palette className="size-4 text-zinc-400" />
                         <span className="text-xs font-bold text-zinc-400">Palette Swatches (Click to copy hex):</span>
                         {copiedColor && (
@@ -1789,7 +1794,7 @@ export function MinecraftSkinMaker() {
                             key={name}
                             type="button"
                             onClick={() => copyHex(color)}
-                            className="size-7 rounded-full border border-white/20 shadow-md transition-transform hover:scale-125 cursor-pointer relative group"
+                            className="size-11 sm:size-7 rounded-full border border-white/20 shadow-md transition-transform hover:scale-125 cursor-pointer relative group"
                             style={{ backgroundColor: color }}
                             title={`${name}: ${color} (Click to copy)`}
                           >
@@ -1801,7 +1806,7 @@ export function MinecraftSkinMaker() {
                   </div>
 
                   {/* Right: Quick Action Buttons */}
-                  <div className="flex flex-col gap-2.5 sm:flex-row lg:flex-col shrink-0 justify-center">
+                  <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap xl:flex-col 2xl:flex-row justify-center">
                     {/* Download Skin */}
                     <button
                       type="button"
@@ -1879,7 +1884,7 @@ export function MinecraftSkinMaker() {
             1-CLICK BLUEPRINTS GALLERY (Standard 3: Zero Dead Void Policy)
             Placed directly below the workspace to inspire immediate exploration!
            ========================================================================= */}
-        <div className="border-t border-white/[0.08] bg-[#060811] px-6 py-8 sm:px-8 sm:py-10 space-y-5">
+        <div className="border-t border-white/[0.08] bg-[#060811] px-4 py-6 sm:px-8 sm:py-10 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <div className="flex items-center gap-2">
@@ -1893,7 +1898,7 @@ export function MinecraftSkinMaker() {
             <span className="text-[11px] text-zinc-500 font-semibold">1-Tap Fast Switch</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3.5">
             {MINECRAFT_BLUEPRINTS.map((bp) => {
               const isActive = activeBlueprintId === bp.id;
               return (
@@ -1920,7 +1925,7 @@ export function MinecraftSkinMaker() {
                       <h4 className="text-xs font-black text-white group-hover:text-cyan-200 transition-colors">
                         {bp.name}
                       </h4>
-                      <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
+                      <p className="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">
                         {bp.subtitle}
                       </p>
                     </div>
@@ -1947,7 +1952,7 @@ export function MinecraftSkinMaker() {
         </div>
 
         {/* Footer info */}
-        <footer className="relative flex flex-col gap-2 border-t border-white/[0.06] px-6 py-4 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <footer className="relative flex flex-col gap-2 border-t border-white/[0.06] px-4 py-4 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p>Exports standard 64×64 PNG textures for Minecraft Java & Bedrock Edition.</p>
           <p>Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p>
         </footer>
@@ -1970,11 +1975,11 @@ export function MinecraftSkinMaker() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="minecraft-remix-title"
-              className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 bg-[#090b14] p-6 sm:p-7 shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(6,182,212,0.2)]"
+              className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 bg-[#090b14] p-4 sm:p-7 shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(6,182,212,0.2)]"
             >
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="grid size-10 place-items-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-cyan-300">
+              <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-cyan-300">
                     <SlidersHorizontal className="size-5" />
                   </div>
                   <div>
@@ -1986,7 +1991,7 @@ export function MinecraftSkinMaker() {
                   type="button"
                   aria-label="Close remix"
                   onClick={() => setRemixModalOpen(false)}
-                  className="grid size-8 place-items-center rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white cursor-pointer"
+                  className="grid size-11 shrink-0 place-items-center rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white cursor-pointer"
                 >
                   <X className="size-4" />
                 </button>
@@ -1998,11 +2003,11 @@ export function MinecraftSkinMaker() {
                   <img
                     src={result.skinUrl}
                     alt=""
-                    className="size-12 rounded-lg border border-white/15 bg-black object-cover [image-rendering:pixelated]"
+                    className="size-12 shrink-0 rounded-lg border border-white/15 bg-black object-cover [image-rendering:pixelated]"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-white truncate">{result.design.name}</p>
-                    <p className="text-[11px] text-zinc-400 truncate">{result.design.description}</p>
+                    <p className="text-xs font-bold text-white break-words">{result.design.name}</p>
+                    <p className="text-[11px] leading-relaxed text-zinc-400 break-words">{result.design.description}</p>
                   </div>
                 </div>
               )}
@@ -2032,7 +2037,7 @@ export function MinecraftSkinMaker() {
                       key={preset}
                       type="button"
                       onClick={() => setRemixPrompt(preset)}
-                      className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-400 hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-cyan-200 transition-colors cursor-pointer"
+                      className="min-h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-400 hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-cyan-200 transition-colors cursor-pointer"
                     >
                       {preset}
                     </button>
@@ -2051,7 +2056,7 @@ export function MinecraftSkinMaker() {
                   <button
                     type="button"
                     onClick={() => setRemixModalOpen(false)}
-                    className="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                    className="min-h-11 whitespace-nowrap px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -2059,7 +2064,7 @@ export function MinecraftSkinMaker() {
                     type="button"
                     onClick={handleRemix}
                     disabled={skinBusy || !remixPrompt.trim()}
-                    className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
+                    className="flex min-h-11 items-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {isRemixing ? (
                       <>

@@ -23,6 +23,7 @@ import confetti from "canvas-confetti";
 import { DailyRewardLootBox } from "./DailyRewardLootBox";
 import { useCredits } from "@/hooks/useCredits";
 import { useAuth } from "@/hooks/useAuth";
+import { MAX_STREAK_SHIELDS } from "@/lib/streak-state";
 import { cn } from "@/lib/utils";
 
 interface DailyRewardModalProps {
@@ -303,8 +304,8 @@ export function DailyRewardModal({ isOpen, onClose }: DailyRewardModalProps) {
       toast("Please sign in to equip a streak shield", "warning");
       return;
     }
-    if (streakShields >= 2) {
-      toast("You already hold maximum shield capacity (2/2)", "info");
+    if (streakShields >= MAX_STREAK_SHIELDS) {
+      toast("You already hold maximum shield capacity (3/3)", "info");
       return;
     }
     if (credits < 30) {
@@ -524,66 +525,43 @@ export function DailyRewardModal({ isOpen, onClose }: DailyRewardModalProps) {
                         <span
                           className={cn(
                             "px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wide",
-                            streakShields >= 2
+                            streakShields >= MAX_STREAK_SHIELDS
                               ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
-                              : streakShields === 1
+                              : streakShields > 0
                               ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
                               : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                           )}
                         >
-                          {streakShields}/2 Equipped
+                          {streakShields}/{MAX_STREAK_SHIELDS} Equipped
                         </span>
                       </div>
 
                       <p className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
-                        Auto-protects your streak if you miss a check-in day. 1 shield absorbs 1 missed day.
+                        Auto-protects your streak if you miss a daily reward claim. 1 shield absorbs 1 missed day.
                       </p>
 
-                      {/* Dual Socket Inventory Visualizer */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[9.5px] font-bold text-zinc-500 uppercase tracking-wider">
-                          Sockets:
-                        </span>
-                        {/* Slot 1 */}
-                        <div
-                          className={cn(
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        {Array.from({ length: MAX_STREAK_SHIELDS }, (_, index) => (
+                          <div key={index} className={cn(
                             "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9.5px] font-black tracking-tight transition-all",
-                            streakShields >= 1
+                            streakShields > index
                               ? "bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.25)]"
                               : "bg-black/40 border border-dashed border-zinc-700 text-zinc-500"
-                          )}
-                        >
-                          <Shield
-                            size={10}
-                            className={streakShields >= 1 ? "fill-cyan-400 text-cyan-400" : "text-zinc-600"}
-                          />
-                          <span>{streakShields >= 1 ? "Slot 1 Active" : "Slot 1 Empty"}</span>
-                        </div>
-                        {/* Slot 2 */}
-                        <div
-                          className={cn(
-                            "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9.5px] font-black tracking-tight transition-all",
-                            streakShields >= 2
-                              ? "bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.25)]"
-                              : "bg-black/40 border border-dashed border-zinc-700 text-zinc-500"
-                          )}
-                        >
-                          <Shield
-                            size={10}
-                            className={streakShields >= 2 ? "fill-cyan-400 text-cyan-400" : "text-zinc-600"}
-                          />
-                          <span>{streakShields >= 2 ? "Slot 2 Active" : "Slot 2 Empty"}</span>
-                        </div>
+                          )}>
+                            <Shield size={10} className={streakShields > index ? "fill-cyan-400 text-cyan-400" : "text-zinc-600"} />
+                            <span>Slot {index + 1} {streakShields > index ? "Active" : "Empty"}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
 
                   {/* Right Column: Equip CTA or Max Badge */}
                   <div className="w-full sm:w-auto shrink-0">
-                    {streakShields >= 2 ? (
+                    {streakShields >= MAX_STREAK_SHIELDS ? (
                       <div className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-black shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                         <CheckCheck size={14} className="text-emerald-400" />
-                        <span>Max Protection (2/2)</span>
+                        <span>Max Protection (3/3)</span>
                       </div>
                     ) : (
                       <button

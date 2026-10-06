@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
 
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabaseServer.auth.getUser();
 
     if (!user?.id || !user.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return publicJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { name, username, image } = await req.json();
@@ -16,11 +16,11 @@ export async function POST(req: Request) {
     const cleanUsername = typeof username === 'string' ? username.trim().toLowerCase() : undefined;
 
     if (cleanUsername && (cleanUsername.length < 3 || cleanUsername.length > 20)) {
-      return NextResponse.json({ error: 'Username must be between 3 and 20 characters.' }, { status: 400 });
+      return publicJson({ error: 'Username must be between 3 and 20 characters.' }, { status: 400 });
     }
 
     if (cleanUsername && !/^[a-z0-9_]+$/.test(cleanUsername)) {
-      return NextResponse.json({ error: 'Username can only contain letters, numbers, and underscores.' }, { status: 400 });
+      return publicJson({ error: 'Username can only contain letters, numbers, and underscores.' }, { status: 400 });
     }
 
     if (cleanUsername) {
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
           `${cleanUsername}_pro`,
           `${cleanUsername}_${new Date().getFullYear()}`
         ];
-        return NextResponse.json({
+        return publicJson({
           error: 'Username already taken.',
           suggestions
         }, { status: 409 });
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       console.error('Profile auth metadata update failed:', authError.message);
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       user: {
         ...updatedUser,
@@ -89,6 +89,6 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     console.error('Profile Update Error:', error);
     const message = error instanceof Error ? error.message : 'Failed to update profile';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return publicJson({ error: message }, { status: 500 });
   }
 }

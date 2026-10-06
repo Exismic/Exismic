@@ -1248,7 +1248,7 @@ export function Navbar() {
                 <ExismicLogo size={28} showText={true} logoLink={true} />
                 <div className="flex items-center gap-2">
                   <Link href="/tools">
-                    <button className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.4)] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5">
+                    <button className="h-11 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.4)] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5">
                       <Rocket size={12} className="text-cyan-200" />
                       <span>Try Free</span>
                     </button>
@@ -1257,8 +1257,9 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#080914] border border-white/[0.12] text-zinc-200 hover:text-white transition-colors active:scale-95"
+                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#080914] border border-white/[0.12] text-zinc-200 hover:text-white transition-colors active:scale-95"
                     aria-label="Toggle navigation menu"
+                    aria-expanded={mobileNavOpen}
                   >
                     {mobileNavOpen ? <X size={17} /> : <Menu size={17} />}
                   </button>
@@ -1439,13 +1440,13 @@ export function Navbar() {
                       <Link
                         href="/shop"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex min-h-16 items-center gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 text-left transition-colors active:bg-cyan-300/[0.08]"
+                        className="flex min-h-16 flex-col items-start justify-center gap-1 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.035] px-3 py-2 text-left transition-colors active:bg-cyan-300/[0.08]"
                       >
-                        <CreditTokenIcon />
-                        <span className="min-w-0">
+                        <span className="flex items-center gap-2">
+                          <CreditTokenIcon />
                           <span className="block text-[8px] font-black uppercase tracking-[0.14em] text-zinc-600">Credits</span>
-                          <span className="mt-1 block truncate text-xs font-black text-white">{credits.toLocaleString()}</span>
                         </span>
+                        <span className="block break-all text-[11px] sm:text-xs font-black text-white">{credits.toLocaleString()}</span>
                       </Link>
                       <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-purple-300/10 bg-purple-300/[0.035] px-3">
                         <Crown size={17} className={isPro ? "text-purple-300" : "text-zinc-600"} />
@@ -1456,7 +1457,7 @@ export function Navbar() {
                       </div>
                     </div>
 
-                    <div className="relative grid gap-1.5">
+                    <div className="relative grid grid-cols-1 gap-1.5">
                       <button
                         type="button"
                         onClick={() => {
@@ -1468,7 +1469,7 @@ export function Navbar() {
                         <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-400/40 text-orange-400 shrink-0">
                           <Flame size={15} className="text-orange-400 drop-shadow-[0_0_6px_rgba(249,115,22,0.8)]" />
                         </div>
-                        <span className="bg-gradient-to-r from-orange-100 to-amber-200 bg-clip-text text-transparent font-black whitespace-nowrap truncate min-w-0 flex-1">
+                        <span className="bg-gradient-to-r from-orange-100 to-amber-200 bg-clip-text text-transparent font-black break-words min-w-0 flex-1">
                           Daily Mystery Vault
                         </span>
                         {!todayClaim ? (
@@ -1493,7 +1494,7 @@ export function Navbar() {
                         <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 shrink-0">
                           <Trophy size={15} className="text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
                         </div>
-                        <span className="bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent font-black whitespace-nowrap truncate min-w-0 flex-1">
+                        <span className="bg-gradient-to-r from-amber-100 to-amber-300 bg-clip-text text-transparent font-black break-words min-w-0 flex-1">
                           Quests & Rewards
                         </span>
                         {unclaimedCount > 0 ? (
@@ -1516,9 +1517,9 @@ export function Navbar() {
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10"
                       >
-                        <Coins size={16} className="text-amber-400" />
-                        Credit Vault
-                        <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
+                        <Coins size={16} className="shrink-0 text-amber-400" />
+                        <span className="min-w-0 flex-1">Credit Vault</span>
+                        <span className="ml-auto shrink-0 whitespace-nowrap text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">SHOP</span>
                       </Link>
                       <button
                         type="button"
@@ -1528,9 +1529,9 @@ export function Navbar() {
                         }}
                         className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[10px] font-black uppercase tracking-[0.13em] text-amber-300 transition-colors active:bg-amber-400/10 text-left"
                       >
-                        <Gift size={16} className="text-amber-400" />
-                        Redeem Code / Voucher
-                        <span className="ml-auto text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
+                        <Gift size={16} className="shrink-0 text-amber-400" />
+                        <span className="min-w-0 flex-1">Redeem Code / Voucher</span>
+                        <span className="ml-auto shrink-0 whitespace-nowrap text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">REDEEM</span>
                       </button>
                       <Link
                         href="/"

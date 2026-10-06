@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
@@ -53,13 +54,13 @@ export async function POST(req: NextRequest) {
     const ip = getRequestIp(req);
     const rateCheck = await checkDistributedRateLimit(`student-outline:${user.id || ip}`, 15, 60 * 1000);
     if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.retryAfter);
+      return rateLimitResponse(rateCheck.retryAfter, rateCheck.unavailable);
     }
 
     const userCredits = await getUserCredits(user.id);
     const available = userCredits ? getCreditTotal(userCredits) : 0;
     if (available < TOOL_COST) {
-      return NextResponse.json(
+      return publicJson(
         { error: `Insufficient credits. Required: ${TOOL_COST}, Available: ${available}`, code: "INSUFFICIENT_CREDITS" },
         { status: 402 }
       );
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
     const { topic, paperType, academicTone } = body;
 
     if (!topic || typeof topic !== "string" || !topic.trim()) {
-      return NextResponse.json({ error: "Please provide a valid essay topic." }, { status: 400 });
+      return publicJson({ error: "Please provide a valid essay topic." }, { status: 400 });
     }
 
     const systemPrompt = `You are a distinguished university professor and academic thesis advisor.
@@ -122,14 +123,14 @@ Academic Tone: ${academicTone || "standard academic"}`;
     // Atomically deduct credits
     await deductCredits(user.id, TOOL_COST, "essay-outline");
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       data: parsedData,
       creditsDeducted: TOOL_COST,
     });
   } catch (error: any) {
     console.error("[EssayOutline API Error]:", error.response?.data || error.message);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "Failed to generate outline via Groq AI." },
       { status: 500 }
     );

@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-
+import { publicJson } from "@/lib/public-json";
 function legacyAuthDisabled() {
-  return NextResponse.json(
+  return publicJson(
     { error: "This authentication endpoint is no longer available." },
     { status: 410 },
   );

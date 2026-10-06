@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { GROQ_TEXT_MODELS } from "@/lib/ai-models";
 import { EXISMIC_SYSTEM_PROMPT } from "@/lib/support/exismic-knowledge";
 
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
     const { messages, userContext } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: "Messages array is required." }, { status: 400 });
+      return publicJson({ error: "Messages array is required." }, { status: 400 });
     }
 
     const rawKeys = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "";
@@ -41,7 +42,7 @@ You have direct awareness of this user's account. If the user asks about their o
 
     if (!keys.length) {
       // Fallback response if API key is not configured locally
-      return NextResponse.json({
+      return publicJson({
         reply: "Hi! I am the Exismic AI Support Assistant. Our support desk is currently running in local offline mode, but you can explore tools at /shop, /pro, and /developer/docs, or email us directly at support@exismic.xyz."
       });
     }
@@ -85,15 +86,15 @@ You have direct awareness of this user's account. If the user asks about their o
     }
 
     if (!reply) {
-      return NextResponse.json({
+      return publicJson({
         reply: "I apologize, but I encountered a momentary connection issue. You can reach out directly to the Exismic support team at support@exismic.xyz or file a ticket."
       });
     }
 
-    return NextResponse.json({ reply });
+    return publicJson({ reply });
   } catch (error: any) {
     console.error("AI Support Agent Error:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: "Failed to generate support response." },
       { status: 500 }
     );

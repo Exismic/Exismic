@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import pdf from "pdf-parse";
 import { createClient } from "@/utils/supabase/server";
 import { DEFAULT_GROQ_TEXT_MODEL } from "@/lib/ai-models";
@@ -82,13 +83,13 @@ function buildJobDescriptionPrompt(resumeText: string) {
 
   Format the response as clean, raw text with the following outline:
   Target Job Title: [Role Name]
-  
+
   About the Role:
   [Describe typical company environment and role goals]
-  
+
   Key Responsibilities:
   - [4 to 6 typical responsibilities]
-  
+
   Required Skills & Qualifications:
   - [4 to 6 core tech skills / qualifications]
 
@@ -100,13 +101,13 @@ function buildJobDescriptionPrompt(resumeText: string) {
 
 function buildAtsPrompt(resumeText: string, jobDescription: string) {
   return `Perform a comprehensive ATS compatibility audit. Compare the candidate's resume text against the target job description.
-  
+
   Resume Text:
   ${resumeText}
-  
+
   Job Description:
   ${jobDescription}
-  
+
   You MUST return a JSON object ONLY with the following exact structure:
   {
     "atsScore": 75,
@@ -124,7 +125,7 @@ function buildAtsPrompt(resumeText: string, jobDescription: string) {
       "List 4 to 6 highly actionable bullet points of concrete changes the user can make to improve their match score."
     ]
   }
-  
+
   Rules:
   - atsScore must be a number between 0 and 100 representing overall compatibility.
   - All critiques must be brief, direct, and constructive.
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
 
     if (!resumeText) {
       if (!file || file.size === 0) {
-        return NextResponse.json({ error: "Please upload a valid PDF resume file or paste your resume text." }, { status: 400 });
+        return publicJson({ error: "Please upload a valid PDF resume file or paste your resume text." }, { status: 400 });
       }
 
       // Parse the PDF buffer using pdf-parse
@@ -170,7 +171,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!resumeText.trim()) {
-      return NextResponse.json({ error: "Your resume does not contain any readable text. Please ensure it is not scanned/image-only." }, { status: 400 });
+      return publicJson({ error: "Your resume does not contain any readable text. Please ensure it is not scanned/image-only." }, { status: 400 });
     }
 
     if (action === "generate-job-description") {
@@ -180,12 +181,12 @@ export async function POST(req: NextRequest) {
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ], false);
-      return NextResponse.json({ success: true, jobDescription: completion });
+      return publicJson({ success: true, jobDescription: completion });
     }
 
     const jobDescription = sanitizeText(rawJobDescription || "", "", 8000);
     if (jobDescription.length < 20) {
-      return NextResponse.json({ error: "Please provide a target job description (at least 20 characters)." }, { status: 400 });
+      return publicJson({ error: "Please provide a target job description (at least 20 characters)." }, { status: 400 });
     }
 
     const systemPrompt = "You are Exismic AI, an expert ATS parsing and corporate hiring consultant. Return clean, valid JSON only.";
@@ -197,10 +198,10 @@ export async function POST(req: NextRequest) {
     ], true);
 
     const result = extractJson(completion);
-    return NextResponse.json({ success: true, result });
+    return publicJson({ success: true, result });
   } catch (error: any) {
     console.error("[Resume Scanner Error]:", error);
-    return NextResponse.json(
+    return publicJson(
       { error: error.message || "An unexpected error occurred during analysis." },
       { status: 500 }
     );

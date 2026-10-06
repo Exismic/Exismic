@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const { data: { user: sbUser } } = await supabase.auth.getUser();
 
     if (!sbUser || !sbUser.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await getOrCreateUser(sbUser);
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     const messages = Array.isArray(body.messages) ? body.messages : [];
 
     if (messages.length === 0) {
-      return NextResponse.json({ error: "Branch needs at least one message" }, { status: 400 });
+      return publicJson({ error: "Branch needs at least one message" }, { status: 400 });
     }
 
     let sourceTitle = "New Chat";
@@ -53,11 +53,11 @@ export async function POST(req: Request) {
       });
 
       if (!sourceSession) {
-        return NextResponse.json({ error: "Source chat not found" }, { status: 404 });
+        return publicJson({ error: "Source chat not found" }, { status: 404 });
       }
 
       if (sourceSession.userId !== user.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        return publicJson({ error: "Unauthorized" }, { status: 403 });
       }
 
       sourceTitle = sourceSession.title || sourceTitle;
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       .map(cleanBranchMessage);
 
     if (cleanedMessages.length === 0) {
-      return NextResponse.json({ error: "No valid messages to branch" }, { status: 400 });
+      return publicJson({ error: "No valid messages to branch" }, { status: 400 });
     }
 
     const branchTitle = `Branch: ${sourceTitle}`.slice(0, 60);
@@ -80,13 +80,13 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({
+    return publicJson({
       id: newSession.id,
       title: newSession.title,
       messages: cleanedMessages,
     });
   } catch (error) {
     console.error("[Chat Branch] Error:", error);
-    return NextResponse.json({ error: "Failed to create branch" }, { status: 500 });
+    return publicJson({ error: "Failed to create branch" }, { status: 500 });
   }
 }

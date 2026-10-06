@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
@@ -19,14 +20,14 @@ function getGroqApiKey() {
 export async function POST(req: NextRequest) {
   try {
     const user = await getOptionalApiUser();
-    const actor = user?.id || "guest";
+    const actor = user?.id || getRequestIp(req);
 
-    const limit = checkRateLimit(
-      `speech-to-text:${actor}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `speech-to-text:${actor}`,
       user ? 20 : 5,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const requestData = await req.formData();
     const file = requestData.get("file") as File | null;
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const apiKey = getGroqApiKey();
     if (!apiKey) {
-      return NextResponse.json(
+      return publicJson(
         { error: "Speech transcription is not configured." },
         { status: 503 },
       );
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
         result && typeof result === "object" && "error" in result
           ? (result.error as { message?: string })?.message
           : null;
-      return NextResponse.json(
+      return publicJson(
         { error: providerMessage || "The transcription service could not process this file." },
         { status: response.status === 429 ? 429 : 502 },
       );
@@ -81,13 +82,13 @@ export async function POST(req: NextRequest) {
         ? String(result.text || "").trim()
         : "";
     if (!text) {
-      return NextResponse.json(
+      return publicJson(
         { error: "No speech was detected in this recording." },
         { status: 422 },
       );
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       text,
       language:
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Transcription failed.";
     console.error("[SpeechToText]", error);
-    return NextResponse.json(
+    return publicJson(
       {
         error: message.includes("timeout")
           ? "Transcription timed out. Try a shorter recording."

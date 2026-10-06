@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { getOrCreateUser } from '@/lib/user-access';
@@ -10,19 +11,19 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return publicJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 1. Fetch user from local Prisma
     const dbUser = await getOrCreateUser(user);
 
     if (!dbUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return publicJson({ error: 'User not found' }, { status: 404 });
     }
 
     if (dbUser.plan !== 'pro') {
-      return NextResponse.json({ 
-        error: 'No active Pro subscription found. Please upgrade to access Pro features.' 
+      return publicJson({
+        error: 'No active Pro subscription found. Please upgrade to access Pro features.'
       }, { status: 403 });
     }
 
@@ -49,17 +50,17 @@ export async function POST(req: NextRequest) {
     const dbExpiry = dbUser.planExpiresAt;
 
     // Protection: If already cancelled in Supabase, preserve that status and expiry
-    const newStatus = currentStatus === 'cancelled' || dbStatus === 'cancelled' 
-      ? 'cancelled' 
+    const newStatus = currentStatus === 'cancelled' || dbStatus === 'cancelled'
+      ? 'cancelled'
       : (dbUser.plan === 'pro' ? 'active' : 'none');
-    
+
     const newExpiry = currentExpiry || (dbExpiry ? dbExpiry.toISOString() : null);
 
     // No need to sync to Supabase via Admin Client because Prisma and Supabase point to the same database.
     // The issue was caused by service_role lacking explicit grants to tables created by postgres role.
 
-    return NextResponse.json({ 
-      success: true, 
+    return publicJson({
+      success: true,
       message: 'Account synced successfully',
       user: {
         plan: dbUser.plan,
@@ -68,6 +69,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Sync error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return publicJson({ error: error.message }, { status: 500 });
   }
 }

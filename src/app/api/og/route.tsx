@@ -273,7 +273,7 @@ export async function GET(req: NextRequest) {
   } catch (e: unknown) {
     const error = e as Error;
     console.error("Failed to generate OG image:", error);
-    return new Response(`Failed to generate the image: ${error.message}`, {
+    return new Response('Could not create this image. Please try again shortly.', {
       status: 500,
     });
   }

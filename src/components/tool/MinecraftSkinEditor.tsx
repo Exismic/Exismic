@@ -614,9 +614,9 @@ export function MinecraftSkinEditor({
 
   return (
     <fieldset disabled={disabled || isSaving || isAiEditing} className="min-w-0 min-h-[520px] bg-[#070810] p-3 sm:p-5">
-      <div className="grid gap-4 2xl:grid-cols-[240px_minmax(0,1fr)_280px]">
+      <div className="grid min-w-0 gap-4 2xl:grid-cols-[200px_minmax(0,1fr)]">
         {/* LEFT PANEL: BODY VIEW & TOOLS */}
-        <aside className="space-y-4 rounded-lg border border-white/10 bg-black/25 p-3">
+        <aside className="min-w-0 space-y-4 rounded-lg border border-white/10 bg-black/25 p-3">
           <div>
             <p className="mb-2 text-[11px] font-bold text-zinc-300">Body view</p>
             <select
@@ -639,7 +639,7 @@ export function MinecraftSkinEditor({
                     type="button"
                     onClick={() => setLayer(value)}
                     className={cn(
-                      "min-h-10 rounded px-2 text-[11px] font-semibold capitalize transition",
+                      "min-h-11 rounded px-2 text-[11px] font-semibold capitalize transition",
                       layer === value ? "bg-white/10 text-white" : "text-zinc-500 hover:text-white"
                     )}
                   >
@@ -714,8 +714,8 @@ export function MinecraftSkinEditor({
         </aside>
 
         {/* CENTER CANVAS */}
-        <main className="flex min-h-[460px] flex-col items-center justify-center overflow-auto rounded-lg border border-white/10 bg-[radial-gradient(circle_at_50%_45%,rgba(59,130,246,0.08),transparent_46%)] p-4">
-          <div className="mb-3 flex w-full items-center justify-between gap-3">
+        <main className="flex min-w-0 min-h-[320px] sm:min-h-[460px] flex-col items-center justify-center overflow-auto rounded-lg border border-white/10 bg-[radial-gradient(circle_at_50%_45%,rgba(59,130,246,0.08),transparent_46%)] p-4">
+          <div className="mb-3 flex w-full flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-bold text-white">{PART_OPTIONS.find((option) => option.id === part)?.label}</p>
               <p className="mt-1 text-[10px] text-zinc-500">{region.width} x {region.height} pixels</p>
@@ -724,7 +724,7 @@ export function MinecraftSkinEditor({
               type="button"
               onClick={() => setShowOriginal((value) => !value)}
               className={cn(
-                "flex min-h-10 items-center gap-2 rounded-md border px-3 text-[11px] font-semibold transition",
+                "flex min-h-11 items-center gap-2 rounded-md border px-3 text-[11px] font-semibold transition",
                 showOriginal
                   ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
                   : "border-white/10 text-zinc-400 hover:text-white"
@@ -745,7 +745,7 @@ export function MinecraftSkinEditor({
         </main>
 
         {/* RIGHT PANEL: PALETTES & SAVING */}
-        <aside className="space-y-4 rounded-lg border border-white/10 bg-black/25 p-3">
+        <aside className="min-w-0 space-y-4 rounded-lg border border-white/10 bg-black/25 p-3 2xl:col-span-2">
           <div>
             <p className="mb-2 text-[11px] font-bold text-zinc-300">Paint color</p>
             <div className="flex items-center gap-3 rounded-md border border-white/10 bg-black/30 p-2">
@@ -772,7 +772,7 @@ export function MinecraftSkinEditor({
             {/* Extracted Palette */}
             <div className="mt-3">
               <p className="mb-1.5 text-[10px] font-bold uppercase text-zinc-400">Skin Palette</p>
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10">
                 {extractedPalette.map((swatch) => (
                   <button
                     key={swatch}
@@ -797,9 +797,9 @@ export function MinecraftSkinEditor({
             <div className="mt-3 space-y-2">
               <p className="text-[10px] font-bold uppercase text-zinc-400">Preset Swatches</p>
               {PRESET_PALETTES.map((preset) => (
-                <div key={preset.name} className="flex items-center justify-between">
+                <div key={preset.name} className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[10px] text-zinc-500">{preset.name}</span>
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {preset.colors.map((c) => (
                       <button
                         key={c}
@@ -808,7 +808,7 @@ export function MinecraftSkinEditor({
                           setColor(c);
                           if (tool === "eraser" || tool === "picker") setTool("pencil");
                         }}
-                        className="size-4 rounded-full border border-white/20 transition hover:scale-125"
+                        className="size-8 shrink-0 sm:size-4 rounded-full border border-white/20 transition hover:scale-125"
                         style={{ backgroundColor: c }}
                         title={c}
                       />

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { completeRewardTask, getTodayTrivia, saveUserRewardProfile } from "@/lib/rewards";
 
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      return NextResponse.json({ error: "Please sign in to earn Reward Points." }, { status: 401 });
+      return publicJson({ error: "Please sign in to earn Reward Points." }, { status: 401 });
     }
 
     const body = await request.json();
@@ -21,11 +22,11 @@ export async function POST(request: NextRequest) {
     // Handle goal setting update
     if (selectedGoalId) {
       await saveUserRewardProfile(user.id, { selectedGoalId });
-      return NextResponse.json({ success: true, selectedGoalId });
+      return publicJson({ success: true, selectedGoalId });
     }
 
     if (!taskId) {
-      return NextResponse.json({ error: "Missing taskId" }, { status: 400 });
+      return publicJson({ error: "Missing taskId" }, { status: 400 });
     }
 
     const result = await completeRewardTask(user.id, taskId, {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return publicJson({ error: result.error }, { status: 400 });
     }
 
     // If quiz completed, also provide trivia solutions for client review
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       triviaReview = getTodayTrivia();
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       pointsAwarded: result.pointsAwarded,
       newTotal: result.newTotal,
@@ -53,6 +54,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error("[API_REWARDS_COMPLETE] Error:", err);
-    return NextResponse.json({ error: "Failed to process task completion" }, { status: 500 });
+    return publicJson({ error: "Failed to process task completion" }, { status: 500 });
   }
 }

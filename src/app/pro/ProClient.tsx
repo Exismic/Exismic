@@ -47,6 +47,7 @@ import { GiftSuccessModal } from "@/components/modals/GiftSuccessModal";
 import { RedeemPromoModal } from "@/components/modals/RedeemPromoModal";
 import { ExismicMark } from "@/components/ui/ExismicLogo";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+// CurrencySwitcher removed for auto-detection
 import { CreditTokenIcon } from "@/components/ui/CreditTokenIcon";
 import { PRICING_CONFIG, getIsIndia, isExismic17PromoActive, getAnnualSavings } from "@/config/pricing";
 
@@ -343,7 +344,7 @@ export function ProClient() {
       return;
     }
     setSelectedPlanId(targetPlanId as "pro" | "pro_yearly");
-    setIsTermsModalOpen(true);
+    router.push(`/checkout?plan=${targetPlanId}${isIndia ? "&market=IN" : ""}`);
   };
 
   const handleUpgradeConfirm = async (couponCode?: string) => {
@@ -489,7 +490,7 @@ export function ProClient() {
       />
 
       <main className="relative z-10">
-        <section className="relative flex min-h-[calc(100svh-5rem)] items-center overflow-hidden border-b border-white/[0.07] px-4 py-14 sm:px-6 md:py-20 bg-[#020202]">
+        <section className="relative flex items-center overflow-hidden border-b border-white/[0.07] px-4 py-6 sm:min-h-[calc(100svh-5rem)] sm:px-6 sm:py-14 md:py-20 bg-[#020202]">
           {/* Premium Ambient Background */}
           <div className="absolute inset-0 z-0">
             <div className="absolute top-0 right-[10%] w-[600px] h-[600px] bg-accent-purple/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen" />
@@ -512,9 +513,9 @@ export function ProClient() {
               {/* Header Text Block */}
               <div className="max-w-[790px]">
                 {/* Premium Glowing Badge */}
-                <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-md transition-colors hover:bg-accent-cyan/20 hover:border-accent-cyan/50 cursor-default">
-                  <Crown size={14} className="fill-accent-cyan/30 text-accent-cyan animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-accent-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-3 py-2 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-md transition-colors hover:bg-accent-cyan/20 hover:border-accent-cyan/50 cursor-default sm:mb-8 sm:gap-2.5 sm:px-4">
+                  <Crown size={14} className="shrink-0 fill-accent-cyan/30 text-accent-cyan animate-pulse" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.14em] text-accent-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] sm:text-[10px] sm:tracking-[0.25em]">
                     The complete Exismic experience
                   </span>
                 </div>
@@ -530,19 +531,19 @@ export function ProClient() {
                   </span>
                 </h1>
 
-                <p className="mt-10 max-w-[620px] text-lg font-medium leading-relaxed text-zinc-400 sm:text-xl sm:leading-loose">
+                <p className="mt-5 max-w-[620px] text-base font-medium leading-relaxed text-zinc-400 sm:mt-10 sm:text-xl sm:leading-loose">
                   Stop rationing ideas. Get the speed, capacity, clean exports, and creative ownership
                   to turn more of your work into finished results.
                 </p>
               </div>
 
               {/* Gift & Redeem Actions */}
-              <div className="mt-8 flex items-center gap-3.5 flex-wrap">
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:flex sm:flex-wrap sm:items-center sm:gap-3.5 [&>button]:min-h-11 [&>button]:justify-center">
                 <button
                   type="button"
                   onClick={() => {
-                    setGiftInitialPlan("pro");
-                    setIsGiftModalOpen(true);
+                    router.push(`/checkout?plan=pro&gift=true${isIndia ? "&market=IN" : ""}`);
+
                   }}
                   className="group relative inline-flex items-center gap-2.5 rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/20 via-fuchsia-500/15 to-purple-600/20 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-purple-200 shadow-[0_0_25px_rgba(168,85,247,0.25)] backdrop-blur-xl transition-all duration-300 hover:border-purple-300 hover:bg-purple-500/30 hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] hover:text-white active:scale-95 cursor-pointer"
                 >
@@ -559,13 +560,13 @@ export function ProClient() {
                 </button>
               </div>
 
-              <div className="mt-8 w-full">
+              <div className="mt-6 w-full sm:mt-8">
                 {isPro ? (
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
                       onClick={() => (isSubscriptionCancelled ? router.push("/tools") : setIsModalOpen(true))}
-                      className="group relative flex min-h-14 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-white px-6 text-xs font-black uppercase tracking-[0.16em] text-black shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-100 active:translate-y-0"
+                      className="group relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-white px-4 text-xs font-black uppercase tracking-[0.12em] text-black shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-100 active:translate-y-0 sm:w-auto sm:px-6 sm:tracking-[0.16em]"
                     >
                       <CheckCircle2 size={17} className="text-emerald-500" />
                       {isSubscriptionCancelled ? "Continue with Pro" : "Manage membership"}
@@ -573,23 +574,25 @@ export function ProClient() {
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="w-full max-w-6xl space-y-6">
+
+                    <div className="grid w-full min-w-0 grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-2 lg:gap-8">
                     {/* 1. Monthly Pro Pass (Cyan Theme) */}
                     <motion.div
                       whileHover={{ y: -6 }}
                       transition={{ duration: 0.3 }}
                       onClick={() => handleUpgradeClick("pro")}
-                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-400/80 via-sky-500/50 to-indigo-500/60 flex flex-col"
+                      className="cursor-pointer group relative min-w-0 overflow-clip rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_25px_80px_rgba(0,0,0,0.85)] hover:shadow-[0_30px_100px_rgba(6,182,212,0.3)] bg-gradient-to-br from-cyan-400/80 via-sky-500/50 to-indigo-500/60 flex flex-col"
                     >
                       {/* Ambient Glowing Blobs */}
                       <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
                       <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-sky-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-40" />
 
                       {/* Inner Obsidian Card */}
-                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 p-5 sm:p-8 md:p-10 backdrop-blur-3xl">
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#061224]/98 via-[#060e1c]/98 to-[#03070f]/98 @container/plan min-w-0 p-4 sm:p-6 xl:p-8 backdrop-blur-3xl">
                         <div>
                           {/* Header: Plan Identity Badge Row */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0">
                               <div className={cn(
                                 "flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-300",
@@ -626,7 +629,7 @@ export function ProClient() {
                           <div className="mt-6">
                             {launchDiscount?.eligible || isExismic17PromoActive() ? (
                               <div>
-                                <div className="flex items-baseline gap-2.5">
+                                <div className="flex flex-wrap items-baseline gap-2.5">
                                   <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#6ee7b7_50%,#34d399_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(52,211,153,0.35)]">
                                     {isIndia ? "₹399" : "$5.59"}
                                   </span>
@@ -651,7 +654,7 @@ export function ProClient() {
                               </div>
                             ) : (
                               <div>
-                                <div className="flex items-baseline gap-2">
+                                <div className="flex flex-wrap items-baseline gap-2">
                                   <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_15%,#a5f3fc_50%,#38bdf8_85%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
                                     {isIndia ? "₹499" : "$6.99"}
                                   </span>
@@ -709,10 +712,10 @@ export function ProClient() {
                               return (
                                 <div
                                   key={item.title}
-                                  className="group/item flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-3 sm:px-4.5 sm:py-3.5 transition-all duration-300 hover:border-cyan-500/30 hover:bg-white/[0.04]"
+                                  className="group/item grid grid-cols-[36px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 @[420px]/plan:grid-cols-[40px_minmax(0,1fr)_auto] rounded-2xl border border-white/[0.07] bg-white/[0.02] p-3 sm:px-4.5 sm:py-3.5 transition-all duration-300 hover:border-cyan-500/30 hover:bg-white/[0.04]"
                                 >
-                                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    <div className={cn("flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
+                                  <div className="contents">
+                                    <div className={cn("row-span-2 @[420px]/plan:row-span-1 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
                                       <ItemIcon size={18} className={item.iconColor} />
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -720,7 +723,7 @@ export function ProClient() {
                                       <p className="text-[10.5px] sm:text-xs font-medium text-zinc-400 leading-snug break-words mt-0.5">{item.subtitle}</p>
                                     </div>
                                   </div>
-                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider self-center ml-1", item.badgeStyle)}>
+                                  <span className={cn("col-start-2 justify-self-start shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider @[420px]/plan:col-start-auto", item.badgeStyle)}>
                                     {item.badge}
                                   </span>
                                 </div>
@@ -769,19 +772,19 @@ export function ProClient() {
                               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                             />
                             <span className={cn(
-                              "relative flex h-full w-full items-center justify-between gap-2.5 sm:gap-3 rounded-[19px] border px-3.5 sm:px-5 py-2.5 sm:py-3 backdrop-blur-2xl transition-colors duration-500",
+                              "relative flex min-h-[59px] w-full items-center justify-between gap-2.5 sm:gap-3 rounded-[19px] border px-3.5 sm:px-5 py-2.5 sm:py-3 backdrop-blur-2xl transition-colors duration-500",
                               launchDiscount?.eligible
                                 ? "border-emerald-400/35 bg-gradient-to-br from-[#061814]/98 via-[#06141c]/98 to-[#03070f]/98 group-hover/launch:from-[#09221c]/98 group-hover/launch:to-[#061018]/98"
                                 : "border-cyan-400/30 bg-gradient-to-br from-[#061224]/98 via-[#07101e]/98 to-[#04060d]/98 group-hover/launch:from-[#091a33]/98 group-hover/launch:to-[#060a14]/98"
                             )}>
-                              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                              <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3.5">
                                 <ExismicMark size={34} letter="P" theme={launchDiscount?.eligible ? "purple" : "blue"} animated={true} />
-                                <div className="text-left min-w-0">
-                                  <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white truncate">
+                                <div className="min-w-0 flex-1 text-center sm:text-left">
+                                  <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white whitespace-normal break-normal">
                                     GET MONTHLY • {(launchDiscount?.eligible || isExismic17PromoActive()) ? (isIndia ? "₹399" : "$5.59") : (isIndia ? "₹499" : "$6.99")}
                                   </span>
                                   <span className={cn(
-                                    "block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] truncate",
+                                    "block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] whitespace-normal break-normal",
                                     (launchDiscount?.eligible || isExismic17PromoActive()) ? "text-emerald-300/90" : "text-cyan-300/90"
                                   )}>
                                     {(launchDiscount?.eligible || isExismic17PromoActive()) ? "Exismic 1.7 Special • 20% OFF" : "Standard Pro Access"}
@@ -803,17 +806,17 @@ export function ProClient() {
                       whileHover={{ y: -8 }}
                       transition={{ duration: 0.3 }}
                       onClick={() => handleUpgradeClick("pro_yearly")}
-                      className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-br from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col"
+                      className="cursor-pointer group relative min-w-0 overflow-clip rounded-[2.5rem] p-[2.5px] backdrop-blur-3xl transition-all duration-500 shadow-[0_32px_100px_rgba(168,85,247,0.4),0_0_50px_rgba(217,70,239,0.25)] hover:shadow-[0_40px_130px_rgba(168,85,247,0.6),0_0_70px_rgba(217,70,239,0.4)] bg-gradient-to-br from-purple-400 via-fuchsia-500 to-indigo-500 flex flex-col"
                     >
                       {/* Ambient Radiant Glows */}
                       <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-purple-500/30 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-80" />
                       <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-fuchsia-500/25 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-60" />
 
                       {/* Inner Obsidian Card */}
-                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 p-5 sm:p-8 md:p-10 backdrop-blur-3xl">
+                      <div className="relative z-10 flex flex-col justify-between flex-1 rounded-[2.35rem] bg-gradient-to-br from-[#120822]/98 via-[#0c0618]/98 to-[#05030c]/98 @container/plan min-w-0 p-4 sm:p-6 xl:p-8 backdrop-blur-3xl">
                         <div>
                           {/* Header: Plan Identity Badge Row */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0">
                               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/40 bg-purple-500/15 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
                                 <Crown size={22} className="text-purple-300 fill-purple-400/30" />
@@ -837,7 +840,7 @@ export function ProClient() {
 
                           {/* Price Block */}
                           <div className="mt-6">
-                            <div className="flex items-baseline gap-2">
+                            <div className="flex flex-wrap items-baseline gap-2">
                               <span className="text-5xl sm:text-6xl font-black bg-[linear-gradient(110deg,#fff_10%,#e9d5ff_40%,#d946ef_70%,#c084fc_90%,#fff_100%)] bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_35px_rgba(168,85,247,0.45)]">
                                 {isIndia ? "₹4,499" : "$59.99"}
                               </span>
@@ -901,10 +904,10 @@ export function ProClient() {
                               return (
                                 <div
                                   key={item.title}
-                                  className="group/item flex items-center justify-between gap-3 rounded-2xl border border-purple-400/20 bg-purple-400/[0.03] p-3 sm:px-4.5 sm:py-3.5 transition-all duration-300 hover:border-purple-400/40 hover:bg-purple-400/[0.06]"
+                                  className="group/item grid grid-cols-[36px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 @[420px]/plan:grid-cols-[40px_minmax(0,1fr)_auto] rounded-2xl border border-purple-400/20 bg-purple-400/[0.03] p-3 sm:px-4.5 sm:py-3.5 transition-all duration-300 hover:border-purple-400/40 hover:bg-purple-400/[0.06]"
                                 >
-                                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    <div className={cn("flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
+                                  <div className="contents">
+                                    <div className={cn("row-span-2 @[420px]/plan:row-span-1 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl border", item.iconBg)}>
                                       <ItemIcon size={18} className={item.iconColor} />
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -912,7 +915,7 @@ export function ProClient() {
                                       <p className="text-[10.5px] sm:text-xs font-semibold text-zinc-300 leading-snug break-words mt-0.5">{item.subtitle}</p>
                                     </div>
                                   </div>
-                                  <span className={cn("shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider self-center ml-1", item.badgeStyle)}>
+                                  <span className={cn("col-start-2 justify-self-start shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 sm:px-3 sm:py-1 text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider @[420px]/plan:col-start-auto", item.badgeStyle)}>
                                     {item.badge}
                                   </span>
                                 </div>
@@ -945,14 +948,14 @@ export function ProClient() {
                               animate={{ rotate: 360 }}
                               transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
                             />
-                            <span className="relative flex h-full w-full items-center justify-between gap-2.5 sm:gap-3 rounded-[19px] border border-purple-400/30 bg-gradient-to-br from-[#120822]/98 via-[#0e071a]/98 to-[#07030e]/98 px-3.5 sm:px-5 py-2.5 sm:py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1a0c33]/98 group-hover/launch:to-[#0f041c]/98">
-                              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                            <span className="relative flex min-h-[59px] w-full items-center justify-between gap-2.5 sm:gap-3 rounded-[19px] border border-purple-400/30 bg-gradient-to-br from-[#120822]/98 via-[#0e071a]/98 to-[#07030e]/98 px-3.5 sm:px-5 py-2.5 sm:py-3 backdrop-blur-2xl transition-colors duration-500 group-hover/launch:from-[#1a0c33]/98 group-hover/launch:to-[#0f041c]/98">
+                              <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3.5">
                                 <ExismicMark size={34} letter="P" theme="purple" animated={true} />
-                                <div className="text-left min-w-0">
-                                  <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] truncate">
+                                <div className="min-w-0 flex-1 text-center sm:text-left">
+                                  <span className="block text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] whitespace-normal break-normal">
                                     GET YEARLY PRO • {isIndia ? "₹4,499" : "$59.99"}
                                   </span>
-                                  <span className="block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-200 truncate">
+                                  <span className="block text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-purple-200 whitespace-normal break-normal">
                                     Save {annualSavings.percent}% vs standard monthly
                                   </span>
                                 </div>
@@ -963,6 +966,7 @@ export function ProClient() {
                         </div>
                       </div>
                     </motion.div>
+                  </div>
                   </div>
                 )}
               </div>
@@ -1013,7 +1017,7 @@ export function ProClient() {
                     <Icon size={13} className={cn("relative", tone)} />
                     <span className="text-base font-black text-white sm:text-lg">{value}</span>
                   </div>
-                  <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                  <p className="mt-1 text-[9px] font-bold uppercase leading-relaxed tracking-[0.1em] text-zinc-600 sm:tracking-[0.14em]">
                     {label}
                   </p>
                 </motion.div>
@@ -1022,7 +1026,7 @@ export function ProClient() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden px-4 py-20 sm:px-6 md:py-28">
+        <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-20 md:py-28">
           <div className="pointer-events-none absolute inset-y-0 right-0 w-[48%] bg-[linear-gradient(125deg,transparent,rgba(34,211,238,0.035),rgba(99,102,241,0.05),transparent)]" />
           <div className="mx-auto max-w-7xl">
             <SectionHeading
@@ -1036,12 +1040,12 @@ export function ProClient() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.18 }}
               transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              className="relative mt-12 grid overflow-hidden rounded-[2.5rem] border-2 border-purple-500/40 bg-[#040406] shadow-[0_30px_100px_rgba(0,0,0,0.5),0_0_60px_rgba(168,85,247,0.15)] lg:grid-cols-[0.9fr_1.1fr]"
+              className="relative mt-8 grid overflow-clip rounded-[2rem] border-2 border-purple-500/40 bg-[#040406] shadow-[0_30px_100px_rgba(0,0,0,0.5),0_0_60px_rgba(168,85,247,0.15)] sm:mt-12 sm:rounded-[2.5rem] lg:grid-cols-[0.9fr_1.1fr]"
             >
               {/* Left Side */}
-              <div className="relative border-b border-white/[0.08] bg-[linear-gradient(140deg,rgba(168,85,247,0.08),transparent_48%)] p-8 sm:p-12 lg:border-b-0 lg:border-r z-10 flex flex-col justify-center">
-                <div className="flex items-center gap-5">
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-[1rem] border border-purple-400/30 bg-purple-500/10 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+              <div className="relative border-b border-white/[0.08] bg-[linear-gradient(140deg,rgba(168,85,247,0.08),transparent_48%)] p-5 sm:p-12 lg:border-b-0 lg:border-r z-10 flex flex-col justify-center">
+                <div className="flex items-center gap-3 sm:gap-5">
+                  <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] border border-purple-400/30 bg-purple-500/10 shadow-[0_0_30px_rgba(168,85,247,0.2)] sm:h-14 sm:w-14">
                     <div className="absolute inset-0 bg-purple-400/20 blur-xl rounded-full" />
                     <Cpu size={24} className="text-purple-300 relative z-10 animate-pulse" />
                   </div>
@@ -1049,14 +1053,14 @@ export function ProClient() {
                     <p className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]">
                       Priority Mode
                     </p>
-                    <h3 className="mt-1 text-2xl font-black text-white tracking-tight">Your work moves first.</h3>
+                    <h3 className="mt-1 text-xl font-black text-white tracking-tight sm:text-2xl">Your work moves first.</h3>
                   </div>
                 </div>
-                <p className="mt-8 max-w-[480px] text-[15px] font-medium leading-relaxed text-zinc-400">
+                <p className="mt-5 max-w-[480px] text-[15px] font-medium leading-relaxed text-zinc-400 sm:mt-8">
                   Eligible heavy jobs use Exismic&apos;s priority route when demand is high, so the
                   moments you are ready to create are spent creating.
                 </p>
-                <div className="mt-10 space-y-4">
+                <div className="mt-6 space-y-3 sm:mt-10 sm:space-y-4">
                   <BenefitLine text="Priority badge appears during eligible jobs" />
                   <BenefitLine text="Faster routing for demanding AI workflows" />
                   <BenefitLine text="Account-wide access across supported tools" />
@@ -1064,7 +1068,7 @@ export function ProClient() {
               </div>
 
               {/* Right Side */}
-              <div className="relative min-h-[420px] overflow-hidden bg-[linear-gradient(145deg,rgba(6,182,212,0.06),transparent_40%,rgba(168,85,247,0.08))] p-8 sm:p-12 z-10 flex flex-col justify-center group/right">
+              <div className="relative overflow-clip bg-[linear-gradient(145deg,rgba(6,182,212,0.06),transparent_40%,rgba(168,85,247,0.08))] p-5 sm:min-h-[420px] sm:p-12 z-10 flex flex-col justify-center group/right">
                 {/* Animated Grid Background */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)]" />
 
@@ -1075,10 +1079,10 @@ export function ProClient() {
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 />
 
-                <div className="relative z-10 w-full max-w-[500px] mx-auto space-y-8">
+                <div className="relative z-10 w-full max-w-[500px] mx-auto space-y-5 sm:space-y-8">
                   {/* Standard Queue Mockup */}
-                  <div className="w-full rounded-2xl border border-white/[0.05] bg-[#0a0a0f] p-5 opacity-60 mix-blend-luminosity transition-all duration-500 group-hover/right:opacity-40">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="w-full rounded-2xl border border-white/[0.05] bg-[#0a0a0f] p-4 opacity-60 mix-blend-luminosity transition-all duration-500 group-hover/right:opacity-40 sm:p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
                       <div className="flex items-center gap-3">
                         <div className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Standard Queue</span>
@@ -1091,11 +1095,11 @@ export function ProClient() {
                   </div>
 
                   {/* Pro Priority Mockup */}
-                  <div className="w-full rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6 backdrop-blur-xl shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden group hover:border-cyan-400/50 transition-colors duration-500 hover:shadow-[0_0_60px_rgba(6,182,212,0.25)] hover:scale-[1.02]">
+                  <div className="w-full rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 backdrop-blur-xl shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden group hover:border-cyan-400/50 transition-colors duration-500 hover:shadow-[0_0_60px_rgba(6,182,212,0.25)] hover:scale-[1.02] sm:p-6">
                     {/* Shimmer effect */}
                     <div className="absolute inset-0 translate-x-[-150%] bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.15),transparent)] transition-transform duration-[1.5s] group-hover:translate-x-[150%] pointer-events-none" />
                     
-                    <div className="flex items-center justify-between mb-5 relative z-10">
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-5 relative z-10">
                       <div className="flex items-center gap-3">
                         <div className="relative flex h-3.5 w-3.5 items-center justify-center">
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
@@ -1118,15 +1122,15 @@ export function ProClient() {
                     </div>
                   </div>
 
-                  <div className="mt-10 grid grid-cols-3 border-t border-white/[0.08] pt-7 relative z-10">
+                  <div className="mt-6 grid grid-cols-3 border-t border-white/[0.08] pt-5 relative z-10 sm:mt-10 sm:pt-7">
                     {[
                       ["Route", "Priority", "text-purple-400"],
                       ["Status", "Ready", "text-cyan-400"],
                       ["Access", "Pro", "text-white"],
                     ].map(([label, value, colorClass]) => (
-                      <div key={label} className="border-l border-white/[0.07] px-5 first:border-l-0 first:pl-0">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">{label}</p>
-                        <p className={cn("mt-2 text-[15px] font-black tracking-wide drop-shadow-lg", colorClass)}>{value}</p>
+                      <div key={label} className="min-w-0 border-l border-white/[0.07] px-2 first:border-l-0 first:pl-0 last:pr-0 sm:px-5">
+                        <p className="whitespace-nowrap text-[9px] font-black uppercase tracking-[0.1em] text-zinc-500 sm:tracking-[0.2em]">{label}</p>
+                        <p className={cn("mt-2 whitespace-nowrap text-[13px] font-black drop-shadow-lg sm:text-[15px] sm:tracking-wide", colorClass)}>{value}</p>
                       </div>
                     ))}
                   </div>
@@ -1136,10 +1140,10 @@ export function ProClient() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden border-y border-white/[0.07] bg-white/[0.012] px-4 py-20 sm:px-6 md:py-28">
+        <section className="relative overflow-hidden border-y border-white/[0.07] bg-white/[0.012] px-4 py-12 sm:px-6 sm:py-20 md:py-28">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(124,58,237,0.055),transparent_36%,rgba(34,211,238,0.045)_74%,transparent)]" />
           <div className="mx-auto max-w-7xl">
-            <div className="grid items-start gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+            <div className="grid items-start gap-8 sm:gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
               <div className="lg:sticky lg:top-28">
                 <SectionHeading
                   eyebrow="Free versus Pro"
@@ -1167,11 +1171,11 @@ export function ProClient() {
                 transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
                 className="group relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#050508]/80 shadow-[0_40px_100px_rgba(0,0,0,0.6),0_0_80px_rgba(168,85,247,0.08)] backdrop-blur-xl"
               >
-                <div className="absolute bottom-0 right-0 top-0 w-[31%] bg-[linear-gradient(180deg,rgba(34,211,238,0.08),rgba(168,85,247,0.08),transparent)] border-l border-white/[0.04]" />
-                <div className="absolute right-0 top-0 h-px w-[31%] bg-gradient-to-r from-transparent via-cyan-400 to-purple-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+                <div className="absolute bottom-0 right-0 top-0 w-1/2 bg-[linear-gradient(180deg,rgba(34,211,238,0.08),rgba(168,85,247,0.08),transparent)] border-l border-white/[0.04] sm:w-[31%]" />
+                <div className="absolute right-0 top-0 h-px w-1/2 bg-gradient-to-r from-transparent via-cyan-400 to-purple-400 shadow-[0_0_20px_rgba(34,211,238,0.8)] sm:w-[31%]" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.04),transparent)] -translate-x-[150%] skew-x-[-25deg] transition-transform duration-[1.5s] group-hover:translate-x-[150%] pointer-events-none" />
 
-                <div className="relative z-10 grid grid-cols-[1.25fr_0.8fr_0.8fr] border-b border-white/[0.08] bg-white/[0.02] px-4 py-5 sm:px-8">
+                <div className="relative z-10 hidden grid-cols-[1.25fr_0.8fr_0.8fr] border-b border-white/[0.08] bg-white/[0.02] px-8 py-5 sm:grid">
                   <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Capability</span>
                   <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Free</span>
                   <div className="flex items-center gap-2">
@@ -1189,7 +1193,7 @@ export function ProClient() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden px-4 py-20 sm:px-6 md:py-28">
+        <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-20 md:py-28">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-[linear-gradient(120deg,transparent_10%,rgba(217,70,239,0.028)_40%,rgba(34,211,238,0.035)_72%,transparent_92%)]" />
           <div className="mx-auto max-w-7xl">
             <SectionHeading
@@ -1198,7 +1202,7 @@ export function ProClient() {
               description="Every advantage has a job: help you create faster, deliver cleaner, or make Exismic feel personal."
             />
 
-            <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:mt-16 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
               {CREATOR_BENEFITS.map((item, index) => {
                 const Icon = item.icon;
                 return (
@@ -1210,7 +1214,7 @@ export function ProClient() {
                     transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
                     whileHover={prefersReducedMotion ? undefined : { y: -6, scale: 1.02 }}
                     className={cn(
-                      "group relative overflow-hidden rounded-[2rem] border-2 border-white/[0.08] bg-gradient-to-b from-[#0f111e]/90 via-[#0a0a14]/85 to-[#06060c]/90 p-7 sm:p-8 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] transition-all duration-500",
+                      "group relative overflow-clip rounded-[2rem] border-2 border-white/[0.08] bg-gradient-to-b from-[#0f111e]/90 via-[#0a0a14]/85 to-[#06060c]/90 p-5 sm:p-8 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] transition-all duration-500",
                       item.cardBorder
                     )}
                   >
@@ -1225,7 +1229,7 @@ export function ProClient() {
 
                     <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
                       {/* Top Row: Rotating Orb on left, Tag Chip on right */}
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="relative h-14 w-14 rounded-2xl flex items-center justify-center overflow-hidden bg-[#090a14] border border-white/10 shadow-xl group-hover:scale-110 transition-transform duration-500 shrink-0">
                           {/* Rotating Conic Aura */}
                           <div className={cn("absolute inset-[-100%] animate-[spin_4s_linear_infinite] opacity-60 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none", item.spinConic)} />
@@ -1254,22 +1258,22 @@ export function ProClient() {
               })}
             </div>
 
-            <div className="mt-14 text-center">
+            <div className="mt-8 text-center sm:mt-14">
               <Link
                 href="/pro/benefits"
                 className="group/btn relative inline-flex items-center gap-3 rounded-full border border-cyan-400/40 bg-gradient-to-r from-cyan-500/20 via-purple-500/15 to-cyan-500/20 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-cyan-200 backdrop-blur-xl shadow-[0_0_35px_rgba(6,182,212,0.25)] transition-all duration-300 hover:border-cyan-300 hover:text-white hover:shadow-[0_0_55px_rgba(6,182,212,0.5)] hover:scale-[1.02] active:scale-[0.98] overflow-hidden cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
                 <span className="relative z-10">Explore Full Pro Benefits Breakdown</span>
-                <ArrowRight size={15} className="relative z-10 text-cyan-400 transition-transform group-hover/btn:translate-x-1" />
+                <ArrowRight size={15} className="relative z-10 shrink-0 text-cyan-400 transition-transform group-hover/btn:translate-x-1" />
               </Link>
             </div>
           </div>
         </section>
 
-        <section className="relative overflow-hidden border-y border-white/[0.07] px-4 py-20 sm:px-6 md:py-28">
+        <section className="relative overflow-hidden border-y border-white/[0.07] px-4 py-12 sm:px-6 sm:py-20 md:py-28">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(130deg,rgba(124,58,237,0.075),transparent_34%,rgba(6,182,212,0.055)_76%,transparent)]" />
-          <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.78fr] lg:gap-20">
+          <div className="mx-auto grid max-w-7xl items-center gap-8 sm:gap-12 lg:grid-cols-[1fr_0.78fr] lg:gap-20">
             <div>
               <SectionHeading
                 eyebrow={isPro ? "Your membership" : "One plan. Everything included."}
@@ -1315,7 +1319,7 @@ export function ProClient() {
               />
 
               <div className="relative">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.22em] text-purple-300/80">
                       Exismic Pro
@@ -1335,8 +1339,8 @@ export function ProClient() {
                 {isPro ? (
                   <div>
                     <div className="flex items-center gap-2 text-sm font-black text-emerald-300">
-                      <CheckCircle2 size={17} />
-                      Pro is active on this account
+                      <CheckCircle2 size={17} className="shrink-0" />
+                      <span className="min-w-0">Pro is active on this account</span>
                     </div>
                     {isSubscriptionCancelled && (
                       <p className="mt-3 text-xs font-medium leading-6 text-amber-200/70">
@@ -1400,7 +1404,7 @@ export function ProClient() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden px-4 py-20 sm:px-6 md:py-28">
+        <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-20 md:py-28">
           <div className="pointer-events-none absolute inset-x-[16%] top-0 h-px bg-linear-to-r from-transparent via-fuchsia-400/40 to-transparent" />
           <div className="mx-auto max-w-4xl">
             <SectionHeading
@@ -1408,7 +1412,7 @@ export function ProClient() {
               title="Know what you are getting."
               description="The details that matter before you upgrade."
             />
-            <div className="mt-12 flex flex-col gap-4">
+            <div className="mt-8 flex flex-col gap-4 sm:mt-12">
               {FAQS.map(({ question, answer }, index) => (
                 <motion.div
                   key={question}
@@ -1465,7 +1469,7 @@ export function ProClient() {
         onClose={() => setShowFailure(false)}
         onRetry={() => {
           setShowFailure(false);
-          setIsTermsModalOpen(true);
+          router.push(`/checkout?plan=${selectedPlanId}${isIndia ? "&market=IN" : ""}`);
         }}
       />
       <PaymentTermsModal
@@ -1598,14 +1602,20 @@ function ComparisonRow({ label, free, pro }: { label: string; free: string; pro:
       viewport={{ once: true, amount: 0.55 }}
       whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}
       transition={{ duration: 0.3 }}
-      className="group/row relative grid min-h-[72px] grid-cols-[1.25fr_0.8fr_0.8fr] items-center border-b border-white/[0.05] px-4 py-3 last:border-b-0 sm:px-8 transition-colors"
+      className="group/row relative grid min-h-[72px] grid-cols-2 items-start gap-x-3 gap-y-3 border-b border-white/[0.05] px-4 py-4 last:border-b-0 sm:grid-cols-[1.25fr_0.8fr_0.8fr] sm:items-center sm:gap-0 sm:px-8 sm:py-3 transition-colors"
     >
-      <div className="absolute right-0 top-0 bottom-0 w-[31%] opacity-0 group-hover/row:opacity-100 bg-[radial-gradient(ellipse_at_center,rgba(34,211,238,0.15),transparent_70%)] transition-opacity duration-300 pointer-events-none" />
-      <span className="pr-3 text-[12px] font-black tracking-wide text-zinc-400 sm:text-sm group-hover/row:text-white transition-colors">{label}</span>
-      <span className="pr-2 text-[11px] font-medium leading-5 text-zinc-600 sm:text-xs">{free}</span>
-      <span className="relative flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-white sm:text-xs drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
-        <Check size={14} className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" strokeWidth={3} />
-        {pro}
+      <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-0 group-hover/row:opacity-100 bg-[radial-gradient(ellipse_at_center,rgba(34,211,238,0.15),transparent_70%)] transition-opacity duration-300 pointer-events-none sm:w-[31%]" />
+      <span className="col-span-2 min-w-0 text-[12px] font-black tracking-wide text-zinc-400 sm:col-span-1 sm:pr-3 sm:text-sm group-hover/row:text-white transition-colors">{label}</span>
+      <span className="min-w-0 pr-2 text-[11px] font-medium leading-5 text-zinc-600 sm:text-xs">
+        <span className="mb-1 block text-[9px] font-black uppercase tracking-[0.16em] sm:hidden">Free</span>
+        {free}
+      </span>
+      <span className="relative min-w-0 text-[11px] font-black uppercase tracking-[0.08em] text-white sm:text-xs drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+        <span className="mb-1 block text-[9px] tracking-[0.16em] text-cyan-300 sm:hidden">Pro</span>
+        <span className="flex items-start gap-1.5 sm:items-center sm:gap-2">
+          <Check size={14} className="mt-0.5 shrink-0 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] sm:mt-0" strokeWidth={3} />
+          <span className="min-w-0">{pro}</span>
+        </span>
       </span>
     </motion.div>
   );
@@ -1641,11 +1651,11 @@ function FaqItem({
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="relative z-10 flex min-h-16 w-full items-center justify-between gap-5 px-6 py-5 text-left focus-visible:outline-none"
+        className="relative z-10 flex min-h-16 w-full items-center justify-between gap-3 px-4 py-4 text-left focus-visible:outline-none sm:gap-5 sm:px-6 sm:py-5"
       >
         <span 
           className={cn(
-            "text-[15px] font-black tracking-wide transition-colors duration-300",
+            "min-w-0 text-sm font-black leading-6 tracking-wide transition-colors duration-300 sm:text-[15px]",
             isOpen ? "text-cyan-100 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" : "text-zinc-300 group-hover:text-white"
           )}
         >
@@ -1673,7 +1683,7 @@ function FaqItem({
             transition={{ height: { duration: 0.4, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.3 } }}
             className="overflow-hidden"
           >
-            <p className="relative z-10 max-w-3xl px-6 pb-6 pr-16 text-[14px] font-medium leading-relaxed text-cyan-50/70">
+            <p className="relative z-10 max-w-3xl px-4 pb-5 text-[14px] font-medium leading-relaxed text-cyan-50/70 sm:px-6 sm:pb-6 sm:pr-16">
               {answer}
             </p>
           </motion.div>

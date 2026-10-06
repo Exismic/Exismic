@@ -92,12 +92,12 @@ export async function POST(req: NextRequest) {
   const requestId = createPdfRequestId();
   try {
     const user = await getOptionalApiUser();
-    const limit = checkRateLimit(
-      `pdf-to-word:${user?.id || "guest"}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `pdf-to-word:${user?.id || getRequestIp(req)}`,
       user ? 20 : 6,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

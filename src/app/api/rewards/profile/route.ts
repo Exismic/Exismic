@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import { createClient } from "@/utils/supabase/server";
 import {
   getUserRewardProfile,
@@ -29,7 +29,7 @@ export async function GET() {
 
     if (!user?.id) {
       // Return guest default profile
-      return NextResponse.json(
+      return publicJson(
         {
           success: true,
           isLoggedIn: false,
@@ -61,7 +61,7 @@ export async function GET() {
 
     const profile = await getUserRewardProfile(user.id);
 
-    return NextResponse.json(
+    return publicJson(
       {
         success: true,
         isLoggedIn: true,
@@ -79,6 +79,6 @@ export async function GET() {
     );
   } catch (err) {
     console.error("[API_REWARDS_PROFILE] Error:", err);
-    return NextResponse.json({ error: "Failed to load rewards profile" }, { status: 500 });
+    return publicJson({ error: "Failed to load rewards profile" }, { status: 500 });
   }
 }

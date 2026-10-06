@@ -1,5 +1,6 @@
+import { publicJson } from "@/lib/public-json";
 import { randomUUID } from "node:crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import {
   checkRateLimit,
   getRequestIp,
@@ -29,12 +30,12 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getOptionalApiUser();
 
-    const limit = checkRateLimit(
-      `audio:voice-changer:${user?.id || "guest"}:${getRequestIp(request)}`,
+    const limit = await checkRateLimit(
+      `audio:voice-changer:${user?.id || getRequestIp(request)}`,
       user ? 10 : 3,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const input = await request.formData();
     const entry = input.get("file");
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      return NextResponse.json(
+      return publicJson(
         {
           error: "Voice conversion is not configured yet.",
           code: "VOICE_PROVIDER_NOT_CONFIGURED",
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
       console.error(
         `[audio:${requestId}] ElevenLabs voice changer returned ${response.status}`,
       );
-      return NextResponse.json(
+      return publicJson(
         {
           error: providerErrorMessage(response.status),
           code: "VOICE_PROVIDER_ERROR",
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
         .replace(/[^a-zA-Z0-9_-]+/g, "-")
         .slice(0, 80) || "exismic-voice";
 
-    return NextResponse.json(
+    return publicJson(
       {
         success: true,
         jobId: requestId,
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error(`[audio:${requestId}] voice conversion failed`, error);
-    return NextResponse.json(
+    return publicJson(
       {
         error: "The voice could not be converted. Try a shorter, clearer clip.",
         code: "VOICE_PROCESSING_FAILED",

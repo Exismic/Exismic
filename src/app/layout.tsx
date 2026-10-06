@@ -11,8 +11,7 @@ import { CookieConsent } from "@/components/layout/CookieConsent";
 import { ProfileThemeProvider } from "@/components/providers/ProfileThemeProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConsentAwareAnalytics } from "@/components/providers/ConsentAwareAnalytics";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SafeSiteAnalytics } from "@/components/providers/SafeSiteAnalytics";
 import { ReferralTracker } from "@/components/layout/ReferralTracker";
 
 import { JsonLd, defaultSchemaData } from "@/components/seo/JsonLd";
@@ -77,7 +76,7 @@ export default async function RootLayout({
   if (isSuspended) {
     try {
       const supabase = await createClient();
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "local" });
     } catch {
       // Ignore signOut errors during redirect
     }
@@ -132,8 +131,7 @@ export default async function RootLayout({
                 )}
                 <ReferralTracker />
                 <ConsentAwareAnalytics />
-                <Analytics />
-                <SpeedInsights />
+                <SafeSiteAnalytics />
                 <CookieConsent />
               </I18nProvider>
             </ProfileThemeProvider>

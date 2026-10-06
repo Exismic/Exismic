@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { isUuid, requireSupportUser, sanitizeSupportAgentInput } from "@/lib/support-agent/api-utils";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +8,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const auth = await requireSupportUser();
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  if (!isUuid(id)) return NextResponse.json({ error: "Support agent not found." }, { status: 404 });
+  if (!isUuid(id)) return publicJson({ error: "Support agent not found." }, { status: 404 });
 
   try {
     const [agent] = await prisma.$queryRaw<SupportAgent[]>`
@@ -15,11 +16,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       where id = ${id}::uuid and user_id = ${auth.user.id}::uuid
       limit 1
     `;
-    if (!agent) return NextResponse.json({ error: "Support agent not found." }, { status: 404 });
-    return NextResponse.json({ agent });
+    if (!agent) return publicJson({ error: "Support agent not found." }, { status: 404 });
+    return publicJson({ agent });
   } catch (error) {
     console.error("[SupportAgent agent GET]", error);
-    return NextResponse.json({ error: "Could not load support agent." }, { status: 500 });
+    return publicJson({ error: "Could not load support agent." }, { status: 500 });
   }
 }
 
@@ -27,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const auth = await requireSupportUser();
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  if (!isUuid(id)) return NextResponse.json({ error: "Support agent not found." }, { status: 404 });
+  if (!isUuid(id)) return publicJson({ error: "Support agent not found." }, { status: 404 });
 
   try {
     const input = sanitizeSupportAgentInput(await request.json());
@@ -52,11 +53,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       where id = ${id}::uuid and user_id = ${auth.user.id}::uuid
       returning *
     `;
-    if (!agent) return NextResponse.json({ error: "Support agent not found." }, { status: 404 });
-    return NextResponse.json({ agent });
+    if (!agent) return publicJson({ error: "Support agent not found." }, { status: 404 });
+    return publicJson({ agent });
   } catch (error) {
     console.error("[SupportAgent agent PATCH]", error);
-    return NextResponse.json({ error: "Could not update support agent." }, { status: 500 });
+    return publicJson({ error: "Could not update support agent." }, { status: 500 });
   }
 }
 
@@ -64,16 +65,16 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const auth = await requireSupportUser();
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  if (!isUuid(id)) return NextResponse.json({ success: true });
+  if (!isUuid(id)) return publicJson({ success: true });
 
   try {
     await prisma.$executeRaw`
       delete from public.support_agents
       where id = ${id}::uuid and user_id = ${auth.user.id}::uuid
     `;
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[SupportAgent agent DELETE]", error);
-    return NextResponse.json({ error: "Could not delete support agent." }, { status: 500 });
+    return publicJson({ error: "Could not delete support agent." }, { status: 500 });
   }
 }

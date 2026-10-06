@@ -514,7 +514,7 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
           }
           transition={{ duration: 4.1, repeat: Infinity, ease: "easeInOut" }}
           className={cn(
-            "group relative flex w-full items-center justify-center gap-3 overflow-hidden text-xs font-black uppercase tracking-[0.24em] transition-all duration-300",
+            "group relative flex w-full items-center justify-center gap-2 sm:gap-3 overflow-hidden px-4 py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.24em] transition-all duration-300",
             embedded ? "mt-3.5 min-h-12 rounded-xl" : "mt-6 min-h-16 rounded-2xl",
             claimLocked
               ? "border border-emerald-400/40 bg-emerald-500/10 text-emerald-300 shadow-[0_0_25px_rgba(52,211,153,0.15)] cursor-not-allowed"
@@ -537,14 +537,14 @@ export const DailyRewardLootBox: React.FC<DailyRewardLootBoxProps> = ({
           )}
 
           {claiming || animStage === "charging" ? (
-            <Loader2 size={20} className="animate-spin" />
+            <Loader2 size={20} className="shrink-0 animate-spin" />
           ) : claimLocked ? (
-            <CheckCircle2 size={20} className="text-emerald-400" />
+            <CheckCircle2 size={20} className="shrink-0 text-emerald-400" />
           ) : (
-            <Gift size={20} className="transition-transform duration-300 group-hover:scale-110" />
+            <Gift size={20} className="shrink-0 transition-transform duration-300 group-hover:scale-110" />
           )}
 
-          <span>
+          <span className="min-w-0 text-center leading-relaxed">
             {animStage === "charging" || claiming
               ? "Opening Daily Reward..."
               : claimLocked

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   checkRateLimit,
-  getRequestIp,
   rateLimitResponse,
   requireProApiUser,
   validateUploadedFile,
@@ -25,12 +24,12 @@ export async function POST(req: NextRequest) {
   try {
     const authUser = await requireProApiUser();
     if (authUser instanceof NextResponse) return authUser;
-    const limit = checkRateLimit(
-      `video-bg-remover:${authUser.id}:${getRequestIp(req)}`,
+    const limit = await checkRateLimit(
+      `video-bg-remover:${authUser.id}`,
       6,
       60 * 60 * 1000,
     );
-    if (!limit.allowed) return rateLimitResponse(limit.retryAfter);
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter, limit.unavailable);
 
     const formData = await req.formData();
     const file = formData.get("video") as File;

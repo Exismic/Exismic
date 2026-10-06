@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { isUuid, requireSupportUser } from "@/lib/support-agent/api-utils";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +9,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
   if (!isUuid(id)) {
-    return NextResponse.json({
+    return publicJson({
       conversations: [],
       messages: [],
       leads: [],
@@ -22,7 +23,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       where id = ${id}::uuid and user_id = ${auth.user.id}::uuid
       limit 1
     `;
-    if (!agent) return NextResponse.json({ error: "Support agent not found." }, { status: 404 });
+    if (!agent) return publicJson({ error: "Support agent not found." }, { status: 404 });
 
     const [conversations, messages, leads, usageRows, documentRows] = await Promise.all([
       prisma.$queryRaw<SupportConversation[]>`
@@ -57,7 +58,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     const messageUnits = Number(usageRows[0]?.messages ?? 0);
 
-    return NextResponse.json({
+    return publicJson({
       conversations,
       messages,
       leads,
@@ -70,6 +71,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     });
   } catch (error) {
     console.error("[SupportAgent conversations GET]", error);
-    return NextResponse.json({ error: "Could not load conversations." }, { status: 500 });
+    return publicJson({ error: "Could not load conversations." }, { status: 500 });
   }
 }

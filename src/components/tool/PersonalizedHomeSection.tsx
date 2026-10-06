@@ -166,21 +166,31 @@ export function PersonalizedHomeSection({
         className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6"
       >
         <div className="space-y-2.5 max-w-2xl min-w-0">
-          {/* Greeting Pill */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-cyan-500/15 border border-purple-400/30 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-xl shadow-[0_0_25px_rgba(168,85,247,0.2)]">
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+          {/* Compact glass greeting and membership badge */}
+          <div className="relative inline-flex max-w-full items-center gap-3 overflow-hidden rounded-2xl border border-purple-400/30 bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-cyan-500/15 px-3.5 py-2.5 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <span aria-hidden="true" className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+            <span className={cn(
+              "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
+              isPro
+                ? "border-amber-400/30 bg-gradient-to-br from-amber-400/20 to-amber-500/5 text-amber-300 shadow-[inset_0_1px_0_rgba(251,191,36,0.15),0_0_16px_rgba(245,158,11,0.12)]"
+                : "border-purple-400/25 bg-purple-400/10 text-amber-400"
+            )}>
+              {isPro ? <Crown size={19} strokeWidth={1.8} /> : <GreetingIcon size={19} strokeWidth={1.8} />}
+              <span aria-hidden="true" className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-[#0e0f17] bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             </span>
-            <span suppressHydrationWarning className="inline-flex items-center gap-1.5 shrink-0">
-              <GreetingIcon size={14} className="text-amber-400 animate-pulse" />
-              <span>{greeting.text}</span>
-            </span>
-            {isPro && (
-              <span className="inline-flex items-center gap-1 ml-1 text-amber-300 font-black shrink-0">
-                · <Crown size={12} className="fill-amber-400 text-amber-400 inline" /> Pro Pass Active
+            <span className="relative flex min-w-0 flex-col gap-1">
+              <span suppressHydrationWarning className={cn(
+                "font-bold uppercase tracking-[0.14em] leading-tight text-purple-200",
+                isPro ? "text-[9px]" : "text-[11px]"
+              )}>
+                {greeting.text}
               </span>
-            )}
+              {isPro && (
+                <span className="text-[11px] font-black uppercase tracking-[0.08em] leading-tight text-amber-300">
+                  Pro Pass Active
+                </span>
+              )}
+            </span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight text-white flex flex-wrap items-center gap-x-3 gap-y-1 pb-1 pt-0.5 leading-normal">
@@ -198,7 +208,7 @@ export function PersonalizedHomeSection({
         </div>
 
         {/* Studio Quick Shortcuts */}
-        <div className="w-full xl:w-auto -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto sm:overflow-x-visible no-scrollbar py-2.5 flex items-center gap-2 sm:gap-3 sm:flex-wrap xl:flex-nowrap shrink-0">
+        <div className="w-full xl:w-auto py-2.5 flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
           {/* 1. Cloud Drive Button */}
           <Link
             href="/library"
@@ -277,8 +287,6 @@ export function PersonalizedHomeSection({
             />
           </Link>
 
-          {/* Mobile Right Spacer for comfortable edge bleed scrolling */}
-          <div className="w-1 shrink-0 sm:hidden" aria-hidden="true" />
         </div>
       </motion.div>
 
@@ -301,7 +309,7 @@ export function PersonalizedHomeSection({
         transition={{ delay: 0.12, duration: 0.6 }}
         className="space-y-3.5"
       >
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2.5 w-2.5">
               <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", continueAccent.dot)}></span>
@@ -456,9 +464,9 @@ export function PersonalizedHomeSection({
         transition={{ delay: 0.2, duration: 0.6 }}
         className="space-y-4"
       >
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between px-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded-lg bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.5)]">
+            <div className="w-5 h-5 shrink-0 rounded-lg bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.5)]">
               <Star size={12} className="fill-amber-300" />
             </div>
             <span className="text-xs font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 drop-shadow-sm">
@@ -593,7 +601,7 @@ export function PersonalizedHomeSection({
           transition={{ delay: 0.3, duration: 0.6 }}
           className="space-y-4"
         >
-          <div className="flex items-center justify-between px-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
             <div className="flex items-center gap-2.5">
               <div className="w-5 h-5 rounded-lg bg-purple-400/20 border border-purple-400/40 flex items-center justify-center text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.5)]">
                 <Clock size={12} className="text-purple-300" />
@@ -852,9 +860,9 @@ export function PersonalizedHomeSection({
                     <p className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium text-zinc-400 leading-relaxed tracking-tight group-hover:text-zinc-200 transition-colors">
                       {rec.tool.description}
                     </p>
-                    <p className="mt-2 text-[10.5px] font-bold text-zinc-400 truncate flex items-center gap-1.5">
-                      <span className="text-cyan-400">⚡</span>
-                      <span>{rec.reason}</span>
+                    <p className="mt-2 text-[10.5px] font-bold text-zinc-400 flex items-start gap-1.5">
+                      <span className="shrink-0 text-cyan-400">⚡</span>
+                      <span className="min-w-0 break-words">{rec.reason}</span>
                     </p>
                   </div>
 

@@ -151,7 +151,7 @@ Your mission is to provide fast, accurate, friendly, and deeply knowledgeable an
   5. Active Tool Usage & Community Contributions: Using tools frequently grants bonus Sparks drops.
 - What Sparks Can Be Spent On (in /rewards):
   1. Streak Protection & Shields (Duolingo-style streak savers):
-     * Streak Freeze (1x Shield - 250⚡): Automatically protects and preserves your consecutive login streak if you miss logging in for one day. Users can stack up to 3 shields. Automatically consumed when a day is missed so your hard-earned streak is never lost.
+     * Streak Freeze (1x Shield - 250⚡): Each shield automatically covers one missed daily reward claim and is consumed. Users can stack up to 3 shields. Reward days reset at 12:00 PM IST. Logging in alone does not claim a reward; uncovered missed reward days end the streak.
      * Streak Guardian (3x Bundle - 600⚡): Instantly tops up your streak vault to the maximum capacity of 3 active streak shields at a discount.
   2. Real-Money Shop Discount Vouchers:
      * ₹100 / $1.50 Shop Voucher (400⚡): Generates a single-use coupon code valid on credit pack purchases in /shop.
@@ -225,4 +225,3 @@ Your mission is to provide fast, accurate, friendly, and deeply knowledgeable an
 - Users are limited to 1 active pending ticket at a time to ensure fast, dedicated review within 24 hours.
 - Direct human support: support@exismic.xyz.
 `;
-

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { claimStreakMilestone, getUserCredits, STREAK_MILESTONES } from "@/lib/credits";
 import { getOrCreateUser } from "@/lib/user-access";
@@ -11,12 +12,12 @@ export async function GET() {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const credits = await getUserCredits(user.id);
     if (!credits) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return publicJson({ error: "User not found" }, { status: 404 });
     }
 
     const rawClaimed = credits.streakMilestonesClaimed;
@@ -38,14 +39,14 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       currentStreak,
       milestones,
     });
   } catch (err) {
     console.error("[API_STREAK_MILESTONES_GET]", err);
-    return NextResponse.json({ error: "Failed to fetch milestones" }, { status: 500 });
+    return publicJson({ error: "Failed to fetch milestones" }, { status: 500 });
   }
 }
 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     await getOrCreateUser(user);
@@ -64,19 +65,19 @@ export async function POST(request: NextRequest) {
     const milestoneDay = Number(body?.milestoneDay);
 
     if (!milestoneDay) {
-      return NextResponse.json({ error: "Missing milestoneDay" }, { status: 400 });
+      return publicJson({ error: "Missing milestoneDay" }, { status: 400 });
     }
 
     const result = await claimStreakMilestone(user.id, milestoneDay);
 
     if (!result.success) {
-      return NextResponse.json(
+      return publicJson(
         { success: false, error: result.error || "Failed to claim milestone" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       milestone: result.milestone,
       credits: result.credits,
@@ -84,6 +85,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error("[API_STREAK_MILESTONES_POST]", err);
-    return NextResponse.json({ error: "Failed to process milestone claim" }, { status: 500 });
+    return publicJson({ error: "Failed to process milestone claim" }, { status: 500 });
   }
 }

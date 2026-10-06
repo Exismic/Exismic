@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto py-8 md:py-12">
+    <div className="p-0 lg:p-8 max-w-7xl mx-auto lg:py-12">
       <Dashboard initialUser={user} />
     </div>
   );

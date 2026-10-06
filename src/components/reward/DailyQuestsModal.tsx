@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Portal } from "@/components/ui/Portal";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, 
@@ -191,8 +192,20 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
   const tabProgressPercent = totalInTab > 0 ? Math.min(100, Math.round((completedInTab / totalInTab) * 100)) : 0;
 
   return (
+    <Portal>
+    <style jsx global>{`
+      @media (max-height: 500px) {
+        .exismic-quests-dialog {
+          display: block;
+          overflow-y: auto;
+        }
+        .exismic-quests-list {
+          overflow: visible;
+        }
+      }
+    `}</style>
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-5">
         {/* Dynamic Frosted Cyber Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -209,7 +222,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
           exit={{ scale: 0.94, opacity: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 380, damping: 28 }}
           className={cn(
-            "relative w-full max-w-3xl rounded-[2.5rem] border-2 p-5 sm:p-7 overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92vh] transition-colors duration-500",
+            "exismic-quests-dialog relative w-full max-w-3xl rounded-[2.5rem] border-2 p-4 sm:p-7 overflow-hidden z-10 backdrop-blur-3xl flex flex-col max-h-[92dvh] transition-colors duration-500",
             isWeeklyActive
               ? "border-purple-500/50 bg-gradient-to-b from-[#140d28]/98 via-[#0c071a]/98 to-[#05030c]/98 shadow-[0_32px_120px_rgba(0,0,0,0.95),0_0_80px_rgba(168,85,247,0.3)]"
               : "border-amber-500/50 bg-gradient-to-b from-[#191209]/98 via-[#0e0a05]/98 to-[#040301]/98 shadow-[0_32px_120px_rgba(0,0,0,0.95),0_0_80px_rgba(245,158,11,0.28)]"
@@ -233,8 +246,8 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
           {/* 1. HEADER BAR: Title, Balance & Close */}
           {/* ============================================================ */}
           <div className="relative z-10 flex flex-col gap-4 pb-4 border-b border-white/[0.08] shrink-0">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+            <div className="flex items-start justify-between gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                 {/* 3D Holographic Crest Socket */}
                 <div className="relative group/emblem shrink-0">
                   <div className={cn(
@@ -242,7 +255,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                     isWeeklyActive ? "bg-purple-500/40" : "bg-amber-500/40"
                   )} />
                   <div className={cn(
-                    "relative flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border shadow-[0_10px_30px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.2)]",
+                    "relative flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border shadow-[0_10px_30px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.2)]",
                     isWeeklyActive
                       ? "border-purple-400/50 bg-gradient-to-br from-[#23123f]/95 via-[#130926]/98 to-[#06020f]/98 shadow-[0_0_25px_rgba(168,85,247,0.4)] text-purple-300"
                       : "border-amber-400/50 bg-gradient-to-br from-[#2b1806]/95 via-[#160c02]/98 to-[#050300]/98 shadow-[0_0_25px_rgba(245,158,11,0.4)] text-amber-300"
@@ -308,7 +321,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                 {/* Close Button */}
                 <button
                   onClick={onClose}
-                  className="group flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/25 hover:bg-white/[0.1] hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+                  className="group flex h-11 w-11 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/25 hover:bg-white/[0.1] hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
                   aria-label="Close quests modal"
                 >
                   <X size={17} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -338,8 +351,8 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
                   />
                 )}
-                <div className="relative z-10 flex items-center gap-2">
-                  <Flame size={15} className={!isWeeklyActive ? "text-amber-400 fill-amber-400" : "text-zinc-500"} />
+                <div className="relative z-10 flex min-w-0 flex-wrap items-center justify-center gap-2">
+                  <Flame size={15} className={cn("shrink-0", !isWeeklyActive ? "text-amber-400 fill-amber-400" : "text-zinc-500")} />
                   <span>Daily Quests</span>
                   {dailyUnclaimedCount > 0 ? (
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-400 text-amber-950 animate-pulse shadow-[0_0_10px_rgba(251,191,36,0.9)]">
@@ -374,8 +387,8 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
                   />
                 )}
-                <div className="relative z-10 flex items-center gap-2">
-                  <Crown size={15} className={isWeeklyActive ? "text-purple-300 fill-purple-300/30" : "text-zinc-500"} />
+                <div className="relative z-10 flex min-w-0 flex-wrap items-center justify-center gap-2">
+                  <Crown size={15} className={cn("shrink-0", isWeeklyActive ? "text-purple-300 fill-purple-300/30" : "text-zinc-500")} />
                   <span>Weekly Quests</span>
                   {weeklyUnclaimedCount > 0 ? (
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-400 text-purple-950 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.9)]">
@@ -405,7 +418,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 relative z-10">
                 {/* Left: Quest Milestone Progress Bar with pips */}
                 <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[11px] font-bold">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold">
                     <span className="text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Target size={13} className={isWeeklyActive ? "text-purple-300" : "text-amber-300"} />
                       <span>{isWeeklyActive ? "Weekly Mission Progress" : "Daily Mission Progress"}</span>
@@ -471,7 +484,7 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
           {/* ============================================================ */}
           {/* 4. QUEST CARDS LIST: Rich, Cyberpunk Glass Cards */}
           {/* ============================================================ */}
-          <div className="relative z-10 mt-3 space-y-3 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar flex-1 pb-1">
+          <div className="exismic-quests-list relative z-10 mt-3 min-h-0 space-y-3 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar flex-1 pb-1">
             {loading && quests.length === 0 ? (
               <div className="py-16 text-center space-y-3">
                 <div className={cn(
@@ -714,5 +727,6 @@ export function DailyQuestsModal({ isOpen, onClose }: DailyQuestsModalProps) {
         </motion.div>
       </div>
     </AnimatePresence>
+    </Portal>
   );
 }

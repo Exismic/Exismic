@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { publicJson } from "@/lib/public-json";
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import {
@@ -10,6 +10,8 @@ import {
   canUserUseCanopy,
 } from '@/lib/user-access';
 import { syncUserRazorpaySubscription } from '@/lib/billing/razorpay-sync';
+import { after } from 'next/server';
+import { sendWelcomeEmailOnce } from '@/lib/welcome-email';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,15 +19,21 @@ export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return publicJson({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     const dbUser = await getOrCreateUser(user);
-    
+    if (dbUser?.email && dbUser.status === 'active') {
+      const email = dbUser.email;
+      // Next keeps this work alive after the response; the durable queue also
+      // survives a hard stop. Ordinary returning users are never auto-enrolled.
+      after(async () => { await sendWelcomeEmailOnce(email); });
+    }
+
     if (!dbUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return publicJson({ error: 'User not found' }, { status: 404 });
     }
 
     // 1. Live sync with Razorpay if user has an active Razorpay recurring subscription
@@ -108,7 +116,7 @@ export async function GET() {
         console.warn('[Profile API] Failed to sync auth metadata for unequipped cosmetics:', authErr);
       }
     }
-    
+
     const serializedUser = {
       ...dbUser,
       is_pro: hasActiveProAccess(dbUser),
@@ -137,7 +145,7 @@ export async function GET() {
       deletion_recovery_requested: Boolean(dbUser.deletionRecoveryRequested),
     };
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       user: serializedUser
     }, {
@@ -149,6 +157,6 @@ export async function GET() {
     });
   } catch (err: unknown) {
     console.error('[API] Error fetching profile:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return publicJson({ error: 'Internal server error' }, { status: 500 });
   }
 }

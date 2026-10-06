@@ -57,7 +57,8 @@ require.extensions[".ts"] = (module, filename) => {
 };
 
 async function main() {
-  const to = process.argv[2] || process.env.EMAIL_TEST_TO || "kgold3796@gmail.com";
+  const to = process.argv[2];
+  if (!to) throw new Error('An explicit test recipient is required.');
   const runId = Date.now();
   const {
     sendAuthOTP,

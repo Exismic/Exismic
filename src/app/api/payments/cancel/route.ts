@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
 import Razorpay from "razorpay";
 import { createNotification } from "@/lib/notifications";
 import { cancelPayPalSubscription } from "@/lib/paypal";
@@ -50,7 +50,7 @@ export async function POST() {
     } = await supabase.auth.getUser();
 
     if (!user?.id || !user.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return publicJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const dbUser =
@@ -58,14 +58,14 @@ export async function POST() {
       (await prisma.user.findUnique({ where: { email: user.email } }));
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User record not found. Please sync your account and try again." }, { status: 404 });
+      return publicJson({ error: "User record not found. Please sync your account and try again." }, { status: 404 });
     }
 
     const currentPlan = (dbUser.plan || "free").toLowerCase();
     const subscriptionStatus = (dbUser.subscriptionStatus || "none").toLowerCase();
 
     if (subscriptionStatus === "cancelled") {
-      return NextResponse.json({
+      return publicJson({
         success: true,
         message: "Subscription is already cancelled.",
         subscriptionStatus: "cancelled",
@@ -76,7 +76,7 @@ export async function POST() {
     }
 
     if (currentPlan !== "pro" && !dbUser.subscriptionId) {
-      return NextResponse.json({ error: "No active subscription found." }, { status: 400 });
+      return publicJson({ error: "No active subscription found." }, { status: 400 });
     }
 
     const billingOrder = dbUser.subscriptionId
@@ -98,7 +98,7 @@ export async function POST() {
         providerCancelled = true;
       } catch (error) {
         console.error("[PayPal] Subscription cancel failed:", error);
-        return NextResponse.json({ error: "PayPal could not confirm the cancellation. Your subscription was not changed; please try again." }, { status: 502 });
+        return publicJson({ error: "PayPal could not confirm the cancellation. Your subscription was not changed; please try again." }, { status: 502 });
       }
     }
 
@@ -111,7 +111,7 @@ export async function POST() {
         providerCancelled = true;
       } catch (error) {
         console.error("[Razorpay] Subscription cancel failed:", error);
-        return NextResponse.json({ error: "Razorpay could not confirm the cancellation. Your subscription was not changed; please try again." }, { status: 502 });
+        return publicJson({ error: "Razorpay could not confirm the cancellation. Your subscription was not changed; please try again." }, { status: 502 });
       }
     }
 
@@ -148,7 +148,7 @@ export async function POST() {
       console.error("Cancellation notification failed:", notificationError);
     });
 
-    return NextResponse.json({
+    return publicJson({
       success: true,
       message: "Subscription cancelled successfully.",
       subscriptionStatus: updatedUser.subscriptionStatus,
@@ -160,6 +160,6 @@ export async function POST() {
   } catch (error: unknown) {
     console.error("Cancellation error:", error);
     const message = error instanceof Error ? error.message : "Failed to cancel subscription.";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return publicJson({ success: false, error: message }, { status: 500 });
   }
 }

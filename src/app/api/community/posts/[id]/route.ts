@@ -1,3 +1,4 @@
+import { publicJson } from "@/lib/public-json";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiUser } from "@/lib/api-security";
@@ -18,7 +19,7 @@ export async function GET(
     });
 
     if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return publicJson({ error: "Post not found" }, { status: 404 });
     }
 
     // Increment views count non-blockingly
@@ -29,10 +30,10 @@ export async function GET(
       })
       .catch(() => {});
 
-    return NextResponse.json(post);
+    return publicJson(post);
   } catch (error) {
     console.error("[COMMUNITY_POST_GET]", error);
-    return NextResponse.json({ error: "Failed to fetch post" }, { status: 500 });
+    return publicJson({ error: "Failed to fetch post" }, { status: 500 });
   }
 }
 
@@ -53,23 +54,23 @@ export async function DELETE(
     });
 
     if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return publicJson({ error: "Post not found" }, { status: 404 });
     }
 
     const isOwner = post.userId === authUser.id;
     const isAdmin = authUser.email && ADMIN_EMAILS.includes(authUser.email.toLowerCase());
 
     if (!isOwner && !isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return publicJson({ error: "Unauthorized" }, { status: 403 });
     }
 
     await prisma.communityPost.delete({
       where: { id },
     });
 
-    return NextResponse.json({ success: true, message: "Post removed" });
+    return publicJson({ success: true, message: "Post removed" });
   } catch (error) {
     console.error("[COMMUNITY_POST_DELETE]", error);
-    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+    return publicJson({ error: "Failed to delete post" }, { status: 500 });
   }
 }

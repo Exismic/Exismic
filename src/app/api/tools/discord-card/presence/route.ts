@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { NextRequest } from "next/server";
 import {
   getDiscordPresenceInviteUrl,
   getDiscordPresenceWorkerStatus,
@@ -14,7 +15,7 @@ const DISCORD_ID_PATTERN = /^\d{17,20}$/;
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId")?.trim() ?? "";
   if (!DISCORD_ID_PATTERN.test(userId)) {
-    return NextResponse.json(
+    return publicJson(
       { error: "Enter a valid Discord user ID." },
       { status: 400 },
     );
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     getDiscordPresenceWorkerStatus(),
   ]);
 
-  return NextResponse.json(
+  return publicJson(
     {
       userId,
       presence,

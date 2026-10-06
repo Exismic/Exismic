@@ -1,16 +1,10 @@
-import { NextResponse } from "next/server";
+import { publicJson } from "@/lib/public-json";
+import { betaFeedbackEmail } from "@/emails/notifications";
 import { resend } from "@/lib/resend";
 import { getAdminEmails } from "@/lib/admin";
 import { createClient } from "@/utils/supabase/server";
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +12,7 @@ export async function POST(req: Request) {
     const { toolId = "minecraft-skin", toolName = "AI Minecraft Skin Maker", feedback } = body;
 
     if (!feedback || typeof feedback !== "string" || !feedback.trim()) {
-      return NextResponse.json({ success: true, message: "No feedback text provided" });
+      return publicJson({ success: true, message: "No feedback text provided" });
     }
 
     const trimmedFeedback = feedback.trim().slice(0, 3000);
@@ -27,9 +21,9 @@ export async function POST(req: Request) {
     let submitterEmail = "Anonymous Visitor";
     try {
       const supabase = await createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.email) {
-        submitterEmail = session.user.email;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        submitterEmail = user.email;
       }
     } catch {
       // Continue with Anonymous Visitor
@@ -41,45 +35,7 @@ export async function POST(req: Request) {
 
     if (resendApiKey && adminRecipients.length > 0) {
       try {
-        const emailHtml = `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #ffffff; background-color: #090a10; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-              <span style="display: inline-block; padding: 4px 10px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 999px; color: #06b6d4; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
-                ⛏️ Minecraft Skin Studio • Beta Feedback
-              </span>
-            </div>
-
-            <h1 style="color: #ffffff; font-size: 20px; font-weight: 900; margin: 0 0 12px 0; letter-spacing: -0.5px;">
-              New User Suggestion Received
-            </h1>
-
-            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
-              <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
-                User Feedback / Feature Suggestion:
-              </p>
-              <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #f1f5f9; white-space: pre-wrap;">${escapeHtml(trimmedFeedback)}</p>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #94a3b8;">
-              <tr>
-                <td style="padding: 6px 0; font-weight: 600;">Tool:</td>
-                <td style="padding: 6px 0; color: #e2e8f0; text-align: right;">${escapeHtml(toolName)} (${escapeHtml(toolId)})</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; font-weight: 600;">User:</td>
-                <td style="padding: 6px 0; color: #e2e8f0; text-align: right;">${escapeHtml(submitterEmail)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; font-weight: 600;">Submitted At:</td>
-                <td style="padding: 6px 0; color: #e2e8f0; text-align: right;">${new Date().toISOString()}</td>
-              </tr>
-            </table>
-
-            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: #64748b; text-align: center;">
-              Exismic Beta Feedback Delivery System
-            </div>
-          </div>
-        `;
+        const emailHtml = betaFeedbackEmail({ toolName, toolId, email: submitterEmail, feedback: trimmedFeedback, submittedAt: new Date().toISOString() });
 
         const fromDomain = process.env.EMAIL_SENDER_DOMAIN?.trim() || "exismic.xyz";
         const emailSend = (await resend.emails.send({
@@ -141,9 +97,9 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return publicJson({ success: true });
   } catch (error) {
     console.error("[BetaFeedback] Error handling feedback:", error);
-    return NextResponse.json({ success: false, error: "Failed to record feedback" }, { status: 500 });
+    return publicJson({ success: false, error: "Failed to record feedback" }, { status: 500 });
   }
 }
