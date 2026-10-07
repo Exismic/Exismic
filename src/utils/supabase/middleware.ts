@@ -1,4 +1,3 @@
-import { AUTH_PROOF_COOKIE, isVerifiedAppSession } from "@/lib/auth/session-proof";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -157,8 +156,7 @@ export async function updateSession(request: NextRequest) {
   // This will refresh session if expired - required for Server Components
   const user = await supabase.auth.getUser();
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!user.data.user || !await isVerifiedAppSession(user.data.user, session, request.cookies.get(AUTH_PROOF_COOKIE)?.value)) {
+  if (!user.data.user) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
     url.searchParams.set('returnUrl', rawPath);

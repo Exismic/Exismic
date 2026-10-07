@@ -22,13 +22,12 @@ export function useAuth(redirectOnLogin: string | null = null) {
       }
       const session = data?.session ?? null;
       if (mounted) {
-        const verified = session?.user && await fetch('/api/auth/session', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(data => Boolean(data?.verified)).catch(() => false);
-        if (!mounted || current !== generation) return;
-        setUser(verified ? session.user : null);
+        if (current !== generation) return;
+        setUser(session?.user ?? null);
         setLoading(false);
         
         const isSuspended = typeof window !== 'undefined' && window.location.search.includes('error=suspended');
-        if (verified && redirectOnLogin && !isSuspended) {
+        if (session?.user && redirectOnLogin && !isSuspended) {
           setIsRedirecting(true);
           router.push(redirectOnLogin);
         }
@@ -41,12 +40,11 @@ export function useAuth(redirectOnLogin: string | null = null) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       const current = ++generation;
       if (mounted) {
-        const verified = session?.user && await fetch('/api/auth/session', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(data => Boolean(data?.verified)).catch(() => false);
-        if (!mounted || current !== generation) return;
-        setUser(verified ? session.user : null);
+        if (current !== generation) return;
+        setUser(session?.user ?? null);
         setLoading(false);
         const isSuspended = typeof window !== 'undefined' && window.location.search.includes('error=suspended');
-        if (event === 'SIGNED_IN' && verified && redirectOnLogin && !isSuspended) {
+        if (event === 'SIGNED_IN' && session?.user && redirectOnLogin && !isSuspended) {
           setIsRedirecting(true);
           router.push(redirectOnLogin);
         } else if (event === 'SIGNED_OUT') {

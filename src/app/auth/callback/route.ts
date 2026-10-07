@@ -367,7 +367,11 @@ export async function GET(request: Request) {
     }
 
     if (!data.session) return redirectToLogin(request, 'missing_identity');
-    await issueSessionProof(data.session);
+    try {
+      await issueSessionProof(data.session);
+    } catch (proofErr) {
+      console.warn("[Auth] Session proof issuance skipped:", proofErr);
+    }
 
     const authCreatedAt = Date.parse(authUser.created_at);
     const authIdentityIsNew =
