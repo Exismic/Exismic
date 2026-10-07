@@ -486,7 +486,22 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
   if (!account) return { error: 'This code is invalid or has expired. Please start signup again.' };
   const claim = await claimSignupVerification(emailLower, challengeId, otpClean, signupPasswordBinding(emailLower, password), account.id, account.app_metadata?.exismic_auth_version || 'initial', Boolean(account.email_confirmed_at));
   if (claim === 'busy') return { error: 'Verification is already finishing. Please wait a moment and try again.' };
-  if (!claim) return { error: 'This code is invalid or has expired. Please request a new code.' };
+  if (!claim) {
+    if (account.email_confirmed_at) {
+      const signedIn = await (await createClient()).auth.signInWithPassword({ email: emailLower, password });
+      if (!signedIn.error && signedIn.data.session) {
+        await ensureVerifiedCredentialAccount(signedIn.data.user);
+        const requestHeaders = await headers();
+        const registered = await registerTrustedDevice(signedIn.data.user.id, emailLower, requestHeaders.get('user-agent') || '', extractClientIp(requestHeaders));
+        (await cookies()).set(DEVICE_TOKEN_COOKIE_NAME, registered.rawDeviceToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', expires: registered.expiresAt });
+        (await cookies()).delete(SIGNUP_CHALLENGE_COOKIE);
+        await issueSessionProof(signedIn.data.session);
+        return { success: true };
+      }
+      return { error: 'Your email is already verified. Please sign in with your password.', redirectToSignIn: true };
+    }
+    return { error: 'This code is invalid or has expired. Please request a new code.' };
+  }
   signupLease = claim;
 
   // Confirm the auth identity only after the custom OTP has been validated.
@@ -568,17 +583,27 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
       const rand = randomInt(1000, 10000);
       const myReferralCode = `${prefix.padEnd(6, "X")}${rand}`;
       const hasReferralPayout = referrerUser && !isSuspicious;
+      let accountForWelcome: { id: string; email: string | null; createdAt: Date } | null = null;
 
       await runSerializable(() => prisma.$transaction(async tx => {
         const existing = await tx.user.findFirst({ where: { OR: [{ id: authUserId }, { email: emailLower }] } });
         if (existing) {
           if (existing.status !== "active") throw new Error("This account cannot sign in right now.");
+          const updates: { id?: string; dailyCredits?: number; creditsLastReset?: Date } = {};
           if (existing.id !== authUserId && existing.email === emailLower) {
+            updates.id = authUserId;
+          }
+          if (existing.dailyCredits === 0 && !existing.creditsLastReset) {
+            updates.dailyCredits = 50;
+            updates.creditsLastReset = new Date();
+          }
+          if (Object.keys(updates).length > 0) {
             await tx.user.update({
               where: { id: existing.id },
-              data: { id: authUserId },
+              data: updates,
             });
           }
+          accountForWelcome = existing;
           return;
         }
         const account = await tx.user.upsert({
@@ -595,7 +620,7 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
             hasSeenWelcome: false,
           }
         });
-        await queueWelcomeEmail(tx, account);
+        accountForWelcome = account;
 
         if (referrerUser) {
           // 1. Create the referral relation mapping
@@ -649,9 +674,13 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
       if (referrerUser) {
         try { cookieStore.delete("exismic_referral"); } catch {}
       }
+
+      if (accountForWelcome) {
+        await queueWelcomeEmail(prisma, accountForWelcome).catch((e) => {
+          console.error('[Auth] queueWelcomeEmail non-fatal error:', e);
+        });
+      }
     }
-
-
 
     const welcomeResult = await sendWelcomeEmailOnce(emailLower);
     if (welcomeResult === "failed") {
@@ -659,7 +688,10 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
     }
   } catch (err) {
     console.error('[Auth] Failed to initialize user credits:', err);
-    return { error: "Your email is verified. Please try this code again to finish account setup." };
+    const existingDbUser = await prisma.user.findFirst({ where: { email: emailLower } });
+    if (!existingDbUser) {
+      return { error: "Your email is verified. Please try this code again to finish account setup." };
+    }
   }
 
   const signedIn = await (await createClient()).auth.signInWithPassword({ email: emailLower, password });

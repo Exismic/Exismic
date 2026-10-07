@@ -18,8 +18,8 @@ function jobKeys(account: WelcomeAccount) {
   return { pending: `${PENDING_PREFIX}${key}`, claim: `welcome_claim:${key}`, sent: `welcome_sent:${key}`, key };
 }
 
-/** Persist with the account creation transaction, before any email request. */
-export async function queueWelcomeEmail(tx: Prisma.TransactionClient, account: WelcomeAccount) {
+/** Persist welcome email job. Non-fatal if queuing fails. */
+export async function queueWelcomeEmail(tx: Prisma.TransactionClient | typeof prisma, account: WelcomeAccount) {
   const email = account.email?.trim().toLowerCase();
   if (!email) return;
   const type = jobKeys(account).pending;

@@ -9,6 +9,22 @@
 > **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
 
+### Signup OTP Verification Trap, Credit Provisioning & Check Constraint Resolution — October 7, 2026 (local)
+
+- **Root Cause of the Trap ("Your email is verified. Please try this code again to finish account setup.")**:
+  - In PostgreSQL, the `public.auth_rate_limits` table had a legacy database check constraint: `auth_rate_limits_type_check: CHECK ((type = ANY (ARRAY['otp_verification', 'magic_link', 'password_reset'])))`.
+  - During signup verification (`verifyOtpAction`), right after Supabase Auth confirmed the user's email, `runSerializable` ran `prisma.$transaction` to create the User row and provision 50 daily credits.
+  - Inside that same transaction, `queueWelcomeEmail(tx, account)` executed `tx.authRateLimit.upsert(...)` with `type: welcome_pending:${hash}`.
+  - PostgreSQL rejected this row due to `auth_rate_limits_type_check` (violates check constraint). This aborted the database transaction, rolling back the Prisma `User` record creation, the 50 daily credits, and referral bonuses.
+  - It then caught the error and returned: *"Your email is verified. Please try this code again to finish account setup."*
+  - Re-entering the code repeated the exact same constraint failure, permanently trapping the new user on the verification screen while their account remained in a half-created limbo in Supabase Auth.
+- **Permanent Multi-Layered Hardening**:
+  1. **Database Schema**: Dropped the restrictive check constraint (`ALTER TABLE public.auth_rate_limits DROP CONSTRAINT IF EXISTS auth_rate_limits_type_check;`) and recorded it in [`prisma/auth_rate_limits.sql`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/prisma/auth_rate_limits.sql).
+  2. **Transaction Isolation**: Decoupled `queueWelcomeEmail` in [`src/app/actions/auth.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/actions/auth.ts) and [`src/lib/auth/account-setup.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/auth/account-setup.ts) so welcome email queuing runs safely *after* user and credit provisioning commits, preventing any mail queue failure from ever rolling back an account.
+  3. **Credit Provisioning Self-Healing**: Enhanced account reconciliation to detect if an existing or recovered user has uninitialized (`0`) daily credits and automatically initialize them to 50 daily credits.
+  4. **Self-Healing Verification Loop**: In [`verifyOtpAction`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/actions/auth.ts), if the code challenge expired or was consumed but the account's email is already confirmed in Supabase, the system attempts immediate sign-in with the submitted password and issues session credentials seamlessly. If password fails, it sends `redirectToSignIn: true` which automatically transitions [`src/app/auth/login/page.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/auth/login/page.tsx) to the Sign In screen with their email prefilled instead of stranding them on the 6-digit OTP inputs.
+  5. **Validation**: All 22 offline welcome-email regression checks passed (`scripts/test-welcome-email.cjs`). TypeScript check verified with 0 errors (`npx tsc --noEmit`).
+
 ### Executive Checkout Card & Razorpay Instrument Hardening — October 7, 2026 (local)
 
 - **PayPal Orders v2 Schema Correction (`landing_page: BILLING`)**:

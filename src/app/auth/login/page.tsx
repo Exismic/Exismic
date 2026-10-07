@@ -545,6 +545,11 @@ export default function AuthPage() {
     try {
       const result = await verifyOtpAction(email, otpString, pendingSignupPassword);
       if (result.error) {
+        if ('redirectToSignIn' in result && result.redirectToSignIn) {
+          setState('signin');
+          setError(result.error);
+          return;
+        }
         setError(result.error);
       } else {
         setState('success');
