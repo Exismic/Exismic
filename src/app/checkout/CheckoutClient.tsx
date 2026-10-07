@@ -442,50 +442,44 @@ export function CheckoutClient({ initialPlanId = "starter", initialMarket }: Che
         modal: {
           ondismiss: () => setLoadingMethod(null),
         },
-        display: {
-          sequence: paymentType === "card" ? ["card", "upi", "netbanking"] : ["upi", "netbanking", "card"],
-          preferences: {
-            show_default_blocks: true,
-          },
-        },
         config: paymentType === "card"
           ? {
               display: {
                 blocks: {
-                  cards: {
-                    name: "Pay with Debit or Credit Card",
+                  card_block: {
+                    name: "Debit or Credit Card",
                     instruments: [{ method: "card" }],
                   },
-                  other: {
+                  other_block: {
                     name: "Other Payment Methods",
                     instruments: [{ method: "upi" }, { method: "netbanking" }],
                   },
                 },
-                sequence: ["block.cards", "block.other"],
+                sequence: ["block.card_block", "block.other_block"],
                 preferences: {
-                  show_default_blocks: true,
+                  show_default_blocks: false,
                 },
               },
             }
           : {
               display: {
                 blocks: {
-                  upi: {
+                  upi_block: {
                     name: "UPI (Google Pay, PhonePe, Paytm)",
                     instruments: [{ method: "upi" }],
                   },
-                  netbanking: {
+                  netbanking_block: {
                     name: "Net Banking",
                     instruments: [{ method: "netbanking" }],
                   },
-                  cards: {
+                  card_block: {
                     name: "Debit or Credit Card",
                     instruments: [{ method: "card" }],
                   },
                 },
-                sequence: ["block.upi", "block.netbanking", "block.cards"],
+                sequence: ["block.upi_block", "block.netbanking_block", "block.card_block"],
                 preferences: {
-                  show_default_blocks: true,
+                  show_default_blocks: false,
                 },
               },
             },

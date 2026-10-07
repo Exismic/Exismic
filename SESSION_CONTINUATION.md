@@ -1,6 +1,6 @@
 # Exismic Studio — Master Project Continuation & Architecture Memory
 
-> **Last Updated**: October 6, 2026
+> **Last Updated**: October 7, 2026
 > **Repository**: `Exismic/Exismic` (`c:\Users\rayan\.gemini\antigravity\scratch\exismic-project`)  
 > **Status**: Production-ready, TypeScript clean (`tsc --noEmit` = 0 errors), Next.js 16 Production Build verified (`npm run build` = 0 errors). Performance & low-end/mobile architecture hardened. 100% human, tech-bro jargon-free copy across all landing page sections and modals.
 > **Active Account**: `BMREZ` (`syedrayan.dev@gmail.com`).
@@ -8,6 +8,17 @@
 > **Mandatory Tool Design & Copy Standards**: [`TOOL_STANDARDS_AND_GUIDELINES.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/TOOL_STANDARDS_AND_GUIDELINES.md) (Zero tech jargon, zero sparkles, balanced void-free layouts, and laser bridges).
 > **Recent Pipeline Hardening**: Completely purged generic `<Sparkles>` star icon from `MediaPipelineBar.tsx` (`NEXT ACTION PIPELINE` header). Replaced with authentic `<Workflow>` icon and reactive category theming (e.g. neon pink `#ec4899` for audio tools, ruby red `#ef4444` for PDF tools).
 > **Active Roadmap**: [`FUTURE_OF_EXISMIC.md`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/FUTURE_OF_EXISMIC.md) — Pillars #1 & #2: Pro Moat & Audience Workflows (100% Completed; Pillars #3 & #4 Scheduled for Future Sprint).
+
+### Executive Checkout Card & Razorpay Instrument Hardening — October 7, 2026 (local)
+
+- **PayPal Orders v2 Schema Correction (`landing_page: BILLING`)**:
+  - Replaced unsupported `"GUEST_CHECKOUT"` parameter in [`src/lib/paypal.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/paypal.ts) and [`src/app/api/billing/create-order/route.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/api/billing/create-order/route.ts) with official `"BILLING"` value. Resolves HTTP 400 schema rejection and eliminates generic *"We couldn't complete this request"* error modal when clicking Global Debit/Credit card.
+- **Razorpay Desktop Block Prioritization Fix (`show_default_blocks: false`)**:
+  - In [`src/app/checkout/CheckoutClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/checkout/CheckoutClient.tsx), removed extraneous root-level `options.display` and set `preferences: { show_default_blocks: false }` under `config.display`.
+  - Configured `sequence: ["block.card_block", "block.other_block"]` for the Debit/Credit Card button, ensuring Razorpay opens directly to card details rather than forcing the standard desktop UPI QR code on both buttons.
+- **Billing Regression & Type Validation**:
+  - All 35/35 billing regression tests passing (`scripts/billing-receipt-regression.cjs`).
+  - TypeScript zero-error clean (`npx tsc --noEmit`).
 
 ### Turbopack Stabilization, SSR Hydration & Supabase Auth Hardening — October 6, 2026 (local)
 

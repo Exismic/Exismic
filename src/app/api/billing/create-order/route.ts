@@ -633,7 +633,7 @@ export async function POST(req: NextRequest) {
       description: `${plan.name} - Exismic`,
       returnUrl: `${origin}/billing/success?${successParams.toString()}`,
       cancelUrl: `${origin}/billing/cancel?${cancelParams.toString()}`,
-      landingPage: isPayPalLoginPreference ? "LOGIN" : "GUEST_CHECKOUT",
+      landingPage: isPayPalLoginPreference ? "LOGIN" : "BILLING",
     });
 
     await prisma.paymentOrder.update({

@@ -185,13 +185,13 @@ export async function createPayPalOrder({
   description,
   returnUrl,
   cancelUrl,
-  landingPage = "GUEST_CHECKOUT",
+  landingPage = "BILLING",
 }: {
   context: PayPalOrderContext;
   description: string;
   returnUrl: string;
   cancelUrl: string;
-  landingPage?: "GUEST_CHECKOUT" | "LOGIN" | "BILLING" | "NO_PREFERENCE";
+  landingPage?: "BILLING" | "LOGIN" | "NO_PREFERENCE";
 }) {
   const accessToken = await getPayPalAccessToken();
   const orderBody = {

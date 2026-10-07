@@ -18,6 +18,7 @@ async function check(label, run) { await run(); checks++; console.log(`PASS ${la
 function loader(mocks = {}) {
   const cache = new Map();
   function load(name, parent = path.join(root, 'src/index.ts')) {
+    if (name === 'server-only') return {};
     if (Object.hasOwn(mocks, name)) return mocks[name];
     let file = name.startsWith('@/') ? path.join(root, 'src', name.slice(2)) : name.startsWith('.') ? path.resolve(path.dirname(parent), name) : name;
     if (!path.isAbsolute(file)) return require(file);
