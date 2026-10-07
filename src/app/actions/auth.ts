@@ -572,7 +572,13 @@ export async function verifyOtpAction(email: string, otp: string, password: stri
       await runSerializable(() => prisma.$transaction(async tx => {
         const existing = await tx.user.findFirst({ where: { OR: [{ id: authUserId }, { email: emailLower }] } });
         if (existing) {
-          if (existing.id !== authUserId || existing.email !== emailLower || existing.status !== "active") throw new Error("This account cannot sign in right now.");
+          if (existing.status !== "active") throw new Error("This account cannot sign in right now.");
+          if (existing.id !== authUserId && existing.email === emailLower) {
+            await tx.user.update({
+              where: { id: existing.id },
+              data: { id: authUserId },
+            });
+          }
           return;
         }
         const account = await tx.user.upsert({

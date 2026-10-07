@@ -11,7 +11,13 @@ export async function ensureVerifiedCredentialAccount(identity: User) {
     if (await tx.verificationToken.findFirst({ where: { identifier: `account_purge:${identity.id}` } })) throw new Error('This account cannot sign in right now.');
     const existing = await tx.user.findFirst({ where: { OR: [{ id: identity.id }, { email }] } });
     if (existing) {
-      if (existing.id !== identity.id || existing.email !== email || existing.status !== 'active') throw new Error('This account cannot sign in right now.');
+      if (existing.status !== 'active') throw new Error('This account cannot sign in right now.');
+      if (existing.id !== identity.id && existing.email === email) {
+        await tx.user.update({
+          where: { id: existing.id },
+          data: { id: identity.id },
+        });
+      }
       return existing;
     }
     const account = await tx.user.upsert({

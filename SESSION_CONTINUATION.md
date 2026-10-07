@@ -16,6 +16,8 @@
 - **Razorpay Desktop Block Prioritization Fix (`show_default_blocks: false`)**:
   - In [`src/app/checkout/CheckoutClient.tsx`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/checkout/CheckoutClient.tsx), removed extraneous root-level `options.display` and set `preferences: { show_default_blocks: false }` under `config.display`.
   - Configured `sequence: ["block.card_block", "block.other_block"]` for the Debit/Credit Card button, ensuring Razorpay opens directly to card details rather than forcing the standard desktop UPI QR code on both buttons.
+- **Auth Identity & Prisma ID Re-Synchronization Self-Healing**:
+  - In [`src/app/actions/auth.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/app/actions/auth.ts) and [`src/lib/auth/account-setup.ts`](file:///c:/Users/rayan/.gemini/antigravity/scratch/exismic-project/src/lib/auth/account-setup.ts), added automatic ID reconciliation when an existing verified email matches a newly generated Supabase Auth user ID. Prevents permanent account lockout and eliminates *"Your email is verified. Please try this code again"* and *"We couldn't complete this request"* traps on Signup & Device Authorization.
 - **Billing Regression & Type Validation**:
   - All 35/35 billing regression tests passing (`scripts/billing-receipt-regression.cjs`).
   - TypeScript zero-error clean (`npx tsc --noEmit`).
